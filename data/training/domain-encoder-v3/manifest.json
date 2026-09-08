@@ -1,0 +1,1092 @@
+{
+  "scope": "Synthetic author/blind-review agreement, not independent human gold",
+  "sources": {
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-00.json": "0362b6146b568cf32d3519d4884746065ed7e16e7672e64e6cfcc10468082a29",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-01.json": "d4778fed18c45eef6d3ba6f4b4dde1ca2dff38efff8f7c04fe28a8ccbc919cf3",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-02.json": "81ee5fce5dd906fc28a9ec19c6c2bbf973b18bd7042edac4c7a7cb48b21899cc",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-03.json": "80a04d4b9ad28d01a68bfe79795e31f30eafcb0b1d4e22566b90b1664861ef6c",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-04.json": "b94d8e2fbb91c104fdd6c062684eafe8f9c9d7663949258ae06e7e2700e8c8d8",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-05.json": "885e56c27cc2e804f1ce795a1b48f897efcfdc2a48f3b0fdd61f404f01c93bdf",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-06.json": "4972e897ba9a00e3ab2bce4d941d42612d71c8ab63f6b7e95e9ea8e4a0905706",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-07.json": "abe66b7ffc6f35a5087c8b0af16e61e6834b8ecd93a8aa0c176768719dd59aaf",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-08.json": "9f546f352532c3e9af707e14b7e6edce07601ad23db891b9afead4e89e7183a9",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-09.json": "ec0f16fc142e6c5d06bbe18b91b2753a56038b08f286d5e879efaf2e66b12e55",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-10.json": "4c3c3620219e2e875924ef1f0f42ac67886c14436e5940b4e92e7f15091fd0aa",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-11.json": "cd1484e7447f33eed50a6c636d8dbe6f9802d53e45c17e3da5fbc824efc974a6",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-12.json": "5d9e8f5d4b934f799f207b663e72cd21ef1aef507c5875263ed7d827016fb8a9",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-13.json": "c235b8971587b444dede356e6b57b8588eca1d2bd09c18be6b20c5e1381a91ff",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-14.json": "5a3ad5a35d5b674e0de5b1bb0a9ddcd6a6aa685dcb4c8724fd68a794eb3d80b0",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-15.json": "f0bd2b62fd80cecfda75f351bf59490084d369bc11313b1ef4e6ffddada50d84",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-16.json": "cd1b94c6db1c1de58b3a718a7a7fe285e138ba4ddec4a1a5ec89a22d685b3a1f",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-17.json": "2a1360a6853b1206064619b3da43786fc00f799561a7664871393fe4fe2d88c2",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-18.json": "cb0035c8f24bcf1f4e46404e24b0d4a13c0b826e91216a62634217bf50f1c0c1",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-19.json": "cfb4eaabf850e130b224ed0d44a584d922e8409b753bc7bbe4ac0789e5360aaa",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-20.json": "4a796f73585cd50e84a1c852cbc3df220e57fe53d66d26fc6926e71c35033bcc",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-21.json": "952b320fd1d242d8b540a8552bcfa43be368240909538ad419bf69d2c2852e6b",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-22.json": "f88d3849b4eb5b05dfded07b352851ab2858f2803b706f9ff5a60f57cd93c6e9",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-23.json": "55edbfea4c64c3038b13fd4ded7444cf9a2ce2a74068e2a67cb0c97e8e25ef20",
+    "data/training/domain-encoder-v1/zh/train.jsonl": "efb339cf8784b0375bcdba4b8150d13c2ac8aed2145d75a710c74d58f87401c7",
+    "data/training/domain-encoder-v1/zh/calibration.jsonl": "1cea1ffa259f059283603dcc2f874efb605e6358507942c603f685f660a8b939",
+    "data/training/domain-encoder-v1/zh/heldout.jsonl": "048217f1a4d22943e9d238fd53783931645ced2aaf48e5e7e3575782d06d1545",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-00.json": "59d60ff6012eaa126c4c454168b75e854b4d4724e515b651dbcb73b4b1d48b0a",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-01.json": "c367831c33bc900e96995c57652fcb8913cb184e6fb9d9d9072c672e23397b80",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-02.json": "6a13604f2d63c665f461ee5d07fee36b765c7e07bdfe7bbf537e8157affd15c0",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-03.json": "c0662941fdaa99720549101c94f87cf17ec4bd1c9af5b253a752e4c36f9d68b0",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-04.json": "e9f33abeb96ce5096631d2046e473b953a80802ab7b2bcee89e6f0c810670714",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-05.json": "afdd2714c0f125c143b8295b50be98864a69eb8e52e69e410779ed65744577ea",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-06.json": "40dd70430182f514c0b58dc6f623005e99e2e81c75a5ae84d20c1fc3a0131349",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-07.json": "8bb7b828f29f8b8f2544e25c45fd752e5dc12f61b5ce8712ca0d9ade4b754ce7",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-08.json": "67f837d6bbbc9e31a75dc5f563462007cb1c90461f92fa638ed609e7333f506e",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-09.json": "10135c938243c6274b43aedf4aeddd3e9f78977cfda3fcf1e760cc3356ebd4be",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-10.json": "523ccd1a8986450f73fb4b240274ab9d1cee7b12916b24e81818a70ab51a3736",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-11.json": "61e48b78d7ee0dc22d3edead6cbc8270079796ff12e5408ee1e4537b1530a5f1",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-12.json": "d0f475f326cb1f356b1cfa15248378a2e353081d50fbd05e309dcb6c3b571b31",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-13.json": "605efdf1217306fd7c3aa26390299988d493ed0e4eb63228d4d7eaa90981898b",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-14.json": "4cba3a02228a2fbec868082549eaefa3e6daa819e3d93324ca02ba3c79969d89",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-15.json": "5150a2904b4863bad9a8811ca56656f0cd28375b368de32d581bc9cf6805fea8",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-16.json": "830360b6fbb652fc175052ac2e2a0608f7b91e5df837ed5cb7301d86eb30a8dc",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-17.json": "9a2f22b6ee72f995b49e6f394eb29d2134c68a145990c83c5d71db79efbb85c4",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-18.json": "29efc51fffcedd06c45fef3954f9655d8501c857005c18d0dd1bba83fbc92867",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-19.json": "f1c1f82f7d76e0606019ffc0bcb1630c6ca77aa3fc8d802b8fb704f945f533f9",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-20.json": "031fd8cfdda918d96cfeb45a0e0753644c133b119f8d3999cc1d267828438fe5",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-21.json": "1edca5d4eaa24974f0c24a7d1cade167c9bb6c67785757ef21829689472c27e8",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-22.json": "c809b1aa4ae7b103ffb6d14df1215f953382823e41c82ebe4a0fee93a293dfc6",
+    "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-23.json": "ab41bc0272ce8d14f95ec1a4a8484337cd6fadc250cdd0fe17a6d5bbe604f48a",
+    "data/training/domain-encoder-v1/en/train.jsonl": "c5e815ca606e9897245ed36ca49943d3f9c9e45198297bbcac75f9ca907494f4",
+    "data/training/domain-encoder-v1/en/calibration.jsonl": "eb48302a448073b115315a478d3012b57b20807f2fe59b6f815005e4ba8cd5a1",
+    "data/training/domain-encoder-v1/en/heldout.jsonl": "b7391a5cedef829a979802b6fc163d38d4f7e924ef6d73c32afa802a61745771"
+  },
+  "splits": {
+    "zh/train.jsonl": {
+      "rows": 8235,
+      "new_rows": 182,
+      "new_labels": {
+        "product_technical": 41,
+        "order_logistics": 26,
+        "billing_refund": 46,
+        "general": 17,
+        "account_security": 23,
+        "human_service": 18,
+        "__DEFER__": 11
+      },
+      "new_families": 79,
+      "sha256": "59f3b19413eaf83da6c11cac34cbc4eaa791aa5e3c2e05c7675379de6d38783b"
+    },
+    "zh/calibration.jsonl": {
+      "rows": 1238,
+      "new_rows": 61,
+      "new_labels": {
+        "__DEFER__": 4,
+        "account_security": 5,
+        "billing_refund": 16,
+        "human_service": 7,
+        "general": 7,
+        "order_logistics": 9,
+        "product_technical": 13
+      },
+      "new_families": 24,
+      "sha256": "2aefe1d3788b809dbfd7aa7afbb1d0d6d462ab5c1e54fa2dcbc16786e59cda12"
+    },
+    "zh/heldout.jsonl": {
+      "rows": 955,
+      "new_rows": 61,
+      "new_labels": {
+        "product_technical": 9,
+        "billing_refund": 15,
+        "general": 8,
+        "order_logistics": 10,
+        "account_security": 7,
+        "human_service": 12
+      },
+      "new_families": 24,
+      "sha256": "6f24b8c2c22ca357902ee7e223d12065e5155a5ca11d0d2e60aeccc65b262a8b"
+    },
+    "en/train.jsonl": {
+      "rows": 9298,
+      "new_rows": 210,
+      "new_labels": {
+        "general": 21,
+        "product_technical": 44,
+        "billing_refund": 56,
+        "order_logistics": 41,
+        "account_security": 18,
+        "human_service": 15,
+        "__DEFER__": 15
+      },
+      "new_families": 80,
+      "sha256": "8c2bdd81889012c87b65a7b26bd0220fe879e5b891eb21410d7c0186391f0d28"
+    },
+    "en/calibration.jsonl": {
+      "rows": 1730,
+      "new_rows": 41,
+      "new_labels": {
+        "general": 7,
+        "billing_refund": 10,
+        "order_logistics": 9,
+        "human_service": 4,
+        "product_technical": 7,
+        "account_security": 3,
+        "__DEFER__": 1
+      },
+      "new_families": 16,
+      "sha256": "a6ab7c0711cfe06799c0e729c995453abb73a033755dc7d342e3ff16e840fdfd"
+    },
+    "en/heldout.jsonl": {
+      "rows": 1277,
+      "new_rows": 16,
+      "new_labels": {
+        "billing_refund": 5,
+        "__DEFER__": 5,
+        "product_technical": 2,
+        "account_security": 2,
+        "order_logistics": 2
+      },
+      "new_families": 8,
+      "sha256": "3710d55e62bb1512735c76207b30ff411995d3ec7038574e39078b693e827025"
+    }
+  },
+  "rejections": [
+    {
+      "case_id": "domain-v3:zh:0:0:1",
+      "author": "general",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "用户明确放弃维修（算了不修了），仅剩感谢寒暄，无剩余业务目标。"
+    },
+    {
+      "case_id": "domain-v3:zh:0:0:2",
+      "author": "product_technical",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "同时存在售后维修（产品技术）和新产品咨询（产品技术）两个请求，但均属产品技术域，实际为同一域。重新审视：维修登记与新品咨询同属product_technical，应归为product_technical。"
+    },
+    {
+      "case_id": "domain-v3:zh:0:1:0",
+      "author": "general",
+      "label": "order_logistics",
+      "clear_and_natural": true,
+      "reason": "主要目标是包裹未收到核实，附带询问客服上班时间属于一般咨询，主目标仍是物流。"
+    },
+    {
+      "case_id": "domain-v3:zh:0:1:1",
+      "author": "general",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "用户表示不用查了，包裹已找到，撤回原请求且无剩余目标。"
+    },
+    {
+      "case_id": "domain-v3:zh:0:2:1",
+      "author": "product_technical",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "同时存在退货退款（billing_refund）和降噪耳机推荐（product_technical）两个不同域请求。"
+    },
+    {
+      "case_id": "domain-v3:zh:0:2:2",
+      "author": "billing_refund",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "用户明确表示不退了，撤回退货请求，无剩余业务目标。"
+    },
+    {
+      "case_id": "domain-v3:zh:0:3:2",
+      "author": "order_logistics",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "账号问题已解决，新提出催发货（order_logistics），与账号域不同，属于新目标。原账号目标已完成，当前仅剩物流请求，应归为order_logistics。"
+    },
+    {
+      "case_id": "domain-v3:zh:0:5:0",
+      "author": "order_logistics",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "用户明确表示不取消了，撤回取消订单请求，无剩余业务目标。"
+    },
+    {
+      "case_id": "domain-v3:zh:0:5:1",
+      "author": "general",
+      "label": "order_logistics",
+      "clear_and_natural": true,
+      "reason": "主要目标仍是取消订单退款，附带询问客服忙碌属于一般寒暄，主目标为订单物流。"
+    },
+    {
+      "case_id": "domain-v3:zh:0:6:1",
+      "author": "general",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "用户表示算了，撤回投诉请求，无剩余业务目标。"
+    },
+    {
+      "case_id": "domain-v3:zh:0:6:2",
+      "author": "billing_refund",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "同时存在投诉转接（human_service）和包裹丢失退款（billing_refund/order_logistics）两个不同域请求。"
+    },
+    {
+      "case_id": "domain-v3:zh:0:7:2",
+      "author": "account_security",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "产品问题已解答，新提出积分到账查询（billing_refund），与产品技术域不同，属于新目标。"
+    },
+    {
+      "source": "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-01.json",
+      "reason": "failed_batch"
+    },
+    {
+      "case_id": "domain-v3:zh:2:0:0",
+      "author": "order_logistics",
+      "label": "product_technical",
+      "clear_and_natural": true,
+      "reason": "用户确认购买棕色皮表带，属于产品/配件购买请求，延续产品相关目标。"
+    },
+    {
+      "case_id": "domain-v3:zh:2:2:1",
+      "author": "order_logistics",
+      "label": "billing_refund",
+      "clear_and_natural": true,
+      "reason": "用户改为换黑色L码，仍是换货请求，同一领域。"
+    },
+    {
+      "case_id": "domain-v3:zh:2:6:1",
+      "author": "__DEFER__",
+      "label": "general",
+      "clear_and_natural": true,
+      "reason": "用户表示等待并结束，无剩余业务目标。"
+    },
+    {
+      "case_id": "domain-v3:zh:2:7:1",
+      "author": "billing_refund",
+      "label": "order_logistics",
+      "clear_and_natural": true,
+      "reason": "用户改为取消订阅，仍属订单/订阅处理。"
+    },
+    {
+      "case_id": "domain-v3:zh:2:7:2",
+      "author": "order_logistics",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "用户同时提出修改订阅和查询另一订单物流，两个不同领域请求并存。"
+    },
+    {
+      "case_id": "domain-v3:zh:3:0:0",
+      "author": "order_logistics",
+      "label": "billing_refund",
+      "clear_and_natural": true,
+      "reason": "用户明确放弃购买配件，改为申请换新，属于退换货/售后规则范畴。"
+    },
+    {
+      "case_id": "domain-v3:zh:3:1:0",
+      "author": "order_logistics",
+      "label": "billing_refund",
+      "clear_and_natural": true,
+      "reason": "用户确认换浅灰并请求提交换货申请，属于退换货。"
+    },
+    {
+      "case_id": "domain-v3:zh:3:3:0",
+      "author": "order_logistics",
+      "label": "general",
+      "clear_and_natural": true,
+      "reason": "积分兑换礼品属于一般性会员/积分服务，非订单、售后或产品技术问题。"
+    },
+    {
+      "case_id": "domain-v3:zh:3:7:0",
+      "author": "order_logistics",
+      "label": "product_technical",
+      "clear_and_natural": true,
+      "reason": "用户选择安排师傅上门检修，属于产品安装/维修服务。"
+    },
+    {
+      "case_id": "domain-v3:zh:4:0:2",
+      "author": "general",
+      "label": "product_technical",
+      "clear_and_natural": true,
+      "reason": "询问同款优惠活动，属于产品/购买咨询类。"
+    },
+    {
+      "case_id": "domain-v3:zh:4:3:0",
+      "author": "account_security",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "同时提出退货流程和找回密码两个不同域请求，属跨域同时请求。"
+    },
+    {
+      "case_id": "domain-v3:zh:4:3:1",
+      "author": "billing_refund",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "用户放弃退货，撤回原目标且无剩余目标。"
+    },
+    {
+      "case_id": "domain-v3:zh:4:4:1",
+      "author": "account_security",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "同时提出优惠券使用和账号解锁两个不同域请求，属跨域同时请求。"
+    },
+    {
+      "case_id": "domain-v3:zh:4:5:0",
+      "author": "human_service",
+      "label": "general",
+      "clear_and_natural": true,
+      "reason": "询问客服电话，属一般帮助/联系方式咨询。"
+    },
+    {
+      "case_id": "domain-v3:zh:4:7:0",
+      "author": "human_service",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "同时提出申请维修和询问人工客服下班时间两个不同域请求，属跨域同时请求。"
+    },
+    {
+      "case_id": "domain-v3:zh:4:7:1",
+      "author": "billing_refund",
+      "label": "product_technical",
+      "clear_and_natural": true,
+      "reason": "询问折价回收，仍属产品/售后相关咨询，未明确跨域。"
+    },
+    {
+      "case_id": "domain-v3:zh:4:7:2",
+      "author": "account_security",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "同时提出申请维修和账号验证失败两个不同域请求，属跨域同时请求。"
+    },
+    {
+      "source": "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-05.json",
+      "reason": "failed_batch"
+    },
+    {
+      "source": "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-06.json",
+      "reason": "failed_batch"
+    },
+    {
+      "case_id": "domain-v3:zh:7:0:0",
+      "author": "product_technical",
+      "label": "billing_refund",
+      "clear_and_natural": true,
+      "reason": "用户请求更换新表带，属于售后维修/更换，归入billing_refund（退换/售后规则）。"
+    },
+    {
+      "case_id": "domain-v3:zh:7:3:1",
+      "author": "billing_refund",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "用户撤回退货请求，无剩余目标。"
+    },
+    {
+      "case_id": "domain-v3:zh:7:4:1",
+      "author": "account_security",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "用户放弃原登录问题，改为重新注册，原目标撤回且新目标不明确。"
+    },
+    {
+      "case_id": "domain-v3:zh:7:5:1",
+      "author": "order_logistics",
+      "label": "billing_refund",
+      "clear_and_natural": true,
+      "reason": "确认继续换L码，属于换货/售后。"
+    },
+    {
+      "case_id": "domain-v3:zh:8:0:0",
+      "author": "order_logistics",
+      "label": "billing_refund",
+      "clear_and_natural": true,
+      "reason": "用户确认接受免费更换配件，属于售后换货/配件更换，归入billing_refund（退货换货及售后规则）。"
+    },
+    {
+      "case_id": "domain-v3:zh:8:7:0",
+      "author": "order_logistics",
+      "label": "billing_refund",
+      "clear_and_natural": true,
+      "reason": "用户选择换货并询问发货时间，属于售后换货流程。"
+    },
+    {
+      "case_id": "domain-v3:zh:9:0:0",
+      "author": "product_technical",
+      "label": "__DEFER__",
+      "clear_and_natural": false,
+      "reason": "用户同时提出两个不同领域的请求：提交维修申请（售后/产品）和询问更大容量型号（产品咨询）。维修申请属于售后，型号咨询属于产品技术，跨域并存，应延迟。"
+    },
+    {
+      "case_id": "domain-v3:zh:9:1:0",
+      "author": "order_logistics",
+      "label": "__DEFER__",
+      "clear_and_natural": false,
+      "reason": "用户同时提出换货（售后）和查询另一订单物流（订单物流）两个不同领域请求，跨域并存，应延迟。"
+    },
+    {
+      "case_id": "domain-v3:zh:9:2:0",
+      "author": "billing_refund",
+      "label": "product_technical",
+      "clear_and_natural": true,
+      "reason": "用户明确表示拖把的事不用管，聚焦机器人检测时长及退款条件，属于产品售后/技术问题。"
+    },
+    {
+      "case_id": "domain-v3:zh:9:4:1",
+      "author": "general",
+      "label": "account_security",
+      "clear_and_natural": true,
+      "reason": "用户先同意检测，但转而询问账户优惠券是否过期，属于账户相关咨询。"
+    },
+    {
+      "case_id": "domain-v3:zh:9:5:1",
+      "author": "general",
+      "label": "product_technical",
+      "clear_and_natural": true,
+      "reason": "用户选择补发，但转而询问空箱回收活动，属于产品/活动咨询。"
+    },
+    {
+      "case_id": "domain-v3:zh:9:6:2",
+      "author": "human_service",
+      "label": "__DEFER__",
+      "clear_and_natural": false,
+      "reason": "用户同时提出预约检修（售后）和投诉售后电话难打通（投诉/人工服务）两个不同领域请求，跨域并存，应延迟。"
+    },
+    {
+      "case_id": "domain-v3:zh:9:7:2",
+      "author": "account_security",
+      "label": "__DEFER__",
+      "clear_and_natural": false,
+      "reason": "用户同时提出退款（售后）和查询异地登录记录（账户安全）两个不同领域请求，跨域并存，应延迟。"
+    },
+    {
+      "case_id": "domain-v3:zh:10:0:1",
+      "author": "__DEFER__",
+      "label": "billing_refund",
+      "clear_and_natural": true,
+      "reason": "取消换货申请，属于售后/退换规则范畴。"
+    },
+    {
+      "case_id": "domain-v3:zh:10:0:2",
+      "author": "general",
+      "label": "product_technical",
+      "clear_and_natural": true,
+      "reason": "询问同款优惠活动，属于产品/购买咨询。"
+    },
+    {
+      "case_id": "domain-v3:zh:10:1:1",
+      "author": "__DEFER__",
+      "label": "billing_refund",
+      "clear_and_natural": true,
+      "reason": "决定不退，放弃退货请求，仍属售后范畴。"
+    },
+    {
+      "case_id": "domain-v3:zh:10:2:1",
+      "author": "order_logistics",
+      "label": "billing_refund",
+      "clear_and_natural": true,
+      "reason": "询问拒收退货，属于售后/退换规则。"
+    },
+    {
+      "case_id": "domain-v3:zh:10:5:1",
+      "author": "__DEFER__",
+      "label": "order_logistics",
+      "clear_and_natural": true,
+      "reason": "决定不改地址，仍属订单/物流范畴。"
+    },
+    {
+      "case_id": "domain-v3:zh:10:5:2",
+      "author": "general",
+      "label": "billing_refund",
+      "clear_and_natural": true,
+      "reason": "询问货到付款，属于支付方式。"
+    },
+    {
+      "case_id": "domain-v3:zh:10:6:2",
+      "author": "account_security",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "同时提出退款现金和账号异地登录两个不同领域请求，需分流。"
+    },
+    {
+      "case_id": "domain-v3:zh:10:7:2",
+      "author": "general",
+      "label": "product_technical",
+      "clear_and_natural": true,
+      "reason": "询问实体店试戴，属于产品/购买咨询。"
+    },
+    {
+      "case_id": "domain-v3:zh:11:0:0",
+      "author": "order_logistics",
+      "label": "billing_refund",
+      "clear_and_natural": true,
+      "reason": "用户同意更换表带，属于售后换货/退换流程，归入billing_refund。"
+    },
+    {
+      "case_id": "domain-v3:zh:11:1:2",
+      "author": "general",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "用户放弃换货，无剩余业务目标，仅表达不满，属于撤回且无剩余目标。"
+    },
+    {
+      "case_id": "domain-v3:zh:11:3:1",
+      "author": "account_security",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "用户放弃找回账号，改为重新注册，撤回原目标且无明确业务请求。"
+    },
+    {
+      "source": "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-12.json",
+      "reason": "failed_batch"
+    },
+    {
+      "case_id": "domain-v3:zh:13:0:2",
+      "author": "product_technical",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "同时提出下单表带（产品/购买）和充电线坏了（产品故障），两个不同域请求并存。"
+    },
+    {
+      "case_id": "domain-v3:zh:13:1:1",
+      "author": "__DEFER__",
+      "label": "product_technical",
+      "clear_and_natural": true,
+      "reason": "用户表示先自行尝试修复水箱，转向产品故障排查，暂缓退货。"
+    },
+    {
+      "case_id": "domain-v3:zh:13:1:2",
+      "author": "billing_refund",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "同时请求退货（退款域）和推荐其他型号（产品域），两个不同域请求并存。"
+    },
+    {
+      "case_id": "domain-v3:zh:13:3:2",
+      "author": "__DEFER__",
+      "label": "account_security",
+      "clear_and_natural": true,
+      "reason": "表示换新账号重新注册，仍属账号访问相关。"
+    },
+    {
+      "case_id": "domain-v3:zh:13:6:0",
+      "author": "__DEFER__",
+      "label": "order_logistics",
+      "clear_and_natural": true,
+      "reason": "请求取消修改配置，属于订单修改/取消操作。"
+    },
+    {
+      "source": "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-14.json",
+      "reason": "failed_batch"
+    },
+    {
+      "source": "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-15.json",
+      "reason": "failed_batch"
+    },
+    {
+      "case_id": "domain-v3:zh:16:0:0",
+      "author": "account_security",
+      "label": "billing_refund",
+      "clear_and_natural": true,
+      "reason": "用户提供手机号配合换货申请验证，延续换货（售后）流程，属于退款/换货售后范畴。"
+    },
+    {
+      "case_id": "domain-v3:zh:16:1:0",
+      "author": "order_logistics",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "同时提出退货登记和查询另一个包裹两个不同领域请求（售后+物流），需拆分。"
+    },
+    {
+      "case_id": "domain-v3:zh:16:3:1",
+      "author": "general",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "同时提出申请售后和咨询优惠活动两个不同领域请求（售后+产品/促销），需拆分。"
+    },
+    {
+      "case_id": "domain-v3:zh:16:7:0",
+      "author": "product_technical",
+      "label": "billing_refund",
+      "clear_and_natural": true,
+      "reason": "用户询问TD-200能否七天无理由退换，涉及退换货规则，属售后/退款规则咨询。"
+    },
+    {
+      "case_id": "domain-v3:zh:16:7:2",
+      "author": "__DEFER__",
+      "label": "general",
+      "clear_and_natural": true,
+      "reason": "用户表示晚点再来咨询，无明确业务请求，属于一般寒暄/结束语。"
+    },
+    {
+      "source": "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-17.json",
+      "reason": "failed_batch"
+    },
+    {
+      "case_id": "domain-v3:zh:18:1:2",
+      "author": "product_technical",
+      "label": "billing_refund",
+      "clear_and_natural": true,
+      "reason": "询问耳机杂音是否算质量问题，涉及退货/售后规则判定。"
+    },
+    {
+      "case_id": "domain-v3:zh:18:3:1",
+      "author": "__DEFER__",
+      "label": "account_security",
+      "clear_and_natural": true,
+      "reason": "用户尝试用旧手机号收验证码找回账号，仍属于账号登录/访问问题。"
+    },
+    {
+      "case_id": "domain-v3:zh:18:5:2",
+      "author": "order_logistics",
+      "label": "billing_refund",
+      "clear_and_natural": true,
+      "reason": "用户同意换货并要求地址，属于换货/售后流程。"
+    },
+    {
+      "case_id": "domain-v3:zh:19:1:1",
+      "author": "order_logistics",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "同时提出购买除垢液（产品）和查询滤芯发货（物流）两个不同领域请求。"
+    },
+    {
+      "case_id": "domain-v3:zh:19:4:1",
+      "author": "billing_refund",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "同时提出登记更换配件（售后）和查询退款到账（退款）两个不同领域请求。"
+    },
+    {
+      "case_id": "domain-v3:zh:19:6:1",
+      "author": "human_service",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "同时提出申请寄回检测（售后）和询问人工客服（人工服务）两个不同领域请求。"
+    },
+    {
+      "source": "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-20.json",
+      "reason": "failed_batch"
+    },
+    {
+      "case_id": "domain-v3:zh:21:6:1",
+      "author": "general",
+      "label": "billing_refund",
+      "clear_and_natural": true,
+      "reason": "询问朋友能否使用自己的优惠码，涉及优惠/支付规则。"
+    },
+    {
+      "case_id": "domain-v3:zh:21:0:0",
+      "reason": "token_budget"
+    },
+    {
+      "case_id": "domain-v3:zh:21:0:2",
+      "reason": "token_budget"
+    },
+    {
+      "case_id": "domain-v3:zh:21:5:1",
+      "reason": "token_budget"
+    },
+    {
+      "case_id": "domain-v3:zh:22:1:2",
+      "author": "account_security",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "同时包含继续排查产品问题（产品技术）和收不到验证码（账号安全）两个不同域请求。"
+    },
+    {
+      "case_id": "domain-v3:zh:22:3:0",
+      "author": "product_technical",
+      "label": "order_logistics",
+      "clear_and_natural": true,
+      "reason": "用户要求下单购买，属于下单/购买行为，归入订单域。"
+    },
+    {
+      "case_id": "domain-v3:zh:22:4:0",
+      "author": "account_security",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "同时包含发货确认（订单物流）和重置支付密码（账号安全）两个不同域请求。"
+    },
+    {
+      "case_id": "domain-v3:zh:22:6:2",
+      "author": "account_security",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "同时包含退订营销短信（一般/账号）和账号是否被盗（账号安全）两个不同域请求。"
+    },
+    {
+      "case_id": "domain-v3:zh:22:7:1",
+      "author": "human_service",
+      "label": "product_technical",
+      "clear_and_natural": true,
+      "reason": "用户询问线下维修点，属于产品售后维修/技术支持。"
+    },
+    {
+      "case_id": "domain-v3:zh:22:7:2",
+      "author": "account_security",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "同时包含继续排查台灯（产品技术）和账号密码找回问题（账号安全）两个不同域请求。"
+    },
+    {
+      "case_id": "domain-v3:zh:23:5:0",
+      "author": "product_technical",
+      "label": "billing_refund",
+      "clear_and_natural": true,
+      "reason": "同意申请售后检测，属于售后/退换范畴。"
+    },
+    {
+      "case_id": "domain-v3:en:0:2:1",
+      "author": "billing_refund",
+      "label": "human_service",
+      "clear_and_natural": true,
+      "reason": "User reports the refund still missing and explicitly asks to escalate, a complaint/escalation."
+    },
+    {
+      "case_id": "domain-v3:en:0:4:0",
+      "author": "product_technical",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "User simultaneously requests starting a carrier claim (order/logistics) and asks a product specification question (product_technical), two different domains."
+    },
+    {
+      "case_id": "domain-v3:en:0:6:0",
+      "author": "product_technical",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "User confirms shipping date (order/logistics) and asks about warranty (billing_refund/after-sales), two different domains."
+    },
+    {
+      "case_id": "domain-v3:en:0:7:0",
+      "author": "product_technical",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "User confirms express shipping (order/logistics) and asks about a water fountain product (product_technical), two different domains."
+    },
+    {
+      "case_id": "domain-v3:en:1:1:0",
+      "author": "product_technical",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "User agrees to pay the difference (billing) but also asks a product question about dimmability; two simultaneous requests in different domains."
+    },
+    {
+      "case_id": "domain-v3:en:1:2:2",
+      "author": "order_logistics",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "User states intent to buy (order) but also asks to check shipping address on file (account/order); two simultaneous requests in different domains."
+    },
+    {
+      "case_id": "domain-v3:en:1:3:0",
+      "author": "human_service",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "User will reset password (account) but also requests a human call about order history; two simultaneous requests in different domains."
+    },
+    {
+      "case_id": "domain-v3:en:1:3:1",
+      "author": "__DEFER__",
+      "label": "account_security",
+      "clear_and_natural": true,
+      "reason": "User continues the account access issue, deciding to try a remembered password first."
+    },
+    {
+      "case_id": "domain-v3:en:1:6:0",
+      "author": "order_logistics",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "User confirms replacement (billing/refund) but also asks about late deliveries (order/logistics); two simultaneous requests in different domains."
+    },
+    {
+      "case_id": "domain-v3:en:1:7:1",
+      "author": "general",
+      "label": "product_technical",
+      "clear_and_natural": true,
+      "reason": "User asks whether it's the same model that was on sale, a product identification question."
+    },
+    {
+      "case_id": "domain-v3:en:2:2:1",
+      "author": "__DEFER__",
+      "label": "product_technical",
+      "clear_and_natural": true,
+      "reason": "User continues product inquiry, wanting to verify a different model with a grinder."
+    },
+    {
+      "case_id": "domain-v3:en:2:5:1",
+      "author": "general",
+      "label": "order_logistics",
+      "clear_and_natural": true,
+      "reason": "User asks about gift wrapping for the replacement shipment, a shipping/order detail request."
+    },
+    {
+      "case_id": "domain-v3:en:2:5:2",
+      "author": "order_logistics",
+      "label": "product_technical",
+      "clear_and_natural": true,
+      "reason": "User asks about stock availability of a matching product, a product inquiry."
+    },
+    {
+      "source": "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-03.json",
+      "reason": "failed_batch"
+    },
+    {
+      "case_id": "domain-v3:en:4:3:0",
+      "author": "account_security",
+      "label": "human_service",
+      "clear_and_natural": true,
+      "reason": "User confirms transfer to a human and asks about gift card redemption; the human service/escalation goal remains primary."
+    },
+    {
+      "source": "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-05.json",
+      "reason": "failed_batch"
+    },
+    {
+      "source": "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-06.json",
+      "reason": "failed_batch"
+    },
+    {
+      "case_id": "domain-v3:en:7:6:0",
+      "author": "human_service",
+      "label": "general",
+      "clear_and_natural": true,
+      "reason": "Asks how to contact support by phone, general help/capabilities."
+    },
+    {
+      "case_id": "domain-v3:en:8:1:1",
+      "author": "order_logistics",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "User has two simultaneous requests in different domains: ordering CF-10 (product/order) and checking shipment status of order #7712 (order_logistics)."
+    },
+    {
+      "case_id": "domain-v3:en:8:1:2",
+      "author": "__DEFER__",
+      "label": "general",
+      "clear_and_natural": true,
+      "reason": "User withdraws the request with no remaining goal, just a courtesy thanks."
+    },
+    {
+      "case_id": "domain-v3:en:8:4:0",
+      "author": "order_logistics",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "Two simultaneous requests in different domains: delivery intercept (order_logistics) and updating saved address (account_security)."
+    },
+    {
+      "case_id": "domain-v3:en:8:6:1",
+      "author": "__DEFER__",
+      "label": "general",
+      "clear_and_natural": true,
+      "reason": "User withdraws the warranty request after realizing wrong store, no remaining goal."
+    },
+    {
+      "case_id": "domain-v3:en:9:3:1",
+      "author": "account_security",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "Two simultaneous requests in different domains: exchange (order) plus account password check (account_security)."
+    },
+    {
+      "case_id": "domain-v3:en:9:7:1",
+      "author": "product_technical",
+      "label": "order_logistics",
+      "clear_and_natural": true,
+      "reason": "User chooses swap to a different model — order/logistics domain."
+    },
+    {
+      "source": "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-10.json",
+      "reason": "failed_batch"
+    },
+    {
+      "source": "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-11.json",
+      "reason": "failed_batch"
+    },
+    {
+      "source": "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-12.json",
+      "reason": "failed_batch"
+    },
+    {
+      "case_id": "domain-v3:en:13:5:0",
+      "author": "order_logistics",
+      "label": "product_technical",
+      "clear_and_natural": true,
+      "reason": "Adds a product availability question about gift wrap; product technical."
+    },
+    {
+      "case_id": "domain-v3:en:13:7:1",
+      "author": "billing_refund",
+      "label": "product_technical",
+      "clear_and_natural": true,
+      "reason": "Requests a repair quote instead of warranty, still product technical (repair/service)."
+    },
+    {
+      "case_id": "domain-v3:en:14:4:2",
+      "author": "billing_refund",
+      "label": "order_logistics",
+      "clear_and_natural": true,
+      "reason": "User cancels the order entirely, a cancellation before dispatch (order/logistics)."
+    },
+    {
+      "case_id": "domain-v3:en:15:0:2",
+      "author": "billing_refund",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "Simultaneous requests in different domains: refund (billing) and product spec (waterproof)."
+    },
+    {
+      "case_id": "domain-v3:en:15:1:2",
+      "author": "billing_refund",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "Simultaneous requests in different domains: replacement (order/logistics) and shipping refund (billing)."
+    },
+    {
+      "case_id": "domain-v3:en:15:3:0",
+      "author": "order_logistics",
+      "label": "billing_refund",
+      "clear_and_natural": true,
+      "reason": "User confirms cancellation to avoid charges, a billing request."
+    },
+    {
+      "case_id": "domain-v3:en:15:3:2",
+      "author": "account_security",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "Simultaneous requests in different domains: cancellation (billing) and password reset (account security)."
+    },
+    {
+      "case_id": "domain-v3:en:15:4:2",
+      "author": "billing_refund",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "Simultaneous requests in different domains: refund (billing) and account notes/preference (account)."
+    },
+    {
+      "case_id": "domain-v3:en:15:7:1",
+      "author": "order_logistics",
+      "label": "account_security",
+      "clear_and_natural": true,
+      "reason": "User accepts shipment then adds request to update shipping address, an account request."
+    },
+    {
+      "source": "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-16.json",
+      "reason": "failed_batch"
+    },
+    {
+      "source": "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-17.json",
+      "reason": "failed_batch"
+    },
+    {
+      "case_id": "domain-v3:en:18:0:0",
+      "author": "product_technical",
+      "label": "billing_refund",
+      "clear_and_natural": true,
+      "reason": "User abandons troubleshooting and requests a replacement unit, which is a return/exchange after-sales request."
+    },
+    {
+      "case_id": "domain-v3:en:18:1:0",
+      "author": "general",
+      "label": "order_logistics",
+      "clear_and_natural": true,
+      "reason": "User asks about shipping to Puerto Rico, a shipping/delivery question."
+    },
+    {
+      "case_id": "domain-v3:en:18:5:2",
+      "author": "product_technical",
+      "label": "billing_refund",
+      "clear_and_natural": true,
+      "reason": "User asks about warranty coverage for the crack, an after-sales/warranty question."
+    },
+    {
+      "case_id": "domain-v3:en:18:7:1",
+      "author": "product_technical",
+      "label": "account_security",
+      "clear_and_natural": true,
+      "reason": "User asks about subscription dashboard options, an account/subscription management question."
+    },
+    {
+      "case_id": "domain-v3:en:19:1:2",
+      "author": "product_technical",
+      "label": "order_logistics",
+      "clear_and_natural": true,
+      "reason": "Asks about the replacement item and stock verification before shipping, still within order/replacement logistics."
+    },
+    {
+      "case_id": "domain-v3:en:19:3:0",
+      "author": "order_logistics",
+      "label": "billing_refund",
+      "clear_and_natural": true,
+      "reason": "Confirms the refund/cancellation and asks to ensure future delivery unaffected, still within billing/refund resolution."
+    },
+    {
+      "case_id": "domain-v3:en:19:4:2",
+      "author": "order_logistics",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "Introduces a new order/delivery issue while the account login issue is still unresolved, two simultaneous requests in different domains."
+    },
+    {
+      "source": "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-20.json",
+      "reason": "failed_batch"
+    },
+    {
+      "case_id": "domain-v3:en:21:1:0",
+      "author": "billing_refund",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "Two simultaneous requests in different domains: replacement (billing_refund) and checking returnability for refund (billing_refund) - actually both are billing_refund. Reconsider: replacement and refund check are both after-sales/billing_refund domain."
+    },
+    {
+      "case_id": "domain-v3:en:21:1:2",
+      "author": "product_technical",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "Two simultaneous requests in different domains: replacement (billing_refund) and product compatibility (product_technical)."
+    },
+    {
+      "case_id": "domain-v3:en:21:2:0",
+      "author": "human_service",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "Two simultaneous requests in different domains: order investigation (order_logistics) and human service request (human_service)."
+    },
+    {
+      "case_id": "domain-v3:en:21:2:2",
+      "author": "billing_refund",
+      "label": "order_logistics",
+      "clear_and_natural": true,
+      "reason": "Continues the delivery investigation; refund expectation is conditional on the same order issue, not a separate goal."
+    },
+    {
+      "case_id": "domain-v3:en:21:3:2",
+      "author": "__DEFER__",
+      "label": "product_technical",
+      "clear_and_natural": true,
+      "reason": "Clarifies the referent to a different product (water pitcher filter), still a product question."
+    },
+    {
+      "case_id": "domain-v3:en:21:5:1",
+      "author": "human_service",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "Two simultaneous requests in different domains: refund (billing_refund) and human complaint (human_service)."
+    },
+    {
+      "case_id": "domain-v3:en:21:7:0",
+      "author": "billing_refund",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "Two simultaneous requests in different domains: replacement (billing_refund) and extended warranty status (billing_refund) - both billing_refund. Reconsider."
+    },
+    {
+      "case_id": "domain-v3:en:21:7:1",
+      "author": "product_technical",
+      "label": "billing_refund",
+      "clear_and_natural": true,
+      "reason": "Warranty applicability question is after-sales/billing_refund domain."
+    },
+    {
+      "source": "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-22.json",
+      "reason": "failed_batch"
+    },
+    {
+      "source": "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-23.json",
+      "reason": "failed_batch"
+    }
+  ]
+}

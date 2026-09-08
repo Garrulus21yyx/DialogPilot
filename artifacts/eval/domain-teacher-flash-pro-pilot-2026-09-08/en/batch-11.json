@@ -1,0 +1,702 @@
+{
+  "batch_id": "domain-v3:en:11",
+  "language": "en",
+  "split": "train",
+  "models": {
+    "author": "deepseek-v4-flash",
+    "review": "deepseek-v4-pro"
+  },
+  "review_protocol": "label-blind-batch-v1",
+  "synthetic": true,
+  "author_prompt": "Author 8 DIFFERENT natural ecommerce customer-service dialogue families in en.\nBatch 11; ensure at least four current turns classified as human_service across this batch.\nEach family has its OWN coherent history of 2, 4 or 6 short alternating user/assistant\nmessages, followed by 3 ALTERNATIVE current user turns, not three sequential turns.\nThose alternatives differ in effective intent: retain vs replace, withdraw vs\ncontinue, single goal vs concurrent goal, or resolved vs unresolved reference.\nInclude natural short answers where history matters. Vary old completed tasks,\nhesitation, self-correction, indirect wording, topics and dialogue acts. General\nand human-service requests must also occur as NEW goals, not only stale history.\nDo not follow a repeated sentence template or substitute product nouns to create\nnew families. Avoid stereotyped 'information only, do not submit' repetition.\nInvent broad everyday ecommerce situations; no copied benchmark or private data.\nHistory plus current turn should fit 150 English words or 180 Chinese characters;\nkeep it compact but meaningful. No future replies or final conversation summaries.\nSupply the correct label for each alternative according to the rubric.\n",
+  "author_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_R9ZjGcuavbowWRgFgQHI9523",
+          "input": {
+            "families": [
+              {
+                "scenario": "Customer asks about a smartwatch they bought and then requests a human agent for a warranty dispute.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Hi, I got the FitPulse S2 watch last week. The heart-rate monitor seems way off when I run."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Sorry to hear that! Have you tried tightening the strap and making sure the sensor sits above the wrist bone?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Yeah, I did all that. It still shows like 140 when I'm barely jogging."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That does sound abnormal. We can process a replacement under warranty if you'd like."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Actually, I'd rather talk to a real person about this. Can you connect me?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Please transfer me to a supervisor who can handle the warranty claim directly.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Never mind, I'll just return it at the store instead.",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "Before you transfer me, can you also tell me if the S3 model has the same sensor issue?",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a coffee machine order and then requests a human agent for a delivery issue.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I ordered the BrewMaster 3000 on Monday. Tracking says it's been in Memphis for two days."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me check that for you. It looks like there was a weather delay at the sorting facility."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Okay, but I needed it by Friday for a gift. Is there any way to expedite it?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I can flag it for priority handling, though I can't guarantee a delivery date change."
+                  },
+                  {
+                    "role": "user",
+                    "content": "That's not good enough. I want to speak to someone in logistics directly."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Put me through to a human agent who can actually override the shipping method.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Actually, forget it. I'll just buy one locally and cancel this order.",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "Fine, flag it. And while you're at it, can you check if my other order with the filters shipped yet?",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a refund for a returned jacket and then requests a human agent for a billing dispute.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I returned the puffer jacket two weeks ago. My card still hasn't been credited."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I see the return was received on the 3rd. Refunds typically post within 5-7 business days after that."
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's been more than that. I'm getting worried something went wrong."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me escalate this to our billing team for a manual review."
+                  },
+                  {
+                    "role": "user",
+                    "content": "I don't want a review, I want to talk to a billing representative right now."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Connect me with a billing agent immediately. This is unacceptable.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Actually, you know what, it's only $40. Just drop it, I'll move on.",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "Fine, do the review. But also tell me if I can use store credit instead of a card refund.",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a desk lamp and then requests a human agent for a product complaint.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "The LumiGlow desk lamp I bought keeps flickering after an hour of use."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That could be a loose connection. Have you checked the power adapter?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Yes, I swapped adapters and it still flickers. It's clearly defective."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I can offer a replacement unit or a full refund, whichever you prefer."
+                  },
+                  {
+                    "role": "user",
+                    "content": "I've had enough of this back-and-forth. I want a human to handle my complaint."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Get me a customer service agent on the phone. I want to file a formal complaint.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Actually, never mind. I'll just buy a different brand and throw this one out.",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "Before I decide, does the replacement come with a longer warranty than the original?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a subscription plan and then requests a human agent for account issues.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I signed up for the premium plan but my account still shows the free tier."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me look into that. I can see the payment went through on the 12th."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Right, so why isn't my account upgraded? I've logged out and back in twice."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "There seems to be a sync issue on our end. I can force a refresh on your account."
+                  },
+                  {
+                    "role": "user",
+                    "content": "I've been patient long enough. I need to speak to someone who can fix this now."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Transfer me to your account support team. I'm tired of automated responses.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Actually, just cancel my subscription entirely. I don't want it anymore.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Okay, try the refresh. But if it doesn't work, can I get a refund for this month?",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a bicycle order and then requests a human agent for a delivery issue.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My bike order was supposed to arrive yesterday but the tracking hasn't updated in three days."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I apologize for the delay. Let me pull up the latest carrier information for you."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Please do. I'm worried it got lost or stolen at the depot."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "The carrier shows it was scanned at the regional hub this morning, so it's still moving."
+                  },
+                  {
+                    "role": "user",
+                    "content": "I don't trust that. I want to talk to a real person about where my bike is."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Give me the number for your human support line. I need to speak to someone now.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Actually, if it's still moving, I'll just wait another day. Thanks anyway.",
+                    "label": "general"
+                  },
+                  {
+                    "text": "While I wait, can you also check if the helmet I ordered separately is on the same truck?",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a skincare product and then requests a human agent for a reaction issue.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I used the GlowDew serum for three days and my face broke out in a rash."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Oh no, I'm sorry to hear that. Please stop using it immediately. Have you consulted a doctor?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Not yet, but I'm concerned. Is this a known reaction to this product?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Some users with sensitive skin have reported irritation. We recommend patch testing first."
+                  },
+                  {
+                    "role": "user",
+                    "content": "This is serious. I need to talk to a human about a medical concern and a refund."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Please connect me to a human agent. I want to report this reaction and get a refund.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Actually, I'll just see a doctor first and deal with this later.",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "Is the rash likely to go away on its own, or should I be worried about scarring?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a keyboard order and then requests a human agent for a shipping address issue.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I ordered the MechKey 87 keyboard but realized I typed my apartment number wrong."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I can update the shipping address as long as the order hasn't left the warehouse yet."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Great, please change it to unit 4B instead of 4D."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Done. Your order is now set to ship to unit 4B. Anything else?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Actually, I'm worried the package might still go to the wrong place. Can I talk to a human?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "I want to confirm with a real agent that the address change actually went through.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Actually, on second thought, just cancel the order. I'll reorder with the right address.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Thanks for updating it. Can you also tell me the estimated delivery date now?",
+                    "label": "order_logistics"
+                  }
+                ]
+              }
+            ]
+          },
+          "name": "AuthoredBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "f294c620-8e7a-42df-85ef-2e0a9c27c485",
+        "container": null,
+        "model": "deepseek-v4-flash",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 640,
+          "inference_geo": null,
+          "input_tokens": 320,
+          "output_tokens": 2214,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-flash",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d8-4d7f-75c0-88f6-e7d218e25aa1-0",
+      "tool_calls": [
+        {
+          "name": "AuthoredBatch",
+          "args": {
+            "families": [
+              {
+                "scenario": "Customer asks about a smartwatch they bought and then requests a human agent for a warranty dispute.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Hi, I got the FitPulse S2 watch last week. The heart-rate monitor seems way off when I run."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Sorry to hear that! Have you tried tightening the strap and making sure the sensor sits above the wrist bone?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Yeah, I did all that. It still shows like 140 when I'm barely jogging."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That does sound abnormal. We can process a replacement under warranty if you'd like."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Actually, I'd rather talk to a real person about this. Can you connect me?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Please transfer me to a supervisor who can handle the warranty claim directly.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Never mind, I'll just return it at the store instead.",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "Before you transfer me, can you also tell me if the S3 model has the same sensor issue?",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a coffee machine order and then requests a human agent for a delivery issue.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I ordered the BrewMaster 3000 on Monday. Tracking says it's been in Memphis for two days."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me check that for you. It looks like there was a weather delay at the sorting facility."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Okay, but I needed it by Friday for a gift. Is there any way to expedite it?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I can flag it for priority handling, though I can't guarantee a delivery date change."
+                  },
+                  {
+                    "role": "user",
+                    "content": "That's not good enough. I want to speak to someone in logistics directly."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Put me through to a human agent who can actually override the shipping method.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Actually, forget it. I'll just buy one locally and cancel this order.",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "Fine, flag it. And while you're at it, can you check if my other order with the filters shipped yet?",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a refund for a returned jacket and then requests a human agent for a billing dispute.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I returned the puffer jacket two weeks ago. My card still hasn't been credited."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I see the return was received on the 3rd. Refunds typically post within 5-7 business days after that."
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's been more than that. I'm getting worried something went wrong."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me escalate this to our billing team for a manual review."
+                  },
+                  {
+                    "role": "user",
+                    "content": "I don't want a review, I want to talk to a billing representative right now."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Connect me with a billing agent immediately. This is unacceptable.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Actually, you know what, it's only $40. Just drop it, I'll move on.",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "Fine, do the review. But also tell me if I can use store credit instead of a card refund.",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a desk lamp and then requests a human agent for a product complaint.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "The LumiGlow desk lamp I bought keeps flickering after an hour of use."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That could be a loose connection. Have you checked the power adapter?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Yes, I swapped adapters and it still flickers. It's clearly defective."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I can offer a replacement unit or a full refund, whichever you prefer."
+                  },
+                  {
+                    "role": "user",
+                    "content": "I've had enough of this back-and-forth. I want a human to handle my complaint."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Get me a customer service agent on the phone. I want to file a formal complaint.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Actually, never mind. I'll just buy a different brand and throw this one out.",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "Before I decide, does the replacement come with a longer warranty than the original?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a subscription plan and then requests a human agent for account issues.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I signed up for the premium plan but my account still shows the free tier."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me look into that. I can see the payment went through on the 12th."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Right, so why isn't my account upgraded? I've logged out and back in twice."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "There seems to be a sync issue on our end. I can force a refresh on your account."
+                  },
+                  {
+                    "role": "user",
+                    "content": "I've been patient long enough. I need to speak to someone who can fix this now."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Transfer me to your account support team. I'm tired of automated responses.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Actually, just cancel my subscription entirely. I don't want it anymore.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Okay, try the refresh. But if it doesn't work, can I get a refund for this month?",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a bicycle order and then requests a human agent for a delivery issue.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My bike order was supposed to arrive yesterday but the tracking hasn't updated in three days."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I apologize for the delay. Let me pull up the latest carrier information for you."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Please do. I'm worried it got lost or stolen at the depot."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "The carrier shows it was scanned at the regional hub this morning, so it's still moving."
+                  },
+                  {
+                    "role": "user",
+                    "content": "I don't trust that. I want to talk to a real person about where my bike is."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Give me the number for your human support line. I need to speak to someone now.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Actually, if it's still moving, I'll just wait another day. Thanks anyway.",
+                    "label": "general"
+                  },
+                  {
+                    "text": "While I wait, can you also check if the helmet I ordered separately is on the same truck?",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a skincare product and then requests a human agent for a reaction issue.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I used the GlowDew serum for three days and my face broke out in a rash."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Oh no, I'm sorry to hear that. Please stop using it immediately. Have you consulted a doctor?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Not yet, but I'm concerned. Is this a known reaction to this product?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Some users with sensitive skin have reported irritation. We recommend patch testing first."
+                  },
+                  {
+                    "role": "user",
+                    "content": "This is serious. I need to talk to a human about a medical concern and a refund."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Please connect me to a human agent. I want to report this reaction and get a refund.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Actually, I'll just see a doctor first and deal with this later.",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "Is the rash likely to go away on its own, or should I be worried about scarring?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a keyboard order and then requests a human agent for a shipping address issue.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I ordered the MechKey 87 keyboard but realized I typed my apartment number wrong."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I can update the shipping address as long as the order hasn't left the warehouse yet."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Great, please change it to unit 4B instead of 4D."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Done. Your order is now set to ship to unit 4B. Anything else?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Actually, I'm worried the package might still go to the wrong place. Can I talk to a human?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "I want to confirm with a real agent that the address change actually went through.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Actually, on second thought, just cancel the order. I'll reorder with the right address.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Thanks for updating it. Can you also tell me the estimated delivery date now?",
+                    "label": "order_logistics"
+                  }
+                ]
+              }
+            ]
+          },
+          "id": "call_00_R9ZjGcuavbowWRgFgQHI9523",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 960,
+        "output_tokens": 2214,
+        "total_tokens": 3174,
+        "input_token_details": {
+          "cache_read": 640,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": "8 validation errors for AuthoredBatch\nfamilies.0\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer as...bel': 'human_service'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.1\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer as...l': 'order_logistics'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.2\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer as...el': 'billing_refund'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.3\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer as...: 'product_technical'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.4\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer as...': 'account_security'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.5\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer as...l': 'order_logistics'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.6\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer as...: 'product_technical'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.7\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer as...l': 'order_logistics'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error"
+  },
+  "status": "failed",
+  "failure_stage": "author",
+  "error_type": "ValueError"
+}

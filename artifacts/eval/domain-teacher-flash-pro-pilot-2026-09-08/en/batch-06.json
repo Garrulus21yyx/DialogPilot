@@ -1,0 +1,574 @@
+{
+  "batch_id": "domain-v3:en:6",
+  "language": "en",
+  "split": "train",
+  "models": {
+    "author": "deepseek-v4-flash",
+    "review": "deepseek-v4-pro"
+  },
+  "review_protocol": "label-blind-batch-v1",
+  "synthetic": true,
+  "author_prompt": "Author 8 DIFFERENT natural ecommerce customer-service dialogue families in en.\nBatch 6; ensure at least four current turns classified as general across this batch.\nEach family has its OWN coherent history of 2, 4 or 6 short alternating user/assistant\nmessages, followed by 3 ALTERNATIVE current user turns, not three sequential turns.\nThose alternatives differ in effective intent: retain vs replace, withdraw vs\ncontinue, single goal vs concurrent goal, or resolved vs unresolved reference.\nInclude natural short answers where history matters. Vary old completed tasks,\nhesitation, self-correction, indirect wording, topics and dialogue acts. General\nand human-service requests must also occur as NEW goals, not only stale history.\nDo not follow a repeated sentence template or substitute product nouns to create\nnew families. Avoid stereotyped 'information only, do not submit' repetition.\nInvent broad everyday ecommerce situations; no copied benchmark or private data.\nHistory plus current turn should fit 150 English words or 180 Chinese characters;\nkeep it compact but meaningful. No future replies or final conversation summaries.\nSupply the correct label for each alternative according to the rubric.\n",
+  "author_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_B7Sl74oxidZU7T6AREPB7687",
+          "input": {
+            "families": [
+              {
+                "scenario": "Customer asks about a smartwatch they bought and then shifts to a general question.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Hi, I got the FitPulse S2 watch last week. The heart-rate reading seems off when I run."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Sorry to hear that. Have you tried tightening the strap one notch during workouts? A loose fit can skew the sensor."
+                  },
+                  {
+                    "role": "user",
+                    "content": "I'll try that. Actually, do you folks have a physical store downtown?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Great, I'll test it on my next jog. And thanks for the tip!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "I tightened it but it still shows 140 when I'm barely moving. Should I send it back?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Wait, before I forget — can you also tell me if the S2 is waterproof for swimming?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a delayed delivery then makes a small-talk remark.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My order #48213 was supposed to arrive Tuesday but tracking hasn't moved since Monday."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me check. I see it's held at the regional hub due to weather. It should move out tomorrow."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Okay, that's a relief. By the way, is it supposed to rain here this weekend?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Haha, I know you're not a weather service. Thanks for checking on my package though!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "If it's stuck another day, can I just cancel and get a refund?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Actually, could you reroute it to my office address instead?",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer had a return processed and now asks about a discount code.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I returned the blender last week. The refund showed up on my card yesterday, so that's sorted."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Glad it went through smoothly! Is there anything else I can help with?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Yes — do you have any promo codes active right now?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Never mind the code. I just wanted to confirm the refund, so I'm all set. Have a good day!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "I'm eyeing the stand mixer. Is it compatible with the attachments from my old model?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Actually, the refund was $12 short of what I paid. Can you look into that?",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer locked out of account and then asks a casual question.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I can't log in — it says my password is wrong, but I'm sure it's correct."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "No problem. I've sent a reset link to your email on file. Check the inbox and spam folder."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Got it, thanks. Hey, do you know if your company is hiring right now?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "The reset link worked, I'm back in. And no worries about the hiring question — just curious!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "The link expired before I clicked it. Can you send another one?",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "I'm in now, but I noticed someone changed my saved address. Did someone access my account?",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a damaged item and then requests a human agent.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "The ceramic vase I ordered arrived cracked. I'd like a replacement."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry about that. I can start a replacement right away — just confirm your order number."
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's #77102. But honestly, I'd rather talk to a real person about this."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Actually, a replacement is fine. Please go ahead and process it.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Can you transfer me to a supervisor? I've had three damaged deliveries from you this year.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Never mind the vase — I'll just glue it. Thanks anyway!",
+                    "label": "general"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a subscription renewal and then makes a general comment.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My coffee subscription renews on the 15th. I want to skip next month's box."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Sure — I've marked your account to skip the March delivery. You won't be charged."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Perfect. You know, I've been really happy with the Ethiopian roast lately."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Anyway, that's all I needed. Thanks for the quick help!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Actually, change that — I want to cancel the subscription entirely instead.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Also, can you tell me if the March box will include the new decaf option?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a warranty claim and then asks about store hours.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My headphones stopped charging after three months. Is that covered under warranty?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Yes, they carry a one-year warranty. I can file a claim — do you have the receipt handy?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "I do. Also, what time do you open on Saturdays?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "We open at 9 AM on Saturdays. Would you like to bring the headphones in instead of filing online?",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Here's my receipt number. Please go ahead and file the claim.",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Actually, I'd rather just get a refund since I've had nothing but trouble with these.",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a gift order and then asks a general question about the company.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I ordered a gift basket for my mom's birthday on the 20th. Can you confirm it'll arrive in time?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "It's scheduled for delivery on the 19th, so you're all set. Anything else?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Great. How long has your company been around, by the way?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "We've been in business since 2009. Is there anything else I can help you with?",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Actually, can you add a handwritten card to the basket? It hasn't shipped yet, right?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "If it arrives late, will you refund the shipping fee automatically?",
+                    "label": "billing_refund"
+                  }
+                ]
+              }
+            ]
+          },
+          "name": "AuthoredBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "daa47ca6-48fa-49f2-80b8-e9a12b6fcb74",
+        "container": null,
+        "model": "deepseek-v4-flash",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 640,
+          "inference_geo": null,
+          "input_tokens": 319,
+          "output_tokens": 1707,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-flash",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d7-d606-7872-8dba-5a9793b693f6-0",
+      "tool_calls": [
+        {
+          "name": "AuthoredBatch",
+          "args": {
+            "families": [
+              {
+                "scenario": "Customer asks about a smartwatch they bought and then shifts to a general question.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Hi, I got the FitPulse S2 watch last week. The heart-rate reading seems off when I run."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Sorry to hear that. Have you tried tightening the strap one notch during workouts? A loose fit can skew the sensor."
+                  },
+                  {
+                    "role": "user",
+                    "content": "I'll try that. Actually, do you folks have a physical store downtown?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Great, I'll test it on my next jog. And thanks for the tip!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "I tightened it but it still shows 140 when I'm barely moving. Should I send it back?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Wait, before I forget — can you also tell me if the S2 is waterproof for swimming?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a delayed delivery then makes a small-talk remark.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My order #48213 was supposed to arrive Tuesday but tracking hasn't moved since Monday."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me check. I see it's held at the regional hub due to weather. It should move out tomorrow."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Okay, that's a relief. By the way, is it supposed to rain here this weekend?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Haha, I know you're not a weather service. Thanks for checking on my package though!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "If it's stuck another day, can I just cancel and get a refund?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Actually, could you reroute it to my office address instead?",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer had a return processed and now asks about a discount code.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I returned the blender last week. The refund showed up on my card yesterday, so that's sorted."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Glad it went through smoothly! Is there anything else I can help with?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Yes — do you have any promo codes active right now?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Never mind the code. I just wanted to confirm the refund, so I'm all set. Have a good day!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "I'm eyeing the stand mixer. Is it compatible with the attachments from my old model?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Actually, the refund was $12 short of what I paid. Can you look into that?",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer locked out of account and then asks a casual question.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I can't log in — it says my password is wrong, but I'm sure it's correct."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "No problem. I've sent a reset link to your email on file. Check the inbox and spam folder."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Got it, thanks. Hey, do you know if your company is hiring right now?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "The reset link worked, I'm back in. And no worries about the hiring question — just curious!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "The link expired before I clicked it. Can you send another one?",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "I'm in now, but I noticed someone changed my saved address. Did someone access my account?",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a damaged item and then requests a human agent.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "The ceramic vase I ordered arrived cracked. I'd like a replacement."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry about that. I can start a replacement right away — just confirm your order number."
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's #77102. But honestly, I'd rather talk to a real person about this."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Actually, a replacement is fine. Please go ahead and process it.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Can you transfer me to a supervisor? I've had three damaged deliveries from you this year.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Never mind the vase — I'll just glue it. Thanks anyway!",
+                    "label": "general"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a subscription renewal and then makes a general comment.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My coffee subscription renews on the 15th. I want to skip next month's box."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Sure — I've marked your account to skip the March delivery. You won't be charged."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Perfect. You know, I've been really happy with the Ethiopian roast lately."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Anyway, that's all I needed. Thanks for the quick help!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Actually, change that — I want to cancel the subscription entirely instead.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Also, can you tell me if the March box will include the new decaf option?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a warranty claim and then asks about store hours.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My headphones stopped charging after three months. Is that covered under warranty?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Yes, they carry a one-year warranty. I can file a claim — do you have the receipt handy?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "I do. Also, what time do you open on Saturdays?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "We open at 9 AM on Saturdays. Would you like to bring the headphones in instead of filing online?",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Here's my receipt number. Please go ahead and file the claim.",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Actually, I'd rather just get a refund since I've had nothing but trouble with these.",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a gift order and then asks a general question about the company.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I ordered a gift basket for my mom's birthday on the 20th. Can you confirm it'll arrive in time?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "It's scheduled for delivery on the 19th, so you're all set. Anything else?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Great. How long has your company been around, by the way?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "We've been in business since 2009. Is there anything else I can help you with?",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Actually, can you add a handwritten card to the basket? It hasn't shipped yet, right?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "If it arrives late, will you refund the shipping fee automatically?",
+                    "label": "billing_refund"
+                  }
+                ]
+              }
+            ]
+          },
+          "id": "call_00_B7Sl74oxidZU7T6AREPB7687",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 959,
+        "output_tokens": 1707,
+        "total_tokens": 2666,
+        "input_token_details": {
+          "cache_read": 640,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": "8 validation errors for AuthoredBatch\nfamilies.0\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer as...: 'product_technical'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.1\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer as...l': 'order_logistics'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.2\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer ha...el': 'billing_refund'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.3\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer lo...': 'account_security'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.4\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer as...\", 'label': 'general'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.5\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer as...: 'product_technical'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.6\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer as...el': 'billing_refund'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.7\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer as...el': 'billing_refund'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error"
+  },
+  "status": "failed",
+  "failure_stage": "author",
+  "error_type": "ValueError"
+}

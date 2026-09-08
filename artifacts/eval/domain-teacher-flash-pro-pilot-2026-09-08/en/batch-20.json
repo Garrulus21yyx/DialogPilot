@@ -1,0 +1,638 @@
+{
+  "batch_id": "domain-v3:en:20",
+  "language": "en",
+  "split": "heldout",
+  "models": {
+    "author": "deepseek-v4-flash",
+    "review": "deepseek-v4-pro"
+  },
+  "review_protocol": "label-blind-batch-v1",
+  "synthetic": true,
+  "author_prompt": "Author 8 DIFFERENT natural ecommerce customer-service dialogue families in en.\nBatch 20; ensure at least four current turns classified as order_logistics across this batch.\nEach family has its OWN coherent history of 2, 4 or 6 short alternating user/assistant\nmessages, followed by 3 ALTERNATIVE current user turns, not three sequential turns.\nThose alternatives differ in effective intent: retain vs replace, withdraw vs\ncontinue, single goal vs concurrent goal, or resolved vs unresolved reference.\nInclude natural short answers where history matters. Vary old completed tasks,\nhesitation, self-correction, indirect wording, topics and dialogue acts. General\nand human-service requests must also occur as NEW goals, not only stale history.\nDo not follow a repeated sentence template or substitute product nouns to create\nnew families. Avoid stereotyped 'information only, do not submit' repetition.\nInvent broad everyday ecommerce situations; no copied benchmark or private data.\nHistory plus current turn should fit 150 English words or 180 Chinese characters;\nkeep it compact but meaningful. No future replies or final conversation summaries.\nSupply the correct label for each alternative according to the rubric.\n",
+  "author_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_ljznwucpPqlEqi5x3ES66883",
+          "input": {
+            "families": [
+              {
+                "scenario": "Customer ordered a desk lamp but the package shows delivered while they never received it.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Hi, my order #48291 for the LED desk lamp says delivered yesterday but I never got it."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry to hear that. Let me check the tracking details for order #48291."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Thanks. The photo they uploaded just shows a doorstep, not my door."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I understand. I'll open a delivery investigation with the carrier. It usually takes 2-3 business days."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Okay, please go ahead with that investigation.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Actually, forget it — my neighbor found the package on their porch and brought it over.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Wait, before that — does this lamp come with a dimmer switch? I might have ordered the wrong model.",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about returning a pair of running shoes bought two weeks ago.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I bought the TrailBlazer running shoes two weeks ago and they're too narrow."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I can help with that. Our return window is 30 days from delivery for unworn items."
+                  },
+                  {
+                    "role": "user",
+                    "content": "They're basically unworn, just tried on indoors. Can I swap for a wide fit?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Yes, exchanges are available. I can generate a prepaid return label for you."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Great, send me the label. Also, do you carry these in a half-size up?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Actually, I'd rather just keep them and buy insoles instead. Cancel the return.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Hold on — I also want to check why my account shows two charges for this order.",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer's order was split into two shipments and one part is missing.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My order #7731 arrived but only half of it — the coffee maker came, no filters."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me look into that. Orders can ship in separate boxes with different tracking numbers."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Oh, I see. So there might be a second package still on the way?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Yes, I can see a second shipment that left our warehouse yesterday."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Perfect, then I'll just wait for it. Thanks for checking.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Actually, I need to change the delivery address for that second box — I'm traveling next week.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "By the way, is the coffee maker dishwasher-safe? The manual didn't say.",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer wants to cancel a subscription box before the next billing cycle.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I signed up for the monthly snack box but I want to cancel before the next charge."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I can help you cancel. Your next billing date is the 15th, so there's plenty of time."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Good. Will I still get this month's box if I cancel now?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Yes, the current month's box is already processed and will ship as scheduled."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Alright, cancel it then. I'll enjoy this last box.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Hmm, actually can I pause instead of cancel? I might restart in a few months.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Wait — I never got the confirmation email when I signed up. Can you resend it?",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer received a damaged ceramic vase and wants a replacement.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "The ceramic vase from order #2045 arrived cracked at the base."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm very sorry about that. I can send a replacement or issue a refund — which do you prefer?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "A replacement would be nice, but I'm worried it'll break again in shipping."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Understood. We'll use extra bubble wrap and double-boxing for the replacement."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Okay, send the replacement then. Thanks for the extra care.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "You know what, just refund me instead. I'll buy one locally.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Actually, can you tell me if this vase is food-safe? I wanted to use it for fruit.",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer is locked out of their account after a password reset.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I can't log in after resetting my password — it says my email isn't recognized."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me verify your account. Could you confirm the email you used at signup?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's j.martinez@mail.com, but I might have used a different one back then."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I found an account under jmartinez@mail.com. Would you like me to send a reset link there?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Yes, send it to that address please.",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "Actually, I don't remember which email I used at all. Can you look up by phone number?",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "Before that — I have a pending order I need to check on. Can you look it up by name?",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a discount code that isn't working at checkout.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My promo code SAVE20 isn't working at checkout. It says invalid."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me check that code. SAVE20 is valid for orders over $75 on select items."
+                  },
+                  {
+                    "role": "user",
+                    "content": "My cart is $89 but maybe some items are excluded from the promo."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That's likely it. The code excludes electronics and already-discounted items."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Got it, I'll remove the headphones from my cart and try again. Thanks!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Can you just apply the discount manually if I keep everything in the cart?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "I see. By the way, are these headphones noise-cancelling? The listing was unclear.",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer's delivery was left at the wrong building and they are frustrated.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "This is the second time my package was left at the wrong building. I'm really frustrated."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I sincerely apologize for the repeated issue. Let me escalate this to our delivery team."
+                  },
+                  {
+                    "role": "user",
+                    "content": "I've already called twice about this. I want to speak to a supervisor."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I understand your frustration. I can transfer you to our customer relations team."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Fine, transfer me. I want this resolved properly this time.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Actually, just tell me — will the next delivery come to the correct address or not?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "You know what, never mind. I'll just pick it up from the courier depot myself.",
+                    "label": "order_logistics"
+                  }
+                ]
+              }
+            ]
+          },
+          "name": "AuthoredBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "514d32d9-5169-416c-8a4a-35de8ee48451",
+        "container": null,
+        "model": "deepseek-v4-flash",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 640,
+          "inference_geo": null,
+          "input_tokens": 321,
+          "output_tokens": 1927,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-flash",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d8-e9b2-7c33-9c48-54ef57fb48ae-0",
+      "tool_calls": [
+        {
+          "name": "AuthoredBatch",
+          "args": {
+            "families": [
+              {
+                "scenario": "Customer ordered a desk lamp but the package shows delivered while they never received it.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Hi, my order #48291 for the LED desk lamp says delivered yesterday but I never got it."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry to hear that. Let me check the tracking details for order #48291."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Thanks. The photo they uploaded just shows a doorstep, not my door."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I understand. I'll open a delivery investigation with the carrier. It usually takes 2-3 business days."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Okay, please go ahead with that investigation.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Actually, forget it — my neighbor found the package on their porch and brought it over.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Wait, before that — does this lamp come with a dimmer switch? I might have ordered the wrong model.",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about returning a pair of running shoes bought two weeks ago.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I bought the TrailBlazer running shoes two weeks ago and they're too narrow."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I can help with that. Our return window is 30 days from delivery for unworn items."
+                  },
+                  {
+                    "role": "user",
+                    "content": "They're basically unworn, just tried on indoors. Can I swap for a wide fit?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Yes, exchanges are available. I can generate a prepaid return label for you."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Great, send me the label. Also, do you carry these in a half-size up?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Actually, I'd rather just keep them and buy insoles instead. Cancel the return.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Hold on — I also want to check why my account shows two charges for this order.",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer's order was split into two shipments and one part is missing.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My order #7731 arrived but only half of it — the coffee maker came, no filters."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me look into that. Orders can ship in separate boxes with different tracking numbers."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Oh, I see. So there might be a second package still on the way?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Yes, I can see a second shipment that left our warehouse yesterday."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Perfect, then I'll just wait for it. Thanks for checking.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Actually, I need to change the delivery address for that second box — I'm traveling next week.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "By the way, is the coffee maker dishwasher-safe? The manual didn't say.",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer wants to cancel a subscription box before the next billing cycle.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I signed up for the monthly snack box but I want to cancel before the next charge."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I can help you cancel. Your next billing date is the 15th, so there's plenty of time."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Good. Will I still get this month's box if I cancel now?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Yes, the current month's box is already processed and will ship as scheduled."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Alright, cancel it then. I'll enjoy this last box.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Hmm, actually can I pause instead of cancel? I might restart in a few months.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Wait — I never got the confirmation email when I signed up. Can you resend it?",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer received a damaged ceramic vase and wants a replacement.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "The ceramic vase from order #2045 arrived cracked at the base."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm very sorry about that. I can send a replacement or issue a refund — which do you prefer?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "A replacement would be nice, but I'm worried it'll break again in shipping."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Understood. We'll use extra bubble wrap and double-boxing for the replacement."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Okay, send the replacement then. Thanks for the extra care.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "You know what, just refund me instead. I'll buy one locally.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Actually, can you tell me if this vase is food-safe? I wanted to use it for fruit.",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer is locked out of their account after a password reset.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I can't log in after resetting my password — it says my email isn't recognized."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me verify your account. Could you confirm the email you used at signup?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's j.martinez@mail.com, but I might have used a different one back then."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I found an account under jmartinez@mail.com. Would you like me to send a reset link there?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Yes, send it to that address please.",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "Actually, I don't remember which email I used at all. Can you look up by phone number?",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "Before that — I have a pending order I need to check on. Can you look it up by name?",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a discount code that isn't working at checkout.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My promo code SAVE20 isn't working at checkout. It says invalid."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me check that code. SAVE20 is valid for orders over $75 on select items."
+                  },
+                  {
+                    "role": "user",
+                    "content": "My cart is $89 but maybe some items are excluded from the promo."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That's likely it. The code excludes electronics and already-discounted items."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Got it, I'll remove the headphones from my cart and try again. Thanks!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Can you just apply the discount manually if I keep everything in the cart?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "I see. By the way, are these headphones noise-cancelling? The listing was unclear.",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer's delivery was left at the wrong building and they are frustrated.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "This is the second time my package was left at the wrong building. I'm really frustrated."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I sincerely apologize for the repeated issue. Let me escalate this to our delivery team."
+                  },
+                  {
+                    "role": "user",
+                    "content": "I've already called twice about this. I want to speak to a supervisor."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I understand your frustration. I can transfer you to our customer relations team."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Fine, transfer me. I want this resolved properly this time.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Actually, just tell me — will the next delivery come to the correct address or not?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "You know what, never mind. I'll just pick it up from the courier depot myself.",
+                    "label": "order_logistics"
+                  }
+                ]
+              }
+            ]
+          },
+          "id": "call_00_ljznwucpPqlEqi5x3ES66883",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 961,
+        "output_tokens": 1927,
+        "total_tokens": 2888,
+        "input_token_details": {
+          "cache_read": 640,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": "1 validation error for AuthoredBatch\nfamilies.1\n  Value error, paired turns must expose a semantic domain boundary [type=value_error, input_value={'scenario': 'Customer as...el': 'billing_refund'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error"
+  },
+  "status": "failed",
+  "failure_stage": "author",
+  "error_type": "ValueError"
+}

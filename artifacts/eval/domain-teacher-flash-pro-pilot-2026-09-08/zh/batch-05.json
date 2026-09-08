@@ -1,0 +1,646 @@
+{
+  "batch_id": "domain-v3:zh:5",
+  "language": "zh",
+  "split": "train",
+  "models": {
+    "author": "deepseek-v4-flash",
+    "review": "deepseek-v4-pro"
+  },
+  "review_protocol": "label-blind-batch-v1",
+  "synthetic": true,
+  "author_prompt": "Author 8 DIFFERENT natural ecommerce customer-service dialogue families in zh.\nBatch 5; ensure at least four current turns classified as human_service across this batch.\nEach family has its OWN coherent history of 2, 4 or 6 short alternating user/assistant\nmessages, followed by 3 ALTERNATIVE current user turns, not three sequential turns.\nThose alternatives differ in effective intent: retain vs replace, withdraw vs\ncontinue, single goal vs concurrent goal, or resolved vs unresolved reference.\nInclude natural short answers where history matters. Vary old completed tasks,\nhesitation, self-correction, indirect wording, topics and dialogue acts. General\nand human-service requests must also occur as NEW goals, not only stale history.\nDo not follow a repeated sentence template or substitute product nouns to create\nnew families. Avoid stereotyped 'information only, do not submit' repetition.\nInvent broad everyday ecommerce situations; no copied benchmark or private data.\nHistory plus current turn should fit 150 English words or 180 Chinese characters;\nkeep it compact but meaningful. No future replies or final conversation summaries.\nSupply the correct label for each alternative according to the rubric.\n",
+  "author_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_DUcmGQJRUj6KXWv2GFM79309",
+          "input": {
+            "families": [
+              {
+                "scenario": "智能手表表带更换咨询后要求人工投诉",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我上周买的智能手表，表带卡扣松了，戴着总感觉要掉。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "抱歉给您带来不便。请问您购买的是哪款型号呢？我可以帮您查询配件信息。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "是S7那款，黑色表带。你们能单独补发一个表带吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "S7的表带可以单独补发，我帮您登记一下收货信息好吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "算了，我自己去店里看看有没有合适的。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "对了，刚才那个表带的事我还是想处理，麻烦帮我登记补发吧。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "不弄了，我就问问。另外你们客服电话是多少？我想直接打电话说点别的事。",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "等等，我改主意了，不补发了。但我现在要投诉你们门店，昨天店员态度特别差，我要找人工客服投诉！",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "咖啡机使用问题升级为售后投诉",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我买的胶囊咖啡机，今天突然不出水了。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您先检查一下水箱是否装好，还有出水口有没有堵塞呢？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "都检查过了，还是不行。指示灯一直闪红色。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "红色指示灯闪烁可能是内部管路问题，建议您联系售后检测。需要我帮您预约吗？"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，帮我预约吧，我周末在家。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "预约的事先放一放。我想问一下，你们这个机器保修期是多久？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "不用预约了，我直接要求人工客服介入，这机器才买一个月就坏了，我要投诉质量问题！",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "退货退款后闲聊并询问人工渠道",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我昨天申请退货的那件外套，退款到账了，谢谢你们处理。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "不客气，很高兴能帮到您。还有其他需要吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "没有了，就是确认一下到账了。你们服务还挺快的。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "感谢您的认可！如果后续有任何问题随时找我们。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，谢谢。对了，你们有没有人工客服电话？我朋友想咨询一个比较复杂的问题，她不太会用在线聊天。",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "嗯，那没事了，再见。",
+                    "label": "general"
+                  },
+                  {
+                    "text": "等等，我忽然想起来，那件外套我其实想换大一码的，现在退款了还能重新下单换吗？",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "账号登录问题解决后提出新投诉",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我账号登不进去了，一直提示密码错误。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您试试用手机验证码登录，然后重置密码看看？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "试了，验证码能收到，重置完密码可以登录了。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "太好了，那现在账号应该恢复正常了。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "嗯，账号好了。不过我还有个事，我上周买的那箱牛奶有一盒胀包了，能帮我处理吗？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "账号的事解决了就行。我想找人工客服，因为我怀疑有人盗用我账号下过单，我要投诉！",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "好的，谢谢。那没事了。",
+                    "label": "general"
+                  }
+                ]
+              },
+              {
+                "scenario": "物流延迟查询后要求转人工投诉",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我买的那台加湿器，物流显示三天没动了，是不是丢件了？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "我帮您查一下物流信息。请稍等……您的包裹目前在转运中心，可能因为天气原因有延迟。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "那大概什么时候能到？我急着用。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "预计明天下午送达，如果超时您可以申请物流赔付。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "行吧，那我再等等看。另外你们有没有实体店？我想去店里看看有没有现货，急用的话直接买一个。",
+                    "label": "general"
+                  },
+                  {
+                    "text": "明天下午太晚了，我要转人工客服投诉物流，这已经严重耽误我使用了！",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "好的，那我明天留意一下。如果明天没到我再找你。",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "耳机售后咨询后撤回并闲聊",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我买的蓝牙耳机右耳没声音了，能保修吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请问您购买多久了？在保修期内的话可以免费维修。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "买了大概四个月吧，应该还在保修期。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "在保修期内，您可以寄回检测维修，运费由我们承担。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "算了，不修了，反正也不贵，我再买一个算了。今天天气不错，你们那边呢？",
+                    "label": "general"
+                  },
+                  {
+                    "text": "好的，那我寄回去。地址发我一下。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "先不寄了。我想问下你们有没有人工客服热线？我邻居也想买耳机，但她想打电话咨询，不太会用手机下单。",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "多商品订单问题拆分处理",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我那个订单里有两样东西，一个杯子一个台灯，杯子到了，台灯还没发货。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "我查一下，台灯因为供应商缺货，预计下周才能发出。您看可以接受吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "下周太久了，台灯能退掉吗？杯子我留着。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "可以的，我帮您把台灯单独取消退款，杯子正常保留。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好，那就这样办。另外我还有个问题，你们台灯有没有其他型号有现货的？我想换一款。",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "行，台灯退了。不过我现在要投诉你们，缺货为什么不提前通知我？我要找人工客服说清楚！",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "好的，那台灯退了，杯子留着。谢谢。",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "会员积分咨询后要求人工处理异常",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我上个月消费了不少，怎么积分好像没增加？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "积分一般在订单确认收货后48小时内到账，您确认收货了吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "确认了，都过了五天了还没到。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "那可能是系统延迟，我帮您提交一个积分补录申请，需要1-2个工作日。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，那你帮我提交吧。",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "不用了，积分也不多，算了。你们最近有什么促销活动吗？",
+                    "label": "general"
+                  },
+                  {
+                    "text": "提交申请太慢了，我要直接找人工客服处理，这积分系统是不是有问题？我要投诉！",
+                    "label": "human_service"
+                  }
+                ]
+              }
+            ]
+          },
+          "name": "AuthoredBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "02600ae4-04a2-4db7-8cd9-b973cb461890",
+        "container": null,
+        "model": "deepseek-v4-flash",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 640,
+          "inference_geo": null,
+          "input_tokens": 320,
+          "output_tokens": 1899,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-flash",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d5-c2c3-7992-8ddd-c3d9360161db-0",
+      "tool_calls": [
+        {
+          "name": "AuthoredBatch",
+          "args": {
+            "families": [
+              {
+                "scenario": "智能手表表带更换咨询后要求人工投诉",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我上周买的智能手表，表带卡扣松了，戴着总感觉要掉。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "抱歉给您带来不便。请问您购买的是哪款型号呢？我可以帮您查询配件信息。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "是S7那款，黑色表带。你们能单独补发一个表带吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "S7的表带可以单独补发，我帮您登记一下收货信息好吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "算了，我自己去店里看看有没有合适的。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "对了，刚才那个表带的事我还是想处理，麻烦帮我登记补发吧。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "不弄了，我就问问。另外你们客服电话是多少？我想直接打电话说点别的事。",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "等等，我改主意了，不补发了。但我现在要投诉你们门店，昨天店员态度特别差，我要找人工客服投诉！",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "咖啡机使用问题升级为售后投诉",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我买的胶囊咖啡机，今天突然不出水了。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您先检查一下水箱是否装好，还有出水口有没有堵塞呢？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "都检查过了，还是不行。指示灯一直闪红色。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "红色指示灯闪烁可能是内部管路问题，建议您联系售后检测。需要我帮您预约吗？"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，帮我预约吧，我周末在家。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "预约的事先放一放。我想问一下，你们这个机器保修期是多久？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "不用预约了，我直接要求人工客服介入，这机器才买一个月就坏了，我要投诉质量问题！",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "退货退款后闲聊并询问人工渠道",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我昨天申请退货的那件外套，退款到账了，谢谢你们处理。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "不客气，很高兴能帮到您。还有其他需要吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "没有了，就是确认一下到账了。你们服务还挺快的。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "感谢您的认可！如果后续有任何问题随时找我们。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，谢谢。对了，你们有没有人工客服电话？我朋友想咨询一个比较复杂的问题，她不太会用在线聊天。",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "嗯，那没事了，再见。",
+                    "label": "general"
+                  },
+                  {
+                    "text": "等等，我忽然想起来，那件外套我其实想换大一码的，现在退款了还能重新下单换吗？",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "账号登录问题解决后提出新投诉",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我账号登不进去了，一直提示密码错误。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您试试用手机验证码登录，然后重置密码看看？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "试了，验证码能收到，重置完密码可以登录了。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "太好了，那现在账号应该恢复正常了。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "嗯，账号好了。不过我还有个事，我上周买的那箱牛奶有一盒胀包了，能帮我处理吗？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "账号的事解决了就行。我想找人工客服，因为我怀疑有人盗用我账号下过单，我要投诉！",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "好的，谢谢。那没事了。",
+                    "label": "general"
+                  }
+                ]
+              },
+              {
+                "scenario": "物流延迟查询后要求转人工投诉",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我买的那台加湿器，物流显示三天没动了，是不是丢件了？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "我帮您查一下物流信息。请稍等……您的包裹目前在转运中心，可能因为天气原因有延迟。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "那大概什么时候能到？我急着用。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "预计明天下午送达，如果超时您可以申请物流赔付。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "行吧，那我再等等看。另外你们有没有实体店？我想去店里看看有没有现货，急用的话直接买一个。",
+                    "label": "general"
+                  },
+                  {
+                    "text": "明天下午太晚了，我要转人工客服投诉物流，这已经严重耽误我使用了！",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "好的，那我明天留意一下。如果明天没到我再找你。",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "耳机售后咨询后撤回并闲聊",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我买的蓝牙耳机右耳没声音了，能保修吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请问您购买多久了？在保修期内的话可以免费维修。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "买了大概四个月吧，应该还在保修期。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "在保修期内，您可以寄回检测维修，运费由我们承担。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "算了，不修了，反正也不贵，我再买一个算了。今天天气不错，你们那边呢？",
+                    "label": "general"
+                  },
+                  {
+                    "text": "好的，那我寄回去。地址发我一下。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "先不寄了。我想问下你们有没有人工客服热线？我邻居也想买耳机，但她想打电话咨询，不太会用手机下单。",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "多商品订单问题拆分处理",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我那个订单里有两样东西，一个杯子一个台灯，杯子到了，台灯还没发货。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "我查一下，台灯因为供应商缺货，预计下周才能发出。您看可以接受吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "下周太久了，台灯能退掉吗？杯子我留着。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "可以的，我帮您把台灯单独取消退款，杯子正常保留。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好，那就这样办。另外我还有个问题，你们台灯有没有其他型号有现货的？我想换一款。",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "行，台灯退了。不过我现在要投诉你们，缺货为什么不提前通知我？我要找人工客服说清楚！",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "好的，那台灯退了，杯子留着。谢谢。",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "会员积分咨询后要求人工处理异常",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我上个月消费了不少，怎么积分好像没增加？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "积分一般在订单确认收货后48小时内到账，您确认收货了吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "确认了，都过了五天了还没到。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "那可能是系统延迟，我帮您提交一个积分补录申请，需要1-2个工作日。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，那你帮我提交吧。",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "不用了，积分也不多，算了。你们最近有什么促销活动吗？",
+                    "label": "general"
+                  },
+                  {
+                    "text": "提交申请太慢了，我要直接找人工客服处理，这积分系统是不是有问题？我要投诉！",
+                    "label": "human_service"
+                  }
+                ]
+              }
+            ]
+          },
+          "id": "call_00_DUcmGQJRUj6KXWv2GFM79309",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 960,
+        "output_tokens": 1899,
+        "total_tokens": 2859,
+        "input_token_details": {
+          "cache_read": 640,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": "1 validation error for AuthoredBatch\nfamilies.0\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': '智能手...bel': 'human_service'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error"
+  },
+  "status": "failed",
+  "failure_stage": "author",
+  "error_type": "ValueError"
+}

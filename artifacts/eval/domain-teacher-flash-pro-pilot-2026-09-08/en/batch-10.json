@@ -1,0 +1,630 @@
+{
+  "batch_id": "domain-v3:en:10",
+  "language": "en",
+  "split": "train",
+  "models": {
+    "author": "deepseek-v4-flash",
+    "review": "deepseek-v4-pro"
+  },
+  "review_protocol": "label-blind-batch-v1",
+  "synthetic": true,
+  "author_prompt": "Author 8 DIFFERENT natural ecommerce customer-service dialogue families in en.\nBatch 10; ensure at least four current turns classified as account_security across this batch.\nEach family has its OWN coherent history of 2, 4 or 6 short alternating user/assistant\nmessages, followed by 3 ALTERNATIVE current user turns, not three sequential turns.\nThose alternatives differ in effective intent: retain vs replace, withdraw vs\ncontinue, single goal vs concurrent goal, or resolved vs unresolved reference.\nInclude natural short answers where history matters. Vary old completed tasks,\nhesitation, self-correction, indirect wording, topics and dialogue acts. General\nand human-service requests must also occur as NEW goals, not only stale history.\nDo not follow a repeated sentence template or substitute product nouns to create\nnew families. Avoid stereotyped 'information only, do not submit' repetition.\nInvent broad everyday ecommerce situations; no copied benchmark or private data.\nHistory plus current turn should fit 150 English words or 180 Chinese characters;\nkeep it compact but meaningful. No future replies or final conversation summaries.\nSupply the correct label for each alternative according to the rubric.\n",
+  "author_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_0MCmZdBzCqfssSklqiVO8892",
+          "input": {
+            "families": [
+              {
+                "scenario": "Customer locked out of account after changing phone number",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I got a new phone last week and now I can't get into my account. The verification code goes to my old number."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry to hear that. I can help you regain access. Could you confirm the email address on the account?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's jordan.kim@gmail.com. I've been trying all morning and it's really frustrating."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Thank you. I've sent a one-time recovery link to that email. Please check your inbox and follow the steps to update your phone number."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "I clicked the link but it says the session expired. Can you send another one?",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "Actually, forget it. I'll just make a brand new account instead.",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "Wait, before I do that — do you still have that winter jacket in size large? I saw it last week.",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a refund while also checking order status",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I returned a blender two weeks ago and haven't seen the money back yet."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me look into that return for you. Could you share your order number?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Sure, it's #48291. Also, I ordered some coffee pods separately and I'm wondering when those arrive."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I see the return was received on the 3rd. Refunds typically post within 5-7 business days after that. For the coffee pods, let me check the tracking."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "It's been 8 business days now. I need this refund processed today or I'm filing a dispute.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Actually, never mind the refund — just tell me about the coffee pods delivery.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Can you also reset my password? I keep getting locked out of my account when I check tracking.",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer wants to speak to a person about damaged furniture",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My bookshelf arrived with a cracked shelf panel. I'm really not happy about it."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry about the damage. I can arrange a replacement panel or a full replacement — which would you prefer?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Honestly, I've been going back and forth with chat for an hour. I just want a real person to handle this."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Please transfer me to a supervisor right now. I don't want to repeat everything again.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Actually, if you can just send the replacement panel, that's fine. I'll install it myself.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Hmm, actually before that — is my account showing the right shipping address? I moved recently.",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about warranty coverage for a laptop",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My laptop screen flickers whenever I unplug the charger. It's about 14 months old."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That sounds like a power-related display issue. The standard warranty covers 12 months, but let me check if you purchased an extended plan."
+                  },
+                  {
+                    "role": "user",
+                    "content": "I think I did add one at checkout. It was like thirty bucks extra."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I can confirm you have the 2-year extended care plan, so this would be covered. Would you like to start a repair request?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Yes, please start the repair. Also, does the plan cover accidental drops or just defects?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Oh wait, I actually bought this laptop for my sister. Can I transfer the warranty to her name?",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "You know what, I'll just take it to a local shop instead. Thanks anyway.",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer checking delivery address before shipment",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I placed an order for a desk lamp about an hour ago. I want to make sure it ships to my office, not home."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me pull up that order. Could you confirm the order number or the email used?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Order #77315, email is priya.shah@outlook.com."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Found it. The shipping address on file is your home address on Maple Street. Would you like me to update it before dispatch?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Yes, please change it to my office at 200 Harbor Blvd, Suite 4.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Actually, I don't remember placing that order. Did someone use my account?",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "Hmm, on second thought, just cancel the whole thing. I found a cheaper one elsewhere.",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about gift card balance and then something else",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I got a gift card for my birthday and I'm trying to figure out how much is on it."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'd be happy to check that. Could you provide the gift card number and PIN from the back?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "The number is 4820-1139-7752 and the PIN is 8841."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Your gift card has a balance of $75.40. Is there anything else I can help you with?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Great, thanks for checking. That's all I needed.",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Perfect. Now, I also noticed a charge on my credit card from you guys that I don't recognize.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Thanks. By the way, someone logged into my account from another city last night — can you check that?",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer hesitates between two similar products",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I'm torn between the AeroPress Go and the regular AeroPress. I travel a lot for work."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "The Go version is more compact and comes with its own mug, which is handy for travel. The regular one makes slightly larger batches."
+                  },
+                  {
+                    "role": "user",
+                    "content": "That helps. I mostly make coffee just for myself in hotel rooms."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Then the Go would likely suit you well — it's designed for exactly that scenario, and it fits in a carry-on easily."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Alright, I'll take the Go. Actually, wait — does it work with the metal filter from my old one?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Thanks for the advice. I'll think about it and come back later.",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "Okay, I'll order the Go. But first, can you verify my saved payment method is still valid? I got a new card.",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer complains about a late delivery and wants compensation",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My package was supposed to arrive Tuesday and it's now Friday. This is the second time this month."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I sincerely apologize for the delay. Let me check the current status of your shipment."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Tracking just says 'delayed in transit' with no update since Wednesday. I needed these shoes for a wedding tomorrow."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I understand the urgency. I can see it's still at the regional hub. I'll escalate this with the carrier and also offer a 10% courtesy discount on your next order."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "A 10% discount isn't enough for missing a wedding. I want a full refund and free return shipping.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Fine, but can you at least make sure my account isn't being flagged for something? I've had two late orders and I'm worried.",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "Actually, is there any way to pick it up at the hub myself? The wedding is at 2pm tomorrow.",
+                    "label": "order_logistics"
+                  }
+                ]
+              }
+            ]
+          },
+          "name": "AuthoredBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "168ac0ce-d60b-40c3-a953-fbc4a2c87114",
+        "container": null,
+        "model": "deepseek-v4-flash",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 640,
+          "inference_geo": null,
+          "input_tokens": 321,
+          "output_tokens": 2092,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-flash",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d8-0ee1-77d3-8202-b2038486ce60-0",
+      "tool_calls": [
+        {
+          "name": "AuthoredBatch",
+          "args": {
+            "families": [
+              {
+                "scenario": "Customer locked out of account after changing phone number",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I got a new phone last week and now I can't get into my account. The verification code goes to my old number."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry to hear that. I can help you regain access. Could you confirm the email address on the account?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's jordan.kim@gmail.com. I've been trying all morning and it's really frustrating."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Thank you. I've sent a one-time recovery link to that email. Please check your inbox and follow the steps to update your phone number."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "I clicked the link but it says the session expired. Can you send another one?",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "Actually, forget it. I'll just make a brand new account instead.",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "Wait, before I do that — do you still have that winter jacket in size large? I saw it last week.",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a refund while also checking order status",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I returned a blender two weeks ago and haven't seen the money back yet."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me look into that return for you. Could you share your order number?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Sure, it's #48291. Also, I ordered some coffee pods separately and I'm wondering when those arrive."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I see the return was received on the 3rd. Refunds typically post within 5-7 business days after that. For the coffee pods, let me check the tracking."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "It's been 8 business days now. I need this refund processed today or I'm filing a dispute.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Actually, never mind the refund — just tell me about the coffee pods delivery.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Can you also reset my password? I keep getting locked out of my account when I check tracking.",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer wants to speak to a person about damaged furniture",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My bookshelf arrived with a cracked shelf panel. I'm really not happy about it."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry about the damage. I can arrange a replacement panel or a full replacement — which would you prefer?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Honestly, I've been going back and forth with chat for an hour. I just want a real person to handle this."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Please transfer me to a supervisor right now. I don't want to repeat everything again.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Actually, if you can just send the replacement panel, that's fine. I'll install it myself.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Hmm, actually before that — is my account showing the right shipping address? I moved recently.",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about warranty coverage for a laptop",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My laptop screen flickers whenever I unplug the charger. It's about 14 months old."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That sounds like a power-related display issue. The standard warranty covers 12 months, but let me check if you purchased an extended plan."
+                  },
+                  {
+                    "role": "user",
+                    "content": "I think I did add one at checkout. It was like thirty bucks extra."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I can confirm you have the 2-year extended care plan, so this would be covered. Would you like to start a repair request?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Yes, please start the repair. Also, does the plan cover accidental drops or just defects?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Oh wait, I actually bought this laptop for my sister. Can I transfer the warranty to her name?",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "You know what, I'll just take it to a local shop instead. Thanks anyway.",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer checking delivery address before shipment",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I placed an order for a desk lamp about an hour ago. I want to make sure it ships to my office, not home."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me pull up that order. Could you confirm the order number or the email used?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Order #77315, email is priya.shah@outlook.com."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Found it. The shipping address on file is your home address on Maple Street. Would you like me to update it before dispatch?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Yes, please change it to my office at 200 Harbor Blvd, Suite 4.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Actually, I don't remember placing that order. Did someone use my account?",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "Hmm, on second thought, just cancel the whole thing. I found a cheaper one elsewhere.",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about gift card balance and then something else",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I got a gift card for my birthday and I'm trying to figure out how much is on it."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'd be happy to check that. Could you provide the gift card number and PIN from the back?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "The number is 4820-1139-7752 and the PIN is 8841."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Your gift card has a balance of $75.40. Is there anything else I can help you with?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Great, thanks for checking. That's all I needed.",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Perfect. Now, I also noticed a charge on my credit card from you guys that I don't recognize.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Thanks. By the way, someone logged into my account from another city last night — can you check that?",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer hesitates between two similar products",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I'm torn between the AeroPress Go and the regular AeroPress. I travel a lot for work."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "The Go version is more compact and comes with its own mug, which is handy for travel. The regular one makes slightly larger batches."
+                  },
+                  {
+                    "role": "user",
+                    "content": "That helps. I mostly make coffee just for myself in hotel rooms."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Then the Go would likely suit you well — it's designed for exactly that scenario, and it fits in a carry-on easily."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Alright, I'll take the Go. Actually, wait — does it work with the metal filter from my old one?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Thanks for the advice. I'll think about it and come back later.",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "Okay, I'll order the Go. But first, can you verify my saved payment method is still valid? I got a new card.",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer complains about a late delivery and wants compensation",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My package was supposed to arrive Tuesday and it's now Friday. This is the second time this month."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I sincerely apologize for the delay. Let me check the current status of your shipment."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Tracking just says 'delayed in transit' with no update since Wednesday. I needed these shoes for a wedding tomorrow."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I understand the urgency. I can see it's still at the regional hub. I'll escalate this with the carrier and also offer a 10% courtesy discount on your next order."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "A 10% discount isn't enough for missing a wedding. I want a full refund and free return shipping.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Fine, but can you at least make sure my account isn't being flagged for something? I've had two late orders and I'm worried.",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "Actually, is there any way to pick it up at the hub myself? The wedding is at 2pm tomorrow.",
+                    "label": "order_logistics"
+                  }
+                ]
+              }
+            ]
+          },
+          "id": "call_00_0MCmZdBzCqfssSklqiVO8892",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 961,
+        "output_tokens": 2092,
+        "total_tokens": 3053,
+        "input_token_details": {
+          "cache_read": 640,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": "1 validation error for AuthoredBatch\nfamilies.2\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer wa...': 'account_security'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error"
+  },
+  "status": "failed",
+  "failure_stage": "author",
+  "error_type": "ValueError"
+}

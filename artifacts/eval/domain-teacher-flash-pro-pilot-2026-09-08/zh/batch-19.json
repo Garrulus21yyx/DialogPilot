@@ -1,0 +1,1991 @@
+{
+  "batch_id": "domain-v3:zh:19",
+  "language": "zh",
+  "split": "calibration",
+  "models": {
+    "author": "deepseek-v4-flash",
+    "review": "deepseek-v4-pro"
+  },
+  "review_protocol": "label-blind-batch-v1",
+  "synthetic": true,
+  "author_prompt": "Author 8 DIFFERENT natural ecommerce customer-service dialogue families in zh.\nBatch 19; ensure at least four current turns classified as product_technical across this batch.\nEach family has its OWN coherent history of 2, 4 or 6 short alternating user/assistant\nmessages, followed by 3 ALTERNATIVE current user turns, not three sequential turns.\nThose alternatives differ in effective intent: retain vs replace, withdraw vs\ncontinue, single goal vs concurrent goal, or resolved vs unresolved reference.\nInclude natural short answers where history matters. Vary old completed tasks,\nhesitation, self-correction, indirect wording, topics and dialogue acts. General\nand human-service requests must also occur as NEW goals, not only stale history.\nDo not follow a repeated sentence template or substitute product nouns to create\nnew families. Avoid stereotyped 'information only, do not submit' repetition.\nInvent broad everyday ecommerce situations; no copied benchmark or private data.\nHistory plus current turn should fit 150 English words or 180 Chinese characters;\nkeep it compact but meaningful. No future replies or final conversation summaries.\nSupply the correct label for each alternative according to the rubric.\n",
+  "author_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_4DeI6gK9fVpvf24tB9wG4206",
+          "input": {
+            "families": [
+              {
+                "scenario": "顾客询问智能手表屏幕更换服务",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我上个月买的智能手表屏幕摔裂了，还能修吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您好，可以维修的。请问您的手表型号是什么？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "是S5运动版，42毫米的。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "S5运动版屏幕更换费用是299元，需要寄回检测后安排维修，大约5-7个工作日。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那S5和S6的屏幕通用吗？我想自己买来换。",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "好的，那我不修了，帮我看看我另一单的物流到哪了？",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "299太贵了，能不能便宜点？",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客咨询咖啡机除垢操作",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我买的咖啡机用了三个月，最近出水量变小了。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "可能是需要除垢了。您的型号是CM-200吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "对，就是CM-200。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "建议每两个月除垢一次。水箱加入专用除垢液按1:10稀释，长按除垢键3秒启动程序。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "除垢液和清水比例搞错了会怎样？机器会坏吗？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "明白了，那除垢液你们有卖吗？顺便帮我查下上次买的滤芯发货没。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "算了太麻烦了，我直接换台新的吧，能退货吗？",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客询问蓝牙耳机连接问题",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "耳机左边没声音了，是不是坏了？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "先别急，请问您尝试过重新配对吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "试过了，还是不行。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "那可能是耳机触点氧化了，用酒精棉擦拭充电盒内的金属触点试试。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "擦了也没用，这款耳机支持单耳使用吗？我想只用右边。",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "好吧，那我不折腾了，帮我转人工客服申请售后吧。",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "对了，顺便问下，我上次买的充电线到货了吗？",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客询问笔记本电脑内存升级",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我的笔记本开几个网页就卡，想加内存。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请问您的笔记本具体型号是什么？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "是去年买的灵越15，具体型号我记不清了。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您可以在机身底部标签上找到型号，或者告诉我购买订单号，我帮您查。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "订单号是D20231108，帮我查下型号顺便告诉我支持多大内存。",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "算了不查了，我直接买台新的吧，旧机能回收吗？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "哦对了，我还有个问题，我账号登录不上了，密码忘了怎么办？",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客询问空气炸锅配件",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "空气炸锅的炸篮涂层掉了，还能用吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "涂层脱落不建议继续使用，可能会有健康风险。请问购买多久了？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "买了半年左右吧。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "半年内可以申请免费更换配件，我帮您登记一下。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那我不换了，直接买一个新的炸篮，你们有适配AF-500的配件卖吗？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "好的，麻烦帮我登记更换，另外我上次退的货退款到账了吗？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "谢谢你的帮助，你们服务真好。",
+                    "label": "general"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客询问路由器覆盖范围",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "家里三室一厅，想换个信号好的路由器。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请问您家面积大概多少平？宽带是多少兆的？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "大概100平，宽带是500兆。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "100平的话推荐AX3000系列，穿墙能力不错，500兆宽带完全够用。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "AX3000和AX5400穿墙差多少？我家墙比较多，怕信号不行。",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "好的，那就买AX3000吧，帮我看看现在有什么优惠？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "等等，我其实是想问能不能把旧路由器以旧换新？",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客询问电动牙刷充电问题",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "电动牙刷充了一晚上电，第二天还是没电。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请问指示灯有亮吗？充电底座是否连接正常？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "指示灯没亮，底座也换过插座试了。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "那可能是充电底座或牙刷内部电池出了问题，建议寄回检测。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "寄回检测要多久？另外这款牙刷的电池能自己换吗？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "好的，那帮我申请寄回检测吧，顺便问下人工客服在不在？",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "算了，我直接再买一支新的，你们现在有什么型号推荐？",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客询问保温杯材质",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "刚收到的保温杯内胆有股味道，正常吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "新保温杯可能会有轻微味道，建议用温水加小苏打清洗后通风晾干。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "洗了还是有味道，是不是材质有问题？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请问您购买的是316不锈钢款还是304款？两款材质不同，316更耐腐蚀。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "我买的是316的，316和304到底有什么区别？为什么316也会有味道？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "那我不纠结了，帮我申请退货吧，运费谁承担？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "好的谢谢，另外我还有个快递显示签收了但我没收到，帮我查下。",
+                    "label": "order_logistics"
+                  }
+                ]
+              }
+            ]
+          },
+          "name": "AuthoredBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "d3e2da1b-ad55-4de8-99a5-c4becba72f09",
+        "container": null,
+        "model": "deepseek-v4-flash",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 640,
+          "inference_geo": null,
+          "input_tokens": 321,
+          "output_tokens": 1742,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-flash",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d6-e81e-7213-8025-aa8464aaf03f-0",
+      "tool_calls": [
+        {
+          "name": "AuthoredBatch",
+          "args": {
+            "families": [
+              {
+                "scenario": "顾客询问智能手表屏幕更换服务",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我上个月买的智能手表屏幕摔裂了，还能修吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您好，可以维修的。请问您的手表型号是什么？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "是S5运动版，42毫米的。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "S5运动版屏幕更换费用是299元，需要寄回检测后安排维修，大约5-7个工作日。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那S5和S6的屏幕通用吗？我想自己买来换。",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "好的，那我不修了，帮我看看我另一单的物流到哪了？",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "299太贵了，能不能便宜点？",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客咨询咖啡机除垢操作",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我买的咖啡机用了三个月，最近出水量变小了。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "可能是需要除垢了。您的型号是CM-200吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "对，就是CM-200。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "建议每两个月除垢一次。水箱加入专用除垢液按1:10稀释，长按除垢键3秒启动程序。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "除垢液和清水比例搞错了会怎样？机器会坏吗？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "明白了，那除垢液你们有卖吗？顺便帮我查下上次买的滤芯发货没。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "算了太麻烦了，我直接换台新的吧，能退货吗？",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客询问蓝牙耳机连接问题",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "耳机左边没声音了，是不是坏了？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "先别急，请问您尝试过重新配对吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "试过了，还是不行。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "那可能是耳机触点氧化了，用酒精棉擦拭充电盒内的金属触点试试。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "擦了也没用，这款耳机支持单耳使用吗？我想只用右边。",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "好吧，那我不折腾了，帮我转人工客服申请售后吧。",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "对了，顺便问下，我上次买的充电线到货了吗？",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客询问笔记本电脑内存升级",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我的笔记本开几个网页就卡，想加内存。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请问您的笔记本具体型号是什么？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "是去年买的灵越15，具体型号我记不清了。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您可以在机身底部标签上找到型号，或者告诉我购买订单号，我帮您查。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "订单号是D20231108，帮我查下型号顺便告诉我支持多大内存。",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "算了不查了，我直接买台新的吧，旧机能回收吗？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "哦对了，我还有个问题，我账号登录不上了，密码忘了怎么办？",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客询问空气炸锅配件",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "空气炸锅的炸篮涂层掉了，还能用吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "涂层脱落不建议继续使用，可能会有健康风险。请问购买多久了？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "买了半年左右吧。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "半年内可以申请免费更换配件，我帮您登记一下。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那我不换了，直接买一个新的炸篮，你们有适配AF-500的配件卖吗？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "好的，麻烦帮我登记更换，另外我上次退的货退款到账了吗？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "谢谢你的帮助，你们服务真好。",
+                    "label": "general"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客询问路由器覆盖范围",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "家里三室一厅，想换个信号好的路由器。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请问您家面积大概多少平？宽带是多少兆的？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "大概100平，宽带是500兆。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "100平的话推荐AX3000系列，穿墙能力不错，500兆宽带完全够用。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "AX3000和AX5400穿墙差多少？我家墙比较多，怕信号不行。",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "好的，那就买AX3000吧，帮我看看现在有什么优惠？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "等等，我其实是想问能不能把旧路由器以旧换新？",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客询问电动牙刷充电问题",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "电动牙刷充了一晚上电，第二天还是没电。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请问指示灯有亮吗？充电底座是否连接正常？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "指示灯没亮，底座也换过插座试了。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "那可能是充电底座或牙刷内部电池出了问题，建议寄回检测。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "寄回检测要多久？另外这款牙刷的电池能自己换吗？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "好的，那帮我申请寄回检测吧，顺便问下人工客服在不在？",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "算了，我直接再买一支新的，你们现在有什么型号推荐？",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客询问保温杯材质",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "刚收到的保温杯内胆有股味道，正常吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "新保温杯可能会有轻微味道，建议用温水加小苏打清洗后通风晾干。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "洗了还是有味道，是不是材质有问题？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请问您购买的是316不锈钢款还是304款？两款材质不同，316更耐腐蚀。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "我买的是316的，316和304到底有什么区别？为什么316也会有味道？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "那我不纠结了，帮我申请退货吧，运费谁承担？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "好的谢谢，另外我还有个快递显示签收了但我没收到，帮我查下。",
+                    "label": "order_logistics"
+                  }
+                ]
+              }
+            ]
+          },
+          "id": "call_00_4DeI6gK9fVpvf24tB9wG4206",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 961,
+        "output_tokens": 1742,
+        "total_tokens": 2703,
+        "input_token_details": {
+          "cache_read": 640,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "authored": {
+    "families": [
+      {
+        "scenario": "顾客询问智能手表屏幕更换服务",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我上个月买的智能手表屏幕摔裂了，还能修吗？"
+          },
+          {
+            "role": "assistant",
+            "content": "您好，可以维修的。请问您的手表型号是什么？"
+          },
+          {
+            "role": "user",
+            "content": "是S5运动版，42毫米的。"
+          },
+          {
+            "role": "assistant",
+            "content": "S5运动版屏幕更换费用是299元，需要寄回检测后安排维修，大约5-7个工作日。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "那S5和S6的屏幕通用吗？我想自己买来换。",
+            "label": "product_technical"
+          },
+          {
+            "text": "好的，那我不修了，帮我看看我另一单的物流到哪了？",
+            "label": "order_logistics"
+          },
+          {
+            "text": "299太贵了，能不能便宜点？",
+            "label": "billing_refund"
+          }
+        ]
+      },
+      {
+        "scenario": "顾客咨询咖啡机除垢操作",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我买的咖啡机用了三个月，最近出水量变小了。"
+          },
+          {
+            "role": "assistant",
+            "content": "可能是需要除垢了。您的型号是CM-200吗？"
+          },
+          {
+            "role": "user",
+            "content": "对，就是CM-200。"
+          },
+          {
+            "role": "assistant",
+            "content": "建议每两个月除垢一次。水箱加入专用除垢液按1:10稀释，长按除垢键3秒启动程序。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "除垢液和清水比例搞错了会怎样？机器会坏吗？",
+            "label": "product_technical"
+          },
+          {
+            "text": "明白了，那除垢液你们有卖吗？顺便帮我查下上次买的滤芯发货没。",
+            "label": "order_logistics"
+          },
+          {
+            "text": "算了太麻烦了，我直接换台新的吧，能退货吗？",
+            "label": "billing_refund"
+          }
+        ]
+      },
+      {
+        "scenario": "顾客询问蓝牙耳机连接问题",
+        "messages": [
+          {
+            "role": "user",
+            "content": "耳机左边没声音了，是不是坏了？"
+          },
+          {
+            "role": "assistant",
+            "content": "先别急，请问您尝试过重新配对吗？"
+          },
+          {
+            "role": "user",
+            "content": "试过了，还是不行。"
+          },
+          {
+            "role": "assistant",
+            "content": "那可能是耳机触点氧化了，用酒精棉擦拭充电盒内的金属触点试试。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "擦了也没用，这款耳机支持单耳使用吗？我想只用右边。",
+            "label": "product_technical"
+          },
+          {
+            "text": "好吧，那我不折腾了，帮我转人工客服申请售后吧。",
+            "label": "human_service"
+          },
+          {
+            "text": "对了，顺便问下，我上次买的充电线到货了吗？",
+            "label": "order_logistics"
+          }
+        ]
+      },
+      {
+        "scenario": "顾客询问笔记本电脑内存升级",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我的笔记本开几个网页就卡，想加内存。"
+          },
+          {
+            "role": "assistant",
+            "content": "请问您的笔记本具体型号是什么？"
+          },
+          {
+            "role": "user",
+            "content": "是去年买的灵越15，具体型号我记不清了。"
+          },
+          {
+            "role": "assistant",
+            "content": "您可以在机身底部标签上找到型号，或者告诉我购买订单号，我帮您查。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "订单号是D20231108，帮我查下型号顺便告诉我支持多大内存。",
+            "label": "product_technical"
+          },
+          {
+            "text": "算了不查了，我直接买台新的吧，旧机能回收吗？",
+            "label": "billing_refund"
+          },
+          {
+            "text": "哦对了，我还有个问题，我账号登录不上了，密码忘了怎么办？",
+            "label": "account_security"
+          }
+        ]
+      },
+      {
+        "scenario": "顾客询问空气炸锅配件",
+        "messages": [
+          {
+            "role": "user",
+            "content": "空气炸锅的炸篮涂层掉了，还能用吗？"
+          },
+          {
+            "role": "assistant",
+            "content": "涂层脱落不建议继续使用，可能会有健康风险。请问购买多久了？"
+          },
+          {
+            "role": "user",
+            "content": "买了半年左右吧。"
+          },
+          {
+            "role": "assistant",
+            "content": "半年内可以申请免费更换配件，我帮您登记一下。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "那我不换了，直接买一个新的炸篮，你们有适配AF-500的配件卖吗？",
+            "label": "product_technical"
+          },
+          {
+            "text": "好的，麻烦帮我登记更换，另外我上次退的货退款到账了吗？",
+            "label": "billing_refund"
+          },
+          {
+            "text": "谢谢你的帮助，你们服务真好。",
+            "label": "general"
+          }
+        ]
+      },
+      {
+        "scenario": "顾客询问路由器覆盖范围",
+        "messages": [
+          {
+            "role": "user",
+            "content": "家里三室一厅，想换个信号好的路由器。"
+          },
+          {
+            "role": "assistant",
+            "content": "请问您家面积大概多少平？宽带是多少兆的？"
+          },
+          {
+            "role": "user",
+            "content": "大概100平，宽带是500兆。"
+          },
+          {
+            "role": "assistant",
+            "content": "100平的话推荐AX3000系列，穿墙能力不错，500兆宽带完全够用。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "AX3000和AX5400穿墙差多少？我家墙比较多，怕信号不行。",
+            "label": "product_technical"
+          },
+          {
+            "text": "好的，那就买AX3000吧，帮我看看现在有什么优惠？",
+            "label": "billing_refund"
+          },
+          {
+            "text": "等等，我其实是想问能不能把旧路由器以旧换新？",
+            "label": "billing_refund"
+          }
+        ]
+      },
+      {
+        "scenario": "顾客询问电动牙刷充电问题",
+        "messages": [
+          {
+            "role": "user",
+            "content": "电动牙刷充了一晚上电，第二天还是没电。"
+          },
+          {
+            "role": "assistant",
+            "content": "请问指示灯有亮吗？充电底座是否连接正常？"
+          },
+          {
+            "role": "user",
+            "content": "指示灯没亮，底座也换过插座试了。"
+          },
+          {
+            "role": "assistant",
+            "content": "那可能是充电底座或牙刷内部电池出了问题，建议寄回检测。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "寄回检测要多久？另外这款牙刷的电池能自己换吗？",
+            "label": "product_technical"
+          },
+          {
+            "text": "好的，那帮我申请寄回检测吧，顺便问下人工客服在不在？",
+            "label": "human_service"
+          },
+          {
+            "text": "算了，我直接再买一支新的，你们现在有什么型号推荐？",
+            "label": "product_technical"
+          }
+        ]
+      },
+      {
+        "scenario": "顾客询问保温杯材质",
+        "messages": [
+          {
+            "role": "user",
+            "content": "刚收到的保温杯内胆有股味道，正常吗？"
+          },
+          {
+            "role": "assistant",
+            "content": "新保温杯可能会有轻微味道，建议用温水加小苏打清洗后通风晾干。"
+          },
+          {
+            "role": "user",
+            "content": "洗了还是有味道，是不是材质有问题？"
+          },
+          {
+            "role": "assistant",
+            "content": "请问您购买的是316不锈钢款还是304款？两款材质不同，316更耐腐蚀。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "我买的是316的，316和304到底有什么区别？为什么316也会有味道？",
+            "label": "product_technical"
+          },
+          {
+            "text": "那我不纠结了，帮我申请退货吧，运费谁承担？",
+            "label": "billing_refund"
+          },
+          {
+            "text": "好的谢谢，另外我还有个快递显示签收了但我没收到，帮我查下。",
+            "label": "order_logistics"
+          }
+        ]
+      }
+    ]
+  },
+  "review_input_sha256": "680c937feb6dda56e193c81e69e4f70a4118f9d2ae76047aafecd93eef56c2b2",
+  "review_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_7KIcKoIno7xUjSuJLf1c1185",
+          "input": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:zh:19:0:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问S5和S6屏幕是否通用，属于产品规格/兼容性问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:0:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "明确放弃维修，转而查询另一单物流，属于订单物流。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:0:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "对维修费用299元讨价还价，涉及价格/费用。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:1:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问除垢液比例错误的影响，属于产品使用/故障问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:1:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "同时提出购买除垢液（产品）和查询滤芯发货（物流）两个不同领域请求。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:1:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "放弃维修，询问能否退货，属于售后/退款。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:2:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问耳机是否支持单耳使用，属于产品功能/规格。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:2:1",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "明确要求转人工客服申请售后，属于人工服务/售后。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:2:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "放弃耳机问题，转而查询充电线到货情况，属于物流。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:3:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "查询型号及支持的内存大小，属于产品规格/兼容性。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:3:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "放弃加内存，询问旧机回收，属于售后/回收交易。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:3:2",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "账号登录不上、密码忘记，属于账号访问/安全。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:4:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问适配AF-500的配件是否有卖，属于产品配件/兼容性。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:4:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "同时提出登记更换配件（售后）和查询退款到账（退款）两个不同领域请求。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:4:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "仅表达感谢和称赞，属于普通寒暄。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:5:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问AX3000与AX5400穿墙性能差异，属于产品规格对比。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:5:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "决定购买并询问优惠，涉及价格/促销。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:5:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "询问以旧换新，属于交易/回收优惠。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:6:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问寄回检测时长及电池能否自换，均属产品维修/使用问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:6:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "同时提出申请寄回检测（售后）和询问人工客服（人工服务）两个不同领域请求。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:6:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "放弃维修，询问新机型推荐，属于产品咨询。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:7:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问316与304材质区别及异味原因，属于产品材质/规格。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:7:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "申请退货并询问运费承担，属于售后/退款。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:7:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "放弃保温杯问题，转而查询快递签收未收到，属于物流。"
+              }
+            ]
+          },
+          "name": "ReviewedBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "09f1ace0-8a90-41af-8ba5-2125283c3caa",
+        "container": null,
+        "model": "deepseek-v4-pro",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "inference_geo": null,
+          "input_tokens": 3572,
+          "output_tokens": 1320,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-pro",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d7-1c7e-7c42-91f2-c217f5cd27b3-0",
+      "tool_calls": [
+        {
+          "name": "ReviewedBatch",
+          "args": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:zh:19:0:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问S5和S6屏幕是否通用，属于产品规格/兼容性问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:0:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "明确放弃维修，转而查询另一单物流，属于订单物流。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:0:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "对维修费用299元讨价还价，涉及价格/费用。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:1:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问除垢液比例错误的影响，属于产品使用/故障问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:1:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "同时提出购买除垢液（产品）和查询滤芯发货（物流）两个不同领域请求。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:1:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "放弃维修，询问能否退货，属于售后/退款。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:2:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问耳机是否支持单耳使用，属于产品功能/规格。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:2:1",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "明确要求转人工客服申请售后，属于人工服务/售后。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:2:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "放弃耳机问题，转而查询充电线到货情况，属于物流。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:3:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "查询型号及支持的内存大小，属于产品规格/兼容性。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:3:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "放弃加内存，询问旧机回收，属于售后/回收交易。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:3:2",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "账号登录不上、密码忘记，属于账号访问/安全。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:4:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问适配AF-500的配件是否有卖，属于产品配件/兼容性。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:4:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "同时提出登记更换配件（售后）和查询退款到账（退款）两个不同领域请求。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:4:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "仅表达感谢和称赞，属于普通寒暄。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:5:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问AX3000与AX5400穿墙性能差异，属于产品规格对比。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:5:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "决定购买并询问优惠，涉及价格/促销。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:5:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "询问以旧换新，属于交易/回收优惠。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:6:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问寄回检测时长及电池能否自换，均属产品维修/使用问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:6:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "同时提出申请寄回检测（售后）和询问人工客服（人工服务）两个不同领域请求。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:6:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "放弃维修，询问新机型推荐，属于产品咨询。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:7:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问316与304材质区别及异味原因，属于产品材质/规格。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:7:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "申请退货并询问运费承担，属于售后/退款。"
+              },
+              {
+                "case_id": "domain-v3:zh:19:7:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "放弃保温杯问题，转而查询快递签收未收到，属于物流。"
+              }
+            ]
+          },
+          "id": "call_00_7KIcKoIno7xUjSuJLf1c1185",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 4084,
+        "output_tokens": 1320,
+        "total_tokens": 5404,
+        "input_token_details": {
+          "cache_read": 512,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "reviewed": {
+    "verdicts": [
+      {
+        "case_id": "domain-v3:zh:19:0:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "询问S5和S6屏幕是否通用，属于产品规格/兼容性问题。"
+      },
+      {
+        "case_id": "domain-v3:zh:19:0:1",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "明确放弃维修，转而查询另一单物流，属于订单物流。"
+      },
+      {
+        "case_id": "domain-v3:zh:19:0:2",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "对维修费用299元讨价还价，涉及价格/费用。"
+      },
+      {
+        "case_id": "domain-v3:zh:19:1:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "询问除垢液比例错误的影响，属于产品使用/故障问题。"
+      },
+      {
+        "case_id": "domain-v3:zh:19:1:1",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "同时提出购买除垢液（产品）和查询滤芯发货（物流）两个不同领域请求。"
+      },
+      {
+        "case_id": "domain-v3:zh:19:1:2",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "放弃维修，询问能否退货，属于售后/退款。"
+      },
+      {
+        "case_id": "domain-v3:zh:19:2:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "询问耳机是否支持单耳使用，属于产品功能/规格。"
+      },
+      {
+        "case_id": "domain-v3:zh:19:2:1",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "明确要求转人工客服申请售后，属于人工服务/售后。"
+      },
+      {
+        "case_id": "domain-v3:zh:19:2:2",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "放弃耳机问题，转而查询充电线到货情况，属于物流。"
+      },
+      {
+        "case_id": "domain-v3:zh:19:3:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "查询型号及支持的内存大小，属于产品规格/兼容性。"
+      },
+      {
+        "case_id": "domain-v3:zh:19:3:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "放弃加内存，询问旧机回收，属于售后/回收交易。"
+      },
+      {
+        "case_id": "domain-v3:zh:19:3:2",
+        "label": "account_security",
+        "clear_and_natural": true,
+        "reason": "账号登录不上、密码忘记，属于账号访问/安全。"
+      },
+      {
+        "case_id": "domain-v3:zh:19:4:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "询问适配AF-500的配件是否有卖，属于产品配件/兼容性。"
+      },
+      {
+        "case_id": "domain-v3:zh:19:4:1",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "同时提出登记更换配件（售后）和查询退款到账（退款）两个不同领域请求。"
+      },
+      {
+        "case_id": "domain-v3:zh:19:4:2",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "仅表达感谢和称赞，属于普通寒暄。"
+      },
+      {
+        "case_id": "domain-v3:zh:19:5:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "询问AX3000与AX5400穿墙性能差异，属于产品规格对比。"
+      },
+      {
+        "case_id": "domain-v3:zh:19:5:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "决定购买并询问优惠，涉及价格/促销。"
+      },
+      {
+        "case_id": "domain-v3:zh:19:5:2",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "询问以旧换新，属于交易/回收优惠。"
+      },
+      {
+        "case_id": "domain-v3:zh:19:6:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "询问寄回检测时长及电池能否自换，均属产品维修/使用问题。"
+      },
+      {
+        "case_id": "domain-v3:zh:19:6:1",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "同时提出申请寄回检测（售后）和询问人工客服（人工服务）两个不同领域请求。"
+      },
+      {
+        "case_id": "domain-v3:zh:19:6:2",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "放弃维修，询问新机型推荐，属于产品咨询。"
+      },
+      {
+        "case_id": "domain-v3:zh:19:7:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "询问316与304材质区别及异味原因，属于产品材质/规格。"
+      },
+      {
+        "case_id": "domain-v3:zh:19:7:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "申请退货并询问运费承担，属于售后/退款。"
+      },
+      {
+        "case_id": "domain-v3:zh:19:7:2",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "放弃保温杯问题，转而查询快递签收未收到，属于物流。"
+      }
+    ]
+  },
+  "rows": [
+    {
+      "case_id": "domain-v3:zh:19:0:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上个月买的智能手表屏幕摔裂了，还能修吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，可以维修的。请问您的手表型号是什么？"
+        },
+        {
+          "role": "user",
+          "content": "是S5运动版，42毫米的。"
+        },
+        {
+          "role": "assistant",
+          "content": "S5运动版屏幕更换费用是299元，需要寄回检测后安排维修，大约5-7个工作日。"
+        }
+      ],
+      "text": "那S5和S6的屏幕通用吗？我想自己买来换。",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:19:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:19:0:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上个月买的智能手表屏幕摔裂了，还能修吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，可以维修的。请问您的手表型号是什么？"
+        },
+        {
+          "role": "user",
+          "content": "是S5运动版，42毫米的。"
+        },
+        {
+          "role": "assistant",
+          "content": "S5运动版屏幕更换费用是299元，需要寄回检测后安排维修，大约5-7个工作日。"
+        }
+      ],
+      "text": "好的，那我不修了，帮我看看我另一单的物流到哪了？",
+      "label": "order_logistics",
+      "language": "zh",
+      "group_id": "domain-v3:zh:19:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:19:0:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上个月买的智能手表屏幕摔裂了，还能修吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，可以维修的。请问您的手表型号是什么？"
+        },
+        {
+          "role": "user",
+          "content": "是S5运动版，42毫米的。"
+        },
+        {
+          "role": "assistant",
+          "content": "S5运动版屏幕更换费用是299元，需要寄回检测后安排维修，大约5-7个工作日。"
+        }
+      ],
+      "text": "299太贵了，能不能便宜点？",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:19:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:19:1:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我买的咖啡机用了三个月，最近出水量变小了。"
+        },
+        {
+          "role": "assistant",
+          "content": "可能是需要除垢了。您的型号是CM-200吗？"
+        },
+        {
+          "role": "user",
+          "content": "对，就是CM-200。"
+        },
+        {
+          "role": "assistant",
+          "content": "建议每两个月除垢一次。水箱加入专用除垢液按1:10稀释，长按除垢键3秒启动程序。"
+        }
+      ],
+      "text": "除垢液和清水比例搞错了会怎样？机器会坏吗？",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:19:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:19:1:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我买的咖啡机用了三个月，最近出水量变小了。"
+        },
+        {
+          "role": "assistant",
+          "content": "可能是需要除垢了。您的型号是CM-200吗？"
+        },
+        {
+          "role": "user",
+          "content": "对，就是CM-200。"
+        },
+        {
+          "role": "assistant",
+          "content": "建议每两个月除垢一次。水箱加入专用除垢液按1:10稀释，长按除垢键3秒启动程序。"
+        }
+      ],
+      "text": "算了太麻烦了，我直接换台新的吧，能退货吗？",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:19:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:19:2:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "耳机左边没声音了，是不是坏了？"
+        },
+        {
+          "role": "assistant",
+          "content": "先别急，请问您尝试过重新配对吗？"
+        },
+        {
+          "role": "user",
+          "content": "试过了，还是不行。"
+        },
+        {
+          "role": "assistant",
+          "content": "那可能是耳机触点氧化了，用酒精棉擦拭充电盒内的金属触点试试。"
+        }
+      ],
+      "text": "擦了也没用，这款耳机支持单耳使用吗？我想只用右边。",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:19:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:19:2:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "耳机左边没声音了，是不是坏了？"
+        },
+        {
+          "role": "assistant",
+          "content": "先别急，请问您尝试过重新配对吗？"
+        },
+        {
+          "role": "user",
+          "content": "试过了，还是不行。"
+        },
+        {
+          "role": "assistant",
+          "content": "那可能是耳机触点氧化了，用酒精棉擦拭充电盒内的金属触点试试。"
+        }
+      ],
+      "text": "好吧，那我不折腾了，帮我转人工客服申请售后吧。",
+      "label": "human_service",
+      "language": "zh",
+      "group_id": "domain-v3:zh:19:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:19:2:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "耳机左边没声音了，是不是坏了？"
+        },
+        {
+          "role": "assistant",
+          "content": "先别急，请问您尝试过重新配对吗？"
+        },
+        {
+          "role": "user",
+          "content": "试过了，还是不行。"
+        },
+        {
+          "role": "assistant",
+          "content": "那可能是耳机触点氧化了，用酒精棉擦拭充电盒内的金属触点试试。"
+        }
+      ],
+      "text": "对了，顺便问下，我上次买的充电线到货了吗？",
+      "label": "order_logistics",
+      "language": "zh",
+      "group_id": "domain-v3:zh:19:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:19:3:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我的笔记本开几个网页就卡，想加内存。"
+        },
+        {
+          "role": "assistant",
+          "content": "请问您的笔记本具体型号是什么？"
+        },
+        {
+          "role": "user",
+          "content": "是去年买的灵越15，具体型号我记不清了。"
+        },
+        {
+          "role": "assistant",
+          "content": "您可以在机身底部标签上找到型号，或者告诉我购买订单号，我帮您查。"
+        }
+      ],
+      "text": "订单号是D20231108，帮我查下型号顺便告诉我支持多大内存。",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:19:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:19:3:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我的笔记本开几个网页就卡，想加内存。"
+        },
+        {
+          "role": "assistant",
+          "content": "请问您的笔记本具体型号是什么？"
+        },
+        {
+          "role": "user",
+          "content": "是去年买的灵越15，具体型号我记不清了。"
+        },
+        {
+          "role": "assistant",
+          "content": "您可以在机身底部标签上找到型号，或者告诉我购买订单号，我帮您查。"
+        }
+      ],
+      "text": "算了不查了，我直接买台新的吧，旧机能回收吗？",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:19:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:19:3:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我的笔记本开几个网页就卡，想加内存。"
+        },
+        {
+          "role": "assistant",
+          "content": "请问您的笔记本具体型号是什么？"
+        },
+        {
+          "role": "user",
+          "content": "是去年买的灵越15，具体型号我记不清了。"
+        },
+        {
+          "role": "assistant",
+          "content": "您可以在机身底部标签上找到型号，或者告诉我购买订单号，我帮您查。"
+        }
+      ],
+      "text": "哦对了，我还有个问题，我账号登录不上了，密码忘了怎么办？",
+      "label": "account_security",
+      "language": "zh",
+      "group_id": "domain-v3:zh:19:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:19:4:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "空气炸锅的炸篮涂层掉了，还能用吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "涂层脱落不建议继续使用，可能会有健康风险。请问购买多久了？"
+        },
+        {
+          "role": "user",
+          "content": "买了半年左右吧。"
+        },
+        {
+          "role": "assistant",
+          "content": "半年内可以申请免费更换配件，我帮您登记一下。"
+        }
+      ],
+      "text": "那我不换了，直接买一个新的炸篮，你们有适配AF-500的配件卖吗？",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:19:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:19:4:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "空气炸锅的炸篮涂层掉了，还能用吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "涂层脱落不建议继续使用，可能会有健康风险。请问购买多久了？"
+        },
+        {
+          "role": "user",
+          "content": "买了半年左右吧。"
+        },
+        {
+          "role": "assistant",
+          "content": "半年内可以申请免费更换配件，我帮您登记一下。"
+        }
+      ],
+      "text": "谢谢你的帮助，你们服务真好。",
+      "label": "general",
+      "language": "zh",
+      "group_id": "domain-v3:zh:19:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:19:5:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "家里三室一厅，想换个信号好的路由器。"
+        },
+        {
+          "role": "assistant",
+          "content": "请问您家面积大概多少平？宽带是多少兆的？"
+        },
+        {
+          "role": "user",
+          "content": "大概100平，宽带是500兆。"
+        },
+        {
+          "role": "assistant",
+          "content": "100平的话推荐AX3000系列，穿墙能力不错，500兆宽带完全够用。"
+        }
+      ],
+      "text": "AX3000和AX5400穿墙差多少？我家墙比较多，怕信号不行。",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:19:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:19:5:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "家里三室一厅，想换个信号好的路由器。"
+        },
+        {
+          "role": "assistant",
+          "content": "请问您家面积大概多少平？宽带是多少兆的？"
+        },
+        {
+          "role": "user",
+          "content": "大概100平，宽带是500兆。"
+        },
+        {
+          "role": "assistant",
+          "content": "100平的话推荐AX3000系列，穿墙能力不错，500兆宽带完全够用。"
+        }
+      ],
+      "text": "好的，那就买AX3000吧，帮我看看现在有什么优惠？",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:19:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:19:5:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "家里三室一厅，想换个信号好的路由器。"
+        },
+        {
+          "role": "assistant",
+          "content": "请问您家面积大概多少平？宽带是多少兆的？"
+        },
+        {
+          "role": "user",
+          "content": "大概100平，宽带是500兆。"
+        },
+        {
+          "role": "assistant",
+          "content": "100平的话推荐AX3000系列，穿墙能力不错，500兆宽带完全够用。"
+        }
+      ],
+      "text": "等等，我其实是想问能不能把旧路由器以旧换新？",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:19:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:19:6:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "电动牙刷充了一晚上电，第二天还是没电。"
+        },
+        {
+          "role": "assistant",
+          "content": "请问指示灯有亮吗？充电底座是否连接正常？"
+        },
+        {
+          "role": "user",
+          "content": "指示灯没亮，底座也换过插座试了。"
+        },
+        {
+          "role": "assistant",
+          "content": "那可能是充电底座或牙刷内部电池出了问题，建议寄回检测。"
+        }
+      ],
+      "text": "寄回检测要多久？另外这款牙刷的电池能自己换吗？",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:19:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:19:6:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "电动牙刷充了一晚上电，第二天还是没电。"
+        },
+        {
+          "role": "assistant",
+          "content": "请问指示灯有亮吗？充电底座是否连接正常？"
+        },
+        {
+          "role": "user",
+          "content": "指示灯没亮，底座也换过插座试了。"
+        },
+        {
+          "role": "assistant",
+          "content": "那可能是充电底座或牙刷内部电池出了问题，建议寄回检测。"
+        }
+      ],
+      "text": "算了，我直接再买一支新的，你们现在有什么型号推荐？",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:19:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:19:7:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "刚收到的保温杯内胆有股味道，正常吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "新保温杯可能会有轻微味道，建议用温水加小苏打清洗后通风晾干。"
+        },
+        {
+          "role": "user",
+          "content": "洗了还是有味道，是不是材质有问题？"
+        },
+        {
+          "role": "assistant",
+          "content": "请问您购买的是316不锈钢款还是304款？两款材质不同，316更耐腐蚀。"
+        }
+      ],
+      "text": "我买的是316的，316和304到底有什么区别？为什么316也会有味道？",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:19:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:19:7:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "刚收到的保温杯内胆有股味道，正常吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "新保温杯可能会有轻微味道，建议用温水加小苏打清洗后通风晾干。"
+        },
+        {
+          "role": "user",
+          "content": "洗了还是有味道，是不是材质有问题？"
+        },
+        {
+          "role": "assistant",
+          "content": "请问您购买的是316不锈钢款还是304款？两款材质不同，316更耐腐蚀。"
+        }
+      ],
+      "text": "那我不纠结了，帮我申请退货吧，运费谁承担？",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:19:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:19:7:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "刚收到的保温杯内胆有股味道，正常吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "新保温杯可能会有轻微味道，建议用温水加小苏打清洗后通风晾干。"
+        },
+        {
+          "role": "user",
+          "content": "洗了还是有味道，是不是材质有问题？"
+        },
+        {
+          "role": "assistant",
+          "content": "请问您购买的是316不锈钢款还是304款？两款材质不同，316更耐腐蚀。"
+        }
+      ],
+      "text": "好的谢谢，另外我还有个快递显示签收了但我没收到，帮我查下。",
+      "label": "order_logistics",
+      "language": "zh",
+      "group_id": "domain-v3:zh:19:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    }
+  ],
+  "rejected": [
+    {
+      "case_id": "domain-v3:zh:19:1:1",
+      "author": "order_logistics",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "同时提出购买除垢液（产品）和查询滤芯发货（物流）两个不同领域请求。"
+    },
+    {
+      "case_id": "domain-v3:zh:19:4:1",
+      "author": "billing_refund",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "同时提出登记更换配件（售后）和查询退款到账（退款）两个不同领域请求。"
+    },
+    {
+      "case_id": "domain-v3:zh:19:6:1",
+      "author": "human_service",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "同时提出申请寄回检测（售后）和询问人工客服（人工服务）两个不同领域请求。"
+    }
+  ],
+  "status": "reviewed"
+}

@@ -1,0 +1,1953 @@
+{
+  "batch_id": "domain-v3:zh:16",
+  "language": "zh",
+  "split": "calibration",
+  "models": {
+    "author": "deepseek-v4-flash",
+    "review": "deepseek-v4-pro"
+  },
+  "review_protocol": "label-blind-batch-v1",
+  "synthetic": true,
+  "author_prompt": "Author 8 DIFFERENT natural ecommerce customer-service dialogue families in zh.\nBatch 16; ensure at least four current turns classified as account_security across this batch.\nEach family has its OWN coherent history of 2, 4 or 6 short alternating user/assistant\nmessages, followed by 3 ALTERNATIVE current user turns, not three sequential turns.\nThose alternatives differ in effective intent: retain vs replace, withdraw vs\ncontinue, single goal vs concurrent goal, or resolved vs unresolved reference.\nInclude natural short answers where history matters. Vary old completed tasks,\nhesitation, self-correction, indirect wording, topics and dialogue acts. General\nand human-service requests must also occur as NEW goals, not only stale history.\nDo not follow a repeated sentence template or substitute product nouns to create\nnew families. Avoid stereotyped 'information only, do not submit' repetition.\nInvent broad everyday ecommerce situations; no copied benchmark or private data.\nHistory plus current turn should fit 150 English words or 180 Chinese characters;\nkeep it compact but meaningful. No future replies or final conversation summaries.\nSupply the correct label for each alternative according to the rubric.\n",
+  "author_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_zNjvt9XmsMhPKAKWNmdQ7313",
+          "input": {
+            "families": [
+              {
+                "scenario": "智能手表售后与账号问题",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我上周买的智能手表，表带扣子松了，能换吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您好，表带属于配件，7天内可以申请换新。请问您的订单号是多少？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "订单号是WX20241108，麻烦帮我查一下。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "已查到您的订单，表带确实在质保范围内。我帮您提交换货申请，需要验证一下您的账号信息。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，我的手机号是138****6621，验证吧。",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "算了，不换了，我自己买个表带算了。",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "对了，我登录密码也忘了，能顺便帮我重置吗？",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "咖啡机退货与物流查询",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我买的咖啡机到了，但水箱有裂纹，想退货。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "非常抱歉给您带来不便。退货需要先确认商品未使用，请问您拆封后使用过吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "没有，就打开看了一下就发现裂了。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "好的，那可以申请七天无理由退货。我这边先帮您登记，运费由我们承担。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那麻烦帮我登记吧，另外我另一个包裹显示签收了但我没收到，能查一下吗？",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "等等，我其实想换一台新的，不想退，可以改吗？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "好的，登记吧。对了，你们客服电话是多少？我想直接打电话说。",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "运动鞋尺码与账号登录",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我买的跑步鞋偏小半码，想换大一码的。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "可以换货的，请问您需要换同款大一码吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "对，同款大一码，颜色也一样的。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "好的，换货申请已提交。换货需要您先寄回原商品，寄回后我们会尽快发出新鞋。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，那我怎么登录我的账号查看换货进度？我好像被登出了。",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "嗯，其实我犹豫了一下，还是直接退了吧，不换了。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "谢谢，你们服务真好，祝你们生意兴隆！",
+                    "label": "general"
+                  }
+                ]
+              },
+              {
+                "scenario": "蓝牙耳机故障与投诉",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "耳机左耳没声音了，才买一个月。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "抱歉给您带来困扰。请问您试过重新配对吗？有时候是连接问题。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "试过了，重新配对还是只有右耳有声音。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "那可能是硬件故障。您可以申请售后检测，我们会安排免费维修或换新。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "我不想修了，我要投诉你们产品质量，给我转人工客服！",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "好的，那申请售后吧。另外我朋友也想买，你们现在有什么优惠活动吗？",
+                    "label": "general"
+                  },
+                  {
+                    "text": "等等，我确认一下，这个耳机是在你们官方店买的吗？我好像是在第三方店下的单。",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "羽绒服清洗与退款到账",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我退的那件羽绒服，退款怎么还没到账？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您好，我帮您查一下。您的退款是昨天处理的，一般1-3个工作日到账。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "已经三天了，还没收到，是不是出问题了？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "我查一下您的退款状态……显示已打款到您的原支付账户，请您再确认一下银行卡信息。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "我确认了银行卡没问题，但就是没收到，你们是不是打错账户了？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "哦对了，我最近换了手机号，登录账号收不到验证码了，能帮我改绑吗？",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "好吧，那我再等等看。顺便问一下，你们有没有实体店？",
+                    "label": "general"
+                  }
+                ]
+              },
+              {
+                "scenario": "书架安装与地址修改",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我买的书架，安装说明丢了，能发一份电子版吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "可以的，我稍后发到您的邮箱。请问您的邮箱是下单时填的那个吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "不是，我换邮箱了，用新的吧，我发给你。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "好的，请提供新邮箱，我更新后发送安装说明给您。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "新邮箱是lin2024@163.com，麻烦发到这里。",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "算了不用了，我直接去网上搜安装视频吧。",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "对了，我还有一个订单地址填错了，能帮我改一下收货地址吗？",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "护肤品过敏与会员积分",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "用了你们的面霜脸过敏了，红了一大片。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "天哪，非常抱歉！请您立即停用，我们支持过敏退款的。请问有就医吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "还没去医院，就是很痒，我想先退款。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "好的，过敏退款需要提供过敏照片和订单号，我帮您走特殊流程。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "照片我拍了，订单号是SK20241115，麻烦尽快处理。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "我其实不确定是不是面霜引起的，可能是我吃了海鲜，先不退了吧。",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "好的，另外我登录会员中心一直提示密码错误，是不是被盗号了？",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "台灯亮度与发票开具",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "台灯到了，但最暗档还是太亮，晚上用刺眼。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "这款台灯有三档亮度，最暗档是300流明。如果您觉得太亮，建议搭配灯罩使用。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "那有没有更暗的型号推荐？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "有的，我们有一款护眼台灯最低可到150流明，型号是TD-200，价格贵30元。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那TD-200能七天无理由退换吗？我想先买来试试。",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "好的，我考虑一下。对了，我之前买的台灯能开发票吗？公司报销用。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "谢谢推荐，不过我现在没空细看，晚点再来咨询。",
+                    "label": "__DEFER__"
+                  }
+                ]
+              }
+            ]
+          },
+          "name": "AuthoredBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "4280f155-cba7-4a09-ad66-d774c24396a1",
+        "container": null,
+        "model": "deepseek-v4-flash",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 640,
+          "inference_geo": null,
+          "input_tokens": 321,
+          "output_tokens": 1860,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-flash",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d6-c233-7811-ae8d-0e746414ba04-0",
+      "tool_calls": [
+        {
+          "name": "AuthoredBatch",
+          "args": {
+            "families": [
+              {
+                "scenario": "智能手表售后与账号问题",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我上周买的智能手表，表带扣子松了，能换吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您好，表带属于配件，7天内可以申请换新。请问您的订单号是多少？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "订单号是WX20241108，麻烦帮我查一下。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "已查到您的订单，表带确实在质保范围内。我帮您提交换货申请，需要验证一下您的账号信息。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，我的手机号是138****6621，验证吧。",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "算了，不换了，我自己买个表带算了。",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "对了，我登录密码也忘了，能顺便帮我重置吗？",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "咖啡机退货与物流查询",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我买的咖啡机到了，但水箱有裂纹，想退货。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "非常抱歉给您带来不便。退货需要先确认商品未使用，请问您拆封后使用过吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "没有，就打开看了一下就发现裂了。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "好的，那可以申请七天无理由退货。我这边先帮您登记，运费由我们承担。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那麻烦帮我登记吧，另外我另一个包裹显示签收了但我没收到，能查一下吗？",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "等等，我其实想换一台新的，不想退，可以改吗？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "好的，登记吧。对了，你们客服电话是多少？我想直接打电话说。",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "运动鞋尺码与账号登录",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我买的跑步鞋偏小半码，想换大一码的。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "可以换货的，请问您需要换同款大一码吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "对，同款大一码，颜色也一样的。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "好的，换货申请已提交。换货需要您先寄回原商品，寄回后我们会尽快发出新鞋。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，那我怎么登录我的账号查看换货进度？我好像被登出了。",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "嗯，其实我犹豫了一下，还是直接退了吧，不换了。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "谢谢，你们服务真好，祝你们生意兴隆！",
+                    "label": "general"
+                  }
+                ]
+              },
+              {
+                "scenario": "蓝牙耳机故障与投诉",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "耳机左耳没声音了，才买一个月。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "抱歉给您带来困扰。请问您试过重新配对吗？有时候是连接问题。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "试过了，重新配对还是只有右耳有声音。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "那可能是硬件故障。您可以申请售后检测，我们会安排免费维修或换新。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "我不想修了，我要投诉你们产品质量，给我转人工客服！",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "好的，那申请售后吧。另外我朋友也想买，你们现在有什么优惠活动吗？",
+                    "label": "general"
+                  },
+                  {
+                    "text": "等等，我确认一下，这个耳机是在你们官方店买的吗？我好像是在第三方店下的单。",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "羽绒服清洗与退款到账",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我退的那件羽绒服，退款怎么还没到账？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您好，我帮您查一下。您的退款是昨天处理的，一般1-3个工作日到账。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "已经三天了，还没收到，是不是出问题了？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "我查一下您的退款状态……显示已打款到您的原支付账户，请您再确认一下银行卡信息。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "我确认了银行卡没问题，但就是没收到，你们是不是打错账户了？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "哦对了，我最近换了手机号，登录账号收不到验证码了，能帮我改绑吗？",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "好吧，那我再等等看。顺便问一下，你们有没有实体店？",
+                    "label": "general"
+                  }
+                ]
+              },
+              {
+                "scenario": "书架安装与地址修改",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我买的书架，安装说明丢了，能发一份电子版吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "可以的，我稍后发到您的邮箱。请问您的邮箱是下单时填的那个吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "不是，我换邮箱了，用新的吧，我发给你。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "好的，请提供新邮箱，我更新后发送安装说明给您。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "新邮箱是lin2024@163.com，麻烦发到这里。",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "算了不用了，我直接去网上搜安装视频吧。",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "对了，我还有一个订单地址填错了，能帮我改一下收货地址吗？",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "护肤品过敏与会员积分",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "用了你们的面霜脸过敏了，红了一大片。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "天哪，非常抱歉！请您立即停用，我们支持过敏退款的。请问有就医吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "还没去医院，就是很痒，我想先退款。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "好的，过敏退款需要提供过敏照片和订单号，我帮您走特殊流程。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "照片我拍了，订单号是SK20241115，麻烦尽快处理。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "我其实不确定是不是面霜引起的，可能是我吃了海鲜，先不退了吧。",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "好的，另外我登录会员中心一直提示密码错误，是不是被盗号了？",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "台灯亮度与发票开具",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "台灯到了，但最暗档还是太亮，晚上用刺眼。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "这款台灯有三档亮度，最暗档是300流明。如果您觉得太亮，建议搭配灯罩使用。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "那有没有更暗的型号推荐？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "有的，我们有一款护眼台灯最低可到150流明，型号是TD-200，价格贵30元。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那TD-200能七天无理由退换吗？我想先买来试试。",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "好的，我考虑一下。对了，我之前买的台灯能开发票吗？公司报销用。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "谢谢推荐，不过我现在没空细看，晚点再来咨询。",
+                    "label": "__DEFER__"
+                  }
+                ]
+              }
+            ]
+          },
+          "id": "call_00_zNjvt9XmsMhPKAKWNmdQ7313",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 961,
+        "output_tokens": 1860,
+        "total_tokens": 2821,
+        "input_token_details": {
+          "cache_read": 640,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "authored": {
+    "families": [
+      {
+        "scenario": "智能手表售后与账号问题",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我上周买的智能手表，表带扣子松了，能换吗？"
+          },
+          {
+            "role": "assistant",
+            "content": "您好，表带属于配件，7天内可以申请换新。请问您的订单号是多少？"
+          },
+          {
+            "role": "user",
+            "content": "订单号是WX20241108，麻烦帮我查一下。"
+          },
+          {
+            "role": "assistant",
+            "content": "已查到您的订单，表带确实在质保范围内。我帮您提交换货申请，需要验证一下您的账号信息。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "好的，我的手机号是138****6621，验证吧。",
+            "label": "account_security"
+          },
+          {
+            "text": "算了，不换了，我自己买个表带算了。",
+            "label": "__DEFER__"
+          },
+          {
+            "text": "对了，我登录密码也忘了，能顺便帮我重置吗？",
+            "label": "account_security"
+          }
+        ]
+      },
+      {
+        "scenario": "咖啡机退货与物流查询",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我买的咖啡机到了，但水箱有裂纹，想退货。"
+          },
+          {
+            "role": "assistant",
+            "content": "非常抱歉给您带来不便。退货需要先确认商品未使用，请问您拆封后使用过吗？"
+          },
+          {
+            "role": "user",
+            "content": "没有，就打开看了一下就发现裂了。"
+          },
+          {
+            "role": "assistant",
+            "content": "好的，那可以申请七天无理由退货。我这边先帮您登记，运费由我们承担。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "那麻烦帮我登记吧，另外我另一个包裹显示签收了但我没收到，能查一下吗？",
+            "label": "order_logistics"
+          },
+          {
+            "text": "等等，我其实想换一台新的，不想退，可以改吗？",
+            "label": "billing_refund"
+          },
+          {
+            "text": "好的，登记吧。对了，你们客服电话是多少？我想直接打电话说。",
+            "label": "human_service"
+          }
+        ]
+      },
+      {
+        "scenario": "运动鞋尺码与账号登录",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我买的跑步鞋偏小半码，想换大一码的。"
+          },
+          {
+            "role": "assistant",
+            "content": "可以换货的，请问您需要换同款大一码吗？"
+          },
+          {
+            "role": "user",
+            "content": "对，同款大一码，颜色也一样的。"
+          },
+          {
+            "role": "assistant",
+            "content": "好的，换货申请已提交。换货需要您先寄回原商品，寄回后我们会尽快发出新鞋。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "好的，那我怎么登录我的账号查看换货进度？我好像被登出了。",
+            "label": "account_security"
+          },
+          {
+            "text": "嗯，其实我犹豫了一下，还是直接退了吧，不换了。",
+            "label": "billing_refund"
+          },
+          {
+            "text": "谢谢，你们服务真好，祝你们生意兴隆！",
+            "label": "general"
+          }
+        ]
+      },
+      {
+        "scenario": "蓝牙耳机故障与投诉",
+        "messages": [
+          {
+            "role": "user",
+            "content": "耳机左耳没声音了，才买一个月。"
+          },
+          {
+            "role": "assistant",
+            "content": "抱歉给您带来困扰。请问您试过重新配对吗？有时候是连接问题。"
+          },
+          {
+            "role": "user",
+            "content": "试过了，重新配对还是只有右耳有声音。"
+          },
+          {
+            "role": "assistant",
+            "content": "那可能是硬件故障。您可以申请售后检测，我们会安排免费维修或换新。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "我不想修了，我要投诉你们产品质量，给我转人工客服！",
+            "label": "human_service"
+          },
+          {
+            "text": "好的，那申请售后吧。另外我朋友也想买，你们现在有什么优惠活动吗？",
+            "label": "general"
+          },
+          {
+            "text": "等等，我确认一下，这个耳机是在你们官方店买的吗？我好像是在第三方店下的单。",
+            "label": "order_logistics"
+          }
+        ]
+      },
+      {
+        "scenario": "羽绒服清洗与退款到账",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我退的那件羽绒服，退款怎么还没到账？"
+          },
+          {
+            "role": "assistant",
+            "content": "您好，我帮您查一下。您的退款是昨天处理的，一般1-3个工作日到账。"
+          },
+          {
+            "role": "user",
+            "content": "已经三天了，还没收到，是不是出问题了？"
+          },
+          {
+            "role": "assistant",
+            "content": "我查一下您的退款状态……显示已打款到您的原支付账户，请您再确认一下银行卡信息。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "我确认了银行卡没问题，但就是没收到，你们是不是打错账户了？",
+            "label": "billing_refund"
+          },
+          {
+            "text": "哦对了，我最近换了手机号，登录账号收不到验证码了，能帮我改绑吗？",
+            "label": "account_security"
+          },
+          {
+            "text": "好吧，那我再等等看。顺便问一下，你们有没有实体店？",
+            "label": "general"
+          }
+        ]
+      },
+      {
+        "scenario": "书架安装与地址修改",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我买的书架，安装说明丢了，能发一份电子版吗？"
+          },
+          {
+            "role": "assistant",
+            "content": "可以的，我稍后发到您的邮箱。请问您的邮箱是下单时填的那个吗？"
+          },
+          {
+            "role": "user",
+            "content": "不是，我换邮箱了，用新的吧，我发给你。"
+          },
+          {
+            "role": "assistant",
+            "content": "好的，请提供新邮箱，我更新后发送安装说明给您。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "新邮箱是lin2024@163.com，麻烦发到这里。",
+            "label": "product_technical"
+          },
+          {
+            "text": "算了不用了，我直接去网上搜安装视频吧。",
+            "label": "__DEFER__"
+          },
+          {
+            "text": "对了，我还有一个订单地址填错了，能帮我改一下收货地址吗？",
+            "label": "order_logistics"
+          }
+        ]
+      },
+      {
+        "scenario": "护肤品过敏与会员积分",
+        "messages": [
+          {
+            "role": "user",
+            "content": "用了你们的面霜脸过敏了，红了一大片。"
+          },
+          {
+            "role": "assistant",
+            "content": "天哪，非常抱歉！请您立即停用，我们支持过敏退款的。请问有就医吗？"
+          },
+          {
+            "role": "user",
+            "content": "还没去医院，就是很痒，我想先退款。"
+          },
+          {
+            "role": "assistant",
+            "content": "好的，过敏退款需要提供过敏照片和订单号，我帮您走特殊流程。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "照片我拍了，订单号是SK20241115，麻烦尽快处理。",
+            "label": "billing_refund"
+          },
+          {
+            "text": "我其实不确定是不是面霜引起的，可能是我吃了海鲜，先不退了吧。",
+            "label": "__DEFER__"
+          },
+          {
+            "text": "好的，另外我登录会员中心一直提示密码错误，是不是被盗号了？",
+            "label": "account_security"
+          }
+        ]
+      },
+      {
+        "scenario": "台灯亮度与发票开具",
+        "messages": [
+          {
+            "role": "user",
+            "content": "台灯到了，但最暗档还是太亮，晚上用刺眼。"
+          },
+          {
+            "role": "assistant",
+            "content": "这款台灯有三档亮度，最暗档是300流明。如果您觉得太亮，建议搭配灯罩使用。"
+          },
+          {
+            "role": "user",
+            "content": "那有没有更暗的型号推荐？"
+          },
+          {
+            "role": "assistant",
+            "content": "有的，我们有一款护眼台灯最低可到150流明，型号是TD-200，价格贵30元。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "那TD-200能七天无理由退换吗？我想先买来试试。",
+            "label": "product_technical"
+          },
+          {
+            "text": "好的，我考虑一下。对了，我之前买的台灯能开发票吗？公司报销用。",
+            "label": "billing_refund"
+          },
+          {
+            "text": "谢谢推荐，不过我现在没空细看，晚点再来咨询。",
+            "label": "__DEFER__"
+          }
+        ]
+      }
+    ]
+  },
+  "review_input_sha256": "c7a6f38a337e7c678473bbf7440664a9c08d36c5b423968d53ebd5b52acbecda",
+  "review_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_om33lKzZaiKmMStaTFk69244",
+          "input": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:zh:16:0:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户提供手机号配合换货申请验证，延续换货（售后）流程，属于退款/换货售后范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:0:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户明确放弃换货，撤回原请求，无剩余目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:0:2",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "用户提出重置登录密码，属于账号访问/安全领域，是新的明确请求。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:1:0",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "同时提出退货登记和查询另一个包裹两个不同领域请求（售后+物流），需拆分。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:1:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户将退货改为换货，仍属售后换货范畴，明确替换原目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:1:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户询问客服电话想直接打电话，属于寻求人工服务渠道。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:2:0",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "用户询问如何登录账号查看进度，被登出，属于账号访问问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:2:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户将换货改为退货，明确替换原目标，仍属售后退款范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:2:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "用户表达感谢和祝福，属于普通寒暄，无业务请求。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:3:0",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户明确要求投诉并转人工客服，属于人工服务/投诉。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:3:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "同时提出申请售后和咨询优惠活动两个不同领域请求（售后+产品/促销），需拆分。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:3:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "用户确认耳机是否在官方店购买、是否第三方下单，涉及订单来源/订单信息查询。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:4:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户继续追问退款未到账、是否打错账户，属于退款问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:4:1",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "用户提出换手机号后收不到验证码、请求改绑，属于账号访问/安全。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:4:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "用户表示再等等并顺便询问是否有实体店，属于一般咨询/闲聊，无明确业务目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:5:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "用户提供新邮箱以获取安装说明，延续产品使用/安装说明请求。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:5:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户放弃获取安装说明，撤回原请求，无剩余目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:5:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "用户提出修改另一个订单的收货地址，属于订单/物流地址修改。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:6:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户提供照片和订单号以推进过敏退款，属于退款售后。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:6:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户不确定过敏原因并撤回退款请求，无剩余目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:6:2",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "用户提出会员中心密码错误、怀疑被盗号，属于账号安全。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:7:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户询问TD-200能否七天无理由退换，涉及退换货规则，属售后/退款规则咨询。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:7:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户询问之前买的台灯能否开发票用于报销，属于发票/支付相关。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:7:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "用户表示晚点再来咨询，无明确业务请求，属于一般寒暄/结束语。"
+              }
+            ]
+          },
+          "name": "ReviewedBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "ce20319a-d91d-4a5e-afae-61e61252be4b",
+        "container": null,
+        "model": "deepseek-v4-pro",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "inference_geo": null,
+          "input_tokens": 3922,
+          "output_tokens": 1382,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-pro",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d6-fa2f-7683-a7a3-270f48004ee6-0",
+      "tool_calls": [
+        {
+          "name": "ReviewedBatch",
+          "args": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:zh:16:0:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户提供手机号配合换货申请验证，延续换货（售后）流程，属于退款/换货售后范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:0:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户明确放弃换货，撤回原请求，无剩余目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:0:2",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "用户提出重置登录密码，属于账号访问/安全领域，是新的明确请求。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:1:0",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "同时提出退货登记和查询另一个包裹两个不同领域请求（售后+物流），需拆分。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:1:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户将退货改为换货，仍属售后换货范畴，明确替换原目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:1:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户询问客服电话想直接打电话，属于寻求人工服务渠道。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:2:0",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "用户询问如何登录账号查看进度，被登出，属于账号访问问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:2:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户将换货改为退货，明确替换原目标，仍属售后退款范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:2:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "用户表达感谢和祝福，属于普通寒暄，无业务请求。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:3:0",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户明确要求投诉并转人工客服，属于人工服务/投诉。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:3:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "同时提出申请售后和咨询优惠活动两个不同领域请求（售后+产品/促销），需拆分。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:3:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "用户确认耳机是否在官方店购买、是否第三方下单，涉及订单来源/订单信息查询。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:4:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户继续追问退款未到账、是否打错账户，属于退款问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:4:1",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "用户提出换手机号后收不到验证码、请求改绑，属于账号访问/安全。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:4:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "用户表示再等等并顺便询问是否有实体店，属于一般咨询/闲聊，无明确业务目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:5:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "用户提供新邮箱以获取安装说明，延续产品使用/安装说明请求。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:5:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户放弃获取安装说明，撤回原请求，无剩余目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:5:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "用户提出修改另一个订单的收货地址，属于订单/物流地址修改。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:6:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户提供照片和订单号以推进过敏退款，属于退款售后。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:6:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户不确定过敏原因并撤回退款请求，无剩余目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:6:2",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "用户提出会员中心密码错误、怀疑被盗号，属于账号安全。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:7:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户询问TD-200能否七天无理由退换，涉及退换货规则，属售后/退款规则咨询。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:7:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户询问之前买的台灯能否开发票用于报销，属于发票/支付相关。"
+              },
+              {
+                "case_id": "domain-v3:zh:16:7:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "用户表示晚点再来咨询，无明确业务请求，属于一般寒暄/结束语。"
+              }
+            ]
+          },
+          "id": "call_00_om33lKzZaiKmMStaTFk69244",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 4434,
+        "output_tokens": 1382,
+        "total_tokens": 5816,
+        "input_token_details": {
+          "cache_read": 512,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "reviewed": {
+    "verdicts": [
+      {
+        "case_id": "domain-v3:zh:16:0:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户提供手机号配合换货申请验证，延续换货（售后）流程，属于退款/换货售后范畴。"
+      },
+      {
+        "case_id": "domain-v3:zh:16:0:1",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "用户明确放弃换货，撤回原请求，无剩余目标。"
+      },
+      {
+        "case_id": "domain-v3:zh:16:0:2",
+        "label": "account_security",
+        "clear_and_natural": true,
+        "reason": "用户提出重置登录密码，属于账号访问/安全领域，是新的明确请求。"
+      },
+      {
+        "case_id": "domain-v3:zh:16:1:0",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "同时提出退货登记和查询另一个包裹两个不同领域请求（售后+物流），需拆分。"
+      },
+      {
+        "case_id": "domain-v3:zh:16:1:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户将退货改为换货，仍属售后换货范畴，明确替换原目标。"
+      },
+      {
+        "case_id": "domain-v3:zh:16:1:2",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "用户询问客服电话想直接打电话，属于寻求人工服务渠道。"
+      },
+      {
+        "case_id": "domain-v3:zh:16:2:0",
+        "label": "account_security",
+        "clear_and_natural": true,
+        "reason": "用户询问如何登录账号查看进度，被登出，属于账号访问问题。"
+      },
+      {
+        "case_id": "domain-v3:zh:16:2:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户将换货改为退货，明确替换原目标，仍属售后退款范畴。"
+      },
+      {
+        "case_id": "domain-v3:zh:16:2:2",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "用户表达感谢和祝福，属于普通寒暄，无业务请求。"
+      },
+      {
+        "case_id": "domain-v3:zh:16:3:0",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "用户明确要求投诉并转人工客服，属于人工服务/投诉。"
+      },
+      {
+        "case_id": "domain-v3:zh:16:3:1",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "同时提出申请售后和咨询优惠活动两个不同领域请求（售后+产品/促销），需拆分。"
+      },
+      {
+        "case_id": "domain-v3:zh:16:3:2",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "用户确认耳机是否在官方店购买、是否第三方下单，涉及订单来源/订单信息查询。"
+      },
+      {
+        "case_id": "domain-v3:zh:16:4:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户继续追问退款未到账、是否打错账户，属于退款问题。"
+      },
+      {
+        "case_id": "domain-v3:zh:16:4:1",
+        "label": "account_security",
+        "clear_and_natural": true,
+        "reason": "用户提出换手机号后收不到验证码、请求改绑，属于账号访问/安全。"
+      },
+      {
+        "case_id": "domain-v3:zh:16:4:2",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "用户表示再等等并顺便询问是否有实体店，属于一般咨询/闲聊，无明确业务目标。"
+      },
+      {
+        "case_id": "domain-v3:zh:16:5:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "用户提供新邮箱以获取安装说明，延续产品使用/安装说明请求。"
+      },
+      {
+        "case_id": "domain-v3:zh:16:5:1",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "用户放弃获取安装说明，撤回原请求，无剩余目标。"
+      },
+      {
+        "case_id": "domain-v3:zh:16:5:2",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "用户提出修改另一个订单的收货地址，属于订单/物流地址修改。"
+      },
+      {
+        "case_id": "domain-v3:zh:16:6:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户提供照片和订单号以推进过敏退款，属于退款售后。"
+      },
+      {
+        "case_id": "domain-v3:zh:16:6:1",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "用户不确定过敏原因并撤回退款请求，无剩余目标。"
+      },
+      {
+        "case_id": "domain-v3:zh:16:6:2",
+        "label": "account_security",
+        "clear_and_natural": true,
+        "reason": "用户提出会员中心密码错误、怀疑被盗号，属于账号安全。"
+      },
+      {
+        "case_id": "domain-v3:zh:16:7:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户询问TD-200能否七天无理由退换，涉及退换货规则，属售后/退款规则咨询。"
+      },
+      {
+        "case_id": "domain-v3:zh:16:7:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户询问之前买的台灯能否开发票用于报销，属于发票/支付相关。"
+      },
+      {
+        "case_id": "domain-v3:zh:16:7:2",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "用户表示晚点再来咨询，无明确业务请求，属于一般寒暄/结束语。"
+      }
+    ]
+  },
+  "rows": [
+    {
+      "case_id": "domain-v3:zh:16:0:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上周买的智能手表，表带扣子松了，能换吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，表带属于配件，7天内可以申请换新。请问您的订单号是多少？"
+        },
+        {
+          "role": "user",
+          "content": "订单号是WX20241108，麻烦帮我查一下。"
+        },
+        {
+          "role": "assistant",
+          "content": "已查到您的订单，表带确实在质保范围内。我帮您提交换货申请，需要验证一下您的账号信息。"
+        }
+      ],
+      "text": "算了，不换了，我自己买个表带算了。",
+      "label": "__DEFER__",
+      "language": "zh",
+      "group_id": "domain-v3:zh:16:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:16:0:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上周买的智能手表，表带扣子松了，能换吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，表带属于配件，7天内可以申请换新。请问您的订单号是多少？"
+        },
+        {
+          "role": "user",
+          "content": "订单号是WX20241108，麻烦帮我查一下。"
+        },
+        {
+          "role": "assistant",
+          "content": "已查到您的订单，表带确实在质保范围内。我帮您提交换货申请，需要验证一下您的账号信息。"
+        }
+      ],
+      "text": "对了，我登录密码也忘了，能顺便帮我重置吗？",
+      "label": "account_security",
+      "language": "zh",
+      "group_id": "domain-v3:zh:16:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:16:1:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我买的咖啡机到了，但水箱有裂纹，想退货。"
+        },
+        {
+          "role": "assistant",
+          "content": "非常抱歉给您带来不便。退货需要先确认商品未使用，请问您拆封后使用过吗？"
+        },
+        {
+          "role": "user",
+          "content": "没有，就打开看了一下就发现裂了。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，那可以申请七天无理由退货。我这边先帮您登记，运费由我们承担。"
+        }
+      ],
+      "text": "等等，我其实想换一台新的，不想退，可以改吗？",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:16:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:16:1:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我买的咖啡机到了，但水箱有裂纹，想退货。"
+        },
+        {
+          "role": "assistant",
+          "content": "非常抱歉给您带来不便。退货需要先确认商品未使用，请问您拆封后使用过吗？"
+        },
+        {
+          "role": "user",
+          "content": "没有，就打开看了一下就发现裂了。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，那可以申请七天无理由退货。我这边先帮您登记，运费由我们承担。"
+        }
+      ],
+      "text": "好的，登记吧。对了，你们客服电话是多少？我想直接打电话说。",
+      "label": "human_service",
+      "language": "zh",
+      "group_id": "domain-v3:zh:16:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:16:2:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我买的跑步鞋偏小半码，想换大一码的。"
+        },
+        {
+          "role": "assistant",
+          "content": "可以换货的，请问您需要换同款大一码吗？"
+        },
+        {
+          "role": "user",
+          "content": "对，同款大一码，颜色也一样的。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，换货申请已提交。换货需要您先寄回原商品，寄回后我们会尽快发出新鞋。"
+        }
+      ],
+      "text": "好的，那我怎么登录我的账号查看换货进度？我好像被登出了。",
+      "label": "account_security",
+      "language": "zh",
+      "group_id": "domain-v3:zh:16:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:16:2:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我买的跑步鞋偏小半码，想换大一码的。"
+        },
+        {
+          "role": "assistant",
+          "content": "可以换货的，请问您需要换同款大一码吗？"
+        },
+        {
+          "role": "user",
+          "content": "对，同款大一码，颜色也一样的。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，换货申请已提交。换货需要您先寄回原商品，寄回后我们会尽快发出新鞋。"
+        }
+      ],
+      "text": "嗯，其实我犹豫了一下，还是直接退了吧，不换了。",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:16:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:16:2:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我买的跑步鞋偏小半码，想换大一码的。"
+        },
+        {
+          "role": "assistant",
+          "content": "可以换货的，请问您需要换同款大一码吗？"
+        },
+        {
+          "role": "user",
+          "content": "对，同款大一码，颜色也一样的。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，换货申请已提交。换货需要您先寄回原商品，寄回后我们会尽快发出新鞋。"
+        }
+      ],
+      "text": "谢谢，你们服务真好，祝你们生意兴隆！",
+      "label": "general",
+      "language": "zh",
+      "group_id": "domain-v3:zh:16:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:16:3:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "耳机左耳没声音了，才买一个月。"
+        },
+        {
+          "role": "assistant",
+          "content": "抱歉给您带来困扰。请问您试过重新配对吗？有时候是连接问题。"
+        },
+        {
+          "role": "user",
+          "content": "试过了，重新配对还是只有右耳有声音。"
+        },
+        {
+          "role": "assistant",
+          "content": "那可能是硬件故障。您可以申请售后检测，我们会安排免费维修或换新。"
+        }
+      ],
+      "text": "我不想修了，我要投诉你们产品质量，给我转人工客服！",
+      "label": "human_service",
+      "language": "zh",
+      "group_id": "domain-v3:zh:16:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:16:3:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "耳机左耳没声音了，才买一个月。"
+        },
+        {
+          "role": "assistant",
+          "content": "抱歉给您带来困扰。请问您试过重新配对吗？有时候是连接问题。"
+        },
+        {
+          "role": "user",
+          "content": "试过了，重新配对还是只有右耳有声音。"
+        },
+        {
+          "role": "assistant",
+          "content": "那可能是硬件故障。您可以申请售后检测，我们会安排免费维修或换新。"
+        }
+      ],
+      "text": "等等，我确认一下，这个耳机是在你们官方店买的吗？我好像是在第三方店下的单。",
+      "label": "order_logistics",
+      "language": "zh",
+      "group_id": "domain-v3:zh:16:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:16:4:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我退的那件羽绒服，退款怎么还没到账？"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，我帮您查一下。您的退款是昨天处理的，一般1-3个工作日到账。"
+        },
+        {
+          "role": "user",
+          "content": "已经三天了，还没收到，是不是出问题了？"
+        },
+        {
+          "role": "assistant",
+          "content": "我查一下您的退款状态……显示已打款到您的原支付账户，请您再确认一下银行卡信息。"
+        }
+      ],
+      "text": "我确认了银行卡没问题，但就是没收到，你们是不是打错账户了？",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:16:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:16:4:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我退的那件羽绒服，退款怎么还没到账？"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，我帮您查一下。您的退款是昨天处理的，一般1-3个工作日到账。"
+        },
+        {
+          "role": "user",
+          "content": "已经三天了，还没收到，是不是出问题了？"
+        },
+        {
+          "role": "assistant",
+          "content": "我查一下您的退款状态……显示已打款到您的原支付账户，请您再确认一下银行卡信息。"
+        }
+      ],
+      "text": "哦对了，我最近换了手机号，登录账号收不到验证码了，能帮我改绑吗？",
+      "label": "account_security",
+      "language": "zh",
+      "group_id": "domain-v3:zh:16:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:16:4:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我退的那件羽绒服，退款怎么还没到账？"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，我帮您查一下。您的退款是昨天处理的，一般1-3个工作日到账。"
+        },
+        {
+          "role": "user",
+          "content": "已经三天了，还没收到，是不是出问题了？"
+        },
+        {
+          "role": "assistant",
+          "content": "我查一下您的退款状态……显示已打款到您的原支付账户，请您再确认一下银行卡信息。"
+        }
+      ],
+      "text": "好吧，那我再等等看。顺便问一下，你们有没有实体店？",
+      "label": "general",
+      "language": "zh",
+      "group_id": "domain-v3:zh:16:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:16:5:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我买的书架，安装说明丢了，能发一份电子版吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "可以的，我稍后发到您的邮箱。请问您的邮箱是下单时填的那个吗？"
+        },
+        {
+          "role": "user",
+          "content": "不是，我换邮箱了，用新的吧，我发给你。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，请提供新邮箱，我更新后发送安装说明给您。"
+        }
+      ],
+      "text": "新邮箱是lin2024@163.com，麻烦发到这里。",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:16:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:16:5:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我买的书架，安装说明丢了，能发一份电子版吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "可以的，我稍后发到您的邮箱。请问您的邮箱是下单时填的那个吗？"
+        },
+        {
+          "role": "user",
+          "content": "不是，我换邮箱了，用新的吧，我发给你。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，请提供新邮箱，我更新后发送安装说明给您。"
+        }
+      ],
+      "text": "算了不用了，我直接去网上搜安装视频吧。",
+      "label": "__DEFER__",
+      "language": "zh",
+      "group_id": "domain-v3:zh:16:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:16:5:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我买的书架，安装说明丢了，能发一份电子版吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "可以的，我稍后发到您的邮箱。请问您的邮箱是下单时填的那个吗？"
+        },
+        {
+          "role": "user",
+          "content": "不是，我换邮箱了，用新的吧，我发给你。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，请提供新邮箱，我更新后发送安装说明给您。"
+        }
+      ],
+      "text": "对了，我还有一个订单地址填错了，能帮我改一下收货地址吗？",
+      "label": "order_logistics",
+      "language": "zh",
+      "group_id": "domain-v3:zh:16:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:16:6:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "用了你们的面霜脸过敏了，红了一大片。"
+        },
+        {
+          "role": "assistant",
+          "content": "天哪，非常抱歉！请您立即停用，我们支持过敏退款的。请问有就医吗？"
+        },
+        {
+          "role": "user",
+          "content": "还没去医院，就是很痒，我想先退款。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，过敏退款需要提供过敏照片和订单号，我帮您走特殊流程。"
+        }
+      ],
+      "text": "照片我拍了，订单号是SK20241115，麻烦尽快处理。",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:16:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:16:6:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "用了你们的面霜脸过敏了，红了一大片。"
+        },
+        {
+          "role": "assistant",
+          "content": "天哪，非常抱歉！请您立即停用，我们支持过敏退款的。请问有就医吗？"
+        },
+        {
+          "role": "user",
+          "content": "还没去医院，就是很痒，我想先退款。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，过敏退款需要提供过敏照片和订单号，我帮您走特殊流程。"
+        }
+      ],
+      "text": "我其实不确定是不是面霜引起的，可能是我吃了海鲜，先不退了吧。",
+      "label": "__DEFER__",
+      "language": "zh",
+      "group_id": "domain-v3:zh:16:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:16:6:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "用了你们的面霜脸过敏了，红了一大片。"
+        },
+        {
+          "role": "assistant",
+          "content": "天哪，非常抱歉！请您立即停用，我们支持过敏退款的。请问有就医吗？"
+        },
+        {
+          "role": "user",
+          "content": "还没去医院，就是很痒，我想先退款。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，过敏退款需要提供过敏照片和订单号，我帮您走特殊流程。"
+        }
+      ],
+      "text": "好的，另外我登录会员中心一直提示密码错误，是不是被盗号了？",
+      "label": "account_security",
+      "language": "zh",
+      "group_id": "domain-v3:zh:16:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:16:7:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "台灯到了，但最暗档还是太亮，晚上用刺眼。"
+        },
+        {
+          "role": "assistant",
+          "content": "这款台灯有三档亮度，最暗档是300流明。如果您觉得太亮，建议搭配灯罩使用。"
+        },
+        {
+          "role": "user",
+          "content": "那有没有更暗的型号推荐？"
+        },
+        {
+          "role": "assistant",
+          "content": "有的，我们有一款护眼台灯最低可到150流明，型号是TD-200，价格贵30元。"
+        }
+      ],
+      "text": "好的，我考虑一下。对了，我之前买的台灯能开发票吗？公司报销用。",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:16:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    }
+  ],
+  "rejected": [
+    {
+      "case_id": "domain-v3:zh:16:0:0",
+      "author": "account_security",
+      "label": "billing_refund",
+      "clear_and_natural": true,
+      "reason": "用户提供手机号配合换货申请验证，延续换货（售后）流程，属于退款/换货售后范畴。"
+    },
+    {
+      "case_id": "domain-v3:zh:16:1:0",
+      "author": "order_logistics",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "同时提出退货登记和查询另一个包裹两个不同领域请求（售后+物流），需拆分。"
+    },
+    {
+      "case_id": "domain-v3:zh:16:3:1",
+      "author": "general",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "同时提出申请售后和咨询优惠活动两个不同领域请求（售后+产品/促销），需拆分。"
+    },
+    {
+      "case_id": "domain-v3:zh:16:7:0",
+      "author": "product_technical",
+      "label": "billing_refund",
+      "clear_and_natural": true,
+      "reason": "用户询问TD-200能否七天无理由退换，涉及退换货规则，属售后/退款规则咨询。"
+    },
+    {
+      "case_id": "domain-v3:zh:16:7:2",
+      "author": "__DEFER__",
+      "label": "general",
+      "clear_and_natural": true,
+      "reason": "用户表示晚点再来咨询，无明确业务请求，属于一般寒暄/结束语。"
+    }
+  ],
+  "status": "reviewed"
+}

@@ -1,0 +1,1953 @@
+{
+  "batch_id": "domain-v3:zh:2",
+  "language": "zh",
+  "split": "train",
+  "models": {
+    "author": "deepseek-v4-flash",
+    "review": "deepseek-v4-pro"
+  },
+  "review_protocol": "label-blind-batch-v1",
+  "synthetic": true,
+  "author_prompt": "Author 8 DIFFERENT natural ecommerce customer-service dialogue families in zh.\nBatch 2; ensure at least four current turns classified as order_logistics across this batch.\nEach family has its OWN coherent history of 2, 4 or 6 short alternating user/assistant\nmessages, followed by 3 ALTERNATIVE current user turns, not three sequential turns.\nThose alternatives differ in effective intent: retain vs replace, withdraw vs\ncontinue, single goal vs concurrent goal, or resolved vs unresolved reference.\nInclude natural short answers where history matters. Vary old completed tasks,\nhesitation, self-correction, indirect wording, topics and dialogue acts. General\nand human-service requests must also occur as NEW goals, not only stale history.\nDo not follow a repeated sentence template or substitute product nouns to create\nnew families. Avoid stereotyped 'information only, do not submit' repetition.\nInvent broad everyday ecommerce situations; no copied benchmark or private data.\nHistory plus current turn should fit 150 English words or 180 Chinese characters;\nkeep it compact but meaningful. No future replies or final conversation summaries.\nSupply the correct label for each alternative according to the rubric.\n",
+  "author_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_7EwuHlWaOERbG3daJgdF0371",
+          "input": {
+            "families": [
+              {
+                "scenario": "智能手表表带更换咨询",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我上周买的智能手表，表带是硅胶的，戴着有点过敏。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "抱歉给您带来不便。硅胶表带确实可能引起部分人皮肤不适。您想换其他材质的表带吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "嗯，想看看有没有皮质的。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "有的，我们官网有头层牛皮表带，适配您这款手表，价格是129元。需要我帮您下单吗？"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，帮我拍一条棕色皮表带吧。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "算了，我先不换了，等过敏好了再说。",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "对了，顺便问下你们有没有那种金属表带？",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "咖啡机到货后配件缺失",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我前天收到的咖啡机，打开发现里面没有量勺。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "非常抱歉！量勺应该是随机器附赠的。我帮您补发一个，可以吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "可以，麻烦补发吧。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "好的，已为您登记补发量勺，预计3天内送达。还有其他需要帮助的吗？"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "没有了，谢谢你的帮忙。",
+                    "label": "general"
+                  },
+                  {
+                    "text": "等等，我仔细看了下，量勺其实在说明书下面压着，不用补发了。",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "那顺便帮我查一下我另一单的物流到哪了？",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "羽绒服尺码不合适",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "双十一买的羽绒服到了，试穿发现M码肩膀有点紧。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您想换大一码吗？目前L码黑色有现货。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "嗯，想换L码，但是颜色想换成灰色的。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "灰色L码也有货。您需要先寄回M码，我们收到后给您发灰色L码。可以吗？"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "可以，那我现在就申请退货换货流程。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "算了，灰色没有就算了，黑色L码也行，直接换吧。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "你们能不能先发灰色的过来，我同时把M码寄回去？",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "蓝牙耳机连接故障",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我买的蓝牙耳机，连手机总是断断续续的。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请问您是在什么距离下使用呢？蓝牙有效距离一般是10米以内。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "就放在桌上用，大概半米远，还是断。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "那可能是耳机固件问题。您试过重置耳机吗？长按触控区10秒直到指示灯闪烁。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "试过了，重置之后还是断，是不是质量问题？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "我试了，好像好一点了，先这样用着吧。",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "重置没用，我想直接找人工客服处理售后。",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "大米订单地址写错",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我刚下单了五袋大米，发现收货地址填成公司了，我明天出差不在公司。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您的订单还未发货，我可以帮您修改收货地址。请提供正确的地址。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "改成我家地址：朝阳区幸福路12号3单元502。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "好的，已为您修改收货地址为朝阳区幸福路12号3单元502。还有其他需要吗？"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "没有了，谢谢。",
+                    "label": "general"
+                  },
+                  {
+                    "text": "对了，我改主意了，五袋太多了，能改成三袋吗？",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "顺便问下，我上次买的那个酱油怎么还没送到？",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "护肤品会员积分查询",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我登录账号发现积分好像少了，上个月应该有三千多分。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "我帮您查一下。请问您的账号是手机号登录的吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "对，138开头的那个手机号。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "查到了，您目前账户有2850积分。上个月有一笔退货扣除了200积分。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那笔退货是我自己退的，我知道了，没事了。",
+                    "label": "general"
+                  },
+                  {
+                    "text": "不对啊，我退的那单才99块钱，怎么扣了200分？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "我密码忘了，想改一下登录密码。",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "书架安装配件咨询",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "昨天收到的书架，安装到一半发现少了四颗螺丝。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "抱歉！我马上帮您补寄螺丝配件。请问您需要加急吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "不用加急，普通快递就行。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "好的，螺丝配件今天会寄出，预计3-5天到。安装过程中还有其他问题吗？"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "还有个问题，说明书上第三步那个横板方向是不是装反了？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "好的，那我等螺丝到了再装，先这样吧。",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "对了，我另外买的那张书桌什么时候发货？",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "宠物粮订阅服务调整",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我上个月开了宠物粮的按月订阅，这个月已经收到一袋了。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "是的，您的订阅每月5号自动发货。请问有什么需要调整的吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "我想把订阅从每月一袋改成每两月一袋，猫吃不了那么快。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "可以调整。修改后下次发货将在两个月后。确认修改吗？"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "确认修改，麻烦帮我改一下。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "等等，我其实想直接取消订阅，不续了。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "改吧。另外我上次单独买的那箱猫砂，快递显示签收了但我没收到，帮我查查。",
+                    "label": "order_logistics"
+                  }
+                ]
+              }
+            ]
+          },
+          "name": "AuthoredBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "883606ad-873a-4fd6-81c8-d377529964c4",
+        "container": null,
+        "model": "deepseek-v4-flash",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "inference_geo": null,
+          "input_tokens": 961,
+          "output_tokens": 1754,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-flash",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d5-8b63-71c3-88c1-b7621ec2e39e-0",
+      "tool_calls": [
+        {
+          "name": "AuthoredBatch",
+          "args": {
+            "families": [
+              {
+                "scenario": "智能手表表带更换咨询",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我上周买的智能手表，表带是硅胶的，戴着有点过敏。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "抱歉给您带来不便。硅胶表带确实可能引起部分人皮肤不适。您想换其他材质的表带吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "嗯，想看看有没有皮质的。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "有的，我们官网有头层牛皮表带，适配您这款手表，价格是129元。需要我帮您下单吗？"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，帮我拍一条棕色皮表带吧。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "算了，我先不换了，等过敏好了再说。",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "对了，顺便问下你们有没有那种金属表带？",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "咖啡机到货后配件缺失",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我前天收到的咖啡机，打开发现里面没有量勺。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "非常抱歉！量勺应该是随机器附赠的。我帮您补发一个，可以吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "可以，麻烦补发吧。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "好的，已为您登记补发量勺，预计3天内送达。还有其他需要帮助的吗？"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "没有了，谢谢你的帮忙。",
+                    "label": "general"
+                  },
+                  {
+                    "text": "等等，我仔细看了下，量勺其实在说明书下面压着，不用补发了。",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "那顺便帮我查一下我另一单的物流到哪了？",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "羽绒服尺码不合适",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "双十一买的羽绒服到了，试穿发现M码肩膀有点紧。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您想换大一码吗？目前L码黑色有现货。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "嗯，想换L码，但是颜色想换成灰色的。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "灰色L码也有货。您需要先寄回M码，我们收到后给您发灰色L码。可以吗？"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "可以，那我现在就申请退货换货流程。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "算了，灰色没有就算了，黑色L码也行，直接换吧。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "你们能不能先发灰色的过来，我同时把M码寄回去？",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "蓝牙耳机连接故障",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我买的蓝牙耳机，连手机总是断断续续的。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请问您是在什么距离下使用呢？蓝牙有效距离一般是10米以内。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "就放在桌上用，大概半米远，还是断。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "那可能是耳机固件问题。您试过重置耳机吗？长按触控区10秒直到指示灯闪烁。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "试过了，重置之后还是断，是不是质量问题？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "我试了，好像好一点了，先这样用着吧。",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "重置没用，我想直接找人工客服处理售后。",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "大米订单地址写错",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我刚下单了五袋大米，发现收货地址填成公司了，我明天出差不在公司。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您的订单还未发货，我可以帮您修改收货地址。请提供正确的地址。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "改成我家地址：朝阳区幸福路12号3单元502。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "好的，已为您修改收货地址为朝阳区幸福路12号3单元502。还有其他需要吗？"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "没有了，谢谢。",
+                    "label": "general"
+                  },
+                  {
+                    "text": "对了，我改主意了，五袋太多了，能改成三袋吗？",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "顺便问下，我上次买的那个酱油怎么还没送到？",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "护肤品会员积分查询",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我登录账号发现积分好像少了，上个月应该有三千多分。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "我帮您查一下。请问您的账号是手机号登录的吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "对，138开头的那个手机号。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "查到了，您目前账户有2850积分。上个月有一笔退货扣除了200积分。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那笔退货是我自己退的，我知道了，没事了。",
+                    "label": "general"
+                  },
+                  {
+                    "text": "不对啊，我退的那单才99块钱，怎么扣了200分？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "我密码忘了，想改一下登录密码。",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "书架安装配件咨询",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "昨天收到的书架，安装到一半发现少了四颗螺丝。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "抱歉！我马上帮您补寄螺丝配件。请问您需要加急吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "不用加急，普通快递就行。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "好的，螺丝配件今天会寄出，预计3-5天到。安装过程中还有其他问题吗？"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "还有个问题，说明书上第三步那个横板方向是不是装反了？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "好的，那我等螺丝到了再装，先这样吧。",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "对了，我另外买的那张书桌什么时候发货？",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "宠物粮订阅服务调整",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我上个月开了宠物粮的按月订阅，这个月已经收到一袋了。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "是的，您的订阅每月5号自动发货。请问有什么需要调整的吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "我想把订阅从每月一袋改成每两月一袋，猫吃不了那么快。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "可以调整。修改后下次发货将在两个月后。确认修改吗？"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "确认修改，麻烦帮我改一下。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "等等，我其实想直接取消订阅，不续了。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "改吧。另外我上次单独买的那箱猫砂，快递显示签收了但我没收到，帮我查查。",
+                    "label": "order_logistics"
+                  }
+                ]
+              }
+            ]
+          },
+          "id": "call_00_7EwuHlWaOERbG3daJgdF0371",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 961,
+        "output_tokens": 1754,
+        "total_tokens": 2715,
+        "input_token_details": {
+          "cache_read": 0,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "authored": {
+    "families": [
+      {
+        "scenario": "智能手表表带更换咨询",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我上周买的智能手表，表带是硅胶的，戴着有点过敏。"
+          },
+          {
+            "role": "assistant",
+            "content": "抱歉给您带来不便。硅胶表带确实可能引起部分人皮肤不适。您想换其他材质的表带吗？"
+          },
+          {
+            "role": "user",
+            "content": "嗯，想看看有没有皮质的。"
+          },
+          {
+            "role": "assistant",
+            "content": "有的，我们官网有头层牛皮表带，适配您这款手表，价格是129元。需要我帮您下单吗？"
+          }
+        ],
+        "variants": [
+          {
+            "text": "好的，帮我拍一条棕色皮表带吧。",
+            "label": "order_logistics"
+          },
+          {
+            "text": "算了，我先不换了，等过敏好了再说。",
+            "label": "__DEFER__"
+          },
+          {
+            "text": "对了，顺便问下你们有没有那种金属表带？",
+            "label": "product_technical"
+          }
+        ]
+      },
+      {
+        "scenario": "咖啡机到货后配件缺失",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我前天收到的咖啡机，打开发现里面没有量勺。"
+          },
+          {
+            "role": "assistant",
+            "content": "非常抱歉！量勺应该是随机器附赠的。我帮您补发一个，可以吗？"
+          },
+          {
+            "role": "user",
+            "content": "可以，麻烦补发吧。"
+          },
+          {
+            "role": "assistant",
+            "content": "好的，已为您登记补发量勺，预计3天内送达。还有其他需要帮助的吗？"
+          }
+        ],
+        "variants": [
+          {
+            "text": "没有了，谢谢你的帮忙。",
+            "label": "general"
+          },
+          {
+            "text": "等等，我仔细看了下，量勺其实在说明书下面压着，不用补发了。",
+            "label": "__DEFER__"
+          },
+          {
+            "text": "那顺便帮我查一下我另一单的物流到哪了？",
+            "label": "order_logistics"
+          }
+        ]
+      },
+      {
+        "scenario": "羽绒服尺码不合适",
+        "messages": [
+          {
+            "role": "user",
+            "content": "双十一买的羽绒服到了，试穿发现M码肩膀有点紧。"
+          },
+          {
+            "role": "assistant",
+            "content": "您想换大一码吗？目前L码黑色有现货。"
+          },
+          {
+            "role": "user",
+            "content": "嗯，想换L码，但是颜色想换成灰色的。"
+          },
+          {
+            "role": "assistant",
+            "content": "灰色L码也有货。您需要先寄回M码，我们收到后给您发灰色L码。可以吗？"
+          }
+        ],
+        "variants": [
+          {
+            "text": "可以，那我现在就申请退货换货流程。",
+            "label": "billing_refund"
+          },
+          {
+            "text": "算了，灰色没有就算了，黑色L码也行，直接换吧。",
+            "label": "order_logistics"
+          },
+          {
+            "text": "你们能不能先发灰色的过来，我同时把M码寄回去？",
+            "label": "billing_refund"
+          }
+        ]
+      },
+      {
+        "scenario": "蓝牙耳机连接故障",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我买的蓝牙耳机，连手机总是断断续续的。"
+          },
+          {
+            "role": "assistant",
+            "content": "请问您是在什么距离下使用呢？蓝牙有效距离一般是10米以内。"
+          },
+          {
+            "role": "user",
+            "content": "就放在桌上用，大概半米远，还是断。"
+          },
+          {
+            "role": "assistant",
+            "content": "那可能是耳机固件问题。您试过重置耳机吗？长按触控区10秒直到指示灯闪烁。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "试过了，重置之后还是断，是不是质量问题？",
+            "label": "product_technical"
+          },
+          {
+            "text": "我试了，好像好一点了，先这样用着吧。",
+            "label": "__DEFER__"
+          },
+          {
+            "text": "重置没用，我想直接找人工客服处理售后。",
+            "label": "human_service"
+          }
+        ]
+      },
+      {
+        "scenario": "大米订单地址写错",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我刚下单了五袋大米，发现收货地址填成公司了，我明天出差不在公司。"
+          },
+          {
+            "role": "assistant",
+            "content": "您的订单还未发货，我可以帮您修改收货地址。请提供正确的地址。"
+          },
+          {
+            "role": "user",
+            "content": "改成我家地址：朝阳区幸福路12号3单元502。"
+          },
+          {
+            "role": "assistant",
+            "content": "好的，已为您修改收货地址为朝阳区幸福路12号3单元502。还有其他需要吗？"
+          }
+        ],
+        "variants": [
+          {
+            "text": "没有了，谢谢。",
+            "label": "general"
+          },
+          {
+            "text": "对了，我改主意了，五袋太多了，能改成三袋吗？",
+            "label": "order_logistics"
+          },
+          {
+            "text": "顺便问下，我上次买的那个酱油怎么还没送到？",
+            "label": "order_logistics"
+          }
+        ]
+      },
+      {
+        "scenario": "护肤品会员积分查询",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我登录账号发现积分好像少了，上个月应该有三千多分。"
+          },
+          {
+            "role": "assistant",
+            "content": "我帮您查一下。请问您的账号是手机号登录的吗？"
+          },
+          {
+            "role": "user",
+            "content": "对，138开头的那个手机号。"
+          },
+          {
+            "role": "assistant",
+            "content": "查到了，您目前账户有2850积分。上个月有一笔退货扣除了200积分。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "那笔退货是我自己退的，我知道了，没事了。",
+            "label": "general"
+          },
+          {
+            "text": "不对啊，我退的那单才99块钱，怎么扣了200分？",
+            "label": "billing_refund"
+          },
+          {
+            "text": "我密码忘了，想改一下登录密码。",
+            "label": "account_security"
+          }
+        ]
+      },
+      {
+        "scenario": "书架安装配件咨询",
+        "messages": [
+          {
+            "role": "user",
+            "content": "昨天收到的书架，安装到一半发现少了四颗螺丝。"
+          },
+          {
+            "role": "assistant",
+            "content": "抱歉！我马上帮您补寄螺丝配件。请问您需要加急吗？"
+          },
+          {
+            "role": "user",
+            "content": "不用加急，普通快递就行。"
+          },
+          {
+            "role": "assistant",
+            "content": "好的，螺丝配件今天会寄出，预计3-5天到。安装过程中还有其他问题吗？"
+          }
+        ],
+        "variants": [
+          {
+            "text": "还有个问题，说明书上第三步那个横板方向是不是装反了？",
+            "label": "product_technical"
+          },
+          {
+            "text": "好的，那我等螺丝到了再装，先这样吧。",
+            "label": "__DEFER__"
+          },
+          {
+            "text": "对了，我另外买的那张书桌什么时候发货？",
+            "label": "order_logistics"
+          }
+        ]
+      },
+      {
+        "scenario": "宠物粮订阅服务调整",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我上个月开了宠物粮的按月订阅，这个月已经收到一袋了。"
+          },
+          {
+            "role": "assistant",
+            "content": "是的，您的订阅每月5号自动发货。请问有什么需要调整的吗？"
+          },
+          {
+            "role": "user",
+            "content": "我想把订阅从每月一袋改成每两月一袋，猫吃不了那么快。"
+          },
+          {
+            "role": "assistant",
+            "content": "可以调整。修改后下次发货将在两个月后。确认修改吗？"
+          }
+        ],
+        "variants": [
+          {
+            "text": "确认修改，麻烦帮我改一下。",
+            "label": "order_logistics"
+          },
+          {
+            "text": "等等，我其实想直接取消订阅，不续了。",
+            "label": "billing_refund"
+          },
+          {
+            "text": "改吧。另外我上次单独买的那箱猫砂，快递显示签收了但我没收到，帮我查查。",
+            "label": "order_logistics"
+          }
+        ]
+      }
+    ]
+  },
+  "review_input_sha256": "1c7c1b42ccc1a3414d97f7157a05b9ebdfa70a03ff67e6465628c1cc0eb103ad",
+  "review_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_9MUjiI0mFqvMLUdDBAbD0535",
+          "input": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:zh:2:0:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "用户确认购买棕色皮表带，属于产品/配件购买请求，延续产品相关目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:0:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户撤回换表带请求，无剩余目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:0:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "用户询问金属表带，仍是产品/配件咨询，同一领域。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:1:0",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "用户表达感谢并结束，属于礼貌用语，无业务目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:1:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户撤回补发请求，无剩余目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:1:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "用户请求查询另一订单物流，属于订单物流领域。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:2:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户确认申请退货换货流程，属于退换货/售后。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:2:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户改为换黑色L码，仍是换货请求，同一领域。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:2:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户询问换货流程方式，仍属退换货售后。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:3:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "用户质疑耳机质量问题，属于产品故障排查。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:3:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户表示问题缓解，暂不处理，无明确剩余目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:3:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户明确要求转人工客服处理售后，属于人工服务/升级。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:4:0",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "用户表达感谢结束，无业务目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:4:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "用户请求修改订单数量，属于订单处理。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:4:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "用户查询另一订单物流，属于订单物流领域。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:5:0",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "用户表示理解并结束，无剩余业务目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:5:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户质疑积分扣除金额，涉及退款/积分账务问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:5:2",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "用户请求修改登录密码，属于账号安全。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:6:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "用户询问安装说明问题，属于产品使用/安装。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:6:1",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "用户表示等待并结束，无剩余业务目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:6:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "用户询问另一订单发货时间，属于订单物流。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:7:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "用户确认修改订阅发货频率，属于订单/订阅调整。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:7:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "用户改为取消订阅，仍属订单/订阅处理。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:7:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户同时提出修改订阅和查询另一订单物流，两个不同领域请求并存。"
+              }
+            ]
+          },
+          "name": "ReviewedBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "99696896-4db5-4ea8-a91c-4104b2175237",
+        "container": null,
+        "model": "deepseek-v4-pro",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "inference_geo": null,
+          "input_tokens": 3803,
+          "output_tokens": 1251,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-pro",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d5-c34a-7f13-9822-1e7100dcba46-0",
+      "tool_calls": [
+        {
+          "name": "ReviewedBatch",
+          "args": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:zh:2:0:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "用户确认购买棕色皮表带，属于产品/配件购买请求，延续产品相关目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:0:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户撤回换表带请求，无剩余目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:0:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "用户询问金属表带，仍是产品/配件咨询，同一领域。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:1:0",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "用户表达感谢并结束，属于礼貌用语，无业务目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:1:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户撤回补发请求，无剩余目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:1:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "用户请求查询另一订单物流，属于订单物流领域。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:2:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户确认申请退货换货流程，属于退换货/售后。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:2:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户改为换黑色L码，仍是换货请求，同一领域。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:2:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户询问换货流程方式，仍属退换货售后。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:3:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "用户质疑耳机质量问题，属于产品故障排查。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:3:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户表示问题缓解，暂不处理，无明确剩余目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:3:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户明确要求转人工客服处理售后，属于人工服务/升级。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:4:0",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "用户表达感谢结束，无业务目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:4:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "用户请求修改订单数量，属于订单处理。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:4:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "用户查询另一订单物流，属于订单物流领域。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:5:0",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "用户表示理解并结束，无剩余业务目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:5:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户质疑积分扣除金额，涉及退款/积分账务问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:5:2",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "用户请求修改登录密码，属于账号安全。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:6:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "用户询问安装说明问题，属于产品使用/安装。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:6:1",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "用户表示等待并结束，无剩余业务目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:6:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "用户询问另一订单发货时间，属于订单物流。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:7:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "用户确认修改订阅发货频率，属于订单/订阅调整。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:7:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "用户改为取消订阅，仍属订单/订阅处理。"
+              },
+              {
+                "case_id": "domain-v3:zh:2:7:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户同时提出修改订阅和查询另一订单物流，两个不同领域请求并存。"
+              }
+            ]
+          },
+          "id": "call_00_9MUjiI0mFqvMLUdDBAbD0535",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 4315,
+        "output_tokens": 1251,
+        "total_tokens": 5566,
+        "input_token_details": {
+          "cache_read": 512,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "reviewed": {
+    "verdicts": [
+      {
+        "case_id": "domain-v3:zh:2:0:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "用户确认购买棕色皮表带，属于产品/配件购买请求，延续产品相关目标。"
+      },
+      {
+        "case_id": "domain-v3:zh:2:0:1",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "用户撤回换表带请求，无剩余目标。"
+      },
+      {
+        "case_id": "domain-v3:zh:2:0:2",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "用户询问金属表带，仍是产品/配件咨询，同一领域。"
+      },
+      {
+        "case_id": "domain-v3:zh:2:1:0",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "用户表达感谢并结束，属于礼貌用语，无业务目标。"
+      },
+      {
+        "case_id": "domain-v3:zh:2:1:1",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "用户撤回补发请求，无剩余目标。"
+      },
+      {
+        "case_id": "domain-v3:zh:2:1:2",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "用户请求查询另一订单物流，属于订单物流领域。"
+      },
+      {
+        "case_id": "domain-v3:zh:2:2:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户确认申请退货换货流程，属于退换货/售后。"
+      },
+      {
+        "case_id": "domain-v3:zh:2:2:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户改为换黑色L码，仍是换货请求，同一领域。"
+      },
+      {
+        "case_id": "domain-v3:zh:2:2:2",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户询问换货流程方式，仍属退换货售后。"
+      },
+      {
+        "case_id": "domain-v3:zh:2:3:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "用户质疑耳机质量问题，属于产品故障排查。"
+      },
+      {
+        "case_id": "domain-v3:zh:2:3:1",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "用户表示问题缓解，暂不处理，无明确剩余目标。"
+      },
+      {
+        "case_id": "domain-v3:zh:2:3:2",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "用户明确要求转人工客服处理售后，属于人工服务/升级。"
+      },
+      {
+        "case_id": "domain-v3:zh:2:4:0",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "用户表达感谢结束，无业务目标。"
+      },
+      {
+        "case_id": "domain-v3:zh:2:4:1",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "用户请求修改订单数量，属于订单处理。"
+      },
+      {
+        "case_id": "domain-v3:zh:2:4:2",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "用户查询另一订单物流，属于订单物流领域。"
+      },
+      {
+        "case_id": "domain-v3:zh:2:5:0",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "用户表示理解并结束，无剩余业务目标。"
+      },
+      {
+        "case_id": "domain-v3:zh:2:5:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户质疑积分扣除金额，涉及退款/积分账务问题。"
+      },
+      {
+        "case_id": "domain-v3:zh:2:5:2",
+        "label": "account_security",
+        "clear_and_natural": true,
+        "reason": "用户请求修改登录密码，属于账号安全。"
+      },
+      {
+        "case_id": "domain-v3:zh:2:6:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "用户询问安装说明问题，属于产品使用/安装。"
+      },
+      {
+        "case_id": "domain-v3:zh:2:6:1",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "用户表示等待并结束，无剩余业务目标。"
+      },
+      {
+        "case_id": "domain-v3:zh:2:6:2",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "用户询问另一订单发货时间，属于订单物流。"
+      },
+      {
+        "case_id": "domain-v3:zh:2:7:0",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "用户确认修改订阅发货频率，属于订单/订阅调整。"
+      },
+      {
+        "case_id": "domain-v3:zh:2:7:1",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "用户改为取消订阅，仍属订单/订阅处理。"
+      },
+      {
+        "case_id": "domain-v3:zh:2:7:2",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "用户同时提出修改订阅和查询另一订单物流，两个不同领域请求并存。"
+      }
+    ]
+  },
+  "rows": [
+    {
+      "case_id": "domain-v3:zh:2:0:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上周买的智能手表，表带是硅胶的，戴着有点过敏。"
+        },
+        {
+          "role": "assistant",
+          "content": "抱歉给您带来不便。硅胶表带确实可能引起部分人皮肤不适。您想换其他材质的表带吗？"
+        },
+        {
+          "role": "user",
+          "content": "嗯，想看看有没有皮质的。"
+        },
+        {
+          "role": "assistant",
+          "content": "有的，我们官网有头层牛皮表带，适配您这款手表，价格是129元。需要我帮您下单吗？"
+        }
+      ],
+      "text": "算了，我先不换了，等过敏好了再说。",
+      "label": "__DEFER__",
+      "language": "zh",
+      "group_id": "domain-v3:zh:2:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:2:0:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上周买的智能手表，表带是硅胶的，戴着有点过敏。"
+        },
+        {
+          "role": "assistant",
+          "content": "抱歉给您带来不便。硅胶表带确实可能引起部分人皮肤不适。您想换其他材质的表带吗？"
+        },
+        {
+          "role": "user",
+          "content": "嗯，想看看有没有皮质的。"
+        },
+        {
+          "role": "assistant",
+          "content": "有的，我们官网有头层牛皮表带，适配您这款手表，价格是129元。需要我帮您下单吗？"
+        }
+      ],
+      "text": "对了，顺便问下你们有没有那种金属表带？",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:2:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:2:1:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我前天收到的咖啡机，打开发现里面没有量勺。"
+        },
+        {
+          "role": "assistant",
+          "content": "非常抱歉！量勺应该是随机器附赠的。我帮您补发一个，可以吗？"
+        },
+        {
+          "role": "user",
+          "content": "可以，麻烦补发吧。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，已为您登记补发量勺，预计3天内送达。还有其他需要帮助的吗？"
+        }
+      ],
+      "text": "没有了，谢谢你的帮忙。",
+      "label": "general",
+      "language": "zh",
+      "group_id": "domain-v3:zh:2:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:2:1:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我前天收到的咖啡机，打开发现里面没有量勺。"
+        },
+        {
+          "role": "assistant",
+          "content": "非常抱歉！量勺应该是随机器附赠的。我帮您补发一个，可以吗？"
+        },
+        {
+          "role": "user",
+          "content": "可以，麻烦补发吧。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，已为您登记补发量勺，预计3天内送达。还有其他需要帮助的吗？"
+        }
+      ],
+      "text": "等等，我仔细看了下，量勺其实在说明书下面压着，不用补发了。",
+      "label": "__DEFER__",
+      "language": "zh",
+      "group_id": "domain-v3:zh:2:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:2:1:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我前天收到的咖啡机，打开发现里面没有量勺。"
+        },
+        {
+          "role": "assistant",
+          "content": "非常抱歉！量勺应该是随机器附赠的。我帮您补发一个，可以吗？"
+        },
+        {
+          "role": "user",
+          "content": "可以，麻烦补发吧。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，已为您登记补发量勺，预计3天内送达。还有其他需要帮助的吗？"
+        }
+      ],
+      "text": "那顺便帮我查一下我另一单的物流到哪了？",
+      "label": "order_logistics",
+      "language": "zh",
+      "group_id": "domain-v3:zh:2:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:2:2:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "双十一买的羽绒服到了，试穿发现M码肩膀有点紧。"
+        },
+        {
+          "role": "assistant",
+          "content": "您想换大一码吗？目前L码黑色有现货。"
+        },
+        {
+          "role": "user",
+          "content": "嗯，想换L码，但是颜色想换成灰色的。"
+        },
+        {
+          "role": "assistant",
+          "content": "灰色L码也有货。您需要先寄回M码，我们收到后给您发灰色L码。可以吗？"
+        }
+      ],
+      "text": "可以，那我现在就申请退货换货流程。",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:2:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:2:2:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "双十一买的羽绒服到了，试穿发现M码肩膀有点紧。"
+        },
+        {
+          "role": "assistant",
+          "content": "您想换大一码吗？目前L码黑色有现货。"
+        },
+        {
+          "role": "user",
+          "content": "嗯，想换L码，但是颜色想换成灰色的。"
+        },
+        {
+          "role": "assistant",
+          "content": "灰色L码也有货。您需要先寄回M码，我们收到后给您发灰色L码。可以吗？"
+        }
+      ],
+      "text": "你们能不能先发灰色的过来，我同时把M码寄回去？",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:2:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:2:3:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我买的蓝牙耳机，连手机总是断断续续的。"
+        },
+        {
+          "role": "assistant",
+          "content": "请问您是在什么距离下使用呢？蓝牙有效距离一般是10米以内。"
+        },
+        {
+          "role": "user",
+          "content": "就放在桌上用，大概半米远，还是断。"
+        },
+        {
+          "role": "assistant",
+          "content": "那可能是耳机固件问题。您试过重置耳机吗？长按触控区10秒直到指示灯闪烁。"
+        }
+      ],
+      "text": "试过了，重置之后还是断，是不是质量问题？",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:2:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:2:3:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我买的蓝牙耳机，连手机总是断断续续的。"
+        },
+        {
+          "role": "assistant",
+          "content": "请问您是在什么距离下使用呢？蓝牙有效距离一般是10米以内。"
+        },
+        {
+          "role": "user",
+          "content": "就放在桌上用，大概半米远，还是断。"
+        },
+        {
+          "role": "assistant",
+          "content": "那可能是耳机固件问题。您试过重置耳机吗？长按触控区10秒直到指示灯闪烁。"
+        }
+      ],
+      "text": "我试了，好像好一点了，先这样用着吧。",
+      "label": "__DEFER__",
+      "language": "zh",
+      "group_id": "domain-v3:zh:2:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:2:3:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我买的蓝牙耳机，连手机总是断断续续的。"
+        },
+        {
+          "role": "assistant",
+          "content": "请问您是在什么距离下使用呢？蓝牙有效距离一般是10米以内。"
+        },
+        {
+          "role": "user",
+          "content": "就放在桌上用，大概半米远，还是断。"
+        },
+        {
+          "role": "assistant",
+          "content": "那可能是耳机固件问题。您试过重置耳机吗？长按触控区10秒直到指示灯闪烁。"
+        }
+      ],
+      "text": "重置没用，我想直接找人工客服处理售后。",
+      "label": "human_service",
+      "language": "zh",
+      "group_id": "domain-v3:zh:2:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:2:4:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我刚下单了五袋大米，发现收货地址填成公司了，我明天出差不在公司。"
+        },
+        {
+          "role": "assistant",
+          "content": "您的订单还未发货，我可以帮您修改收货地址。请提供正确的地址。"
+        },
+        {
+          "role": "user",
+          "content": "改成我家地址：朝阳区幸福路12号3单元502。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，已为您修改收货地址为朝阳区幸福路12号3单元502。还有其他需要吗？"
+        }
+      ],
+      "text": "没有了，谢谢。",
+      "label": "general",
+      "language": "zh",
+      "group_id": "domain-v3:zh:2:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:2:4:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我刚下单了五袋大米，发现收货地址填成公司了，我明天出差不在公司。"
+        },
+        {
+          "role": "assistant",
+          "content": "您的订单还未发货，我可以帮您修改收货地址。请提供正确的地址。"
+        },
+        {
+          "role": "user",
+          "content": "改成我家地址：朝阳区幸福路12号3单元502。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，已为您修改收货地址为朝阳区幸福路12号3单元502。还有其他需要吗？"
+        }
+      ],
+      "text": "对了，我改主意了，五袋太多了，能改成三袋吗？",
+      "label": "order_logistics",
+      "language": "zh",
+      "group_id": "domain-v3:zh:2:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:2:4:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我刚下单了五袋大米，发现收货地址填成公司了，我明天出差不在公司。"
+        },
+        {
+          "role": "assistant",
+          "content": "您的订单还未发货，我可以帮您修改收货地址。请提供正确的地址。"
+        },
+        {
+          "role": "user",
+          "content": "改成我家地址：朝阳区幸福路12号3单元502。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，已为您修改收货地址为朝阳区幸福路12号3单元502。还有其他需要吗？"
+        }
+      ],
+      "text": "顺便问下，我上次买的那个酱油怎么还没送到？",
+      "label": "order_logistics",
+      "language": "zh",
+      "group_id": "domain-v3:zh:2:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:2:5:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我登录账号发现积分好像少了，上个月应该有三千多分。"
+        },
+        {
+          "role": "assistant",
+          "content": "我帮您查一下。请问您的账号是手机号登录的吗？"
+        },
+        {
+          "role": "user",
+          "content": "对，138开头的那个手机号。"
+        },
+        {
+          "role": "assistant",
+          "content": "查到了，您目前账户有2850积分。上个月有一笔退货扣除了200积分。"
+        }
+      ],
+      "text": "那笔退货是我自己退的，我知道了，没事了。",
+      "label": "general",
+      "language": "zh",
+      "group_id": "domain-v3:zh:2:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:2:5:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我登录账号发现积分好像少了，上个月应该有三千多分。"
+        },
+        {
+          "role": "assistant",
+          "content": "我帮您查一下。请问您的账号是手机号登录的吗？"
+        },
+        {
+          "role": "user",
+          "content": "对，138开头的那个手机号。"
+        },
+        {
+          "role": "assistant",
+          "content": "查到了，您目前账户有2850积分。上个月有一笔退货扣除了200积分。"
+        }
+      ],
+      "text": "不对啊，我退的那单才99块钱，怎么扣了200分？",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:2:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:2:5:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我登录账号发现积分好像少了，上个月应该有三千多分。"
+        },
+        {
+          "role": "assistant",
+          "content": "我帮您查一下。请问您的账号是手机号登录的吗？"
+        },
+        {
+          "role": "user",
+          "content": "对，138开头的那个手机号。"
+        },
+        {
+          "role": "assistant",
+          "content": "查到了，您目前账户有2850积分。上个月有一笔退货扣除了200积分。"
+        }
+      ],
+      "text": "我密码忘了，想改一下登录密码。",
+      "label": "account_security",
+      "language": "zh",
+      "group_id": "domain-v3:zh:2:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:2:6:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "昨天收到的书架，安装到一半发现少了四颗螺丝。"
+        },
+        {
+          "role": "assistant",
+          "content": "抱歉！我马上帮您补寄螺丝配件。请问您需要加急吗？"
+        },
+        {
+          "role": "user",
+          "content": "不用加急，普通快递就行。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，螺丝配件今天会寄出，预计3-5天到。安装过程中还有其他问题吗？"
+        }
+      ],
+      "text": "还有个问题，说明书上第三步那个横板方向是不是装反了？",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:2:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:2:6:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "昨天收到的书架，安装到一半发现少了四颗螺丝。"
+        },
+        {
+          "role": "assistant",
+          "content": "抱歉！我马上帮您补寄螺丝配件。请问您需要加急吗？"
+        },
+        {
+          "role": "user",
+          "content": "不用加急，普通快递就行。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，螺丝配件今天会寄出，预计3-5天到。安装过程中还有其他问题吗？"
+        }
+      ],
+      "text": "对了，我另外买的那张书桌什么时候发货？",
+      "label": "order_logistics",
+      "language": "zh",
+      "group_id": "domain-v3:zh:2:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:2:7:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上个月开了宠物粮的按月订阅，这个月已经收到一袋了。"
+        },
+        {
+          "role": "assistant",
+          "content": "是的，您的订阅每月5号自动发货。请问有什么需要调整的吗？"
+        },
+        {
+          "role": "user",
+          "content": "我想把订阅从每月一袋改成每两月一袋，猫吃不了那么快。"
+        },
+        {
+          "role": "assistant",
+          "content": "可以调整。修改后下次发货将在两个月后。确认修改吗？"
+        }
+      ],
+      "text": "确认修改，麻烦帮我改一下。",
+      "label": "order_logistics",
+      "language": "zh",
+      "group_id": "domain-v3:zh:2:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    }
+  ],
+  "rejected": [
+    {
+      "case_id": "domain-v3:zh:2:0:0",
+      "author": "order_logistics",
+      "label": "product_technical",
+      "clear_and_natural": true,
+      "reason": "用户确认购买棕色皮表带，属于产品/配件购买请求，延续产品相关目标。"
+    },
+    {
+      "case_id": "domain-v3:zh:2:2:1",
+      "author": "order_logistics",
+      "label": "billing_refund",
+      "clear_and_natural": true,
+      "reason": "用户改为换黑色L码，仍是换货请求，同一领域。"
+    },
+    {
+      "case_id": "domain-v3:zh:2:6:1",
+      "author": "__DEFER__",
+      "label": "general",
+      "clear_and_natural": true,
+      "reason": "用户表示等待并结束，无剩余业务目标。"
+    },
+    {
+      "case_id": "domain-v3:zh:2:7:1",
+      "author": "billing_refund",
+      "label": "order_logistics",
+      "clear_and_natural": true,
+      "reason": "用户改为取消订阅，仍属订单/订阅处理。"
+    },
+    {
+      "case_id": "domain-v3:zh:2:7:2",
+      "author": "order_logistics",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "用户同时提出修改订阅和查询另一订单物流，两个不同领域请求并存。"
+    }
+  ],
+  "status": "reviewed"
+}

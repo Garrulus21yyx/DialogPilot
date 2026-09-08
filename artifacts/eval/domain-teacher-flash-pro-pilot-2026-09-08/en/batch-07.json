@@ -1,0 +1,2029 @@
+{
+  "batch_id": "domain-v3:en:7",
+  "language": "en",
+  "split": "train",
+  "models": {
+    "author": "deepseek-v4-flash",
+    "review": "deepseek-v4-pro"
+  },
+  "review_protocol": "label-blind-batch-v1",
+  "synthetic": true,
+  "author_prompt": "Author 8 DIFFERENT natural ecommerce customer-service dialogue families in en.\nBatch 7; ensure at least four current turns classified as product_technical across this batch.\nEach family has its OWN coherent history of 2, 4 or 6 short alternating user/assistant\nmessages, followed by 3 ALTERNATIVE current user turns, not three sequential turns.\nThose alternatives differ in effective intent: retain vs replace, withdraw vs\ncontinue, single goal vs concurrent goal, or resolved vs unresolved reference.\nInclude natural short answers where history matters. Vary old completed tasks,\nhesitation, self-correction, indirect wording, topics and dialogue acts. General\nand human-service requests must also occur as NEW goals, not only stale history.\nDo not follow a repeated sentence template or substitute product nouns to create\nnew families. Avoid stereotyped 'information only, do not submit' repetition.\nInvent broad everyday ecommerce situations; no copied benchmark or private data.\nHistory plus current turn should fit 150 English words or 180 Chinese characters;\nkeep it compact but meaningful. No future replies or final conversation summaries.\nSupply the correct label for each alternative according to the rubric.\n",
+  "author_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_o28WGsVaIB4AL4yyDZvb1292",
+          "input": {
+            "families": [
+              {
+                "scenario": "Customer bought a smart doorbell and is having trouble with the mobile app connection.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Hi, I got the smart doorbell yesterday and installed it, but the app keeps saying 'device offline'."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Sorry to hear that. Have you confirmed the doorbell is receiving power and your phone is on the same 2.4GHz Wi-Fi network?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Yes, power is fine and I switched to 2.4GHz. Still shows offline."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Could you try holding the reset button on the back for 10 seconds until you hear a chime, then re-pair it in the app?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "I did the reset and it paired, but now the live view is black. Is the camera lens covered by the mounting plate?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Actually, forget it. I'll just return this and get a different brand.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Thanks for the help. Also, do you know if this model works with Google Home?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer ordered a desk lamp but received a floor lamp instead.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My order #48291 arrived today but it's the wrong item — I ordered the desk lamp, got a floor lamp."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry about the mix-up. Would you like a replacement desk lamp sent out, or a refund for the incorrect item?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "I'd prefer a replacement, but I need it before Friday for my home office setup."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me check our warehouse stock and shipping options for you."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Actually, on second thought, just process a refund instead. I'll buy from a local store.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Can you also tell me if the floor lamp I received is dimmable? I might keep it as a bonus.",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Wait, I need to double-check — is the replacement going to be the LED version or the older halogen one?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer is asking about a coffee maker's water filter replacement cycle.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "How often should I change the water filter in the CM-500 coffee maker I bought last month?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "The filter should be replaced every 60 days or after 40 brewing cycles, whichever comes first."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Okay, and where can I buy replacement filters? Are they on your site?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Yes, we carry the compatible CF-2 filters. They're listed under 'Accessories' on the product page."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Great, I'll order two packs. By the way, is there a way to track my previous order that was delivered two weeks ago?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Hmm, but I've only brewed about 15 times in two months. Should I still change it at 60 days?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Perfect, thanks. Actually, can you connect me to a human agent? I have a complaint about the packaging quality.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer's account was locked after multiple failed login attempts.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I can't log in — it says my account is locked. I think I typed the wrong password too many times."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I can help with that. For security, could you verify the email address associated with your account?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's j.martinez@example.com. I really need access because I have a pending order."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Thanks. I've sent a verification code to that email. Please share it here to unlock your account."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "I got the code — it's 482913. Please unlock my account now.",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "Actually, never mind. I'll just create a new account instead of dealing with this.",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "Hold on — before I unlock, can you tell me if my pending order #7731 has already shipped?",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer is comparing two laptop models for video editing.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I'm torn between the Aero 15 and the SlimBook 14 for video editing. Which one handles 4K rendering better?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "The Aero 15 has a dedicated GPU with 8GB VRAM, which gives noticeably faster 4K rendering. The SlimBook relies on integrated graphics."
+                  },
+                  {
+                    "role": "user",
+                    "content": "What about battery life when just doing light browsing on the Aero?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "The Aero 15 gets roughly 6-7 hours on light use, while the SlimBook can reach 11 hours."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "That settles it — I'll take the Aero. Can I use my store credit from the return I did last month?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Does the Aero support external GPU enclosures if I want to upgrade later?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Actually, I realize I mostly edit on my desktop. Maybe I should just get the cheaper SlimBook for travel.",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer received a damaged ceramic vase and wants to resolve it.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My vase from order #9021 arrived cracked. The box looked fine but the vase has a hairline crack."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry about that. We can send a replacement or issue a full refund including shipping."
+                  },
+                  {
+                    "role": "user",
+                    "content": "I'd like a replacement since it's a gift for my sister's wedding next month."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Understood. I'll arrange a replacement to ship out today. Would you like expedited shipping?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Yes, please use expedited shipping. Also, is the replacement coming from the same warehouse as before?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Actually, my sister's wedding got postponed, so just refund me instead.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Wait — is the replacement vase going to be the same hand-painted pattern, or could it be a different batch?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer is asking about a fitness tracker's water resistance rating.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I just got the FitPulse 3 tracker. Can I wear it while swimming laps?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "The FitPulse 3 is rated 5 ATM, so it's fine for swimming and shallow water activities."
+                  },
+                  {
+                    "role": "user",
+                    "content": "What about saltwater or a hot tub? I go to the beach often."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Saltwater and chlorinated water are okay for short exposure, but we recommend rinsing it with fresh water afterward. Hot tubs above 40°C are not recommended."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Got it, thanks. By the way, how do I get in touch with your support team by phone?",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "So if I wear it in the ocean for an hour, will the heart rate sensor still work accurately underwater?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Alright, I'll rinse it after beach trips. Actually, can I exchange this for the FitPulse Pro which has GPS?",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer ordered a bookshelf and is asking about assembly difficulty.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I'm considering the Oakline 5-shelf bookcase. How hard is assembly? I'm not very handy."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Assembly takes about 45 minutes with the included hex key. All panels are pre-drilled and labeled A through F."
+                  },
+                  {
+                    "role": "user",
+                    "content": "That doesn't sound too bad. Does it come with wall-anchoring hardware?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Yes, anti-tip brackets and screws are included in the box for safety."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Perfect, I'll order it. Oh, and can you check if my last order from last week has shipped yet?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Actually, I just realized my ceiling is only 7 feet and this bookcase is 6.5 feet — will it fit through my doorways during assembly?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Thanks for the info. I think I'll just browse a bit more before deciding.",
+                    "label": "general"
+                  }
+                ]
+              }
+            ]
+          },
+          "name": "AuthoredBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "2d2f424a-1351-4110-92c5-7157d6aedf21",
+        "container": null,
+        "model": "deepseek-v4-flash",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 640,
+          "inference_geo": null,
+          "input_tokens": 321,
+          "output_tokens": 2163,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-flash",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d8-032e-7400-a676-735fa5e6ecc1-0",
+      "tool_calls": [
+        {
+          "name": "AuthoredBatch",
+          "args": {
+            "families": [
+              {
+                "scenario": "Customer bought a smart doorbell and is having trouble with the mobile app connection.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Hi, I got the smart doorbell yesterday and installed it, but the app keeps saying 'device offline'."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Sorry to hear that. Have you confirmed the doorbell is receiving power and your phone is on the same 2.4GHz Wi-Fi network?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Yes, power is fine and I switched to 2.4GHz. Still shows offline."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Could you try holding the reset button on the back for 10 seconds until you hear a chime, then re-pair it in the app?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "I did the reset and it paired, but now the live view is black. Is the camera lens covered by the mounting plate?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Actually, forget it. I'll just return this and get a different brand.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Thanks for the help. Also, do you know if this model works with Google Home?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer ordered a desk lamp but received a floor lamp instead.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My order #48291 arrived today but it's the wrong item — I ordered the desk lamp, got a floor lamp."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry about the mix-up. Would you like a replacement desk lamp sent out, or a refund for the incorrect item?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "I'd prefer a replacement, but I need it before Friday for my home office setup."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me check our warehouse stock and shipping options for you."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Actually, on second thought, just process a refund instead. I'll buy from a local store.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Can you also tell me if the floor lamp I received is dimmable? I might keep it as a bonus.",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Wait, I need to double-check — is the replacement going to be the LED version or the older halogen one?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer is asking about a coffee maker's water filter replacement cycle.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "How often should I change the water filter in the CM-500 coffee maker I bought last month?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "The filter should be replaced every 60 days or after 40 brewing cycles, whichever comes first."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Okay, and where can I buy replacement filters? Are they on your site?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Yes, we carry the compatible CF-2 filters. They're listed under 'Accessories' on the product page."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Great, I'll order two packs. By the way, is there a way to track my previous order that was delivered two weeks ago?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Hmm, but I've only brewed about 15 times in two months. Should I still change it at 60 days?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Perfect, thanks. Actually, can you connect me to a human agent? I have a complaint about the packaging quality.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer's account was locked after multiple failed login attempts.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I can't log in — it says my account is locked. I think I typed the wrong password too many times."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I can help with that. For security, could you verify the email address associated with your account?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's j.martinez@example.com. I really need access because I have a pending order."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Thanks. I've sent a verification code to that email. Please share it here to unlock your account."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "I got the code — it's 482913. Please unlock my account now.",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "Actually, never mind. I'll just create a new account instead of dealing with this.",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "Hold on — before I unlock, can you tell me if my pending order #7731 has already shipped?",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer is comparing two laptop models for video editing.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I'm torn between the Aero 15 and the SlimBook 14 for video editing. Which one handles 4K rendering better?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "The Aero 15 has a dedicated GPU with 8GB VRAM, which gives noticeably faster 4K rendering. The SlimBook relies on integrated graphics."
+                  },
+                  {
+                    "role": "user",
+                    "content": "What about battery life when just doing light browsing on the Aero?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "The Aero 15 gets roughly 6-7 hours on light use, while the SlimBook can reach 11 hours."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "That settles it — I'll take the Aero. Can I use my store credit from the return I did last month?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Does the Aero support external GPU enclosures if I want to upgrade later?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Actually, I realize I mostly edit on my desktop. Maybe I should just get the cheaper SlimBook for travel.",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer received a damaged ceramic vase and wants to resolve it.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My vase from order #9021 arrived cracked. The box looked fine but the vase has a hairline crack."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry about that. We can send a replacement or issue a full refund including shipping."
+                  },
+                  {
+                    "role": "user",
+                    "content": "I'd like a replacement since it's a gift for my sister's wedding next month."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Understood. I'll arrange a replacement to ship out today. Would you like expedited shipping?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Yes, please use expedited shipping. Also, is the replacement coming from the same warehouse as before?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Actually, my sister's wedding got postponed, so just refund me instead.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Wait — is the replacement vase going to be the same hand-painted pattern, or could it be a different batch?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer is asking about a fitness tracker's water resistance rating.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I just got the FitPulse 3 tracker. Can I wear it while swimming laps?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "The FitPulse 3 is rated 5 ATM, so it's fine for swimming and shallow water activities."
+                  },
+                  {
+                    "role": "user",
+                    "content": "What about saltwater or a hot tub? I go to the beach often."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Saltwater and chlorinated water are okay for short exposure, but we recommend rinsing it with fresh water afterward. Hot tubs above 40°C are not recommended."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Got it, thanks. By the way, how do I get in touch with your support team by phone?",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "So if I wear it in the ocean for an hour, will the heart rate sensor still work accurately underwater?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Alright, I'll rinse it after beach trips. Actually, can I exchange this for the FitPulse Pro which has GPS?",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer ordered a bookshelf and is asking about assembly difficulty.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I'm considering the Oakline 5-shelf bookcase. How hard is assembly? I'm not very handy."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Assembly takes about 45 minutes with the included hex key. All panels are pre-drilled and labeled A through F."
+                  },
+                  {
+                    "role": "user",
+                    "content": "That doesn't sound too bad. Does it come with wall-anchoring hardware?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Yes, anti-tip brackets and screws are included in the box for safety."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Perfect, I'll order it. Oh, and can you check if my last order from last week has shipped yet?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Actually, I just realized my ceiling is only 7 feet and this bookcase is 6.5 feet — will it fit through my doorways during assembly?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Thanks for the info. I think I'll just browse a bit more before deciding.",
+                    "label": "general"
+                  }
+                ]
+              }
+            ]
+          },
+          "id": "call_00_o28WGsVaIB4AL4yyDZvb1292",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 961,
+        "output_tokens": 2163,
+        "total_tokens": 3124,
+        "input_token_details": {
+          "cache_read": 640,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "authored": {
+    "families": [
+      {
+        "scenario": "Customer bought a smart doorbell and is having trouble with the mobile app connection.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Hi, I got the smart doorbell yesterday and installed it, but the app keeps saying 'device offline'."
+          },
+          {
+            "role": "assistant",
+            "content": "Sorry to hear that. Have you confirmed the doorbell is receiving power and your phone is on the same 2.4GHz Wi-Fi network?"
+          },
+          {
+            "role": "user",
+            "content": "Yes, power is fine and I switched to 2.4GHz. Still shows offline."
+          },
+          {
+            "role": "assistant",
+            "content": "Could you try holding the reset button on the back for 10 seconds until you hear a chime, then re-pair it in the app?"
+          }
+        ],
+        "variants": [
+          {
+            "text": "I did the reset and it paired, but now the live view is black. Is the camera lens covered by the mounting plate?",
+            "label": "product_technical"
+          },
+          {
+            "text": "Actually, forget it. I'll just return this and get a different brand.",
+            "label": "billing_refund"
+          },
+          {
+            "text": "Thanks for the help. Also, do you know if this model works with Google Home?",
+            "label": "product_technical"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer ordered a desk lamp but received a floor lamp instead.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "My order #48291 arrived today but it's the wrong item — I ordered the desk lamp, got a floor lamp."
+          },
+          {
+            "role": "assistant",
+            "content": "I'm sorry about the mix-up. Would you like a replacement desk lamp sent out, or a refund for the incorrect item?"
+          },
+          {
+            "role": "user",
+            "content": "I'd prefer a replacement, but I need it before Friday for my home office setup."
+          },
+          {
+            "role": "assistant",
+            "content": "Let me check our warehouse stock and shipping options for you."
+          }
+        ],
+        "variants": [
+          {
+            "text": "Actually, on second thought, just process a refund instead. I'll buy from a local store.",
+            "label": "billing_refund"
+          },
+          {
+            "text": "Can you also tell me if the floor lamp I received is dimmable? I might keep it as a bonus.",
+            "label": "product_technical"
+          },
+          {
+            "text": "Wait, I need to double-check — is the replacement going to be the LED version or the older halogen one?",
+            "label": "product_technical"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer is asking about a coffee maker's water filter replacement cycle.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "How often should I change the water filter in the CM-500 coffee maker I bought last month?"
+          },
+          {
+            "role": "assistant",
+            "content": "The filter should be replaced every 60 days or after 40 brewing cycles, whichever comes first."
+          },
+          {
+            "role": "user",
+            "content": "Okay, and where can I buy replacement filters? Are they on your site?"
+          },
+          {
+            "role": "assistant",
+            "content": "Yes, we carry the compatible CF-2 filters. They're listed under 'Accessories' on the product page."
+          }
+        ],
+        "variants": [
+          {
+            "text": "Great, I'll order two packs. By the way, is there a way to track my previous order that was delivered two weeks ago?",
+            "label": "order_logistics"
+          },
+          {
+            "text": "Hmm, but I've only brewed about 15 times in two months. Should I still change it at 60 days?",
+            "label": "product_technical"
+          },
+          {
+            "text": "Perfect, thanks. Actually, can you connect me to a human agent? I have a complaint about the packaging quality.",
+            "label": "human_service"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer's account was locked after multiple failed login attempts.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "I can't log in — it says my account is locked. I think I typed the wrong password too many times."
+          },
+          {
+            "role": "assistant",
+            "content": "I can help with that. For security, could you verify the email address associated with your account?"
+          },
+          {
+            "role": "user",
+            "content": "It's j.martinez@example.com. I really need access because I have a pending order."
+          },
+          {
+            "role": "assistant",
+            "content": "Thanks. I've sent a verification code to that email. Please share it here to unlock your account."
+          }
+        ],
+        "variants": [
+          {
+            "text": "I got the code — it's 482913. Please unlock my account now.",
+            "label": "account_security"
+          },
+          {
+            "text": "Actually, never mind. I'll just create a new account instead of dealing with this.",
+            "label": "account_security"
+          },
+          {
+            "text": "Hold on — before I unlock, can you tell me if my pending order #7731 has already shipped?",
+            "label": "order_logistics"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer is comparing two laptop models for video editing.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "I'm torn between the Aero 15 and the SlimBook 14 for video editing. Which one handles 4K rendering better?"
+          },
+          {
+            "role": "assistant",
+            "content": "The Aero 15 has a dedicated GPU with 8GB VRAM, which gives noticeably faster 4K rendering. The SlimBook relies on integrated graphics."
+          },
+          {
+            "role": "user",
+            "content": "What about battery life when just doing light browsing on the Aero?"
+          },
+          {
+            "role": "assistant",
+            "content": "The Aero 15 gets roughly 6-7 hours on light use, while the SlimBook can reach 11 hours."
+          }
+        ],
+        "variants": [
+          {
+            "text": "That settles it — I'll take the Aero. Can I use my store credit from the return I did last month?",
+            "label": "billing_refund"
+          },
+          {
+            "text": "Does the Aero support external GPU enclosures if I want to upgrade later?",
+            "label": "product_technical"
+          },
+          {
+            "text": "Actually, I realize I mostly edit on my desktop. Maybe I should just get the cheaper SlimBook for travel.",
+            "label": "product_technical"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer received a damaged ceramic vase and wants to resolve it.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "My vase from order #9021 arrived cracked. The box looked fine but the vase has a hairline crack."
+          },
+          {
+            "role": "assistant",
+            "content": "I'm sorry about that. We can send a replacement or issue a full refund including shipping."
+          },
+          {
+            "role": "user",
+            "content": "I'd like a replacement since it's a gift for my sister's wedding next month."
+          },
+          {
+            "role": "assistant",
+            "content": "Understood. I'll arrange a replacement to ship out today. Would you like expedited shipping?"
+          }
+        ],
+        "variants": [
+          {
+            "text": "Yes, please use expedited shipping. Also, is the replacement coming from the same warehouse as before?",
+            "label": "order_logistics"
+          },
+          {
+            "text": "Actually, my sister's wedding got postponed, so just refund me instead.",
+            "label": "billing_refund"
+          },
+          {
+            "text": "Wait — is the replacement vase going to be the same hand-painted pattern, or could it be a different batch?",
+            "label": "product_technical"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer is asking about a fitness tracker's water resistance rating.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "I just got the FitPulse 3 tracker. Can I wear it while swimming laps?"
+          },
+          {
+            "role": "assistant",
+            "content": "The FitPulse 3 is rated 5 ATM, so it's fine for swimming and shallow water activities."
+          },
+          {
+            "role": "user",
+            "content": "What about saltwater or a hot tub? I go to the beach often."
+          },
+          {
+            "role": "assistant",
+            "content": "Saltwater and chlorinated water are okay for short exposure, but we recommend rinsing it with fresh water afterward. Hot tubs above 40°C are not recommended."
+          }
+        ],
+        "variants": [
+          {
+            "text": "Got it, thanks. By the way, how do I get in touch with your support team by phone?",
+            "label": "human_service"
+          },
+          {
+            "text": "So if I wear it in the ocean for an hour, will the heart rate sensor still work accurately underwater?",
+            "label": "product_technical"
+          },
+          {
+            "text": "Alright, I'll rinse it after beach trips. Actually, can I exchange this for the FitPulse Pro which has GPS?",
+            "label": "billing_refund"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer ordered a bookshelf and is asking about assembly difficulty.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "I'm considering the Oakline 5-shelf bookcase. How hard is assembly? I'm not very handy."
+          },
+          {
+            "role": "assistant",
+            "content": "Assembly takes about 45 minutes with the included hex key. All panels are pre-drilled and labeled A through F."
+          },
+          {
+            "role": "user",
+            "content": "That doesn't sound too bad. Does it come with wall-anchoring hardware?"
+          },
+          {
+            "role": "assistant",
+            "content": "Yes, anti-tip brackets and screws are included in the box for safety."
+          }
+        ],
+        "variants": [
+          {
+            "text": "Perfect, I'll order it. Oh, and can you check if my last order from last week has shipped yet?",
+            "label": "order_logistics"
+          },
+          {
+            "text": "Actually, I just realized my ceiling is only 7 feet and this bookcase is 6.5 feet — will it fit through my doorways during assembly?",
+            "label": "product_technical"
+          },
+          {
+            "text": "Thanks for the info. I think I'll just browse a bit more before deciding.",
+            "label": "general"
+          }
+        ]
+      }
+    ]
+  },
+  "review_input_sha256": "2be212d1edd7031b33f00a5388d9955c6549cf1c294dc23d86b74595454a1385",
+  "review_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_ELBjEFDofe2MNE4PwQJ18829",
+          "input": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:en:7:0:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Continues troubleshooting the doorbell's live view issue, same product_technical domain."
+              },
+              {
+                "case_id": "domain-v3:en:7:0:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User abandons troubleshooting and explicitly wants to return the item for a different brand, shifting to return/refund."
+              },
+              {
+                "case_id": "domain-v3:en:7:0:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Thanks is courtesy; the new request about Google Home compatibility is product_technical."
+              },
+              {
+                "case_id": "domain-v3:en:7:1:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "Explicitly replaces replacement request with a refund, a billing/refund goal."
+              },
+              {
+                "case_id": "domain-v3:en:7:1:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Asks about dimmability of the floor lamp, a product specification question."
+              },
+              {
+                "case_id": "domain-v3:en:7:1:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Asks about LED vs halogen version, a product specification question."
+              },
+              {
+                "case_id": "domain-v3:en:7:2:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "New request about tracking a previous order, order/shipping domain."
+              },
+              {
+                "case_id": "domain-v3:en:7:2:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Continues filter replacement usage question, product_technical."
+              },
+              {
+                "case_id": "domain-v3:en:7:2:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "Explicitly requests a human agent for a complaint, human_service."
+              },
+              {
+                "case_id": "domain-v3:en:7:3:0",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "Provides verification code to unlock account, account access/security."
+              },
+              {
+                "case_id": "domain-v3:en:7:3:1",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "Withdraws from unlocking but still about account (creating new account), account_security domain."
+              },
+              {
+                "case_id": "domain-v3:en:7:3:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "New request about whether order #7731 has shipped, order/shipping domain."
+              },
+              {
+                "case_id": "domain-v3:en:7:4:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "Asks about using store credit from a return, payment/billing domain."
+              },
+              {
+                "case_id": "domain-v3:en:7:4:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Asks about eGPU enclosure support, product specification/compatibility."
+              },
+              {
+                "case_id": "domain-v3:en:7:4:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Still deciding between products, product_technical domain."
+              },
+              {
+                "case_id": "domain-v3:en:7:5:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "Confirms expedited shipping and asks about warehouse, order/shipping domain."
+              },
+              {
+                "case_id": "domain-v3:en:7:5:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "Explicitly replaces replacement with refund, billing/refund goal."
+              },
+              {
+                "case_id": "domain-v3:en:7:5:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Asks about the pattern/batch of the replacement vase, product specification."
+              },
+              {
+                "case_id": "domain-v3:en:7:6:0",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "Asks how to contact support by phone, general help/capabilities."
+              },
+              {
+                "case_id": "domain-v3:en:7:6:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Continues product usage question about heart rate sensor underwater."
+              },
+              {
+                "case_id": "domain-v3:en:7:6:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "Explicitly wants to exchange for a different model, return/exchange domain."
+              },
+              {
+                "case_id": "domain-v3:en:7:7:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "New request about whether last order shipped, order/shipping domain."
+              },
+              {
+                "case_id": "domain-v3:en:7:7:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Asks about fit through doorways during assembly, product usage/specification."
+              },
+              {
+                "case_id": "domain-v3:en:7:7:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "Thanks and browsing more, no remaining business goal; general."
+              }
+            ]
+          },
+          "name": "ReviewedBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "dc55df65-346a-4274-8661-105d52bd65d5",
+        "container": null,
+        "model": "deepseek-v4-pro",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "inference_geo": null,
+          "input_tokens": 4504,
+          "output_tokens": 1307,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-pro",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d8-4165-7a62-8698-f6e2e9a50fd3-0",
+      "tool_calls": [
+        {
+          "name": "ReviewedBatch",
+          "args": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:en:7:0:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Continues troubleshooting the doorbell's live view issue, same product_technical domain."
+              },
+              {
+                "case_id": "domain-v3:en:7:0:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User abandons troubleshooting and explicitly wants to return the item for a different brand, shifting to return/refund."
+              },
+              {
+                "case_id": "domain-v3:en:7:0:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Thanks is courtesy; the new request about Google Home compatibility is product_technical."
+              },
+              {
+                "case_id": "domain-v3:en:7:1:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "Explicitly replaces replacement request with a refund, a billing/refund goal."
+              },
+              {
+                "case_id": "domain-v3:en:7:1:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Asks about dimmability of the floor lamp, a product specification question."
+              },
+              {
+                "case_id": "domain-v3:en:7:1:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Asks about LED vs halogen version, a product specification question."
+              },
+              {
+                "case_id": "domain-v3:en:7:2:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "New request about tracking a previous order, order/shipping domain."
+              },
+              {
+                "case_id": "domain-v3:en:7:2:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Continues filter replacement usage question, product_technical."
+              },
+              {
+                "case_id": "domain-v3:en:7:2:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "Explicitly requests a human agent for a complaint, human_service."
+              },
+              {
+                "case_id": "domain-v3:en:7:3:0",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "Provides verification code to unlock account, account access/security."
+              },
+              {
+                "case_id": "domain-v3:en:7:3:1",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "Withdraws from unlocking but still about account (creating new account), account_security domain."
+              },
+              {
+                "case_id": "domain-v3:en:7:3:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "New request about whether order #7731 has shipped, order/shipping domain."
+              },
+              {
+                "case_id": "domain-v3:en:7:4:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "Asks about using store credit from a return, payment/billing domain."
+              },
+              {
+                "case_id": "domain-v3:en:7:4:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Asks about eGPU enclosure support, product specification/compatibility."
+              },
+              {
+                "case_id": "domain-v3:en:7:4:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Still deciding between products, product_technical domain."
+              },
+              {
+                "case_id": "domain-v3:en:7:5:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "Confirms expedited shipping and asks about warehouse, order/shipping domain."
+              },
+              {
+                "case_id": "domain-v3:en:7:5:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "Explicitly replaces replacement with refund, billing/refund goal."
+              },
+              {
+                "case_id": "domain-v3:en:7:5:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Asks about the pattern/batch of the replacement vase, product specification."
+              },
+              {
+                "case_id": "domain-v3:en:7:6:0",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "Asks how to contact support by phone, general help/capabilities."
+              },
+              {
+                "case_id": "domain-v3:en:7:6:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Continues product usage question about heart rate sensor underwater."
+              },
+              {
+                "case_id": "domain-v3:en:7:6:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "Explicitly wants to exchange for a different model, return/exchange domain."
+              },
+              {
+                "case_id": "domain-v3:en:7:7:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "New request about whether last order shipped, order/shipping domain."
+              },
+              {
+                "case_id": "domain-v3:en:7:7:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Asks about fit through doorways during assembly, product usage/specification."
+              },
+              {
+                "case_id": "domain-v3:en:7:7:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "Thanks and browsing more, no remaining business goal; general."
+              }
+            ]
+          },
+          "id": "call_00_ELBjEFDofe2MNE4PwQJ18829",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 5016,
+        "output_tokens": 1307,
+        "total_tokens": 6323,
+        "input_token_details": {
+          "cache_read": 512,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "reviewed": {
+    "verdicts": [
+      {
+        "case_id": "domain-v3:en:7:0:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "Continues troubleshooting the doorbell's live view issue, same product_technical domain."
+      },
+      {
+        "case_id": "domain-v3:en:7:0:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User abandons troubleshooting and explicitly wants to return the item for a different brand, shifting to return/refund."
+      },
+      {
+        "case_id": "domain-v3:en:7:0:2",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "Thanks is courtesy; the new request about Google Home compatibility is product_technical."
+      },
+      {
+        "case_id": "domain-v3:en:7:1:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "Explicitly replaces replacement request with a refund, a billing/refund goal."
+      },
+      {
+        "case_id": "domain-v3:en:7:1:1",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "Asks about dimmability of the floor lamp, a product specification question."
+      },
+      {
+        "case_id": "domain-v3:en:7:1:2",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "Asks about LED vs halogen version, a product specification question."
+      },
+      {
+        "case_id": "domain-v3:en:7:2:0",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "New request about tracking a previous order, order/shipping domain."
+      },
+      {
+        "case_id": "domain-v3:en:7:2:1",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "Continues filter replacement usage question, product_technical."
+      },
+      {
+        "case_id": "domain-v3:en:7:2:2",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "Explicitly requests a human agent for a complaint, human_service."
+      },
+      {
+        "case_id": "domain-v3:en:7:3:0",
+        "label": "account_security",
+        "clear_and_natural": true,
+        "reason": "Provides verification code to unlock account, account access/security."
+      },
+      {
+        "case_id": "domain-v3:en:7:3:1",
+        "label": "account_security",
+        "clear_and_natural": true,
+        "reason": "Withdraws from unlocking but still about account (creating new account), account_security domain."
+      },
+      {
+        "case_id": "domain-v3:en:7:3:2",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "New request about whether order #7731 has shipped, order/shipping domain."
+      },
+      {
+        "case_id": "domain-v3:en:7:4:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "Asks about using store credit from a return, payment/billing domain."
+      },
+      {
+        "case_id": "domain-v3:en:7:4:1",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "Asks about eGPU enclosure support, product specification/compatibility."
+      },
+      {
+        "case_id": "domain-v3:en:7:4:2",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "Still deciding between products, product_technical domain."
+      },
+      {
+        "case_id": "domain-v3:en:7:5:0",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "Confirms expedited shipping and asks about warehouse, order/shipping domain."
+      },
+      {
+        "case_id": "domain-v3:en:7:5:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "Explicitly replaces replacement with refund, billing/refund goal."
+      },
+      {
+        "case_id": "domain-v3:en:7:5:2",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "Asks about the pattern/batch of the replacement vase, product specification."
+      },
+      {
+        "case_id": "domain-v3:en:7:6:0",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "Asks how to contact support by phone, general help/capabilities."
+      },
+      {
+        "case_id": "domain-v3:en:7:6:1",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "Continues product usage question about heart rate sensor underwater."
+      },
+      {
+        "case_id": "domain-v3:en:7:6:2",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "Explicitly wants to exchange for a different model, return/exchange domain."
+      },
+      {
+        "case_id": "domain-v3:en:7:7:0",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "New request about whether last order shipped, order/shipping domain."
+      },
+      {
+        "case_id": "domain-v3:en:7:7:1",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "Asks about fit through doorways during assembly, product usage/specification."
+      },
+      {
+        "case_id": "domain-v3:en:7:7:2",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "Thanks and browsing more, no remaining business goal; general."
+      }
+    ]
+  },
+  "rows": [
+    {
+      "case_id": "domain-v3:en:7:0:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Hi, I got the smart doorbell yesterday and installed it, but the app keeps saying 'device offline'."
+        },
+        {
+          "role": "assistant",
+          "content": "Sorry to hear that. Have you confirmed the doorbell is receiving power and your phone is on the same 2.4GHz Wi-Fi network?"
+        },
+        {
+          "role": "user",
+          "content": "Yes, power is fine and I switched to 2.4GHz. Still shows offline."
+        },
+        {
+          "role": "assistant",
+          "content": "Could you try holding the reset button on the back for 10 seconds until you hear a chime, then re-pair it in the app?"
+        }
+      ],
+      "text": "I did the reset and it paired, but now the live view is black. Is the camera lens covered by the mounting plate?",
+      "label": "product_technical",
+      "language": "en",
+      "group_id": "domain-v3:en:7:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:7:0:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Hi, I got the smart doorbell yesterday and installed it, but the app keeps saying 'device offline'."
+        },
+        {
+          "role": "assistant",
+          "content": "Sorry to hear that. Have you confirmed the doorbell is receiving power and your phone is on the same 2.4GHz Wi-Fi network?"
+        },
+        {
+          "role": "user",
+          "content": "Yes, power is fine and I switched to 2.4GHz. Still shows offline."
+        },
+        {
+          "role": "assistant",
+          "content": "Could you try holding the reset button on the back for 10 seconds until you hear a chime, then re-pair it in the app?"
+        }
+      ],
+      "text": "Actually, forget it. I'll just return this and get a different brand.",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:7:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:7:0:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Hi, I got the smart doorbell yesterday and installed it, but the app keeps saying 'device offline'."
+        },
+        {
+          "role": "assistant",
+          "content": "Sorry to hear that. Have you confirmed the doorbell is receiving power and your phone is on the same 2.4GHz Wi-Fi network?"
+        },
+        {
+          "role": "user",
+          "content": "Yes, power is fine and I switched to 2.4GHz. Still shows offline."
+        },
+        {
+          "role": "assistant",
+          "content": "Could you try holding the reset button on the back for 10 seconds until you hear a chime, then re-pair it in the app?"
+        }
+      ],
+      "text": "Thanks for the help. Also, do you know if this model works with Google Home?",
+      "label": "product_technical",
+      "language": "en",
+      "group_id": "domain-v3:en:7:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:7:1:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My order #48291 arrived today but it's the wrong item — I ordered the desk lamp, got a floor lamp."
+        },
+        {
+          "role": "assistant",
+          "content": "I'm sorry about the mix-up. Would you like a replacement desk lamp sent out, or a refund for the incorrect item?"
+        },
+        {
+          "role": "user",
+          "content": "I'd prefer a replacement, but I need it before Friday for my home office setup."
+        },
+        {
+          "role": "assistant",
+          "content": "Let me check our warehouse stock and shipping options for you."
+        }
+      ],
+      "text": "Actually, on second thought, just process a refund instead. I'll buy from a local store.",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:7:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:7:1:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My order #48291 arrived today but it's the wrong item — I ordered the desk lamp, got a floor lamp."
+        },
+        {
+          "role": "assistant",
+          "content": "I'm sorry about the mix-up. Would you like a replacement desk lamp sent out, or a refund for the incorrect item?"
+        },
+        {
+          "role": "user",
+          "content": "I'd prefer a replacement, but I need it before Friday for my home office setup."
+        },
+        {
+          "role": "assistant",
+          "content": "Let me check our warehouse stock and shipping options for you."
+        }
+      ],
+      "text": "Can you also tell me if the floor lamp I received is dimmable? I might keep it as a bonus.",
+      "label": "product_technical",
+      "language": "en",
+      "group_id": "domain-v3:en:7:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:7:1:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My order #48291 arrived today but it's the wrong item — I ordered the desk lamp, got a floor lamp."
+        },
+        {
+          "role": "assistant",
+          "content": "I'm sorry about the mix-up. Would you like a replacement desk lamp sent out, or a refund for the incorrect item?"
+        },
+        {
+          "role": "user",
+          "content": "I'd prefer a replacement, but I need it before Friday for my home office setup."
+        },
+        {
+          "role": "assistant",
+          "content": "Let me check our warehouse stock and shipping options for you."
+        }
+      ],
+      "text": "Wait, I need to double-check — is the replacement going to be the LED version or the older halogen one?",
+      "label": "product_technical",
+      "language": "en",
+      "group_id": "domain-v3:en:7:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:7:2:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "How often should I change the water filter in the CM-500 coffee maker I bought last month?"
+        },
+        {
+          "role": "assistant",
+          "content": "The filter should be replaced every 60 days or after 40 brewing cycles, whichever comes first."
+        },
+        {
+          "role": "user",
+          "content": "Okay, and where can I buy replacement filters? Are they on your site?"
+        },
+        {
+          "role": "assistant",
+          "content": "Yes, we carry the compatible CF-2 filters. They're listed under 'Accessories' on the product page."
+        }
+      ],
+      "text": "Great, I'll order two packs. By the way, is there a way to track my previous order that was delivered two weeks ago?",
+      "label": "order_logistics",
+      "language": "en",
+      "group_id": "domain-v3:en:7:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:7:2:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "How often should I change the water filter in the CM-500 coffee maker I bought last month?"
+        },
+        {
+          "role": "assistant",
+          "content": "The filter should be replaced every 60 days or after 40 brewing cycles, whichever comes first."
+        },
+        {
+          "role": "user",
+          "content": "Okay, and where can I buy replacement filters? Are they on your site?"
+        },
+        {
+          "role": "assistant",
+          "content": "Yes, we carry the compatible CF-2 filters. They're listed under 'Accessories' on the product page."
+        }
+      ],
+      "text": "Hmm, but I've only brewed about 15 times in two months. Should I still change it at 60 days?",
+      "label": "product_technical",
+      "language": "en",
+      "group_id": "domain-v3:en:7:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:7:2:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "How often should I change the water filter in the CM-500 coffee maker I bought last month?"
+        },
+        {
+          "role": "assistant",
+          "content": "The filter should be replaced every 60 days or after 40 brewing cycles, whichever comes first."
+        },
+        {
+          "role": "user",
+          "content": "Okay, and where can I buy replacement filters? Are they on your site?"
+        },
+        {
+          "role": "assistant",
+          "content": "Yes, we carry the compatible CF-2 filters. They're listed under 'Accessories' on the product page."
+        }
+      ],
+      "text": "Perfect, thanks. Actually, can you connect me to a human agent? I have a complaint about the packaging quality.",
+      "label": "human_service",
+      "language": "en",
+      "group_id": "domain-v3:en:7:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:7:3:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I can't log in — it says my account is locked. I think I typed the wrong password too many times."
+        },
+        {
+          "role": "assistant",
+          "content": "I can help with that. For security, could you verify the email address associated with your account?"
+        },
+        {
+          "role": "user",
+          "content": "It's j.martinez@example.com. I really need access because I have a pending order."
+        },
+        {
+          "role": "assistant",
+          "content": "Thanks. I've sent a verification code to that email. Please share it here to unlock your account."
+        }
+      ],
+      "text": "I got the code — it's 482913. Please unlock my account now.",
+      "label": "account_security",
+      "language": "en",
+      "group_id": "domain-v3:en:7:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:7:3:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I can't log in — it says my account is locked. I think I typed the wrong password too many times."
+        },
+        {
+          "role": "assistant",
+          "content": "I can help with that. For security, could you verify the email address associated with your account?"
+        },
+        {
+          "role": "user",
+          "content": "It's j.martinez@example.com. I really need access because I have a pending order."
+        },
+        {
+          "role": "assistant",
+          "content": "Thanks. I've sent a verification code to that email. Please share it here to unlock your account."
+        }
+      ],
+      "text": "Actually, never mind. I'll just create a new account instead of dealing with this.",
+      "label": "account_security",
+      "language": "en",
+      "group_id": "domain-v3:en:7:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:7:3:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I can't log in — it says my account is locked. I think I typed the wrong password too many times."
+        },
+        {
+          "role": "assistant",
+          "content": "I can help with that. For security, could you verify the email address associated with your account?"
+        },
+        {
+          "role": "user",
+          "content": "It's j.martinez@example.com. I really need access because I have a pending order."
+        },
+        {
+          "role": "assistant",
+          "content": "Thanks. I've sent a verification code to that email. Please share it here to unlock your account."
+        }
+      ],
+      "text": "Hold on — before I unlock, can you tell me if my pending order #7731 has already shipped?",
+      "label": "order_logistics",
+      "language": "en",
+      "group_id": "domain-v3:en:7:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:7:4:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I'm torn between the Aero 15 and the SlimBook 14 for video editing. Which one handles 4K rendering better?"
+        },
+        {
+          "role": "assistant",
+          "content": "The Aero 15 has a dedicated GPU with 8GB VRAM, which gives noticeably faster 4K rendering. The SlimBook relies on integrated graphics."
+        },
+        {
+          "role": "user",
+          "content": "What about battery life when just doing light browsing on the Aero?"
+        },
+        {
+          "role": "assistant",
+          "content": "The Aero 15 gets roughly 6-7 hours on light use, while the SlimBook can reach 11 hours."
+        }
+      ],
+      "text": "That settles it — I'll take the Aero. Can I use my store credit from the return I did last month?",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:7:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:7:4:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I'm torn between the Aero 15 and the SlimBook 14 for video editing. Which one handles 4K rendering better?"
+        },
+        {
+          "role": "assistant",
+          "content": "The Aero 15 has a dedicated GPU with 8GB VRAM, which gives noticeably faster 4K rendering. The SlimBook relies on integrated graphics."
+        },
+        {
+          "role": "user",
+          "content": "What about battery life when just doing light browsing on the Aero?"
+        },
+        {
+          "role": "assistant",
+          "content": "The Aero 15 gets roughly 6-7 hours on light use, while the SlimBook can reach 11 hours."
+        }
+      ],
+      "text": "Does the Aero support external GPU enclosures if I want to upgrade later?",
+      "label": "product_technical",
+      "language": "en",
+      "group_id": "domain-v3:en:7:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:7:4:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I'm torn between the Aero 15 and the SlimBook 14 for video editing. Which one handles 4K rendering better?"
+        },
+        {
+          "role": "assistant",
+          "content": "The Aero 15 has a dedicated GPU with 8GB VRAM, which gives noticeably faster 4K rendering. The SlimBook relies on integrated graphics."
+        },
+        {
+          "role": "user",
+          "content": "What about battery life when just doing light browsing on the Aero?"
+        },
+        {
+          "role": "assistant",
+          "content": "The Aero 15 gets roughly 6-7 hours on light use, while the SlimBook can reach 11 hours."
+        }
+      ],
+      "text": "Actually, I realize I mostly edit on my desktop. Maybe I should just get the cheaper SlimBook for travel.",
+      "label": "product_technical",
+      "language": "en",
+      "group_id": "domain-v3:en:7:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:7:5:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My vase from order #9021 arrived cracked. The box looked fine but the vase has a hairline crack."
+        },
+        {
+          "role": "assistant",
+          "content": "I'm sorry about that. We can send a replacement or issue a full refund including shipping."
+        },
+        {
+          "role": "user",
+          "content": "I'd like a replacement since it's a gift for my sister's wedding next month."
+        },
+        {
+          "role": "assistant",
+          "content": "Understood. I'll arrange a replacement to ship out today. Would you like expedited shipping?"
+        }
+      ],
+      "text": "Yes, please use expedited shipping. Also, is the replacement coming from the same warehouse as before?",
+      "label": "order_logistics",
+      "language": "en",
+      "group_id": "domain-v3:en:7:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:7:5:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My vase from order #9021 arrived cracked. The box looked fine but the vase has a hairline crack."
+        },
+        {
+          "role": "assistant",
+          "content": "I'm sorry about that. We can send a replacement or issue a full refund including shipping."
+        },
+        {
+          "role": "user",
+          "content": "I'd like a replacement since it's a gift for my sister's wedding next month."
+        },
+        {
+          "role": "assistant",
+          "content": "Understood. I'll arrange a replacement to ship out today. Would you like expedited shipping?"
+        }
+      ],
+      "text": "Actually, my sister's wedding got postponed, so just refund me instead.",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:7:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:7:5:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My vase from order #9021 arrived cracked. The box looked fine but the vase has a hairline crack."
+        },
+        {
+          "role": "assistant",
+          "content": "I'm sorry about that. We can send a replacement or issue a full refund including shipping."
+        },
+        {
+          "role": "user",
+          "content": "I'd like a replacement since it's a gift for my sister's wedding next month."
+        },
+        {
+          "role": "assistant",
+          "content": "Understood. I'll arrange a replacement to ship out today. Would you like expedited shipping?"
+        }
+      ],
+      "text": "Wait — is the replacement vase going to be the same hand-painted pattern, or could it be a different batch?",
+      "label": "product_technical",
+      "language": "en",
+      "group_id": "domain-v3:en:7:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:7:6:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I just got the FitPulse 3 tracker. Can I wear it while swimming laps?"
+        },
+        {
+          "role": "assistant",
+          "content": "The FitPulse 3 is rated 5 ATM, so it's fine for swimming and shallow water activities."
+        },
+        {
+          "role": "user",
+          "content": "What about saltwater or a hot tub? I go to the beach often."
+        },
+        {
+          "role": "assistant",
+          "content": "Saltwater and chlorinated water are okay for short exposure, but we recommend rinsing it with fresh water afterward. Hot tubs above 40°C are not recommended."
+        }
+      ],
+      "text": "So if I wear it in the ocean for an hour, will the heart rate sensor still work accurately underwater?",
+      "label": "product_technical",
+      "language": "en",
+      "group_id": "domain-v3:en:7:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:7:6:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I just got the FitPulse 3 tracker. Can I wear it while swimming laps?"
+        },
+        {
+          "role": "assistant",
+          "content": "The FitPulse 3 is rated 5 ATM, so it's fine for swimming and shallow water activities."
+        },
+        {
+          "role": "user",
+          "content": "What about saltwater or a hot tub? I go to the beach often."
+        },
+        {
+          "role": "assistant",
+          "content": "Saltwater and chlorinated water are okay for short exposure, but we recommend rinsing it with fresh water afterward. Hot tubs above 40°C are not recommended."
+        }
+      ],
+      "text": "Alright, I'll rinse it after beach trips. Actually, can I exchange this for the FitPulse Pro which has GPS?",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:7:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:7:7:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I'm considering the Oakline 5-shelf bookcase. How hard is assembly? I'm not very handy."
+        },
+        {
+          "role": "assistant",
+          "content": "Assembly takes about 45 minutes with the included hex key. All panels are pre-drilled and labeled A through F."
+        },
+        {
+          "role": "user",
+          "content": "That doesn't sound too bad. Does it come with wall-anchoring hardware?"
+        },
+        {
+          "role": "assistant",
+          "content": "Yes, anti-tip brackets and screws are included in the box for safety."
+        }
+      ],
+      "text": "Perfect, I'll order it. Oh, and can you check if my last order from last week has shipped yet?",
+      "label": "order_logistics",
+      "language": "en",
+      "group_id": "domain-v3:en:7:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:7:7:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I'm considering the Oakline 5-shelf bookcase. How hard is assembly? I'm not very handy."
+        },
+        {
+          "role": "assistant",
+          "content": "Assembly takes about 45 minutes with the included hex key. All panels are pre-drilled and labeled A through F."
+        },
+        {
+          "role": "user",
+          "content": "That doesn't sound too bad. Does it come with wall-anchoring hardware?"
+        },
+        {
+          "role": "assistant",
+          "content": "Yes, anti-tip brackets and screws are included in the box for safety."
+        }
+      ],
+      "text": "Actually, I just realized my ceiling is only 7 feet and this bookcase is 6.5 feet — will it fit through my doorways during assembly?",
+      "label": "product_technical",
+      "language": "en",
+      "group_id": "domain-v3:en:7:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:7:7:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I'm considering the Oakline 5-shelf bookcase. How hard is assembly? I'm not very handy."
+        },
+        {
+          "role": "assistant",
+          "content": "Assembly takes about 45 minutes with the included hex key. All panels are pre-drilled and labeled A through F."
+        },
+        {
+          "role": "user",
+          "content": "That doesn't sound too bad. Does it come with wall-anchoring hardware?"
+        },
+        {
+          "role": "assistant",
+          "content": "Yes, anti-tip brackets and screws are included in the box for safety."
+        }
+      ],
+      "text": "Thanks for the info. I think I'll just browse a bit more before deciding.",
+      "label": "general",
+      "language": "en",
+      "group_id": "domain-v3:en:7:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    }
+  ],
+  "rejected": [
+    {
+      "case_id": "domain-v3:en:7:6:0",
+      "author": "human_service",
+      "label": "general",
+      "clear_and_natural": true,
+      "reason": "Asks how to contact support by phone, general help/capabilities."
+    }
+  ],
+  "status": "reviewed"
+}

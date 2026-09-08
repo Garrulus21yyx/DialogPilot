@@ -1,0 +1,1934 @@
+{
+  "batch_id": "domain-v3:en:15",
+  "language": "en",
+  "split": "train",
+  "models": {
+    "author": "deepseek-v4-flash",
+    "review": "deepseek-v4-pro"
+  },
+  "review_protocol": "label-blind-batch-v1",
+  "synthetic": true,
+  "author_prompt": "Author 8 DIFFERENT natural ecommerce customer-service dialogue families in en.\nBatch 15; ensure at least four current turns classified as billing_refund across this batch.\nEach family has its OWN coherent history of 2, 4 or 6 short alternating user/assistant\nmessages, followed by 3 ALTERNATIVE current user turns, not three sequential turns.\nThose alternatives differ in effective intent: retain vs replace, withdraw vs\ncontinue, single goal vs concurrent goal, or resolved vs unresolved reference.\nInclude natural short answers where history matters. Vary old completed tasks,\nhesitation, self-correction, indirect wording, topics and dialogue acts. General\nand human-service requests must also occur as NEW goals, not only stale history.\nDo not follow a repeated sentence template or substitute product nouns to create\nnew families. Avoid stereotyped 'information only, do not submit' repetition.\nInvent broad everyday ecommerce situations; no copied benchmark or private data.\nHistory plus current turn should fit 150 English words or 180 Chinese characters;\nkeep it compact but meaningful. No future replies or final conversation summaries.\nSupply the correct label for each alternative according to the rubric.\n",
+  "author_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_4PBhdyFFKUTQzEIl98uH9284",
+          "input": {
+            "families": [
+              {
+                "scenario": "Customer bought a smartwatch that stopped charging after a week.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Hi, my smartwatch arrived Tuesday but it won't charge anymore."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry to hear that. Have you tried a different cable or outlet?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Yeah, tried two cables and three outlets. Nothing."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Understood. Since it's within 30 days, I can set up a return for a replacement or refund."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Let's do the refund, please.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Actually, can you just tell me if the newer model has a better battery?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Refund it, and also — is the newer model waterproof?",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer ordered a desk lamp but received a floor lamp instead.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I ordered the desk lamp but got a floor lamp in the box."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That's frustrating. Would you like a replacement desk lamp sent out?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Hmm, actually I've been thinking about it."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Take your time. I can also process a return with a full refund if you prefer."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "You know what, I'll keep the floor lamp after all. Thanks anyway.",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "I'll take the refund instead of the replacement.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Send the replacement desk lamp, and also refund the shipping I paid.",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer's package shows delivered but they never received it.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Tracking says my package was delivered yesterday but I never got it."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me look into that. Can you confirm your delivery address on file?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's 42 Maple Street, same as always."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Thanks. The carrier marked it as left at the front door. I'll open an investigation."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "While you do that, can you tell me if this brand makes a larger version of the same item?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "If it doesn't turn up, I want a refund, not a reshipment.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Can I speak to a supervisor about this? I'm really fed up.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer wants to cancel a subscription box before the next billing cycle.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I need to cancel my monthly snack box before it renews."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Sure, I can help with that. Your next charge is on the 15th."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Right, and I don't want to be charged for another month."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I can cancel it now so no further charges occur."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Great, go ahead and cancel it.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Wait — if I cancel, do I get a partial refund for the current month I already paid?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Cancel it, and also reset my password since I keep getting locked out.",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer received a damaged ceramic vase and wants to sort it out.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "The vase arrived cracked. Photos attached."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry about that. I can offer a replacement or a refund."
+                  },
+                  {
+                    "role": "user",
+                    "content": "I'd rather not deal with another fragile shipment."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Totally fair. A refund would go back to your original payment method."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Okay, refund it then.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Actually, hold on — is the replacement packed better than last time?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Refund it, and please make sure my account notes say no glass items ever again.",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a gift they ordered for a friend's wedding.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I ordered a photo frame for a wedding gift last week."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Lovely! Let me check the status for you."
+                  },
+                  {
+                    "role": "user",
+                    "content": "It was supposed to arrive by Friday for the ceremony."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I see it's out for delivery today, so it should make it in time."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Oh perfect, thanks for checking!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Great. And can you also check if my other order — the candles — shipped yet?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "If it doesn't arrive by tomorrow, I want to return it and get my money back.",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer's account was locked after too many login attempts.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I can't log in, it says my account is locked."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That happens after several failed attempts. I can unlock it for you."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Please do, I was typing my old password by mistake."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "No problem. I've unlocked it — try logging in again now."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "It worked, thanks a lot!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Works now. Also, I want to return the headphones I bought last month — they hurt my ears.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Can you tell me what your return window is for opened electronics?",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer ordered two identical coffee mugs but only one arrived.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I ordered two mugs but only one was in the box."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me verify that order. I see two mugs on the invoice."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Yeah, the box only had one though."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'll ship the missing mug out right away at no cost."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Actually, I changed my mind — just refund me for the missing one instead.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Thanks, that works. Oh wait, I also need to update my shipping address for next time.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "No, forget it — I don't want the second mug anymore.",
+                    "label": "__DEFER__"
+                  }
+                ]
+              }
+            ]
+          },
+          "name": "AuthoredBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "dc8c6d0a-9b7a-4f26-9f91-57abdf081207",
+        "container": null,
+        "model": "deepseek-v4-flash",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 640,
+          "inference_geo": null,
+          "input_tokens": 321,
+          "output_tokens": 1719,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-flash",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d8-8ae9-78a3-97a6-bc4f117a9dc7-0",
+      "tool_calls": [
+        {
+          "name": "AuthoredBatch",
+          "args": {
+            "families": [
+              {
+                "scenario": "Customer bought a smartwatch that stopped charging after a week.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Hi, my smartwatch arrived Tuesday but it won't charge anymore."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry to hear that. Have you tried a different cable or outlet?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Yeah, tried two cables and three outlets. Nothing."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Understood. Since it's within 30 days, I can set up a return for a replacement or refund."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Let's do the refund, please.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Actually, can you just tell me if the newer model has a better battery?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Refund it, and also — is the newer model waterproof?",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer ordered a desk lamp but received a floor lamp instead.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I ordered the desk lamp but got a floor lamp in the box."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That's frustrating. Would you like a replacement desk lamp sent out?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Hmm, actually I've been thinking about it."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Take your time. I can also process a return with a full refund if you prefer."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "You know what, I'll keep the floor lamp after all. Thanks anyway.",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "I'll take the refund instead of the replacement.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Send the replacement desk lamp, and also refund the shipping I paid.",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer's package shows delivered but they never received it.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Tracking says my package was delivered yesterday but I never got it."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me look into that. Can you confirm your delivery address on file?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's 42 Maple Street, same as always."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Thanks. The carrier marked it as left at the front door. I'll open an investigation."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "While you do that, can you tell me if this brand makes a larger version of the same item?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "If it doesn't turn up, I want a refund, not a reshipment.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Can I speak to a supervisor about this? I'm really fed up.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer wants to cancel a subscription box before the next billing cycle.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I need to cancel my monthly snack box before it renews."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Sure, I can help with that. Your next charge is on the 15th."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Right, and I don't want to be charged for another month."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I can cancel it now so no further charges occur."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Great, go ahead and cancel it.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Wait — if I cancel, do I get a partial refund for the current month I already paid?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Cancel it, and also reset my password since I keep getting locked out.",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer received a damaged ceramic vase and wants to sort it out.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "The vase arrived cracked. Photos attached."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry about that. I can offer a replacement or a refund."
+                  },
+                  {
+                    "role": "user",
+                    "content": "I'd rather not deal with another fragile shipment."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Totally fair. A refund would go back to your original payment method."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Okay, refund it then.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Actually, hold on — is the replacement packed better than last time?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Refund it, and please make sure my account notes say no glass items ever again.",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a gift they ordered for a friend's wedding.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I ordered a photo frame for a wedding gift last week."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Lovely! Let me check the status for you."
+                  },
+                  {
+                    "role": "user",
+                    "content": "It was supposed to arrive by Friday for the ceremony."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I see it's out for delivery today, so it should make it in time."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Oh perfect, thanks for checking!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Great. And can you also check if my other order — the candles — shipped yet?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "If it doesn't arrive by tomorrow, I want to return it and get my money back.",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer's account was locked after too many login attempts.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I can't log in, it says my account is locked."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That happens after several failed attempts. I can unlock it for you."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Please do, I was typing my old password by mistake."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "No problem. I've unlocked it — try logging in again now."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "It worked, thanks a lot!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Works now. Also, I want to return the headphones I bought last month — they hurt my ears.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Can you tell me what your return window is for opened electronics?",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer ordered two identical coffee mugs but only one arrived.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I ordered two mugs but only one was in the box."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me verify that order. I see two mugs on the invoice."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Yeah, the box only had one though."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'll ship the missing mug out right away at no cost."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Actually, I changed my mind — just refund me for the missing one instead.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Thanks, that works. Oh wait, I also need to update my shipping address for next time.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "No, forget it — I don't want the second mug anymore.",
+                    "label": "__DEFER__"
+                  }
+                ]
+              }
+            ]
+          },
+          "id": "call_00_4PBhdyFFKUTQzEIl98uH9284",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 961,
+        "output_tokens": 1719,
+        "total_tokens": 2680,
+        "input_token_details": {
+          "cache_read": 640,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "authored": {
+    "families": [
+      {
+        "scenario": "Customer bought a smartwatch that stopped charging after a week.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Hi, my smartwatch arrived Tuesday but it won't charge anymore."
+          },
+          {
+            "role": "assistant",
+            "content": "I'm sorry to hear that. Have you tried a different cable or outlet?"
+          },
+          {
+            "role": "user",
+            "content": "Yeah, tried two cables and three outlets. Nothing."
+          },
+          {
+            "role": "assistant",
+            "content": "Understood. Since it's within 30 days, I can set up a return for a replacement or refund."
+          }
+        ],
+        "variants": [
+          {
+            "text": "Let's do the refund, please.",
+            "label": "billing_refund"
+          },
+          {
+            "text": "Actually, can you just tell me if the newer model has a better battery?",
+            "label": "product_technical"
+          },
+          {
+            "text": "Refund it, and also — is the newer model waterproof?",
+            "label": "billing_refund"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer ordered a desk lamp but received a floor lamp instead.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "I ordered the desk lamp but got a floor lamp in the box."
+          },
+          {
+            "role": "assistant",
+            "content": "That's frustrating. Would you like a replacement desk lamp sent out?"
+          },
+          {
+            "role": "user",
+            "content": "Hmm, actually I've been thinking about it."
+          },
+          {
+            "role": "assistant",
+            "content": "Take your time. I can also process a return with a full refund if you prefer."
+          }
+        ],
+        "variants": [
+          {
+            "text": "You know what, I'll keep the floor lamp after all. Thanks anyway.",
+            "label": "__DEFER__"
+          },
+          {
+            "text": "I'll take the refund instead of the replacement.",
+            "label": "billing_refund"
+          },
+          {
+            "text": "Send the replacement desk lamp, and also refund the shipping I paid.",
+            "label": "billing_refund"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer's package shows delivered but they never received it.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Tracking says my package was delivered yesterday but I never got it."
+          },
+          {
+            "role": "assistant",
+            "content": "Let me look into that. Can you confirm your delivery address on file?"
+          },
+          {
+            "role": "user",
+            "content": "It's 42 Maple Street, same as always."
+          },
+          {
+            "role": "assistant",
+            "content": "Thanks. The carrier marked it as left at the front door. I'll open an investigation."
+          }
+        ],
+        "variants": [
+          {
+            "text": "While you do that, can you tell me if this brand makes a larger version of the same item?",
+            "label": "product_technical"
+          },
+          {
+            "text": "If it doesn't turn up, I want a refund, not a reshipment.",
+            "label": "billing_refund"
+          },
+          {
+            "text": "Can I speak to a supervisor about this? I'm really fed up.",
+            "label": "human_service"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer wants to cancel a subscription box before the next billing cycle.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "I need to cancel my monthly snack box before it renews."
+          },
+          {
+            "role": "assistant",
+            "content": "Sure, I can help with that. Your next charge is on the 15th."
+          },
+          {
+            "role": "user",
+            "content": "Right, and I don't want to be charged for another month."
+          },
+          {
+            "role": "assistant",
+            "content": "I can cancel it now so no further charges occur."
+          }
+        ],
+        "variants": [
+          {
+            "text": "Great, go ahead and cancel it.",
+            "label": "order_logistics"
+          },
+          {
+            "text": "Wait — if I cancel, do I get a partial refund for the current month I already paid?",
+            "label": "billing_refund"
+          },
+          {
+            "text": "Cancel it, and also reset my password since I keep getting locked out.",
+            "label": "account_security"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer received a damaged ceramic vase and wants to sort it out.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "The vase arrived cracked. Photos attached."
+          },
+          {
+            "role": "assistant",
+            "content": "I'm sorry about that. I can offer a replacement or a refund."
+          },
+          {
+            "role": "user",
+            "content": "I'd rather not deal with another fragile shipment."
+          },
+          {
+            "role": "assistant",
+            "content": "Totally fair. A refund would go back to your original payment method."
+          }
+        ],
+        "variants": [
+          {
+            "text": "Okay, refund it then.",
+            "label": "billing_refund"
+          },
+          {
+            "text": "Actually, hold on — is the replacement packed better than last time?",
+            "label": "product_technical"
+          },
+          {
+            "text": "Refund it, and please make sure my account notes say no glass items ever again.",
+            "label": "billing_refund"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer asks about a gift they ordered for a friend's wedding.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "I ordered a photo frame for a wedding gift last week."
+          },
+          {
+            "role": "assistant",
+            "content": "Lovely! Let me check the status for you."
+          },
+          {
+            "role": "user",
+            "content": "It was supposed to arrive by Friday for the ceremony."
+          },
+          {
+            "role": "assistant",
+            "content": "I see it's out for delivery today, so it should make it in time."
+          }
+        ],
+        "variants": [
+          {
+            "text": "Oh perfect, thanks for checking!",
+            "label": "general"
+          },
+          {
+            "text": "Great. And can you also check if my other order — the candles — shipped yet?",
+            "label": "order_logistics"
+          },
+          {
+            "text": "If it doesn't arrive by tomorrow, I want to return it and get my money back.",
+            "label": "billing_refund"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer's account was locked after too many login attempts.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "I can't log in, it says my account is locked."
+          },
+          {
+            "role": "assistant",
+            "content": "That happens after several failed attempts. I can unlock it for you."
+          },
+          {
+            "role": "user",
+            "content": "Please do, I was typing my old password by mistake."
+          },
+          {
+            "role": "assistant",
+            "content": "No problem. I've unlocked it — try logging in again now."
+          }
+        ],
+        "variants": [
+          {
+            "text": "It worked, thanks a lot!",
+            "label": "general"
+          },
+          {
+            "text": "Works now. Also, I want to return the headphones I bought last month — they hurt my ears.",
+            "label": "billing_refund"
+          },
+          {
+            "text": "Can you tell me what your return window is for opened electronics?",
+            "label": "billing_refund"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer ordered two identical coffee mugs but only one arrived.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "I ordered two mugs but only one was in the box."
+          },
+          {
+            "role": "assistant",
+            "content": "Let me verify that order. I see two mugs on the invoice."
+          },
+          {
+            "role": "user",
+            "content": "Yeah, the box only had one though."
+          },
+          {
+            "role": "assistant",
+            "content": "I'll ship the missing mug out right away at no cost."
+          }
+        ],
+        "variants": [
+          {
+            "text": "Actually, I changed my mind — just refund me for the missing one instead.",
+            "label": "billing_refund"
+          },
+          {
+            "text": "Thanks, that works. Oh wait, I also need to update my shipping address for next time.",
+            "label": "order_logistics"
+          },
+          {
+            "text": "No, forget it — I don't want the second mug anymore.",
+            "label": "__DEFER__"
+          }
+        ]
+      }
+    ]
+  },
+  "review_input_sha256": "eb78dc1a29f116b7fc1560910fb98f4f095a99c62f3cde365f7b79875d73735d",
+  "review_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_F926q5DSyKhqc3DZKPJ72878",
+          "input": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:en:15:0:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User chooses refund for defective product, a billing/refund request."
+              },
+              {
+                "case_id": "domain-v3:en:15:0:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User pivots to asking about newer model battery, a product/spec question."
+              },
+              {
+                "case_id": "domain-v3:en:15:0:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "Simultaneous requests in different domains: refund (billing) and product spec (waterproof)."
+              },
+              {
+                "case_id": "domain-v3:en:15:1:0",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "User withdraws with no remaining goal, keeping the floor lamp and thanking."
+              },
+              {
+                "case_id": "domain-v3:en:15:1:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User chooses refund over replacement, a billing/refund request."
+              },
+              {
+                "case_id": "domain-v3:en:15:1:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "Simultaneous requests in different domains: replacement (order/logistics) and shipping refund (billing)."
+              },
+              {
+                "case_id": "domain-v3:en:15:2:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User asks about a larger version of the item, a product/spec question."
+              },
+              {
+                "case_id": "domain-v3:en:15:2:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User states preference for refund over reshipment, a billing/refund request."
+              },
+              {
+                "case_id": "domain-v3:en:15:2:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "User explicitly requests a supervisor, an escalation/human service request."
+              },
+              {
+                "case_id": "domain-v3:en:15:3:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User confirms cancellation to avoid charges, a billing request."
+              },
+              {
+                "case_id": "domain-v3:en:15:3:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User asks about partial refund for current month, a billing/refund question."
+              },
+              {
+                "case_id": "domain-v3:en:15:3:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "Simultaneous requests in different domains: cancellation (billing) and password reset (account security)."
+              },
+              {
+                "case_id": "domain-v3:en:15:4:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User confirms refund for cracked vase, a billing/refund request."
+              },
+              {
+                "case_id": "domain-v3:en:15:4:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User asks about replacement packaging, a product/usage question."
+              },
+              {
+                "case_id": "domain-v3:en:15:4:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "Simultaneous requests in different domains: refund (billing) and account notes/preference (account)."
+              },
+              {
+                "case_id": "domain-v3:en:15:5:0",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "User expresses thanks, a courtesy/general response."
+              },
+              {
+                "case_id": "domain-v3:en:15:5:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User asks about shipping status of another order, an order/logistics request."
+              },
+              {
+                "case_id": "domain-v3:en:15:5:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User states intent to return and get money back, a billing/refund request."
+              },
+              {
+                "case_id": "domain-v3:en:15:6:0",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "User thanks after account issue resolved, a courtesy/general response."
+              },
+              {
+                "case_id": "domain-v3:en:15:6:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "Account issue resolved; new request is returning headphones, a billing/refund request."
+              },
+              {
+                "case_id": "domain-v3:en:15:6:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User asks about return window for electronics, a billing/refund policy question."
+              },
+              {
+                "case_id": "domain-v3:en:15:7:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User changes to refund for missing mug, a billing/refund request."
+              },
+              {
+                "case_id": "domain-v3:en:15:7:1",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "User accepts shipment then adds request to update shipping address, an account request."
+              },
+              {
+                "case_id": "domain-v3:en:15:7:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "User withdraws with no remaining goal, no longer wanting the second mug."
+              }
+            ]
+          },
+          "name": "ReviewedBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "21fb78af-6841-4ec8-b78d-d4a1f6cc0e3a",
+        "container": null,
+        "model": "deepseek-v4-pro",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "inference_geo": null,
+          "input_tokens": 3523,
+          "output_tokens": 1327,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-pro",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d8-bbee-7941-9d89-5949e59e41bd-0",
+      "tool_calls": [
+        {
+          "name": "ReviewedBatch",
+          "args": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:en:15:0:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User chooses refund for defective product, a billing/refund request."
+              },
+              {
+                "case_id": "domain-v3:en:15:0:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User pivots to asking about newer model battery, a product/spec question."
+              },
+              {
+                "case_id": "domain-v3:en:15:0:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "Simultaneous requests in different domains: refund (billing) and product spec (waterproof)."
+              },
+              {
+                "case_id": "domain-v3:en:15:1:0",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "User withdraws with no remaining goal, keeping the floor lamp and thanking."
+              },
+              {
+                "case_id": "domain-v3:en:15:1:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User chooses refund over replacement, a billing/refund request."
+              },
+              {
+                "case_id": "domain-v3:en:15:1:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "Simultaneous requests in different domains: replacement (order/logistics) and shipping refund (billing)."
+              },
+              {
+                "case_id": "domain-v3:en:15:2:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User asks about a larger version of the item, a product/spec question."
+              },
+              {
+                "case_id": "domain-v3:en:15:2:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User states preference for refund over reshipment, a billing/refund request."
+              },
+              {
+                "case_id": "domain-v3:en:15:2:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "User explicitly requests a supervisor, an escalation/human service request."
+              },
+              {
+                "case_id": "domain-v3:en:15:3:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User confirms cancellation to avoid charges, a billing request."
+              },
+              {
+                "case_id": "domain-v3:en:15:3:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User asks about partial refund for current month, a billing/refund question."
+              },
+              {
+                "case_id": "domain-v3:en:15:3:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "Simultaneous requests in different domains: cancellation (billing) and password reset (account security)."
+              },
+              {
+                "case_id": "domain-v3:en:15:4:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User confirms refund for cracked vase, a billing/refund request."
+              },
+              {
+                "case_id": "domain-v3:en:15:4:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User asks about replacement packaging, a product/usage question."
+              },
+              {
+                "case_id": "domain-v3:en:15:4:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "Simultaneous requests in different domains: refund (billing) and account notes/preference (account)."
+              },
+              {
+                "case_id": "domain-v3:en:15:5:0",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "User expresses thanks, a courtesy/general response."
+              },
+              {
+                "case_id": "domain-v3:en:15:5:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User asks about shipping status of another order, an order/logistics request."
+              },
+              {
+                "case_id": "domain-v3:en:15:5:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User states intent to return and get money back, a billing/refund request."
+              },
+              {
+                "case_id": "domain-v3:en:15:6:0",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "User thanks after account issue resolved, a courtesy/general response."
+              },
+              {
+                "case_id": "domain-v3:en:15:6:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "Account issue resolved; new request is returning headphones, a billing/refund request."
+              },
+              {
+                "case_id": "domain-v3:en:15:6:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User asks about return window for electronics, a billing/refund policy question."
+              },
+              {
+                "case_id": "domain-v3:en:15:7:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User changes to refund for missing mug, a billing/refund request."
+              },
+              {
+                "case_id": "domain-v3:en:15:7:1",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "User accepts shipment then adds request to update shipping address, an account request."
+              },
+              {
+                "case_id": "domain-v3:en:15:7:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "User withdraws with no remaining goal, no longer wanting the second mug."
+              }
+            ]
+          },
+          "id": "call_00_F926q5DSyKhqc3DZKPJ72878",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 4035,
+        "output_tokens": 1327,
+        "total_tokens": 5362,
+        "input_token_details": {
+          "cache_read": 512,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "reviewed": {
+    "verdicts": [
+      {
+        "case_id": "domain-v3:en:15:0:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User chooses refund for defective product, a billing/refund request."
+      },
+      {
+        "case_id": "domain-v3:en:15:0:1",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "User pivots to asking about newer model battery, a product/spec question."
+      },
+      {
+        "case_id": "domain-v3:en:15:0:2",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "Simultaneous requests in different domains: refund (billing) and product spec (waterproof)."
+      },
+      {
+        "case_id": "domain-v3:en:15:1:0",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "User withdraws with no remaining goal, keeping the floor lamp and thanking."
+      },
+      {
+        "case_id": "domain-v3:en:15:1:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User chooses refund over replacement, a billing/refund request."
+      },
+      {
+        "case_id": "domain-v3:en:15:1:2",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "Simultaneous requests in different domains: replacement (order/logistics) and shipping refund (billing)."
+      },
+      {
+        "case_id": "domain-v3:en:15:2:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "User asks about a larger version of the item, a product/spec question."
+      },
+      {
+        "case_id": "domain-v3:en:15:2:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User states preference for refund over reshipment, a billing/refund request."
+      },
+      {
+        "case_id": "domain-v3:en:15:2:2",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "User explicitly requests a supervisor, an escalation/human service request."
+      },
+      {
+        "case_id": "domain-v3:en:15:3:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User confirms cancellation to avoid charges, a billing request."
+      },
+      {
+        "case_id": "domain-v3:en:15:3:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User asks about partial refund for current month, a billing/refund question."
+      },
+      {
+        "case_id": "domain-v3:en:15:3:2",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "Simultaneous requests in different domains: cancellation (billing) and password reset (account security)."
+      },
+      {
+        "case_id": "domain-v3:en:15:4:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User confirms refund for cracked vase, a billing/refund request."
+      },
+      {
+        "case_id": "domain-v3:en:15:4:1",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "User asks about replacement packaging, a product/usage question."
+      },
+      {
+        "case_id": "domain-v3:en:15:4:2",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "Simultaneous requests in different domains: refund (billing) and account notes/preference (account)."
+      },
+      {
+        "case_id": "domain-v3:en:15:5:0",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "User expresses thanks, a courtesy/general response."
+      },
+      {
+        "case_id": "domain-v3:en:15:5:1",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "User asks about shipping status of another order, an order/logistics request."
+      },
+      {
+        "case_id": "domain-v3:en:15:5:2",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User states intent to return and get money back, a billing/refund request."
+      },
+      {
+        "case_id": "domain-v3:en:15:6:0",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "User thanks after account issue resolved, a courtesy/general response."
+      },
+      {
+        "case_id": "domain-v3:en:15:6:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "Account issue resolved; new request is returning headphones, a billing/refund request."
+      },
+      {
+        "case_id": "domain-v3:en:15:6:2",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User asks about return window for electronics, a billing/refund policy question."
+      },
+      {
+        "case_id": "domain-v3:en:15:7:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User changes to refund for missing mug, a billing/refund request."
+      },
+      {
+        "case_id": "domain-v3:en:15:7:1",
+        "label": "account_security",
+        "clear_and_natural": true,
+        "reason": "User accepts shipment then adds request to update shipping address, an account request."
+      },
+      {
+        "case_id": "domain-v3:en:15:7:2",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "User withdraws with no remaining goal, no longer wanting the second mug."
+      }
+    ]
+  },
+  "rows": [
+    {
+      "case_id": "domain-v3:en:15:0:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Hi, my smartwatch arrived Tuesday but it won't charge anymore."
+        },
+        {
+          "role": "assistant",
+          "content": "I'm sorry to hear that. Have you tried a different cable or outlet?"
+        },
+        {
+          "role": "user",
+          "content": "Yeah, tried two cables and three outlets. Nothing."
+        },
+        {
+          "role": "assistant",
+          "content": "Understood. Since it's within 30 days, I can set up a return for a replacement or refund."
+        }
+      ],
+      "text": "Let's do the refund, please.",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:15:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:15:0:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Hi, my smartwatch arrived Tuesday but it won't charge anymore."
+        },
+        {
+          "role": "assistant",
+          "content": "I'm sorry to hear that. Have you tried a different cable or outlet?"
+        },
+        {
+          "role": "user",
+          "content": "Yeah, tried two cables and three outlets. Nothing."
+        },
+        {
+          "role": "assistant",
+          "content": "Understood. Since it's within 30 days, I can set up a return for a replacement or refund."
+        }
+      ],
+      "text": "Actually, can you just tell me if the newer model has a better battery?",
+      "label": "product_technical",
+      "language": "en",
+      "group_id": "domain-v3:en:15:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:15:1:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I ordered the desk lamp but got a floor lamp in the box."
+        },
+        {
+          "role": "assistant",
+          "content": "That's frustrating. Would you like a replacement desk lamp sent out?"
+        },
+        {
+          "role": "user",
+          "content": "Hmm, actually I've been thinking about it."
+        },
+        {
+          "role": "assistant",
+          "content": "Take your time. I can also process a return with a full refund if you prefer."
+        }
+      ],
+      "text": "You know what, I'll keep the floor lamp after all. Thanks anyway.",
+      "label": "__DEFER__",
+      "language": "en",
+      "group_id": "domain-v3:en:15:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:15:1:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I ordered the desk lamp but got a floor lamp in the box."
+        },
+        {
+          "role": "assistant",
+          "content": "That's frustrating. Would you like a replacement desk lamp sent out?"
+        },
+        {
+          "role": "user",
+          "content": "Hmm, actually I've been thinking about it."
+        },
+        {
+          "role": "assistant",
+          "content": "Take your time. I can also process a return with a full refund if you prefer."
+        }
+      ],
+      "text": "I'll take the refund instead of the replacement.",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:15:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:15:2:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Tracking says my package was delivered yesterday but I never got it."
+        },
+        {
+          "role": "assistant",
+          "content": "Let me look into that. Can you confirm your delivery address on file?"
+        },
+        {
+          "role": "user",
+          "content": "It's 42 Maple Street, same as always."
+        },
+        {
+          "role": "assistant",
+          "content": "Thanks. The carrier marked it as left at the front door. I'll open an investigation."
+        }
+      ],
+      "text": "While you do that, can you tell me if this brand makes a larger version of the same item?",
+      "label": "product_technical",
+      "language": "en",
+      "group_id": "domain-v3:en:15:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:15:2:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Tracking says my package was delivered yesterday but I never got it."
+        },
+        {
+          "role": "assistant",
+          "content": "Let me look into that. Can you confirm your delivery address on file?"
+        },
+        {
+          "role": "user",
+          "content": "It's 42 Maple Street, same as always."
+        },
+        {
+          "role": "assistant",
+          "content": "Thanks. The carrier marked it as left at the front door. I'll open an investigation."
+        }
+      ],
+      "text": "If it doesn't turn up, I want a refund, not a reshipment.",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:15:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:15:2:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Tracking says my package was delivered yesterday but I never got it."
+        },
+        {
+          "role": "assistant",
+          "content": "Let me look into that. Can you confirm your delivery address on file?"
+        },
+        {
+          "role": "user",
+          "content": "It's 42 Maple Street, same as always."
+        },
+        {
+          "role": "assistant",
+          "content": "Thanks. The carrier marked it as left at the front door. I'll open an investigation."
+        }
+      ],
+      "text": "Can I speak to a supervisor about this? I'm really fed up.",
+      "label": "human_service",
+      "language": "en",
+      "group_id": "domain-v3:en:15:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:15:3:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I need to cancel my monthly snack box before it renews."
+        },
+        {
+          "role": "assistant",
+          "content": "Sure, I can help with that. Your next charge is on the 15th."
+        },
+        {
+          "role": "user",
+          "content": "Right, and I don't want to be charged for another month."
+        },
+        {
+          "role": "assistant",
+          "content": "I can cancel it now so no further charges occur."
+        }
+      ],
+      "text": "Wait — if I cancel, do I get a partial refund for the current month I already paid?",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:15:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:15:4:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "The vase arrived cracked. Photos attached."
+        },
+        {
+          "role": "assistant",
+          "content": "I'm sorry about that. I can offer a replacement or a refund."
+        },
+        {
+          "role": "user",
+          "content": "I'd rather not deal with another fragile shipment."
+        },
+        {
+          "role": "assistant",
+          "content": "Totally fair. A refund would go back to your original payment method."
+        }
+      ],
+      "text": "Okay, refund it then.",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:15:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:15:4:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "The vase arrived cracked. Photos attached."
+        },
+        {
+          "role": "assistant",
+          "content": "I'm sorry about that. I can offer a replacement or a refund."
+        },
+        {
+          "role": "user",
+          "content": "I'd rather not deal with another fragile shipment."
+        },
+        {
+          "role": "assistant",
+          "content": "Totally fair. A refund would go back to your original payment method."
+        }
+      ],
+      "text": "Actually, hold on — is the replacement packed better than last time?",
+      "label": "product_technical",
+      "language": "en",
+      "group_id": "domain-v3:en:15:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:15:5:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I ordered a photo frame for a wedding gift last week."
+        },
+        {
+          "role": "assistant",
+          "content": "Lovely! Let me check the status for you."
+        },
+        {
+          "role": "user",
+          "content": "It was supposed to arrive by Friday for the ceremony."
+        },
+        {
+          "role": "assistant",
+          "content": "I see it's out for delivery today, so it should make it in time."
+        }
+      ],
+      "text": "Oh perfect, thanks for checking!",
+      "label": "general",
+      "language": "en",
+      "group_id": "domain-v3:en:15:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:15:5:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I ordered a photo frame for a wedding gift last week."
+        },
+        {
+          "role": "assistant",
+          "content": "Lovely! Let me check the status for you."
+        },
+        {
+          "role": "user",
+          "content": "It was supposed to arrive by Friday for the ceremony."
+        },
+        {
+          "role": "assistant",
+          "content": "I see it's out for delivery today, so it should make it in time."
+        }
+      ],
+      "text": "Great. And can you also check if my other order — the candles — shipped yet?",
+      "label": "order_logistics",
+      "language": "en",
+      "group_id": "domain-v3:en:15:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:15:5:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I ordered a photo frame for a wedding gift last week."
+        },
+        {
+          "role": "assistant",
+          "content": "Lovely! Let me check the status for you."
+        },
+        {
+          "role": "user",
+          "content": "It was supposed to arrive by Friday for the ceremony."
+        },
+        {
+          "role": "assistant",
+          "content": "I see it's out for delivery today, so it should make it in time."
+        }
+      ],
+      "text": "If it doesn't arrive by tomorrow, I want to return it and get my money back.",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:15:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:15:6:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I can't log in, it says my account is locked."
+        },
+        {
+          "role": "assistant",
+          "content": "That happens after several failed attempts. I can unlock it for you."
+        },
+        {
+          "role": "user",
+          "content": "Please do, I was typing my old password by mistake."
+        },
+        {
+          "role": "assistant",
+          "content": "No problem. I've unlocked it — try logging in again now."
+        }
+      ],
+      "text": "It worked, thanks a lot!",
+      "label": "general",
+      "language": "en",
+      "group_id": "domain-v3:en:15:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:15:6:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I can't log in, it says my account is locked."
+        },
+        {
+          "role": "assistant",
+          "content": "That happens after several failed attempts. I can unlock it for you."
+        },
+        {
+          "role": "user",
+          "content": "Please do, I was typing my old password by mistake."
+        },
+        {
+          "role": "assistant",
+          "content": "No problem. I've unlocked it — try logging in again now."
+        }
+      ],
+      "text": "Works now. Also, I want to return the headphones I bought last month — they hurt my ears.",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:15:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:15:6:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I can't log in, it says my account is locked."
+        },
+        {
+          "role": "assistant",
+          "content": "That happens after several failed attempts. I can unlock it for you."
+        },
+        {
+          "role": "user",
+          "content": "Please do, I was typing my old password by mistake."
+        },
+        {
+          "role": "assistant",
+          "content": "No problem. I've unlocked it — try logging in again now."
+        }
+      ],
+      "text": "Can you tell me what your return window is for opened electronics?",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:15:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:15:7:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I ordered two mugs but only one was in the box."
+        },
+        {
+          "role": "assistant",
+          "content": "Let me verify that order. I see two mugs on the invoice."
+        },
+        {
+          "role": "user",
+          "content": "Yeah, the box only had one though."
+        },
+        {
+          "role": "assistant",
+          "content": "I'll ship the missing mug out right away at no cost."
+        }
+      ],
+      "text": "Actually, I changed my mind — just refund me for the missing one instead.",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:15:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:15:7:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I ordered two mugs but only one was in the box."
+        },
+        {
+          "role": "assistant",
+          "content": "Let me verify that order. I see two mugs on the invoice."
+        },
+        {
+          "role": "user",
+          "content": "Yeah, the box only had one though."
+        },
+        {
+          "role": "assistant",
+          "content": "I'll ship the missing mug out right away at no cost."
+        }
+      ],
+      "text": "No, forget it — I don't want the second mug anymore.",
+      "label": "__DEFER__",
+      "language": "en",
+      "group_id": "domain-v3:en:15:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    }
+  ],
+  "rejected": [
+    {
+      "case_id": "domain-v3:en:15:0:2",
+      "author": "billing_refund",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "Simultaneous requests in different domains: refund (billing) and product spec (waterproof)."
+    },
+    {
+      "case_id": "domain-v3:en:15:1:2",
+      "author": "billing_refund",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "Simultaneous requests in different domains: replacement (order/logistics) and shipping refund (billing)."
+    },
+    {
+      "case_id": "domain-v3:en:15:3:0",
+      "author": "order_logistics",
+      "label": "billing_refund",
+      "clear_and_natural": true,
+      "reason": "User confirms cancellation to avoid charges, a billing request."
+    },
+    {
+      "case_id": "domain-v3:en:15:3:2",
+      "author": "account_security",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "Simultaneous requests in different domains: cancellation (billing) and password reset (account security)."
+    },
+    {
+      "case_id": "domain-v3:en:15:4:2",
+      "author": "billing_refund",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "Simultaneous requests in different domains: refund (billing) and account notes/preference (account)."
+    },
+    {
+      "case_id": "domain-v3:en:15:7:1",
+      "author": "order_logistics",
+      "label": "account_security",
+      "clear_and_natural": true,
+      "reason": "User accepts shipment then adds request to update shipping address, an account request."
+    }
+  ],
+  "status": "reviewed"
+}

@@ -1,0 +1,702 @@
+{
+  "batch_id": "domain-v3:en:17",
+  "language": "en",
+  "split": "calibration",
+  "models": {
+    "author": "deepseek-v4-flash",
+    "review": "deepseek-v4-pro"
+  },
+  "review_protocol": "label-blind-batch-v1",
+  "synthetic": true,
+  "author_prompt": "Author 8 DIFFERENT natural ecommerce customer-service dialogue families in en.\nBatch 17; ensure at least four current turns classified as human_service across this batch.\nEach family has its OWN coherent history of 2, 4 or 6 short alternating user/assistant\nmessages, followed by 3 ALTERNATIVE current user turns, not three sequential turns.\nThose alternatives differ in effective intent: retain vs replace, withdraw vs\ncontinue, single goal vs concurrent goal, or resolved vs unresolved reference.\nInclude natural short answers where history matters. Vary old completed tasks,\nhesitation, self-correction, indirect wording, topics and dialogue acts. General\nand human-service requests must also occur as NEW goals, not only stale history.\nDo not follow a repeated sentence template or substitute product nouns to create\nnew families. Avoid stereotyped 'information only, do not submit' repetition.\nInvent broad everyday ecommerce situations; no copied benchmark or private data.\nHistory plus current turn should fit 150 English words or 180 Chinese characters;\nkeep it compact but meaningful. No future replies or final conversation summaries.\nSupply the correct label for each alternative according to the rubric.\n",
+  "author_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_VqJsVFOa9cRlV8RDb0Ye4428",
+          "input": {
+            "families": [
+              {
+                "scenario": "Customer asks about a smartwatch order that hasn't arrived yet, then requests a human agent.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Hi, I ordered the FitPro smartwatch on Monday with express shipping. It said 2-day delivery but it's Thursday now and the tracking hasn't updated since Tuesday."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry about that. Let me check your order status. Could you confirm the order number or the email used for the purchase?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Sure, it's order #FP-88231, email is mark.t@example.com."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Thanks, Mark. I can see the package left our warehouse on Tuesday and the carrier shows it's in transit. There may be a regional delay. Would you like me to open a trace request with the carrier?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Honestly, I've been waiting all week and this is the second time something like this happened with your store. I'd rather talk to a real person about it."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Can you just put me through to a supervisor? I don't want to keep going back and forth with chat.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Actually, forget it. I'll just wait a couple more days and see if it shows up.",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "Before you transfer me, can you also tell me if the FitPro is water resistant? I might return it if it's not.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer wants to return a lamp and asks about the refund timeline.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I received the Arc floor lamp yesterday but the base is wobbly and it doesn't stand straight. I'd like to return it."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry to hear that. Returns are accepted within 30 days of delivery. Would you like a prepaid return label sent to your email?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Yes please. Also, how long does it take to get my money back after you receive the return?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Once the returned item is scanned at our warehouse, refunds typically process within 3-5 business days back to your original payment method."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Okay, that works. But wait — I actually bought this with a gift card from my sister. Will the refund go back to that card?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Actually, my sister said she'd rather I keep the lamp and she'll pay to have it fixed. So cancel the return request.",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "Fine, send the label. And while I'm at it, can you check if the smaller Nova lamp is in stock? I might order that one instead.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "I need to speak with someone in billing about this refund. The chat assistant hasn't been clear about the gift card policy.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about changing delivery address for a pending order.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I just realized I'm moving next week and my order for the desk organizer is going to my old apartment. Can you change the shipping address?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I can help with that if the order hasn't shipped yet. Let me pull it up — could you share the order number?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's #DO-44710. I placed it two days ago."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Good news — the order is still in the packing stage, so I can update the address. What's the new shipping address?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's 452 Birch Lane, Apt 3B, Portland, OR 97205."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Hmm, actually I'm not sure I'm moving anymore. My lease might get renewed. Can you hold off on changing anything for now?",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "Great, please update it. Also, can you tell me if the organizer comes in a walnut finish? I might want to swap colors.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "You know what, this is getting complicated. Can I just talk to a customer service rep on the phone about this?",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer reports a login problem and then asks about a past order.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I can't log into my account. It keeps saying my password is wrong, but I'm sure it's correct."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me help you reset that. I can send a password reset link to the email on file. What email did you register with?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's jennifer.k@example.com. But wait, I also want to check on an order I placed last month — the ceramic mug set. It never arrived."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'll look into both for you. For the mug set, can you confirm the order number? And I've sent the reset link to your email."
+                  },
+                  {
+                    "role": "user",
+                    "content": "The order number is #CM-90213. And thanks for the reset link, I'll try that after we sort out the mug situation."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Actually, I just remembered I used a different email for that mug order — it was my work email. Can you check that one instead?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Forget the mug order for now. I just want to get back into my account. The reset link didn't work either.",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "This is taking too long. I want to file a complaint about the missing order and talk to a real agent.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about warranty coverage for a blender.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My PowerBlend 900 stopped working after three months. The motor just hums and doesn't spin. Is this covered under warranty?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "The PowerBlend 900 comes with a one-year limited warranty covering manufacturing defects. A motor issue like this would typically qualify. Do you have your purchase receipt handy?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Yes, I bought it in March and I have the email receipt. What's the process for getting it replaced or repaired?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "You can either mail it to our service center for repair, or we can send a replacement unit if the defect is confirmed. Would you like me to start a warranty claim?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Sure, start the claim. But I'm traveling next week, so if you need me to ship anything, it'll have to wait until I'm back."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Actually, my neighbor said she has the same blender and had the same issue — she just got a refund instead. Can I do that too?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "On second thought, I'll just buy a new one and skip the hassle. Please don't start the claim.",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "Can you connect me with the warranty department directly? I have some specific questions about what counts as a manufacturing defect.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a discount code that isn't working at checkout.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I'm trying to use the code SAVE20 at checkout but it says the code is invalid. I got it in your newsletter yesterday."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me check that code. SAVE20 is valid for orders over $75 and expires at the end of this month. What's the total of your cart?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "My cart is $89, so it should qualify. But it's still not applying."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I see the issue — the code applies only to full-price items, and one item in your cart is already on sale. Would you like me to remove the sale item so the code applies, or would you prefer to keep the sale discount?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Oh, I see. That's a bit disappointing. Let me think about what I want to do."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Actually, you know what, I'll just skip the code and keep the sale item. Thanks for explaining.",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "Can you tell me if the code would work on the leather tote instead? I'm considering swapping that sale item for the tote.",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "I'd like to escalate this to a human agent. The promo terms weren't clear on the newsletter and I feel misled.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about international shipping rates and then about a previous international order.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "How much does shipping cost to Canada? I'm thinking of ordering a few items."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Shipping to Canada starts at $12.95 for standard and $24.95 for express, depending on package weight. Orders over $150 get free standard shipping."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Got it. Also, I ordered something to Canada last year and it took almost a month. Is that normal?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That does seem longer than usual. International orders typically arrive within 7-14 business days. Customs delays can occasionally extend that. Was there an issue with that order?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It eventually arrived, so no big deal. I was just wondering if that was typical."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Alright, thanks for the info. I'll place my order later today.",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Actually, let me check — do you ship to Australia too? My cousin lives there and might want me to order for her.",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Since I'm asking about shipping anyway, can you open a ticket about that slow delivery last year? I want someone to look into why it took so long.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer wants to cancel a subscription box order.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I want to cancel my monthly snack box subscription. I've been getting them for six months but I'm moving and don't want to deal with forwarding packages."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I can help you cancel. Just to confirm — your subscription renews on the 15th of each month. Would you like to cancel effective immediately, or after the next box ships?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Cancel it immediately. I don't want another box shipped to my old address."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Understood. I've cancelled your subscription effective immediately. No further boxes will be charged or shipped. Is there anything else I can help with?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Actually, wait — I have a promo where I prepaid for three months. Do I get a refund for the unused months?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Yes, I'd like a refund for the two unused months I prepaid for.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Never mind about the refund. Just make sure nothing else gets charged to my card.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "I need to talk to someone about this cancellation — I want to make sure I'm not charged any hidden fees.",
+                    "label": "human_service"
+                  }
+                ]
+              }
+            ]
+          },
+          "name": "AuthoredBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "9a5cdc8d-a8f6-48ce-ad86-dfb34fa482fc",
+        "container": null,
+        "model": "deepseek-v4-flash",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 640,
+          "inference_geo": null,
+          "input_tokens": 320,
+          "output_tokens": 2729,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-flash",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d8-dc2e-7a90-9702-6cad08fe9378-0",
+      "tool_calls": [
+        {
+          "name": "AuthoredBatch",
+          "args": {
+            "families": [
+              {
+                "scenario": "Customer asks about a smartwatch order that hasn't arrived yet, then requests a human agent.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Hi, I ordered the FitPro smartwatch on Monday with express shipping. It said 2-day delivery but it's Thursday now and the tracking hasn't updated since Tuesday."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry about that. Let me check your order status. Could you confirm the order number or the email used for the purchase?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Sure, it's order #FP-88231, email is mark.t@example.com."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Thanks, Mark. I can see the package left our warehouse on Tuesday and the carrier shows it's in transit. There may be a regional delay. Would you like me to open a trace request with the carrier?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Honestly, I've been waiting all week and this is the second time something like this happened with your store. I'd rather talk to a real person about it."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Can you just put me through to a supervisor? I don't want to keep going back and forth with chat.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Actually, forget it. I'll just wait a couple more days and see if it shows up.",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "Before you transfer me, can you also tell me if the FitPro is water resistant? I might return it if it's not.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer wants to return a lamp and asks about the refund timeline.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I received the Arc floor lamp yesterday but the base is wobbly and it doesn't stand straight. I'd like to return it."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry to hear that. Returns are accepted within 30 days of delivery. Would you like a prepaid return label sent to your email?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Yes please. Also, how long does it take to get my money back after you receive the return?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Once the returned item is scanned at our warehouse, refunds typically process within 3-5 business days back to your original payment method."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Okay, that works. But wait — I actually bought this with a gift card from my sister. Will the refund go back to that card?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Actually, my sister said she'd rather I keep the lamp and she'll pay to have it fixed. So cancel the return request.",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "Fine, send the label. And while I'm at it, can you check if the smaller Nova lamp is in stock? I might order that one instead.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "I need to speak with someone in billing about this refund. The chat assistant hasn't been clear about the gift card policy.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about changing delivery address for a pending order.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I just realized I'm moving next week and my order for the desk organizer is going to my old apartment. Can you change the shipping address?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I can help with that if the order hasn't shipped yet. Let me pull it up — could you share the order number?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's #DO-44710. I placed it two days ago."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Good news — the order is still in the packing stage, so I can update the address. What's the new shipping address?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's 452 Birch Lane, Apt 3B, Portland, OR 97205."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Hmm, actually I'm not sure I'm moving anymore. My lease might get renewed. Can you hold off on changing anything for now?",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "Great, please update it. Also, can you tell me if the organizer comes in a walnut finish? I might want to swap colors.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "You know what, this is getting complicated. Can I just talk to a customer service rep on the phone about this?",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer reports a login problem and then asks about a past order.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I can't log into my account. It keeps saying my password is wrong, but I'm sure it's correct."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me help you reset that. I can send a password reset link to the email on file. What email did you register with?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's jennifer.k@example.com. But wait, I also want to check on an order I placed last month — the ceramic mug set. It never arrived."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'll look into both for you. For the mug set, can you confirm the order number? And I've sent the reset link to your email."
+                  },
+                  {
+                    "role": "user",
+                    "content": "The order number is #CM-90213. And thanks for the reset link, I'll try that after we sort out the mug situation."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Actually, I just remembered I used a different email for that mug order — it was my work email. Can you check that one instead?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Forget the mug order for now. I just want to get back into my account. The reset link didn't work either.",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "This is taking too long. I want to file a complaint about the missing order and talk to a real agent.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about warranty coverage for a blender.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My PowerBlend 900 stopped working after three months. The motor just hums and doesn't spin. Is this covered under warranty?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "The PowerBlend 900 comes with a one-year limited warranty covering manufacturing defects. A motor issue like this would typically qualify. Do you have your purchase receipt handy?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Yes, I bought it in March and I have the email receipt. What's the process for getting it replaced or repaired?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "You can either mail it to our service center for repair, or we can send a replacement unit if the defect is confirmed. Would you like me to start a warranty claim?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Sure, start the claim. But I'm traveling next week, so if you need me to ship anything, it'll have to wait until I'm back."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Actually, my neighbor said she has the same blender and had the same issue — she just got a refund instead. Can I do that too?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "On second thought, I'll just buy a new one and skip the hassle. Please don't start the claim.",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "Can you connect me with the warranty department directly? I have some specific questions about what counts as a manufacturing defect.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a discount code that isn't working at checkout.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I'm trying to use the code SAVE20 at checkout but it says the code is invalid. I got it in your newsletter yesterday."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me check that code. SAVE20 is valid for orders over $75 and expires at the end of this month. What's the total of your cart?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "My cart is $89, so it should qualify. But it's still not applying."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I see the issue — the code applies only to full-price items, and one item in your cart is already on sale. Would you like me to remove the sale item so the code applies, or would you prefer to keep the sale discount?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Oh, I see. That's a bit disappointing. Let me think about what I want to do."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Actually, you know what, I'll just skip the code and keep the sale item. Thanks for explaining.",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "Can you tell me if the code would work on the leather tote instead? I'm considering swapping that sale item for the tote.",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "I'd like to escalate this to a human agent. The promo terms weren't clear on the newsletter and I feel misled.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about international shipping rates and then about a previous international order.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "How much does shipping cost to Canada? I'm thinking of ordering a few items."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Shipping to Canada starts at $12.95 for standard and $24.95 for express, depending on package weight. Orders over $150 get free standard shipping."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Got it. Also, I ordered something to Canada last year and it took almost a month. Is that normal?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That does seem longer than usual. International orders typically arrive within 7-14 business days. Customs delays can occasionally extend that. Was there an issue with that order?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It eventually arrived, so no big deal. I was just wondering if that was typical."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Alright, thanks for the info. I'll place my order later today.",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Actually, let me check — do you ship to Australia too? My cousin lives there and might want me to order for her.",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Since I'm asking about shipping anyway, can you open a ticket about that slow delivery last year? I want someone to look into why it took so long.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer wants to cancel a subscription box order.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I want to cancel my monthly snack box subscription. I've been getting them for six months but I'm moving and don't want to deal with forwarding packages."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I can help you cancel. Just to confirm — your subscription renews on the 15th of each month. Would you like to cancel effective immediately, or after the next box ships?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Cancel it immediately. I don't want another box shipped to my old address."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Understood. I've cancelled your subscription effective immediately. No further boxes will be charged or shipped. Is there anything else I can help with?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Actually, wait — I have a promo where I prepaid for three months. Do I get a refund for the unused months?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Yes, I'd like a refund for the two unused months I prepaid for.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Never mind about the refund. Just make sure nothing else gets charged to my card.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "I need to talk to someone about this cancellation — I want to make sure I'm not charged any hidden fees.",
+                    "label": "human_service"
+                  }
+                ]
+              }
+            ]
+          },
+          "id": "call_00_VqJsVFOa9cRlV8RDb0Ye4428",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 960,
+        "output_tokens": 2729,
+        "total_tokens": 3689,
+        "input_token_details": {
+          "cache_read": 640,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": "8 validation errors for AuthoredBatch\nfamilies.0\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': \"Customer as...bel': 'human_service'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.1\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer wa...bel': 'human_service'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.2\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer as...bel': 'human_service'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.3\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer re...bel': 'human_service'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.4\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer as...bel': 'human_service'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.5\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': \"Customer as...bel': 'human_service'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.6\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer as...bel': 'human_service'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.7\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer wa...bel': 'human_service'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error"
+  },
+  "status": "failed",
+  "failure_stage": "author",
+  "error_type": "ValueError"
+}

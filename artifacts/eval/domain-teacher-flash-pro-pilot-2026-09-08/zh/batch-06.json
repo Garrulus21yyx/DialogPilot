@@ -1,0 +1,574 @@
+{
+  "batch_id": "domain-v3:zh:6",
+  "language": "zh",
+  "split": "train",
+  "models": {
+    "author": "deepseek-v4-flash",
+    "review": "deepseek-v4-pro"
+  },
+  "review_protocol": "label-blind-batch-v1",
+  "synthetic": true,
+  "author_prompt": "Author 8 DIFFERENT natural ecommerce customer-service dialogue families in zh.\nBatch 6; ensure at least four current turns classified as general across this batch.\nEach family has its OWN coherent history of 2, 4 or 6 short alternating user/assistant\nmessages, followed by 3 ALTERNATIVE current user turns, not three sequential turns.\nThose alternatives differ in effective intent: retain vs replace, withdraw vs\ncontinue, single goal vs concurrent goal, or resolved vs unresolved reference.\nInclude natural short answers where history matters. Vary old completed tasks,\nhesitation, self-correction, indirect wording, topics and dialogue acts. General\nand human-service requests must also occur as NEW goals, not only stale history.\nDo not follow a repeated sentence template or substitute product nouns to create\nnew families. Avoid stereotyped 'information only, do not submit' repetition.\nInvent broad everyday ecommerce situations; no copied benchmark or private data.\nHistory plus current turn should fit 150 English words or 180 Chinese characters;\nkeep it compact but meaningful. No future replies or final conversation summaries.\nSupply the correct label for each alternative according to the rubric.\n",
+  "author_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_WKinVRbMoqRz9eFeED1Z0378",
+          "input": {
+            "families": [
+              {
+                "scenario": "顾客询问智能手表到货后如何设置，随后转向闲聊",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我昨天买的那个智能手表到了，但是屏幕一直不亮，是不是坏了？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您好，请先长按侧边按钮10秒强制重启试试，如果还不行可能是运输中电量耗尽，充电半小时再看。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "好的我试试。对了你们客服是不是都在南方啊，听你口音像广东的。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "重启之后好了，谢谢啊！你们服务真不错。",
+                    "label": "general"
+                  },
+                  {
+                    "text": "重启还是不行，充电也没反应，我要申请换货。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "重启好了。对了，这个手表防水等级是多少？我想戴着游泳。",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客想取消订单但犹豫不决",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我上午下的那个咖啡机订单，现在能取消吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "可以的，订单还未出库，我可以帮您取消。您确定要取消吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "嗯……我再想想，我老婆说想换个牌子。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "算了不取消了，还是留着吧，麻烦你了。",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "不取消了，改成另一个型号可以吗？",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "取消吧，然后帮我看看有没有别的推荐，预算两千以内。",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客询问退货退款进度后又问起天气",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我上周退的那双鞋，退款什么时候到账？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您的退货已签收，退款预计1-3个工作日内原路退回，请留意。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "好的。你们那边今天是不是下雨啊？我看天气预报说你们城市有暴雨。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "退款到了，谢谢。你们那边雨大吗？注意安全。",
+                    "label": "general"
+                  },
+                  {
+                    "text": "已经三天了还没到账，帮我查一下是不是出问题了。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "退款到了就行。对了，我退货时运费是我垫的，这个能退给我吗？",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客账号登录异常后转为求助人工",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我手机换了，登录账号收不到验证码，怎么办？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请确认新手机号是否已绑定，如果没绑定需要先通过邮箱验证找回。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "邮箱也登不上了，那个邮箱是以前公司的，早注销了。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那能不能帮我转人工？我要人工客服帮我处理账号问题。",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "算了，我重新注册一个账号吧，反正也没多少积分。",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "我重新注册了，但之前账号里的优惠券还能转到新账号吗？",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客咨询冰箱尺寸后闲聊家常",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "你们那款双开门冰箱，宽度是多少？我家厨房门只有75厘米。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "这款冰箱宽度是83厘米，需要拆门才能通过75厘米的门口，建议您测量一下转弯空间。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "那有点悬。对了，你们客服是不是经常加班啊？我看你们晚上十点还在线。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "哈哈是啊，辛苦你们了。那这款冰箱还有别的颜色吗？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "谢谢关心，我们排班制的。您还需要了解冰箱其他参数吗？",
+                    "label": "general"
+                  },
+                  {
+                    "text": "那算了不买了，我看看别家有没有窄一点的。",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客投诉物流慢并要求升级处理",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我的包裹显示已到本地三天了还没派送，怎么回事？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "非常抱歉，我帮您查一下。显示快递员今天会联系您派送，请保持电话畅通。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "昨天也这么说，今天又这么说，到底什么时候能送到？"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "我要投诉，给我转人工客服，我要找主管反映。",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "好吧再等等，如果今天还不送我就不要了直接退款。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "那如果今天还送不到，我可以申请赔偿运费吗？",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客购买宠物用品后询问使用问题",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我买的自动喂食器，猫粮总是卡住出不来，是不是设计有问题？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请检查猫粮颗粒是否过大，建议使用直径小于1厘米的粮，另外出粮口可能有碎屑堵塞。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "我用的就是普通猫粮啊，直径应该没超。拆开看了也没堵。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那可能是电机问题，帮我申请售后维修吧。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "好吧我再观察两天，不行再说。谢谢你的耐心解答。",
+                    "label": "general"
+                  },
+                  {
+                    "text": "对了你们有没有那种带摄像头的喂食器？我想换一个能远程看的。",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客确认收货地址后提出额外请求",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我买的书桌，收货地址写的是公司，但我下周出差，能改送到家里吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "可以的，如果订单还未出库，我可以帮您修改收货地址。请提供家庭地址。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "家庭地址是XX路88号。对了，你们这个书桌安装需要另外收费吗？"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "地址已改好，安装费的问题我看了商品页说明，是免费安装的，谢谢。",
+                    "label": "general"
+                  },
+                  {
+                    "text": "地址改好了吗？另外我下单时用了优惠券，如果改地址会不会影响优惠券？",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "算了不改了，还是送公司吧，我让同事帮忙收。",
+                    "label": "__DEFER__"
+                  }
+                ]
+              }
+            ]
+          },
+          "name": "AuthoredBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "efb84263-d18b-42f9-b1b9-bd5778ab5f34",
+        "container": null,
+        "model": "deepseek-v4-flash",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 640,
+          "inference_geo": null,
+          "input_tokens": 319,
+          "output_tokens": 1620,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-flash",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d5-f2d2-7710-bcab-f1319440f1b7-0",
+      "tool_calls": [
+        {
+          "name": "AuthoredBatch",
+          "args": {
+            "families": [
+              {
+                "scenario": "顾客询问智能手表到货后如何设置，随后转向闲聊",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我昨天买的那个智能手表到了，但是屏幕一直不亮，是不是坏了？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您好，请先长按侧边按钮10秒强制重启试试，如果还不行可能是运输中电量耗尽，充电半小时再看。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "好的我试试。对了你们客服是不是都在南方啊，听你口音像广东的。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "重启之后好了，谢谢啊！你们服务真不错。",
+                    "label": "general"
+                  },
+                  {
+                    "text": "重启还是不行，充电也没反应，我要申请换货。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "重启好了。对了，这个手表防水等级是多少？我想戴着游泳。",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客想取消订单但犹豫不决",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我上午下的那个咖啡机订单，现在能取消吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "可以的，订单还未出库，我可以帮您取消。您确定要取消吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "嗯……我再想想，我老婆说想换个牌子。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "算了不取消了，还是留着吧，麻烦你了。",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "不取消了，改成另一个型号可以吗？",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "取消吧，然后帮我看看有没有别的推荐，预算两千以内。",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客询问退货退款进度后又问起天气",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我上周退的那双鞋，退款什么时候到账？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您的退货已签收，退款预计1-3个工作日内原路退回，请留意。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "好的。你们那边今天是不是下雨啊？我看天气预报说你们城市有暴雨。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "退款到了，谢谢。你们那边雨大吗？注意安全。",
+                    "label": "general"
+                  },
+                  {
+                    "text": "已经三天了还没到账，帮我查一下是不是出问题了。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "退款到了就行。对了，我退货时运费是我垫的，这个能退给我吗？",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客账号登录异常后转为求助人工",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我手机换了，登录账号收不到验证码，怎么办？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请确认新手机号是否已绑定，如果没绑定需要先通过邮箱验证找回。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "邮箱也登不上了，那个邮箱是以前公司的，早注销了。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那能不能帮我转人工？我要人工客服帮我处理账号问题。",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "算了，我重新注册一个账号吧，反正也没多少积分。",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "我重新注册了，但之前账号里的优惠券还能转到新账号吗？",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客咨询冰箱尺寸后闲聊家常",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "你们那款双开门冰箱，宽度是多少？我家厨房门只有75厘米。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "这款冰箱宽度是83厘米，需要拆门才能通过75厘米的门口，建议您测量一下转弯空间。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "那有点悬。对了，你们客服是不是经常加班啊？我看你们晚上十点还在线。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "哈哈是啊，辛苦你们了。那这款冰箱还有别的颜色吗？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "谢谢关心，我们排班制的。您还需要了解冰箱其他参数吗？",
+                    "label": "general"
+                  },
+                  {
+                    "text": "那算了不买了，我看看别家有没有窄一点的。",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客投诉物流慢并要求升级处理",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我的包裹显示已到本地三天了还没派送，怎么回事？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "非常抱歉，我帮您查一下。显示快递员今天会联系您派送，请保持电话畅通。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "昨天也这么说，今天又这么说，到底什么时候能送到？"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "我要投诉，给我转人工客服，我要找主管反映。",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "好吧再等等，如果今天还不送我就不要了直接退款。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "那如果今天还送不到，我可以申请赔偿运费吗？",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客购买宠物用品后询问使用问题",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我买的自动喂食器，猫粮总是卡住出不来，是不是设计有问题？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请检查猫粮颗粒是否过大，建议使用直径小于1厘米的粮，另外出粮口可能有碎屑堵塞。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "我用的就是普通猫粮啊，直径应该没超。拆开看了也没堵。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那可能是电机问题，帮我申请售后维修吧。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "好吧我再观察两天，不行再说。谢谢你的耐心解答。",
+                    "label": "general"
+                  },
+                  {
+                    "text": "对了你们有没有那种带摄像头的喂食器？我想换一个能远程看的。",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客确认收货地址后提出额外请求",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我买的书桌，收货地址写的是公司，但我下周出差，能改送到家里吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "可以的，如果订单还未出库，我可以帮您修改收货地址。请提供家庭地址。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "家庭地址是XX路88号。对了，你们这个书桌安装需要另外收费吗？"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "地址已改好，安装费的问题我看了商品页说明，是免费安装的，谢谢。",
+                    "label": "general"
+                  },
+                  {
+                    "text": "地址改好了吗？另外我下单时用了优惠券，如果改地址会不会影响优惠券？",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "算了不改了，还是送公司吧，我让同事帮忙收。",
+                    "label": "__DEFER__"
+                  }
+                ]
+              }
+            ]
+          },
+          "id": "call_00_WKinVRbMoqRz9eFeED1Z0378",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 959,
+        "output_tokens": 1620,
+        "total_tokens": 2579,
+        "input_token_details": {
+          "cache_read": 640,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": "8 validation errors for AuthoredBatch\nfamilies.0\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': '顾客询...: 'product_technical'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.1\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': '顾客想...l': 'order_logistics'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.2\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': '顾客询...el': 'billing_refund'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.3\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': '顾客账...': 'account_security'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.4\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': '顾客咨... 'label': '__DEFER__'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.5\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': '顾客投...el': 'billing_refund'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.6\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': '顾客购...: 'product_technical'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.7\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': '顾客确... 'label': '__DEFER__'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error"
+  },
+  "status": "failed",
+  "failure_stage": "author",
+  "error_type": "ValueError"
+}

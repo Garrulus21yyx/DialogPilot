@@ -1,0 +1,1972 @@
+{
+  "batch_id": "domain-v3:en:8",
+  "language": "en",
+  "split": "train",
+  "models": {
+    "author": "deepseek-v4-flash",
+    "review": "deepseek-v4-pro"
+  },
+  "review_protocol": "label-blind-batch-v1",
+  "synthetic": true,
+  "author_prompt": "Author 8 DIFFERENT natural ecommerce customer-service dialogue families in en.\nBatch 8; ensure at least four current turns classified as order_logistics across this batch.\nEach family has its OWN coherent history of 2, 4 or 6 short alternating user/assistant\nmessages, followed by 3 ALTERNATIVE current user turns, not three sequential turns.\nThose alternatives differ in effective intent: retain vs replace, withdraw vs\ncontinue, single goal vs concurrent goal, or resolved vs unresolved reference.\nInclude natural short answers where history matters. Vary old completed tasks,\nhesitation, self-correction, indirect wording, topics and dialogue acts. General\nand human-service requests must also occur as NEW goals, not only stale history.\nDo not follow a repeated sentence template or substitute product nouns to create\nnew families. Avoid stereotyped 'information only, do not submit' repetition.\nInvent broad everyday ecommerce situations; no copied benchmark or private data.\nHistory plus current turn should fit 150 English words or 180 Chinese characters;\nkeep it compact but meaningful. No future replies or final conversation summaries.\nSupply the correct label for each alternative according to the rubric.\n",
+  "author_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_B2ykUrdcp61cej0SnAOO2735",
+          "input": {
+            "families": [
+              {
+                "scenario": "Customer ordered a desk lamp but the package shows delivered while they never received it.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My tracking says my lamp was delivered yesterday but I never got it. What can I do?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry to hear that. Let me check the delivery details for you. Can you confirm your order number?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Sure, it's #48291. The carrier photo shows a doorstep but I live in an apartment building."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Thank you. I see the carrier marked it as left at the front desk. Let me open an investigation with them."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Actually, forget the lamp. I want to return the headphones I bought last week instead.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Okay, please go ahead with the investigation. Also, how long does that usually take?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Wait, I also ordered a mouse pad in the same shipment. Was that in the same box?",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a coffee maker's water filter replacement.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Hi, I bought your drip coffee maker model CM-200 about four months ago."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Great, how can I help you with your CM-200 today?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "The manual mentions a charcoal water filter that should be swapped every two months. I never got any in the box."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "The CM-200 ships with one filter pre-installed. Replacement filters are sold separately under SKU CF-10."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Thanks, that answers it. By the way, is it supposed to make that gurgling noise when brewing?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Alright, I'll order the CF-10. Can you also tell me if my current order #7712 has shipped yet?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Hmm, actually I think I'm confusing this with my old machine. Never mind, thanks anyway.",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer's subscription order for pet food was charged twice.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I see two charges on my card for my monthly cat food subscription this month."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I apologize for that. Let me pull up your subscription account to check for duplicate billing."
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's under my email jane.k@mail.com. Both charges are for $34.99, one on the 2nd and one on the 5th."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I can see the duplicate. The second charge was triggered by a system error when you updated your payment method."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Please refund the second charge. And will this mess up my next delivery date?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "I see. Can you just cancel the whole subscription then? I'll go back to buying in store.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "That's frustrating. I want to speak to a supervisor about this billing mistake.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a smartwatch's compatibility with their phone.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Does your FitPro 3 watch work with a Samsung Galaxy A54?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Yes, the FitPro 3 is compatible with Android 10 and above, so the A54 works fine."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Great. And can I receive WhatsApp notifications on it, or just calls?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "You can receive WhatsApp, SMS, and call notifications. You just need to grant notification access in the app."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Perfect, that's all I needed. Have a nice day!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "One more thing — my order for the FitPro 3 was supposed to arrive Tuesday but it's Thursday now. Where is it?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Actually, I'm reconsidering. Does the older FitPro 2 have the same WhatsApp support? Maybe I should get that one.",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer's delivery address was mistyped and package is now stuck.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I think I typed my zip code wrong on my last order. It says out for delivery but I'm worried."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me check. What's the order number and the zip code you entered?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Order #9034, and I put 90210 but I actually live in 90211. It's already out for delivery though."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I see that. Since it's already with the courier, I'll flag it for a delivery intercept right away."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Please do that. Also, I need to update my saved address for future orders — how do I do that?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Actually, you know what, just let it go to the wrong address. I'll deal with it. Cancel the intercept.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Hold on, I also can't log into my account to check anything. It keeps saying wrong password.",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer bought a yoga mat that arrived with a tear.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My yoga mat arrived today and there's a two-inch tear along the edge."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Oh no, I'm sorry about that. Was it in the original packaging when you opened it?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Yes, the box was sealed and undamaged. It must have been a manufacturing defect."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Understood. Since it's defective, we can offer a replacement or a full refund including shipping."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "I'll take the replacement. But wait, will I need to send the torn one back first?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Actually, I'd rather just get my money back. Please process the refund.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Thanks. Also, is there a way to talk to a real person about this? The chat bot has been fine but I want a human.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about warranty coverage on a blender.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My blender's motor stopped working after about a year. Is that covered under warranty?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Our blenders carry a 2-year warranty. Do you have your purchase receipt or order number handy?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "I bought it from your site, order #5510. It was in January of last year."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Perfect, that order is within the warranty window. I can set up a repair or replacement for you."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Great, let's do the replacement. Oh, and do you know if the new one comes with a different blade design?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Actually, I just realized I bought this from a different store, not your site. Sorry for the confusion.",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "Before we do that — my order history shows two blenders. I want to make sure we're talking about the right one.",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer's winter jacket order is delayed due to weather.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I ordered a winter jacket on the 10th and it was supposed to arrive by the 18th. It's the 20th now."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me look into that. Can I have your order number?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's #6621. The tracking hasn't updated in four days, it just says 'in transit'."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I see the carrier has a weather delay notice for your region. The package is safe, just held up."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Okay, that's reassuring. How much longer do you think the delay will be?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "I can't wait any longer — I leave for my trip Friday. Can you cancel and refund this?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Thanks for checking. By the way, do you carry this jacket in a tall size? I might order another one.",
+                    "label": "product_technical"
+                  }
+                ]
+              }
+            ]
+          },
+          "name": "AuthoredBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "89735cf9-8252-480d-9108-abd8743b31a3",
+        "container": null,
+        "model": "deepseek-v4-flash",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 640,
+          "inference_geo": null,
+          "input_tokens": 321,
+          "output_tokens": 2107,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-flash",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d8-06b0-7bd2-866e-ea9d5af2e700-0",
+      "tool_calls": [
+        {
+          "name": "AuthoredBatch",
+          "args": {
+            "families": [
+              {
+                "scenario": "Customer ordered a desk lamp but the package shows delivered while they never received it.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My tracking says my lamp was delivered yesterday but I never got it. What can I do?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry to hear that. Let me check the delivery details for you. Can you confirm your order number?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Sure, it's #48291. The carrier photo shows a doorstep but I live in an apartment building."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Thank you. I see the carrier marked it as left at the front desk. Let me open an investigation with them."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Actually, forget the lamp. I want to return the headphones I bought last week instead.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Okay, please go ahead with the investigation. Also, how long does that usually take?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Wait, I also ordered a mouse pad in the same shipment. Was that in the same box?",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a coffee maker's water filter replacement.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Hi, I bought your drip coffee maker model CM-200 about four months ago."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Great, how can I help you with your CM-200 today?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "The manual mentions a charcoal water filter that should be swapped every two months. I never got any in the box."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "The CM-200 ships with one filter pre-installed. Replacement filters are sold separately under SKU CF-10."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Thanks, that answers it. By the way, is it supposed to make that gurgling noise when brewing?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Alright, I'll order the CF-10. Can you also tell me if my current order #7712 has shipped yet?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Hmm, actually I think I'm confusing this with my old machine. Never mind, thanks anyway.",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer's subscription order for pet food was charged twice.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I see two charges on my card for my monthly cat food subscription this month."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I apologize for that. Let me pull up your subscription account to check for duplicate billing."
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's under my email jane.k@mail.com. Both charges are for $34.99, one on the 2nd and one on the 5th."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I can see the duplicate. The second charge was triggered by a system error when you updated your payment method."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Please refund the second charge. And will this mess up my next delivery date?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "I see. Can you just cancel the whole subscription then? I'll go back to buying in store.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "That's frustrating. I want to speak to a supervisor about this billing mistake.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a smartwatch's compatibility with their phone.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Does your FitPro 3 watch work with a Samsung Galaxy A54?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Yes, the FitPro 3 is compatible with Android 10 and above, so the A54 works fine."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Great. And can I receive WhatsApp notifications on it, or just calls?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "You can receive WhatsApp, SMS, and call notifications. You just need to grant notification access in the app."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Perfect, that's all I needed. Have a nice day!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "One more thing — my order for the FitPro 3 was supposed to arrive Tuesday but it's Thursday now. Where is it?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Actually, I'm reconsidering. Does the older FitPro 2 have the same WhatsApp support? Maybe I should get that one.",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer's delivery address was mistyped and package is now stuck.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I think I typed my zip code wrong on my last order. It says out for delivery but I'm worried."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me check. What's the order number and the zip code you entered?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Order #9034, and I put 90210 but I actually live in 90211. It's already out for delivery though."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I see that. Since it's already with the courier, I'll flag it for a delivery intercept right away."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Please do that. Also, I need to update my saved address for future orders — how do I do that?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Actually, you know what, just let it go to the wrong address. I'll deal with it. Cancel the intercept.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Hold on, I also can't log into my account to check anything. It keeps saying wrong password.",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer bought a yoga mat that arrived with a tear.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My yoga mat arrived today and there's a two-inch tear along the edge."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Oh no, I'm sorry about that. Was it in the original packaging when you opened it?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Yes, the box was sealed and undamaged. It must have been a manufacturing defect."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Understood. Since it's defective, we can offer a replacement or a full refund including shipping."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "I'll take the replacement. But wait, will I need to send the torn one back first?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Actually, I'd rather just get my money back. Please process the refund.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Thanks. Also, is there a way to talk to a real person about this? The chat bot has been fine but I want a human.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about warranty coverage on a blender.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My blender's motor stopped working after about a year. Is that covered under warranty?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Our blenders carry a 2-year warranty. Do you have your purchase receipt or order number handy?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "I bought it from your site, order #5510. It was in January of last year."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Perfect, that order is within the warranty window. I can set up a repair or replacement for you."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Great, let's do the replacement. Oh, and do you know if the new one comes with a different blade design?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Actually, I just realized I bought this from a different store, not your site. Sorry for the confusion.",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "Before we do that — my order history shows two blenders. I want to make sure we're talking about the right one.",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer's winter jacket order is delayed due to weather.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I ordered a winter jacket on the 10th and it was supposed to arrive by the 18th. It's the 20th now."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me look into that. Can I have your order number?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's #6621. The tracking hasn't updated in four days, it just says 'in transit'."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I see the carrier has a weather delay notice for your region. The package is safe, just held up."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Okay, that's reassuring. How much longer do you think the delay will be?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "I can't wait any longer — I leave for my trip Friday. Can you cancel and refund this?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Thanks for checking. By the way, do you carry this jacket in a tall size? I might order another one.",
+                    "label": "product_technical"
+                  }
+                ]
+              }
+            ]
+          },
+          "id": "call_00_B2ykUrdcp61cej0SnAOO2735",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 961,
+        "output_tokens": 2107,
+        "total_tokens": 3068,
+        "input_token_details": {
+          "cache_read": 640,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "authored": {
+    "families": [
+      {
+        "scenario": "Customer ordered a desk lamp but the package shows delivered while they never received it.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "My tracking says my lamp was delivered yesterday but I never got it. What can I do?"
+          },
+          {
+            "role": "assistant",
+            "content": "I'm sorry to hear that. Let me check the delivery details for you. Can you confirm your order number?"
+          },
+          {
+            "role": "user",
+            "content": "Sure, it's #48291. The carrier photo shows a doorstep but I live in an apartment building."
+          },
+          {
+            "role": "assistant",
+            "content": "Thank you. I see the carrier marked it as left at the front desk. Let me open an investigation with them."
+          }
+        ],
+        "variants": [
+          {
+            "text": "Actually, forget the lamp. I want to return the headphones I bought last week instead.",
+            "label": "billing_refund"
+          },
+          {
+            "text": "Okay, please go ahead with the investigation. Also, how long does that usually take?",
+            "label": "order_logistics"
+          },
+          {
+            "text": "Wait, I also ordered a mouse pad in the same shipment. Was that in the same box?",
+            "label": "order_logistics"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer asks about a coffee maker's water filter replacement.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Hi, I bought your drip coffee maker model CM-200 about four months ago."
+          },
+          {
+            "role": "assistant",
+            "content": "Great, how can I help you with your CM-200 today?"
+          },
+          {
+            "role": "user",
+            "content": "The manual mentions a charcoal water filter that should be swapped every two months. I never got any in the box."
+          },
+          {
+            "role": "assistant",
+            "content": "The CM-200 ships with one filter pre-installed. Replacement filters are sold separately under SKU CF-10."
+          }
+        ],
+        "variants": [
+          {
+            "text": "Thanks, that answers it. By the way, is it supposed to make that gurgling noise when brewing?",
+            "label": "product_technical"
+          },
+          {
+            "text": "Alright, I'll order the CF-10. Can you also tell me if my current order #7712 has shipped yet?",
+            "label": "order_logistics"
+          },
+          {
+            "text": "Hmm, actually I think I'm confusing this with my old machine. Never mind, thanks anyway.",
+            "label": "__DEFER__"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer's subscription order for pet food was charged twice.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "I see two charges on my card for my monthly cat food subscription this month."
+          },
+          {
+            "role": "assistant",
+            "content": "I apologize for that. Let me pull up your subscription account to check for duplicate billing."
+          },
+          {
+            "role": "user",
+            "content": "It's under my email jane.k@mail.com. Both charges are for $34.99, one on the 2nd and one on the 5th."
+          },
+          {
+            "role": "assistant",
+            "content": "I can see the duplicate. The second charge was triggered by a system error when you updated your payment method."
+          }
+        ],
+        "variants": [
+          {
+            "text": "Please refund the second charge. And will this mess up my next delivery date?",
+            "label": "billing_refund"
+          },
+          {
+            "text": "I see. Can you just cancel the whole subscription then? I'll go back to buying in store.",
+            "label": "billing_refund"
+          },
+          {
+            "text": "That's frustrating. I want to speak to a supervisor about this billing mistake.",
+            "label": "human_service"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer asks about a smartwatch's compatibility with their phone.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Does your FitPro 3 watch work with a Samsung Galaxy A54?"
+          },
+          {
+            "role": "assistant",
+            "content": "Yes, the FitPro 3 is compatible with Android 10 and above, so the A54 works fine."
+          },
+          {
+            "role": "user",
+            "content": "Great. And can I receive WhatsApp notifications on it, or just calls?"
+          },
+          {
+            "role": "assistant",
+            "content": "You can receive WhatsApp, SMS, and call notifications. You just need to grant notification access in the app."
+          }
+        ],
+        "variants": [
+          {
+            "text": "Perfect, that's all I needed. Have a nice day!",
+            "label": "general"
+          },
+          {
+            "text": "One more thing — my order for the FitPro 3 was supposed to arrive Tuesday but it's Thursday now. Where is it?",
+            "label": "order_logistics"
+          },
+          {
+            "text": "Actually, I'm reconsidering. Does the older FitPro 2 have the same WhatsApp support? Maybe I should get that one.",
+            "label": "product_technical"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer's delivery address was mistyped and package is now stuck.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "I think I typed my zip code wrong on my last order. It says out for delivery but I'm worried."
+          },
+          {
+            "role": "assistant",
+            "content": "Let me check. What's the order number and the zip code you entered?"
+          },
+          {
+            "role": "user",
+            "content": "Order #9034, and I put 90210 but I actually live in 90211. It's already out for delivery though."
+          },
+          {
+            "role": "assistant",
+            "content": "I see that. Since it's already with the courier, I'll flag it for a delivery intercept right away."
+          }
+        ],
+        "variants": [
+          {
+            "text": "Please do that. Also, I need to update my saved address for future orders — how do I do that?",
+            "label": "order_logistics"
+          },
+          {
+            "text": "Actually, you know what, just let it go to the wrong address. I'll deal with it. Cancel the intercept.",
+            "label": "order_logistics"
+          },
+          {
+            "text": "Hold on, I also can't log into my account to check anything. It keeps saying wrong password.",
+            "label": "account_security"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer bought a yoga mat that arrived with a tear.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "My yoga mat arrived today and there's a two-inch tear along the edge."
+          },
+          {
+            "role": "assistant",
+            "content": "Oh no, I'm sorry about that. Was it in the original packaging when you opened it?"
+          },
+          {
+            "role": "user",
+            "content": "Yes, the box was sealed and undamaged. It must have been a manufacturing defect."
+          },
+          {
+            "role": "assistant",
+            "content": "Understood. Since it's defective, we can offer a replacement or a full refund including shipping."
+          }
+        ],
+        "variants": [
+          {
+            "text": "I'll take the replacement. But wait, will I need to send the torn one back first?",
+            "label": "billing_refund"
+          },
+          {
+            "text": "Actually, I'd rather just get my money back. Please process the refund.",
+            "label": "billing_refund"
+          },
+          {
+            "text": "Thanks. Also, is there a way to talk to a real person about this? The chat bot has been fine but I want a human.",
+            "label": "human_service"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer asks about warranty coverage on a blender.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "My blender's motor stopped working after about a year. Is that covered under warranty?"
+          },
+          {
+            "role": "assistant",
+            "content": "Our blenders carry a 2-year warranty. Do you have your purchase receipt or order number handy?"
+          },
+          {
+            "role": "user",
+            "content": "I bought it from your site, order #5510. It was in January of last year."
+          },
+          {
+            "role": "assistant",
+            "content": "Perfect, that order is within the warranty window. I can set up a repair or replacement for you."
+          }
+        ],
+        "variants": [
+          {
+            "text": "Great, let's do the replacement. Oh, and do you know if the new one comes with a different blade design?",
+            "label": "product_technical"
+          },
+          {
+            "text": "Actually, I just realized I bought this from a different store, not your site. Sorry for the confusion.",
+            "label": "__DEFER__"
+          },
+          {
+            "text": "Before we do that — my order history shows two blenders. I want to make sure we're talking about the right one.",
+            "label": "order_logistics"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer's winter jacket order is delayed due to weather.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "I ordered a winter jacket on the 10th and it was supposed to arrive by the 18th. It's the 20th now."
+          },
+          {
+            "role": "assistant",
+            "content": "Let me look into that. Can I have your order number?"
+          },
+          {
+            "role": "user",
+            "content": "It's #6621. The tracking hasn't updated in four days, it just says 'in transit'."
+          },
+          {
+            "role": "assistant",
+            "content": "I see the carrier has a weather delay notice for your region. The package is safe, just held up."
+          }
+        ],
+        "variants": [
+          {
+            "text": "Okay, that's reassuring. How much longer do you think the delay will be?",
+            "label": "order_logistics"
+          },
+          {
+            "text": "I can't wait any longer — I leave for my trip Friday. Can you cancel and refund this?",
+            "label": "billing_refund"
+          },
+          {
+            "text": "Thanks for checking. By the way, do you carry this jacket in a tall size? I might order another one.",
+            "label": "product_technical"
+          }
+        ]
+      }
+    ]
+  },
+  "review_input_sha256": "c5c20e97447ab449ccea44c627b3f65619cf7372f02b2749185d05e5d537ccf6",
+  "review_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_qvc5IlWu5ud3BOKSVGzs9425",
+          "input": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:en:8:0:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User explicitly drops the lamp delivery issue and replaces it with a new goal: returning headphones bought last week. Return/exchange is billing_refund."
+              },
+              {
+                "case_id": "domain-v3:en:8:0:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User continues the delivery investigation and asks how long it takes, staying in order_logistics."
+              },
+              {
+                "case_id": "domain-v3:en:8:0:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User asks whether another item was in the same shipment, still about the delivery/order."
+              },
+              {
+                "case_id": "domain-v3:en:8:1:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User acknowledges the filter answer and asks a new product question about brewing noise, still product_technical."
+              },
+              {
+                "case_id": "domain-v3:en:8:1:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "User has two simultaneous requests in different domains: ordering CF-10 (product/order) and checking shipment status of order #7712 (order_logistics)."
+              },
+              {
+                "case_id": "domain-v3:en:8:1:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "User withdraws the request with no remaining goal, just a courtesy thanks."
+              },
+              {
+                "case_id": "domain-v3:en:8:2:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User requests refund of duplicate charge and asks about delivery date; refund is the primary goal, both within billing/refund context."
+              },
+              {
+                "case_id": "domain-v3:en:8:2:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User cancels the subscription, a billing/account action within billing_refund."
+              },
+              {
+                "case_id": "domain-v3:en:8:2:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "User explicitly requests to speak to a supervisor about the billing mistake, an escalation."
+              },
+              {
+                "case_id": "domain-v3:en:8:3:0",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "User closes the conversation with thanks and a farewell, no remaining business goal."
+              },
+              {
+                "case_id": "domain-v3:en:8:3:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User shifts to a new goal about a late delivery, order_logistics."
+              },
+              {
+                "case_id": "domain-v3:en:8:3:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User asks about FitPro 2 WhatsApp support, a product compatibility question."
+              },
+              {
+                "case_id": "domain-v3:en:8:4:0",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "Two simultaneous requests in different domains: delivery intercept (order_logistics) and updating saved address (account_security)."
+              },
+              {
+                "case_id": "domain-v3:en:8:4:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User cancels the intercept and lets it go to wrong address, still order/delivery related."
+              },
+              {
+                "case_id": "domain-v3:en:8:4:2",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "User reports inability to log into account, a new account access/security issue."
+              },
+              {
+                "case_id": "domain-v3:en:8:5:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User chooses replacement and asks about return process, within return/exchange (billing_refund)."
+              },
+              {
+                "case_id": "domain-v3:en:8:5:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User switches to requesting a refund for the defective item."
+              },
+              {
+                "case_id": "domain-v3:en:8:5:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "User explicitly requests to talk to a real person, an escalation."
+              },
+              {
+                "case_id": "domain-v3:en:8:6:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User agrees to replacement and asks about blade design of the new one, a product question."
+              },
+              {
+                "case_id": "domain-v3:en:8:6:1",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "User withdraws the warranty request after realizing wrong store, no remaining goal."
+              },
+              {
+                "case_id": "domain-v3:en:8:6:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User wants to verify which blender in order history, an order-related clarification."
+              },
+              {
+                "case_id": "domain-v3:en:8:7:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User asks about delay duration, continuing the delivery inquiry."
+              },
+              {
+                "case_id": "domain-v3:en:8:7:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User requests cancel and refund of the delayed order, a refund request."
+              },
+              {
+                "case_id": "domain-v3:en:8:7:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User asks about tall size availability, a product question."
+              }
+            ]
+          },
+          "name": "ReviewedBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "e7d17b10-bcc1-498e-bc28-287642933702",
+        "container": null,
+        "model": "deepseek-v4-pro",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "inference_geo": null,
+          "input_tokens": 4372,
+          "output_tokens": 1369,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-pro",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d8-44af-7810-bfd4-3dde5b29e930-0",
+      "tool_calls": [
+        {
+          "name": "ReviewedBatch",
+          "args": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:en:8:0:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User explicitly drops the lamp delivery issue and replaces it with a new goal: returning headphones bought last week. Return/exchange is billing_refund."
+              },
+              {
+                "case_id": "domain-v3:en:8:0:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User continues the delivery investigation and asks how long it takes, staying in order_logistics."
+              },
+              {
+                "case_id": "domain-v3:en:8:0:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User asks whether another item was in the same shipment, still about the delivery/order."
+              },
+              {
+                "case_id": "domain-v3:en:8:1:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User acknowledges the filter answer and asks a new product question about brewing noise, still product_technical."
+              },
+              {
+                "case_id": "domain-v3:en:8:1:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "User has two simultaneous requests in different domains: ordering CF-10 (product/order) and checking shipment status of order #7712 (order_logistics)."
+              },
+              {
+                "case_id": "domain-v3:en:8:1:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "User withdraws the request with no remaining goal, just a courtesy thanks."
+              },
+              {
+                "case_id": "domain-v3:en:8:2:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User requests refund of duplicate charge and asks about delivery date; refund is the primary goal, both within billing/refund context."
+              },
+              {
+                "case_id": "domain-v3:en:8:2:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User cancels the subscription, a billing/account action within billing_refund."
+              },
+              {
+                "case_id": "domain-v3:en:8:2:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "User explicitly requests to speak to a supervisor about the billing mistake, an escalation."
+              },
+              {
+                "case_id": "domain-v3:en:8:3:0",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "User closes the conversation with thanks and a farewell, no remaining business goal."
+              },
+              {
+                "case_id": "domain-v3:en:8:3:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User shifts to a new goal about a late delivery, order_logistics."
+              },
+              {
+                "case_id": "domain-v3:en:8:3:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User asks about FitPro 2 WhatsApp support, a product compatibility question."
+              },
+              {
+                "case_id": "domain-v3:en:8:4:0",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "Two simultaneous requests in different domains: delivery intercept (order_logistics) and updating saved address (account_security)."
+              },
+              {
+                "case_id": "domain-v3:en:8:4:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User cancels the intercept and lets it go to wrong address, still order/delivery related."
+              },
+              {
+                "case_id": "domain-v3:en:8:4:2",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "User reports inability to log into account, a new account access/security issue."
+              },
+              {
+                "case_id": "domain-v3:en:8:5:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User chooses replacement and asks about return process, within return/exchange (billing_refund)."
+              },
+              {
+                "case_id": "domain-v3:en:8:5:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User switches to requesting a refund for the defective item."
+              },
+              {
+                "case_id": "domain-v3:en:8:5:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "User explicitly requests to talk to a real person, an escalation."
+              },
+              {
+                "case_id": "domain-v3:en:8:6:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User agrees to replacement and asks about blade design of the new one, a product question."
+              },
+              {
+                "case_id": "domain-v3:en:8:6:1",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "User withdraws the warranty request after realizing wrong store, no remaining goal."
+              },
+              {
+                "case_id": "domain-v3:en:8:6:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User wants to verify which blender in order history, an order-related clarification."
+              },
+              {
+                "case_id": "domain-v3:en:8:7:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User asks about delay duration, continuing the delivery inquiry."
+              },
+              {
+                "case_id": "domain-v3:en:8:7:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User requests cancel and refund of the delayed order, a refund request."
+              },
+              {
+                "case_id": "domain-v3:en:8:7:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User asks about tall size availability, a product question."
+              }
+            ]
+          },
+          "id": "call_00_qvc5IlWu5ud3BOKSVGzs9425",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 4884,
+        "output_tokens": 1369,
+        "total_tokens": 6253,
+        "input_token_details": {
+          "cache_read": 512,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "reviewed": {
+    "verdicts": [
+      {
+        "case_id": "domain-v3:en:8:0:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User explicitly drops the lamp delivery issue and replaces it with a new goal: returning headphones bought last week. Return/exchange is billing_refund."
+      },
+      {
+        "case_id": "domain-v3:en:8:0:1",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "User continues the delivery investigation and asks how long it takes, staying in order_logistics."
+      },
+      {
+        "case_id": "domain-v3:en:8:0:2",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "User asks whether another item was in the same shipment, still about the delivery/order."
+      },
+      {
+        "case_id": "domain-v3:en:8:1:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "User acknowledges the filter answer and asks a new product question about brewing noise, still product_technical."
+      },
+      {
+        "case_id": "domain-v3:en:8:1:1",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "User has two simultaneous requests in different domains: ordering CF-10 (product/order) and checking shipment status of order #7712 (order_logistics)."
+      },
+      {
+        "case_id": "domain-v3:en:8:1:2",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "User withdraws the request with no remaining goal, just a courtesy thanks."
+      },
+      {
+        "case_id": "domain-v3:en:8:2:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User requests refund of duplicate charge and asks about delivery date; refund is the primary goal, both within billing/refund context."
+      },
+      {
+        "case_id": "domain-v3:en:8:2:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User cancels the subscription, a billing/account action within billing_refund."
+      },
+      {
+        "case_id": "domain-v3:en:8:2:2",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "User explicitly requests to speak to a supervisor about the billing mistake, an escalation."
+      },
+      {
+        "case_id": "domain-v3:en:8:3:0",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "User closes the conversation with thanks and a farewell, no remaining business goal."
+      },
+      {
+        "case_id": "domain-v3:en:8:3:1",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "User shifts to a new goal about a late delivery, order_logistics."
+      },
+      {
+        "case_id": "domain-v3:en:8:3:2",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "User asks about FitPro 2 WhatsApp support, a product compatibility question."
+      },
+      {
+        "case_id": "domain-v3:en:8:4:0",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "Two simultaneous requests in different domains: delivery intercept (order_logistics) and updating saved address (account_security)."
+      },
+      {
+        "case_id": "domain-v3:en:8:4:1",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "User cancels the intercept and lets it go to wrong address, still order/delivery related."
+      },
+      {
+        "case_id": "domain-v3:en:8:4:2",
+        "label": "account_security",
+        "clear_and_natural": true,
+        "reason": "User reports inability to log into account, a new account access/security issue."
+      },
+      {
+        "case_id": "domain-v3:en:8:5:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User chooses replacement and asks about return process, within return/exchange (billing_refund)."
+      },
+      {
+        "case_id": "domain-v3:en:8:5:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User switches to requesting a refund for the defective item."
+      },
+      {
+        "case_id": "domain-v3:en:8:5:2",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "User explicitly requests to talk to a real person, an escalation."
+      },
+      {
+        "case_id": "domain-v3:en:8:6:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "User agrees to replacement and asks about blade design of the new one, a product question."
+      },
+      {
+        "case_id": "domain-v3:en:8:6:1",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "User withdraws the warranty request after realizing wrong store, no remaining goal."
+      },
+      {
+        "case_id": "domain-v3:en:8:6:2",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "User wants to verify which blender in order history, an order-related clarification."
+      },
+      {
+        "case_id": "domain-v3:en:8:7:0",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "User asks about delay duration, continuing the delivery inquiry."
+      },
+      {
+        "case_id": "domain-v3:en:8:7:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User requests cancel and refund of the delayed order, a refund request."
+      },
+      {
+        "case_id": "domain-v3:en:8:7:2",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "User asks about tall size availability, a product question."
+      }
+    ]
+  },
+  "rows": [
+    {
+      "case_id": "domain-v3:en:8:0:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My tracking says my lamp was delivered yesterday but I never got it. What can I do?"
+        },
+        {
+          "role": "assistant",
+          "content": "I'm sorry to hear that. Let me check the delivery details for you. Can you confirm your order number?"
+        },
+        {
+          "role": "user",
+          "content": "Sure, it's #48291. The carrier photo shows a doorstep but I live in an apartment building."
+        },
+        {
+          "role": "assistant",
+          "content": "Thank you. I see the carrier marked it as left at the front desk. Let me open an investigation with them."
+        }
+      ],
+      "text": "Actually, forget the lamp. I want to return the headphones I bought last week instead.",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:8:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:8:0:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My tracking says my lamp was delivered yesterday but I never got it. What can I do?"
+        },
+        {
+          "role": "assistant",
+          "content": "I'm sorry to hear that. Let me check the delivery details for you. Can you confirm your order number?"
+        },
+        {
+          "role": "user",
+          "content": "Sure, it's #48291. The carrier photo shows a doorstep but I live in an apartment building."
+        },
+        {
+          "role": "assistant",
+          "content": "Thank you. I see the carrier marked it as left at the front desk. Let me open an investigation with them."
+        }
+      ],
+      "text": "Okay, please go ahead with the investigation. Also, how long does that usually take?",
+      "label": "order_logistics",
+      "language": "en",
+      "group_id": "domain-v3:en:8:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:8:0:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My tracking says my lamp was delivered yesterday but I never got it. What can I do?"
+        },
+        {
+          "role": "assistant",
+          "content": "I'm sorry to hear that. Let me check the delivery details for you. Can you confirm your order number?"
+        },
+        {
+          "role": "user",
+          "content": "Sure, it's #48291. The carrier photo shows a doorstep but I live in an apartment building."
+        },
+        {
+          "role": "assistant",
+          "content": "Thank you. I see the carrier marked it as left at the front desk. Let me open an investigation with them."
+        }
+      ],
+      "text": "Wait, I also ordered a mouse pad in the same shipment. Was that in the same box?",
+      "label": "order_logistics",
+      "language": "en",
+      "group_id": "domain-v3:en:8:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:8:1:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Hi, I bought your drip coffee maker model CM-200 about four months ago."
+        },
+        {
+          "role": "assistant",
+          "content": "Great, how can I help you with your CM-200 today?"
+        },
+        {
+          "role": "user",
+          "content": "The manual mentions a charcoal water filter that should be swapped every two months. I never got any in the box."
+        },
+        {
+          "role": "assistant",
+          "content": "The CM-200 ships with one filter pre-installed. Replacement filters are sold separately under SKU CF-10."
+        }
+      ],
+      "text": "Thanks, that answers it. By the way, is it supposed to make that gurgling noise when brewing?",
+      "label": "product_technical",
+      "language": "en",
+      "group_id": "domain-v3:en:8:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:8:2:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I see two charges on my card for my monthly cat food subscription this month."
+        },
+        {
+          "role": "assistant",
+          "content": "I apologize for that. Let me pull up your subscription account to check for duplicate billing."
+        },
+        {
+          "role": "user",
+          "content": "It's under my email jane.k@mail.com. Both charges are for $34.99, one on the 2nd and one on the 5th."
+        },
+        {
+          "role": "assistant",
+          "content": "I can see the duplicate. The second charge was triggered by a system error when you updated your payment method."
+        }
+      ],
+      "text": "Please refund the second charge. And will this mess up my next delivery date?",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:8:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:8:2:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I see two charges on my card for my monthly cat food subscription this month."
+        },
+        {
+          "role": "assistant",
+          "content": "I apologize for that. Let me pull up your subscription account to check for duplicate billing."
+        },
+        {
+          "role": "user",
+          "content": "It's under my email jane.k@mail.com. Both charges are for $34.99, one on the 2nd and one on the 5th."
+        },
+        {
+          "role": "assistant",
+          "content": "I can see the duplicate. The second charge was triggered by a system error when you updated your payment method."
+        }
+      ],
+      "text": "I see. Can you just cancel the whole subscription then? I'll go back to buying in store.",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:8:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:8:2:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I see two charges on my card for my monthly cat food subscription this month."
+        },
+        {
+          "role": "assistant",
+          "content": "I apologize for that. Let me pull up your subscription account to check for duplicate billing."
+        },
+        {
+          "role": "user",
+          "content": "It's under my email jane.k@mail.com. Both charges are for $34.99, one on the 2nd and one on the 5th."
+        },
+        {
+          "role": "assistant",
+          "content": "I can see the duplicate. The second charge was triggered by a system error when you updated your payment method."
+        }
+      ],
+      "text": "That's frustrating. I want to speak to a supervisor about this billing mistake.",
+      "label": "human_service",
+      "language": "en",
+      "group_id": "domain-v3:en:8:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:8:3:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Does your FitPro 3 watch work with a Samsung Galaxy A54?"
+        },
+        {
+          "role": "assistant",
+          "content": "Yes, the FitPro 3 is compatible with Android 10 and above, so the A54 works fine."
+        },
+        {
+          "role": "user",
+          "content": "Great. And can I receive WhatsApp notifications on it, or just calls?"
+        },
+        {
+          "role": "assistant",
+          "content": "You can receive WhatsApp, SMS, and call notifications. You just need to grant notification access in the app."
+        }
+      ],
+      "text": "Perfect, that's all I needed. Have a nice day!",
+      "label": "general",
+      "language": "en",
+      "group_id": "domain-v3:en:8:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:8:3:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Does your FitPro 3 watch work with a Samsung Galaxy A54?"
+        },
+        {
+          "role": "assistant",
+          "content": "Yes, the FitPro 3 is compatible with Android 10 and above, so the A54 works fine."
+        },
+        {
+          "role": "user",
+          "content": "Great. And can I receive WhatsApp notifications on it, or just calls?"
+        },
+        {
+          "role": "assistant",
+          "content": "You can receive WhatsApp, SMS, and call notifications. You just need to grant notification access in the app."
+        }
+      ],
+      "text": "One more thing — my order for the FitPro 3 was supposed to arrive Tuesday but it's Thursday now. Where is it?",
+      "label": "order_logistics",
+      "language": "en",
+      "group_id": "domain-v3:en:8:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:8:3:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Does your FitPro 3 watch work with a Samsung Galaxy A54?"
+        },
+        {
+          "role": "assistant",
+          "content": "Yes, the FitPro 3 is compatible with Android 10 and above, so the A54 works fine."
+        },
+        {
+          "role": "user",
+          "content": "Great. And can I receive WhatsApp notifications on it, or just calls?"
+        },
+        {
+          "role": "assistant",
+          "content": "You can receive WhatsApp, SMS, and call notifications. You just need to grant notification access in the app."
+        }
+      ],
+      "text": "Actually, I'm reconsidering. Does the older FitPro 2 have the same WhatsApp support? Maybe I should get that one.",
+      "label": "product_technical",
+      "language": "en",
+      "group_id": "domain-v3:en:8:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:8:4:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I think I typed my zip code wrong on my last order. It says out for delivery but I'm worried."
+        },
+        {
+          "role": "assistant",
+          "content": "Let me check. What's the order number and the zip code you entered?"
+        },
+        {
+          "role": "user",
+          "content": "Order #9034, and I put 90210 but I actually live in 90211. It's already out for delivery though."
+        },
+        {
+          "role": "assistant",
+          "content": "I see that. Since it's already with the courier, I'll flag it for a delivery intercept right away."
+        }
+      ],
+      "text": "Actually, you know what, just let it go to the wrong address. I'll deal with it. Cancel the intercept.",
+      "label": "order_logistics",
+      "language": "en",
+      "group_id": "domain-v3:en:8:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:8:4:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I think I typed my zip code wrong on my last order. It says out for delivery but I'm worried."
+        },
+        {
+          "role": "assistant",
+          "content": "Let me check. What's the order number and the zip code you entered?"
+        },
+        {
+          "role": "user",
+          "content": "Order #9034, and I put 90210 but I actually live in 90211. It's already out for delivery though."
+        },
+        {
+          "role": "assistant",
+          "content": "I see that. Since it's already with the courier, I'll flag it for a delivery intercept right away."
+        }
+      ],
+      "text": "Hold on, I also can't log into my account to check anything. It keeps saying wrong password.",
+      "label": "account_security",
+      "language": "en",
+      "group_id": "domain-v3:en:8:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:8:5:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My yoga mat arrived today and there's a two-inch tear along the edge."
+        },
+        {
+          "role": "assistant",
+          "content": "Oh no, I'm sorry about that. Was it in the original packaging when you opened it?"
+        },
+        {
+          "role": "user",
+          "content": "Yes, the box was sealed and undamaged. It must have been a manufacturing defect."
+        },
+        {
+          "role": "assistant",
+          "content": "Understood. Since it's defective, we can offer a replacement or a full refund including shipping."
+        }
+      ],
+      "text": "I'll take the replacement. But wait, will I need to send the torn one back first?",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:8:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:8:5:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My yoga mat arrived today and there's a two-inch tear along the edge."
+        },
+        {
+          "role": "assistant",
+          "content": "Oh no, I'm sorry about that. Was it in the original packaging when you opened it?"
+        },
+        {
+          "role": "user",
+          "content": "Yes, the box was sealed and undamaged. It must have been a manufacturing defect."
+        },
+        {
+          "role": "assistant",
+          "content": "Understood. Since it's defective, we can offer a replacement or a full refund including shipping."
+        }
+      ],
+      "text": "Actually, I'd rather just get my money back. Please process the refund.",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:8:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:8:5:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My yoga mat arrived today and there's a two-inch tear along the edge."
+        },
+        {
+          "role": "assistant",
+          "content": "Oh no, I'm sorry about that. Was it in the original packaging when you opened it?"
+        },
+        {
+          "role": "user",
+          "content": "Yes, the box was sealed and undamaged. It must have been a manufacturing defect."
+        },
+        {
+          "role": "assistant",
+          "content": "Understood. Since it's defective, we can offer a replacement or a full refund including shipping."
+        }
+      ],
+      "text": "Thanks. Also, is there a way to talk to a real person about this? The chat bot has been fine but I want a human.",
+      "label": "human_service",
+      "language": "en",
+      "group_id": "domain-v3:en:8:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:8:6:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My blender's motor stopped working after about a year. Is that covered under warranty?"
+        },
+        {
+          "role": "assistant",
+          "content": "Our blenders carry a 2-year warranty. Do you have your purchase receipt or order number handy?"
+        },
+        {
+          "role": "user",
+          "content": "I bought it from your site, order #5510. It was in January of last year."
+        },
+        {
+          "role": "assistant",
+          "content": "Perfect, that order is within the warranty window. I can set up a repair or replacement for you."
+        }
+      ],
+      "text": "Great, let's do the replacement. Oh, and do you know if the new one comes with a different blade design?",
+      "label": "product_technical",
+      "language": "en",
+      "group_id": "domain-v3:en:8:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:8:6:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My blender's motor stopped working after about a year. Is that covered under warranty?"
+        },
+        {
+          "role": "assistant",
+          "content": "Our blenders carry a 2-year warranty. Do you have your purchase receipt or order number handy?"
+        },
+        {
+          "role": "user",
+          "content": "I bought it from your site, order #5510. It was in January of last year."
+        },
+        {
+          "role": "assistant",
+          "content": "Perfect, that order is within the warranty window. I can set up a repair or replacement for you."
+        }
+      ],
+      "text": "Before we do that — my order history shows two blenders. I want to make sure we're talking about the right one.",
+      "label": "order_logistics",
+      "language": "en",
+      "group_id": "domain-v3:en:8:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:8:7:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I ordered a winter jacket on the 10th and it was supposed to arrive by the 18th. It's the 20th now."
+        },
+        {
+          "role": "assistant",
+          "content": "Let me look into that. Can I have your order number?"
+        },
+        {
+          "role": "user",
+          "content": "It's #6621. The tracking hasn't updated in four days, it just says 'in transit'."
+        },
+        {
+          "role": "assistant",
+          "content": "I see the carrier has a weather delay notice for your region. The package is safe, just held up."
+        }
+      ],
+      "text": "Okay, that's reassuring. How much longer do you think the delay will be?",
+      "label": "order_logistics",
+      "language": "en",
+      "group_id": "domain-v3:en:8:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:8:7:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I ordered a winter jacket on the 10th and it was supposed to arrive by the 18th. It's the 20th now."
+        },
+        {
+          "role": "assistant",
+          "content": "Let me look into that. Can I have your order number?"
+        },
+        {
+          "role": "user",
+          "content": "It's #6621. The tracking hasn't updated in four days, it just says 'in transit'."
+        },
+        {
+          "role": "assistant",
+          "content": "I see the carrier has a weather delay notice for your region. The package is safe, just held up."
+        }
+      ],
+      "text": "I can't wait any longer — I leave for my trip Friday. Can you cancel and refund this?",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:8:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:8:7:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I ordered a winter jacket on the 10th and it was supposed to arrive by the 18th. It's the 20th now."
+        },
+        {
+          "role": "assistant",
+          "content": "Let me look into that. Can I have your order number?"
+        },
+        {
+          "role": "user",
+          "content": "It's #6621. The tracking hasn't updated in four days, it just says 'in transit'."
+        },
+        {
+          "role": "assistant",
+          "content": "I see the carrier has a weather delay notice for your region. The package is safe, just held up."
+        }
+      ],
+      "text": "Thanks for checking. By the way, do you carry this jacket in a tall size? I might order another one.",
+      "label": "product_technical",
+      "language": "en",
+      "group_id": "domain-v3:en:8:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    }
+  ],
+  "rejected": [
+    {
+      "case_id": "domain-v3:en:8:1:1",
+      "author": "order_logistics",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "User has two simultaneous requests in different domains: ordering CF-10 (product/order) and checking shipment status of order #7712 (order_logistics)."
+    },
+    {
+      "case_id": "domain-v3:en:8:1:2",
+      "author": "__DEFER__",
+      "label": "general",
+      "clear_and_natural": true,
+      "reason": "User withdraws the request with no remaining goal, just a courtesy thanks."
+    },
+    {
+      "case_id": "domain-v3:en:8:4:0",
+      "author": "order_logistics",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "Two simultaneous requests in different domains: delivery intercept (order_logistics) and updating saved address (account_security)."
+    },
+    {
+      "case_id": "domain-v3:en:8:6:1",
+      "author": "__DEFER__",
+      "label": "general",
+      "clear_and_natural": true,
+      "reason": "User withdraws the warranty request after realizing wrong store, no remaining goal."
+    }
+  ],
+  "status": "reviewed"
+}

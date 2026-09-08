@@ -1,0 +1,2010 @@
+{
+  "batch_id": "domain-v3:en:9",
+  "language": "en",
+  "split": "train",
+  "models": {
+    "author": "deepseek-v4-flash",
+    "review": "deepseek-v4-pro"
+  },
+  "review_protocol": "label-blind-batch-v1",
+  "synthetic": true,
+  "author_prompt": "Author 8 DIFFERENT natural ecommerce customer-service dialogue families in en.\nBatch 9; ensure at least four current turns classified as billing_refund across this batch.\nEach family has its OWN coherent history of 2, 4 or 6 short alternating user/assistant\nmessages, followed by 3 ALTERNATIVE current user turns, not three sequential turns.\nThose alternatives differ in effective intent: retain vs replace, withdraw vs\ncontinue, single goal vs concurrent goal, or resolved vs unresolved reference.\nInclude natural short answers where history matters. Vary old completed tasks,\nhesitation, self-correction, indirect wording, topics and dialogue acts. General\nand human-service requests must also occur as NEW goals, not only stale history.\nDo not follow a repeated sentence template or substitute product nouns to create\nnew families. Avoid stereotyped 'information only, do not submit' repetition.\nInvent broad everyday ecommerce situations; no copied benchmark or private data.\nHistory plus current turn should fit 150 English words or 180 Chinese characters;\nkeep it compact but meaningful. No future replies or final conversation summaries.\nSupply the correct label for each alternative according to the rubric.\n",
+  "author_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_UcdNfxtI3WFJqTnXAGWZ8891",
+          "input": {
+            "families": [
+              {
+                "scenario": "Customer bought a desk lamp that arrived with a cracked base.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My lamp just arrived and the base is cracked. I'm pretty disappointed."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry to hear that. Could you share a photo of the damage so we can look into it?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Sure, here's the photo. What happens next?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Thanks. Since it arrived damaged, we can send a replacement or issue a refund — your choice."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "I'd like the refund please, and can you confirm it goes back to my original card?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Actually, forget the refund — just send me a new one.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Hmm, wait — I also noticed the box had a different shipping label with someone else's name on it. Is that a concern?",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer ordered a coffee maker two weeks ago and it was delivered yesterday.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My coffee maker finally came yesterday. Thanks for the tracking updates."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "You're welcome! Glad it arrived safely. Anything else I can help with?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Actually yes — the water reservoir has a weird plastic smell when I run it."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That can happen with new machines. Running a vinegar cycle usually clears it up. Want me to walk you through it?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "I tried the vinegar trick and it still smells. Can I return it for a refund?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "No, I'll try it again first. Thanks for the tip.",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Before that — I never got the invoice email for this order. Can you resend it?",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer is asking about a smartwatch they received as a gift.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I got a smartwatch as a gift but I don't have the receipt. Can I still get support?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "We can look it up by serial number. Could you check the back of the watch or the box?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Found it — the serial is SW-8842-991. Does that help?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Perfect, I can see the warranty is active until March next year. What's the issue?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "The heart-rate monitor reads way off during workouts. Is that a known defect?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Actually, I'd rather just return it — the gifter said they'd take it back if I didn't like it. How does that work without a receipt?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Can you connect me to a real person? I've been going back and forth and I'm getting frustrated.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer purchased winter boots but the wrong size was sent.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I ordered size 9 boots but the box says size 8.5."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Oh no, that's our mistake. Would you like an exchange or a refund?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Exchange, please. I need the 9s before my trip next Friday."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Understood. I'll set up the exchange with express shipping so it arrives by Wednesday."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Actually, on second thought, just refund me — I found the same boots cheaper elsewhere.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Great, thanks. Oh, and while you're at it, can you check if my account password was changed recently? I got a weird email.",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "Wait, I changed my mind — keep the exchange but also tell me if I can get a price adjustment since they're on sale now.",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer is asking about a blender that stopped working after two months.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My blender just stopped spinning mid-smoothie. It's only two months old."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That's within the warranty period. Have you checked whether the base is properly locked into place?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Yes, it's locked. I also tried a different outlet. Nothing."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Thanks for checking. We can either repair it under warranty or replace it. Which do you prefer?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Honestly, I just want my money back. This is the second blender that's failed on me.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Replace it, but can you make sure the new one ships to my office address this time?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "I don't know — what do you recommend? I use it daily for meal prep.",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer ordered a bookshelf and is checking on delivery.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Hi, I ordered a bookshelf on Monday. Any idea when it ships?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me check — it looks like it's scheduled to ship tomorrow from our Ohio warehouse."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Okay, good. And the delivery window is 3-5 business days after that, right?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Correct, so you should see it by early next week. I'll keep an eye on it for you."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Perfect, thanks for confirming. Have a great day!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Actually, I need to cancel it — I'm moving and won't have space for it anymore.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "One more thing — the payment went through twice on my statement. Can you sort that out?",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer received a damaged ceramic vase and wants to discuss options.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "The vase I ordered arrived shattered. Completely in pieces."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That's terrible — I apologize. We'll make this right. Would you like a replacement or a refund?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "I'm leaning toward a replacement since it's a gift for my mom's anniversary."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Of course. I can expedite a replacement so it arrives in time. Shall I proceed?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Yes, go ahead with the replacement. And please double-check the packaging this time.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Actually, no — my mom said she'd rather pick something herself. Just refund me.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Hold on, I also want to file a complaint about the delivery company. Who handles that?",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer bought a yoga mat that has a strong chemical odor.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "The yoga mat I got reeks of chemicals. I aired it out for three days and it's still strong."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That's unusual for our mats. Could you tell me the batch number printed on the label?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It says B-2207. Does that tell you anything?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Thanks — that batch had a known adhesive issue. We've flagged it for recall. We can offer a full refund or a swap for a different model."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "I'll take the refund. Also, should I be worried about health effects from using it?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Swap me to the cork model instead. Is that one free of the adhesive problem?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Can I speak to a supervisor about this? I want to make sure the recall is properly documented.",
+                    "label": "human_service"
+                  }
+                ]
+              }
+            ]
+          },
+          "name": "AuthoredBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "00f5b1e8-4b35-416c-9309-9e41c49f36bc",
+        "container": null,
+        "model": "deepseek-v4-flash",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 640,
+          "inference_geo": null,
+          "input_tokens": 321,
+          "output_tokens": 1993,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-flash",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d8-0846-7f42-aee6-54a711aa1edb-0",
+      "tool_calls": [
+        {
+          "name": "AuthoredBatch",
+          "args": {
+            "families": [
+              {
+                "scenario": "Customer bought a desk lamp that arrived with a cracked base.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My lamp just arrived and the base is cracked. I'm pretty disappointed."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry to hear that. Could you share a photo of the damage so we can look into it?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Sure, here's the photo. What happens next?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Thanks. Since it arrived damaged, we can send a replacement or issue a refund — your choice."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "I'd like the refund please, and can you confirm it goes back to my original card?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Actually, forget the refund — just send me a new one.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Hmm, wait — I also noticed the box had a different shipping label with someone else's name on it. Is that a concern?",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer ordered a coffee maker two weeks ago and it was delivered yesterday.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My coffee maker finally came yesterday. Thanks for the tracking updates."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "You're welcome! Glad it arrived safely. Anything else I can help with?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Actually yes — the water reservoir has a weird plastic smell when I run it."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That can happen with new machines. Running a vinegar cycle usually clears it up. Want me to walk you through it?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "I tried the vinegar trick and it still smells. Can I return it for a refund?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "No, I'll try it again first. Thanks for the tip.",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Before that — I never got the invoice email for this order. Can you resend it?",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer is asking about a smartwatch they received as a gift.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I got a smartwatch as a gift but I don't have the receipt. Can I still get support?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "We can look it up by serial number. Could you check the back of the watch or the box?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Found it — the serial is SW-8842-991. Does that help?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Perfect, I can see the warranty is active until March next year. What's the issue?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "The heart-rate monitor reads way off during workouts. Is that a known defect?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Actually, I'd rather just return it — the gifter said they'd take it back if I didn't like it. How does that work without a receipt?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Can you connect me to a real person? I've been going back and forth and I'm getting frustrated.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer purchased winter boots but the wrong size was sent.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I ordered size 9 boots but the box says size 8.5."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Oh no, that's our mistake. Would you like an exchange or a refund?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Exchange, please. I need the 9s before my trip next Friday."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Understood. I'll set up the exchange with express shipping so it arrives by Wednesday."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Actually, on second thought, just refund me — I found the same boots cheaper elsewhere.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Great, thanks. Oh, and while you're at it, can you check if my account password was changed recently? I got a weird email.",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "Wait, I changed my mind — keep the exchange but also tell me if I can get a price adjustment since they're on sale now.",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer is asking about a blender that stopped working after two months.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My blender just stopped spinning mid-smoothie. It's only two months old."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That's within the warranty period. Have you checked whether the base is properly locked into place?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Yes, it's locked. I also tried a different outlet. Nothing."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Thanks for checking. We can either repair it under warranty or replace it. Which do you prefer?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Honestly, I just want my money back. This is the second blender that's failed on me.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Replace it, but can you make sure the new one ships to my office address this time?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "I don't know — what do you recommend? I use it daily for meal prep.",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer ordered a bookshelf and is checking on delivery.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Hi, I ordered a bookshelf on Monday. Any idea when it ships?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me check — it looks like it's scheduled to ship tomorrow from our Ohio warehouse."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Okay, good. And the delivery window is 3-5 business days after that, right?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Correct, so you should see it by early next week. I'll keep an eye on it for you."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Perfect, thanks for confirming. Have a great day!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Actually, I need to cancel it — I'm moving and won't have space for it anymore.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "One more thing — the payment went through twice on my statement. Can you sort that out?",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer received a damaged ceramic vase and wants to discuss options.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "The vase I ordered arrived shattered. Completely in pieces."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That's terrible — I apologize. We'll make this right. Would you like a replacement or a refund?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "I'm leaning toward a replacement since it's a gift for my mom's anniversary."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Of course. I can expedite a replacement so it arrives in time. Shall I proceed?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Yes, go ahead with the replacement. And please double-check the packaging this time.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Actually, no — my mom said she'd rather pick something herself. Just refund me.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Hold on, I also want to file a complaint about the delivery company. Who handles that?",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer bought a yoga mat that has a strong chemical odor.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "The yoga mat I got reeks of chemicals. I aired it out for three days and it's still strong."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That's unusual for our mats. Could you tell me the batch number printed on the label?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It says B-2207. Does that tell you anything?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Thanks — that batch had a known adhesive issue. We've flagged it for recall. We can offer a full refund or a swap for a different model."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "I'll take the refund. Also, should I be worried about health effects from using it?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Swap me to the cork model instead. Is that one free of the adhesive problem?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Can I speak to a supervisor about this? I want to make sure the recall is properly documented.",
+                    "label": "human_service"
+                  }
+                ]
+              }
+            ]
+          },
+          "id": "call_00_UcdNfxtI3WFJqTnXAGWZ8891",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 961,
+        "output_tokens": 1993,
+        "total_tokens": 2954,
+        "input_token_details": {
+          "cache_read": 640,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "authored": {
+    "families": [
+      {
+        "scenario": "Customer bought a desk lamp that arrived with a cracked base.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "My lamp just arrived and the base is cracked. I'm pretty disappointed."
+          },
+          {
+            "role": "assistant",
+            "content": "I'm sorry to hear that. Could you share a photo of the damage so we can look into it?"
+          },
+          {
+            "role": "user",
+            "content": "Sure, here's the photo. What happens next?"
+          },
+          {
+            "role": "assistant",
+            "content": "Thanks. Since it arrived damaged, we can send a replacement or issue a refund — your choice."
+          }
+        ],
+        "variants": [
+          {
+            "text": "I'd like the refund please, and can you confirm it goes back to my original card?",
+            "label": "billing_refund"
+          },
+          {
+            "text": "Actually, forget the refund — just send me a new one.",
+            "label": "order_logistics"
+          },
+          {
+            "text": "Hmm, wait — I also noticed the box had a different shipping label with someone else's name on it. Is that a concern?",
+            "label": "order_logistics"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer ordered a coffee maker two weeks ago and it was delivered yesterday.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "My coffee maker finally came yesterday. Thanks for the tracking updates."
+          },
+          {
+            "role": "assistant",
+            "content": "You're welcome! Glad it arrived safely. Anything else I can help with?"
+          },
+          {
+            "role": "user",
+            "content": "Actually yes — the water reservoir has a weird plastic smell when I run it."
+          },
+          {
+            "role": "assistant",
+            "content": "That can happen with new machines. Running a vinegar cycle usually clears it up. Want me to walk you through it?"
+          }
+        ],
+        "variants": [
+          {
+            "text": "I tried the vinegar trick and it still smells. Can I return it for a refund?",
+            "label": "billing_refund"
+          },
+          {
+            "text": "No, I'll try it again first. Thanks for the tip.",
+            "label": "general"
+          },
+          {
+            "text": "Before that — I never got the invoice email for this order. Can you resend it?",
+            "label": "billing_refund"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer is asking about a smartwatch they received as a gift.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "I got a smartwatch as a gift but I don't have the receipt. Can I still get support?"
+          },
+          {
+            "role": "assistant",
+            "content": "We can look it up by serial number. Could you check the back of the watch or the box?"
+          },
+          {
+            "role": "user",
+            "content": "Found it — the serial is SW-8842-991. Does that help?"
+          },
+          {
+            "role": "assistant",
+            "content": "Perfect, I can see the warranty is active until March next year. What's the issue?"
+          }
+        ],
+        "variants": [
+          {
+            "text": "The heart-rate monitor reads way off during workouts. Is that a known defect?",
+            "label": "product_technical"
+          },
+          {
+            "text": "Actually, I'd rather just return it — the gifter said they'd take it back if I didn't like it. How does that work without a receipt?",
+            "label": "billing_refund"
+          },
+          {
+            "text": "Can you connect me to a real person? I've been going back and forth and I'm getting frustrated.",
+            "label": "human_service"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer purchased winter boots but the wrong size was sent.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "I ordered size 9 boots but the box says size 8.5."
+          },
+          {
+            "role": "assistant",
+            "content": "Oh no, that's our mistake. Would you like an exchange or a refund?"
+          },
+          {
+            "role": "user",
+            "content": "Exchange, please. I need the 9s before my trip next Friday."
+          },
+          {
+            "role": "assistant",
+            "content": "Understood. I'll set up the exchange with express shipping so it arrives by Wednesday."
+          }
+        ],
+        "variants": [
+          {
+            "text": "Actually, on second thought, just refund me — I found the same boots cheaper elsewhere.",
+            "label": "billing_refund"
+          },
+          {
+            "text": "Great, thanks. Oh, and while you're at it, can you check if my account password was changed recently? I got a weird email.",
+            "label": "account_security"
+          },
+          {
+            "text": "Wait, I changed my mind — keep the exchange but also tell me if I can get a price adjustment since they're on sale now.",
+            "label": "billing_refund"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer is asking about a blender that stopped working after two months.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "My blender just stopped spinning mid-smoothie. It's only two months old."
+          },
+          {
+            "role": "assistant",
+            "content": "That's within the warranty period. Have you checked whether the base is properly locked into place?"
+          },
+          {
+            "role": "user",
+            "content": "Yes, it's locked. I also tried a different outlet. Nothing."
+          },
+          {
+            "role": "assistant",
+            "content": "Thanks for checking. We can either repair it under warranty or replace it. Which do you prefer?"
+          }
+        ],
+        "variants": [
+          {
+            "text": "Honestly, I just want my money back. This is the second blender that's failed on me.",
+            "label": "billing_refund"
+          },
+          {
+            "text": "Replace it, but can you make sure the new one ships to my office address this time?",
+            "label": "order_logistics"
+          },
+          {
+            "text": "I don't know — what do you recommend? I use it daily for meal prep.",
+            "label": "product_technical"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer ordered a bookshelf and is checking on delivery.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Hi, I ordered a bookshelf on Monday. Any idea when it ships?"
+          },
+          {
+            "role": "assistant",
+            "content": "Let me check — it looks like it's scheduled to ship tomorrow from our Ohio warehouse."
+          },
+          {
+            "role": "user",
+            "content": "Okay, good. And the delivery window is 3-5 business days after that, right?"
+          },
+          {
+            "role": "assistant",
+            "content": "Correct, so you should see it by early next week. I'll keep an eye on it for you."
+          }
+        ],
+        "variants": [
+          {
+            "text": "Perfect, thanks for confirming. Have a great day!",
+            "label": "general"
+          },
+          {
+            "text": "Actually, I need to cancel it — I'm moving and won't have space for it anymore.",
+            "label": "order_logistics"
+          },
+          {
+            "text": "One more thing — the payment went through twice on my statement. Can you sort that out?",
+            "label": "billing_refund"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer received a damaged ceramic vase and wants to discuss options.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "The vase I ordered arrived shattered. Completely in pieces."
+          },
+          {
+            "role": "assistant",
+            "content": "That's terrible — I apologize. We'll make this right. Would you like a replacement or a refund?"
+          },
+          {
+            "role": "user",
+            "content": "I'm leaning toward a replacement since it's a gift for my mom's anniversary."
+          },
+          {
+            "role": "assistant",
+            "content": "Of course. I can expedite a replacement so it arrives in time. Shall I proceed?"
+          }
+        ],
+        "variants": [
+          {
+            "text": "Yes, go ahead with the replacement. And please double-check the packaging this time.",
+            "label": "order_logistics"
+          },
+          {
+            "text": "Actually, no — my mom said she'd rather pick something herself. Just refund me.",
+            "label": "billing_refund"
+          },
+          {
+            "text": "Hold on, I also want to file a complaint about the delivery company. Who handles that?",
+            "label": "human_service"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer bought a yoga mat that has a strong chemical odor.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "The yoga mat I got reeks of chemicals. I aired it out for three days and it's still strong."
+          },
+          {
+            "role": "assistant",
+            "content": "That's unusual for our mats. Could you tell me the batch number printed on the label?"
+          },
+          {
+            "role": "user",
+            "content": "It says B-2207. Does that tell you anything?"
+          },
+          {
+            "role": "assistant",
+            "content": "Thanks — that batch had a known adhesive issue. We've flagged it for recall. We can offer a full refund or a swap for a different model."
+          }
+        ],
+        "variants": [
+          {
+            "text": "I'll take the refund. Also, should I be worried about health effects from using it?",
+            "label": "billing_refund"
+          },
+          {
+            "text": "Swap me to the cork model instead. Is that one free of the adhesive problem?",
+            "label": "product_technical"
+          },
+          {
+            "text": "Can I speak to a supervisor about this? I want to make sure the recall is properly documented.",
+            "label": "human_service"
+          }
+        ]
+      }
+    ]
+  },
+  "review_input_sha256": "457c9244c75f553d05eb01c79d435920450507d42c8f0dfb0e15cb7e98569dff",
+  "review_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_BsDmc5RqC2MUFeQk4YJz9241",
+          "input": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:en:9:0:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User chooses refund and asks about it going back to original card — refund/payment domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:0:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User replaces refund with a replacement shipment — order/logistics domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:0:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User raises a shipping label concern — order/logistics domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:1:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User asks to return for a refund — refund/return domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:1:1",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "User declines help and thanks — no remaining business goal, ordinary courtesy."
+              },
+              {
+                "case_id": "domain-v3:en:9:1:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User asks to resend invoice email — billing/invoice domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:2:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User asks about a product defect — product/technical domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:2:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User wants to return the item — return/refund domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:2:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "User explicitly requests a real person/escalation."
+              },
+              {
+                "case_id": "domain-v3:en:9:3:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User replaces exchange with a refund — refund domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:3:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "Two simultaneous requests in different domains: exchange (order) plus account password check (account_security)."
+              },
+              {
+                "case_id": "domain-v3:en:9:3:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User keeps exchange but adds price adjustment request — both within billing/refund domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:4:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User wants money back — refund domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:4:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User chooses replacement and specifies shipping address — order/logistics domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:4:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User asks for recommendation on repair vs replace for a product issue — product/technical domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:5:0",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "User thanks and signs off — no remaining business goal."
+              },
+              {
+                "case_id": "domain-v3:en:9:5:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User requests cancellation before dispatch — order/logistics domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:5:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User reports double payment — billing/payment domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:6:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User confirms replacement and packaging — order/logistics domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:6:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User replaces replacement with a refund — refund domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:6:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "User wants to file a complaint about delivery company — escalation/complaint domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:7:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User takes refund; health question is secondary/courtesy attached to the refund goal."
+              },
+              {
+                "case_id": "domain-v3:en:9:7:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User chooses swap to a different model — order/logistics domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:7:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "User requests a supervisor/escalation about recall documentation."
+              }
+            ]
+          },
+          "name": "ReviewedBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "553cc868-2144-45b3-b79d-8118f0d5c1c0",
+        "container": null,
+        "model": "deepseek-v4-pro",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "inference_geo": null,
+          "input_tokens": 4096,
+          "output_tokens": 1267,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-pro",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d8-465b-7971-a6d4-8946177d34ed-0",
+      "tool_calls": [
+        {
+          "name": "ReviewedBatch",
+          "args": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:en:9:0:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User chooses refund and asks about it going back to original card — refund/payment domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:0:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User replaces refund with a replacement shipment — order/logistics domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:0:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User raises a shipping label concern — order/logistics domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:1:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User asks to return for a refund — refund/return domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:1:1",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "User declines help and thanks — no remaining business goal, ordinary courtesy."
+              },
+              {
+                "case_id": "domain-v3:en:9:1:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User asks to resend invoice email — billing/invoice domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:2:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User asks about a product defect — product/technical domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:2:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User wants to return the item — return/refund domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:2:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "User explicitly requests a real person/escalation."
+              },
+              {
+                "case_id": "domain-v3:en:9:3:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User replaces exchange with a refund — refund domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:3:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "Two simultaneous requests in different domains: exchange (order) plus account password check (account_security)."
+              },
+              {
+                "case_id": "domain-v3:en:9:3:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User keeps exchange but adds price adjustment request — both within billing/refund domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:4:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User wants money back — refund domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:4:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User chooses replacement and specifies shipping address — order/logistics domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:4:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User asks for recommendation on repair vs replace for a product issue — product/technical domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:5:0",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "User thanks and signs off — no remaining business goal."
+              },
+              {
+                "case_id": "domain-v3:en:9:5:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User requests cancellation before dispatch — order/logistics domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:5:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User reports double payment — billing/payment domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:6:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User confirms replacement and packaging — order/logistics domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:6:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User replaces replacement with a refund — refund domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:6:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "User wants to file a complaint about delivery company — escalation/complaint domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:7:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User takes refund; health question is secondary/courtesy attached to the refund goal."
+              },
+              {
+                "case_id": "domain-v3:en:9:7:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User chooses swap to a different model — order/logistics domain."
+              },
+              {
+                "case_id": "domain-v3:en:9:7:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "User requests a supervisor/escalation about recall documentation."
+              }
+            ]
+          },
+          "id": "call_00_BsDmc5RqC2MUFeQk4YJz9241",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 4608,
+        "output_tokens": 1267,
+        "total_tokens": 5875,
+        "input_token_details": {
+          "cache_read": 512,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "reviewed": {
+    "verdicts": [
+      {
+        "case_id": "domain-v3:en:9:0:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User chooses refund and asks about it going back to original card — refund/payment domain."
+      },
+      {
+        "case_id": "domain-v3:en:9:0:1",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "User replaces refund with a replacement shipment — order/logistics domain."
+      },
+      {
+        "case_id": "domain-v3:en:9:0:2",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "User raises a shipping label concern — order/logistics domain."
+      },
+      {
+        "case_id": "domain-v3:en:9:1:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User asks to return for a refund — refund/return domain."
+      },
+      {
+        "case_id": "domain-v3:en:9:1:1",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "User declines help and thanks — no remaining business goal, ordinary courtesy."
+      },
+      {
+        "case_id": "domain-v3:en:9:1:2",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User asks to resend invoice email — billing/invoice domain."
+      },
+      {
+        "case_id": "domain-v3:en:9:2:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "User asks about a product defect — product/technical domain."
+      },
+      {
+        "case_id": "domain-v3:en:9:2:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User wants to return the item — return/refund domain."
+      },
+      {
+        "case_id": "domain-v3:en:9:2:2",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "User explicitly requests a real person/escalation."
+      },
+      {
+        "case_id": "domain-v3:en:9:3:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User replaces exchange with a refund — refund domain."
+      },
+      {
+        "case_id": "domain-v3:en:9:3:1",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "Two simultaneous requests in different domains: exchange (order) plus account password check (account_security)."
+      },
+      {
+        "case_id": "domain-v3:en:9:3:2",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User keeps exchange but adds price adjustment request — both within billing/refund domain."
+      },
+      {
+        "case_id": "domain-v3:en:9:4:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User wants money back — refund domain."
+      },
+      {
+        "case_id": "domain-v3:en:9:4:1",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "User chooses replacement and specifies shipping address — order/logistics domain."
+      },
+      {
+        "case_id": "domain-v3:en:9:4:2",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "User asks for recommendation on repair vs replace for a product issue — product/technical domain."
+      },
+      {
+        "case_id": "domain-v3:en:9:5:0",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "User thanks and signs off — no remaining business goal."
+      },
+      {
+        "case_id": "domain-v3:en:9:5:1",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "User requests cancellation before dispatch — order/logistics domain."
+      },
+      {
+        "case_id": "domain-v3:en:9:5:2",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User reports double payment — billing/payment domain."
+      },
+      {
+        "case_id": "domain-v3:en:9:6:0",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "User confirms replacement and packaging — order/logistics domain."
+      },
+      {
+        "case_id": "domain-v3:en:9:6:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User replaces replacement with a refund — refund domain."
+      },
+      {
+        "case_id": "domain-v3:en:9:6:2",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "User wants to file a complaint about delivery company — escalation/complaint domain."
+      },
+      {
+        "case_id": "domain-v3:en:9:7:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User takes refund; health question is secondary/courtesy attached to the refund goal."
+      },
+      {
+        "case_id": "domain-v3:en:9:7:1",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "User chooses swap to a different model — order/logistics domain."
+      },
+      {
+        "case_id": "domain-v3:en:9:7:2",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "User requests a supervisor/escalation about recall documentation."
+      }
+    ]
+  },
+  "rows": [
+    {
+      "case_id": "domain-v3:en:9:0:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My lamp just arrived and the base is cracked. I'm pretty disappointed."
+        },
+        {
+          "role": "assistant",
+          "content": "I'm sorry to hear that. Could you share a photo of the damage so we can look into it?"
+        },
+        {
+          "role": "user",
+          "content": "Sure, here's the photo. What happens next?"
+        },
+        {
+          "role": "assistant",
+          "content": "Thanks. Since it arrived damaged, we can send a replacement or issue a refund — your choice."
+        }
+      ],
+      "text": "I'd like the refund please, and can you confirm it goes back to my original card?",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:9:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:9:0:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My lamp just arrived and the base is cracked. I'm pretty disappointed."
+        },
+        {
+          "role": "assistant",
+          "content": "I'm sorry to hear that. Could you share a photo of the damage so we can look into it?"
+        },
+        {
+          "role": "user",
+          "content": "Sure, here's the photo. What happens next?"
+        },
+        {
+          "role": "assistant",
+          "content": "Thanks. Since it arrived damaged, we can send a replacement or issue a refund — your choice."
+        }
+      ],
+      "text": "Actually, forget the refund — just send me a new one.",
+      "label": "order_logistics",
+      "language": "en",
+      "group_id": "domain-v3:en:9:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:9:0:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My lamp just arrived and the base is cracked. I'm pretty disappointed."
+        },
+        {
+          "role": "assistant",
+          "content": "I'm sorry to hear that. Could you share a photo of the damage so we can look into it?"
+        },
+        {
+          "role": "user",
+          "content": "Sure, here's the photo. What happens next?"
+        },
+        {
+          "role": "assistant",
+          "content": "Thanks. Since it arrived damaged, we can send a replacement or issue a refund — your choice."
+        }
+      ],
+      "text": "Hmm, wait — I also noticed the box had a different shipping label with someone else's name on it. Is that a concern?",
+      "label": "order_logistics",
+      "language": "en",
+      "group_id": "domain-v3:en:9:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:9:1:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My coffee maker finally came yesterday. Thanks for the tracking updates."
+        },
+        {
+          "role": "assistant",
+          "content": "You're welcome! Glad it arrived safely. Anything else I can help with?"
+        },
+        {
+          "role": "user",
+          "content": "Actually yes — the water reservoir has a weird plastic smell when I run it."
+        },
+        {
+          "role": "assistant",
+          "content": "That can happen with new machines. Running a vinegar cycle usually clears it up. Want me to walk you through it?"
+        }
+      ],
+      "text": "I tried the vinegar trick and it still smells. Can I return it for a refund?",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:9:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:9:1:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My coffee maker finally came yesterday. Thanks for the tracking updates."
+        },
+        {
+          "role": "assistant",
+          "content": "You're welcome! Glad it arrived safely. Anything else I can help with?"
+        },
+        {
+          "role": "user",
+          "content": "Actually yes — the water reservoir has a weird plastic smell when I run it."
+        },
+        {
+          "role": "assistant",
+          "content": "That can happen with new machines. Running a vinegar cycle usually clears it up. Want me to walk you through it?"
+        }
+      ],
+      "text": "No, I'll try it again first. Thanks for the tip.",
+      "label": "general",
+      "language": "en",
+      "group_id": "domain-v3:en:9:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:9:1:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My coffee maker finally came yesterday. Thanks for the tracking updates."
+        },
+        {
+          "role": "assistant",
+          "content": "You're welcome! Glad it arrived safely. Anything else I can help with?"
+        },
+        {
+          "role": "user",
+          "content": "Actually yes — the water reservoir has a weird plastic smell when I run it."
+        },
+        {
+          "role": "assistant",
+          "content": "That can happen with new machines. Running a vinegar cycle usually clears it up. Want me to walk you through it?"
+        }
+      ],
+      "text": "Before that — I never got the invoice email for this order. Can you resend it?",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:9:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:9:2:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I got a smartwatch as a gift but I don't have the receipt. Can I still get support?"
+        },
+        {
+          "role": "assistant",
+          "content": "We can look it up by serial number. Could you check the back of the watch or the box?"
+        },
+        {
+          "role": "user",
+          "content": "Found it — the serial is SW-8842-991. Does that help?"
+        },
+        {
+          "role": "assistant",
+          "content": "Perfect, I can see the warranty is active until March next year. What's the issue?"
+        }
+      ],
+      "text": "The heart-rate monitor reads way off during workouts. Is that a known defect?",
+      "label": "product_technical",
+      "language": "en",
+      "group_id": "domain-v3:en:9:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:9:2:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I got a smartwatch as a gift but I don't have the receipt. Can I still get support?"
+        },
+        {
+          "role": "assistant",
+          "content": "We can look it up by serial number. Could you check the back of the watch or the box?"
+        },
+        {
+          "role": "user",
+          "content": "Found it — the serial is SW-8842-991. Does that help?"
+        },
+        {
+          "role": "assistant",
+          "content": "Perfect, I can see the warranty is active until March next year. What's the issue?"
+        }
+      ],
+      "text": "Actually, I'd rather just return it — the gifter said they'd take it back if I didn't like it. How does that work without a receipt?",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:9:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:9:2:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I got a smartwatch as a gift but I don't have the receipt. Can I still get support?"
+        },
+        {
+          "role": "assistant",
+          "content": "We can look it up by serial number. Could you check the back of the watch or the box?"
+        },
+        {
+          "role": "user",
+          "content": "Found it — the serial is SW-8842-991. Does that help?"
+        },
+        {
+          "role": "assistant",
+          "content": "Perfect, I can see the warranty is active until March next year. What's the issue?"
+        }
+      ],
+      "text": "Can you connect me to a real person? I've been going back and forth and I'm getting frustrated.",
+      "label": "human_service",
+      "language": "en",
+      "group_id": "domain-v3:en:9:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:9:3:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I ordered size 9 boots but the box says size 8.5."
+        },
+        {
+          "role": "assistant",
+          "content": "Oh no, that's our mistake. Would you like an exchange or a refund?"
+        },
+        {
+          "role": "user",
+          "content": "Exchange, please. I need the 9s before my trip next Friday."
+        },
+        {
+          "role": "assistant",
+          "content": "Understood. I'll set up the exchange with express shipping so it arrives by Wednesday."
+        }
+      ],
+      "text": "Actually, on second thought, just refund me — I found the same boots cheaper elsewhere.",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:9:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:9:3:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I ordered size 9 boots but the box says size 8.5."
+        },
+        {
+          "role": "assistant",
+          "content": "Oh no, that's our mistake. Would you like an exchange or a refund?"
+        },
+        {
+          "role": "user",
+          "content": "Exchange, please. I need the 9s before my trip next Friday."
+        },
+        {
+          "role": "assistant",
+          "content": "Understood. I'll set up the exchange with express shipping so it arrives by Wednesday."
+        }
+      ],
+      "text": "Wait, I changed my mind — keep the exchange but also tell me if I can get a price adjustment since they're on sale now.",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:9:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:9:4:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My blender just stopped spinning mid-smoothie. It's only two months old."
+        },
+        {
+          "role": "assistant",
+          "content": "That's within the warranty period. Have you checked whether the base is properly locked into place?"
+        },
+        {
+          "role": "user",
+          "content": "Yes, it's locked. I also tried a different outlet. Nothing."
+        },
+        {
+          "role": "assistant",
+          "content": "Thanks for checking. We can either repair it under warranty or replace it. Which do you prefer?"
+        }
+      ],
+      "text": "Honestly, I just want my money back. This is the second blender that's failed on me.",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:9:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:9:4:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My blender just stopped spinning mid-smoothie. It's only two months old."
+        },
+        {
+          "role": "assistant",
+          "content": "That's within the warranty period. Have you checked whether the base is properly locked into place?"
+        },
+        {
+          "role": "user",
+          "content": "Yes, it's locked. I also tried a different outlet. Nothing."
+        },
+        {
+          "role": "assistant",
+          "content": "Thanks for checking. We can either repair it under warranty or replace it. Which do you prefer?"
+        }
+      ],
+      "text": "Replace it, but can you make sure the new one ships to my office address this time?",
+      "label": "order_logistics",
+      "language": "en",
+      "group_id": "domain-v3:en:9:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:9:4:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My blender just stopped spinning mid-smoothie. It's only two months old."
+        },
+        {
+          "role": "assistant",
+          "content": "That's within the warranty period. Have you checked whether the base is properly locked into place?"
+        },
+        {
+          "role": "user",
+          "content": "Yes, it's locked. I also tried a different outlet. Nothing."
+        },
+        {
+          "role": "assistant",
+          "content": "Thanks for checking. We can either repair it under warranty or replace it. Which do you prefer?"
+        }
+      ],
+      "text": "I don't know — what do you recommend? I use it daily for meal prep.",
+      "label": "product_technical",
+      "language": "en",
+      "group_id": "domain-v3:en:9:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:9:5:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Hi, I ordered a bookshelf on Monday. Any idea when it ships?"
+        },
+        {
+          "role": "assistant",
+          "content": "Let me check — it looks like it's scheduled to ship tomorrow from our Ohio warehouse."
+        },
+        {
+          "role": "user",
+          "content": "Okay, good. And the delivery window is 3-5 business days after that, right?"
+        },
+        {
+          "role": "assistant",
+          "content": "Correct, so you should see it by early next week. I'll keep an eye on it for you."
+        }
+      ],
+      "text": "Perfect, thanks for confirming. Have a great day!",
+      "label": "general",
+      "language": "en",
+      "group_id": "domain-v3:en:9:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:9:5:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Hi, I ordered a bookshelf on Monday. Any idea when it ships?"
+        },
+        {
+          "role": "assistant",
+          "content": "Let me check — it looks like it's scheduled to ship tomorrow from our Ohio warehouse."
+        },
+        {
+          "role": "user",
+          "content": "Okay, good. And the delivery window is 3-5 business days after that, right?"
+        },
+        {
+          "role": "assistant",
+          "content": "Correct, so you should see it by early next week. I'll keep an eye on it for you."
+        }
+      ],
+      "text": "Actually, I need to cancel it — I'm moving and won't have space for it anymore.",
+      "label": "order_logistics",
+      "language": "en",
+      "group_id": "domain-v3:en:9:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:9:5:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Hi, I ordered a bookshelf on Monday. Any idea when it ships?"
+        },
+        {
+          "role": "assistant",
+          "content": "Let me check — it looks like it's scheduled to ship tomorrow from our Ohio warehouse."
+        },
+        {
+          "role": "user",
+          "content": "Okay, good. And the delivery window is 3-5 business days after that, right?"
+        },
+        {
+          "role": "assistant",
+          "content": "Correct, so you should see it by early next week. I'll keep an eye on it for you."
+        }
+      ],
+      "text": "One more thing — the payment went through twice on my statement. Can you sort that out?",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:9:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:9:6:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "The vase I ordered arrived shattered. Completely in pieces."
+        },
+        {
+          "role": "assistant",
+          "content": "That's terrible — I apologize. We'll make this right. Would you like a replacement or a refund?"
+        },
+        {
+          "role": "user",
+          "content": "I'm leaning toward a replacement since it's a gift for my mom's anniversary."
+        },
+        {
+          "role": "assistant",
+          "content": "Of course. I can expedite a replacement so it arrives in time. Shall I proceed?"
+        }
+      ],
+      "text": "Yes, go ahead with the replacement. And please double-check the packaging this time.",
+      "label": "order_logistics",
+      "language": "en",
+      "group_id": "domain-v3:en:9:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:9:6:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "The vase I ordered arrived shattered. Completely in pieces."
+        },
+        {
+          "role": "assistant",
+          "content": "That's terrible — I apologize. We'll make this right. Would you like a replacement or a refund?"
+        },
+        {
+          "role": "user",
+          "content": "I'm leaning toward a replacement since it's a gift for my mom's anniversary."
+        },
+        {
+          "role": "assistant",
+          "content": "Of course. I can expedite a replacement so it arrives in time. Shall I proceed?"
+        }
+      ],
+      "text": "Actually, no — my mom said she'd rather pick something herself. Just refund me.",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:9:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:9:6:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "The vase I ordered arrived shattered. Completely in pieces."
+        },
+        {
+          "role": "assistant",
+          "content": "That's terrible — I apologize. We'll make this right. Would you like a replacement or a refund?"
+        },
+        {
+          "role": "user",
+          "content": "I'm leaning toward a replacement since it's a gift for my mom's anniversary."
+        },
+        {
+          "role": "assistant",
+          "content": "Of course. I can expedite a replacement so it arrives in time. Shall I proceed?"
+        }
+      ],
+      "text": "Hold on, I also want to file a complaint about the delivery company. Who handles that?",
+      "label": "human_service",
+      "language": "en",
+      "group_id": "domain-v3:en:9:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:9:7:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "The yoga mat I got reeks of chemicals. I aired it out for three days and it's still strong."
+        },
+        {
+          "role": "assistant",
+          "content": "That's unusual for our mats. Could you tell me the batch number printed on the label?"
+        },
+        {
+          "role": "user",
+          "content": "It says B-2207. Does that tell you anything?"
+        },
+        {
+          "role": "assistant",
+          "content": "Thanks — that batch had a known adhesive issue. We've flagged it for recall. We can offer a full refund or a swap for a different model."
+        }
+      ],
+      "text": "I'll take the refund. Also, should I be worried about health effects from using it?",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:9:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:9:7:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "The yoga mat I got reeks of chemicals. I aired it out for three days and it's still strong."
+        },
+        {
+          "role": "assistant",
+          "content": "That's unusual for our mats. Could you tell me the batch number printed on the label?"
+        },
+        {
+          "role": "user",
+          "content": "It says B-2207. Does that tell you anything?"
+        },
+        {
+          "role": "assistant",
+          "content": "Thanks — that batch had a known adhesive issue. We've flagged it for recall. We can offer a full refund or a swap for a different model."
+        }
+      ],
+      "text": "Can I speak to a supervisor about this? I want to make sure the recall is properly documented.",
+      "label": "human_service",
+      "language": "en",
+      "group_id": "domain-v3:en:9:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    }
+  ],
+  "rejected": [
+    {
+      "case_id": "domain-v3:en:9:3:1",
+      "author": "account_security",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "Two simultaneous requests in different domains: exchange (order) plus account password check (account_security)."
+    },
+    {
+      "case_id": "domain-v3:en:9:7:1",
+      "author": "product_technical",
+      "label": "order_logistics",
+      "clear_and_natural": true,
+      "reason": "User chooses swap to a different model — order/logistics domain."
+    }
+  ],
+  "status": "reviewed"
+}

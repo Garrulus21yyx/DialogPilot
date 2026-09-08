@@ -1,0 +1,1915 @@
+{
+  "batch_id": "domain-v3:zh:9",
+  "language": "zh",
+  "split": "train",
+  "models": {
+    "author": "deepseek-v4-flash",
+    "review": "deepseek-v4-pro"
+  },
+  "review_protocol": "label-blind-batch-v1",
+  "synthetic": true,
+  "author_prompt": "Author 8 DIFFERENT natural ecommerce customer-service dialogue families in zh.\nBatch 9; ensure at least four current turns classified as billing_refund across this batch.\nEach family has its OWN coherent history of 2, 4 or 6 short alternating user/assistant\nmessages, followed by 3 ALTERNATIVE current user turns, not three sequential turns.\nThose alternatives differ in effective intent: retain vs replace, withdraw vs\ncontinue, single goal vs concurrent goal, or resolved vs unresolved reference.\nInclude natural short answers where history matters. Vary old completed tasks,\nhesitation, self-correction, indirect wording, topics and dialogue acts. General\nand human-service requests must also occur as NEW goals, not only stale history.\nDo not follow a repeated sentence template or substitute product nouns to create\nnew families. Avoid stereotyped 'information only, do not submit' repetition.\nInvent broad everyday ecommerce situations; no copied benchmark or private data.\nHistory plus current turn should fit 150 English words or 180 Chinese characters;\nkeep it compact but meaningful. No future replies or final conversation summaries.\nSupply the correct label for each alternative according to the rubric.\n",
+  "author_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_5exqWh3amxeDXakcFopM6730",
+          "input": {
+            "families": [
+              {
+                "scenario": "用户购买了一台空气炸锅，使用两周后发现加热不均匀，联系客服。",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我上周买的空气炸锅，烤鸡翅的时候中间不熟，边缘都焦了。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您好，很抱歉给您带来不便。请问您设置的温度和时间是多少呢？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "200度烤了25分钟，按说明书来的。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "明白了。这种情况可能是发热管故障，建议您申请售后检测。请问需要我帮您提交维修申请吗？"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，帮我提交吧。另外我想问一下，你们有没有更大容量的型号？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "先别提交，我想想再说。对了，我上次买的那个硅胶垫怎么还没发货？",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "不用修了，直接帮我退货退款吧，我不想折腾了。",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "用户购买了一款蓝牙耳机，收到后发现左耳没有声音。",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "耳机到了，但是左耳完全没声音，右耳正常。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "抱歉给您带来困扰。您是否尝试过重新配对或者清洁触点呢？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "试过了，还是不行。感觉是硬件问题。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "理解。如果确认是质量问题，我们可以为您办理换货或退款，您更倾向哪种方案？"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "换货吧，不过你们能先帮我查一下我另一个订单的物流吗？那个也一直没更新。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "退款吧，这质量我信不过了。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "算了，不换了也不退了，我自己拿去修修看。谢谢你的耐心解答。",
+                    "label": "general"
+                  }
+                ]
+              },
+              {
+                "scenario": "用户购买了一台扫地机器人，使用一个月后出现故障，同时之前有一笔订单已签收。",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "扫地机器人用了一个月，现在老是卡在同一个地方不动。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您好，请问卡住的位置是否有障碍物或者地毯边缘呢？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "没有障碍物，就是突然不动了，屏幕显示错误代码E3。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "E3代码表示传感器异常，建议寄回检测。您之前那笔拖把订单已经签收了，请问还有其他需要帮助的吗？"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "拖把的事不用管了。机器人这个检测要多久？如果超过一周我就直接申请退款。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "那拖把其实我想退掉，还没拆封，能退吗？机器人先放着不管。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "机器人先不修了，我想问一下你们客服人工电话是多少？我想直接打电话说。",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "用户购买了一件羽绒服，收到后发现尺码偏大，同时之前咨询过另一件毛衣的库存。",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "羽绒服收到了，但是M码穿着太大了，我平时都穿M的。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您好，不同品牌版型会有差异。您可以申请换小一码，或者选择退货退款。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "那换货的话运费谁出？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "如果是尺码不合适，非质量问题换货需要您承担来回运费哦。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那算了，我直接退货吧，运费我自己出也行，不想留一件不合身的。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "行吧，那我不换了。之前问的那件灰色毛衣还有货吗？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "嗯……我再想想。你们人工客服几点下班？我晚点再打过来。",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "用户购买了一款智能手表，使用中发现电池续航远低于宣传，同时账户里有一笔优惠券即将过期。",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "手表宣传说续航七天，我实际用两天就没电了。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您好，续航会受使用习惯影响，比如常开GPS或亮屏。您平时开启哪些功能呢？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "就正常看时间收消息，没开什么耗电功能。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "那确实不太正常。您可以申请检测，如果确认电池问题可以换新或退款。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那帮我申请退款吧，宣传和实际差太多了，我不接受换新。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "先检测吧。对了，我账户里那张满300减50的券是不是快过期了？",
+                    "label": "general"
+                  },
+                  {
+                    "text": "等等，我登录不上了，刚才退出后密码怎么输都不对，是不是被盗了？",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "用户购买了一箱牛奶，收到时发现有两盒胀包，同时之前买过一箱已喝完。",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "刚收到的牛奶有两盒胀包了，鼓鼓的，不敢喝。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "非常抱歉！胀包说明可能变质，请勿饮用。请问您方便拍一下生产日期和批次号吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "拍了，日期是上个月的，批次号我发给你了。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "收到，已记录。我们可以为您补发两盒或者整箱退款，您怎么选？"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "整箱退了吧，剩下的我也不放心喝了。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "补发两盒就行。另外我上次那箱喝完的，有没有什么空箱回收活动？",
+                    "label": "general"
+                  },
+                  {
+                    "text": "先补发吧。不过我想确认一下，如果补发的又有问题，到时候还能退吗？",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "用户购买了一台咖啡机，使用一周后蒸汽棒不出蒸汽，同时之前咨询过咖啡豆的推荐。",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "咖啡机蒸汽棒不出蒸汽了，打奶泡完全不行。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您好，请问蒸汽棒喷嘴是否有堵塞？您用完后有及时清洁吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "每次用完都擦的，应该不是堵了。开机预热也正常。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "那可能是内部蒸汽阀故障。我们可以安排上门检修，或者您也可以选择退换。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "上门检修吧。对了，之前你推荐的那款中深烘焙豆子，现在有活动价吗？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "不用修了，直接退了吧，买来一周就出问题，太闹心了。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "好的，那麻烦帮我预约检修。另外我想投诉一下，你们售后电话太难打通了，等了二十分钟没人接。",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "用户购买了一双运动鞋，穿了一周鞋底开胶，同时账户登录状态异常。",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "鞋子穿了一周，鞋底就开胶了，这也太差了吧。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "非常抱歉！请问您是在什么路面穿的？是否有涉水或暴晒情况？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "就正常走路上下班，没碰水也没暴晒。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "那属于质量问题，我们可以为您免费换新或退款。另外我注意到您的账号在异地登录过，建议您修改密码。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "先不管账号的事，鞋子我要退款，这质量没法穿。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "鞋子的事先放一边，你说我账号异地登录？那我现在该怎么办？",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "好的，退款吧。另外异地登录是怎么回事？能帮我查一下登录记录吗？",
+                    "label": "account_security"
+                  }
+                ]
+              }
+            ]
+          },
+          "name": "AuthoredBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "97f3a61e-0bd5-4578-8cc8-62db7cbfa96e",
+        "container": null,
+        "model": "deepseek-v4-flash",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 640,
+          "inference_geo": null,
+          "input_tokens": 321,
+          "output_tokens": 2034,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-flash",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d6-030a-7ed0-b1ac-b1851f1c367c-0",
+      "tool_calls": [
+        {
+          "name": "AuthoredBatch",
+          "args": {
+            "families": [
+              {
+                "scenario": "用户购买了一台空气炸锅，使用两周后发现加热不均匀，联系客服。",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我上周买的空气炸锅，烤鸡翅的时候中间不熟，边缘都焦了。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您好，很抱歉给您带来不便。请问您设置的温度和时间是多少呢？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "200度烤了25分钟，按说明书来的。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "明白了。这种情况可能是发热管故障，建议您申请售后检测。请问需要我帮您提交维修申请吗？"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，帮我提交吧。另外我想问一下，你们有没有更大容量的型号？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "先别提交，我想想再说。对了，我上次买的那个硅胶垫怎么还没发货？",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "不用修了，直接帮我退货退款吧，我不想折腾了。",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "用户购买了一款蓝牙耳机，收到后发现左耳没有声音。",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "耳机到了，但是左耳完全没声音，右耳正常。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "抱歉给您带来困扰。您是否尝试过重新配对或者清洁触点呢？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "试过了，还是不行。感觉是硬件问题。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "理解。如果确认是质量问题，我们可以为您办理换货或退款，您更倾向哪种方案？"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "换货吧，不过你们能先帮我查一下我另一个订单的物流吗？那个也一直没更新。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "退款吧，这质量我信不过了。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "算了，不换了也不退了，我自己拿去修修看。谢谢你的耐心解答。",
+                    "label": "general"
+                  }
+                ]
+              },
+              {
+                "scenario": "用户购买了一台扫地机器人，使用一个月后出现故障，同时之前有一笔订单已签收。",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "扫地机器人用了一个月，现在老是卡在同一个地方不动。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您好，请问卡住的位置是否有障碍物或者地毯边缘呢？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "没有障碍物，就是突然不动了，屏幕显示错误代码E3。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "E3代码表示传感器异常，建议寄回检测。您之前那笔拖把订单已经签收了，请问还有其他需要帮助的吗？"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "拖把的事不用管了。机器人这个检测要多久？如果超过一周我就直接申请退款。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "那拖把其实我想退掉，还没拆封，能退吗？机器人先放着不管。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "机器人先不修了，我想问一下你们客服人工电话是多少？我想直接打电话说。",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "用户购买了一件羽绒服，收到后发现尺码偏大，同时之前咨询过另一件毛衣的库存。",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "羽绒服收到了，但是M码穿着太大了，我平时都穿M的。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您好，不同品牌版型会有差异。您可以申请换小一码，或者选择退货退款。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "那换货的话运费谁出？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "如果是尺码不合适，非质量问题换货需要您承担来回运费哦。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那算了，我直接退货吧，运费我自己出也行，不想留一件不合身的。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "行吧，那我不换了。之前问的那件灰色毛衣还有货吗？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "嗯……我再想想。你们人工客服几点下班？我晚点再打过来。",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "用户购买了一款智能手表，使用中发现电池续航远低于宣传，同时账户里有一笔优惠券即将过期。",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "手表宣传说续航七天，我实际用两天就没电了。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您好，续航会受使用习惯影响，比如常开GPS或亮屏。您平时开启哪些功能呢？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "就正常看时间收消息，没开什么耗电功能。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "那确实不太正常。您可以申请检测，如果确认电池问题可以换新或退款。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那帮我申请退款吧，宣传和实际差太多了，我不接受换新。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "先检测吧。对了，我账户里那张满300减50的券是不是快过期了？",
+                    "label": "general"
+                  },
+                  {
+                    "text": "等等，我登录不上了，刚才退出后密码怎么输都不对，是不是被盗了？",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "用户购买了一箱牛奶，收到时发现有两盒胀包，同时之前买过一箱已喝完。",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "刚收到的牛奶有两盒胀包了，鼓鼓的，不敢喝。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "非常抱歉！胀包说明可能变质，请勿饮用。请问您方便拍一下生产日期和批次号吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "拍了，日期是上个月的，批次号我发给你了。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "收到，已记录。我们可以为您补发两盒或者整箱退款，您怎么选？"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "整箱退了吧，剩下的我也不放心喝了。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "补发两盒就行。另外我上次那箱喝完的，有没有什么空箱回收活动？",
+                    "label": "general"
+                  },
+                  {
+                    "text": "先补发吧。不过我想确认一下，如果补发的又有问题，到时候还能退吗？",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "用户购买了一台咖啡机，使用一周后蒸汽棒不出蒸汽，同时之前咨询过咖啡豆的推荐。",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "咖啡机蒸汽棒不出蒸汽了，打奶泡完全不行。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您好，请问蒸汽棒喷嘴是否有堵塞？您用完后有及时清洁吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "每次用完都擦的，应该不是堵了。开机预热也正常。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "那可能是内部蒸汽阀故障。我们可以安排上门检修，或者您也可以选择退换。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "上门检修吧。对了，之前你推荐的那款中深烘焙豆子，现在有活动价吗？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "不用修了，直接退了吧，买来一周就出问题，太闹心了。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "好的，那麻烦帮我预约检修。另外我想投诉一下，你们售后电话太难打通了，等了二十分钟没人接。",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "用户购买了一双运动鞋，穿了一周鞋底开胶，同时账户登录状态异常。",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "鞋子穿了一周，鞋底就开胶了，这也太差了吧。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "非常抱歉！请问您是在什么路面穿的？是否有涉水或暴晒情况？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "就正常走路上下班，没碰水也没暴晒。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "那属于质量问题，我们可以为您免费换新或退款。另外我注意到您的账号在异地登录过，建议您修改密码。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "先不管账号的事，鞋子我要退款，这质量没法穿。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "鞋子的事先放一边，你说我账号异地登录？那我现在该怎么办？",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "好的，退款吧。另外异地登录是怎么回事？能帮我查一下登录记录吗？",
+                    "label": "account_security"
+                  }
+                ]
+              }
+            ]
+          },
+          "id": "call_00_5exqWh3amxeDXakcFopM6730",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 961,
+        "output_tokens": 2034,
+        "total_tokens": 2995,
+        "input_token_details": {
+          "cache_read": 640,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "authored": {
+    "families": [
+      {
+        "scenario": "用户购买了一台空气炸锅，使用两周后发现加热不均匀，联系客服。",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我上周买的空气炸锅，烤鸡翅的时候中间不熟，边缘都焦了。"
+          },
+          {
+            "role": "assistant",
+            "content": "您好，很抱歉给您带来不便。请问您设置的温度和时间是多少呢？"
+          },
+          {
+            "role": "user",
+            "content": "200度烤了25分钟，按说明书来的。"
+          },
+          {
+            "role": "assistant",
+            "content": "明白了。这种情况可能是发热管故障，建议您申请售后检测。请问需要我帮您提交维修申请吗？"
+          }
+        ],
+        "variants": [
+          {
+            "text": "好的，帮我提交吧。另外我想问一下，你们有没有更大容量的型号？",
+            "label": "product_technical"
+          },
+          {
+            "text": "先别提交，我想想再说。对了，我上次买的那个硅胶垫怎么还没发货？",
+            "label": "order_logistics"
+          },
+          {
+            "text": "不用修了，直接帮我退货退款吧，我不想折腾了。",
+            "label": "billing_refund"
+          }
+        ]
+      },
+      {
+        "scenario": "用户购买了一款蓝牙耳机，收到后发现左耳没有声音。",
+        "messages": [
+          {
+            "role": "user",
+            "content": "耳机到了，但是左耳完全没声音，右耳正常。"
+          },
+          {
+            "role": "assistant",
+            "content": "抱歉给您带来困扰。您是否尝试过重新配对或者清洁触点呢？"
+          },
+          {
+            "role": "user",
+            "content": "试过了，还是不行。感觉是硬件问题。"
+          },
+          {
+            "role": "assistant",
+            "content": "理解。如果确认是质量问题，我们可以为您办理换货或退款，您更倾向哪种方案？"
+          }
+        ],
+        "variants": [
+          {
+            "text": "换货吧，不过你们能先帮我查一下我另一个订单的物流吗？那个也一直没更新。",
+            "label": "order_logistics"
+          },
+          {
+            "text": "退款吧，这质量我信不过了。",
+            "label": "billing_refund"
+          },
+          {
+            "text": "算了，不换了也不退了，我自己拿去修修看。谢谢你的耐心解答。",
+            "label": "general"
+          }
+        ]
+      },
+      {
+        "scenario": "用户购买了一台扫地机器人，使用一个月后出现故障，同时之前有一笔订单已签收。",
+        "messages": [
+          {
+            "role": "user",
+            "content": "扫地机器人用了一个月，现在老是卡在同一个地方不动。"
+          },
+          {
+            "role": "assistant",
+            "content": "您好，请问卡住的位置是否有障碍物或者地毯边缘呢？"
+          },
+          {
+            "role": "user",
+            "content": "没有障碍物，就是突然不动了，屏幕显示错误代码E3。"
+          },
+          {
+            "role": "assistant",
+            "content": "E3代码表示传感器异常，建议寄回检测。您之前那笔拖把订单已经签收了，请问还有其他需要帮助的吗？"
+          }
+        ],
+        "variants": [
+          {
+            "text": "拖把的事不用管了。机器人这个检测要多久？如果超过一周我就直接申请退款。",
+            "label": "billing_refund"
+          },
+          {
+            "text": "那拖把其实我想退掉，还没拆封，能退吗？机器人先放着不管。",
+            "label": "billing_refund"
+          },
+          {
+            "text": "机器人先不修了，我想问一下你们客服人工电话是多少？我想直接打电话说。",
+            "label": "human_service"
+          }
+        ]
+      },
+      {
+        "scenario": "用户购买了一件羽绒服，收到后发现尺码偏大，同时之前咨询过另一件毛衣的库存。",
+        "messages": [
+          {
+            "role": "user",
+            "content": "羽绒服收到了，但是M码穿着太大了，我平时都穿M的。"
+          },
+          {
+            "role": "assistant",
+            "content": "您好，不同品牌版型会有差异。您可以申请换小一码，或者选择退货退款。"
+          },
+          {
+            "role": "user",
+            "content": "那换货的话运费谁出？"
+          },
+          {
+            "role": "assistant",
+            "content": "如果是尺码不合适，非质量问题换货需要您承担来回运费哦。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "那算了，我直接退货吧，运费我自己出也行，不想留一件不合身的。",
+            "label": "billing_refund"
+          },
+          {
+            "text": "行吧，那我不换了。之前问的那件灰色毛衣还有货吗？",
+            "label": "product_technical"
+          },
+          {
+            "text": "嗯……我再想想。你们人工客服几点下班？我晚点再打过来。",
+            "label": "human_service"
+          }
+        ]
+      },
+      {
+        "scenario": "用户购买了一款智能手表，使用中发现电池续航远低于宣传，同时账户里有一笔优惠券即将过期。",
+        "messages": [
+          {
+            "role": "user",
+            "content": "手表宣传说续航七天，我实际用两天就没电了。"
+          },
+          {
+            "role": "assistant",
+            "content": "您好，续航会受使用习惯影响，比如常开GPS或亮屏。您平时开启哪些功能呢？"
+          },
+          {
+            "role": "user",
+            "content": "就正常看时间收消息，没开什么耗电功能。"
+          },
+          {
+            "role": "assistant",
+            "content": "那确实不太正常。您可以申请检测，如果确认电池问题可以换新或退款。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "那帮我申请退款吧，宣传和实际差太多了，我不接受换新。",
+            "label": "billing_refund"
+          },
+          {
+            "text": "先检测吧。对了，我账户里那张满300减50的券是不是快过期了？",
+            "label": "general"
+          },
+          {
+            "text": "等等，我登录不上了，刚才退出后密码怎么输都不对，是不是被盗了？",
+            "label": "account_security"
+          }
+        ]
+      },
+      {
+        "scenario": "用户购买了一箱牛奶，收到时发现有两盒胀包，同时之前买过一箱已喝完。",
+        "messages": [
+          {
+            "role": "user",
+            "content": "刚收到的牛奶有两盒胀包了，鼓鼓的，不敢喝。"
+          },
+          {
+            "role": "assistant",
+            "content": "非常抱歉！胀包说明可能变质，请勿饮用。请问您方便拍一下生产日期和批次号吗？"
+          },
+          {
+            "role": "user",
+            "content": "拍了，日期是上个月的，批次号我发给你了。"
+          },
+          {
+            "role": "assistant",
+            "content": "收到，已记录。我们可以为您补发两盒或者整箱退款，您怎么选？"
+          }
+        ],
+        "variants": [
+          {
+            "text": "整箱退了吧，剩下的我也不放心喝了。",
+            "label": "billing_refund"
+          },
+          {
+            "text": "补发两盒就行。另外我上次那箱喝完的，有没有什么空箱回收活动？",
+            "label": "general"
+          },
+          {
+            "text": "先补发吧。不过我想确认一下，如果补发的又有问题，到时候还能退吗？",
+            "label": "billing_refund"
+          }
+        ]
+      },
+      {
+        "scenario": "用户购买了一台咖啡机，使用一周后蒸汽棒不出蒸汽，同时之前咨询过咖啡豆的推荐。",
+        "messages": [
+          {
+            "role": "user",
+            "content": "咖啡机蒸汽棒不出蒸汽了，打奶泡完全不行。"
+          },
+          {
+            "role": "assistant",
+            "content": "您好，请问蒸汽棒喷嘴是否有堵塞？您用完后有及时清洁吗？"
+          },
+          {
+            "role": "user",
+            "content": "每次用完都擦的，应该不是堵了。开机预热也正常。"
+          },
+          {
+            "role": "assistant",
+            "content": "那可能是内部蒸汽阀故障。我们可以安排上门检修，或者您也可以选择退换。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "上门检修吧。对了，之前你推荐的那款中深烘焙豆子，现在有活动价吗？",
+            "label": "product_technical"
+          },
+          {
+            "text": "不用修了，直接退了吧，买来一周就出问题，太闹心了。",
+            "label": "billing_refund"
+          },
+          {
+            "text": "好的，那麻烦帮我预约检修。另外我想投诉一下，你们售后电话太难打通了，等了二十分钟没人接。",
+            "label": "human_service"
+          }
+        ]
+      },
+      {
+        "scenario": "用户购买了一双运动鞋，穿了一周鞋底开胶，同时账户登录状态异常。",
+        "messages": [
+          {
+            "role": "user",
+            "content": "鞋子穿了一周，鞋底就开胶了，这也太差了吧。"
+          },
+          {
+            "role": "assistant",
+            "content": "非常抱歉！请问您是在什么路面穿的？是否有涉水或暴晒情况？"
+          },
+          {
+            "role": "user",
+            "content": "就正常走路上下班，没碰水也没暴晒。"
+          },
+          {
+            "role": "assistant",
+            "content": "那属于质量问题，我们可以为您免费换新或退款。另外我注意到您的账号在异地登录过，建议您修改密码。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "先不管账号的事，鞋子我要退款，这质量没法穿。",
+            "label": "billing_refund"
+          },
+          {
+            "text": "鞋子的事先放一边，你说我账号异地登录？那我现在该怎么办？",
+            "label": "account_security"
+          },
+          {
+            "text": "好的，退款吧。另外异地登录是怎么回事？能帮我查一下登录记录吗？",
+            "label": "account_security"
+          }
+        ]
+      }
+    ]
+  },
+  "review_input_sha256": "a7611661fac2baf50e364801da53ae6cecfd0b322890835e131f1a7846e0887f",
+  "review_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_Vsqxch6tlpKoc4rs4op52797",
+          "input": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:zh:9:0:0",
+                "label": "__DEFER__",
+                "clear_and_natural": false,
+                "reason": "用户同时提出两个不同领域的请求：提交维修申请（售后/产品）和询问更大容量型号（产品咨询）。维修申请属于售后，型号咨询属于产品技术，跨域并存，应延迟。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:0:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "用户明确撤回维修申请（'先别提交'），转而询问硅胶垫为何未发货，属于订单物流问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:0:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户明确拒绝维修，改为退货退款，属于退款/售后规则范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:1:0",
+                "label": "__DEFER__",
+                "clear_and_natural": false,
+                "reason": "用户同时提出换货（售后）和查询另一订单物流（订单物流）两个不同领域请求，跨域并存，应延迟。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:1:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户明确选择退款，属于退款范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:1:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "用户放弃换货和退款，自行维修并致谢，无剩余业务目标，属于普通聊天/致谢。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:2:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "用户明确表示拖把的事不用管，聚焦机器人检测时长及退款条件，属于产品售后/技术问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:2:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户明确机器人先放着不管，转而询问拖把退货，属于退款/退货规则。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:2:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户明确表示机器人先不修，询问人工客服电话，属于人工服务/转接诉求。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:3:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户明确选择退货退款，属于退款范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:3:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "用户明确不换货，转而询问灰色毛衣是否有货，属于产品咨询。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:3:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户表示再想想，转而询问人工客服下班时间，属于人工服务诉求。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:4:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户明确申请退款，拒绝换新，属于退款范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:4:1",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "用户先同意检测，但转而询问账户优惠券是否过期，属于账户相关咨询。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:4:2",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "用户转而报告登录不上、密码错误、怀疑被盗，属于账户安全范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:5:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户明确选择整箱退款，属于退款范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:5:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "用户选择补发，但转而询问空箱回收活动，属于产品/活动咨询。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:5:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户选择补发，但追问补发后若再有问题能否退款，属于退款/售后规则咨询。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:6:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "用户选择上门检修，并询问咖啡豆活动价，属于产品咨询。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:6:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户明确拒绝维修，选择退货，属于退款范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:6:2",
+                "label": "__DEFER__",
+                "clear_and_natural": false,
+                "reason": "用户同时提出预约检修（售后）和投诉售后电话难打通（投诉/人工服务）两个不同领域请求，跨域并存，应延迟。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:7:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户明确表示先不管账号，鞋子要退款，属于退款范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:7:1",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "用户明确鞋子的事先放一边，转而关注账号异地登录问题，属于账户安全范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:7:2",
+                "label": "__DEFER__",
+                "clear_and_natural": false,
+                "reason": "用户同时提出退款（售后）和查询异地登录记录（账户安全）两个不同领域请求，跨域并存，应延迟。"
+              }
+            ]
+          },
+          "name": "ReviewedBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "953eccb5-4385-4877-8ecd-3dca1e230d2f",
+        "container": null,
+        "model": "deepseek-v4-pro",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "inference_geo": null,
+          "input_tokens": 3975,
+          "output_tokens": 1436,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-pro",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d6-451f-7313-97e7-ecc23575b8f4-0",
+      "tool_calls": [
+        {
+          "name": "ReviewedBatch",
+          "args": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:zh:9:0:0",
+                "label": "__DEFER__",
+                "clear_and_natural": false,
+                "reason": "用户同时提出两个不同领域的请求：提交维修申请（售后/产品）和询问更大容量型号（产品咨询）。维修申请属于售后，型号咨询属于产品技术，跨域并存，应延迟。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:0:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "用户明确撤回维修申请（'先别提交'），转而询问硅胶垫为何未发货，属于订单物流问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:0:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户明确拒绝维修，改为退货退款，属于退款/售后规则范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:1:0",
+                "label": "__DEFER__",
+                "clear_and_natural": false,
+                "reason": "用户同时提出换货（售后）和查询另一订单物流（订单物流）两个不同领域请求，跨域并存，应延迟。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:1:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户明确选择退款，属于退款范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:1:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "用户放弃换货和退款，自行维修并致谢，无剩余业务目标，属于普通聊天/致谢。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:2:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "用户明确表示拖把的事不用管，聚焦机器人检测时长及退款条件，属于产品售后/技术问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:2:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户明确机器人先放着不管，转而询问拖把退货，属于退款/退货规则。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:2:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户明确表示机器人先不修，询问人工客服电话，属于人工服务/转接诉求。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:3:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户明确选择退货退款，属于退款范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:3:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "用户明确不换货，转而询问灰色毛衣是否有货，属于产品咨询。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:3:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户表示再想想，转而询问人工客服下班时间，属于人工服务诉求。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:4:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户明确申请退款，拒绝换新，属于退款范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:4:1",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "用户先同意检测，但转而询问账户优惠券是否过期，属于账户相关咨询。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:4:2",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "用户转而报告登录不上、密码错误、怀疑被盗，属于账户安全范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:5:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户明确选择整箱退款，属于退款范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:5:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "用户选择补发，但转而询问空箱回收活动，属于产品/活动咨询。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:5:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户选择补发，但追问补发后若再有问题能否退款，属于退款/售后规则咨询。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:6:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "用户选择上门检修，并询问咖啡豆活动价，属于产品咨询。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:6:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户明确拒绝维修，选择退货，属于退款范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:6:2",
+                "label": "__DEFER__",
+                "clear_and_natural": false,
+                "reason": "用户同时提出预约检修（售后）和投诉售后电话难打通（投诉/人工服务）两个不同领域请求，跨域并存，应延迟。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:7:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户明确表示先不管账号，鞋子要退款，属于退款范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:7:1",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "用户明确鞋子的事先放一边，转而关注账号异地登录问题，属于账户安全范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:9:7:2",
+                "label": "__DEFER__",
+                "clear_and_natural": false,
+                "reason": "用户同时提出退款（售后）和查询异地登录记录（账户安全）两个不同领域请求，跨域并存，应延迟。"
+              }
+            ]
+          },
+          "id": "call_00_Vsqxch6tlpKoc4rs4op52797",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 4487,
+        "output_tokens": 1436,
+        "total_tokens": 5923,
+        "input_token_details": {
+          "cache_read": 512,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "reviewed": {
+    "verdicts": [
+      {
+        "case_id": "domain-v3:zh:9:0:0",
+        "label": "__DEFER__",
+        "clear_and_natural": false,
+        "reason": "用户同时提出两个不同领域的请求：提交维修申请（售后/产品）和询问更大容量型号（产品咨询）。维修申请属于售后，型号咨询属于产品技术，跨域并存，应延迟。"
+      },
+      {
+        "case_id": "domain-v3:zh:9:0:1",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "用户明确撤回维修申请（'先别提交'），转而询问硅胶垫为何未发货，属于订单物流问题。"
+      },
+      {
+        "case_id": "domain-v3:zh:9:0:2",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户明确拒绝维修，改为退货退款，属于退款/售后规则范畴。"
+      },
+      {
+        "case_id": "domain-v3:zh:9:1:0",
+        "label": "__DEFER__",
+        "clear_and_natural": false,
+        "reason": "用户同时提出换货（售后）和查询另一订单物流（订单物流）两个不同领域请求，跨域并存，应延迟。"
+      },
+      {
+        "case_id": "domain-v3:zh:9:1:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户明确选择退款，属于退款范畴。"
+      },
+      {
+        "case_id": "domain-v3:zh:9:1:2",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "用户放弃换货和退款，自行维修并致谢，无剩余业务目标，属于普通聊天/致谢。"
+      },
+      {
+        "case_id": "domain-v3:zh:9:2:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "用户明确表示拖把的事不用管，聚焦机器人检测时长及退款条件，属于产品售后/技术问题。"
+      },
+      {
+        "case_id": "domain-v3:zh:9:2:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户明确机器人先放着不管，转而询问拖把退货，属于退款/退货规则。"
+      },
+      {
+        "case_id": "domain-v3:zh:9:2:2",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "用户明确表示机器人先不修，询问人工客服电话，属于人工服务/转接诉求。"
+      },
+      {
+        "case_id": "domain-v3:zh:9:3:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户明确选择退货退款，属于退款范畴。"
+      },
+      {
+        "case_id": "domain-v3:zh:9:3:1",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "用户明确不换货，转而询问灰色毛衣是否有货，属于产品咨询。"
+      },
+      {
+        "case_id": "domain-v3:zh:9:3:2",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "用户表示再想想，转而询问人工客服下班时间，属于人工服务诉求。"
+      },
+      {
+        "case_id": "domain-v3:zh:9:4:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户明确申请退款，拒绝换新，属于退款范畴。"
+      },
+      {
+        "case_id": "domain-v3:zh:9:4:1",
+        "label": "account_security",
+        "clear_and_natural": true,
+        "reason": "用户先同意检测，但转而询问账户优惠券是否过期，属于账户相关咨询。"
+      },
+      {
+        "case_id": "domain-v3:zh:9:4:2",
+        "label": "account_security",
+        "clear_and_natural": true,
+        "reason": "用户转而报告登录不上、密码错误、怀疑被盗，属于账户安全范畴。"
+      },
+      {
+        "case_id": "domain-v3:zh:9:5:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户明确选择整箱退款，属于退款范畴。"
+      },
+      {
+        "case_id": "domain-v3:zh:9:5:1",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "用户选择补发，但转而询问空箱回收活动，属于产品/活动咨询。"
+      },
+      {
+        "case_id": "domain-v3:zh:9:5:2",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户选择补发，但追问补发后若再有问题能否退款，属于退款/售后规则咨询。"
+      },
+      {
+        "case_id": "domain-v3:zh:9:6:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "用户选择上门检修，并询问咖啡豆活动价，属于产品咨询。"
+      },
+      {
+        "case_id": "domain-v3:zh:9:6:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户明确拒绝维修，选择退货，属于退款范畴。"
+      },
+      {
+        "case_id": "domain-v3:zh:9:6:2",
+        "label": "__DEFER__",
+        "clear_and_natural": false,
+        "reason": "用户同时提出预约检修（售后）和投诉售后电话难打通（投诉/人工服务）两个不同领域请求，跨域并存，应延迟。"
+      },
+      {
+        "case_id": "domain-v3:zh:9:7:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户明确表示先不管账号，鞋子要退款，属于退款范畴。"
+      },
+      {
+        "case_id": "domain-v3:zh:9:7:1",
+        "label": "account_security",
+        "clear_and_natural": true,
+        "reason": "用户明确鞋子的事先放一边，转而关注账号异地登录问题，属于账户安全范畴。"
+      },
+      {
+        "case_id": "domain-v3:zh:9:7:2",
+        "label": "__DEFER__",
+        "clear_and_natural": false,
+        "reason": "用户同时提出退款（售后）和查询异地登录记录（账户安全）两个不同领域请求，跨域并存，应延迟。"
+      }
+    ]
+  },
+  "rows": [
+    {
+      "case_id": "domain-v3:zh:9:0:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上周买的空气炸锅，烤鸡翅的时候中间不熟，边缘都焦了。"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，很抱歉给您带来不便。请问您设置的温度和时间是多少呢？"
+        },
+        {
+          "role": "user",
+          "content": "200度烤了25分钟，按说明书来的。"
+        },
+        {
+          "role": "assistant",
+          "content": "明白了。这种情况可能是发热管故障，建议您申请售后检测。请问需要我帮您提交维修申请吗？"
+        }
+      ],
+      "text": "先别提交，我想想再说。对了，我上次买的那个硅胶垫怎么还没发货？",
+      "label": "order_logistics",
+      "language": "zh",
+      "group_id": "domain-v3:zh:9:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:9:0:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上周买的空气炸锅，烤鸡翅的时候中间不熟，边缘都焦了。"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，很抱歉给您带来不便。请问您设置的温度和时间是多少呢？"
+        },
+        {
+          "role": "user",
+          "content": "200度烤了25分钟，按说明书来的。"
+        },
+        {
+          "role": "assistant",
+          "content": "明白了。这种情况可能是发热管故障，建议您申请售后检测。请问需要我帮您提交维修申请吗？"
+        }
+      ],
+      "text": "不用修了，直接帮我退货退款吧，我不想折腾了。",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:9:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:9:1:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "耳机到了，但是左耳完全没声音，右耳正常。"
+        },
+        {
+          "role": "assistant",
+          "content": "抱歉给您带来困扰。您是否尝试过重新配对或者清洁触点呢？"
+        },
+        {
+          "role": "user",
+          "content": "试过了，还是不行。感觉是硬件问题。"
+        },
+        {
+          "role": "assistant",
+          "content": "理解。如果确认是质量问题，我们可以为您办理换货或退款，您更倾向哪种方案？"
+        }
+      ],
+      "text": "退款吧，这质量我信不过了。",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:9:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:9:1:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "耳机到了，但是左耳完全没声音，右耳正常。"
+        },
+        {
+          "role": "assistant",
+          "content": "抱歉给您带来困扰。您是否尝试过重新配对或者清洁触点呢？"
+        },
+        {
+          "role": "user",
+          "content": "试过了，还是不行。感觉是硬件问题。"
+        },
+        {
+          "role": "assistant",
+          "content": "理解。如果确认是质量问题，我们可以为您办理换货或退款，您更倾向哪种方案？"
+        }
+      ],
+      "text": "算了，不换了也不退了，我自己拿去修修看。谢谢你的耐心解答。",
+      "label": "general",
+      "language": "zh",
+      "group_id": "domain-v3:zh:9:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:9:2:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "扫地机器人用了一个月，现在老是卡在同一个地方不动。"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，请问卡住的位置是否有障碍物或者地毯边缘呢？"
+        },
+        {
+          "role": "user",
+          "content": "没有障碍物，就是突然不动了，屏幕显示错误代码E3。"
+        },
+        {
+          "role": "assistant",
+          "content": "E3代码表示传感器异常，建议寄回检测。您之前那笔拖把订单已经签收了，请问还有其他需要帮助的吗？"
+        }
+      ],
+      "text": "那拖把其实我想退掉，还没拆封，能退吗？机器人先放着不管。",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:9:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:9:2:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "扫地机器人用了一个月，现在老是卡在同一个地方不动。"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，请问卡住的位置是否有障碍物或者地毯边缘呢？"
+        },
+        {
+          "role": "user",
+          "content": "没有障碍物，就是突然不动了，屏幕显示错误代码E3。"
+        },
+        {
+          "role": "assistant",
+          "content": "E3代码表示传感器异常，建议寄回检测。您之前那笔拖把订单已经签收了，请问还有其他需要帮助的吗？"
+        }
+      ],
+      "text": "机器人先不修了，我想问一下你们客服人工电话是多少？我想直接打电话说。",
+      "label": "human_service",
+      "language": "zh",
+      "group_id": "domain-v3:zh:9:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:9:3:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "羽绒服收到了，但是M码穿着太大了，我平时都穿M的。"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，不同品牌版型会有差异。您可以申请换小一码，或者选择退货退款。"
+        },
+        {
+          "role": "user",
+          "content": "那换货的话运费谁出？"
+        },
+        {
+          "role": "assistant",
+          "content": "如果是尺码不合适，非质量问题换货需要您承担来回运费哦。"
+        }
+      ],
+      "text": "那算了，我直接退货吧，运费我自己出也行，不想留一件不合身的。",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:9:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:9:3:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "羽绒服收到了，但是M码穿着太大了，我平时都穿M的。"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，不同品牌版型会有差异。您可以申请换小一码，或者选择退货退款。"
+        },
+        {
+          "role": "user",
+          "content": "那换货的话运费谁出？"
+        },
+        {
+          "role": "assistant",
+          "content": "如果是尺码不合适，非质量问题换货需要您承担来回运费哦。"
+        }
+      ],
+      "text": "行吧，那我不换了。之前问的那件灰色毛衣还有货吗？",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:9:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:9:3:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "羽绒服收到了，但是M码穿着太大了，我平时都穿M的。"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，不同品牌版型会有差异。您可以申请换小一码，或者选择退货退款。"
+        },
+        {
+          "role": "user",
+          "content": "那换货的话运费谁出？"
+        },
+        {
+          "role": "assistant",
+          "content": "如果是尺码不合适，非质量问题换货需要您承担来回运费哦。"
+        }
+      ],
+      "text": "嗯……我再想想。你们人工客服几点下班？我晚点再打过来。",
+      "label": "human_service",
+      "language": "zh",
+      "group_id": "domain-v3:zh:9:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:9:4:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "手表宣传说续航七天，我实际用两天就没电了。"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，续航会受使用习惯影响，比如常开GPS或亮屏。您平时开启哪些功能呢？"
+        },
+        {
+          "role": "user",
+          "content": "就正常看时间收消息，没开什么耗电功能。"
+        },
+        {
+          "role": "assistant",
+          "content": "那确实不太正常。您可以申请检测，如果确认电池问题可以换新或退款。"
+        }
+      ],
+      "text": "那帮我申请退款吧，宣传和实际差太多了，我不接受换新。",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:9:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:9:4:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "手表宣传说续航七天，我实际用两天就没电了。"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，续航会受使用习惯影响，比如常开GPS或亮屏。您平时开启哪些功能呢？"
+        },
+        {
+          "role": "user",
+          "content": "就正常看时间收消息，没开什么耗电功能。"
+        },
+        {
+          "role": "assistant",
+          "content": "那确实不太正常。您可以申请检测，如果确认电池问题可以换新或退款。"
+        }
+      ],
+      "text": "等等，我登录不上了，刚才退出后密码怎么输都不对，是不是被盗了？",
+      "label": "account_security",
+      "language": "zh",
+      "group_id": "domain-v3:zh:9:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:9:5:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "刚收到的牛奶有两盒胀包了，鼓鼓的，不敢喝。"
+        },
+        {
+          "role": "assistant",
+          "content": "非常抱歉！胀包说明可能变质，请勿饮用。请问您方便拍一下生产日期和批次号吗？"
+        },
+        {
+          "role": "user",
+          "content": "拍了，日期是上个月的，批次号我发给你了。"
+        },
+        {
+          "role": "assistant",
+          "content": "收到，已记录。我们可以为您补发两盒或者整箱退款，您怎么选？"
+        }
+      ],
+      "text": "整箱退了吧，剩下的我也不放心喝了。",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:9:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:9:5:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "刚收到的牛奶有两盒胀包了，鼓鼓的，不敢喝。"
+        },
+        {
+          "role": "assistant",
+          "content": "非常抱歉！胀包说明可能变质，请勿饮用。请问您方便拍一下生产日期和批次号吗？"
+        },
+        {
+          "role": "user",
+          "content": "拍了，日期是上个月的，批次号我发给你了。"
+        },
+        {
+          "role": "assistant",
+          "content": "收到，已记录。我们可以为您补发两盒或者整箱退款，您怎么选？"
+        }
+      ],
+      "text": "先补发吧。不过我想确认一下，如果补发的又有问题，到时候还能退吗？",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:9:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:9:6:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "咖啡机蒸汽棒不出蒸汽了，打奶泡完全不行。"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，请问蒸汽棒喷嘴是否有堵塞？您用完后有及时清洁吗？"
+        },
+        {
+          "role": "user",
+          "content": "每次用完都擦的，应该不是堵了。开机预热也正常。"
+        },
+        {
+          "role": "assistant",
+          "content": "那可能是内部蒸汽阀故障。我们可以安排上门检修，或者您也可以选择退换。"
+        }
+      ],
+      "text": "上门检修吧。对了，之前你推荐的那款中深烘焙豆子，现在有活动价吗？",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:9:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:9:6:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "咖啡机蒸汽棒不出蒸汽了，打奶泡完全不行。"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，请问蒸汽棒喷嘴是否有堵塞？您用完后有及时清洁吗？"
+        },
+        {
+          "role": "user",
+          "content": "每次用完都擦的，应该不是堵了。开机预热也正常。"
+        },
+        {
+          "role": "assistant",
+          "content": "那可能是内部蒸汽阀故障。我们可以安排上门检修，或者您也可以选择退换。"
+        }
+      ],
+      "text": "不用修了，直接退了吧，买来一周就出问题，太闹心了。",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:9:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:9:7:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "鞋子穿了一周，鞋底就开胶了，这也太差了吧。"
+        },
+        {
+          "role": "assistant",
+          "content": "非常抱歉！请问您是在什么路面穿的？是否有涉水或暴晒情况？"
+        },
+        {
+          "role": "user",
+          "content": "就正常走路上下班，没碰水也没暴晒。"
+        },
+        {
+          "role": "assistant",
+          "content": "那属于质量问题，我们可以为您免费换新或退款。另外我注意到您的账号在异地登录过，建议您修改密码。"
+        }
+      ],
+      "text": "先不管账号的事，鞋子我要退款，这质量没法穿。",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:9:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:9:7:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "鞋子穿了一周，鞋底就开胶了，这也太差了吧。"
+        },
+        {
+          "role": "assistant",
+          "content": "非常抱歉！请问您是在什么路面穿的？是否有涉水或暴晒情况？"
+        },
+        {
+          "role": "user",
+          "content": "就正常走路上下班，没碰水也没暴晒。"
+        },
+        {
+          "role": "assistant",
+          "content": "那属于质量问题，我们可以为您免费换新或退款。另外我注意到您的账号在异地登录过，建议您修改密码。"
+        }
+      ],
+      "text": "鞋子的事先放一边，你说我账号异地登录？那我现在该怎么办？",
+      "label": "account_security",
+      "language": "zh",
+      "group_id": "domain-v3:zh:9:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    }
+  ],
+  "rejected": [
+    {
+      "case_id": "domain-v3:zh:9:0:0",
+      "author": "product_technical",
+      "label": "__DEFER__",
+      "clear_and_natural": false,
+      "reason": "用户同时提出两个不同领域的请求：提交维修申请（售后/产品）和询问更大容量型号（产品咨询）。维修申请属于售后，型号咨询属于产品技术，跨域并存，应延迟。"
+    },
+    {
+      "case_id": "domain-v3:zh:9:1:0",
+      "author": "order_logistics",
+      "label": "__DEFER__",
+      "clear_and_natural": false,
+      "reason": "用户同时提出换货（售后）和查询另一订单物流（订单物流）两个不同领域请求，跨域并存，应延迟。"
+    },
+    {
+      "case_id": "domain-v3:zh:9:2:0",
+      "author": "billing_refund",
+      "label": "product_technical",
+      "clear_and_natural": true,
+      "reason": "用户明确表示拖把的事不用管，聚焦机器人检测时长及退款条件，属于产品售后/技术问题。"
+    },
+    {
+      "case_id": "domain-v3:zh:9:4:1",
+      "author": "general",
+      "label": "account_security",
+      "clear_and_natural": true,
+      "reason": "用户先同意检测，但转而询问账户优惠券是否过期，属于账户相关咨询。"
+    },
+    {
+      "case_id": "domain-v3:zh:9:5:1",
+      "author": "general",
+      "label": "product_technical",
+      "clear_and_natural": true,
+      "reason": "用户选择补发，但转而询问空箱回收活动，属于产品/活动咨询。"
+    },
+    {
+      "case_id": "domain-v3:zh:9:6:2",
+      "author": "human_service",
+      "label": "__DEFER__",
+      "clear_and_natural": false,
+      "reason": "用户同时提出预约检修（售后）和投诉售后电话难打通（投诉/人工服务）两个不同领域请求，跨域并存，应延迟。"
+    },
+    {
+      "case_id": "domain-v3:zh:9:7:2",
+      "author": "account_security",
+      "label": "__DEFER__",
+      "clear_and_natural": false,
+      "reason": "用户同时提出退款（售后）和查询异地登录记录（账户安全）两个不同领域请求，跨域并存，应延迟。"
+    }
+  ],
+  "status": "reviewed"
+}

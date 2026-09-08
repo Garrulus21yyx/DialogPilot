@@ -1,0 +1,638 @@
+{
+  "batch_id": "domain-v3:zh:1",
+  "language": "zh",
+  "split": "train",
+  "models": {
+    "author": "deepseek-v4-flash",
+    "review": "deepseek-v4-pro"
+  },
+  "review_protocol": "label-blind-batch-v1",
+  "synthetic": true,
+  "author_prompt": "Author 8 DIFFERENT natural ecommerce customer-service dialogue families in zh.\nBatch 1; ensure at least four current turns classified as product_technical across this batch.\nEach family has its OWN coherent history of 2, 4 or 6 short alternating user/assistant\nmessages, followed by 3 ALTERNATIVE current user turns, not three sequential turns.\nThose alternatives differ in effective intent: retain vs replace, withdraw vs\ncontinue, single goal vs concurrent goal, or resolved vs unresolved reference.\nInclude natural short answers where history matters. Vary old completed tasks,\nhesitation, self-correction, indirect wording, topics and dialogue acts. General\nand human-service requests must also occur as NEW goals, not only stale history.\nDo not follow a repeated sentence template or substitute product nouns to create\nnew families. Avoid stereotyped 'information only, do not submit' repetition.\nInvent broad everyday ecommerce situations; no copied benchmark or private data.\nHistory plus current turn should fit 150 English words or 180 Chinese characters;\nkeep it compact but meaningful. No future replies or final conversation summaries.\nSupply the correct label for each alternative according to the rubric.\n",
+  "author_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_cytWk4WvHF8FpSFuNohW3051",
+          "input": {
+            "families": [
+              {
+                "scenario": "智能手表表带更换咨询",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我上周买的智能手表，表带戴着有点过敏，想问问能不能换别的材质。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您好，请问您购买的是哪一款手表呢？我可以帮您查看可替换的表带选项。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "是S3那款，硅胶表带。你们有皮质的吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "S3支持皮质和尼龙表带，都是磁吸快拆设计，您可以自行更换。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那皮质表带多少钱一条？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "算了，我直接申请退货吧，帮我走流程。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "皮质和尼龙哪个更透气？我出汗多。",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "咖啡机磨豆粗细调节",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我买的K9咖啡机到了，但磨出来的粉感觉太粗了。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "K9的研磨度旋钮在豆仓底部，顺时针旋转是调细。建议每次转半格试试。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "我转了，但好像没变化？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请确认旋钮是否卡到位了，另外前两次研磨会残留旧粉，多磨一次看看。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的我试试。另外你们有没有配套的奶泡杯卖？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "还是不行，我想找人工客服帮我远程看看。",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "那如果调到最细，能做意式浓缩吗？",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "退货后运费到账查询",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我上周退货的那双鞋，运费什么时候退给我？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您的退货已签收，运费会在签收后3个工作日内原路退回。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "已经过了三天了，还没到账。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "抱歉让您久等了，我帮您查一下，请稍等。您的退款显示今天下午已发起，预计明天到账。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，那我明天再看。顺便问下你们现在有什么优惠券可以领吗？",
+                    "label": "general"
+                  },
+                  {
+                    "text": "明天还没到的话我就要投诉了。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "运费退了，那鞋子的货款呢？一起退的吗？",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "蓝牙耳机连接问题",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "新买的T5耳机左耳没声音，是不是坏了？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请先尝试把两只耳机都放回充电盒，合盖10秒后再取出重新配对。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "试过了，还是只有右耳响。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "那可能是左耳固件需要更新，请在App里检查固件版本并升级到最新。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "升级固件之后如果还不行，能直接换新吗？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "我不想折腾了，帮我转人工客服处理售后。",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "这个App在哪里下载？应用商店里搜什么名字？",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "会员积分兑换后想取消",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我刚才用积分兑换了一个保温杯，但发现地址填错了。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "兑换订单还未发货的话可以修改地址，我帮您看看订单状态。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "订单显示待发货，能改吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "可以的，请提供正确的收货地址，我马上为您修改。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "算了不换了，积分能退回来吗？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "地址改成公司：朝阳区建国路88号。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "改完地址之后，保温杯大概什么时候能到？",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "账号登录异常",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我手机换了，现在登录不了账号，收不到验证码。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请问您之前绑定的是手机号还是邮箱登录？我可以帮您核实身份。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "绑的是手机号，但那个号已经注销了。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "明白了，这种情况需要通过人工审核更换绑定手机号，需要您提供订单截图和身份证信息。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，那审核需要多久？",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "太麻烦了，我重新注册一个账号算了。",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "我身份证照片发你邮箱还是这里？",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "灯具安装配件缺失",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "吊灯收到了，但里面没有膨胀螺丝，装不了。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "非常抱歉，膨胀螺丝应该是在包装侧面的小袋子里，您再找找看？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "翻遍了都没有，确实漏发了。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "好的，我马上为您补发一套安装配件，预计后天送达。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "补发的螺丝和原来的一样规格吗？我怕孔位对不上。",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "好的谢谢。另外你们有没有这款灯的遥控器单独卖？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "不用补了，我直接退货吧，太折腾了。",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "宠物喂食器定时设置",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "喂食器到了，但我设置定时出粮，到点没反应。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请问您是在机器上直接设置的，还是通过App设置的？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "App里设的，显示保存成功了。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请检查App里设备时间是否同步，另外确认喂食器是否连接了Wi-Fi且在线。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "时间同步了，Wi-Fi也连着，还是不触发。",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "算了，我手动喂吧，这个功能不用了。",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "那如果我不在家，它不触发的话猫会饿着，你们能不能给我换一台？",
+                    "label": "product_technical"
+                  }
+                ]
+              }
+            ]
+          },
+          "name": "AuthoredBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "48c79e84-5d08-40d5-9410-0c846310ffea",
+        "container": null,
+        "model": "deepseek-v4-flash",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "inference_geo": null,
+          "input_tokens": 961,
+          "output_tokens": 1707,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-flash",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d5-8b63-71c3-88c1-b751720d93b7-0",
+      "tool_calls": [
+        {
+          "name": "AuthoredBatch",
+          "args": {
+            "families": [
+              {
+                "scenario": "智能手表表带更换咨询",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我上周买的智能手表，表带戴着有点过敏，想问问能不能换别的材质。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您好，请问您购买的是哪一款手表呢？我可以帮您查看可替换的表带选项。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "是S3那款，硅胶表带。你们有皮质的吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "S3支持皮质和尼龙表带，都是磁吸快拆设计，您可以自行更换。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那皮质表带多少钱一条？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "算了，我直接申请退货吧，帮我走流程。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "皮质和尼龙哪个更透气？我出汗多。",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "咖啡机磨豆粗细调节",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我买的K9咖啡机到了，但磨出来的粉感觉太粗了。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "K9的研磨度旋钮在豆仓底部，顺时针旋转是调细。建议每次转半格试试。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "我转了，但好像没变化？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请确认旋钮是否卡到位了，另外前两次研磨会残留旧粉，多磨一次看看。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的我试试。另外你们有没有配套的奶泡杯卖？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "还是不行，我想找人工客服帮我远程看看。",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "那如果调到最细，能做意式浓缩吗？",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "退货后运费到账查询",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我上周退货的那双鞋，运费什么时候退给我？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您的退货已签收，运费会在签收后3个工作日内原路退回。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "已经过了三天了，还没到账。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "抱歉让您久等了，我帮您查一下，请稍等。您的退款显示今天下午已发起，预计明天到账。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，那我明天再看。顺便问下你们现在有什么优惠券可以领吗？",
+                    "label": "general"
+                  },
+                  {
+                    "text": "明天还没到的话我就要投诉了。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "运费退了，那鞋子的货款呢？一起退的吗？",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "蓝牙耳机连接问题",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "新买的T5耳机左耳没声音，是不是坏了？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请先尝试把两只耳机都放回充电盒，合盖10秒后再取出重新配对。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "试过了，还是只有右耳响。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "那可能是左耳固件需要更新，请在App里检查固件版本并升级到最新。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "升级固件之后如果还不行，能直接换新吗？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "我不想折腾了，帮我转人工客服处理售后。",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "这个App在哪里下载？应用商店里搜什么名字？",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "会员积分兑换后想取消",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我刚才用积分兑换了一个保温杯，但发现地址填错了。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "兑换订单还未发货的话可以修改地址，我帮您看看订单状态。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "订单显示待发货，能改吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "可以的，请提供正确的收货地址，我马上为您修改。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "算了不换了，积分能退回来吗？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "地址改成公司：朝阳区建国路88号。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "改完地址之后，保温杯大概什么时候能到？",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "账号登录异常",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我手机换了，现在登录不了账号，收不到验证码。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请问您之前绑定的是手机号还是邮箱登录？我可以帮您核实身份。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "绑的是手机号，但那个号已经注销了。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "明白了，这种情况需要通过人工审核更换绑定手机号，需要您提供订单截图和身份证信息。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，那审核需要多久？",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "太麻烦了，我重新注册一个账号算了。",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "我身份证照片发你邮箱还是这里？",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "灯具安装配件缺失",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "吊灯收到了，但里面没有膨胀螺丝，装不了。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "非常抱歉，膨胀螺丝应该是在包装侧面的小袋子里，您再找找看？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "翻遍了都没有，确实漏发了。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "好的，我马上为您补发一套安装配件，预计后天送达。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "补发的螺丝和原来的一样规格吗？我怕孔位对不上。",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "好的谢谢。另外你们有没有这款灯的遥控器单独卖？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "不用补了，我直接退货吧，太折腾了。",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "宠物喂食器定时设置",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "喂食器到了，但我设置定时出粮，到点没反应。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请问您是在机器上直接设置的，还是通过App设置的？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "App里设的，显示保存成功了。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请检查App里设备时间是否同步，另外确认喂食器是否连接了Wi-Fi且在线。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "时间同步了，Wi-Fi也连着，还是不触发。",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "算了，我手动喂吧，这个功能不用了。",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "那如果我不在家，它不触发的话猫会饿着，你们能不能给我换一台？",
+                    "label": "product_technical"
+                  }
+                ]
+              }
+            ]
+          },
+          "id": "call_00_cytWk4WvHF8FpSFuNohW3051",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 961,
+        "output_tokens": 1707,
+        "total_tokens": 2668,
+        "input_token_details": {
+          "cache_read": 0,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": "2 validation errors for AuthoredBatch\nfamilies.5\n  Value error, paired turns must expose a semantic domain boundary [type=value_error, input_value={'scenario': '账号登...': 'account_security'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.7\n  Value error, paired turns must expose a semantic domain boundary [type=value_error, input_value={'scenario': '宠物喂...: 'product_technical'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error"
+  },
+  "status": "failed",
+  "failure_stage": "author",
+  "error_type": "ValueError"
+}

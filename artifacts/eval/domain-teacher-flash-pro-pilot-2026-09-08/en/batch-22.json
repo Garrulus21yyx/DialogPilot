@@ -1,0 +1,686 @@
+{
+  "batch_id": "domain-v3:en:22",
+  "language": "en",
+  "split": "heldout",
+  "models": {
+    "author": "deepseek-v4-flash",
+    "review": "deepseek-v4-pro"
+  },
+  "review_protocol": "label-blind-batch-v1",
+  "synthetic": true,
+  "author_prompt": "Author 8 DIFFERENT natural ecommerce customer-service dialogue families in en.\nBatch 22; ensure at least four current turns classified as account_security across this batch.\nEach family has its OWN coherent history of 2, 4 or 6 short alternating user/assistant\nmessages, followed by 3 ALTERNATIVE current user turns, not three sequential turns.\nThose alternatives differ in effective intent: retain vs replace, withdraw vs\ncontinue, single goal vs concurrent goal, or resolved vs unresolved reference.\nInclude natural short answers where history matters. Vary old completed tasks,\nhesitation, self-correction, indirect wording, topics and dialogue acts. General\nand human-service requests must also occur as NEW goals, not only stale history.\nDo not follow a repeated sentence template or substitute product nouns to create\nnew families. Avoid stereotyped 'information only, do not submit' repetition.\nInvent broad everyday ecommerce situations; no copied benchmark or private data.\nHistory plus current turn should fit 150 English words or 180 Chinese characters;\nkeep it compact but meaningful. No future replies or final conversation summaries.\nSupply the correct label for each alternative according to the rubric.\n",
+  "author_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_RDHnEwP9xLqZvjUjBHfl3180",
+          "input": {
+            "families": [
+              {
+                "scenario": "Customer locked out of account after password reset email never arrived",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I've been trying to reset my password for two days but the email never shows up."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry about that. Let me check if your email address on file is correct. Could you confirm the email you used to register?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's j.martinez@mailbox.com. I've checked spam too, nothing there."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Thanks. I can see the email on file matches. Let me trigger a fresh reset link for you right now."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Okay, I'll wait a few minutes and try again."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Still nothing arrived. Can you just unlock my account from your side?",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "Actually, forget it. I'll just create a brand new account instead.",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "Nothing arrived, and also can you tell me if my last order shipped yet?",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a suspicious charge they don't recognize",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "There's a charge on my card from your store for $89 that I never made."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I understand your concern. Let me pull up your recent transactions to investigate."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Please do. It showed up yesterday morning."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I found one transaction from yesterday for $89. It was placed on an account with a different shipping address than yours."
+                  },
+                  {
+                    "role": "user",
+                    "content": "That's definitely not mine then."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Can you block that account and help me secure mine?",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "I want a refund for that charge immediately.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Hmm, wait — actually my roommate might have used my card. Let me check with them first.",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer wants to change email on account but can't remember current password",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I need to update the email on my account but I can't log in."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "No problem. I can help with that after verifying your identity. What's your full name and the last four digits of the card on file?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Sarah Chen, card ends in 4421."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Great, that matches. What email would you like to switch to?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "sarah.chen.new@gmail.com, please."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Actually, hold on — I also want to know if the desk lamp I ordered is still on track for Friday.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Wait, I changed my mind. Just delete the whole account instead.",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "Thanks for confirming. Go ahead and make the switch.",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer received wrong item and wants to talk to a person about it",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I got a blender instead of the coffee maker I ordered. This is the second mix-up this month."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm really sorry for the trouble. I can start a return and send the correct item."
+                  },
+                  {
+                    "role": "user",
+                    "content": "I've already done returns through chat twice. I'm tired of explaining everything."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I completely understand your frustration. I'd like to make this right for you."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "I want to speak to a supervisor. Put me through to a real person now.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Fine, just process the return and send the coffee maker.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Actually, you know what, I'll just keep the blender and ask for a partial refund instead.",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer browsing for a replacement laptop charger",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Do you sell chargers for a 2021 MacBook Pro 14-inch?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Yes, we do. We have the official 67W USB-C adapter and a few compatible third-party options."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Is the third-party one safe? I've heard bad things about knockoffs."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Ours are certified and tested. They carry the same safety ratings as the official adapter."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Good to know. What's the price difference?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "The official one is $79 and the third-party is $35. Which would you recommend?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Thanks, that's all I needed. Have a nice day!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Actually, I just realized my laptop is the 16-inch model. Does that change which charger I need?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about delivery address change after order placed",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I just placed an order but I'm moving next week. Can I change the shipping address?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me check the status of your order. If it hasn't shipped yet, I can update the address."
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's order #48291. I placed it about an hour ago."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Good news — it's still in processing. I can update the address for you."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Perfect, please change it to 88 Maple Street, Apt 3B."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Wait, actually I need to cancel this order entirely and place a new one later.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Great, and while you're at it, can you check if my previous order from last month was delivered?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Hmm, actually I'm not sure about the new place yet. Let me get back to you tomorrow.",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer's account shows someone else's order history",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "When I logged in today, I see orders that aren't mine in my account."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That's concerning. Let me look into your account activity right away."
+                  },
+                  {
+                    "role": "user",
+                    "content": "There are three orders from a city I've never even visited."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I see that. It looks like your account may have been accessed from another device. I'm going to secure it now."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Please do whatever you need to protect my information."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Should I change my password too, or is that enough?",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "Also, can you tell me if those fraudulent orders can be refunded?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Actually, my husband sometimes uses my account. Maybe it was him. Let me ask.",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about warranty coverage on a smartwatch",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My smartwatch screen cracked after three months. Is that covered under warranty?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me check the warranty terms for that model. Standard coverage includes manufacturing defects but not accidental damage."
+                  },
+                  {
+                    "role": "user",
+                    "content": "It just cracked on its own while I was sleeping. I didn't drop it."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I understand. In that case, we can file a warranty claim and have it assessed by our team."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Okay, please start the claim process.",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Actually, I'd rather just return it and get a different brand altogether.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Before that, can you tell me if this model is known to have screen issues?",
+                    "label": "product_technical"
+                  }
+                ]
+              }
+            ]
+          },
+          "name": "AuthoredBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "239ef260-7b93-4726-a326-69cca89b3cbe",
+        "container": null,
+        "model": "deepseek-v4-flash",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 640,
+          "inference_geo": null,
+          "input_tokens": 321,
+          "output_tokens": 2020,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-flash",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d9-2d24-77f0-8f50-88b9e260afad-0",
+      "tool_calls": [
+        {
+          "name": "AuthoredBatch",
+          "args": {
+            "families": [
+              {
+                "scenario": "Customer locked out of account after password reset email never arrived",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I've been trying to reset my password for two days but the email never shows up."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry about that. Let me check if your email address on file is correct. Could you confirm the email you used to register?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's j.martinez@mailbox.com. I've checked spam too, nothing there."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Thanks. I can see the email on file matches. Let me trigger a fresh reset link for you right now."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Okay, I'll wait a few minutes and try again."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Still nothing arrived. Can you just unlock my account from your side?",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "Actually, forget it. I'll just create a brand new account instead.",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "Nothing arrived, and also can you tell me if my last order shipped yet?",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a suspicious charge they don't recognize",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "There's a charge on my card from your store for $89 that I never made."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I understand your concern. Let me pull up your recent transactions to investigate."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Please do. It showed up yesterday morning."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I found one transaction from yesterday for $89. It was placed on an account with a different shipping address than yours."
+                  },
+                  {
+                    "role": "user",
+                    "content": "That's definitely not mine then."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Can you block that account and help me secure mine?",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "I want a refund for that charge immediately.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Hmm, wait — actually my roommate might have used my card. Let me check with them first.",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer wants to change email on account but can't remember current password",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I need to update the email on my account but I can't log in."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "No problem. I can help with that after verifying your identity. What's your full name and the last four digits of the card on file?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Sarah Chen, card ends in 4421."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Great, that matches. What email would you like to switch to?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "sarah.chen.new@gmail.com, please."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Actually, hold on — I also want to know if the desk lamp I ordered is still on track for Friday.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Wait, I changed my mind. Just delete the whole account instead.",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "Thanks for confirming. Go ahead and make the switch.",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer received wrong item and wants to talk to a person about it",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I got a blender instead of the coffee maker I ordered. This is the second mix-up this month."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm really sorry for the trouble. I can start a return and send the correct item."
+                  },
+                  {
+                    "role": "user",
+                    "content": "I've already done returns through chat twice. I'm tired of explaining everything."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I completely understand your frustration. I'd like to make this right for you."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "I want to speak to a supervisor. Put me through to a real person now.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Fine, just process the return and send the coffee maker.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Actually, you know what, I'll just keep the blender and ask for a partial refund instead.",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer browsing for a replacement laptop charger",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Do you sell chargers for a 2021 MacBook Pro 14-inch?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Yes, we do. We have the official 67W USB-C adapter and a few compatible third-party options."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Is the third-party one safe? I've heard bad things about knockoffs."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Ours are certified and tested. They carry the same safety ratings as the official adapter."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Good to know. What's the price difference?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "The official one is $79 and the third-party is $35. Which would you recommend?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Thanks, that's all I needed. Have a nice day!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Actually, I just realized my laptop is the 16-inch model. Does that change which charger I need?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about delivery address change after order placed",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I just placed an order but I'm moving next week. Can I change the shipping address?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me check the status of your order. If it hasn't shipped yet, I can update the address."
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's order #48291. I placed it about an hour ago."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Good news — it's still in processing. I can update the address for you."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Perfect, please change it to 88 Maple Street, Apt 3B."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Wait, actually I need to cancel this order entirely and place a new one later.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Great, and while you're at it, can you check if my previous order from last month was delivered?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Hmm, actually I'm not sure about the new place yet. Let me get back to you tomorrow.",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer's account shows someone else's order history",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "When I logged in today, I see orders that aren't mine in my account."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That's concerning. Let me look into your account activity right away."
+                  },
+                  {
+                    "role": "user",
+                    "content": "There are three orders from a city I've never even visited."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I see that. It looks like your account may have been accessed from another device. I'm going to secure it now."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Please do whatever you need to protect my information."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Should I change my password too, or is that enough?",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "Also, can you tell me if those fraudulent orders can be refunded?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Actually, my husband sometimes uses my account. Maybe it was him. Let me ask.",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about warranty coverage on a smartwatch",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My smartwatch screen cracked after three months. Is that covered under warranty?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me check the warranty terms for that model. Standard coverage includes manufacturing defects but not accidental damage."
+                  },
+                  {
+                    "role": "user",
+                    "content": "It just cracked on its own while I was sleeping. I didn't drop it."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I understand. In that case, we can file a warranty claim and have it assessed by our team."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Okay, please start the claim process.",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Actually, I'd rather just return it and get a different brand altogether.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Before that, can you tell me if this model is known to have screen issues?",
+                    "label": "product_technical"
+                  }
+                ]
+              }
+            ]
+          },
+          "id": "call_00_RDHnEwP9xLqZvjUjBHfl3180",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 961,
+        "output_tokens": 2020,
+        "total_tokens": 2981,
+        "input_token_details": {
+          "cache_read": 640,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": "6 validation errors for AuthoredBatch\nfamilies.0\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer lo...l': 'order_logistics'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.1\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': \"Customer as... 'label': '__DEFER__'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.2\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': \"Customer wa...': 'account_security'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.4\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer br...: 'product_technical'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.5\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer as... 'label': '__DEFER__'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.6\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': \"Customer's ... 'label': '__DEFER__'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error"
+  },
+  "status": "failed",
+  "failure_stage": "author",
+  "error_type": "ValueError"
+}

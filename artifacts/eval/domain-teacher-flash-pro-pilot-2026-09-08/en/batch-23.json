@@ -1,0 +1,582 @@
+{
+  "batch_id": "domain-v3:en:23",
+  "language": "en",
+  "split": "heldout",
+  "models": {
+    "author": "deepseek-v4-flash",
+    "review": "deepseek-v4-pro"
+  },
+  "review_protocol": "label-blind-batch-v1",
+  "synthetic": true,
+  "author_prompt": "Author 8 DIFFERENT natural ecommerce customer-service dialogue families in en.\nBatch 23; ensure at least four current turns classified as human_service across this batch.\nEach family has its OWN coherent history of 2, 4 or 6 short alternating user/assistant\nmessages, followed by 3 ALTERNATIVE current user turns, not three sequential turns.\nThose alternatives differ in effective intent: retain vs replace, withdraw vs\ncontinue, single goal vs concurrent goal, or resolved vs unresolved reference.\nInclude natural short answers where history matters. Vary old completed tasks,\nhesitation, self-correction, indirect wording, topics and dialogue acts. General\nand human-service requests must also occur as NEW goals, not only stale history.\nDo not follow a repeated sentence template or substitute product nouns to create\nnew families. Avoid stereotyped 'information only, do not submit' repetition.\nInvent broad everyday ecommerce situations; no copied benchmark or private data.\nHistory plus current turn should fit 150 English words or 180 Chinese characters;\nkeep it compact but meaningful. No future replies or final conversation summaries.\nSupply the correct label for each alternative according to the rubric.\n",
+  "author_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_vgvzt94aZ7Ly3NTfYO4Q4333",
+          "input": {
+            "families": [
+              {
+                "scenario": "Customer asks about a smartwatch they received as a gift but then requests a human agent for a warranty dispute.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I got the FitPulse S2 watch as a birthday gift last week. The strap already snapped while I was just adjusting it."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry to hear that. The FitPulse S2 comes with a 12-month warranty covering manufacturing defects. Did the strap break at the connection point?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Yes, right where it hooks into the case. I'd like to know if this counts as a defect."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That does sound like a potential defect. I can start a warranty claim for you if you'd like."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Actually, can you just transfer me to a real person? I've been going back and forth and I want a supervisor to handle this claim directly.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Okay, go ahead and start the claim. My order number is GP-88421.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Wait, before that—does the warranty also cover the charging cable that came loose? Or should I just buy a new one?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer previously resolved a return label issue and now asks about a completely different product's compatibility.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Thanks for sending that return label for the blender jar. I dropped it off at the post office this morning."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "You're welcome! Your return is now in transit. You'll get a refund notification once it's scanned at our warehouse."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Great. By the way, I was looking at your website and saw the AeroPress-style coffee maker."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Does the coffee maker work with regular drip-ground coffee, or do I need to buy a special grinder for it?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "I actually changed my mind about the blender return—can you cancel it before it gets processed?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Could you connect me to someone who can tell me if the coffee maker is compatible with my Keurig pods? I don't trust the chat bot answers.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer is checking delivery status of a desk lamp and then pivots to a login problem.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My desk lamp order says 'out for delivery' but it's been like that since 8 AM and it's now 4 PM."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me check that for you. I can see the carrier marked it as delayed due to weather in your area. It should arrive by tomorrow."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Okay, that's a relief. I was worried it got lost."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Alright, thanks for checking. Actually, I also can't log into my account on the app—it keeps saying wrong password even though I just changed it.",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "Hmm, I'd rather just pick it up myself. Can you cancel the delivery and hold it at the local depot instead?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "I appreciate the info, but I want to file a complaint about the carrier. Put me through to a human agent please.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a refund timeline for a returned jacket, then requests escalation.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I returned my winter jacket two weeks ago. Tracking shows it was delivered to your warehouse last Tuesday."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I see the package was received. Refunds typically process within 3-5 business days after arrival at the warehouse."
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's been more than 5 business days already. This is getting frustrating."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "I need to speak with a manager right now. I've called three times and emailed twice with no resolution.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Can you check if there's a hold on my refund? Maybe my bank is the problem.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Actually, forget the refund—can you just send me a replacement jacket in a size large instead?",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer had a previous chat about a yoga mat order and now asks a general question.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Hi! I ordered the cork yoga mat last week and it arrived yesterday. Love it so far."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Wonderful! We're glad you're enjoying it. Is there anything else I can help you with today?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Actually, do you have any tips for cleaning cork mats? I've heard vinegar can damage them."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "What's your return policy if the mat starts peeling after a month of regular use?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Never mind the cleaning question—I just realized I ordered the wrong thickness. Can I exchange it for the 6mm version?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Honestly, I'd rather talk to a person about this. The automated answers about cork care are always generic.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer is mid-conversation about a broken phone case and interjects a human request.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "The magnetic phone case I bought keeps falling off my car mount. The magnet strength seems way weaker than advertised."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I understand your concern. The case uses N52 magnets rated for 15 lbs of holding force. Have you tried cleaning the mount surface?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Yes, I cleaned both surfaces and it still slides off on bumpy roads."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "This is the second defective case you've sent me. I want a full refund and I'm done with this product line.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Can you escalate this to the product team? I want to speak to someone who actually tests these cases, not a script.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Actually, let me try a different mount first. Do you sell a stronger magnetic mount that would pair better with this case?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer previously asked about shipping to Canada and now has a new unrelated request.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Does the ceramic pour-over set ship to Canada? I saw it's excluded from some promotions."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Yes, we do ship the ceramic pour-over set to Canada. International shipping typically takes 7-10 business days."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Perfect, that answers my question about shipping."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Thanks! One more thing—I noticed my credit card was charged twice for a different order last month. Can you look into that?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Great, thanks for the help. Have a nice day!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Actually, I want to open a ticket about the shipping cost being way higher than what was quoted at checkout. Connect me with billing support.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer is asking about a subscription service and then reveals an account issue.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I signed up for the monthly coffee subscription but I want to skip next month's delivery since I'm traveling."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "You can skip a delivery from your account dashboard under 'Manage Subscription'. The option appears 5 days before each billing cycle."
+                  },
+                  {
+                    "role": "user",
+                    "content": "I tried that but the skip button is grayed out on my account."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Can you just skip it for me from your end? I don't want to deal with the website glitch.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "I think someone hacked my account—the email on file was changed and I never did that. I need help securing it now.",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "You know what, I've had nothing but problems with this subscription. Put me through to a retention specialist, please.",
+                    "label": "human_service"
+                  }
+                ]
+              }
+            ]
+          },
+          "name": "AuthoredBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "de3f4284-8dbf-4aba-b813-33d9e5199937",
+        "container": null,
+        "model": "deepseek-v4-flash",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 640,
+          "inference_geo": null,
+          "input_tokens": 320,
+          "output_tokens": 2000,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-flash",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d9-515d-7fb1-98a3-6bdaf19ef7b2-0",
+      "tool_calls": [
+        {
+          "name": "AuthoredBatch",
+          "args": {
+            "families": [
+              {
+                "scenario": "Customer asks about a smartwatch they received as a gift but then requests a human agent for a warranty dispute.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I got the FitPulse S2 watch as a birthday gift last week. The strap already snapped while I was just adjusting it."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry to hear that. The FitPulse S2 comes with a 12-month warranty covering manufacturing defects. Did the strap break at the connection point?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Yes, right where it hooks into the case. I'd like to know if this counts as a defect."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That does sound like a potential defect. I can start a warranty claim for you if you'd like."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Actually, can you just transfer me to a real person? I've been going back and forth and I want a supervisor to handle this claim directly.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Okay, go ahead and start the claim. My order number is GP-88421.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Wait, before that—does the warranty also cover the charging cable that came loose? Or should I just buy a new one?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer previously resolved a return label issue and now asks about a completely different product's compatibility.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Thanks for sending that return label for the blender jar. I dropped it off at the post office this morning."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "You're welcome! Your return is now in transit. You'll get a refund notification once it's scanned at our warehouse."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Great. By the way, I was looking at your website and saw the AeroPress-style coffee maker."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Does the coffee maker work with regular drip-ground coffee, or do I need to buy a special grinder for it?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "I actually changed my mind about the blender return—can you cancel it before it gets processed?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Could you connect me to someone who can tell me if the coffee maker is compatible with my Keurig pods? I don't trust the chat bot answers.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer is checking delivery status of a desk lamp and then pivots to a login problem.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My desk lamp order says 'out for delivery' but it's been like that since 8 AM and it's now 4 PM."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me check that for you. I can see the carrier marked it as delayed due to weather in your area. It should arrive by tomorrow."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Okay, that's a relief. I was worried it got lost."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Alright, thanks for checking. Actually, I also can't log into my account on the app—it keeps saying wrong password even though I just changed it.",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "Hmm, I'd rather just pick it up myself. Can you cancel the delivery and hold it at the local depot instead?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "I appreciate the info, but I want to file a complaint about the carrier. Put me through to a human agent please.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a refund timeline for a returned jacket, then requests escalation.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I returned my winter jacket two weeks ago. Tracking shows it was delivered to your warehouse last Tuesday."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I see the package was received. Refunds typically process within 3-5 business days after arrival at the warehouse."
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's been more than 5 business days already. This is getting frustrating."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "I need to speak with a manager right now. I've called three times and emailed twice with no resolution.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Can you check if there's a hold on my refund? Maybe my bank is the problem.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Actually, forget the refund—can you just send me a replacement jacket in a size large instead?",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer had a previous chat about a yoga mat order and now asks a general question.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Hi! I ordered the cork yoga mat last week and it arrived yesterday. Love it so far."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Wonderful! We're glad you're enjoying it. Is there anything else I can help you with today?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Actually, do you have any tips for cleaning cork mats? I've heard vinegar can damage them."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "What's your return policy if the mat starts peeling after a month of regular use?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Never mind the cleaning question—I just realized I ordered the wrong thickness. Can I exchange it for the 6mm version?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Honestly, I'd rather talk to a person about this. The automated answers about cork care are always generic.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer is mid-conversation about a broken phone case and interjects a human request.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "The magnetic phone case I bought keeps falling off my car mount. The magnet strength seems way weaker than advertised."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I understand your concern. The case uses N52 magnets rated for 15 lbs of holding force. Have you tried cleaning the mount surface?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Yes, I cleaned both surfaces and it still slides off on bumpy roads."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "This is the second defective case you've sent me. I want a full refund and I'm done with this product line.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Can you escalate this to the product team? I want to speak to someone who actually tests these cases, not a script.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Actually, let me try a different mount first. Do you sell a stronger magnetic mount that would pair better with this case?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer previously asked about shipping to Canada and now has a new unrelated request.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Does the ceramic pour-over set ship to Canada? I saw it's excluded from some promotions."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Yes, we do ship the ceramic pour-over set to Canada. International shipping typically takes 7-10 business days."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Perfect, that answers my question about shipping."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Thanks! One more thing—I noticed my credit card was charged twice for a different order last month. Can you look into that?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Great, thanks for the help. Have a nice day!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Actually, I want to open a ticket about the shipping cost being way higher than what was quoted at checkout. Connect me with billing support.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer is asking about a subscription service and then reveals an account issue.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I signed up for the monthly coffee subscription but I want to skip next month's delivery since I'm traveling."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "You can skip a delivery from your account dashboard under 'Manage Subscription'. The option appears 5 days before each billing cycle."
+                  },
+                  {
+                    "role": "user",
+                    "content": "I tried that but the skip button is grayed out on my account."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Can you just skip it for me from your end? I don't want to deal with the website glitch.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "I think someone hacked my account—the email on file was changed and I never did that. I need help securing it now.",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "You know what, I've had nothing but problems with this subscription. Put me through to a retention specialist, please.",
+                    "label": "human_service"
+                  }
+                ]
+              }
+            ]
+          },
+          "id": "call_00_vgvzt94aZ7Ly3NTfYO4Q4333",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 960,
+        "output_tokens": 2000,
+        "total_tokens": 2960,
+        "input_token_details": {
+          "cache_read": 640,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": "7 validation errors for AuthoredBatch\nfamilies.1\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': \"Customer pr...bel': 'human_service'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.2\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer is...bel': 'human_service'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.3\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer as...el': 'billing_refund'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.4\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer ha...bel': 'human_service'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.5\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer is...: 'product_technical'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.6\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer pr...bel': 'human_service'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.7\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer is...bel': 'human_service'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error"
+  },
+  "status": "failed",
+  "failure_stage": "author",
+  "error_type": "ValueError"
+}

@@ -1,0 +1,1972 @@
+{
+  "batch_id": "domain-v3:zh:7",
+  "language": "zh",
+  "split": "train",
+  "models": {
+    "author": "deepseek-v4-flash",
+    "review": "deepseek-v4-pro"
+  },
+  "review_protocol": "label-blind-batch-v1",
+  "synthetic": true,
+  "author_prompt": "Author 8 DIFFERENT natural ecommerce customer-service dialogue families in zh.\nBatch 7; ensure at least four current turns classified as product_technical across this batch.\nEach family has its OWN coherent history of 2, 4 or 6 short alternating user/assistant\nmessages, followed by 3 ALTERNATIVE current user turns, not three sequential turns.\nThose alternatives differ in effective intent: retain vs replace, withdraw vs\ncontinue, single goal vs concurrent goal, or resolved vs unresolved reference.\nInclude natural short answers where history matters. Vary old completed tasks,\nhesitation, self-correction, indirect wording, topics and dialogue acts. General\nand human-service requests must also occur as NEW goals, not only stale history.\nDo not follow a repeated sentence template or substitute product nouns to create\nnew families. Avoid stereotyped 'information only, do not submit' repetition.\nInvent broad everyday ecommerce situations; no copied benchmark or private data.\nHistory plus current turn should fit 150 English words or 180 Chinese characters;\nkeep it compact but meaningful. No future replies or final conversation summaries.\nSupply the correct label for each alternative according to the rubric.\n",
+  "author_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_jLfaOtIbNVOyBu2Ov1J93634",
+          "input": {
+            "families": [
+              {
+                "scenario": "智能手表售后咨询",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我上周买的智能手表，表带扣子松了，戴着总掉。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "很抱歉给您带来不便。请问您是在哪个渠道购买的？我可以帮您查询订单信息。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "就在你们官网买的，订单号是WX20241108。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "已查到您的订单，手表在保修期内。表带扣松动可以申请免费维修或更换。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那帮我申请换一条新表带吧，谢谢。",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "对了，这个手表防水等级是多少？我想戴着游泳。",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "算了，不修了，我直接退货吧。",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "咖啡机使用问题",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我买的胶囊咖啡机到了，但第一次用就漏水。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请问漏水是从哪个位置？是水箱接口还是出咖啡口附近？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "好像是水箱装上去的地方在漏。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "可能是水箱没有完全卡到位。您可以试着按压水箱直到听到咔嗒声。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "我试了还是漏，是不是密封圈有问题？能寄个配件吗？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "好的我再去试试，另外你们有没有卖那种低因胶囊？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "那算了，帮我申请退货吧，太麻烦了。",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "物流配送延迟",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我前天下的单，怎么到现在还没发货？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "我帮您查一下。您的订单显示今天下午会从仓库发出。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "能不能帮我催一下？我周五要出差，怕收不到。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "好的，我已经为您备注了优先发货，预计明天能到。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "太好了，那麻烦你顺便帮我查一下我另一个订单的物流，单号是SF8899。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "谢谢，另外你们客服电话是多少？我以后有问题直接打电话。",
+                    "label": "general"
+                  },
+                  {
+                    "text": "嗯，其实我那个出差取消了，不用催了，正常发就行。",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "退货退款流程",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我买的蓝牙耳机音质太差了，想退货。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "耳机属于电子产品，签收后7天内可以无理由退货。请问您签收几天了？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "今天刚收到，还没拆封呢。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "那完全符合退货条件。我帮您提交退货申请，快递会上门取件。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，麻烦你了。对了，退货的钱什么时候能到账？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "等等，我拆开试了一下发现其实还行，那我不退了。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "好的，另外我想问一下你们有没有降噪更好的耳机推荐？",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "账号登录异常",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我登录不了我的账号了，一直提示密码错误。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "别着急，您可以点击登录页面的“忘记密码”来重置。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "我试过了，但收不到重置验证码短信。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "可能是手机号有变更。请问您能提供注册邮箱吗？我帮您核实身份。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "邮箱是lily2020@163.com，麻烦帮我处理一下。",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "算了，我重新注册一个账号吧，反正也没多少积分。",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "邮箱我忘了，能不能转人工客服帮我解决？",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "服装尺码更换",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我买的那件风衣M码穿着肩膀有点紧。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请问您需要换大一码吗？L码目前有现货。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "对，帮我换成L码吧。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "好的，我已经为您提交了换货申请，L码会尽快发出。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的谢谢。另外这件风衣的洗涤说明上写可以机洗吗？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "嗯，其实我量了一下，M码可能也行，就是里面不能穿厚毛衣。那还是换L吧。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "对了，你们今天有什么优惠活动吗？我想再买条裤子。",
+                    "label": "general"
+                  }
+                ]
+              },
+              {
+                "scenario": "宠物用品订单咨询",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我上周买的猫粮，我家猫吃了有点软便。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请问是突然换粮导致的吗？建议新旧粮混合过渡一周。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "我是直接换的，没过渡。那我现在该怎么办？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "建议先恢复旧粮，再按7:3、5:5、3:7的比例逐步替换，每次持续两三天。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "明白了，我按你说的试试。另外这款猫粮的粗蛋白含量是多少？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "好的，那如果试了还是软便，可以退货吗？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "谢谢你，你人真好，祝你们生意兴隆！",
+                    "label": "general"
+                  }
+                ]
+              },
+              {
+                "scenario": "家居灯具安装",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我买的吊灯到了，但安装说明书看不太懂。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您可以在商品页面找到安装视频教程，或者我发您一份图文步骤。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "视频我看了，但我的天花板是斜顶，不知道能不能装。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "斜顶安装需要额外购买斜顶配件，建议您先确认吊杆长度是否合适。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那斜顶配件在你们店有卖吗？多少钱？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "太麻烦了，我申请退货吧，不装了。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "好的，那我不买了配件了，直接找师傅来装，师傅会带配件吧？",
+                    "label": "product_technical"
+                  }
+                ]
+              }
+            ]
+          },
+          "name": "AuthoredBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "4ef5a1ac-e541-4904-a598-4c385c3a5bed",
+        "container": null,
+        "model": "deepseek-v4-flash",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 640,
+          "inference_geo": null,
+          "input_tokens": 321,
+          "output_tokens": 1728,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-flash",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d5-f370-7833-b381-ecad69f6df87-0",
+      "tool_calls": [
+        {
+          "name": "AuthoredBatch",
+          "args": {
+            "families": [
+              {
+                "scenario": "智能手表售后咨询",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我上周买的智能手表，表带扣子松了，戴着总掉。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "很抱歉给您带来不便。请问您是在哪个渠道购买的？我可以帮您查询订单信息。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "就在你们官网买的，订单号是WX20241108。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "已查到您的订单，手表在保修期内。表带扣松动可以申请免费维修或更换。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那帮我申请换一条新表带吧，谢谢。",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "对了，这个手表防水等级是多少？我想戴着游泳。",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "算了，不修了，我直接退货吧。",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "咖啡机使用问题",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我买的胶囊咖啡机到了，但第一次用就漏水。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请问漏水是从哪个位置？是水箱接口还是出咖啡口附近？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "好像是水箱装上去的地方在漏。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "可能是水箱没有完全卡到位。您可以试着按压水箱直到听到咔嗒声。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "我试了还是漏，是不是密封圈有问题？能寄个配件吗？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "好的我再去试试，另外你们有没有卖那种低因胶囊？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "那算了，帮我申请退货吧，太麻烦了。",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "物流配送延迟",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我前天下的单，怎么到现在还没发货？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "我帮您查一下。您的订单显示今天下午会从仓库发出。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "能不能帮我催一下？我周五要出差，怕收不到。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "好的，我已经为您备注了优先发货，预计明天能到。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "太好了，那麻烦你顺便帮我查一下我另一个订单的物流，单号是SF8899。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "谢谢，另外你们客服电话是多少？我以后有问题直接打电话。",
+                    "label": "general"
+                  },
+                  {
+                    "text": "嗯，其实我那个出差取消了，不用催了，正常发就行。",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "退货退款流程",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我买的蓝牙耳机音质太差了，想退货。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "耳机属于电子产品，签收后7天内可以无理由退货。请问您签收几天了？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "今天刚收到，还没拆封呢。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "那完全符合退货条件。我帮您提交退货申请，快递会上门取件。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，麻烦你了。对了，退货的钱什么时候能到账？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "等等，我拆开试了一下发现其实还行，那我不退了。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "好的，另外我想问一下你们有没有降噪更好的耳机推荐？",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "账号登录异常",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我登录不了我的账号了，一直提示密码错误。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "别着急，您可以点击登录页面的“忘记密码”来重置。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "我试过了，但收不到重置验证码短信。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "可能是手机号有变更。请问您能提供注册邮箱吗？我帮您核实身份。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "邮箱是lily2020@163.com，麻烦帮我处理一下。",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "算了，我重新注册一个账号吧，反正也没多少积分。",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "邮箱我忘了，能不能转人工客服帮我解决？",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "服装尺码更换",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我买的那件风衣M码穿着肩膀有点紧。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请问您需要换大一码吗？L码目前有现货。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "对，帮我换成L码吧。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "好的，我已经为您提交了换货申请，L码会尽快发出。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的谢谢。另外这件风衣的洗涤说明上写可以机洗吗？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "嗯，其实我量了一下，M码可能也行，就是里面不能穿厚毛衣。那还是换L吧。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "对了，你们今天有什么优惠活动吗？我想再买条裤子。",
+                    "label": "general"
+                  }
+                ]
+              },
+              {
+                "scenario": "宠物用品订单咨询",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我上周买的猫粮，我家猫吃了有点软便。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请问是突然换粮导致的吗？建议新旧粮混合过渡一周。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "我是直接换的，没过渡。那我现在该怎么办？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "建议先恢复旧粮，再按7:3、5:5、3:7的比例逐步替换，每次持续两三天。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "明白了，我按你说的试试。另外这款猫粮的粗蛋白含量是多少？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "好的，那如果试了还是软便，可以退货吗？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "谢谢你，你人真好，祝你们生意兴隆！",
+                    "label": "general"
+                  }
+                ]
+              },
+              {
+                "scenario": "家居灯具安装",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我买的吊灯到了，但安装说明书看不太懂。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您可以在商品页面找到安装视频教程，或者我发您一份图文步骤。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "视频我看了，但我的天花板是斜顶，不知道能不能装。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "斜顶安装需要额外购买斜顶配件，建议您先确认吊杆长度是否合适。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那斜顶配件在你们店有卖吗？多少钱？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "太麻烦了，我申请退货吧，不装了。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "好的，那我不买了配件了，直接找师傅来装，师傅会带配件吧？",
+                    "label": "product_technical"
+                  }
+                ]
+              }
+            ]
+          },
+          "id": "call_00_jLfaOtIbNVOyBu2Ov1J93634",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 961,
+        "output_tokens": 1728,
+        "total_tokens": 2689,
+        "input_token_details": {
+          "cache_read": 640,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "authored": {
+    "families": [
+      {
+        "scenario": "智能手表售后咨询",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我上周买的智能手表，表带扣子松了，戴着总掉。"
+          },
+          {
+            "role": "assistant",
+            "content": "很抱歉给您带来不便。请问您是在哪个渠道购买的？我可以帮您查询订单信息。"
+          },
+          {
+            "role": "user",
+            "content": "就在你们官网买的，订单号是WX20241108。"
+          },
+          {
+            "role": "assistant",
+            "content": "已查到您的订单，手表在保修期内。表带扣松动可以申请免费维修或更换。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "那帮我申请换一条新表带吧，谢谢。",
+            "label": "product_technical"
+          },
+          {
+            "text": "对了，这个手表防水等级是多少？我想戴着游泳。",
+            "label": "product_technical"
+          },
+          {
+            "text": "算了，不修了，我直接退货吧。",
+            "label": "billing_refund"
+          }
+        ]
+      },
+      {
+        "scenario": "咖啡机使用问题",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我买的胶囊咖啡机到了，但第一次用就漏水。"
+          },
+          {
+            "role": "assistant",
+            "content": "请问漏水是从哪个位置？是水箱接口还是出咖啡口附近？"
+          },
+          {
+            "role": "user",
+            "content": "好像是水箱装上去的地方在漏。"
+          },
+          {
+            "role": "assistant",
+            "content": "可能是水箱没有完全卡到位。您可以试着按压水箱直到听到咔嗒声。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "我试了还是漏，是不是密封圈有问题？能寄个配件吗？",
+            "label": "product_technical"
+          },
+          {
+            "text": "好的我再去试试，另外你们有没有卖那种低因胶囊？",
+            "label": "product_technical"
+          },
+          {
+            "text": "那算了，帮我申请退货吧，太麻烦了。",
+            "label": "billing_refund"
+          }
+        ]
+      },
+      {
+        "scenario": "物流配送延迟",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我前天下的单，怎么到现在还没发货？"
+          },
+          {
+            "role": "assistant",
+            "content": "我帮您查一下。您的订单显示今天下午会从仓库发出。"
+          },
+          {
+            "role": "user",
+            "content": "能不能帮我催一下？我周五要出差，怕收不到。"
+          },
+          {
+            "role": "assistant",
+            "content": "好的，我已经为您备注了优先发货，预计明天能到。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "太好了，那麻烦你顺便帮我查一下我另一个订单的物流，单号是SF8899。",
+            "label": "order_logistics"
+          },
+          {
+            "text": "谢谢，另外你们客服电话是多少？我以后有问题直接打电话。",
+            "label": "general"
+          },
+          {
+            "text": "嗯，其实我那个出差取消了，不用催了，正常发就行。",
+            "label": "order_logistics"
+          }
+        ]
+      },
+      {
+        "scenario": "退货退款流程",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我买的蓝牙耳机音质太差了，想退货。"
+          },
+          {
+            "role": "assistant",
+            "content": "耳机属于电子产品，签收后7天内可以无理由退货。请问您签收几天了？"
+          },
+          {
+            "role": "user",
+            "content": "今天刚收到，还没拆封呢。"
+          },
+          {
+            "role": "assistant",
+            "content": "那完全符合退货条件。我帮您提交退货申请，快递会上门取件。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "好的，麻烦你了。对了，退货的钱什么时候能到账？",
+            "label": "billing_refund"
+          },
+          {
+            "text": "等等，我拆开试了一下发现其实还行，那我不退了。",
+            "label": "billing_refund"
+          },
+          {
+            "text": "好的，另外我想问一下你们有没有降噪更好的耳机推荐？",
+            "label": "product_technical"
+          }
+        ]
+      },
+      {
+        "scenario": "账号登录异常",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我登录不了我的账号了，一直提示密码错误。"
+          },
+          {
+            "role": "assistant",
+            "content": "别着急，您可以点击登录页面的“忘记密码”来重置。"
+          },
+          {
+            "role": "user",
+            "content": "我试过了，但收不到重置验证码短信。"
+          },
+          {
+            "role": "assistant",
+            "content": "可能是手机号有变更。请问您能提供注册邮箱吗？我帮您核实身份。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "邮箱是lily2020@163.com，麻烦帮我处理一下。",
+            "label": "account_security"
+          },
+          {
+            "text": "算了，我重新注册一个账号吧，反正也没多少积分。",
+            "label": "account_security"
+          },
+          {
+            "text": "邮箱我忘了，能不能转人工客服帮我解决？",
+            "label": "human_service"
+          }
+        ]
+      },
+      {
+        "scenario": "服装尺码更换",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我买的那件风衣M码穿着肩膀有点紧。"
+          },
+          {
+            "role": "assistant",
+            "content": "请问您需要换大一码吗？L码目前有现货。"
+          },
+          {
+            "role": "user",
+            "content": "对，帮我换成L码吧。"
+          },
+          {
+            "role": "assistant",
+            "content": "好的，我已经为您提交了换货申请，L码会尽快发出。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "好的谢谢。另外这件风衣的洗涤说明上写可以机洗吗？",
+            "label": "product_technical"
+          },
+          {
+            "text": "嗯，其实我量了一下，M码可能也行，就是里面不能穿厚毛衣。那还是换L吧。",
+            "label": "order_logistics"
+          },
+          {
+            "text": "对了，你们今天有什么优惠活动吗？我想再买条裤子。",
+            "label": "general"
+          }
+        ]
+      },
+      {
+        "scenario": "宠物用品订单咨询",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我上周买的猫粮，我家猫吃了有点软便。"
+          },
+          {
+            "role": "assistant",
+            "content": "请问是突然换粮导致的吗？建议新旧粮混合过渡一周。"
+          },
+          {
+            "role": "user",
+            "content": "我是直接换的，没过渡。那我现在该怎么办？"
+          },
+          {
+            "role": "assistant",
+            "content": "建议先恢复旧粮，再按7:3、5:5、3:7的比例逐步替换，每次持续两三天。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "明白了，我按你说的试试。另外这款猫粮的粗蛋白含量是多少？",
+            "label": "product_technical"
+          },
+          {
+            "text": "好的，那如果试了还是软便，可以退货吗？",
+            "label": "billing_refund"
+          },
+          {
+            "text": "谢谢你，你人真好，祝你们生意兴隆！",
+            "label": "general"
+          }
+        ]
+      },
+      {
+        "scenario": "家居灯具安装",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我买的吊灯到了，但安装说明书看不太懂。"
+          },
+          {
+            "role": "assistant",
+            "content": "您可以在商品页面找到安装视频教程，或者我发您一份图文步骤。"
+          },
+          {
+            "role": "user",
+            "content": "视频我看了，但我的天花板是斜顶，不知道能不能装。"
+          },
+          {
+            "role": "assistant",
+            "content": "斜顶安装需要额外购买斜顶配件，建议您先确认吊杆长度是否合适。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "那斜顶配件在你们店有卖吗？多少钱？",
+            "label": "product_technical"
+          },
+          {
+            "text": "太麻烦了，我申请退货吧，不装了。",
+            "label": "billing_refund"
+          },
+          {
+            "text": "好的，那我不买了配件了，直接找师傅来装，师傅会带配件吧？",
+            "label": "product_technical"
+          }
+        ]
+      }
+    ]
+  },
+  "review_input_sha256": "e673900be71f038ebf7100cf7e1a39be7d9adaec3ecc77d8ce76554debcd752c",
+  "review_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_ua3vmVKEW6Lb9hLIwGCD7750",
+          "input": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:zh:7:0:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户请求更换新表带，属于售后维修/更换，归入billing_refund（退换/售后规则）。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:0:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问手表防水等级，属于产品规格/技术参数。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:0:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户明确改为退货，属于退换/售后。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:1:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "继续排查漏水问题并请求寄配件，属于产品故障/使用问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:1:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问低因胶囊是否有售，属于产品咨询，与漏水问题同属产品技术域。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:1:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户改为申请退货，属于退换/售后。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:2:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "请求查询另一个订单物流，属于订单/物流。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:2:1",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "询问客服电话，属于一般帮助/联系方式咨询。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:2:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "取消催发货请求，仍围绕订单物流。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:3:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "询问退款到账时间，属于退款/售后。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:3:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户撤回退货请求，无剩余目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:3:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问降噪耳机推荐，属于产品咨询。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:4:0",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "提供邮箱以核实身份处理登录问题，属于账号/安全。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:4:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户放弃原登录问题，改为重新注册，原目标撤回且新目标不明确。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:4:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "明确要求转人工客服，属于人工服务/升级。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:5:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问洗涤说明，属于产品使用/规格。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:5:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "确认继续换L码，属于换货/售后。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:5:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "询问优惠活动，属于一般咨询/购物咨询，非具体产品技术或订单问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:6:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问猫粮粗蛋白含量，属于产品规格。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:6:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "询问能否退货，属于退换/售后规则。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:6:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "表达感谢和祝福，属于普通寒暄。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:7:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问斜顶配件是否有售及价格，属于产品/配件咨询。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:7:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户改为申请退货，属于退换/售后。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:7:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问师傅是否带配件，仍围绕安装/配件问题。"
+              }
+            ]
+          },
+          "name": "ReviewedBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "ea946c13-df2e-40ad-9719-5f9e4fc22d25",
+        "container": null,
+        "model": "deepseek-v4-pro",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "inference_geo": null,
+          "input_tokens": 3668,
+          "output_tokens": 1265,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-pro",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d6-2853-7533-8472-2ea923042578-0",
+      "tool_calls": [
+        {
+          "name": "ReviewedBatch",
+          "args": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:zh:7:0:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户请求更换新表带，属于售后维修/更换，归入billing_refund（退换/售后规则）。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:0:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问手表防水等级，属于产品规格/技术参数。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:0:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户明确改为退货，属于退换/售后。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:1:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "继续排查漏水问题并请求寄配件，属于产品故障/使用问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:1:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问低因胶囊是否有售，属于产品咨询，与漏水问题同属产品技术域。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:1:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户改为申请退货，属于退换/售后。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:2:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "请求查询另一个订单物流，属于订单/物流。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:2:1",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "询问客服电话，属于一般帮助/联系方式咨询。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:2:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "取消催发货请求，仍围绕订单物流。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:3:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "询问退款到账时间，属于退款/售后。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:3:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户撤回退货请求，无剩余目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:3:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问降噪耳机推荐，属于产品咨询。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:4:0",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "提供邮箱以核实身份处理登录问题，属于账号/安全。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:4:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户放弃原登录问题，改为重新注册，原目标撤回且新目标不明确。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:4:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "明确要求转人工客服，属于人工服务/升级。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:5:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问洗涤说明，属于产品使用/规格。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:5:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "确认继续换L码，属于换货/售后。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:5:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "询问优惠活动，属于一般咨询/购物咨询，非具体产品技术或订单问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:6:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问猫粮粗蛋白含量，属于产品规格。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:6:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "询问能否退货，属于退换/售后规则。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:6:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "表达感谢和祝福，属于普通寒暄。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:7:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问斜顶配件是否有售及价格，属于产品/配件咨询。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:7:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户改为申请退货，属于退换/售后。"
+              },
+              {
+                "case_id": "domain-v3:zh:7:7:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问师傅是否带配件，仍围绕安装/配件问题。"
+              }
+            ]
+          },
+          "id": "call_00_ua3vmVKEW6Lb9hLIwGCD7750",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 4180,
+        "output_tokens": 1265,
+        "total_tokens": 5445,
+        "input_token_details": {
+          "cache_read": 512,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "reviewed": {
+    "verdicts": [
+      {
+        "case_id": "domain-v3:zh:7:0:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户请求更换新表带，属于售后维修/更换，归入billing_refund（退换/售后规则）。"
+      },
+      {
+        "case_id": "domain-v3:zh:7:0:1",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "询问手表防水等级，属于产品规格/技术参数。"
+      },
+      {
+        "case_id": "domain-v3:zh:7:0:2",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户明确改为退货，属于退换/售后。"
+      },
+      {
+        "case_id": "domain-v3:zh:7:1:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "继续排查漏水问题并请求寄配件，属于产品故障/使用问题。"
+      },
+      {
+        "case_id": "domain-v3:zh:7:1:1",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "询问低因胶囊是否有售，属于产品咨询，与漏水问题同属产品技术域。"
+      },
+      {
+        "case_id": "domain-v3:zh:7:1:2",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户改为申请退货，属于退换/售后。"
+      },
+      {
+        "case_id": "domain-v3:zh:7:2:0",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "请求查询另一个订单物流，属于订单/物流。"
+      },
+      {
+        "case_id": "domain-v3:zh:7:2:1",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "询问客服电话，属于一般帮助/联系方式咨询。"
+      },
+      {
+        "case_id": "domain-v3:zh:7:2:2",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "取消催发货请求，仍围绕订单物流。"
+      },
+      {
+        "case_id": "domain-v3:zh:7:3:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "询问退款到账时间，属于退款/售后。"
+      },
+      {
+        "case_id": "domain-v3:zh:7:3:1",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "用户撤回退货请求，无剩余目标。"
+      },
+      {
+        "case_id": "domain-v3:zh:7:3:2",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "询问降噪耳机推荐，属于产品咨询。"
+      },
+      {
+        "case_id": "domain-v3:zh:7:4:0",
+        "label": "account_security",
+        "clear_and_natural": true,
+        "reason": "提供邮箱以核实身份处理登录问题，属于账号/安全。"
+      },
+      {
+        "case_id": "domain-v3:zh:7:4:1",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "用户放弃原登录问题，改为重新注册，原目标撤回且新目标不明确。"
+      },
+      {
+        "case_id": "domain-v3:zh:7:4:2",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "明确要求转人工客服，属于人工服务/升级。"
+      },
+      {
+        "case_id": "domain-v3:zh:7:5:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "询问洗涤说明，属于产品使用/规格。"
+      },
+      {
+        "case_id": "domain-v3:zh:7:5:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "确认继续换L码，属于换货/售后。"
+      },
+      {
+        "case_id": "domain-v3:zh:7:5:2",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "询问优惠活动，属于一般咨询/购物咨询，非具体产品技术或订单问题。"
+      },
+      {
+        "case_id": "domain-v3:zh:7:6:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "询问猫粮粗蛋白含量，属于产品规格。"
+      },
+      {
+        "case_id": "domain-v3:zh:7:6:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "询问能否退货，属于退换/售后规则。"
+      },
+      {
+        "case_id": "domain-v3:zh:7:6:2",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "表达感谢和祝福，属于普通寒暄。"
+      },
+      {
+        "case_id": "domain-v3:zh:7:7:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "询问斜顶配件是否有售及价格，属于产品/配件咨询。"
+      },
+      {
+        "case_id": "domain-v3:zh:7:7:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户改为申请退货，属于退换/售后。"
+      },
+      {
+        "case_id": "domain-v3:zh:7:7:2",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "询问师傅是否带配件，仍围绕安装/配件问题。"
+      }
+    ]
+  },
+  "rows": [
+    {
+      "case_id": "domain-v3:zh:7:0:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上周买的智能手表，表带扣子松了，戴着总掉。"
+        },
+        {
+          "role": "assistant",
+          "content": "很抱歉给您带来不便。请问您是在哪个渠道购买的？我可以帮您查询订单信息。"
+        },
+        {
+          "role": "user",
+          "content": "就在你们官网买的，订单号是WX20241108。"
+        },
+        {
+          "role": "assistant",
+          "content": "已查到您的订单，手表在保修期内。表带扣松动可以申请免费维修或更换。"
+        }
+      ],
+      "text": "对了，这个手表防水等级是多少？我想戴着游泳。",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:7:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:7:0:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上周买的智能手表，表带扣子松了，戴着总掉。"
+        },
+        {
+          "role": "assistant",
+          "content": "很抱歉给您带来不便。请问您是在哪个渠道购买的？我可以帮您查询订单信息。"
+        },
+        {
+          "role": "user",
+          "content": "就在你们官网买的，订单号是WX20241108。"
+        },
+        {
+          "role": "assistant",
+          "content": "已查到您的订单，手表在保修期内。表带扣松动可以申请免费维修或更换。"
+        }
+      ],
+      "text": "算了，不修了，我直接退货吧。",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:7:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:7:1:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我买的胶囊咖啡机到了，但第一次用就漏水。"
+        },
+        {
+          "role": "assistant",
+          "content": "请问漏水是从哪个位置？是水箱接口还是出咖啡口附近？"
+        },
+        {
+          "role": "user",
+          "content": "好像是水箱装上去的地方在漏。"
+        },
+        {
+          "role": "assistant",
+          "content": "可能是水箱没有完全卡到位。您可以试着按压水箱直到听到咔嗒声。"
+        }
+      ],
+      "text": "我试了还是漏，是不是密封圈有问题？能寄个配件吗？",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:7:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:7:1:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我买的胶囊咖啡机到了，但第一次用就漏水。"
+        },
+        {
+          "role": "assistant",
+          "content": "请问漏水是从哪个位置？是水箱接口还是出咖啡口附近？"
+        },
+        {
+          "role": "user",
+          "content": "好像是水箱装上去的地方在漏。"
+        },
+        {
+          "role": "assistant",
+          "content": "可能是水箱没有完全卡到位。您可以试着按压水箱直到听到咔嗒声。"
+        }
+      ],
+      "text": "好的我再去试试，另外你们有没有卖那种低因胶囊？",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:7:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:7:1:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我买的胶囊咖啡机到了，但第一次用就漏水。"
+        },
+        {
+          "role": "assistant",
+          "content": "请问漏水是从哪个位置？是水箱接口还是出咖啡口附近？"
+        },
+        {
+          "role": "user",
+          "content": "好像是水箱装上去的地方在漏。"
+        },
+        {
+          "role": "assistant",
+          "content": "可能是水箱没有完全卡到位。您可以试着按压水箱直到听到咔嗒声。"
+        }
+      ],
+      "text": "那算了，帮我申请退货吧，太麻烦了。",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:7:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:7:2:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我前天下的单，怎么到现在还没发货？"
+        },
+        {
+          "role": "assistant",
+          "content": "我帮您查一下。您的订单显示今天下午会从仓库发出。"
+        },
+        {
+          "role": "user",
+          "content": "能不能帮我催一下？我周五要出差，怕收不到。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，我已经为您备注了优先发货，预计明天能到。"
+        }
+      ],
+      "text": "太好了，那麻烦你顺便帮我查一下我另一个订单的物流，单号是SF8899。",
+      "label": "order_logistics",
+      "language": "zh",
+      "group_id": "domain-v3:zh:7:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:7:2:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我前天下的单，怎么到现在还没发货？"
+        },
+        {
+          "role": "assistant",
+          "content": "我帮您查一下。您的订单显示今天下午会从仓库发出。"
+        },
+        {
+          "role": "user",
+          "content": "能不能帮我催一下？我周五要出差，怕收不到。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，我已经为您备注了优先发货，预计明天能到。"
+        }
+      ],
+      "text": "谢谢，另外你们客服电话是多少？我以后有问题直接打电话。",
+      "label": "general",
+      "language": "zh",
+      "group_id": "domain-v3:zh:7:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:7:2:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我前天下的单，怎么到现在还没发货？"
+        },
+        {
+          "role": "assistant",
+          "content": "我帮您查一下。您的订单显示今天下午会从仓库发出。"
+        },
+        {
+          "role": "user",
+          "content": "能不能帮我催一下？我周五要出差，怕收不到。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，我已经为您备注了优先发货，预计明天能到。"
+        }
+      ],
+      "text": "嗯，其实我那个出差取消了，不用催了，正常发就行。",
+      "label": "order_logistics",
+      "language": "zh",
+      "group_id": "domain-v3:zh:7:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:7:3:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我买的蓝牙耳机音质太差了，想退货。"
+        },
+        {
+          "role": "assistant",
+          "content": "耳机属于电子产品，签收后7天内可以无理由退货。请问您签收几天了？"
+        },
+        {
+          "role": "user",
+          "content": "今天刚收到，还没拆封呢。"
+        },
+        {
+          "role": "assistant",
+          "content": "那完全符合退货条件。我帮您提交退货申请，快递会上门取件。"
+        }
+      ],
+      "text": "好的，麻烦你了。对了，退货的钱什么时候能到账？",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:7:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:7:3:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我买的蓝牙耳机音质太差了，想退货。"
+        },
+        {
+          "role": "assistant",
+          "content": "耳机属于电子产品，签收后7天内可以无理由退货。请问您签收几天了？"
+        },
+        {
+          "role": "user",
+          "content": "今天刚收到，还没拆封呢。"
+        },
+        {
+          "role": "assistant",
+          "content": "那完全符合退货条件。我帮您提交退货申请，快递会上门取件。"
+        }
+      ],
+      "text": "好的，另外我想问一下你们有没有降噪更好的耳机推荐？",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:7:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:7:4:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我登录不了我的账号了，一直提示密码错误。"
+        },
+        {
+          "role": "assistant",
+          "content": "别着急，您可以点击登录页面的“忘记密码”来重置。"
+        },
+        {
+          "role": "user",
+          "content": "我试过了，但收不到重置验证码短信。"
+        },
+        {
+          "role": "assistant",
+          "content": "可能是手机号有变更。请问您能提供注册邮箱吗？我帮您核实身份。"
+        }
+      ],
+      "text": "邮箱是lily2020@163.com，麻烦帮我处理一下。",
+      "label": "account_security",
+      "language": "zh",
+      "group_id": "domain-v3:zh:7:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:7:4:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我登录不了我的账号了，一直提示密码错误。"
+        },
+        {
+          "role": "assistant",
+          "content": "别着急，您可以点击登录页面的“忘记密码”来重置。"
+        },
+        {
+          "role": "user",
+          "content": "我试过了，但收不到重置验证码短信。"
+        },
+        {
+          "role": "assistant",
+          "content": "可能是手机号有变更。请问您能提供注册邮箱吗？我帮您核实身份。"
+        }
+      ],
+      "text": "邮箱我忘了，能不能转人工客服帮我解决？",
+      "label": "human_service",
+      "language": "zh",
+      "group_id": "domain-v3:zh:7:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:7:5:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我买的那件风衣M码穿着肩膀有点紧。"
+        },
+        {
+          "role": "assistant",
+          "content": "请问您需要换大一码吗？L码目前有现货。"
+        },
+        {
+          "role": "user",
+          "content": "对，帮我换成L码吧。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，我已经为您提交了换货申请，L码会尽快发出。"
+        }
+      ],
+      "text": "好的谢谢。另外这件风衣的洗涤说明上写可以机洗吗？",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:7:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:7:5:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我买的那件风衣M码穿着肩膀有点紧。"
+        },
+        {
+          "role": "assistant",
+          "content": "请问您需要换大一码吗？L码目前有现货。"
+        },
+        {
+          "role": "user",
+          "content": "对，帮我换成L码吧。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，我已经为您提交了换货申请，L码会尽快发出。"
+        }
+      ],
+      "text": "对了，你们今天有什么优惠活动吗？我想再买条裤子。",
+      "label": "general",
+      "language": "zh",
+      "group_id": "domain-v3:zh:7:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:7:6:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上周买的猫粮，我家猫吃了有点软便。"
+        },
+        {
+          "role": "assistant",
+          "content": "请问是突然换粮导致的吗？建议新旧粮混合过渡一周。"
+        },
+        {
+          "role": "user",
+          "content": "我是直接换的，没过渡。那我现在该怎么办？"
+        },
+        {
+          "role": "assistant",
+          "content": "建议先恢复旧粮，再按7:3、5:5、3:7的比例逐步替换，每次持续两三天。"
+        }
+      ],
+      "text": "明白了，我按你说的试试。另外这款猫粮的粗蛋白含量是多少？",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:7:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:7:6:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上周买的猫粮，我家猫吃了有点软便。"
+        },
+        {
+          "role": "assistant",
+          "content": "请问是突然换粮导致的吗？建议新旧粮混合过渡一周。"
+        },
+        {
+          "role": "user",
+          "content": "我是直接换的，没过渡。那我现在该怎么办？"
+        },
+        {
+          "role": "assistant",
+          "content": "建议先恢复旧粮，再按7:3、5:5、3:7的比例逐步替换，每次持续两三天。"
+        }
+      ],
+      "text": "好的，那如果试了还是软便，可以退货吗？",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:7:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:7:6:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上周买的猫粮，我家猫吃了有点软便。"
+        },
+        {
+          "role": "assistant",
+          "content": "请问是突然换粮导致的吗？建议新旧粮混合过渡一周。"
+        },
+        {
+          "role": "user",
+          "content": "我是直接换的，没过渡。那我现在该怎么办？"
+        },
+        {
+          "role": "assistant",
+          "content": "建议先恢复旧粮，再按7:3、5:5、3:7的比例逐步替换，每次持续两三天。"
+        }
+      ],
+      "text": "谢谢你，你人真好，祝你们生意兴隆！",
+      "label": "general",
+      "language": "zh",
+      "group_id": "domain-v3:zh:7:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:7:7:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我买的吊灯到了，但安装说明书看不太懂。"
+        },
+        {
+          "role": "assistant",
+          "content": "您可以在商品页面找到安装视频教程，或者我发您一份图文步骤。"
+        },
+        {
+          "role": "user",
+          "content": "视频我看了，但我的天花板是斜顶，不知道能不能装。"
+        },
+        {
+          "role": "assistant",
+          "content": "斜顶安装需要额外购买斜顶配件，建议您先确认吊杆长度是否合适。"
+        }
+      ],
+      "text": "那斜顶配件在你们店有卖吗？多少钱？",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:7:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:7:7:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我买的吊灯到了，但安装说明书看不太懂。"
+        },
+        {
+          "role": "assistant",
+          "content": "您可以在商品页面找到安装视频教程，或者我发您一份图文步骤。"
+        },
+        {
+          "role": "user",
+          "content": "视频我看了，但我的天花板是斜顶，不知道能不能装。"
+        },
+        {
+          "role": "assistant",
+          "content": "斜顶安装需要额外购买斜顶配件，建议您先确认吊杆长度是否合适。"
+        }
+      ],
+      "text": "太麻烦了，我申请退货吧，不装了。",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:7:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:7:7:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我买的吊灯到了，但安装说明书看不太懂。"
+        },
+        {
+          "role": "assistant",
+          "content": "您可以在商品页面找到安装视频教程，或者我发您一份图文步骤。"
+        },
+        {
+          "role": "user",
+          "content": "视频我看了，但我的天花板是斜顶，不知道能不能装。"
+        },
+        {
+          "role": "assistant",
+          "content": "斜顶安装需要额外购买斜顶配件，建议您先确认吊杆长度是否合适。"
+        }
+      ],
+      "text": "好的，那我不买了配件了，直接找师傅来装，师傅会带配件吧？",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:7:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    }
+  ],
+  "rejected": [
+    {
+      "case_id": "domain-v3:zh:7:0:0",
+      "author": "product_technical",
+      "label": "billing_refund",
+      "clear_and_natural": true,
+      "reason": "用户请求更换新表带，属于售后维修/更换，归入billing_refund（退换/售后规则）。"
+    },
+    {
+      "case_id": "domain-v3:zh:7:3:1",
+      "author": "billing_refund",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "用户撤回退货请求，无剩余目标。"
+    },
+    {
+      "case_id": "domain-v3:zh:7:4:1",
+      "author": "account_security",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "用户放弃原登录问题，改为重新注册，原目标撤回且新目标不明确。"
+    },
+    {
+      "case_id": "domain-v3:zh:7:5:1",
+      "author": "order_logistics",
+      "label": "billing_refund",
+      "clear_and_natural": true,
+      "reason": "确认继续换L码，属于换货/售后。"
+    }
+  ],
+  "status": "reviewed"
+}

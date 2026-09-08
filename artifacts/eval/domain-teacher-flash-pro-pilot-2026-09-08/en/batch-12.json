@@ -1,0 +1,574 @@
+{
+  "batch_id": "domain-v3:en:12",
+  "language": "en",
+  "split": "train",
+  "models": {
+    "author": "deepseek-v4-flash",
+    "review": "deepseek-v4-pro"
+  },
+  "review_protocol": "label-blind-batch-v1",
+  "synthetic": true,
+  "author_prompt": "Author 8 DIFFERENT natural ecommerce customer-service dialogue families in en.\nBatch 12; ensure at least four current turns classified as general across this batch.\nEach family has its OWN coherent history of 2, 4 or 6 short alternating user/assistant\nmessages, followed by 3 ALTERNATIVE current user turns, not three sequential turns.\nThose alternatives differ in effective intent: retain vs replace, withdraw vs\ncontinue, single goal vs concurrent goal, or resolved vs unresolved reference.\nInclude natural short answers where history matters. Vary old completed tasks,\nhesitation, self-correction, indirect wording, topics and dialogue acts. General\nand human-service requests must also occur as NEW goals, not only stale history.\nDo not follow a repeated sentence template or substitute product nouns to create\nnew families. Avoid stereotyped 'information only, do not submit' repetition.\nInvent broad everyday ecommerce situations; no copied benchmark or private data.\nHistory plus current turn should fit 150 English words or 180 Chinese characters;\nkeep it compact but meaningful. No future replies or final conversation summaries.\nSupply the correct label for each alternative according to the rubric.\n",
+  "author_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_QPAyu5xFgAIvHVFxrvoF1134",
+          "input": {
+            "families": [
+              {
+                "scenario": "Customer asks about a smartwatch they bought and then shifts to a casual question.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Hi, I got the FitPulse S2 watch yesterday. The heart-rate monitor seems off when I run."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Sorry to hear that. Have you tried tightening the strap one notch? Loose contact often causes erratic readings during exercise."
+                  },
+                  {
+                    "role": "user",
+                    "content": "I'll try that. Actually, before I go — do you folks have a physical store downtown?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Thanks, I'll test it on my next run and let you know if it still misbehaves.",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Wait, forget the watch issue. Is your downtown store open on Sundays?",
+                    "label": "general"
+                  },
+                  {
+                    "text": "The strap trick helped, but now the battery drains in six hours. What else can I check?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a return and then makes small talk.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I need to return the desk lamp I ordered last week. The box says model GL-40 but I received GL-30."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That's a mismatch on our end. I can set up a prepaid return label for you. Would you like a replacement or a refund?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Refund is fine. Also, is it supposed to rain here tomorrow? I'm planning a picnic."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Refund, please. And yes, I know you're not a weather service — I was just chatting. Thanks for the help.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Actually, hold the refund. Can you just send me the correct GL-40 instead?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Never mind the lamp entirely. I'm moving abroad next month — do you ship internationally?",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about order status then asks for a person.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My order #48291 was supposed to arrive Tuesday but tracking hasn't updated since Friday."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me check that. I see the parcel is with the courier but there was a weather delay in the Midwest hub. It should move again within 24 hours."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Okay. Can you actually connect me to a real person? I've been bounced around all morning."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Fine, I'll wait another day. But if it's not here by Thursday I'm filing a complaint.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Yes, please transfer me to a human agent now.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Actually, forget the order — I just realized my account shows a charge I never made. Who handles that?",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a coffee maker and then a general question.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "The BrewMaster 3000 I bought keeps stopping mid-cycle with an E2 error."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "E2 usually means the water reservoir isn't seated properly. Could you remove it and push it back in until you hear a click?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "That fixed it, thanks! By the way, how long has your company been around?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "It worked — coffee's brewing now. Appreciate the quick fix.",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Just curious about your company history, no other issue. Thanks!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "It worked, but now the machine makes a grinding noise on the second cycle. Is that normal?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a refund and then about a different order.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I returned the hiking boots on Monday. When will the refund hit my card?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "The return was scanned at our warehouse today. Refunds typically process within 3–5 business days after that scan."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Got it. And can you also check why my tent order from last month shows as delivered but I never got it?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Okay, I'll watch for the refund. For the tent, it says delivered to my old address — I moved. Can you help?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Actually, cancel the refund question — I found the boots in my car, I never mailed them. Sorry!",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Both issues matter to me. First the refund timing, then the missing tent. Let's start with the tent.",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about account lockout then makes a general comment.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I can't log in — it says my password is wrong but I'm sure it's correct."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let's reset it. I'll send a verification code to your registered email. Can you confirm the last four digits of the phone on file?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's 2291. Also, your website redesign looks really clean, whoever did that."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "2291. And yes, the new site is nice — but I still need to get into my account.",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "Actually, I just remembered I have a second account with a different email. Can you help me access that one instead?",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "Never mind the login — I'll deal with it later. Just wanted to say the site looks great. Have a good day!",
+                    "label": "general"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a blender replacement part then asks for human help.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "The pitcher for my BlendPro 500 cracked. Do you sell replacement pitchers separately?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "We do — the replacement pitcher for the BlendPro 500 is item #BP500-P, priced at $24.99. It's in stock."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Great. Can I speak to someone about a warranty claim instead? The crack might be a defect."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Perfect, I'll order the pitcher. Thanks for the quick answer.",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Please connect me to the warranty department — I want a human to review photos of the crack.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Actually, is the pitcher covered under the two-year warranty, or do I need to buy it?",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about delivery address change then makes a general remark.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I need to change the delivery address for order #77120. It's going to my office but I'll be home next week."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I can update that. What's the new address, and should I also update the shipping method to match the new timeline?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's 14 Maple Street, unit 3B. And honestly, your chat support is way faster than calling."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "14 Maple Street, unit 3B. Standard shipping is fine, thanks.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Actually, never mind — I'll just have a coworker grab it from the office. No change needed.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "14 Maple Street, unit 3B. Also, do you price-match if I find the same item cheaper elsewhere?",
+                    "label": "billing_refund"
+                  }
+                ]
+              }
+            ]
+          },
+          "name": "AuthoredBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "bdb1902d-d1fe-4f9c-945a-61818278f603",
+        "container": null,
+        "model": "deepseek-v4-flash",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 640,
+          "inference_geo": null,
+          "input_tokens": 319,
+          "output_tokens": 1867,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-flash",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d8-71fb-78b3-9530-b83dfa76fa5b-0",
+      "tool_calls": [
+        {
+          "name": "AuthoredBatch",
+          "args": {
+            "families": [
+              {
+                "scenario": "Customer asks about a smartwatch they bought and then shifts to a casual question.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Hi, I got the FitPulse S2 watch yesterday. The heart-rate monitor seems off when I run."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Sorry to hear that. Have you tried tightening the strap one notch? Loose contact often causes erratic readings during exercise."
+                  },
+                  {
+                    "role": "user",
+                    "content": "I'll try that. Actually, before I go — do you folks have a physical store downtown?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Thanks, I'll test it on my next run and let you know if it still misbehaves.",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Wait, forget the watch issue. Is your downtown store open on Sundays?",
+                    "label": "general"
+                  },
+                  {
+                    "text": "The strap trick helped, but now the battery drains in six hours. What else can I check?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a return and then makes small talk.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I need to return the desk lamp I ordered last week. The box says model GL-40 but I received GL-30."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That's a mismatch on our end. I can set up a prepaid return label for you. Would you like a replacement or a refund?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Refund is fine. Also, is it supposed to rain here tomorrow? I'm planning a picnic."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Refund, please. And yes, I know you're not a weather service — I was just chatting. Thanks for the help.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Actually, hold the refund. Can you just send me the correct GL-40 instead?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Never mind the lamp entirely. I'm moving abroad next month — do you ship internationally?",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about order status then asks for a person.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My order #48291 was supposed to arrive Tuesday but tracking hasn't updated since Friday."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me check that. I see the parcel is with the courier but there was a weather delay in the Midwest hub. It should move again within 24 hours."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Okay. Can you actually connect me to a real person? I've been bounced around all morning."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Fine, I'll wait another day. But if it's not here by Thursday I'm filing a complaint.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Yes, please transfer me to a human agent now.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Actually, forget the order — I just realized my account shows a charge I never made. Who handles that?",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a coffee maker and then a general question.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "The BrewMaster 3000 I bought keeps stopping mid-cycle with an E2 error."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "E2 usually means the water reservoir isn't seated properly. Could you remove it and push it back in until you hear a click?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "That fixed it, thanks! By the way, how long has your company been around?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "It worked — coffee's brewing now. Appreciate the quick fix.",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Just curious about your company history, no other issue. Thanks!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "It worked, but now the machine makes a grinding noise on the second cycle. Is that normal?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a refund and then about a different order.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I returned the hiking boots on Monday. When will the refund hit my card?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "The return was scanned at our warehouse today. Refunds typically process within 3–5 business days after that scan."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Got it. And can you also check why my tent order from last month shows as delivered but I never got it?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Okay, I'll watch for the refund. For the tent, it says delivered to my old address — I moved. Can you help?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Actually, cancel the refund question — I found the boots in my car, I never mailed them. Sorry!",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Both issues matter to me. First the refund timing, then the missing tent. Let's start with the tent.",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about account lockout then makes a general comment.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I can't log in — it says my password is wrong but I'm sure it's correct."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let's reset it. I'll send a verification code to your registered email. Can you confirm the last four digits of the phone on file?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's 2291. Also, your website redesign looks really clean, whoever did that."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "2291. And yes, the new site is nice — but I still need to get into my account.",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "Actually, I just remembered I have a second account with a different email. Can you help me access that one instead?",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "Never mind the login — I'll deal with it later. Just wanted to say the site looks great. Have a good day!",
+                    "label": "general"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a blender replacement part then asks for human help.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "The pitcher for my BlendPro 500 cracked. Do you sell replacement pitchers separately?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "We do — the replacement pitcher for the BlendPro 500 is item #BP500-P, priced at $24.99. It's in stock."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Great. Can I speak to someone about a warranty claim instead? The crack might be a defect."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Perfect, I'll order the pitcher. Thanks for the quick answer.",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Please connect me to the warranty department — I want a human to review photos of the crack.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Actually, is the pitcher covered under the two-year warranty, or do I need to buy it?",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about delivery address change then makes a general remark.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I need to change the delivery address for order #77120. It's going to my office but I'll be home next week."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I can update that. What's the new address, and should I also update the shipping method to match the new timeline?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's 14 Maple Street, unit 3B. And honestly, your chat support is way faster than calling."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "14 Maple Street, unit 3B. Standard shipping is fine, thanks.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Actually, never mind — I'll just have a coworker grab it from the office. No change needed.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "14 Maple Street, unit 3B. Also, do you price-match if I find the same item cheaper elsewhere?",
+                    "label": "billing_refund"
+                  }
+                ]
+              }
+            ]
+          },
+          "id": "call_00_QPAyu5xFgAIvHVFxrvoF1134",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 959,
+        "output_tokens": 1867,
+        "total_tokens": 2826,
+        "input_token_details": {
+          "cache_read": 640,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": "8 validation errors for AuthoredBatch\nfamilies.0\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer as...: 'product_technical'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.1\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer as...l': 'order_logistics'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.2\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer as...': 'account_security'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.3\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer as...: 'product_technical'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.4\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer as...l': 'order_logistics'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.5\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer as...\", 'label': 'general'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.6\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer as...el': 'billing_refund'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.7\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer as...el': 'billing_refund'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error"
+  },
+  "status": "failed",
+  "failure_stage": "author",
+  "error_type": "ValueError"
+}

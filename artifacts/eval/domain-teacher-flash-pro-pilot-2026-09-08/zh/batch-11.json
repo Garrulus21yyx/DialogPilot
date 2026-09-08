@@ -1,0 +1,1991 @@
+{
+  "batch_id": "domain-v3:zh:11",
+  "language": "zh",
+  "split": "train",
+  "models": {
+    "author": "deepseek-v4-flash",
+    "review": "deepseek-v4-pro"
+  },
+  "review_protocol": "label-blind-batch-v1",
+  "synthetic": true,
+  "author_prompt": "Author 8 DIFFERENT natural ecommerce customer-service dialogue families in zh.\nBatch 11; ensure at least four current turns classified as human_service across this batch.\nEach family has its OWN coherent history of 2, 4 or 6 short alternating user/assistant\nmessages, followed by 3 ALTERNATIVE current user turns, not three sequential turns.\nThose alternatives differ in effective intent: retain vs replace, withdraw vs\ncontinue, single goal vs concurrent goal, or resolved vs unresolved reference.\nInclude natural short answers where history matters. Vary old completed tasks,\nhesitation, self-correction, indirect wording, topics and dialogue acts. General\nand human-service requests must also occur as NEW goals, not only stale history.\nDo not follow a repeated sentence template or substitute product nouns to create\nnew families. Avoid stereotyped 'information only, do not submit' repetition.\nInvent broad everyday ecommerce situations; no copied benchmark or private data.\nHistory plus current turn should fit 150 English words or 180 Chinese characters;\nkeep it compact but meaningful. No future replies or final conversation summaries.\nSupply the correct label for each alternative according to the rubric.\n",
+  "author_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_miFC4c5xtQ3KWfpRgPlM7834",
+          "input": {
+            "families": [
+              {
+                "scenario": "智能手表表带更换咨询",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我上周买的智能手表，表带有点过敏，想问问能不能换别的材质。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您好，请问您是在我们官方旗舰店购买的吗？方便提供一下订单号吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "订单号是A20241108，在你们天猫店买的。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "好的，已查到您的订单。硅胶表带过敏的话，可以为您申请更换为尼龙编织表带，需要我帮您提交吗？"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，帮我换成尼龙的吧，谢谢。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "等等，我其实想先问一下，你们有没有皮质的表带可以买？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "算了不换了，我直接退货吧，帮我走退货流程。",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "客服投诉升级",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "你们这个客服电话打了三次都没人接！"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "非常抱歉给您带来不便，请问您具体遇到了什么问题呢？我这边可以帮您处理。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "我收到的电饭煲内胆有划痕，拍照发给你们客服了，结果两天没人回复。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "实在抱歉，我马上为您核实一下售后工单的处理进度。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "不用核实了，我不想跟你们机器人浪费时间，给我转人工客服！",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "好的，那你帮我看看工单到哪一步了，划痕能不能换一个内胆。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "算了，我认倒霉，不换了。你们以后别这样就行。",
+                    "label": "general"
+                  }
+                ]
+              },
+              {
+                "scenario": "快递地址修改",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我昨天下的单，今天发现收货地址写错了，能改吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请问您的订单号是多少？我帮您查看一下发货状态。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "订单号是B778899，还没发货吧？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "查到了，您的订单还在仓库待拣货，可以修改地址。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那帮我改成公司地址吧，北京市朝阳区建国路88号。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "等等，我其实想确认一下，如果改不了的话能不能直接取消重拍？",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "先别改，我突然想起来我可能明天要出差，地址得再想想，晚点再说吧。",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "会员账号登录异常",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我登录不了我的账号了，一直提示密码错误。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "别着急，您可以尝试点击忘记密码，通过绑定的手机号重置。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "试过了，但是我的手机号已经换号了，收不到验证码。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "明白了，这种情况需要您提供身份信息进行人工验证，我来引导您操作。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，需要提供什么资料？身份证照片可以吗？",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "算了，这个账号里也没多少钱，我重新注册一个算了。",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "太麻烦了，我不想搞这些验证，你们能不能直接给我转人工处理？",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "咖啡机使用问题",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "你们这个咖啡机我用了两周，今天突然不出咖啡了，只出热水。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请问机器有报错代码吗？或者显示屏上有没有闪烁的提示？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "屏幕上显示E3，我看说明书说是水箱问题，但我水箱是满的。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "E3也可能是内部管路有空气，建议您按说明书第12页的排气步骤操作试试。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "我试了排气还是不行，是不是机器本身有故障？在保修期内能修吗？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "好的我试试，对了顺便问一下，你们有没有卖咖啡机专用的除垢剂？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "算了不折腾了，这机器太麻烦，我想申请退货，你们怎么处理？",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "订单催发货",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我双十一买的羽绒服到现在还没发货，都五天了。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "非常抱歉让您久等了，双十一期间订单量较大，您的订单预计明天发出。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "明天能保证发吗？我下周要出差穿。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "我帮您备注了优先发货，仓库会尽量安排今天发出，请您留意物流信息。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的谢谢，那麻烦你帮我盯着点，如果今天没发我再找你。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "你们每次都这么说，我要投诉你们，给我转投诉部门！",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "对了，顺便问一下，你们这款羽绒服还有黑色的吗？我想再买一件。",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "发票抬头修改",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我上个月买的那台打印机，发票开的是个人抬头，能改成公司吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "可以的，请问您的订单号是多少？电子发票在开具前都可以修改。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "订单号C556677，发票还没开吧？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "查到了，您的发票还未开具，可以修改抬头，请提供公司名称和税号。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "公司名称是华信科技有限公司，税号是91110108MA01XXXXX。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "嗯……其实我还没想好要不要开公司抬头，你们先别开，我再想想。",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "对了，你们客服态度真好，比别家强多了，回头我推荐同事来买。",
+                    "label": "general"
+                  }
+                ]
+              },
+              {
+                "scenario": "退货退款进度查询",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我上周申请了退货，快递已经签收三天了，退款还没到账。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "我帮您查一下退货进度，请稍等。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "好的，麻烦快一点，我等着用这笔钱。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "查到您的退货包裹已于昨天完成质检，退款预计今天18点前原路退回。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，那我等今天到账，如果没到我再联系你们。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "你们这个退款流程太慢了，我要投诉，给我人工客服！",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "对了，你们最近有没有什么优惠活动？我想再买点东西。",
+                    "label": "general"
+                  }
+                ]
+              }
+            ]
+          },
+          "name": "AuthoredBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "c96fbe71-1eb9-47f6-8e3b-53ff8340250f",
+        "container": null,
+        "model": "deepseek-v4-flash",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 640,
+          "inference_geo": null,
+          "input_tokens": 320,
+          "output_tokens": 1816,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-flash",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d6-587f-70a2-b20f-03e09b36d385-0",
+      "tool_calls": [
+        {
+          "name": "AuthoredBatch",
+          "args": {
+            "families": [
+              {
+                "scenario": "智能手表表带更换咨询",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我上周买的智能手表，表带有点过敏，想问问能不能换别的材质。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您好，请问您是在我们官方旗舰店购买的吗？方便提供一下订单号吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "订单号是A20241108，在你们天猫店买的。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "好的，已查到您的订单。硅胶表带过敏的话，可以为您申请更换为尼龙编织表带，需要我帮您提交吗？"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，帮我换成尼龙的吧，谢谢。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "等等，我其实想先问一下，你们有没有皮质的表带可以买？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "算了不换了，我直接退货吧，帮我走退货流程。",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "客服投诉升级",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "你们这个客服电话打了三次都没人接！"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "非常抱歉给您带来不便，请问您具体遇到了什么问题呢？我这边可以帮您处理。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "我收到的电饭煲内胆有划痕，拍照发给你们客服了，结果两天没人回复。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "实在抱歉，我马上为您核实一下售后工单的处理进度。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "不用核实了，我不想跟你们机器人浪费时间，给我转人工客服！",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "好的，那你帮我看看工单到哪一步了，划痕能不能换一个内胆。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "算了，我认倒霉，不换了。你们以后别这样就行。",
+                    "label": "general"
+                  }
+                ]
+              },
+              {
+                "scenario": "快递地址修改",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我昨天下的单，今天发现收货地址写错了，能改吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请问您的订单号是多少？我帮您查看一下发货状态。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "订单号是B778899，还没发货吧？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "查到了，您的订单还在仓库待拣货，可以修改地址。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那帮我改成公司地址吧，北京市朝阳区建国路88号。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "等等，我其实想确认一下，如果改不了的话能不能直接取消重拍？",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "先别改，我突然想起来我可能明天要出差，地址得再想想，晚点再说吧。",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "会员账号登录异常",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我登录不了我的账号了，一直提示密码错误。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "别着急，您可以尝试点击忘记密码，通过绑定的手机号重置。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "试过了，但是我的手机号已经换号了，收不到验证码。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "明白了，这种情况需要您提供身份信息进行人工验证，我来引导您操作。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，需要提供什么资料？身份证照片可以吗？",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "算了，这个账号里也没多少钱，我重新注册一个算了。",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "太麻烦了，我不想搞这些验证，你们能不能直接给我转人工处理？",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "咖啡机使用问题",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "你们这个咖啡机我用了两周，今天突然不出咖啡了，只出热水。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请问机器有报错代码吗？或者显示屏上有没有闪烁的提示？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "屏幕上显示E3，我看说明书说是水箱问题，但我水箱是满的。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "E3也可能是内部管路有空气，建议您按说明书第12页的排气步骤操作试试。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "我试了排气还是不行，是不是机器本身有故障？在保修期内能修吗？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "好的我试试，对了顺便问一下，你们有没有卖咖啡机专用的除垢剂？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "算了不折腾了，这机器太麻烦，我想申请退货，你们怎么处理？",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "订单催发货",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我双十一买的羽绒服到现在还没发货，都五天了。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "非常抱歉让您久等了，双十一期间订单量较大，您的订单预计明天发出。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "明天能保证发吗？我下周要出差穿。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "我帮您备注了优先发货，仓库会尽量安排今天发出，请您留意物流信息。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的谢谢，那麻烦你帮我盯着点，如果今天没发我再找你。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "你们每次都这么说，我要投诉你们，给我转投诉部门！",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "对了，顺便问一下，你们这款羽绒服还有黑色的吗？我想再买一件。",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "发票抬头修改",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我上个月买的那台打印机，发票开的是个人抬头，能改成公司吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "可以的，请问您的订单号是多少？电子发票在开具前都可以修改。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "订单号C556677，发票还没开吧？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "查到了，您的发票还未开具，可以修改抬头，请提供公司名称和税号。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "公司名称是华信科技有限公司，税号是91110108MA01XXXXX。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "嗯……其实我还没想好要不要开公司抬头，你们先别开，我再想想。",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "对了，你们客服态度真好，比别家强多了，回头我推荐同事来买。",
+                    "label": "general"
+                  }
+                ]
+              },
+              {
+                "scenario": "退货退款进度查询",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我上周申请了退货，快递已经签收三天了，退款还没到账。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "我帮您查一下退货进度，请稍等。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "好的，麻烦快一点，我等着用这笔钱。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "查到您的退货包裹已于昨天完成质检，退款预计今天18点前原路退回。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，那我等今天到账，如果没到我再联系你们。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "你们这个退款流程太慢了，我要投诉，给我人工客服！",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "对了，你们最近有没有什么优惠活动？我想再买点东西。",
+                    "label": "general"
+                  }
+                ]
+              }
+            ]
+          },
+          "id": "call_00_miFC4c5xtQ3KWfpRgPlM7834",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 960,
+        "output_tokens": 1816,
+        "total_tokens": 2776,
+        "input_token_details": {
+          "cache_read": 640,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "authored": {
+    "families": [
+      {
+        "scenario": "智能手表表带更换咨询",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我上周买的智能手表，表带有点过敏，想问问能不能换别的材质。"
+          },
+          {
+            "role": "assistant",
+            "content": "您好，请问您是在我们官方旗舰店购买的吗？方便提供一下订单号吗？"
+          },
+          {
+            "role": "user",
+            "content": "订单号是A20241108，在你们天猫店买的。"
+          },
+          {
+            "role": "assistant",
+            "content": "好的，已查到您的订单。硅胶表带过敏的话，可以为您申请更换为尼龙编织表带，需要我帮您提交吗？"
+          }
+        ],
+        "variants": [
+          {
+            "text": "好的，帮我换成尼龙的吧，谢谢。",
+            "label": "order_logistics"
+          },
+          {
+            "text": "等等，我其实想先问一下，你们有没有皮质的表带可以买？",
+            "label": "product_technical"
+          },
+          {
+            "text": "算了不换了，我直接退货吧，帮我走退货流程。",
+            "label": "billing_refund"
+          }
+        ]
+      },
+      {
+        "scenario": "客服投诉升级",
+        "messages": [
+          {
+            "role": "user",
+            "content": "你们这个客服电话打了三次都没人接！"
+          },
+          {
+            "role": "assistant",
+            "content": "非常抱歉给您带来不便，请问您具体遇到了什么问题呢？我这边可以帮您处理。"
+          },
+          {
+            "role": "user",
+            "content": "我收到的电饭煲内胆有划痕，拍照发给你们客服了，结果两天没人回复。"
+          },
+          {
+            "role": "assistant",
+            "content": "实在抱歉，我马上为您核实一下售后工单的处理进度。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "不用核实了，我不想跟你们机器人浪费时间，给我转人工客服！",
+            "label": "human_service"
+          },
+          {
+            "text": "好的，那你帮我看看工单到哪一步了，划痕能不能换一个内胆。",
+            "label": "billing_refund"
+          },
+          {
+            "text": "算了，我认倒霉，不换了。你们以后别这样就行。",
+            "label": "general"
+          }
+        ]
+      },
+      {
+        "scenario": "快递地址修改",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我昨天下的单，今天发现收货地址写错了，能改吗？"
+          },
+          {
+            "role": "assistant",
+            "content": "请问您的订单号是多少？我帮您查看一下发货状态。"
+          },
+          {
+            "role": "user",
+            "content": "订单号是B778899，还没发货吧？"
+          },
+          {
+            "role": "assistant",
+            "content": "查到了，您的订单还在仓库待拣货，可以修改地址。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "那帮我改成公司地址吧，北京市朝阳区建国路88号。",
+            "label": "order_logistics"
+          },
+          {
+            "text": "等等，我其实想确认一下，如果改不了的话能不能直接取消重拍？",
+            "label": "order_logistics"
+          },
+          {
+            "text": "先别改，我突然想起来我可能明天要出差，地址得再想想，晚点再说吧。",
+            "label": "__DEFER__"
+          }
+        ]
+      },
+      {
+        "scenario": "会员账号登录异常",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我登录不了我的账号了，一直提示密码错误。"
+          },
+          {
+            "role": "assistant",
+            "content": "别着急，您可以尝试点击忘记密码，通过绑定的手机号重置。"
+          },
+          {
+            "role": "user",
+            "content": "试过了，但是我的手机号已经换号了，收不到验证码。"
+          },
+          {
+            "role": "assistant",
+            "content": "明白了，这种情况需要您提供身份信息进行人工验证，我来引导您操作。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "好的，需要提供什么资料？身份证照片可以吗？",
+            "label": "account_security"
+          },
+          {
+            "text": "算了，这个账号里也没多少钱，我重新注册一个算了。",
+            "label": "account_security"
+          },
+          {
+            "text": "太麻烦了，我不想搞这些验证，你们能不能直接给我转人工处理？",
+            "label": "human_service"
+          }
+        ]
+      },
+      {
+        "scenario": "咖啡机使用问题",
+        "messages": [
+          {
+            "role": "user",
+            "content": "你们这个咖啡机我用了两周，今天突然不出咖啡了，只出热水。"
+          },
+          {
+            "role": "assistant",
+            "content": "请问机器有报错代码吗？或者显示屏上有没有闪烁的提示？"
+          },
+          {
+            "role": "user",
+            "content": "屏幕上显示E3，我看说明书说是水箱问题，但我水箱是满的。"
+          },
+          {
+            "role": "assistant",
+            "content": "E3也可能是内部管路有空气，建议您按说明书第12页的排气步骤操作试试。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "我试了排气还是不行，是不是机器本身有故障？在保修期内能修吗？",
+            "label": "product_technical"
+          },
+          {
+            "text": "好的我试试，对了顺便问一下，你们有没有卖咖啡机专用的除垢剂？",
+            "label": "product_technical"
+          },
+          {
+            "text": "算了不折腾了，这机器太麻烦，我想申请退货，你们怎么处理？",
+            "label": "billing_refund"
+          }
+        ]
+      },
+      {
+        "scenario": "订单催发货",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我双十一买的羽绒服到现在还没发货，都五天了。"
+          },
+          {
+            "role": "assistant",
+            "content": "非常抱歉让您久等了，双十一期间订单量较大，您的订单预计明天发出。"
+          },
+          {
+            "role": "user",
+            "content": "明天能保证发吗？我下周要出差穿。"
+          },
+          {
+            "role": "assistant",
+            "content": "我帮您备注了优先发货，仓库会尽量安排今天发出，请您留意物流信息。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "好的谢谢，那麻烦你帮我盯着点，如果今天没发我再找你。",
+            "label": "order_logistics"
+          },
+          {
+            "text": "你们每次都这么说，我要投诉你们，给我转投诉部门！",
+            "label": "human_service"
+          },
+          {
+            "text": "对了，顺便问一下，你们这款羽绒服还有黑色的吗？我想再买一件。",
+            "label": "product_technical"
+          }
+        ]
+      },
+      {
+        "scenario": "发票抬头修改",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我上个月买的那台打印机，发票开的是个人抬头，能改成公司吗？"
+          },
+          {
+            "role": "assistant",
+            "content": "可以的，请问您的订单号是多少？电子发票在开具前都可以修改。"
+          },
+          {
+            "role": "user",
+            "content": "订单号C556677，发票还没开吧？"
+          },
+          {
+            "role": "assistant",
+            "content": "查到了，您的发票还未开具，可以修改抬头，请提供公司名称和税号。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "公司名称是华信科技有限公司，税号是91110108MA01XXXXX。",
+            "label": "billing_refund"
+          },
+          {
+            "text": "嗯……其实我还没想好要不要开公司抬头，你们先别开，我再想想。",
+            "label": "__DEFER__"
+          },
+          {
+            "text": "对了，你们客服态度真好，比别家强多了，回头我推荐同事来买。",
+            "label": "general"
+          }
+        ]
+      },
+      {
+        "scenario": "退货退款进度查询",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我上周申请了退货，快递已经签收三天了，退款还没到账。"
+          },
+          {
+            "role": "assistant",
+            "content": "我帮您查一下退货进度，请稍等。"
+          },
+          {
+            "role": "user",
+            "content": "好的，麻烦快一点，我等着用这笔钱。"
+          },
+          {
+            "role": "assistant",
+            "content": "查到您的退货包裹已于昨天完成质检，退款预计今天18点前原路退回。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "好的，那我等今天到账，如果没到我再联系你们。",
+            "label": "billing_refund"
+          },
+          {
+            "text": "你们这个退款流程太慢了，我要投诉，给我人工客服！",
+            "label": "human_service"
+          },
+          {
+            "text": "对了，你们最近有没有什么优惠活动？我想再买点东西。",
+            "label": "general"
+          }
+        ]
+      }
+    ]
+  },
+  "review_input_sha256": "8020b6a889e1898bb738d2b24f6af40802587aeeca3e1944d08e17257ac5bee8",
+  "review_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_SF9bLlmxENYwzTqDZdXZ6434",
+          "input": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:zh:11:0:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户同意更换表带，属于售后换货/退换流程，归入billing_refund。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:0:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "用户转而询问是否有皮质表带可购买，属于产品/规格咨询，替换了原换货目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:0:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户明确改为退货并请求走退货流程，属于售后退款/退货。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:1:0",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户明确要求转人工客服，属于人工服务/升级。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:1:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户请求查看工单进度并询问能否更换内胆，属于售后换货/退款范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:1:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户放弃换货，无剩余业务目标，仅表达不满，属于撤回且无剩余目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:2:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "用户提供新地址请求修改收货地址，属于订单/物流范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:2:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "用户询问若无法改地址能否取消重拍，仍属于订单/物流处理范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:2:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户表示暂缓修改地址，晚点再说，撤回当前目标且无明确剩余请求。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:3:0",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "用户询问身份验证所需资料，属于账号登录/安全验证范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:3:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户放弃找回账号，改为重新注册，撤回原目标且无明确业务请求。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:3:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户明确要求转人工处理，属于人工服务/升级。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:4:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "用户继续报告故障并询问保修维修，属于产品故障/技术问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:4:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "用户询问除垢剂产品，属于产品/配件咨询，与故障处理同属产品技术域。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:4:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户明确改为申请退货，属于售后退款/退货。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:5:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "用户请求跟进发货，属于订单/物流范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:5:1",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户明确要求投诉并转投诉部门，属于人工服务/投诉升级。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:5:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "用户询问羽绒服是否有黑色想再买，属于产品/规格咨询，替换了原发货目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:6:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户提供公司名称和税号以修改发票抬头，属于发票/账单范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:6:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户表示暂缓开票，再想想，撤回当前目标且无明确剩余请求。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:6:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "用户仅表达感谢和称赞，属于普通寒暄/闲聊。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:7:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户确认等待退款到账，属于退款/售后范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:7:1",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户明确要求投诉并转人工客服，属于人工服务/投诉升级。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:7:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "用户询问优惠活动想再购物，属于一般咨询/闲聊，无明确业务域目标。"
+              }
+            ]
+          },
+          "name": "ReviewedBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "c262b8d2-d044-4997-9244-d1a684b79aad",
+        "container": null,
+        "model": "deepseek-v4-pro",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "inference_geo": null,
+          "input_tokens": 3855,
+          "output_tokens": 1365,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-pro",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d6-8f0d-7ae2-a226-13b0643ffffe-0",
+      "tool_calls": [
+        {
+          "name": "ReviewedBatch",
+          "args": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:zh:11:0:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户同意更换表带，属于售后换货/退换流程，归入billing_refund。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:0:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "用户转而询问是否有皮质表带可购买，属于产品/规格咨询，替换了原换货目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:0:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户明确改为退货并请求走退货流程，属于售后退款/退货。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:1:0",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户明确要求转人工客服，属于人工服务/升级。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:1:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户请求查看工单进度并询问能否更换内胆，属于售后换货/退款范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:1:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户放弃换货，无剩余业务目标，仅表达不满，属于撤回且无剩余目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:2:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "用户提供新地址请求修改收货地址，属于订单/物流范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:2:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "用户询问若无法改地址能否取消重拍，仍属于订单/物流处理范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:2:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户表示暂缓修改地址，晚点再说，撤回当前目标且无明确剩余请求。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:3:0",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "用户询问身份验证所需资料，属于账号登录/安全验证范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:3:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户放弃找回账号，改为重新注册，撤回原目标且无明确业务请求。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:3:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户明确要求转人工处理，属于人工服务/升级。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:4:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "用户继续报告故障并询问保修维修，属于产品故障/技术问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:4:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "用户询问除垢剂产品，属于产品/配件咨询，与故障处理同属产品技术域。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:4:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户明确改为申请退货，属于售后退款/退货。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:5:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "用户请求跟进发货，属于订单/物流范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:5:1",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户明确要求投诉并转投诉部门，属于人工服务/投诉升级。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:5:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "用户询问羽绒服是否有黑色想再买，属于产品/规格咨询，替换了原发货目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:6:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户提供公司名称和税号以修改发票抬头，属于发票/账单范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:6:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户表示暂缓开票，再想想，撤回当前目标且无明确剩余请求。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:6:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "用户仅表达感谢和称赞，属于普通寒暄/闲聊。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:7:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户确认等待退款到账，属于退款/售后范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:7:1",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户明确要求投诉并转人工客服，属于人工服务/投诉升级。"
+              },
+              {
+                "case_id": "domain-v3:zh:11:7:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "用户询问优惠活动想再购物，属于一般咨询/闲聊，无明确业务域目标。"
+              }
+            ]
+          },
+          "id": "call_00_SF9bLlmxENYwzTqDZdXZ6434",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 4367,
+        "output_tokens": 1365,
+        "total_tokens": 5732,
+        "input_token_details": {
+          "cache_read": 512,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "reviewed": {
+    "verdicts": [
+      {
+        "case_id": "domain-v3:zh:11:0:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户同意更换表带，属于售后换货/退换流程，归入billing_refund。"
+      },
+      {
+        "case_id": "domain-v3:zh:11:0:1",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "用户转而询问是否有皮质表带可购买，属于产品/规格咨询，替换了原换货目标。"
+      },
+      {
+        "case_id": "domain-v3:zh:11:0:2",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户明确改为退货并请求走退货流程，属于售后退款/退货。"
+      },
+      {
+        "case_id": "domain-v3:zh:11:1:0",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "用户明确要求转人工客服，属于人工服务/升级。"
+      },
+      {
+        "case_id": "domain-v3:zh:11:1:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户请求查看工单进度并询问能否更换内胆，属于售后换货/退款范畴。"
+      },
+      {
+        "case_id": "domain-v3:zh:11:1:2",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "用户放弃换货，无剩余业务目标，仅表达不满，属于撤回且无剩余目标。"
+      },
+      {
+        "case_id": "domain-v3:zh:11:2:0",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "用户提供新地址请求修改收货地址，属于订单/物流范畴。"
+      },
+      {
+        "case_id": "domain-v3:zh:11:2:1",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "用户询问若无法改地址能否取消重拍，仍属于订单/物流处理范畴。"
+      },
+      {
+        "case_id": "domain-v3:zh:11:2:2",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "用户表示暂缓修改地址，晚点再说，撤回当前目标且无明确剩余请求。"
+      },
+      {
+        "case_id": "domain-v3:zh:11:3:0",
+        "label": "account_security",
+        "clear_and_natural": true,
+        "reason": "用户询问身份验证所需资料，属于账号登录/安全验证范畴。"
+      },
+      {
+        "case_id": "domain-v3:zh:11:3:1",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "用户放弃找回账号，改为重新注册，撤回原目标且无明确业务请求。"
+      },
+      {
+        "case_id": "domain-v3:zh:11:3:2",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "用户明确要求转人工处理，属于人工服务/升级。"
+      },
+      {
+        "case_id": "domain-v3:zh:11:4:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "用户继续报告故障并询问保修维修，属于产品故障/技术问题。"
+      },
+      {
+        "case_id": "domain-v3:zh:11:4:1",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "用户询问除垢剂产品，属于产品/配件咨询，与故障处理同属产品技术域。"
+      },
+      {
+        "case_id": "domain-v3:zh:11:4:2",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户明确改为申请退货，属于售后退款/退货。"
+      },
+      {
+        "case_id": "domain-v3:zh:11:5:0",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "用户请求跟进发货，属于订单/物流范畴。"
+      },
+      {
+        "case_id": "domain-v3:zh:11:5:1",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "用户明确要求投诉并转投诉部门，属于人工服务/投诉升级。"
+      },
+      {
+        "case_id": "domain-v3:zh:11:5:2",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "用户询问羽绒服是否有黑色想再买，属于产品/规格咨询，替换了原发货目标。"
+      },
+      {
+        "case_id": "domain-v3:zh:11:6:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户提供公司名称和税号以修改发票抬头，属于发票/账单范畴。"
+      },
+      {
+        "case_id": "domain-v3:zh:11:6:1",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "用户表示暂缓开票，再想想，撤回当前目标且无明确剩余请求。"
+      },
+      {
+        "case_id": "domain-v3:zh:11:6:2",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "用户仅表达感谢和称赞，属于普通寒暄/闲聊。"
+      },
+      {
+        "case_id": "domain-v3:zh:11:7:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户确认等待退款到账，属于退款/售后范畴。"
+      },
+      {
+        "case_id": "domain-v3:zh:11:7:1",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "用户明确要求投诉并转人工客服，属于人工服务/投诉升级。"
+      },
+      {
+        "case_id": "domain-v3:zh:11:7:2",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "用户询问优惠活动想再购物，属于一般咨询/闲聊，无明确业务域目标。"
+      }
+    ]
+  },
+  "rows": [
+    {
+      "case_id": "domain-v3:zh:11:0:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上周买的智能手表，表带有点过敏，想问问能不能换别的材质。"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，请问您是在我们官方旗舰店购买的吗？方便提供一下订单号吗？"
+        },
+        {
+          "role": "user",
+          "content": "订单号是A20241108，在你们天猫店买的。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，已查到您的订单。硅胶表带过敏的话，可以为您申请更换为尼龙编织表带，需要我帮您提交吗？"
+        }
+      ],
+      "text": "等等，我其实想先问一下，你们有没有皮质的表带可以买？",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:11:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:11:0:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上周买的智能手表，表带有点过敏，想问问能不能换别的材质。"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，请问您是在我们官方旗舰店购买的吗？方便提供一下订单号吗？"
+        },
+        {
+          "role": "user",
+          "content": "订单号是A20241108，在你们天猫店买的。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，已查到您的订单。硅胶表带过敏的话，可以为您申请更换为尼龙编织表带，需要我帮您提交吗？"
+        }
+      ],
+      "text": "算了不换了，我直接退货吧，帮我走退货流程。",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:11:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:11:1:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "你们这个客服电话打了三次都没人接！"
+        },
+        {
+          "role": "assistant",
+          "content": "非常抱歉给您带来不便，请问您具体遇到了什么问题呢？我这边可以帮您处理。"
+        },
+        {
+          "role": "user",
+          "content": "我收到的电饭煲内胆有划痕，拍照发给你们客服了，结果两天没人回复。"
+        },
+        {
+          "role": "assistant",
+          "content": "实在抱歉，我马上为您核实一下售后工单的处理进度。"
+        }
+      ],
+      "text": "不用核实了，我不想跟你们机器人浪费时间，给我转人工客服！",
+      "label": "human_service",
+      "language": "zh",
+      "group_id": "domain-v3:zh:11:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:11:1:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "你们这个客服电话打了三次都没人接！"
+        },
+        {
+          "role": "assistant",
+          "content": "非常抱歉给您带来不便，请问您具体遇到了什么问题呢？我这边可以帮您处理。"
+        },
+        {
+          "role": "user",
+          "content": "我收到的电饭煲内胆有划痕，拍照发给你们客服了，结果两天没人回复。"
+        },
+        {
+          "role": "assistant",
+          "content": "实在抱歉，我马上为您核实一下售后工单的处理进度。"
+        }
+      ],
+      "text": "好的，那你帮我看看工单到哪一步了，划痕能不能换一个内胆。",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:11:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:11:2:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我昨天下的单，今天发现收货地址写错了，能改吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "请问您的订单号是多少？我帮您查看一下发货状态。"
+        },
+        {
+          "role": "user",
+          "content": "订单号是B778899，还没发货吧？"
+        },
+        {
+          "role": "assistant",
+          "content": "查到了，您的订单还在仓库待拣货，可以修改地址。"
+        }
+      ],
+      "text": "那帮我改成公司地址吧，北京市朝阳区建国路88号。",
+      "label": "order_logistics",
+      "language": "zh",
+      "group_id": "domain-v3:zh:11:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:11:2:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我昨天下的单，今天发现收货地址写错了，能改吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "请问您的订单号是多少？我帮您查看一下发货状态。"
+        },
+        {
+          "role": "user",
+          "content": "订单号是B778899，还没发货吧？"
+        },
+        {
+          "role": "assistant",
+          "content": "查到了，您的订单还在仓库待拣货，可以修改地址。"
+        }
+      ],
+      "text": "等等，我其实想确认一下，如果改不了的话能不能直接取消重拍？",
+      "label": "order_logistics",
+      "language": "zh",
+      "group_id": "domain-v3:zh:11:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:11:2:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我昨天下的单，今天发现收货地址写错了，能改吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "请问您的订单号是多少？我帮您查看一下发货状态。"
+        },
+        {
+          "role": "user",
+          "content": "订单号是B778899，还没发货吧？"
+        },
+        {
+          "role": "assistant",
+          "content": "查到了，您的订单还在仓库待拣货，可以修改地址。"
+        }
+      ],
+      "text": "先别改，我突然想起来我可能明天要出差，地址得再想想，晚点再说吧。",
+      "label": "__DEFER__",
+      "language": "zh",
+      "group_id": "domain-v3:zh:11:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:11:3:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我登录不了我的账号了，一直提示密码错误。"
+        },
+        {
+          "role": "assistant",
+          "content": "别着急，您可以尝试点击忘记密码，通过绑定的手机号重置。"
+        },
+        {
+          "role": "user",
+          "content": "试过了，但是我的手机号已经换号了，收不到验证码。"
+        },
+        {
+          "role": "assistant",
+          "content": "明白了，这种情况需要您提供身份信息进行人工验证，我来引导您操作。"
+        }
+      ],
+      "text": "好的，需要提供什么资料？身份证照片可以吗？",
+      "label": "account_security",
+      "language": "zh",
+      "group_id": "domain-v3:zh:11:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:11:3:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我登录不了我的账号了，一直提示密码错误。"
+        },
+        {
+          "role": "assistant",
+          "content": "别着急，您可以尝试点击忘记密码，通过绑定的手机号重置。"
+        },
+        {
+          "role": "user",
+          "content": "试过了，但是我的手机号已经换号了，收不到验证码。"
+        },
+        {
+          "role": "assistant",
+          "content": "明白了，这种情况需要您提供身份信息进行人工验证，我来引导您操作。"
+        }
+      ],
+      "text": "太麻烦了，我不想搞这些验证，你们能不能直接给我转人工处理？",
+      "label": "human_service",
+      "language": "zh",
+      "group_id": "domain-v3:zh:11:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:11:4:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "你们这个咖啡机我用了两周，今天突然不出咖啡了，只出热水。"
+        },
+        {
+          "role": "assistant",
+          "content": "请问机器有报错代码吗？或者显示屏上有没有闪烁的提示？"
+        },
+        {
+          "role": "user",
+          "content": "屏幕上显示E3，我看说明书说是水箱问题，但我水箱是满的。"
+        },
+        {
+          "role": "assistant",
+          "content": "E3也可能是内部管路有空气，建议您按说明书第12页的排气步骤操作试试。"
+        }
+      ],
+      "text": "我试了排气还是不行，是不是机器本身有故障？在保修期内能修吗？",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:11:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:11:4:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "你们这个咖啡机我用了两周，今天突然不出咖啡了，只出热水。"
+        },
+        {
+          "role": "assistant",
+          "content": "请问机器有报错代码吗？或者显示屏上有没有闪烁的提示？"
+        },
+        {
+          "role": "user",
+          "content": "屏幕上显示E3，我看说明书说是水箱问题，但我水箱是满的。"
+        },
+        {
+          "role": "assistant",
+          "content": "E3也可能是内部管路有空气，建议您按说明书第12页的排气步骤操作试试。"
+        }
+      ],
+      "text": "好的我试试，对了顺便问一下，你们有没有卖咖啡机专用的除垢剂？",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:11:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:11:4:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "你们这个咖啡机我用了两周，今天突然不出咖啡了，只出热水。"
+        },
+        {
+          "role": "assistant",
+          "content": "请问机器有报错代码吗？或者显示屏上有没有闪烁的提示？"
+        },
+        {
+          "role": "user",
+          "content": "屏幕上显示E3，我看说明书说是水箱问题，但我水箱是满的。"
+        },
+        {
+          "role": "assistant",
+          "content": "E3也可能是内部管路有空气，建议您按说明书第12页的排气步骤操作试试。"
+        }
+      ],
+      "text": "算了不折腾了，这机器太麻烦，我想申请退货，你们怎么处理？",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:11:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:11:5:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我双十一买的羽绒服到现在还没发货，都五天了。"
+        },
+        {
+          "role": "assistant",
+          "content": "非常抱歉让您久等了，双十一期间订单量较大，您的订单预计明天发出。"
+        },
+        {
+          "role": "user",
+          "content": "明天能保证发吗？我下周要出差穿。"
+        },
+        {
+          "role": "assistant",
+          "content": "我帮您备注了优先发货，仓库会尽量安排今天发出，请您留意物流信息。"
+        }
+      ],
+      "text": "好的谢谢，那麻烦你帮我盯着点，如果今天没发我再找你。",
+      "label": "order_logistics",
+      "language": "zh",
+      "group_id": "domain-v3:zh:11:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:11:5:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我双十一买的羽绒服到现在还没发货，都五天了。"
+        },
+        {
+          "role": "assistant",
+          "content": "非常抱歉让您久等了，双十一期间订单量较大，您的订单预计明天发出。"
+        },
+        {
+          "role": "user",
+          "content": "明天能保证发吗？我下周要出差穿。"
+        },
+        {
+          "role": "assistant",
+          "content": "我帮您备注了优先发货，仓库会尽量安排今天发出，请您留意物流信息。"
+        }
+      ],
+      "text": "你们每次都这么说，我要投诉你们，给我转投诉部门！",
+      "label": "human_service",
+      "language": "zh",
+      "group_id": "domain-v3:zh:11:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:11:5:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我双十一买的羽绒服到现在还没发货，都五天了。"
+        },
+        {
+          "role": "assistant",
+          "content": "非常抱歉让您久等了，双十一期间订单量较大，您的订单预计明天发出。"
+        },
+        {
+          "role": "user",
+          "content": "明天能保证发吗？我下周要出差穿。"
+        },
+        {
+          "role": "assistant",
+          "content": "我帮您备注了优先发货，仓库会尽量安排今天发出，请您留意物流信息。"
+        }
+      ],
+      "text": "对了，顺便问一下，你们这款羽绒服还有黑色的吗？我想再买一件。",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:11:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:11:6:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上个月买的那台打印机，发票开的是个人抬头，能改成公司吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "可以的，请问您的订单号是多少？电子发票在开具前都可以修改。"
+        },
+        {
+          "role": "user",
+          "content": "订单号C556677，发票还没开吧？"
+        },
+        {
+          "role": "assistant",
+          "content": "查到了，您的发票还未开具，可以修改抬头，请提供公司名称和税号。"
+        }
+      ],
+      "text": "公司名称是华信科技有限公司，税号是91110108MA01XXXXX。",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:11:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:11:6:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上个月买的那台打印机，发票开的是个人抬头，能改成公司吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "可以的，请问您的订单号是多少？电子发票在开具前都可以修改。"
+        },
+        {
+          "role": "user",
+          "content": "订单号C556677，发票还没开吧？"
+        },
+        {
+          "role": "assistant",
+          "content": "查到了，您的发票还未开具，可以修改抬头，请提供公司名称和税号。"
+        }
+      ],
+      "text": "嗯……其实我还没想好要不要开公司抬头，你们先别开，我再想想。",
+      "label": "__DEFER__",
+      "language": "zh",
+      "group_id": "domain-v3:zh:11:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:11:6:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上个月买的那台打印机，发票开的是个人抬头，能改成公司吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "可以的，请问您的订单号是多少？电子发票在开具前都可以修改。"
+        },
+        {
+          "role": "user",
+          "content": "订单号C556677，发票还没开吧？"
+        },
+        {
+          "role": "assistant",
+          "content": "查到了，您的发票还未开具，可以修改抬头，请提供公司名称和税号。"
+        }
+      ],
+      "text": "对了，你们客服态度真好，比别家强多了，回头我推荐同事来买。",
+      "label": "general",
+      "language": "zh",
+      "group_id": "domain-v3:zh:11:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:11:7:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上周申请了退货，快递已经签收三天了，退款还没到账。"
+        },
+        {
+          "role": "assistant",
+          "content": "我帮您查一下退货进度，请稍等。"
+        },
+        {
+          "role": "user",
+          "content": "好的，麻烦快一点，我等着用这笔钱。"
+        },
+        {
+          "role": "assistant",
+          "content": "查到您的退货包裹已于昨天完成质检，退款预计今天18点前原路退回。"
+        }
+      ],
+      "text": "好的，那我等今天到账，如果没到我再联系你们。",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:11:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:11:7:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上周申请了退货，快递已经签收三天了，退款还没到账。"
+        },
+        {
+          "role": "assistant",
+          "content": "我帮您查一下退货进度，请稍等。"
+        },
+        {
+          "role": "user",
+          "content": "好的，麻烦快一点，我等着用这笔钱。"
+        },
+        {
+          "role": "assistant",
+          "content": "查到您的退货包裹已于昨天完成质检，退款预计今天18点前原路退回。"
+        }
+      ],
+      "text": "你们这个退款流程太慢了，我要投诉，给我人工客服！",
+      "label": "human_service",
+      "language": "zh",
+      "group_id": "domain-v3:zh:11:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:11:7:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上周申请了退货，快递已经签收三天了，退款还没到账。"
+        },
+        {
+          "role": "assistant",
+          "content": "我帮您查一下退货进度，请稍等。"
+        },
+        {
+          "role": "user",
+          "content": "好的，麻烦快一点，我等着用这笔钱。"
+        },
+        {
+          "role": "assistant",
+          "content": "查到您的退货包裹已于昨天完成质检，退款预计今天18点前原路退回。"
+        }
+      ],
+      "text": "对了，你们最近有没有什么优惠活动？我想再买点东西。",
+      "label": "general",
+      "language": "zh",
+      "group_id": "domain-v3:zh:11:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    }
+  ],
+  "rejected": [
+    {
+      "case_id": "domain-v3:zh:11:0:0",
+      "author": "order_logistics",
+      "label": "billing_refund",
+      "clear_and_natural": true,
+      "reason": "用户同意更换表带，属于售后换货/退换流程，归入billing_refund。"
+    },
+    {
+      "case_id": "domain-v3:zh:11:1:2",
+      "author": "general",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "用户放弃换货，无剩余业务目标，仅表达不满，属于撤回且无剩余目标。"
+    },
+    {
+      "case_id": "domain-v3:zh:11:3:1",
+      "author": "account_security",
+      "label": "__DEFER__",
+      "clear_and_natural": true,
+      "reason": "用户放弃找回账号，改为重新注册，撤回原目标且无明确业务请求。"
+    }
+  ],
+  "status": "reviewed"
+}

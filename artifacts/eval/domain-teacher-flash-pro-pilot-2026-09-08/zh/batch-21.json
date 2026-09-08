@@ -1,0 +1,2029 @@
+{
+  "batch_id": "domain-v3:zh:21",
+  "language": "zh",
+  "split": "heldout",
+  "models": {
+    "author": "deepseek-v4-flash",
+    "review": "deepseek-v4-pro"
+  },
+  "review_protocol": "label-blind-batch-v1",
+  "synthetic": true,
+  "author_prompt": "Author 8 DIFFERENT natural ecommerce customer-service dialogue families in zh.\nBatch 21; ensure at least four current turns classified as billing_refund across this batch.\nEach family has its OWN coherent history of 2, 4 or 6 short alternating user/assistant\nmessages, followed by 3 ALTERNATIVE current user turns, not three sequential turns.\nThose alternatives differ in effective intent: retain vs replace, withdraw vs\ncontinue, single goal vs concurrent goal, or resolved vs unresolved reference.\nInclude natural short answers where history matters. Vary old completed tasks,\nhesitation, self-correction, indirect wording, topics and dialogue acts. General\nand human-service requests must also occur as NEW goals, not only stale history.\nDo not follow a repeated sentence template or substitute product nouns to create\nnew families. Avoid stereotyped 'information only, do not submit' repetition.\nInvent broad everyday ecommerce situations; no copied benchmark or private data.\nHistory plus current turn should fit 150 English words or 180 Chinese characters;\nkeep it compact but meaningful. No future replies or final conversation summaries.\nSupply the correct label for each alternative according to the rubric.\n",
+  "author_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_8wbXQ7feCCGlNZjh2oM60224",
+          "input": {
+            "families": [
+              {
+                "scenario": "顾客询问已购咖啡机的清洁方法，随后转向退款话题",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我上周买的咖啡机，说明书上说水箱要定期清洗，具体怎么操作？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您好！水箱清洗很简单：取出水箱，用温水加少量中性清洁剂浸泡十分钟，再用清水冲净晾干即可。建议每两周清洗一次。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "好的，谢谢。另外我昨天发现机器底部有渗水，是不是质量问题？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "很抱歉给您带来困扰。渗水可能是个别密封圈问题，建议您先拍张照片发给我们检测，如果确认质量问题可以安排换新。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "算了，我拍好照片了，你们直接给我退款吧，我不想换新的。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "好的，那我先试试清洗，如果还渗水再联系你们。",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "对了，我上次还买了个磨豆机，那个的刀盘怎么拆下来清洗？",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客询问订单配送进度，随后提到发票问题",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我前天下的单，订单号是A88231，现在到哪了？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "查询到您的包裹已到达本地分拨中心，预计明天下午送达，请保持电话畅通。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "好的，那麻烦帮我确认一下，这个订单能开增值税专用发票吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "可以的，您下单时选择企业抬头即可开具专票。如果已经下单，可以在订单详情页申请补开发票。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "我申请补开了，但系统一直提示抬头信息错误，帮我看看怎么回事。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "明白了，那等包裹到了我再申请。谢谢！",
+                    "label": "general"
+                  },
+                  {
+                    "text": "对了，我另一个订单A88232的收货地址填错了，能帮我改一下吗？",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客投诉收到的衣服有污渍，要求处理",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "你们发的这件白色衬衫上面有一块黄色污渍，明显是脏的，我拍了照片。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "非常抱歉！请您提供订单号和污渍照片，我们核实后可以为您办理退换货。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "订单号是B33019，照片我发到客服邮箱了。你们打算怎么处理？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "已收到您的照片，确认是仓库打包时造成的污渍。我们可以为您免费换一件新的，或者全额退款，您看怎么方便？"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那就退款吧，这件衣服我不想要了，麻烦尽快处理。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "换一件吧，不过你们要保证新的那件没有质量问题。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "先不急着处理，我想问下你们有没有同款的其他颜色？",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客询问会员积分兑换规则，随后想找人工客服",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我账户里有八千多积分，能兑换什么东西？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您可以在积分商城中兑换优惠券、实物礼品或抵扣现金，8000积分可兑换30元无门槛优惠券。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "那积分兑换的优惠券有使用期限吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "积分兑换的优惠券有效期为30天，自兑换之日起计算，逾期未使用将自动失效。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，我知道了。另外我登录时一直提示密码错误，但我确定没记错，能帮我查一下吗？",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "明白了，那我现在去兑换。对了，你们人工客服几点下班？",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "我上次退货的退款到现在还没到账，都五天了，帮我查一下进度。",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客咨询蓝牙耳机兼容性，随后提到旧订单售后",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "你们这款降噪耳机支持iPhone 15吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "支持的，这款耳机采用蓝牙5.3协议，兼容iOS和Android主流机型，包括iPhone 15全系列。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "那续航大概多久？我每天通勤要用两小时左右。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "单次充电可连续使用8小时，配合充电仓总续航达32小时，完全满足您的通勤需求。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，那我下单了。另外我三个月前买的旧款耳机右耳没声音了，还在保修期内吗？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "听起来不错，不过我想先问问，如果买回来不合适能七天无理由退吗？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "行，那我先加购物车，回头再决定。谢谢你的解答。",
+                    "label": "general"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客询问宠物喂食器的定时功能设置",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我刚收到你们家的智能宠物喂食器，怎么设置每天早晚各喂一次？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您好！请先在手机上下载配套App并连接设备，然后在\"定时喂养\"页面添加两个时间点即可，每次出粮量也可以单独设置。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "我连上了，但App里找不到\"定时喂养\"这个选项，是不是版本不对？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请检查App是否为最新版本，如果不是请先更新。更新后如果仍找不到，可以尝试重启设备重新配对。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "更新了还是找不到，这产品是不是有缺陷？我要退货退款。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "我更新试试。对了，这个喂食器能设置周末和平时不同的时间吗？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "算了，太麻烦了，我直接退了吧，你们给我个退货地址。",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客确认订单信息后询问赠品问题",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我昨天买的电饭煲，订单C55012，什么时候发货？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您的订单今天下午就会从仓库发出，预计2-3天送达。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "好的，我看到页面说前一百名下单送蒸笼，我算不算前一百名？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "我帮您核实了一下，您的下单时间在活动前一百名之内，赠品蒸笼会随主商品一起发出。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "太好了，谢谢！那我不打扰了。",
+                    "label": "general"
+                  },
+                  {
+                    "text": "对了，我朋友也想买，但她想用我的优惠码，可以吗？",
+                    "label": "general"
+                  },
+                  {
+                    "text": "我收到货后发现蒸笼没在里面，只有电饭煲，怎么回事？",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客咨询瑜伽垫材质后提到旧订单退款未处理",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "你们这款瑜伽垫是TPE材质的吗？会不会有异味？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "是的，这款采用环保TPE材质，出厂前经过通风处理，正常使用不会有明显异味。首次使用建议用湿布擦拭晾干。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "好的，那厚度呢？我膝盖不太好，想要厚一点的。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "这款厚度为8mm，属于加厚款，对膝盖有很好的缓冲保护。如果您需要更厚的，我们还有10mm的款式可选。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那我买8mm的吧。对了，我上个月退的那条瑜伽裤，退款到现在还没到账，帮我查查。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "10mm和8mm价格差多少？如果差不多我就买10mm的。",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "好的，我再考虑一下。你们能帮我转人工客服吗？我想问个具体问题。",
+                    "label": "human_service"
+                  }
+                ]
+              }
+            ]
+          },
+          "name": "AuthoredBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "f3d79160-83b3-4317-8b45-a318fad9920f",
+        "container": null,
+        "model": "deepseek-v4-flash",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 640,
+          "inference_geo": null,
+          "input_tokens": 321,
+          "output_tokens": 2050,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-flash",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d7-2297-7553-a26f-2d301010efc6-0",
+      "tool_calls": [
+        {
+          "name": "AuthoredBatch",
+          "args": {
+            "families": [
+              {
+                "scenario": "顾客询问已购咖啡机的清洁方法，随后转向退款话题",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我上周买的咖啡机，说明书上说水箱要定期清洗，具体怎么操作？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您好！水箱清洗很简单：取出水箱，用温水加少量中性清洁剂浸泡十分钟，再用清水冲净晾干即可。建议每两周清洗一次。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "好的，谢谢。另外我昨天发现机器底部有渗水，是不是质量问题？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "很抱歉给您带来困扰。渗水可能是个别密封圈问题，建议您先拍张照片发给我们检测，如果确认质量问题可以安排换新。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "算了，我拍好照片了，你们直接给我退款吧，我不想换新的。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "好的，那我先试试清洗，如果还渗水再联系你们。",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "对了，我上次还买了个磨豆机，那个的刀盘怎么拆下来清洗？",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客询问订单配送进度，随后提到发票问题",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我前天下的单，订单号是A88231，现在到哪了？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "查询到您的包裹已到达本地分拨中心，预计明天下午送达，请保持电话畅通。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "好的，那麻烦帮我确认一下，这个订单能开增值税专用发票吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "可以的，您下单时选择企业抬头即可开具专票。如果已经下单，可以在订单详情页申请补开发票。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "我申请补开了，但系统一直提示抬头信息错误，帮我看看怎么回事。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "明白了，那等包裹到了我再申请。谢谢！",
+                    "label": "general"
+                  },
+                  {
+                    "text": "对了，我另一个订单A88232的收货地址填错了，能帮我改一下吗？",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客投诉收到的衣服有污渍，要求处理",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "你们发的这件白色衬衫上面有一块黄色污渍，明显是脏的，我拍了照片。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "非常抱歉！请您提供订单号和污渍照片，我们核实后可以为您办理退换货。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "订单号是B33019，照片我发到客服邮箱了。你们打算怎么处理？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "已收到您的照片，确认是仓库打包时造成的污渍。我们可以为您免费换一件新的，或者全额退款，您看怎么方便？"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那就退款吧，这件衣服我不想要了，麻烦尽快处理。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "换一件吧，不过你们要保证新的那件没有质量问题。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "先不急着处理，我想问下你们有没有同款的其他颜色？",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客询问会员积分兑换规则，随后想找人工客服",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我账户里有八千多积分，能兑换什么东西？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您可以在积分商城中兑换优惠券、实物礼品或抵扣现金，8000积分可兑换30元无门槛优惠券。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "那积分兑换的优惠券有使用期限吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "积分兑换的优惠券有效期为30天，自兑换之日起计算，逾期未使用将自动失效。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，我知道了。另外我登录时一直提示密码错误，但我确定没记错，能帮我查一下吗？",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "明白了，那我现在去兑换。对了，你们人工客服几点下班？",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "我上次退货的退款到现在还没到账，都五天了，帮我查一下进度。",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客咨询蓝牙耳机兼容性，随后提到旧订单售后",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "你们这款降噪耳机支持iPhone 15吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "支持的，这款耳机采用蓝牙5.3协议，兼容iOS和Android主流机型，包括iPhone 15全系列。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "那续航大概多久？我每天通勤要用两小时左右。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "单次充电可连续使用8小时，配合充电仓总续航达32小时，完全满足您的通勤需求。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，那我下单了。另外我三个月前买的旧款耳机右耳没声音了，还在保修期内吗？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "听起来不错，不过我想先问问，如果买回来不合适能七天无理由退吗？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "行，那我先加购物车，回头再决定。谢谢你的解答。",
+                    "label": "general"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客询问宠物喂食器的定时功能设置",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我刚收到你们家的智能宠物喂食器，怎么设置每天早晚各喂一次？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您好！请先在手机上下载配套App并连接设备，然后在\"定时喂养\"页面添加两个时间点即可，每次出粮量也可以单独设置。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "我连上了，但App里找不到\"定时喂养\"这个选项，是不是版本不对？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请检查App是否为最新版本，如果不是请先更新。更新后如果仍找不到，可以尝试重启设备重新配对。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "更新了还是找不到，这产品是不是有缺陷？我要退货退款。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "我更新试试。对了，这个喂食器能设置周末和平时不同的时间吗？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "算了，太麻烦了，我直接退了吧，你们给我个退货地址。",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客确认订单信息后询问赠品问题",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我昨天买的电饭煲，订单C55012，什么时候发货？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您的订单今天下午就会从仓库发出，预计2-3天送达。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "好的，我看到页面说前一百名下单送蒸笼，我算不算前一百名？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "我帮您核实了一下，您的下单时间在活动前一百名之内，赠品蒸笼会随主商品一起发出。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "太好了，谢谢！那我不打扰了。",
+                    "label": "general"
+                  },
+                  {
+                    "text": "对了，我朋友也想买，但她想用我的优惠码，可以吗？",
+                    "label": "general"
+                  },
+                  {
+                    "text": "我收到货后发现蒸笼没在里面，只有电饭煲，怎么回事？",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客咨询瑜伽垫材质后提到旧订单退款未处理",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "你们这款瑜伽垫是TPE材质的吗？会不会有异味？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "是的，这款采用环保TPE材质，出厂前经过通风处理，正常使用不会有明显异味。首次使用建议用湿布擦拭晾干。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "好的，那厚度呢？我膝盖不太好，想要厚一点的。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "这款厚度为8mm，属于加厚款，对膝盖有很好的缓冲保护。如果您需要更厚的，我们还有10mm的款式可选。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那我买8mm的吧。对了，我上个月退的那条瑜伽裤，退款到现在还没到账，帮我查查。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "10mm和8mm价格差多少？如果差不多我就买10mm的。",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "好的，我再考虑一下。你们能帮我转人工客服吗？我想问个具体问题。",
+                    "label": "human_service"
+                  }
+                ]
+              }
+            ]
+          },
+          "id": "call_00_8wbXQ7feCCGlNZjh2oM60224",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 961,
+        "output_tokens": 2050,
+        "total_tokens": 3011,
+        "input_token_details": {
+          "cache_read": 640,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "authored": {
+    "families": [
+      {
+        "scenario": "顾客询问已购咖啡机的清洁方法，随后转向退款话题",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我上周买的咖啡机，说明书上说水箱要定期清洗，具体怎么操作？"
+          },
+          {
+            "role": "assistant",
+            "content": "您好！水箱清洗很简单：取出水箱，用温水加少量中性清洁剂浸泡十分钟，再用清水冲净晾干即可。建议每两周清洗一次。"
+          },
+          {
+            "role": "user",
+            "content": "好的，谢谢。另外我昨天发现机器底部有渗水，是不是质量问题？"
+          },
+          {
+            "role": "assistant",
+            "content": "很抱歉给您带来困扰。渗水可能是个别密封圈问题，建议您先拍张照片发给我们检测，如果确认质量问题可以安排换新。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "算了，我拍好照片了，你们直接给我退款吧，我不想换新的。",
+            "label": "billing_refund"
+          },
+          {
+            "text": "好的，那我先试试清洗，如果还渗水再联系你们。",
+            "label": "product_technical"
+          },
+          {
+            "text": "对了，我上次还买了个磨豆机，那个的刀盘怎么拆下来清洗？",
+            "label": "product_technical"
+          }
+        ]
+      },
+      {
+        "scenario": "顾客询问订单配送进度，随后提到发票问题",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我前天下的单，订单号是A88231，现在到哪了？"
+          },
+          {
+            "role": "assistant",
+            "content": "查询到您的包裹已到达本地分拨中心，预计明天下午送达，请保持电话畅通。"
+          },
+          {
+            "role": "user",
+            "content": "好的，那麻烦帮我确认一下，这个订单能开增值税专用发票吗？"
+          },
+          {
+            "role": "assistant",
+            "content": "可以的，您下单时选择企业抬头即可开具专票。如果已经下单，可以在订单详情页申请补开发票。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "我申请补开了，但系统一直提示抬头信息错误，帮我看看怎么回事。",
+            "label": "billing_refund"
+          },
+          {
+            "text": "明白了，那等包裹到了我再申请。谢谢！",
+            "label": "general"
+          },
+          {
+            "text": "对了，我另一个订单A88232的收货地址填错了，能帮我改一下吗？",
+            "label": "order_logistics"
+          }
+        ]
+      },
+      {
+        "scenario": "顾客投诉收到的衣服有污渍，要求处理",
+        "messages": [
+          {
+            "role": "user",
+            "content": "你们发的这件白色衬衫上面有一块黄色污渍，明显是脏的，我拍了照片。"
+          },
+          {
+            "role": "assistant",
+            "content": "非常抱歉！请您提供订单号和污渍照片，我们核实后可以为您办理退换货。"
+          },
+          {
+            "role": "user",
+            "content": "订单号是B33019，照片我发到客服邮箱了。你们打算怎么处理？"
+          },
+          {
+            "role": "assistant",
+            "content": "已收到您的照片，确认是仓库打包时造成的污渍。我们可以为您免费换一件新的，或者全额退款，您看怎么方便？"
+          }
+        ],
+        "variants": [
+          {
+            "text": "那就退款吧，这件衣服我不想要了，麻烦尽快处理。",
+            "label": "billing_refund"
+          },
+          {
+            "text": "换一件吧，不过你们要保证新的那件没有质量问题。",
+            "label": "billing_refund"
+          },
+          {
+            "text": "先不急着处理，我想问下你们有没有同款的其他颜色？",
+            "label": "product_technical"
+          }
+        ]
+      },
+      {
+        "scenario": "顾客询问会员积分兑换规则，随后想找人工客服",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我账户里有八千多积分，能兑换什么东西？"
+          },
+          {
+            "role": "assistant",
+            "content": "您可以在积分商城中兑换优惠券、实物礼品或抵扣现金，8000积分可兑换30元无门槛优惠券。"
+          },
+          {
+            "role": "user",
+            "content": "那积分兑换的优惠券有使用期限吗？"
+          },
+          {
+            "role": "assistant",
+            "content": "积分兑换的优惠券有效期为30天，自兑换之日起计算，逾期未使用将自动失效。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "好的，我知道了。另外我登录时一直提示密码错误，但我确定没记错，能帮我查一下吗？",
+            "label": "account_security"
+          },
+          {
+            "text": "明白了，那我现在去兑换。对了，你们人工客服几点下班？",
+            "label": "human_service"
+          },
+          {
+            "text": "我上次退货的退款到现在还没到账，都五天了，帮我查一下进度。",
+            "label": "billing_refund"
+          }
+        ]
+      },
+      {
+        "scenario": "顾客咨询蓝牙耳机兼容性，随后提到旧订单售后",
+        "messages": [
+          {
+            "role": "user",
+            "content": "你们这款降噪耳机支持iPhone 15吗？"
+          },
+          {
+            "role": "assistant",
+            "content": "支持的，这款耳机采用蓝牙5.3协议，兼容iOS和Android主流机型，包括iPhone 15全系列。"
+          },
+          {
+            "role": "user",
+            "content": "那续航大概多久？我每天通勤要用两小时左右。"
+          },
+          {
+            "role": "assistant",
+            "content": "单次充电可连续使用8小时，配合充电仓总续航达32小时，完全满足您的通勤需求。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "好的，那我下单了。另外我三个月前买的旧款耳机右耳没声音了，还在保修期内吗？",
+            "label": "product_technical"
+          },
+          {
+            "text": "听起来不错，不过我想先问问，如果买回来不合适能七天无理由退吗？",
+            "label": "billing_refund"
+          },
+          {
+            "text": "行，那我先加购物车，回头再决定。谢谢你的解答。",
+            "label": "general"
+          }
+        ]
+      },
+      {
+        "scenario": "顾客询问宠物喂食器的定时功能设置",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我刚收到你们家的智能宠物喂食器，怎么设置每天早晚各喂一次？"
+          },
+          {
+            "role": "assistant",
+            "content": "您好！请先在手机上下载配套App并连接设备，然后在\"定时喂养\"页面添加两个时间点即可，每次出粮量也可以单独设置。"
+          },
+          {
+            "role": "user",
+            "content": "我连上了，但App里找不到\"定时喂养\"这个选项，是不是版本不对？"
+          },
+          {
+            "role": "assistant",
+            "content": "请检查App是否为最新版本，如果不是请先更新。更新后如果仍找不到，可以尝试重启设备重新配对。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "更新了还是找不到，这产品是不是有缺陷？我要退货退款。",
+            "label": "billing_refund"
+          },
+          {
+            "text": "我更新试试。对了，这个喂食器能设置周末和平时不同的时间吗？",
+            "label": "product_technical"
+          },
+          {
+            "text": "算了，太麻烦了，我直接退了吧，你们给我个退货地址。",
+            "label": "billing_refund"
+          }
+        ]
+      },
+      {
+        "scenario": "顾客确认订单信息后询问赠品问题",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我昨天买的电饭煲，订单C55012，什么时候发货？"
+          },
+          {
+            "role": "assistant",
+            "content": "您的订单今天下午就会从仓库发出，预计2-3天送达。"
+          },
+          {
+            "role": "user",
+            "content": "好的，我看到页面说前一百名下单送蒸笼，我算不算前一百名？"
+          },
+          {
+            "role": "assistant",
+            "content": "我帮您核实了一下，您的下单时间在活动前一百名之内，赠品蒸笼会随主商品一起发出。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "太好了，谢谢！那我不打扰了。",
+            "label": "general"
+          },
+          {
+            "text": "对了，我朋友也想买，但她想用我的优惠码，可以吗？",
+            "label": "general"
+          },
+          {
+            "text": "我收到货后发现蒸笼没在里面，只有电饭煲，怎么回事？",
+            "label": "order_logistics"
+          }
+        ]
+      },
+      {
+        "scenario": "顾客咨询瑜伽垫材质后提到旧订单退款未处理",
+        "messages": [
+          {
+            "role": "user",
+            "content": "你们这款瑜伽垫是TPE材质的吗？会不会有异味？"
+          },
+          {
+            "role": "assistant",
+            "content": "是的，这款采用环保TPE材质，出厂前经过通风处理，正常使用不会有明显异味。首次使用建议用湿布擦拭晾干。"
+          },
+          {
+            "role": "user",
+            "content": "好的，那厚度呢？我膝盖不太好，想要厚一点的。"
+          },
+          {
+            "role": "assistant",
+            "content": "这款厚度为8mm，属于加厚款，对膝盖有很好的缓冲保护。如果您需要更厚的，我们还有10mm的款式可选。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "那我买8mm的吧。对了，我上个月退的那条瑜伽裤，退款到现在还没到账，帮我查查。",
+            "label": "billing_refund"
+          },
+          {
+            "text": "10mm和8mm价格差多少？如果差不多我就买10mm的。",
+            "label": "product_technical"
+          },
+          {
+            "text": "好的，我再考虑一下。你们能帮我转人工客服吗？我想问个具体问题。",
+            "label": "human_service"
+          }
+        ]
+      }
+    ]
+  },
+  "review_input_sha256": "6bf9effe2c5479c365bd169262f854e05328f4fe254fe141a30d9038226289dc",
+  "review_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_YjgR6ZyK6GTbYl2zZtux9867",
+          "input": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:zh:21:0:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户明确要求退款，放弃换新，属于退款诉求。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:0:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "用户决定先尝试清洗，仍围绕产品使用/故障处理，属于产品技术范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:0:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问磨豆机刀盘拆卸清洗，属于产品使用问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:1:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "补开发票时抬头信息错误，属于发票/支付类问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:1:1",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "用户表示明白并致谢，无新的业务诉求，属于普通礼貌结束。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:1:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "请求修改另一订单收货地址，属于订单/物流范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:2:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户选择退款，属于退款诉求。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:2:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户选择换货，属于退换货/售后范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:2:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问同款其他颜色，属于产品信息咨询。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:3:0",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "登录密码错误，属于账户访问/安全问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:3:1",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "询问人工客服下班时间，涉及人工服务。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:3:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "查询退货退款进度，属于退款问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:4:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问旧款耳机故障及保修，属于产品故障/售后技术问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:4:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "询问七天无理由退货规则，属于售后/退款规则。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:4:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "用户表示加购物车再决定并致谢，无明确业务诉求。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:5:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户因产品缺陷要求退货退款，属于退款诉求。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:5:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问喂食器能否设置周末不同时间，属于产品功能使用问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:5:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户决定退货并要求退货地址，属于退货诉求。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:6:0",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "用户致谢并结束对话，无新业务诉求。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:6:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "询问朋友能否使用自己的优惠码，涉及优惠/支付规则。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:6:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "收到货发现赠品蒸笼缺失，属于订单/物流问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:7:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "查询退货退款进度，属于退款问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:7:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问不同厚度价格差异，属于产品信息咨询。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:7:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户明确要求转人工客服，属于人工服务诉求。"
+              }
+            ]
+          },
+          "name": "ReviewedBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "caa0760e-2cba-462b-9d9c-69d45a983b21",
+        "container": null,
+        "model": "deepseek-v4-pro",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "inference_geo": null,
+          "input_tokens": 4330,
+          "output_tokens": 1261,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-pro",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d7-641f-7bb0-873e-df44da667765-0",
+      "tool_calls": [
+        {
+          "name": "ReviewedBatch",
+          "args": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:zh:21:0:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户明确要求退款，放弃换新，属于退款诉求。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:0:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "用户决定先尝试清洗，仍围绕产品使用/故障处理，属于产品技术范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:0:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问磨豆机刀盘拆卸清洗，属于产品使用问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:1:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "补开发票时抬头信息错误，属于发票/支付类问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:1:1",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "用户表示明白并致谢，无新的业务诉求，属于普通礼貌结束。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:1:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "请求修改另一订单收货地址，属于订单/物流范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:2:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户选择退款，属于退款诉求。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:2:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户选择换货，属于退换货/售后范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:2:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问同款其他颜色，属于产品信息咨询。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:3:0",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "登录密码错误，属于账户访问/安全问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:3:1",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "询问人工客服下班时间，涉及人工服务。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:3:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "查询退货退款进度，属于退款问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:4:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问旧款耳机故障及保修，属于产品故障/售后技术问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:4:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "询问七天无理由退货规则，属于售后/退款规则。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:4:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "用户表示加购物车再决定并致谢，无明确业务诉求。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:5:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户因产品缺陷要求退货退款，属于退款诉求。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:5:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问喂食器能否设置周末不同时间，属于产品功能使用问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:5:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户决定退货并要求退货地址，属于退货诉求。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:6:0",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "用户致谢并结束对话，无新业务诉求。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:6:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "询问朋友能否使用自己的优惠码，涉及优惠/支付规则。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:6:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "收到货发现赠品蒸笼缺失，属于订单/物流问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:7:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "查询退货退款进度，属于退款问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:7:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问不同厚度价格差异，属于产品信息咨询。"
+              },
+              {
+                "case_id": "domain-v3:zh:21:7:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户明确要求转人工客服，属于人工服务诉求。"
+              }
+            ]
+          },
+          "id": "call_00_YjgR6ZyK6GTbYl2zZtux9867",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 4842,
+        "output_tokens": 1261,
+        "total_tokens": 6103,
+        "input_token_details": {
+          "cache_read": 512,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "reviewed": {
+    "verdicts": [
+      {
+        "case_id": "domain-v3:zh:21:0:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户明确要求退款，放弃换新，属于退款诉求。"
+      },
+      {
+        "case_id": "domain-v3:zh:21:0:1",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "用户决定先尝试清洗，仍围绕产品使用/故障处理，属于产品技术范畴。"
+      },
+      {
+        "case_id": "domain-v3:zh:21:0:2",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "询问磨豆机刀盘拆卸清洗，属于产品使用问题。"
+      },
+      {
+        "case_id": "domain-v3:zh:21:1:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "补开发票时抬头信息错误，属于发票/支付类问题。"
+      },
+      {
+        "case_id": "domain-v3:zh:21:1:1",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "用户表示明白并致谢，无新的业务诉求，属于普通礼貌结束。"
+      },
+      {
+        "case_id": "domain-v3:zh:21:1:2",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "请求修改另一订单收货地址，属于订单/物流范畴。"
+      },
+      {
+        "case_id": "domain-v3:zh:21:2:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户选择退款，属于退款诉求。"
+      },
+      {
+        "case_id": "domain-v3:zh:21:2:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户选择换货，属于退换货/售后范畴。"
+      },
+      {
+        "case_id": "domain-v3:zh:21:2:2",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "询问同款其他颜色，属于产品信息咨询。"
+      },
+      {
+        "case_id": "domain-v3:zh:21:3:0",
+        "label": "account_security",
+        "clear_and_natural": true,
+        "reason": "登录密码错误，属于账户访问/安全问题。"
+      },
+      {
+        "case_id": "domain-v3:zh:21:3:1",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "询问人工客服下班时间，涉及人工服务。"
+      },
+      {
+        "case_id": "domain-v3:zh:21:3:2",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "查询退货退款进度，属于退款问题。"
+      },
+      {
+        "case_id": "domain-v3:zh:21:4:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "询问旧款耳机故障及保修，属于产品故障/售后技术问题。"
+      },
+      {
+        "case_id": "domain-v3:zh:21:4:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "询问七天无理由退货规则，属于售后/退款规则。"
+      },
+      {
+        "case_id": "domain-v3:zh:21:4:2",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "用户表示加购物车再决定并致谢，无明确业务诉求。"
+      },
+      {
+        "case_id": "domain-v3:zh:21:5:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户因产品缺陷要求退货退款，属于退款诉求。"
+      },
+      {
+        "case_id": "domain-v3:zh:21:5:1",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "询问喂食器能否设置周末不同时间，属于产品功能使用问题。"
+      },
+      {
+        "case_id": "domain-v3:zh:21:5:2",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户决定退货并要求退货地址，属于退货诉求。"
+      },
+      {
+        "case_id": "domain-v3:zh:21:6:0",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "用户致谢并结束对话，无新业务诉求。"
+      },
+      {
+        "case_id": "domain-v3:zh:21:6:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "询问朋友能否使用自己的优惠码，涉及优惠/支付规则。"
+      },
+      {
+        "case_id": "domain-v3:zh:21:6:2",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "收到货发现赠品蒸笼缺失，属于订单/物流问题。"
+      },
+      {
+        "case_id": "domain-v3:zh:21:7:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "查询退货退款进度，属于退款问题。"
+      },
+      {
+        "case_id": "domain-v3:zh:21:7:1",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "询问不同厚度价格差异，属于产品信息咨询。"
+      },
+      {
+        "case_id": "domain-v3:zh:21:7:2",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "用户明确要求转人工客服，属于人工服务诉求。"
+      }
+    ]
+  },
+  "rows": [
+    {
+      "case_id": "domain-v3:zh:21:0:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上周买的咖啡机，说明书上说水箱要定期清洗，具体怎么操作？"
+        },
+        {
+          "role": "assistant",
+          "content": "您好！水箱清洗很简单：取出水箱，用温水加少量中性清洁剂浸泡十分钟，再用清水冲净晾干即可。建议每两周清洗一次。"
+        },
+        {
+          "role": "user",
+          "content": "好的，谢谢。另外我昨天发现机器底部有渗水，是不是质量问题？"
+        },
+        {
+          "role": "assistant",
+          "content": "很抱歉给您带来困扰。渗水可能是个别密封圈问题，建议您先拍张照片发给我们检测，如果确认质量问题可以安排换新。"
+        }
+      ],
+      "text": "算了，我拍好照片了，你们直接给我退款吧，我不想换新的。",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:21:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:21:0:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上周买的咖啡机，说明书上说水箱要定期清洗，具体怎么操作？"
+        },
+        {
+          "role": "assistant",
+          "content": "您好！水箱清洗很简单：取出水箱，用温水加少量中性清洁剂浸泡十分钟，再用清水冲净晾干即可。建议每两周清洗一次。"
+        },
+        {
+          "role": "user",
+          "content": "好的，谢谢。另外我昨天发现机器底部有渗水，是不是质量问题？"
+        },
+        {
+          "role": "assistant",
+          "content": "很抱歉给您带来困扰。渗水可能是个别密封圈问题，建议您先拍张照片发给我们检测，如果确认质量问题可以安排换新。"
+        }
+      ],
+      "text": "好的，那我先试试清洗，如果还渗水再联系你们。",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:21:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:21:0:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上周买的咖啡机，说明书上说水箱要定期清洗，具体怎么操作？"
+        },
+        {
+          "role": "assistant",
+          "content": "您好！水箱清洗很简单：取出水箱，用温水加少量中性清洁剂浸泡十分钟，再用清水冲净晾干即可。建议每两周清洗一次。"
+        },
+        {
+          "role": "user",
+          "content": "好的，谢谢。另外我昨天发现机器底部有渗水，是不是质量问题？"
+        },
+        {
+          "role": "assistant",
+          "content": "很抱歉给您带来困扰。渗水可能是个别密封圈问题，建议您先拍张照片发给我们检测，如果确认质量问题可以安排换新。"
+        }
+      ],
+      "text": "对了，我上次还买了个磨豆机，那个的刀盘怎么拆下来清洗？",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:21:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:21:1:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我前天下的单，订单号是A88231，现在到哪了？"
+        },
+        {
+          "role": "assistant",
+          "content": "查询到您的包裹已到达本地分拨中心，预计明天下午送达，请保持电话畅通。"
+        },
+        {
+          "role": "user",
+          "content": "好的，那麻烦帮我确认一下，这个订单能开增值税专用发票吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "可以的，您下单时选择企业抬头即可开具专票。如果已经下单，可以在订单详情页申请补开发票。"
+        }
+      ],
+      "text": "我申请补开了，但系统一直提示抬头信息错误，帮我看看怎么回事。",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:21:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:21:1:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我前天下的单，订单号是A88231，现在到哪了？"
+        },
+        {
+          "role": "assistant",
+          "content": "查询到您的包裹已到达本地分拨中心，预计明天下午送达，请保持电话畅通。"
+        },
+        {
+          "role": "user",
+          "content": "好的，那麻烦帮我确认一下，这个订单能开增值税专用发票吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "可以的，您下单时选择企业抬头即可开具专票。如果已经下单，可以在订单详情页申请补开发票。"
+        }
+      ],
+      "text": "明白了，那等包裹到了我再申请。谢谢！",
+      "label": "general",
+      "language": "zh",
+      "group_id": "domain-v3:zh:21:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:21:1:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我前天下的单，订单号是A88231，现在到哪了？"
+        },
+        {
+          "role": "assistant",
+          "content": "查询到您的包裹已到达本地分拨中心，预计明天下午送达，请保持电话畅通。"
+        },
+        {
+          "role": "user",
+          "content": "好的，那麻烦帮我确认一下，这个订单能开增值税专用发票吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "可以的，您下单时选择企业抬头即可开具专票。如果已经下单，可以在订单详情页申请补开发票。"
+        }
+      ],
+      "text": "对了，我另一个订单A88232的收货地址填错了，能帮我改一下吗？",
+      "label": "order_logistics",
+      "language": "zh",
+      "group_id": "domain-v3:zh:21:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:21:2:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "你们发的这件白色衬衫上面有一块黄色污渍，明显是脏的，我拍了照片。"
+        },
+        {
+          "role": "assistant",
+          "content": "非常抱歉！请您提供订单号和污渍照片，我们核实后可以为您办理退换货。"
+        },
+        {
+          "role": "user",
+          "content": "订单号是B33019，照片我发到客服邮箱了。你们打算怎么处理？"
+        },
+        {
+          "role": "assistant",
+          "content": "已收到您的照片，确认是仓库打包时造成的污渍。我们可以为您免费换一件新的，或者全额退款，您看怎么方便？"
+        }
+      ],
+      "text": "那就退款吧，这件衣服我不想要了，麻烦尽快处理。",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:21:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:21:2:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "你们发的这件白色衬衫上面有一块黄色污渍，明显是脏的，我拍了照片。"
+        },
+        {
+          "role": "assistant",
+          "content": "非常抱歉！请您提供订单号和污渍照片，我们核实后可以为您办理退换货。"
+        },
+        {
+          "role": "user",
+          "content": "订单号是B33019，照片我发到客服邮箱了。你们打算怎么处理？"
+        },
+        {
+          "role": "assistant",
+          "content": "已收到您的照片，确认是仓库打包时造成的污渍。我们可以为您免费换一件新的，或者全额退款，您看怎么方便？"
+        }
+      ],
+      "text": "换一件吧，不过你们要保证新的那件没有质量问题。",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:21:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:21:2:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "你们发的这件白色衬衫上面有一块黄色污渍，明显是脏的，我拍了照片。"
+        },
+        {
+          "role": "assistant",
+          "content": "非常抱歉！请您提供订单号和污渍照片，我们核实后可以为您办理退换货。"
+        },
+        {
+          "role": "user",
+          "content": "订单号是B33019，照片我发到客服邮箱了。你们打算怎么处理？"
+        },
+        {
+          "role": "assistant",
+          "content": "已收到您的照片，确认是仓库打包时造成的污渍。我们可以为您免费换一件新的，或者全额退款，您看怎么方便？"
+        }
+      ],
+      "text": "先不急着处理，我想问下你们有没有同款的其他颜色？",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:21:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:21:3:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我账户里有八千多积分，能兑换什么东西？"
+        },
+        {
+          "role": "assistant",
+          "content": "您可以在积分商城中兑换优惠券、实物礼品或抵扣现金，8000积分可兑换30元无门槛优惠券。"
+        },
+        {
+          "role": "user",
+          "content": "那积分兑换的优惠券有使用期限吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "积分兑换的优惠券有效期为30天，自兑换之日起计算，逾期未使用将自动失效。"
+        }
+      ],
+      "text": "好的，我知道了。另外我登录时一直提示密码错误，但我确定没记错，能帮我查一下吗？",
+      "label": "account_security",
+      "language": "zh",
+      "group_id": "domain-v3:zh:21:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:21:3:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我账户里有八千多积分，能兑换什么东西？"
+        },
+        {
+          "role": "assistant",
+          "content": "您可以在积分商城中兑换优惠券、实物礼品或抵扣现金，8000积分可兑换30元无门槛优惠券。"
+        },
+        {
+          "role": "user",
+          "content": "那积分兑换的优惠券有使用期限吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "积分兑换的优惠券有效期为30天，自兑换之日起计算，逾期未使用将自动失效。"
+        }
+      ],
+      "text": "明白了，那我现在去兑换。对了，你们人工客服几点下班？",
+      "label": "human_service",
+      "language": "zh",
+      "group_id": "domain-v3:zh:21:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:21:3:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我账户里有八千多积分，能兑换什么东西？"
+        },
+        {
+          "role": "assistant",
+          "content": "您可以在积分商城中兑换优惠券、实物礼品或抵扣现金，8000积分可兑换30元无门槛优惠券。"
+        },
+        {
+          "role": "user",
+          "content": "那积分兑换的优惠券有使用期限吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "积分兑换的优惠券有效期为30天，自兑换之日起计算，逾期未使用将自动失效。"
+        }
+      ],
+      "text": "我上次退货的退款到现在还没到账，都五天了，帮我查一下进度。",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:21:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:21:4:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "你们这款降噪耳机支持iPhone 15吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "支持的，这款耳机采用蓝牙5.3协议，兼容iOS和Android主流机型，包括iPhone 15全系列。"
+        },
+        {
+          "role": "user",
+          "content": "那续航大概多久？我每天通勤要用两小时左右。"
+        },
+        {
+          "role": "assistant",
+          "content": "单次充电可连续使用8小时，配合充电仓总续航达32小时，完全满足您的通勤需求。"
+        }
+      ],
+      "text": "好的，那我下单了。另外我三个月前买的旧款耳机右耳没声音了，还在保修期内吗？",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:21:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:21:4:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "你们这款降噪耳机支持iPhone 15吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "支持的，这款耳机采用蓝牙5.3协议，兼容iOS和Android主流机型，包括iPhone 15全系列。"
+        },
+        {
+          "role": "user",
+          "content": "那续航大概多久？我每天通勤要用两小时左右。"
+        },
+        {
+          "role": "assistant",
+          "content": "单次充电可连续使用8小时，配合充电仓总续航达32小时，完全满足您的通勤需求。"
+        }
+      ],
+      "text": "听起来不错，不过我想先问问，如果买回来不合适能七天无理由退吗？",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:21:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:21:4:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "你们这款降噪耳机支持iPhone 15吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "支持的，这款耳机采用蓝牙5.3协议，兼容iOS和Android主流机型，包括iPhone 15全系列。"
+        },
+        {
+          "role": "user",
+          "content": "那续航大概多久？我每天通勤要用两小时左右。"
+        },
+        {
+          "role": "assistant",
+          "content": "单次充电可连续使用8小时，配合充电仓总续航达32小时，完全满足您的通勤需求。"
+        }
+      ],
+      "text": "行，那我先加购物车，回头再决定。谢谢你的解答。",
+      "label": "general",
+      "language": "zh",
+      "group_id": "domain-v3:zh:21:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:21:5:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我刚收到你们家的智能宠物喂食器，怎么设置每天早晚各喂一次？"
+        },
+        {
+          "role": "assistant",
+          "content": "您好！请先在手机上下载配套App并连接设备，然后在\"定时喂养\"页面添加两个时间点即可，每次出粮量也可以单独设置。"
+        },
+        {
+          "role": "user",
+          "content": "我连上了，但App里找不到\"定时喂养\"这个选项，是不是版本不对？"
+        },
+        {
+          "role": "assistant",
+          "content": "请检查App是否为最新版本，如果不是请先更新。更新后如果仍找不到，可以尝试重启设备重新配对。"
+        }
+      ],
+      "text": "更新了还是找不到，这产品是不是有缺陷？我要退货退款。",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:21:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:21:5:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我刚收到你们家的智能宠物喂食器，怎么设置每天早晚各喂一次？"
+        },
+        {
+          "role": "assistant",
+          "content": "您好！请先在手机上下载配套App并连接设备，然后在\"定时喂养\"页面添加两个时间点即可，每次出粮量也可以单独设置。"
+        },
+        {
+          "role": "user",
+          "content": "我连上了，但App里找不到\"定时喂养\"这个选项，是不是版本不对？"
+        },
+        {
+          "role": "assistant",
+          "content": "请检查App是否为最新版本，如果不是请先更新。更新后如果仍找不到，可以尝试重启设备重新配对。"
+        }
+      ],
+      "text": "我更新试试。对了，这个喂食器能设置周末和平时不同的时间吗？",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:21:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:21:5:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我刚收到你们家的智能宠物喂食器，怎么设置每天早晚各喂一次？"
+        },
+        {
+          "role": "assistant",
+          "content": "您好！请先在手机上下载配套App并连接设备，然后在\"定时喂养\"页面添加两个时间点即可，每次出粮量也可以单独设置。"
+        },
+        {
+          "role": "user",
+          "content": "我连上了，但App里找不到\"定时喂养\"这个选项，是不是版本不对？"
+        },
+        {
+          "role": "assistant",
+          "content": "请检查App是否为最新版本，如果不是请先更新。更新后如果仍找不到，可以尝试重启设备重新配对。"
+        }
+      ],
+      "text": "算了，太麻烦了，我直接退了吧，你们给我个退货地址。",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:21:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:21:6:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我昨天买的电饭煲，订单C55012，什么时候发货？"
+        },
+        {
+          "role": "assistant",
+          "content": "您的订单今天下午就会从仓库发出，预计2-3天送达。"
+        },
+        {
+          "role": "user",
+          "content": "好的，我看到页面说前一百名下单送蒸笼，我算不算前一百名？"
+        },
+        {
+          "role": "assistant",
+          "content": "我帮您核实了一下，您的下单时间在活动前一百名之内，赠品蒸笼会随主商品一起发出。"
+        }
+      ],
+      "text": "太好了，谢谢！那我不打扰了。",
+      "label": "general",
+      "language": "zh",
+      "group_id": "domain-v3:zh:21:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:21:6:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我昨天买的电饭煲，订单C55012，什么时候发货？"
+        },
+        {
+          "role": "assistant",
+          "content": "您的订单今天下午就会从仓库发出，预计2-3天送达。"
+        },
+        {
+          "role": "user",
+          "content": "好的，我看到页面说前一百名下单送蒸笼，我算不算前一百名？"
+        },
+        {
+          "role": "assistant",
+          "content": "我帮您核实了一下，您的下单时间在活动前一百名之内，赠品蒸笼会随主商品一起发出。"
+        }
+      ],
+      "text": "我收到货后发现蒸笼没在里面，只有电饭煲，怎么回事？",
+      "label": "order_logistics",
+      "language": "zh",
+      "group_id": "domain-v3:zh:21:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:21:7:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "你们这款瑜伽垫是TPE材质的吗？会不会有异味？"
+        },
+        {
+          "role": "assistant",
+          "content": "是的，这款采用环保TPE材质，出厂前经过通风处理，正常使用不会有明显异味。首次使用建议用湿布擦拭晾干。"
+        },
+        {
+          "role": "user",
+          "content": "好的，那厚度呢？我膝盖不太好，想要厚一点的。"
+        },
+        {
+          "role": "assistant",
+          "content": "这款厚度为8mm，属于加厚款，对膝盖有很好的缓冲保护。如果您需要更厚的，我们还有10mm的款式可选。"
+        }
+      ],
+      "text": "那我买8mm的吧。对了，我上个月退的那条瑜伽裤，退款到现在还没到账，帮我查查。",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:21:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:21:7:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "你们这款瑜伽垫是TPE材质的吗？会不会有异味？"
+        },
+        {
+          "role": "assistant",
+          "content": "是的，这款采用环保TPE材质，出厂前经过通风处理，正常使用不会有明显异味。首次使用建议用湿布擦拭晾干。"
+        },
+        {
+          "role": "user",
+          "content": "好的，那厚度呢？我膝盖不太好，想要厚一点的。"
+        },
+        {
+          "role": "assistant",
+          "content": "这款厚度为8mm，属于加厚款，对膝盖有很好的缓冲保护。如果您需要更厚的，我们还有10mm的款式可选。"
+        }
+      ],
+      "text": "10mm和8mm价格差多少？如果差不多我就买10mm的。",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:21:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:21:7:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "你们这款瑜伽垫是TPE材质的吗？会不会有异味？"
+        },
+        {
+          "role": "assistant",
+          "content": "是的，这款采用环保TPE材质，出厂前经过通风处理，正常使用不会有明显异味。首次使用建议用湿布擦拭晾干。"
+        },
+        {
+          "role": "user",
+          "content": "好的，那厚度呢？我膝盖不太好，想要厚一点的。"
+        },
+        {
+          "role": "assistant",
+          "content": "这款厚度为8mm，属于加厚款，对膝盖有很好的缓冲保护。如果您需要更厚的，我们还有10mm的款式可选。"
+        }
+      ],
+      "text": "好的，我再考虑一下。你们能帮我转人工客服吗？我想问个具体问题。",
+      "label": "human_service",
+      "language": "zh",
+      "group_id": "domain-v3:zh:21:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    }
+  ],
+  "rejected": [
+    {
+      "case_id": "domain-v3:zh:21:6:1",
+      "author": "general",
+      "label": "billing_refund",
+      "clear_and_natural": true,
+      "reason": "询问朋友能否使用自己的优惠码，涉及优惠/支付规则。"
+    }
+  ],
+  "status": "reviewed"
+}

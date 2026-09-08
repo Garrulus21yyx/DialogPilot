@@ -1,0 +1,646 @@
+{
+  "batch_id": "domain-v3:en:5",
+  "language": "en",
+  "split": "train",
+  "models": {
+    "author": "deepseek-v4-flash",
+    "review": "deepseek-v4-pro"
+  },
+  "review_protocol": "label-blind-batch-v1",
+  "synthetic": true,
+  "author_prompt": "Author 8 DIFFERENT natural ecommerce customer-service dialogue families in en.\nBatch 5; ensure at least four current turns classified as human_service across this batch.\nEach family has its OWN coherent history of 2, 4 or 6 short alternating user/assistant\nmessages, followed by 3 ALTERNATIVE current user turns, not three sequential turns.\nThose alternatives differ in effective intent: retain vs replace, withdraw vs\ncontinue, single goal vs concurrent goal, or resolved vs unresolved reference.\nInclude natural short answers where history matters. Vary old completed tasks,\nhesitation, self-correction, indirect wording, topics and dialogue acts. General\nand human-service requests must also occur as NEW goals, not only stale history.\nDo not follow a repeated sentence template or substitute product nouns to create\nnew families. Avoid stereotyped 'information only, do not submit' repetition.\nInvent broad everyday ecommerce situations; no copied benchmark or private data.\nHistory plus current turn should fit 150 English words or 180 Chinese characters;\nkeep it compact but meaningful. No future replies or final conversation summaries.\nSupply the correct label for each alternative according to the rubric.\n",
+  "author_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_rbLjhwwrKAZKSpmwYhLV1024",
+          "input": {
+            "families": [
+              {
+                "scenario": "Customer asks about a smartwatch they received as a gift but the band is too small.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Hi, I got the FitPulse S2 watch as a birthday gift but the strap is really tight on my wrist."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry to hear that! The S2 ships with a standard 150mm band. We do sell an XL strap separately for $12.99."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Oh okay. Would the XL fit the S2 model or only the newer ones?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "The XL strap is compatible with the S2, S3, and S4 models. It's listed under accessories on our site."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Great, I'll check that out. Thanks for the help."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Actually, before I buy the strap — can you tell me if the S2 has a replaceable battery or is it sealed?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "I'd rather just return the whole watch and pick a different model instead. How do I start a return?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "You know what, forget the strap. I want to speak to a real person about whether this gift can be exchanged for store credit.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer's package shows delivered but they never received it.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My order #48291 says delivered yesterday but I never got it. The photo shows a porch but I don't have a porch."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That's concerning. Let me check the delivery details for order #48291."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Okay, please do. I've been waiting on this for two weeks already."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I see the carrier marked it as left at the front door. I can file a claim with them on your behalf."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Yes, please file the claim. Also, while you're at it, is the matching phone case I ordered still in stock for a replacement?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Actually, I just found the package with my neighbor. Sorry for the trouble — you can close this out.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "I've called twice already and nobody helped. Put me through to a supervisor or file a formal complaint right now.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer wants to change the shipping address on an order placed minutes ago.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I just placed order #77315 and realized I'm moving next week. Can I change the delivery address?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me check if order #77315 has been picked up by the warehouse yet."
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's only been like five minutes, so hopefully not."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Good news — it hasn't shipped yet. I can update the address if you give me the new one."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "The new address is 42 Maple Lane, Apt 3B. Oh wait — actually it's 42 Maple Avenue, not Lane. Sorry, I keep mixing that up.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Hold on, I think I'd rather just cancel this order entirely and reorder once I'm settled. Can you cancel it?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Before I give you the address — does changing it affect the delivery estimate shown at checkout?",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer received a damaged blender and wants a replacement.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My blender arrived with a cracked jar. I opened it this morning and saw the damage right away."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry about that. Since it arrived damaged, we can send a replacement at no cost. Would you like that?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Yes, a replacement would be great. Do I need to send the damaged one back?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "No need to return it. I'll process a replacement jar and it should arrive in 3-5 business days."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Perfect, thank you. Also, I noticed the receipt shows I was charged twice for this order — can you look into that?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Actually, on second thought, just refund me instead. I don't trust this model anymore after seeing how fragile it is.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "I appreciate the offer but I'm frustrated with how long the original took to arrive. I want to file a complaint about the shipping carrier.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer forgot their password and cannot log in.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I can't log into my account. It says my password is wrong but I'm sure it's the one I always use."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "No problem — I can help you reset it. I'll send a reset link to the email on file."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Okay, but I'm not getting the email. It might be going to spam or maybe I used a different email."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me verify which email is associated with your account. Can you confirm your full name and phone number?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "My name is Dana Whitfield and my phone is 555-0142. Wait, I think I used my work email — try dana@brightco.com.",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "Honestly, I'm tired of this. Is there a way to talk to someone from your security team directly?",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Actually, never mind. I remembered my password — it was caps lock. Sorry to bother you!",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about warranty coverage on a laptop that won't turn on.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My NovaBook 14 won't power on at all. I bought it in March last year, so it's about 14 months old."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "The NovaBook 14 comes with a 12-month standard warranty, so it may have just expired. Let me check your purchase record."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Hmm, that's disappointing. I thought it was longer."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I see you purchased it on March 3rd last year. Unfortunately, the standard warranty ended last month. However, I can offer a paid repair estimate."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Okay, what would the repair cost roughly? And is there any way to extend coverage for future issues?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "That's not acceptable. I want to escalate this to a manager — a laptop dying after 14 months shouldn't be normal.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Wait, I actually bought an extended warranty add-on at checkout. Can you double-check that?",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer wants to know if a coffee maker they're eyeing is on sale this week.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Hey, is the BrewMaster 500 on sale right now? I saw an ad but the price on the site looks different."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "The BrewMaster 500 is currently at its regular price of $89.99. The ad you saw may have been for last week's promotion."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Oh, that's a bummer. Do you know when the next sale might happen?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I don't have exact dates, but we typically run promotions around major holidays. You could sign up for our newsletter to get notified."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Got it, thanks for the info. Have a nice day!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Alright, I'll wait then. By the way, does the BrewMaster 500 come with a reusable filter or only paper ones?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "I'd like to speak with someone in pricing about whether they can match the price I saw in the ad.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer reports unauthorized charges on their account.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I see two charges on my card from your store that I definitely didn't make. One is from yesterday and one from today."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That's serious — let me pull up your recent transactions right away to investigate."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Please do. I've already locked my card with my bank, but I need to know what happened here."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I can see both charges were made through your saved payment method on this account. I'm flagging this for our fraud team."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Thank you. While that's being looked into, can you also tell me if my recent order #90211 has shipped yet?",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "This is the second time something like this has happened. I want to file a formal complaint and talk to your fraud department directly.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Actually, wait — I just remembered I let my sister borrow my card to buy something. Let me check with her before you escalate anything.",
+                    "label": "account_security"
+                  }
+                ]
+              }
+            ]
+          },
+          "name": "AuthoredBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "0117eb60-a87b-4c4d-9a0a-4a3c348ca549",
+        "container": null,
+        "model": "deepseek-v4-flash",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 640,
+          "inference_geo": null,
+          "input_tokens": 320,
+          "output_tokens": 2274,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-flash",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d7-c1b3-7012-a3e8-50e428dc6bfc-0",
+      "tool_calls": [
+        {
+          "name": "AuthoredBatch",
+          "args": {
+            "families": [
+              {
+                "scenario": "Customer asks about a smartwatch they received as a gift but the band is too small.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Hi, I got the FitPulse S2 watch as a birthday gift but the strap is really tight on my wrist."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry to hear that! The S2 ships with a standard 150mm band. We do sell an XL strap separately for $12.99."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Oh okay. Would the XL fit the S2 model or only the newer ones?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "The XL strap is compatible with the S2, S3, and S4 models. It's listed under accessories on our site."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Great, I'll check that out. Thanks for the help."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Actually, before I buy the strap — can you tell me if the S2 has a replaceable battery or is it sealed?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "I'd rather just return the whole watch and pick a different model instead. How do I start a return?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "You know what, forget the strap. I want to speak to a real person about whether this gift can be exchanged for store credit.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer's package shows delivered but they never received it.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My order #48291 says delivered yesterday but I never got it. The photo shows a porch but I don't have a porch."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That's concerning. Let me check the delivery details for order #48291."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Okay, please do. I've been waiting on this for two weeks already."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I see the carrier marked it as left at the front door. I can file a claim with them on your behalf."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Yes, please file the claim. Also, while you're at it, is the matching phone case I ordered still in stock for a replacement?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Actually, I just found the package with my neighbor. Sorry for the trouble — you can close this out.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "I've called twice already and nobody helped. Put me through to a supervisor or file a formal complaint right now.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer wants to change the shipping address on an order placed minutes ago.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I just placed order #77315 and realized I'm moving next week. Can I change the delivery address?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me check if order #77315 has been picked up by the warehouse yet."
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's only been like five minutes, so hopefully not."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Good news — it hasn't shipped yet. I can update the address if you give me the new one."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "The new address is 42 Maple Lane, Apt 3B. Oh wait — actually it's 42 Maple Avenue, not Lane. Sorry, I keep mixing that up.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Hold on, I think I'd rather just cancel this order entirely and reorder once I'm settled. Can you cancel it?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Before I give you the address — does changing it affect the delivery estimate shown at checkout?",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer received a damaged blender and wants a replacement.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My blender arrived with a cracked jar. I opened it this morning and saw the damage right away."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry about that. Since it arrived damaged, we can send a replacement at no cost. Would you like that?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Yes, a replacement would be great. Do I need to send the damaged one back?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "No need to return it. I'll process a replacement jar and it should arrive in 3-5 business days."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Perfect, thank you. Also, I noticed the receipt shows I was charged twice for this order — can you look into that?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Actually, on second thought, just refund me instead. I don't trust this model anymore after seeing how fragile it is.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "I appreciate the offer but I'm frustrated with how long the original took to arrive. I want to file a complaint about the shipping carrier.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer forgot their password and cannot log in.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I can't log into my account. It says my password is wrong but I'm sure it's the one I always use."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "No problem — I can help you reset it. I'll send a reset link to the email on file."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Okay, but I'm not getting the email. It might be going to spam or maybe I used a different email."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me verify which email is associated with your account. Can you confirm your full name and phone number?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "My name is Dana Whitfield and my phone is 555-0142. Wait, I think I used my work email — try dana@brightco.com.",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "Honestly, I'm tired of this. Is there a way to talk to someone from your security team directly?",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Actually, never mind. I remembered my password — it was caps lock. Sorry to bother you!",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about warranty coverage on a laptop that won't turn on.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My NovaBook 14 won't power on at all. I bought it in March last year, so it's about 14 months old."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "The NovaBook 14 comes with a 12-month standard warranty, so it may have just expired. Let me check your purchase record."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Hmm, that's disappointing. I thought it was longer."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I see you purchased it on March 3rd last year. Unfortunately, the standard warranty ended last month. However, I can offer a paid repair estimate."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Okay, what would the repair cost roughly? And is there any way to extend coverage for future issues?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "That's not acceptable. I want to escalate this to a manager — a laptop dying after 14 months shouldn't be normal.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Wait, I actually bought an extended warranty add-on at checkout. Can you double-check that?",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer wants to know if a coffee maker they're eyeing is on sale this week.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Hey, is the BrewMaster 500 on sale right now? I saw an ad but the price on the site looks different."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "The BrewMaster 500 is currently at its regular price of $89.99. The ad you saw may have been for last week's promotion."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Oh, that's a bummer. Do you know when the next sale might happen?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I don't have exact dates, but we typically run promotions around major holidays. You could sign up for our newsletter to get notified."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Got it, thanks for the info. Have a nice day!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Alright, I'll wait then. By the way, does the BrewMaster 500 come with a reusable filter or only paper ones?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "I'd like to speak with someone in pricing about whether they can match the price I saw in the ad.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer reports unauthorized charges on their account.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I see two charges on my card from your store that I definitely didn't make. One is from yesterday and one from today."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That's serious — let me pull up your recent transactions right away to investigate."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Please do. I've already locked my card with my bank, but I need to know what happened here."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I can see both charges were made through your saved payment method on this account. I'm flagging this for our fraud team."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Thank you. While that's being looked into, can you also tell me if my recent order #90211 has shipped yet?",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "This is the second time something like this has happened. I want to file a formal complaint and talk to your fraud department directly.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Actually, wait — I just remembered I let my sister borrow my card to buy something. Let me check with her before you escalate anything.",
+                    "label": "account_security"
+                  }
+                ]
+              }
+            ]
+          },
+          "id": "call_00_rbLjhwwrKAZKSpmwYhLV1024",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 960,
+        "output_tokens": 2274,
+        "total_tokens": 3234,
+        "input_token_details": {
+          "cache_read": 640,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": "2 validation errors for AuthoredBatch\nfamilies.0\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': 'Customer as...bel': 'human_service'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nfamilies.2\n  Value error, paired turns must expose a semantic domain boundary [type=value_error, input_value={'scenario': 'Customer wa...l': 'order_logistics'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error"
+  },
+  "status": "failed",
+  "failure_stage": "author",
+  "error_type": "ValueError"
+}

@@ -17,7 +17,7 @@ from evaluation.semantic_encoder_experiment import BACKBONES
 from evaluation.target_encoder_training import _load, _select_threshold, _evaluate_threshold
 
 
-def fit(data: Path, output: Path, language: str):
+def fit(data: Path, output: Path, language: str, sampling: str = "rows"):
     if output.exists():
         raise ValueError("domain training output already exists")
     if not torch.cuda.is_available():
@@ -40,7 +40,12 @@ def fit(data: Path, output: Path, language: str):
         local_files_only=True, num_labels=len(classes), id2label=dict(enumerate(classes)),
         label2id={label: i for i, label in enumerate(classes)})
     encoded = []
-    for row in splits["train"]:
+    if sampling not in {"rows", "families"}:
+        raise ValueError("unknown offline sampling strategy")
+    from evaluation.domain_dialogue_dataset import family_indices
+    indices = family_indices(splits["train"]) if sampling == "families" else list(range(len(splits["train"])))
+    for index in indices:
+        row = splits["train"][index]
         values = tokenizer(render_domain_input(row.input), truncation=False)
         if len(values["input_ids"]) > 256:
             raise ValueError("training input exceeds encoder budget")
@@ -90,6 +95,7 @@ def fit(data: Path, output: Path, language: str):
         "datasets": {s: hashlib.sha256((data / f"{s}.jsonl").read_bytes()).hexdigest() for s in splits}}
     (output / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
     (output / "training.json").write_text(json.dumps({"metrics": trained.metrics, "config": args.to_dict(),
+        "sampling": sampling, "sampled_indices_sha256": hashlib.sha256(json.dumps(indices).encode()).hexdigest(),
         "elapsed_seconds": time.perf_counter() - started}, default=str, indent=2) + "\n")
     print(json.dumps({"status": manifest["status"], "thresholds": thresholds, "development": development}), flush=True)
 
@@ -99,4 +105,5 @@ if __name__ == "__main__":
     parser.add_argument("--data", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--language", choices=("zh", "en"), required=True)
+    parser.add_argument("--sampling", choices=("rows", "families"), default="rows")
     fit(**vars(parser.parse_args()))

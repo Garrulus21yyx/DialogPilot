@@ -1,0 +1,1972 @@
+{
+  "batch_id": "domain-v3:en:18",
+  "language": "en",
+  "split": "calibration",
+  "models": {
+    "author": "deepseek-v4-flash",
+    "review": "deepseek-v4-pro"
+  },
+  "review_protocol": "label-blind-batch-v1",
+  "synthetic": true,
+  "author_prompt": "Author 8 DIFFERENT natural ecommerce customer-service dialogue families in en.\nBatch 18; ensure at least four current turns classified as general across this batch.\nEach family has its OWN coherent history of 2, 4 or 6 short alternating user/assistant\nmessages, followed by 3 ALTERNATIVE current user turns, not three sequential turns.\nThose alternatives differ in effective intent: retain vs replace, withdraw vs\ncontinue, single goal vs concurrent goal, or resolved vs unresolved reference.\nInclude natural short answers where history matters. Vary old completed tasks,\nhesitation, self-correction, indirect wording, topics and dialogue acts. General\nand human-service requests must also occur as NEW goals, not only stale history.\nDo not follow a repeated sentence template or substitute product nouns to create\nnew families. Avoid stereotyped 'information only, do not submit' repetition.\nInvent broad everyday ecommerce situations; no copied benchmark or private data.\nHistory plus current turn should fit 150 English words or 180 Chinese characters;\nkeep it compact but meaningful. No future replies or final conversation summaries.\nSupply the correct label for each alternative according to the rubric.\n",
+  "author_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_LPmnueDKUt4IM5Ee2xab1727",
+          "input": {
+            "families": [
+              {
+                "scenario": "Customer asks about a smartwatch they bought and then shifts to a general question.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Hi, I got the FitPro X2 watch yesterday. The heart-rate monitor seems off."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Sorry to hear that. Could you tell me what reading you're seeing versus your actual pulse?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It says 52 while I measured 68 manually. Also, is the strap supposed to be this stiff?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "The strap softens after a few days of wear. For the sensor, try tightening it one notch and keeping it above the wrist bone."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "I did that and it's still wrong. Can you send me a replacement unit?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Thanks, I'll try that. By the way, do you have any promo codes active right now?",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Actually, forget the watch. I want to return it and get the cheaper Pulse Mini instead.",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about delivery then makes a small-talk comment.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My order #88412 was supposed to arrive today but tracking hasn't updated since Tuesday."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me check that. One moment... I see it's with the local courier and should be delivered by 8 PM tonight."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Okay, that's a relief. I was worried it got lost."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "No worries at all — it's on the final leg now. Anything else I can help with?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Great, thanks. Oh, and do you know if you ship to Puerto Rico?",
+                    "label": "general"
+                  },
+                  {
+                    "text": "It still hasn't shown up and it's now 9 PM. This is unacceptable.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Never mind the package — I need to talk to a real person about a billing mistake from last month.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer has a login problem and then asks about a product.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I can't log into my account. It says my password is wrong but I'm sure it's correct."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let's reset it. I've sent a reset link to your email on file — check the inbox and spam folder."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Got it, I'm back in now. Thanks for the quick help."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "You're welcome! Is there anything else you need today?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Yes — does the AeroBlend 900 blender come with a tamper tool in the box?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "No, that's all. Have a great day!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Actually, I still can't see my order history even after logging in. Can you look into that?",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a refund and then makes a general comment.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I returned the desk lamp last week. When will the refund hit my card?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Returns are processed within 5 business days of arrival at our warehouse. Yours arrived yesterday, so expect the refund by next Tuesday."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Alright, that timeline works for me."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Perfect. You'll get an email confirmation once it's processed."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Actually, I changed my mind — I'd rather get store credit so I can buy the floor lamp instead.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Sounds good. Hey, is your customer service open on Sundays?",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Wait, I never returned it — that was my neighbor's package. I still have the lamp and want to start a return now.",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a product feature then reveals a shipping concern.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Does the TrailHike 40 backpack have a built-in rain cover?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Yes, it includes a detachable rain cover stored in the bottom compartment."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Perfect. And if I order today, when would it arrive in Portland?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Standard shipping takes 3-5 business days, so it would arrive between Thursday and Monday."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "That's fine. Actually, can you hold my order until Friday? I'm traveling and don't want it left outside.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Great, I'll order it now. Thanks for all the info!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Hmm, that's slower than I hoped. Do you offer overnight shipping for this item?",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer complains about a defective item and asks for a person.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "The ceramic mug set I got has a crack in one mug. I want to file a complaint."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry about that. I can start a replacement claim right here — no need to file separately."
+                  },
+                  {
+                    "role": "user",
+                    "content": "I appreciate that, but I've had bad luck with online claims before. I want to speak to a supervisor."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I understand. I can escalate you to our senior support team. Would you like me to do that?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Yes, please escalate me. I'll wait on hold if needed.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Actually, let's just do the replacement claim after all. It's probably faster.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Before that — is the crack covered under the 1-year warranty or is that only for manufacturing defects?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about order status then makes a casual remark.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Where is my package? Order #55120, it's been 10 days."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me trace that. I see it was delayed at the regional hub due to weather. It's now moving and should arrive in 2 days."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Two more days, huh. Okay, I guess I can wait."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I know it's frustrating. I've added a small courtesy discount to your account as an apology."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Oh, that's kind of you. By the way, do you carry replacement charging cables for older models?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Thanks for the discount. That was really thoughtful of you.",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Actually, I need to change the delivery address — I'm moving to a new apartment tomorrow.",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a subscription then about account settings.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I signed up for the monthly coffee subscription but I want to skip next month's delivery."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "You can skip a delivery from your subscription dashboard under 'Manage Plan' — the option appears until the 20th."
+                  },
+                  {
+                    "role": "user",
+                    "content": "I found it. Also, can I change the roast preference for future boxes?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Absolutely — the same dashboard lets you switch between light, medium, or dark roast anytime."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Done, I switched to dark roast and skipped March. Thanks for walking me through it.",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Wait, I don't see the skip button — my dashboard only shows 'Pause Subscription'. Is that the same thing?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Actually, I want to cancel the subscription entirely and get a refund for the box that already shipped.",
+                    "label": "billing_refund"
+                  }
+                ]
+              }
+            ]
+          },
+          "name": "AuthoredBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "4043a23d-149e-4192-9086-f20d54272295",
+        "container": null,
+        "model": "deepseek-v4-flash",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 640,
+          "inference_geo": null,
+          "input_tokens": 319,
+          "output_tokens": 1979,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-flash",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d8-e686-7b82-a66c-8bf32580535c-0",
+      "tool_calls": [
+        {
+          "name": "AuthoredBatch",
+          "args": {
+            "families": [
+              {
+                "scenario": "Customer asks about a smartwatch they bought and then shifts to a general question.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Hi, I got the FitPro X2 watch yesterday. The heart-rate monitor seems off."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Sorry to hear that. Could you tell me what reading you're seeing versus your actual pulse?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It says 52 while I measured 68 manually. Also, is the strap supposed to be this stiff?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "The strap softens after a few days of wear. For the sensor, try tightening it one notch and keeping it above the wrist bone."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "I did that and it's still wrong. Can you send me a replacement unit?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Thanks, I'll try that. By the way, do you have any promo codes active right now?",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Actually, forget the watch. I want to return it and get the cheaper Pulse Mini instead.",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about delivery then makes a small-talk comment.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My order #88412 was supposed to arrive today but tracking hasn't updated since Tuesday."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me check that. One moment... I see it's with the local courier and should be delivered by 8 PM tonight."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Okay, that's a relief. I was worried it got lost."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "No worries at all — it's on the final leg now. Anything else I can help with?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Great, thanks. Oh, and do you know if you ship to Puerto Rico?",
+                    "label": "general"
+                  },
+                  {
+                    "text": "It still hasn't shown up and it's now 9 PM. This is unacceptable.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Never mind the package — I need to talk to a real person about a billing mistake from last month.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer has a login problem and then asks about a product.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I can't log into my account. It says my password is wrong but I'm sure it's correct."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let's reset it. I've sent a reset link to your email on file — check the inbox and spam folder."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Got it, I'm back in now. Thanks for the quick help."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "You're welcome! Is there anything else you need today?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Yes — does the AeroBlend 900 blender come with a tamper tool in the box?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "No, that's all. Have a great day!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Actually, I still can't see my order history even after logging in. Can you look into that?",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a refund and then makes a general comment.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I returned the desk lamp last week. When will the refund hit my card?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Returns are processed within 5 business days of arrival at our warehouse. Yours arrived yesterday, so expect the refund by next Tuesday."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Alright, that timeline works for me."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Perfect. You'll get an email confirmation once it's processed."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Actually, I changed my mind — I'd rather get store credit so I can buy the floor lamp instead.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Sounds good. Hey, is your customer service open on Sundays?",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Wait, I never returned it — that was my neighbor's package. I still have the lamp and want to start a return now.",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a product feature then reveals a shipping concern.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Does the TrailHike 40 backpack have a built-in rain cover?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Yes, it includes a detachable rain cover stored in the bottom compartment."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Perfect. And if I order today, when would it arrive in Portland?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Standard shipping takes 3-5 business days, so it would arrive between Thursday and Monday."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "That's fine. Actually, can you hold my order until Friday? I'm traveling and don't want it left outside.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Great, I'll order it now. Thanks for all the info!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Hmm, that's slower than I hoped. Do you offer overnight shipping for this item?",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer complains about a defective item and asks for a person.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "The ceramic mug set I got has a crack in one mug. I want to file a complaint."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry about that. I can start a replacement claim right here — no need to file separately."
+                  },
+                  {
+                    "role": "user",
+                    "content": "I appreciate that, but I've had bad luck with online claims before. I want to speak to a supervisor."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I understand. I can escalate you to our senior support team. Would you like me to do that?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Yes, please escalate me. I'll wait on hold if needed.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Actually, let's just do the replacement claim after all. It's probably faster.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Before that — is the crack covered under the 1-year warranty or is that only for manufacturing defects?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about order status then makes a casual remark.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Where is my package? Order #55120, it's been 10 days."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me trace that. I see it was delayed at the regional hub due to weather. It's now moving and should arrive in 2 days."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Two more days, huh. Okay, I guess I can wait."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I know it's frustrating. I've added a small courtesy discount to your account as an apology."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Oh, that's kind of you. By the way, do you carry replacement charging cables for older models?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Thanks for the discount. That was really thoughtful of you.",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Actually, I need to change the delivery address — I'm moving to a new apartment tomorrow.",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a subscription then about account settings.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I signed up for the monthly coffee subscription but I want to skip next month's delivery."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "You can skip a delivery from your subscription dashboard under 'Manage Plan' — the option appears until the 20th."
+                  },
+                  {
+                    "role": "user",
+                    "content": "I found it. Also, can I change the roast preference for future boxes?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Absolutely — the same dashboard lets you switch between light, medium, or dark roast anytime."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Done, I switched to dark roast and skipped March. Thanks for walking me through it.",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Wait, I don't see the skip button — my dashboard only shows 'Pause Subscription'. Is that the same thing?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Actually, I want to cancel the subscription entirely and get a refund for the box that already shipped.",
+                    "label": "billing_refund"
+                  }
+                ]
+              }
+            ]
+          },
+          "id": "call_00_LPmnueDKUt4IM5Ee2xab1727",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 959,
+        "output_tokens": 1979,
+        "total_tokens": 2938,
+        "input_token_details": {
+          "cache_read": 640,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "authored": {
+    "families": [
+      {
+        "scenario": "Customer asks about a smartwatch they bought and then shifts to a general question.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Hi, I got the FitPro X2 watch yesterday. The heart-rate monitor seems off."
+          },
+          {
+            "role": "assistant",
+            "content": "Sorry to hear that. Could you tell me what reading you're seeing versus your actual pulse?"
+          },
+          {
+            "role": "user",
+            "content": "It says 52 while I measured 68 manually. Also, is the strap supposed to be this stiff?"
+          },
+          {
+            "role": "assistant",
+            "content": "The strap softens after a few days of wear. For the sensor, try tightening it one notch and keeping it above the wrist bone."
+          }
+        ],
+        "variants": [
+          {
+            "text": "I did that and it's still wrong. Can you send me a replacement unit?",
+            "label": "product_technical"
+          },
+          {
+            "text": "Thanks, I'll try that. By the way, do you have any promo codes active right now?",
+            "label": "general"
+          },
+          {
+            "text": "Actually, forget the watch. I want to return it and get the cheaper Pulse Mini instead.",
+            "label": "billing_refund"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer asks about delivery then makes a small-talk comment.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "My order #88412 was supposed to arrive today but tracking hasn't updated since Tuesday."
+          },
+          {
+            "role": "assistant",
+            "content": "Let me check that. One moment... I see it's with the local courier and should be delivered by 8 PM tonight."
+          },
+          {
+            "role": "user",
+            "content": "Okay, that's a relief. I was worried it got lost."
+          },
+          {
+            "role": "assistant",
+            "content": "No worries at all — it's on the final leg now. Anything else I can help with?"
+          }
+        ],
+        "variants": [
+          {
+            "text": "Great, thanks. Oh, and do you know if you ship to Puerto Rico?",
+            "label": "general"
+          },
+          {
+            "text": "It still hasn't shown up and it's now 9 PM. This is unacceptable.",
+            "label": "order_logistics"
+          },
+          {
+            "text": "Never mind the package — I need to talk to a real person about a billing mistake from last month.",
+            "label": "human_service"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer has a login problem and then asks about a product.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "I can't log into my account. It says my password is wrong but I'm sure it's correct."
+          },
+          {
+            "role": "assistant",
+            "content": "Let's reset it. I've sent a reset link to your email on file — check the inbox and spam folder."
+          },
+          {
+            "role": "user",
+            "content": "Got it, I'm back in now. Thanks for the quick help."
+          },
+          {
+            "role": "assistant",
+            "content": "You're welcome! Is there anything else you need today?"
+          }
+        ],
+        "variants": [
+          {
+            "text": "Yes — does the AeroBlend 900 blender come with a tamper tool in the box?",
+            "label": "product_technical"
+          },
+          {
+            "text": "No, that's all. Have a great day!",
+            "label": "general"
+          },
+          {
+            "text": "Actually, I still can't see my order history even after logging in. Can you look into that?",
+            "label": "account_security"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer asks about a refund and then makes a general comment.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "I returned the desk lamp last week. When will the refund hit my card?"
+          },
+          {
+            "role": "assistant",
+            "content": "Returns are processed within 5 business days of arrival at our warehouse. Yours arrived yesterday, so expect the refund by next Tuesday."
+          },
+          {
+            "role": "user",
+            "content": "Alright, that timeline works for me."
+          },
+          {
+            "role": "assistant",
+            "content": "Perfect. You'll get an email confirmation once it's processed."
+          }
+        ],
+        "variants": [
+          {
+            "text": "Actually, I changed my mind — I'd rather get store credit so I can buy the floor lamp instead.",
+            "label": "billing_refund"
+          },
+          {
+            "text": "Sounds good. Hey, is your customer service open on Sundays?",
+            "label": "general"
+          },
+          {
+            "text": "Wait, I never returned it — that was my neighbor's package. I still have the lamp and want to start a return now.",
+            "label": "billing_refund"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer asks about a product feature then reveals a shipping concern.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Does the TrailHike 40 backpack have a built-in rain cover?"
+          },
+          {
+            "role": "assistant",
+            "content": "Yes, it includes a detachable rain cover stored in the bottom compartment."
+          },
+          {
+            "role": "user",
+            "content": "Perfect. And if I order today, when would it arrive in Portland?"
+          },
+          {
+            "role": "assistant",
+            "content": "Standard shipping takes 3-5 business days, so it would arrive between Thursday and Monday."
+          }
+        ],
+        "variants": [
+          {
+            "text": "That's fine. Actually, can you hold my order until Friday? I'm traveling and don't want it left outside.",
+            "label": "order_logistics"
+          },
+          {
+            "text": "Great, I'll order it now. Thanks for all the info!",
+            "label": "general"
+          },
+          {
+            "text": "Hmm, that's slower than I hoped. Do you offer overnight shipping for this item?",
+            "label": "order_logistics"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer complains about a defective item and asks for a person.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "The ceramic mug set I got has a crack in one mug. I want to file a complaint."
+          },
+          {
+            "role": "assistant",
+            "content": "I'm sorry about that. I can start a replacement claim right here — no need to file separately."
+          },
+          {
+            "role": "user",
+            "content": "I appreciate that, but I've had bad luck with online claims before. I want to speak to a supervisor."
+          },
+          {
+            "role": "assistant",
+            "content": "I understand. I can escalate you to our senior support team. Would you like me to do that?"
+          }
+        ],
+        "variants": [
+          {
+            "text": "Yes, please escalate me. I'll wait on hold if needed.",
+            "label": "human_service"
+          },
+          {
+            "text": "Actually, let's just do the replacement claim after all. It's probably faster.",
+            "label": "billing_refund"
+          },
+          {
+            "text": "Before that — is the crack covered under the 1-year warranty or is that only for manufacturing defects?",
+            "label": "product_technical"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer asks about order status then makes a casual remark.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Where is my package? Order #55120, it's been 10 days."
+          },
+          {
+            "role": "assistant",
+            "content": "Let me trace that. I see it was delayed at the regional hub due to weather. It's now moving and should arrive in 2 days."
+          },
+          {
+            "role": "user",
+            "content": "Two more days, huh. Okay, I guess I can wait."
+          },
+          {
+            "role": "assistant",
+            "content": "I know it's frustrating. I've added a small courtesy discount to your account as an apology."
+          }
+        ],
+        "variants": [
+          {
+            "text": "Oh, that's kind of you. By the way, do you carry replacement charging cables for older models?",
+            "label": "product_technical"
+          },
+          {
+            "text": "Thanks for the discount. That was really thoughtful of you.",
+            "label": "general"
+          },
+          {
+            "text": "Actually, I need to change the delivery address — I'm moving to a new apartment tomorrow.",
+            "label": "order_logistics"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer asks about a subscription then about account settings.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "I signed up for the monthly coffee subscription but I want to skip next month's delivery."
+          },
+          {
+            "role": "assistant",
+            "content": "You can skip a delivery from your subscription dashboard under 'Manage Plan' — the option appears until the 20th."
+          },
+          {
+            "role": "user",
+            "content": "I found it. Also, can I change the roast preference for future boxes?"
+          },
+          {
+            "role": "assistant",
+            "content": "Absolutely — the same dashboard lets you switch between light, medium, or dark roast anytime."
+          }
+        ],
+        "variants": [
+          {
+            "text": "Done, I switched to dark roast and skipped March. Thanks for walking me through it.",
+            "label": "general"
+          },
+          {
+            "text": "Wait, I don't see the skip button — my dashboard only shows 'Pause Subscription'. Is that the same thing?",
+            "label": "product_technical"
+          },
+          {
+            "text": "Actually, I want to cancel the subscription entirely and get a refund for the box that already shipped.",
+            "label": "billing_refund"
+          }
+        ]
+      }
+    ]
+  },
+  "review_input_sha256": "9a0b6f2e23ec7127c85429429780235645b47eade61876c99a8466c30eaadba5",
+  "review_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_BSICdarbQvcFRcGCF3bq7182",
+          "input": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:en:18:0:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User abandons troubleshooting and requests a replacement unit, which is a return/exchange after-sales request."
+              },
+              {
+                "case_id": "domain-v3:en:18:0:1",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "User thanks and asks about promo codes; the prior product issue is dropped, leaving a general inquiry."
+              },
+              {
+                "case_id": "domain-v3:en:18:0:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User wants to return the watch and get a different product, a return/exchange request."
+              },
+              {
+                "case_id": "domain-v3:en:18:1:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User asks about shipping to Puerto Rico, a shipping/delivery question."
+              },
+              {
+                "case_id": "domain-v3:en:18:1:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User reports package still not delivered, continuing the delivery concern."
+              },
+              {
+                "case_id": "domain-v3:en:18:1:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "User explicitly requests a real person about a billing mistake; explicit human service/escalation request."
+              },
+              {
+                "case_id": "domain-v3:en:18:2:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User asks a product specification question about the blender."
+              },
+              {
+                "case_id": "domain-v3:en:18:2:1",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "User closes the conversation with thanks and farewell; no remaining goal."
+              },
+              {
+                "case_id": "domain-v3:en:18:2:2",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "User reports account issue (order history not visible after login), an account access problem."
+              },
+              {
+                "case_id": "domain-v3:en:18:3:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User changes refund preference to store credit, still a refund/after-sales matter."
+              },
+              {
+                "case_id": "domain-v3:en:18:3:1",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "User asks about customer service hours, a general inquiry unrelated to the refund."
+              },
+              {
+                "case_id": "domain-v3:en:18:3:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User corrects the record and wants to start a return, a return/after-sales request."
+              },
+              {
+                "case_id": "domain-v3:en:18:4:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User asks to hold the order/delay delivery, a delivery logistics request."
+              },
+              {
+                "case_id": "domain-v3:en:18:4:1",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "User thanks and closes; no remaining actionable goal."
+              },
+              {
+                "case_id": "domain-v3:en:18:4:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User asks about overnight shipping, a shipping/delivery question."
+              },
+              {
+                "case_id": "domain-v3:en:18:5:0",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "User confirms escalation to a supervisor, an explicit human service request."
+              },
+              {
+                "case_id": "domain-v3:en:18:5:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User drops escalation and opts for a replacement claim, a return/exchange request."
+              },
+              {
+                "case_id": "domain-v3:en:18:5:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User asks about warranty coverage for the crack, an after-sales/warranty question."
+              },
+              {
+                "case_id": "domain-v3:en:18:6:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User asks about replacement charging cables, a product availability/specification question."
+              },
+              {
+                "case_id": "domain-v3:en:18:6:1",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "User thanks for the discount; no remaining goal."
+              },
+              {
+                "case_id": "domain-v3:en:18:6:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User requests a delivery address change, a logistics request."
+              },
+              {
+                "case_id": "domain-v3:en:18:7:0",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "User confirms completion and thanks; no remaining goal."
+              },
+              {
+                "case_id": "domain-v3:en:18:7:1",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "User asks about subscription dashboard options, an account/subscription management question."
+              },
+              {
+                "case_id": "domain-v3:en:18:7:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User wants to cancel subscription and get a refund, a billing/refund request."
+              }
+            ]
+          },
+          "name": "ReviewedBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "be1d582e-edc6-4c5e-89dc-8060c5034a58",
+        "container": null,
+        "model": "deepseek-v4-pro",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "inference_geo": null,
+          "input_tokens": 4146,
+          "output_tokens": 1303,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-pro",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d9-2244-7a03-a4b9-c757b7cc2cb3-0",
+      "tool_calls": [
+        {
+          "name": "ReviewedBatch",
+          "args": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:en:18:0:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User abandons troubleshooting and requests a replacement unit, which is a return/exchange after-sales request."
+              },
+              {
+                "case_id": "domain-v3:en:18:0:1",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "User thanks and asks about promo codes; the prior product issue is dropped, leaving a general inquiry."
+              },
+              {
+                "case_id": "domain-v3:en:18:0:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User wants to return the watch and get a different product, a return/exchange request."
+              },
+              {
+                "case_id": "domain-v3:en:18:1:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User asks about shipping to Puerto Rico, a shipping/delivery question."
+              },
+              {
+                "case_id": "domain-v3:en:18:1:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User reports package still not delivered, continuing the delivery concern."
+              },
+              {
+                "case_id": "domain-v3:en:18:1:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "User explicitly requests a real person about a billing mistake; explicit human service/escalation request."
+              },
+              {
+                "case_id": "domain-v3:en:18:2:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User asks a product specification question about the blender."
+              },
+              {
+                "case_id": "domain-v3:en:18:2:1",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "User closes the conversation with thanks and farewell; no remaining goal."
+              },
+              {
+                "case_id": "domain-v3:en:18:2:2",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "User reports account issue (order history not visible after login), an account access problem."
+              },
+              {
+                "case_id": "domain-v3:en:18:3:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User changes refund preference to store credit, still a refund/after-sales matter."
+              },
+              {
+                "case_id": "domain-v3:en:18:3:1",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "User asks about customer service hours, a general inquiry unrelated to the refund."
+              },
+              {
+                "case_id": "domain-v3:en:18:3:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User corrects the record and wants to start a return, a return/after-sales request."
+              },
+              {
+                "case_id": "domain-v3:en:18:4:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User asks to hold the order/delay delivery, a delivery logistics request."
+              },
+              {
+                "case_id": "domain-v3:en:18:4:1",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "User thanks and closes; no remaining actionable goal."
+              },
+              {
+                "case_id": "domain-v3:en:18:4:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User asks about overnight shipping, a shipping/delivery question."
+              },
+              {
+                "case_id": "domain-v3:en:18:5:0",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "User confirms escalation to a supervisor, an explicit human service request."
+              },
+              {
+                "case_id": "domain-v3:en:18:5:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User drops escalation and opts for a replacement claim, a return/exchange request."
+              },
+              {
+                "case_id": "domain-v3:en:18:5:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User asks about warranty coverage for the crack, an after-sales/warranty question."
+              },
+              {
+                "case_id": "domain-v3:en:18:6:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User asks about replacement charging cables, a product availability/specification question."
+              },
+              {
+                "case_id": "domain-v3:en:18:6:1",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "User thanks for the discount; no remaining goal."
+              },
+              {
+                "case_id": "domain-v3:en:18:6:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User requests a delivery address change, a logistics request."
+              },
+              {
+                "case_id": "domain-v3:en:18:7:0",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "User confirms completion and thanks; no remaining goal."
+              },
+              {
+                "case_id": "domain-v3:en:18:7:1",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "User asks about subscription dashboard options, an account/subscription management question."
+              },
+              {
+                "case_id": "domain-v3:en:18:7:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User wants to cancel subscription and get a refund, a billing/refund request."
+              }
+            ]
+          },
+          "id": "call_00_BSICdarbQvcFRcGCF3bq7182",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 4658,
+        "output_tokens": 1303,
+        "total_tokens": 5961,
+        "input_token_details": {
+          "cache_read": 512,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "reviewed": {
+    "verdicts": [
+      {
+        "case_id": "domain-v3:en:18:0:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User abandons troubleshooting and requests a replacement unit, which is a return/exchange after-sales request."
+      },
+      {
+        "case_id": "domain-v3:en:18:0:1",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "User thanks and asks about promo codes; the prior product issue is dropped, leaving a general inquiry."
+      },
+      {
+        "case_id": "domain-v3:en:18:0:2",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User wants to return the watch and get a different product, a return/exchange request."
+      },
+      {
+        "case_id": "domain-v3:en:18:1:0",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "User asks about shipping to Puerto Rico, a shipping/delivery question."
+      },
+      {
+        "case_id": "domain-v3:en:18:1:1",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "User reports package still not delivered, continuing the delivery concern."
+      },
+      {
+        "case_id": "domain-v3:en:18:1:2",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "User explicitly requests a real person about a billing mistake; explicit human service/escalation request."
+      },
+      {
+        "case_id": "domain-v3:en:18:2:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "User asks a product specification question about the blender."
+      },
+      {
+        "case_id": "domain-v3:en:18:2:1",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "User closes the conversation with thanks and farewell; no remaining goal."
+      },
+      {
+        "case_id": "domain-v3:en:18:2:2",
+        "label": "account_security",
+        "clear_and_natural": true,
+        "reason": "User reports account issue (order history not visible after login), an account access problem."
+      },
+      {
+        "case_id": "domain-v3:en:18:3:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User changes refund preference to store credit, still a refund/after-sales matter."
+      },
+      {
+        "case_id": "domain-v3:en:18:3:1",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "User asks about customer service hours, a general inquiry unrelated to the refund."
+      },
+      {
+        "case_id": "domain-v3:en:18:3:2",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User corrects the record and wants to start a return, a return/after-sales request."
+      },
+      {
+        "case_id": "domain-v3:en:18:4:0",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "User asks to hold the order/delay delivery, a delivery logistics request."
+      },
+      {
+        "case_id": "domain-v3:en:18:4:1",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "User thanks and closes; no remaining actionable goal."
+      },
+      {
+        "case_id": "domain-v3:en:18:4:2",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "User asks about overnight shipping, a shipping/delivery question."
+      },
+      {
+        "case_id": "domain-v3:en:18:5:0",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "User confirms escalation to a supervisor, an explicit human service request."
+      },
+      {
+        "case_id": "domain-v3:en:18:5:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User drops escalation and opts for a replacement claim, a return/exchange request."
+      },
+      {
+        "case_id": "domain-v3:en:18:5:2",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User asks about warranty coverage for the crack, an after-sales/warranty question."
+      },
+      {
+        "case_id": "domain-v3:en:18:6:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "User asks about replacement charging cables, a product availability/specification question."
+      },
+      {
+        "case_id": "domain-v3:en:18:6:1",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "User thanks for the discount; no remaining goal."
+      },
+      {
+        "case_id": "domain-v3:en:18:6:2",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "User requests a delivery address change, a logistics request."
+      },
+      {
+        "case_id": "domain-v3:en:18:7:0",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "User confirms completion and thanks; no remaining goal."
+      },
+      {
+        "case_id": "domain-v3:en:18:7:1",
+        "label": "account_security",
+        "clear_and_natural": true,
+        "reason": "User asks about subscription dashboard options, an account/subscription management question."
+      },
+      {
+        "case_id": "domain-v3:en:18:7:2",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User wants to cancel subscription and get a refund, a billing/refund request."
+      }
+    ]
+  },
+  "rows": [
+    {
+      "case_id": "domain-v3:en:18:0:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Hi, I got the FitPro X2 watch yesterday. The heart-rate monitor seems off."
+        },
+        {
+          "role": "assistant",
+          "content": "Sorry to hear that. Could you tell me what reading you're seeing versus your actual pulse?"
+        },
+        {
+          "role": "user",
+          "content": "It says 52 while I measured 68 manually. Also, is the strap supposed to be this stiff?"
+        },
+        {
+          "role": "assistant",
+          "content": "The strap softens after a few days of wear. For the sensor, try tightening it one notch and keeping it above the wrist bone."
+        }
+      ],
+      "text": "Thanks, I'll try that. By the way, do you have any promo codes active right now?",
+      "label": "general",
+      "language": "en",
+      "group_id": "domain-v3:en:18:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:18:0:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Hi, I got the FitPro X2 watch yesterday. The heart-rate monitor seems off."
+        },
+        {
+          "role": "assistant",
+          "content": "Sorry to hear that. Could you tell me what reading you're seeing versus your actual pulse?"
+        },
+        {
+          "role": "user",
+          "content": "It says 52 while I measured 68 manually. Also, is the strap supposed to be this stiff?"
+        },
+        {
+          "role": "assistant",
+          "content": "The strap softens after a few days of wear. For the sensor, try tightening it one notch and keeping it above the wrist bone."
+        }
+      ],
+      "text": "Actually, forget the watch. I want to return it and get the cheaper Pulse Mini instead.",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:18:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:18:1:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My order #88412 was supposed to arrive today but tracking hasn't updated since Tuesday."
+        },
+        {
+          "role": "assistant",
+          "content": "Let me check that. One moment... I see it's with the local courier and should be delivered by 8 PM tonight."
+        },
+        {
+          "role": "user",
+          "content": "Okay, that's a relief. I was worried it got lost."
+        },
+        {
+          "role": "assistant",
+          "content": "No worries at all — it's on the final leg now. Anything else I can help with?"
+        }
+      ],
+      "text": "It still hasn't shown up and it's now 9 PM. This is unacceptable.",
+      "label": "order_logistics",
+      "language": "en",
+      "group_id": "domain-v3:en:18:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:18:1:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My order #88412 was supposed to arrive today but tracking hasn't updated since Tuesday."
+        },
+        {
+          "role": "assistant",
+          "content": "Let me check that. One moment... I see it's with the local courier and should be delivered by 8 PM tonight."
+        },
+        {
+          "role": "user",
+          "content": "Okay, that's a relief. I was worried it got lost."
+        },
+        {
+          "role": "assistant",
+          "content": "No worries at all — it's on the final leg now. Anything else I can help with?"
+        }
+      ],
+      "text": "Never mind the package — I need to talk to a real person about a billing mistake from last month.",
+      "label": "human_service",
+      "language": "en",
+      "group_id": "domain-v3:en:18:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:18:2:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I can't log into my account. It says my password is wrong but I'm sure it's correct."
+        },
+        {
+          "role": "assistant",
+          "content": "Let's reset it. I've sent a reset link to your email on file — check the inbox and spam folder."
+        },
+        {
+          "role": "user",
+          "content": "Got it, I'm back in now. Thanks for the quick help."
+        },
+        {
+          "role": "assistant",
+          "content": "You're welcome! Is there anything else you need today?"
+        }
+      ],
+      "text": "Yes — does the AeroBlend 900 blender come with a tamper tool in the box?",
+      "label": "product_technical",
+      "language": "en",
+      "group_id": "domain-v3:en:18:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:18:2:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I can't log into my account. It says my password is wrong but I'm sure it's correct."
+        },
+        {
+          "role": "assistant",
+          "content": "Let's reset it. I've sent a reset link to your email on file — check the inbox and spam folder."
+        },
+        {
+          "role": "user",
+          "content": "Got it, I'm back in now. Thanks for the quick help."
+        },
+        {
+          "role": "assistant",
+          "content": "You're welcome! Is there anything else you need today?"
+        }
+      ],
+      "text": "No, that's all. Have a great day!",
+      "label": "general",
+      "language": "en",
+      "group_id": "domain-v3:en:18:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:18:2:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I can't log into my account. It says my password is wrong but I'm sure it's correct."
+        },
+        {
+          "role": "assistant",
+          "content": "Let's reset it. I've sent a reset link to your email on file — check the inbox and spam folder."
+        },
+        {
+          "role": "user",
+          "content": "Got it, I'm back in now. Thanks for the quick help."
+        },
+        {
+          "role": "assistant",
+          "content": "You're welcome! Is there anything else you need today?"
+        }
+      ],
+      "text": "Actually, I still can't see my order history even after logging in. Can you look into that?",
+      "label": "account_security",
+      "language": "en",
+      "group_id": "domain-v3:en:18:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:18:3:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I returned the desk lamp last week. When will the refund hit my card?"
+        },
+        {
+          "role": "assistant",
+          "content": "Returns are processed within 5 business days of arrival at our warehouse. Yours arrived yesterday, so expect the refund by next Tuesday."
+        },
+        {
+          "role": "user",
+          "content": "Alright, that timeline works for me."
+        },
+        {
+          "role": "assistant",
+          "content": "Perfect. You'll get an email confirmation once it's processed."
+        }
+      ],
+      "text": "Actually, I changed my mind — I'd rather get store credit so I can buy the floor lamp instead.",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:18:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:18:3:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I returned the desk lamp last week. When will the refund hit my card?"
+        },
+        {
+          "role": "assistant",
+          "content": "Returns are processed within 5 business days of arrival at our warehouse. Yours arrived yesterday, so expect the refund by next Tuesday."
+        },
+        {
+          "role": "user",
+          "content": "Alright, that timeline works for me."
+        },
+        {
+          "role": "assistant",
+          "content": "Perfect. You'll get an email confirmation once it's processed."
+        }
+      ],
+      "text": "Sounds good. Hey, is your customer service open on Sundays?",
+      "label": "general",
+      "language": "en",
+      "group_id": "domain-v3:en:18:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:18:3:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I returned the desk lamp last week. When will the refund hit my card?"
+        },
+        {
+          "role": "assistant",
+          "content": "Returns are processed within 5 business days of arrival at our warehouse. Yours arrived yesterday, so expect the refund by next Tuesday."
+        },
+        {
+          "role": "user",
+          "content": "Alright, that timeline works for me."
+        },
+        {
+          "role": "assistant",
+          "content": "Perfect. You'll get an email confirmation once it's processed."
+        }
+      ],
+      "text": "Wait, I never returned it — that was my neighbor's package. I still have the lamp and want to start a return now.",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:18:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:18:4:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Does the TrailHike 40 backpack have a built-in rain cover?"
+        },
+        {
+          "role": "assistant",
+          "content": "Yes, it includes a detachable rain cover stored in the bottom compartment."
+        },
+        {
+          "role": "user",
+          "content": "Perfect. And if I order today, when would it arrive in Portland?"
+        },
+        {
+          "role": "assistant",
+          "content": "Standard shipping takes 3-5 business days, so it would arrive between Thursday and Monday."
+        }
+      ],
+      "text": "That's fine. Actually, can you hold my order until Friday? I'm traveling and don't want it left outside.",
+      "label": "order_logistics",
+      "language": "en",
+      "group_id": "domain-v3:en:18:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:18:4:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Does the TrailHike 40 backpack have a built-in rain cover?"
+        },
+        {
+          "role": "assistant",
+          "content": "Yes, it includes a detachable rain cover stored in the bottom compartment."
+        },
+        {
+          "role": "user",
+          "content": "Perfect. And if I order today, when would it arrive in Portland?"
+        },
+        {
+          "role": "assistant",
+          "content": "Standard shipping takes 3-5 business days, so it would arrive between Thursday and Monday."
+        }
+      ],
+      "text": "Great, I'll order it now. Thanks for all the info!",
+      "label": "general",
+      "language": "en",
+      "group_id": "domain-v3:en:18:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:18:4:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Does the TrailHike 40 backpack have a built-in rain cover?"
+        },
+        {
+          "role": "assistant",
+          "content": "Yes, it includes a detachable rain cover stored in the bottom compartment."
+        },
+        {
+          "role": "user",
+          "content": "Perfect. And if I order today, when would it arrive in Portland?"
+        },
+        {
+          "role": "assistant",
+          "content": "Standard shipping takes 3-5 business days, so it would arrive between Thursday and Monday."
+        }
+      ],
+      "text": "Hmm, that's slower than I hoped. Do you offer overnight shipping for this item?",
+      "label": "order_logistics",
+      "language": "en",
+      "group_id": "domain-v3:en:18:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:18:5:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "The ceramic mug set I got has a crack in one mug. I want to file a complaint."
+        },
+        {
+          "role": "assistant",
+          "content": "I'm sorry about that. I can start a replacement claim right here — no need to file separately."
+        },
+        {
+          "role": "user",
+          "content": "I appreciate that, but I've had bad luck with online claims before. I want to speak to a supervisor."
+        },
+        {
+          "role": "assistant",
+          "content": "I understand. I can escalate you to our senior support team. Would you like me to do that?"
+        }
+      ],
+      "text": "Yes, please escalate me. I'll wait on hold if needed.",
+      "label": "human_service",
+      "language": "en",
+      "group_id": "domain-v3:en:18:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:18:5:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "The ceramic mug set I got has a crack in one mug. I want to file a complaint."
+        },
+        {
+          "role": "assistant",
+          "content": "I'm sorry about that. I can start a replacement claim right here — no need to file separately."
+        },
+        {
+          "role": "user",
+          "content": "I appreciate that, but I've had bad luck with online claims before. I want to speak to a supervisor."
+        },
+        {
+          "role": "assistant",
+          "content": "I understand. I can escalate you to our senior support team. Would you like me to do that?"
+        }
+      ],
+      "text": "Actually, let's just do the replacement claim after all. It's probably faster.",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:18:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:18:6:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Where is my package? Order #55120, it's been 10 days."
+        },
+        {
+          "role": "assistant",
+          "content": "Let me trace that. I see it was delayed at the regional hub due to weather. It's now moving and should arrive in 2 days."
+        },
+        {
+          "role": "user",
+          "content": "Two more days, huh. Okay, I guess I can wait."
+        },
+        {
+          "role": "assistant",
+          "content": "I know it's frustrating. I've added a small courtesy discount to your account as an apology."
+        }
+      ],
+      "text": "Oh, that's kind of you. By the way, do you carry replacement charging cables for older models?",
+      "label": "product_technical",
+      "language": "en",
+      "group_id": "domain-v3:en:18:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:18:6:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Where is my package? Order #55120, it's been 10 days."
+        },
+        {
+          "role": "assistant",
+          "content": "Let me trace that. I see it was delayed at the regional hub due to weather. It's now moving and should arrive in 2 days."
+        },
+        {
+          "role": "user",
+          "content": "Two more days, huh. Okay, I guess I can wait."
+        },
+        {
+          "role": "assistant",
+          "content": "I know it's frustrating. I've added a small courtesy discount to your account as an apology."
+        }
+      ],
+      "text": "Thanks for the discount. That was really thoughtful of you.",
+      "label": "general",
+      "language": "en",
+      "group_id": "domain-v3:en:18:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:18:6:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Where is my package? Order #55120, it's been 10 days."
+        },
+        {
+          "role": "assistant",
+          "content": "Let me trace that. I see it was delayed at the regional hub due to weather. It's now moving and should arrive in 2 days."
+        },
+        {
+          "role": "user",
+          "content": "Two more days, huh. Okay, I guess I can wait."
+        },
+        {
+          "role": "assistant",
+          "content": "I know it's frustrating. I've added a small courtesy discount to your account as an apology."
+        }
+      ],
+      "text": "Actually, I need to change the delivery address — I'm moving to a new apartment tomorrow.",
+      "label": "order_logistics",
+      "language": "en",
+      "group_id": "domain-v3:en:18:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:18:7:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I signed up for the monthly coffee subscription but I want to skip next month's delivery."
+        },
+        {
+          "role": "assistant",
+          "content": "You can skip a delivery from your subscription dashboard under 'Manage Plan' — the option appears until the 20th."
+        },
+        {
+          "role": "user",
+          "content": "I found it. Also, can I change the roast preference for future boxes?"
+        },
+        {
+          "role": "assistant",
+          "content": "Absolutely — the same dashboard lets you switch between light, medium, or dark roast anytime."
+        }
+      ],
+      "text": "Done, I switched to dark roast and skipped March. Thanks for walking me through it.",
+      "label": "general",
+      "language": "en",
+      "group_id": "domain-v3:en:18:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:18:7:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I signed up for the monthly coffee subscription but I want to skip next month's delivery."
+        },
+        {
+          "role": "assistant",
+          "content": "You can skip a delivery from your subscription dashboard under 'Manage Plan' — the option appears until the 20th."
+        },
+        {
+          "role": "user",
+          "content": "I found it. Also, can I change the roast preference for future boxes?"
+        },
+        {
+          "role": "assistant",
+          "content": "Absolutely — the same dashboard lets you switch between light, medium, or dark roast anytime."
+        }
+      ],
+      "text": "Actually, I want to cancel the subscription entirely and get a refund for the box that already shipped.",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:18:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    }
+  ],
+  "rejected": [
+    {
+      "case_id": "domain-v3:en:18:0:0",
+      "author": "product_technical",
+      "label": "billing_refund",
+      "clear_and_natural": true,
+      "reason": "User abandons troubleshooting and requests a replacement unit, which is a return/exchange after-sales request."
+    },
+    {
+      "case_id": "domain-v3:en:18:1:0",
+      "author": "general",
+      "label": "order_logistics",
+      "clear_and_natural": true,
+      "reason": "User asks about shipping to Puerto Rico, a shipping/delivery question."
+    },
+    {
+      "case_id": "domain-v3:en:18:5:2",
+      "author": "product_technical",
+      "label": "billing_refund",
+      "clear_and_natural": true,
+      "reason": "User asks about warranty coverage for the crack, an after-sales/warranty question."
+    },
+    {
+      "case_id": "domain-v3:en:18:7:1",
+      "author": "product_technical",
+      "label": "account_security",
+      "clear_and_natural": true,
+      "reason": "User asks about subscription dashboard options, an account/subscription management question."
+    }
+  ],
+  "status": "reviewed"
+}

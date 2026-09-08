@@ -1,0 +1,646 @@
+{
+  "batch_id": "domain-v3:en:3",
+  "language": "en",
+  "split": "train",
+  "models": {
+    "author": "deepseek-v4-flash",
+    "review": "deepseek-v4-pro"
+  },
+  "review_protocol": "label-blind-batch-v1",
+  "synthetic": true,
+  "author_prompt": "Author 8 DIFFERENT natural ecommerce customer-service dialogue families in en.\nBatch 3; ensure at least four current turns classified as billing_refund across this batch.\nEach family has its OWN coherent history of 2, 4 or 6 short alternating user/assistant\nmessages, followed by 3 ALTERNATIVE current user turns, not three sequential turns.\nThose alternatives differ in effective intent: retain vs replace, withdraw vs\ncontinue, single goal vs concurrent goal, or resolved vs unresolved reference.\nInclude natural short answers where history matters. Vary old completed tasks,\nhesitation, self-correction, indirect wording, topics and dialogue acts. General\nand human-service requests must also occur as NEW goals, not only stale history.\nDo not follow a repeated sentence template or substitute product nouns to create\nnew families. Avoid stereotyped 'information only, do not submit' repetition.\nInvent broad everyday ecommerce situations; no copied benchmark or private data.\nHistory plus current turn should fit 150 English words or 180 Chinese characters;\nkeep it compact but meaningful. No future replies or final conversation summaries.\nSupply the correct label for each alternative according to the rubric.\n",
+  "author_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_QVQSxcFRwJfJN5CSdUWC2332",
+          "input": {
+            "families": [
+              {
+                "scenario": "Customer asks about a smartwatch they bought that won't sync with their phone, then requests a refund.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My FitPulse X2 arrived yesterday but it won't pair with my Android phone at all."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry to hear that. Have you tried resetting the watch by holding the side button for 10 seconds?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Yeah, I did that twice. Still nothing. The Bluetooth just keeps dropping."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That's frustrating. Since it's within the 30-day window, we can offer a replacement unit or a full refund. Which would you prefer?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Honestly, I've lost confidence in this model. I'd rather just get my money back."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Great, please process the refund to my original card.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Actually, wait — could you first tell me if the newer X3 model has better Bluetooth range?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Before we do that, can you check if my order was even charged correctly? I think I was double-billed.",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer's package was marked delivered but they never received it.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My order #88412 says delivered yesterday but I never got it. The photo shows a porch but I don't have a porch."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That's concerning. Let me look into the delivery details for order #88412."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Thanks. Also, I noticed the tracking shows it was left at a neighbor's address in a different city."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I see that now. The carrier appears to have misrouted it. I can file a claim on your behalf."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Please file the claim. And if it's truly lost, I want a refund, not a reshipment.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Okay, but first — is my account showing the correct shipping address? I moved last month.",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "Actually, forget the claim. I just realized my cousin in that city might have picked it up. Let me call them first.",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer wants to return a lamp that doesn't match their decor.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I bought the Arc Floor Lamp last week and it's just too industrial-looking for my living room."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I understand. Returns are accepted within 60 days as long as the item is in original condition. Would you like to start a return?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Yes, but I threw away the box. Is that a problem?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Not at all. We can send you a prepaid label and you can use any sturdy box for shipping."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Perfect, send me the label. Also, will the refund include the original shipping fee I paid?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Great. By the way, do you carry a warmer-toned pendant light that would fit a mid-century style?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Hmm, actually maybe I should keep it and just get different bulbs. What warm bulbs fit this model?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer's subscription order was renewed but they wanted to cancel.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I thought I cancelled my coffee subscription last month, but I just got charged $39.99 again."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me check your subscription status. Can you confirm the email on your account?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's j.martinez@mail.com. I definitely clicked cancel — I remember getting a confirmation screen."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I see that the cancellation didn't go through on our end. I apologize for the confusion. I can reverse the charge and cancel the subscription now."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Yes, please reverse the charge and cancel it. I don't want any more shipments.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Wait, before you cancel — can you tell me what roast is coming next month? I might keep it if it's the dark roast.",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Actually, I need to talk to a real person about this. I've been charged three times this year for things I cancelled.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about warranty coverage for a blender that stopped working.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My BlendPro 500 stopped spinning after two months. The motor sounds like it's struggling."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That sounds like a motor issue. The BlendPro 500 has a 1-year warranty covering motor defects."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Good. So what's the process — do I send it in for repair or get a replacement?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "We'll send you a replacement unit first, and you return the defective one with the prepaid label. No charge to you."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "That works. But I bought it with a gift card — will the replacement affect anything on that?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Okay, send the replacement. Also, is there a quieter model you'd recommend for early mornings?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Actually, I'd rather just get a refund instead of a replacement. I'm tired of this brand.",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer's login isn't working after a password reset.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I can't log in. I requested a password reset but the link in the email expired before I clicked it."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "No problem. I can send a fresh reset link to your registered email. Would you like me to do that?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Yes, please. And can you make sure my phone number is still on file for two-factor codes?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I've sent a new reset link and confirmed your phone number ending in 4421 is on file for 2FA."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Thanks, got the link and I'm back in. Appreciate the quick help!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Got it. Now, about my last order — the delivery date got pushed back twice. What's going on?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Actually, I don't recognize that phone number ending in 4421. That's not mine. Someone may have accessed my account.",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer received a damaged ceramic vase and wants to discuss options.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My vase from order #55210 arrived cracked. The box looked fine but the vase has a hairline fracture."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry about that. We can send a replacement or issue a refund. Which option works better for you?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "I was really excited about this vase for my dining table. Is the replacement from the same batch?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "The replacement would come from our current stock, which is the same artisan batch as yours."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Then send the replacement, please. And I'd like a small discount for the hassle — can you do 15% off?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Actually, you know what, I'll just take the refund. I found a similar one at a local shop.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Great, send it. Oh, and while you're at it — do you sell matching coasters from that same artisan?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer is checking on a backordered item and mentions a past issue.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Hi, I'm just checking on my backordered desk chair. It's been three weeks now."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me check the status. The manufacturer said they'd ship by the end of this week."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Okay, that's what they said two weeks ago too. I'm getting a bit impatient."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I understand. I can escalate this to our supplier team to get a firmer date, or offer to cancel and refund if you'd prefer."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Please escalate it. I'll wait a bit longer since I really like this chair.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "You know what, just cancel it and refund me. I'll buy something else.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Escalate it, but also — is there a similar ergonomic chair in stock that ships immediately?",
+                    "label": "product_technical"
+                  }
+                ]
+              }
+            ]
+          },
+          "name": "AuthoredBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "9ecb70a0-0d84-403a-a0f5-5b03296272c8",
+        "container": null,
+        "model": "deepseek-v4-flash",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 640,
+          "inference_geo": null,
+          "input_tokens": 321,
+          "output_tokens": 2195,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-flash",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d7-93a6-7b73-909e-57cfc66a1d1e-0",
+      "tool_calls": [
+        {
+          "name": "AuthoredBatch",
+          "args": {
+            "families": [
+              {
+                "scenario": "Customer asks about a smartwatch they bought that won't sync with their phone, then requests a refund.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My FitPulse X2 arrived yesterday but it won't pair with my Android phone at all."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry to hear that. Have you tried resetting the watch by holding the side button for 10 seconds?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Yeah, I did that twice. Still nothing. The Bluetooth just keeps dropping."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That's frustrating. Since it's within the 30-day window, we can offer a replacement unit or a full refund. Which would you prefer?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Honestly, I've lost confidence in this model. I'd rather just get my money back."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Great, please process the refund to my original card.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Actually, wait — could you first tell me if the newer X3 model has better Bluetooth range?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Before we do that, can you check if my order was even charged correctly? I think I was double-billed.",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer's package was marked delivered but they never received it.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My order #88412 says delivered yesterday but I never got it. The photo shows a porch but I don't have a porch."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That's concerning. Let me look into the delivery details for order #88412."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Thanks. Also, I noticed the tracking shows it was left at a neighbor's address in a different city."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I see that now. The carrier appears to have misrouted it. I can file a claim on your behalf."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Please file the claim. And if it's truly lost, I want a refund, not a reshipment.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Okay, but first — is my account showing the correct shipping address? I moved last month.",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "Actually, forget the claim. I just realized my cousin in that city might have picked it up. Let me call them first.",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer wants to return a lamp that doesn't match their decor.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I bought the Arc Floor Lamp last week and it's just too industrial-looking for my living room."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I understand. Returns are accepted within 60 days as long as the item is in original condition. Would you like to start a return?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Yes, but I threw away the box. Is that a problem?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Not at all. We can send you a prepaid label and you can use any sturdy box for shipping."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Perfect, send me the label. Also, will the refund include the original shipping fee I paid?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Great. By the way, do you carry a warmer-toned pendant light that would fit a mid-century style?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Hmm, actually maybe I should keep it and just get different bulbs. What warm bulbs fit this model?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer's subscription order was renewed but they wanted to cancel.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I thought I cancelled my coffee subscription last month, but I just got charged $39.99 again."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me check your subscription status. Can you confirm the email on your account?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's j.martinez@mail.com. I definitely clicked cancel — I remember getting a confirmation screen."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I see that the cancellation didn't go through on our end. I apologize for the confusion. I can reverse the charge and cancel the subscription now."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Yes, please reverse the charge and cancel it. I don't want any more shipments.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Wait, before you cancel — can you tell me what roast is coming next month? I might keep it if it's the dark roast.",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Actually, I need to talk to a real person about this. I've been charged three times this year for things I cancelled.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about warranty coverage for a blender that stopped working.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My BlendPro 500 stopped spinning after two months. The motor sounds like it's struggling."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That sounds like a motor issue. The BlendPro 500 has a 1-year warranty covering motor defects."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Good. So what's the process — do I send it in for repair or get a replacement?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "We'll send you a replacement unit first, and you return the defective one with the prepaid label. No charge to you."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "That works. But I bought it with a gift card — will the replacement affect anything on that?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Okay, send the replacement. Also, is there a quieter model you'd recommend for early mornings?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Actually, I'd rather just get a refund instead of a replacement. I'm tired of this brand.",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer's login isn't working after a password reset.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I can't log in. I requested a password reset but the link in the email expired before I clicked it."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "No problem. I can send a fresh reset link to your registered email. Would you like me to do that?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Yes, please. And can you make sure my phone number is still on file for two-factor codes?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I've sent a new reset link and confirmed your phone number ending in 4421 is on file for 2FA."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Thanks, got the link and I'm back in. Appreciate the quick help!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Got it. Now, about my last order — the delivery date got pushed back twice. What's going on?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Actually, I don't recognize that phone number ending in 4421. That's not mine. Someone may have accessed my account.",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer received a damaged ceramic vase and wants to discuss options.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My vase from order #55210 arrived cracked. The box looked fine but the vase has a hairline fracture."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry about that. We can send a replacement or issue a refund. Which option works better for you?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "I was really excited about this vase for my dining table. Is the replacement from the same batch?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "The replacement would come from our current stock, which is the same artisan batch as yours."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Then send the replacement, please. And I'd like a small discount for the hassle — can you do 15% off?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Actually, you know what, I'll just take the refund. I found a similar one at a local shop.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Great, send it. Oh, and while you're at it — do you sell matching coasters from that same artisan?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer is checking on a backordered item and mentions a past issue.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Hi, I'm just checking on my backordered desk chair. It's been three weeks now."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me check the status. The manufacturer said they'd ship by the end of this week."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Okay, that's what they said two weeks ago too. I'm getting a bit impatient."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I understand. I can escalate this to our supplier team to get a firmer date, or offer to cancel and refund if you'd prefer."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Please escalate it. I'll wait a bit longer since I really like this chair.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "You know what, just cancel it and refund me. I'll buy something else.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Escalate it, but also — is there a similar ergonomic chair in stock that ships immediately?",
+                    "label": "product_technical"
+                  }
+                ]
+              }
+            ]
+          },
+          "id": "call_00_QVQSxcFRwJfJN5CSdUWC2332",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 961,
+        "output_tokens": 2195,
+        "total_tokens": 3156,
+        "input_token_details": {
+          "cache_read": 640,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": "1 validation error for AuthoredBatch\nfamilies.0\n  Value error, history must alternate and end before the current user turn [type=value_error, input_value={'scenario': \"Customer as...el': 'billing_refund'}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error"
+  },
+  "status": "failed",
+  "failure_stage": "author",
+  "error_type": "ValueError"
+}

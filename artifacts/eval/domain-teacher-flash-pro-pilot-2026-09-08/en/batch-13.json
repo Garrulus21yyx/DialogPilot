@@ -1,0 +1,2010 @@
+{
+  "batch_id": "domain-v3:en:13",
+  "language": "en",
+  "split": "train",
+  "models": {
+    "author": "deepseek-v4-flash",
+    "review": "deepseek-v4-pro"
+  },
+  "review_protocol": "label-blind-batch-v1",
+  "synthetic": true,
+  "author_prompt": "Author 8 DIFFERENT natural ecommerce customer-service dialogue families in en.\nBatch 13; ensure at least four current turns classified as product_technical across this batch.\nEach family has its OWN coherent history of 2, 4 or 6 short alternating user/assistant\nmessages, followed by 3 ALTERNATIVE current user turns, not three sequential turns.\nThose alternatives differ in effective intent: retain vs replace, withdraw vs\ncontinue, single goal vs concurrent goal, or resolved vs unresolved reference.\nInclude natural short answers where history matters. Vary old completed tasks,\nhesitation, self-correction, indirect wording, topics and dialogue acts. General\nand human-service requests must also occur as NEW goals, not only stale history.\nDo not follow a repeated sentence template or substitute product nouns to create\nnew families. Avoid stereotyped 'information only, do not submit' repetition.\nInvent broad everyday ecommerce situations; no copied benchmark or private data.\nHistory plus current turn should fit 150 English words or 180 Chinese characters;\nkeep it compact but meaningful. No future replies or final conversation summaries.\nSupply the correct label for each alternative according to the rubric.\n",
+  "author_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_EVNw43aA6nHX8Z83FYaE6884",
+          "input": {
+            "families": [
+              {
+                "scenario": "Customer bought a smart thermostat and is having trouble with the app connection.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My thermostat shows offline in the app even though the Wi-Fi is fine."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Sorry about that. Could you confirm the thermostat is within 30 feet of your router?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's about 15 feet away, in the same room actually."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Thanks. Try power-cycling the thermostat and then re-pairing it through the app's device menu."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "I did that and it still won't connect. Is there a firmware update I should install first?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Actually, forget the troubleshooting — I'd rather return this and get the older model instead.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Okay I'll try that later. By the way, do you sell replacement faceplates for this model?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer ordered a desk lamp but the package was left at the wrong building.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My lamp was marked delivered but I never got it."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me check the delivery photo. One moment."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Sure, take your time."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "The photo shows a porch with a blue door, but your building has a gray entrance. It looks misdelivered."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Can you send a replacement to my office address instead? I'll be there all week.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Oh well, just refund me then. I don't want to deal with this anymore.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Thanks for checking. Could you also tell me if this lamp works with dimmer switches?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer is asking about a coffee grinder they received as a gift.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I got a burr grinder as a gift but there's no manual inside the box."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I can email you a PDF manual. Could you share the model number on the bottom plate?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It says CG-210. Also, is this the one with the stainless steel burrs?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Yes, CG-210 has stainless conical burrs. I've sent the manual to your email on file."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Got the manual, thanks. One more thing — what grind setting works best for pour-over?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Actually, I realize I'd rather exchange this for the smaller hand-grinder model. Is that possible?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Perfect, that's all I needed. Have a great day!",
+                    "label": "general"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer's account was locked after too many login attempts.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I can't log in, it says my account is locked."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That happens after several failed attempts. I can unlock it once you verify your identity."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Okay, what do you need from me?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Please confirm the email address and the last four digits of the card on file."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "The email is j.martinez@mail.com and the card ends in 4821.",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "Hmm, actually this isn't urgent anymore — I'll just reset the password later myself.",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "Wait, before that — can I speak to a real person? I've been going back and forth too long.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer bought running shoes that arrived with a stitching defect.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My new running shoes have loose stitching near the toe on the left shoe."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry to see that. Would you like a replacement pair or a refund?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "I'd prefer a replacement if possible."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Sure, I can arrange that. The replacement will ship once the return is scanned."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Great, I'll drop the return off tomorrow. Also, do these shoes run narrow or true to size?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Actually, on second thought, just refund me — I found the same pair cheaper elsewhere.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Perfect, thanks for handling this so quickly.",
+                    "label": "general"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer is tracking a delayed shipment of a birthday gift.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My order from last week still says 'processing' and the birthday is in three days."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me look into that order for you. Can you confirm the order number?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's order #88421. I really need it by Friday."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I see it's held at the warehouse due to a stock discrepancy. I'll escalate it to expedite."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Thank you. While you're at it, can you also check if the matching gift wrap is still available?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "If it can't make it by Friday, just cancel the whole thing.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "I appreciate the help, but I'd rather talk to a supervisor about this delay.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer received a wrong color of a backpack they ordered.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I ordered the olive backpack but received the black one."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That's our mistake. I can send the correct one right away."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Will I need to send the black one back first?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "No, you can keep it as a courtesy. The olive one ships today."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Oh nice, thanks! Does the olive one have the same laptop sleeve compartment?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Actually, since I'm keeping the black one anyway, can you just cancel the olive shipment and refund the difference?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "That's very generous of you. Thanks so much!",
+                    "label": "general"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer is asking about warranty coverage for a blender that stopped working.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My blender stopped spinning after three months of light use."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "It should be under the one-year warranty. When did you purchase it?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Around mid-January, I think. I don't have the receipt handy though."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "No problem — I can look it up by your account purchase history."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Great. Also, is the warranty transferable if I give this blender to my sister?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Actually, I'd rather just get a repair quote instead of dealing with the warranty process.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Hold on — I can't remember my account password. Can you help me reset it?",
+                    "label": "account_security"
+                  }
+                ]
+              }
+            ]
+          },
+          "name": "AuthoredBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "f3939e73-7ac6-4d4d-814d-3df42bb82f68",
+        "container": null,
+        "model": "deepseek-v4-flash",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 640,
+          "inference_geo": null,
+          "input_tokens": 321,
+          "output_tokens": 1854,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-flash",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d8-74e9-7981-b524-66506f6ccfbb-0",
+      "tool_calls": [
+        {
+          "name": "AuthoredBatch",
+          "args": {
+            "families": [
+              {
+                "scenario": "Customer bought a smart thermostat and is having trouble with the app connection.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My thermostat shows offline in the app even though the Wi-Fi is fine."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Sorry about that. Could you confirm the thermostat is within 30 feet of your router?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's about 15 feet away, in the same room actually."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Thanks. Try power-cycling the thermostat and then re-pairing it through the app's device menu."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "I did that and it still won't connect. Is there a firmware update I should install first?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Actually, forget the troubleshooting — I'd rather return this and get the older model instead.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Okay I'll try that later. By the way, do you sell replacement faceplates for this model?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer ordered a desk lamp but the package was left at the wrong building.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My lamp was marked delivered but I never got it."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me check the delivery photo. One moment."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Sure, take your time."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "The photo shows a porch with a blue door, but your building has a gray entrance. It looks misdelivered."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Can you send a replacement to my office address instead? I'll be there all week.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Oh well, just refund me then. I don't want to deal with this anymore.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Thanks for checking. Could you also tell me if this lamp works with dimmer switches?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer is asking about a coffee grinder they received as a gift.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I got a burr grinder as a gift but there's no manual inside the box."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I can email you a PDF manual. Could you share the model number on the bottom plate?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It says CG-210. Also, is this the one with the stainless steel burrs?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Yes, CG-210 has stainless conical burrs. I've sent the manual to your email on file."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Got the manual, thanks. One more thing — what grind setting works best for pour-over?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Actually, I realize I'd rather exchange this for the smaller hand-grinder model. Is that possible?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Perfect, that's all I needed. Have a great day!",
+                    "label": "general"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer's account was locked after too many login attempts.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I can't log in, it says my account is locked."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That happens after several failed attempts. I can unlock it once you verify your identity."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Okay, what do you need from me?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Please confirm the email address and the last four digits of the card on file."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "The email is j.martinez@mail.com and the card ends in 4821.",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "Hmm, actually this isn't urgent anymore — I'll just reset the password later myself.",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "Wait, before that — can I speak to a real person? I've been going back and forth too long.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer bought running shoes that arrived with a stitching defect.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My new running shoes have loose stitching near the toe on the left shoe."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry to see that. Would you like a replacement pair or a refund?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "I'd prefer a replacement if possible."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Sure, I can arrange that. The replacement will ship once the return is scanned."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Great, I'll drop the return off tomorrow. Also, do these shoes run narrow or true to size?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Actually, on second thought, just refund me — I found the same pair cheaper elsewhere.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Perfect, thanks for handling this so quickly.",
+                    "label": "general"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer is tracking a delayed shipment of a birthday gift.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My order from last week still says 'processing' and the birthday is in three days."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Let me look into that order for you. Can you confirm the order number?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "It's order #88421. I really need it by Friday."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I see it's held at the warehouse due to a stock discrepancy. I'll escalate it to expedite."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Thank you. While you're at it, can you also check if the matching gift wrap is still available?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "If it can't make it by Friday, just cancel the whole thing.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "I appreciate the help, but I'd rather talk to a supervisor about this delay.",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer received a wrong color of a backpack they ordered.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I ordered the olive backpack but received the black one."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "That's our mistake. I can send the correct one right away."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Will I need to send the black one back first?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "No, you can keep it as a courtesy. The olive one ships today."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Oh nice, thanks! Does the olive one have the same laptop sleeve compartment?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Actually, since I'm keeping the black one anyway, can you just cancel the olive shipment and refund the difference?",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "That's very generous of you. Thanks so much!",
+                    "label": "general"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer is asking about warranty coverage for a blender that stopped working.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My blender stopped spinning after three months of light use."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "It should be under the one-year warranty. When did you purchase it?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Around mid-January, I think. I don't have the receipt handy though."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "No problem — I can look it up by your account purchase history."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Great. Also, is the warranty transferable if I give this blender to my sister?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Actually, I'd rather just get a repair quote instead of dealing with the warranty process.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Hold on — I can't remember my account password. Can you help me reset it?",
+                    "label": "account_security"
+                  }
+                ]
+              }
+            ]
+          },
+          "id": "call_00_EVNw43aA6nHX8Z83FYaE6884",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 961,
+        "output_tokens": 1854,
+        "total_tokens": 2815,
+        "input_token_details": {
+          "cache_read": 640,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "authored": {
+    "families": [
+      {
+        "scenario": "Customer bought a smart thermostat and is having trouble with the app connection.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "My thermostat shows offline in the app even though the Wi-Fi is fine."
+          },
+          {
+            "role": "assistant",
+            "content": "Sorry about that. Could you confirm the thermostat is within 30 feet of your router?"
+          },
+          {
+            "role": "user",
+            "content": "It's about 15 feet away, in the same room actually."
+          },
+          {
+            "role": "assistant",
+            "content": "Thanks. Try power-cycling the thermostat and then re-pairing it through the app's device menu."
+          }
+        ],
+        "variants": [
+          {
+            "text": "I did that and it still won't connect. Is there a firmware update I should install first?",
+            "label": "product_technical"
+          },
+          {
+            "text": "Actually, forget the troubleshooting — I'd rather return this and get the older model instead.",
+            "label": "billing_refund"
+          },
+          {
+            "text": "Okay I'll try that later. By the way, do you sell replacement faceplates for this model?",
+            "label": "product_technical"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer ordered a desk lamp but the package was left at the wrong building.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "My lamp was marked delivered but I never got it."
+          },
+          {
+            "role": "assistant",
+            "content": "Let me check the delivery photo. One moment."
+          },
+          {
+            "role": "user",
+            "content": "Sure, take your time."
+          },
+          {
+            "role": "assistant",
+            "content": "The photo shows a porch with a blue door, but your building has a gray entrance. It looks misdelivered."
+          }
+        ],
+        "variants": [
+          {
+            "text": "Can you send a replacement to my office address instead? I'll be there all week.",
+            "label": "order_logistics"
+          },
+          {
+            "text": "Oh well, just refund me then. I don't want to deal with this anymore.",
+            "label": "billing_refund"
+          },
+          {
+            "text": "Thanks for checking. Could you also tell me if this lamp works with dimmer switches?",
+            "label": "product_technical"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer is asking about a coffee grinder they received as a gift.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "I got a burr grinder as a gift but there's no manual inside the box."
+          },
+          {
+            "role": "assistant",
+            "content": "I can email you a PDF manual. Could you share the model number on the bottom plate?"
+          },
+          {
+            "role": "user",
+            "content": "It says CG-210. Also, is this the one with the stainless steel burrs?"
+          },
+          {
+            "role": "assistant",
+            "content": "Yes, CG-210 has stainless conical burrs. I've sent the manual to your email on file."
+          }
+        ],
+        "variants": [
+          {
+            "text": "Got the manual, thanks. One more thing — what grind setting works best for pour-over?",
+            "label": "product_technical"
+          },
+          {
+            "text": "Actually, I realize I'd rather exchange this for the smaller hand-grinder model. Is that possible?",
+            "label": "billing_refund"
+          },
+          {
+            "text": "Perfect, that's all I needed. Have a great day!",
+            "label": "general"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer's account was locked after too many login attempts.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "I can't log in, it says my account is locked."
+          },
+          {
+            "role": "assistant",
+            "content": "That happens after several failed attempts. I can unlock it once you verify your identity."
+          },
+          {
+            "role": "user",
+            "content": "Okay, what do you need from me?"
+          },
+          {
+            "role": "assistant",
+            "content": "Please confirm the email address and the last four digits of the card on file."
+          }
+        ],
+        "variants": [
+          {
+            "text": "The email is j.martinez@mail.com and the card ends in 4821.",
+            "label": "account_security"
+          },
+          {
+            "text": "Hmm, actually this isn't urgent anymore — I'll just reset the password later myself.",
+            "label": "__DEFER__"
+          },
+          {
+            "text": "Wait, before that — can I speak to a real person? I've been going back and forth too long.",
+            "label": "human_service"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer bought running shoes that arrived with a stitching defect.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "My new running shoes have loose stitching near the toe on the left shoe."
+          },
+          {
+            "role": "assistant",
+            "content": "I'm sorry to see that. Would you like a replacement pair or a refund?"
+          },
+          {
+            "role": "user",
+            "content": "I'd prefer a replacement if possible."
+          },
+          {
+            "role": "assistant",
+            "content": "Sure, I can arrange that. The replacement will ship once the return is scanned."
+          }
+        ],
+        "variants": [
+          {
+            "text": "Great, I'll drop the return off tomorrow. Also, do these shoes run narrow or true to size?",
+            "label": "product_technical"
+          },
+          {
+            "text": "Actually, on second thought, just refund me — I found the same pair cheaper elsewhere.",
+            "label": "billing_refund"
+          },
+          {
+            "text": "Perfect, thanks for handling this so quickly.",
+            "label": "general"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer is tracking a delayed shipment of a birthday gift.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "My order from last week still says 'processing' and the birthday is in three days."
+          },
+          {
+            "role": "assistant",
+            "content": "Let me look into that order for you. Can you confirm the order number?"
+          },
+          {
+            "role": "user",
+            "content": "It's order #88421. I really need it by Friday."
+          },
+          {
+            "role": "assistant",
+            "content": "I see it's held at the warehouse due to a stock discrepancy. I'll escalate it to expedite."
+          }
+        ],
+        "variants": [
+          {
+            "text": "Thank you. While you're at it, can you also check if the matching gift wrap is still available?",
+            "label": "order_logistics"
+          },
+          {
+            "text": "If it can't make it by Friday, just cancel the whole thing.",
+            "label": "order_logistics"
+          },
+          {
+            "text": "I appreciate the help, but I'd rather talk to a supervisor about this delay.",
+            "label": "human_service"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer received a wrong color of a backpack they ordered.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "I ordered the olive backpack but received the black one."
+          },
+          {
+            "role": "assistant",
+            "content": "That's our mistake. I can send the correct one right away."
+          },
+          {
+            "role": "user",
+            "content": "Will I need to send the black one back first?"
+          },
+          {
+            "role": "assistant",
+            "content": "No, you can keep it as a courtesy. The olive one ships today."
+          }
+        ],
+        "variants": [
+          {
+            "text": "Oh nice, thanks! Does the olive one have the same laptop sleeve compartment?",
+            "label": "product_technical"
+          },
+          {
+            "text": "Actually, since I'm keeping the black one anyway, can you just cancel the olive shipment and refund the difference?",
+            "label": "billing_refund"
+          },
+          {
+            "text": "That's very generous of you. Thanks so much!",
+            "label": "general"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer is asking about warranty coverage for a blender that stopped working.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "My blender stopped spinning after three months of light use."
+          },
+          {
+            "role": "assistant",
+            "content": "It should be under the one-year warranty. When did you purchase it?"
+          },
+          {
+            "role": "user",
+            "content": "Around mid-January, I think. I don't have the receipt handy though."
+          },
+          {
+            "role": "assistant",
+            "content": "No problem — I can look it up by your account purchase history."
+          }
+        ],
+        "variants": [
+          {
+            "text": "Great. Also, is the warranty transferable if I give this blender to my sister?",
+            "label": "product_technical"
+          },
+          {
+            "text": "Actually, I'd rather just get a repair quote instead of dealing with the warranty process.",
+            "label": "billing_refund"
+          },
+          {
+            "text": "Hold on — I can't remember my account password. Can you help me reset it?",
+            "label": "account_security"
+          }
+        ]
+      }
+    ]
+  },
+  "review_input_sha256": "5aa882f1bf4a01a76595162b4bb1e2a6f96a6277d84b74c4b2b0f7b353e2437b",
+  "review_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_CBe1VPx05PcSEDxOdh0U5048",
+          "input": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:en:13:0:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Continues troubleshooting the thermostat connectivity issue; asks about firmware update, still product technical."
+              },
+              {
+                "case_id": "domain-v3:en:13:0:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "Explicitly abandons troubleshooting and requests a return/exchange for the older model, a billing/refund goal."
+              },
+              {
+                "case_id": "domain-v3:en:13:0:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Defers troubleshooting but adds a new product question about replacement faceplates; both are product technical."
+              },
+              {
+                "case_id": "domain-v3:en:13:1:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "Requests a replacement sent to a different address, an order/shipping request."
+              },
+              {
+                "case_id": "domain-v3:en:13:1:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "Shifts from replacement to requesting a refund, a billing/refund goal."
+              },
+              {
+                "case_id": "domain-v3:en:13:1:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Adds a product compatibility question about dimmer switches; product technical."
+              },
+              {
+                "case_id": "domain-v3:en:13:2:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Asks about grind setting for pour-over, a product usage question."
+              },
+              {
+                "case_id": "domain-v3:en:13:2:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "Requests an exchange for a different model, a return/exchange goal."
+              },
+              {
+                "case_id": "domain-v3:en:13:2:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "Closes with thanks and farewell; no remaining business goal."
+              },
+              {
+                "case_id": "domain-v3:en:13:3:0",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "Provides identity verification details to unlock the account, continuing account security goal."
+              },
+              {
+                "case_id": "domain-v3:en:13:3:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "Withdraws the request with no remaining goal; defers to self-service later."
+              },
+              {
+                "case_id": "domain-v3:en:13:3:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "Explicitly requests to speak to a real person, an escalation/human service goal."
+              },
+              {
+                "case_id": "domain-v3:en:13:4:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Adds a product sizing question while confirming the return; product technical."
+              },
+              {
+                "case_id": "domain-v3:en:13:4:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "Changes from replacement to refund, a billing/refund goal."
+              },
+              {
+                "case_id": "domain-v3:en:13:4:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "Thanks and closes; no remaining business goal."
+              },
+              {
+                "case_id": "domain-v3:en:13:5:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Adds a product availability question about gift wrap; product technical."
+              },
+              {
+                "case_id": "domain-v3:en:13:5:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "Requests cancellation of the order if it cannot arrive on time; order/cancellation goal."
+              },
+              {
+                "case_id": "domain-v3:en:13:5:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "Requests to speak to a supervisor about the delay, an escalation goal."
+              },
+              {
+                "case_id": "domain-v3:en:13:6:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Asks about the laptop sleeve compartment, a product specification question."
+              },
+              {
+                "case_id": "domain-v3:en:13:6:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "Requests cancellation of the olive shipment and a refund of the difference, a billing/refund goal."
+              },
+              {
+                "case_id": "domain-v3:en:13:6:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "Thanks and closes; no remaining business goal."
+              },
+              {
+                "case_id": "domain-v3:en:13:7:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Asks about warranty transferability, a product/warranty question."
+              },
+              {
+                "case_id": "domain-v3:en:13:7:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Requests a repair quote instead of warranty, still product technical (repair/service)."
+              },
+              {
+                "case_id": "domain-v3:en:13:7:2",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "Shifts to a password reset request, an account access/security goal."
+              }
+            ]
+          },
+          "name": "ReviewedBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "90fdaeb3-1736-4742-b99c-cd14c57ed9c0",
+        "container": null,
+        "model": "deepseek-v4-pro",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "inference_geo": null,
+          "input_tokens": 3768,
+          "output_tokens": 1312,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-pro",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081d8-aaab-72b3-87cf-90eda2423019-0",
+      "tool_calls": [
+        {
+          "name": "ReviewedBatch",
+          "args": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:en:13:0:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Continues troubleshooting the thermostat connectivity issue; asks about firmware update, still product technical."
+              },
+              {
+                "case_id": "domain-v3:en:13:0:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "Explicitly abandons troubleshooting and requests a return/exchange for the older model, a billing/refund goal."
+              },
+              {
+                "case_id": "domain-v3:en:13:0:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Defers troubleshooting but adds a new product question about replacement faceplates; both are product technical."
+              },
+              {
+                "case_id": "domain-v3:en:13:1:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "Requests a replacement sent to a different address, an order/shipping request."
+              },
+              {
+                "case_id": "domain-v3:en:13:1:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "Shifts from replacement to requesting a refund, a billing/refund goal."
+              },
+              {
+                "case_id": "domain-v3:en:13:1:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Adds a product compatibility question about dimmer switches; product technical."
+              },
+              {
+                "case_id": "domain-v3:en:13:2:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Asks about grind setting for pour-over, a product usage question."
+              },
+              {
+                "case_id": "domain-v3:en:13:2:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "Requests an exchange for a different model, a return/exchange goal."
+              },
+              {
+                "case_id": "domain-v3:en:13:2:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "Closes with thanks and farewell; no remaining business goal."
+              },
+              {
+                "case_id": "domain-v3:en:13:3:0",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "Provides identity verification details to unlock the account, continuing account security goal."
+              },
+              {
+                "case_id": "domain-v3:en:13:3:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "Withdraws the request with no remaining goal; defers to self-service later."
+              },
+              {
+                "case_id": "domain-v3:en:13:3:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "Explicitly requests to speak to a real person, an escalation/human service goal."
+              },
+              {
+                "case_id": "domain-v3:en:13:4:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Adds a product sizing question while confirming the return; product technical."
+              },
+              {
+                "case_id": "domain-v3:en:13:4:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "Changes from replacement to refund, a billing/refund goal."
+              },
+              {
+                "case_id": "domain-v3:en:13:4:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "Thanks and closes; no remaining business goal."
+              },
+              {
+                "case_id": "domain-v3:en:13:5:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Adds a product availability question about gift wrap; product technical."
+              },
+              {
+                "case_id": "domain-v3:en:13:5:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "Requests cancellation of the order if it cannot arrive on time; order/cancellation goal."
+              },
+              {
+                "case_id": "domain-v3:en:13:5:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "Requests to speak to a supervisor about the delay, an escalation goal."
+              },
+              {
+                "case_id": "domain-v3:en:13:6:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Asks about the laptop sleeve compartment, a product specification question."
+              },
+              {
+                "case_id": "domain-v3:en:13:6:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "Requests cancellation of the olive shipment and a refund of the difference, a billing/refund goal."
+              },
+              {
+                "case_id": "domain-v3:en:13:6:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "Thanks and closes; no remaining business goal."
+              },
+              {
+                "case_id": "domain-v3:en:13:7:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Asks about warranty transferability, a product/warranty question."
+              },
+              {
+                "case_id": "domain-v3:en:13:7:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "Requests a repair quote instead of warranty, still product technical (repair/service)."
+              },
+              {
+                "case_id": "domain-v3:en:13:7:2",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "Shifts to a password reset request, an account access/security goal."
+              }
+            ]
+          },
+          "id": "call_00_CBe1VPx05PcSEDxOdh0U5048",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 4280,
+        "output_tokens": 1312,
+        "total_tokens": 5592,
+        "input_token_details": {
+          "cache_read": 512,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "reviewed": {
+    "verdicts": [
+      {
+        "case_id": "domain-v3:en:13:0:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "Continues troubleshooting the thermostat connectivity issue; asks about firmware update, still product technical."
+      },
+      {
+        "case_id": "domain-v3:en:13:0:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "Explicitly abandons troubleshooting and requests a return/exchange for the older model, a billing/refund goal."
+      },
+      {
+        "case_id": "domain-v3:en:13:0:2",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "Defers troubleshooting but adds a new product question about replacement faceplates; both are product technical."
+      },
+      {
+        "case_id": "domain-v3:en:13:1:0",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "Requests a replacement sent to a different address, an order/shipping request."
+      },
+      {
+        "case_id": "domain-v3:en:13:1:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "Shifts from replacement to requesting a refund, a billing/refund goal."
+      },
+      {
+        "case_id": "domain-v3:en:13:1:2",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "Adds a product compatibility question about dimmer switches; product technical."
+      },
+      {
+        "case_id": "domain-v3:en:13:2:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "Asks about grind setting for pour-over, a product usage question."
+      },
+      {
+        "case_id": "domain-v3:en:13:2:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "Requests an exchange for a different model, a return/exchange goal."
+      },
+      {
+        "case_id": "domain-v3:en:13:2:2",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "Closes with thanks and farewell; no remaining business goal."
+      },
+      {
+        "case_id": "domain-v3:en:13:3:0",
+        "label": "account_security",
+        "clear_and_natural": true,
+        "reason": "Provides identity verification details to unlock the account, continuing account security goal."
+      },
+      {
+        "case_id": "domain-v3:en:13:3:1",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "Withdraws the request with no remaining goal; defers to self-service later."
+      },
+      {
+        "case_id": "domain-v3:en:13:3:2",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "Explicitly requests to speak to a real person, an escalation/human service goal."
+      },
+      {
+        "case_id": "domain-v3:en:13:4:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "Adds a product sizing question while confirming the return; product technical."
+      },
+      {
+        "case_id": "domain-v3:en:13:4:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "Changes from replacement to refund, a billing/refund goal."
+      },
+      {
+        "case_id": "domain-v3:en:13:4:2",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "Thanks and closes; no remaining business goal."
+      },
+      {
+        "case_id": "domain-v3:en:13:5:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "Adds a product availability question about gift wrap; product technical."
+      },
+      {
+        "case_id": "domain-v3:en:13:5:1",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "Requests cancellation of the order if it cannot arrive on time; order/cancellation goal."
+      },
+      {
+        "case_id": "domain-v3:en:13:5:2",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "Requests to speak to a supervisor about the delay, an escalation goal."
+      },
+      {
+        "case_id": "domain-v3:en:13:6:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "Asks about the laptop sleeve compartment, a product specification question."
+      },
+      {
+        "case_id": "domain-v3:en:13:6:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "Requests cancellation of the olive shipment and a refund of the difference, a billing/refund goal."
+      },
+      {
+        "case_id": "domain-v3:en:13:6:2",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "Thanks and closes; no remaining business goal."
+      },
+      {
+        "case_id": "domain-v3:en:13:7:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "Asks about warranty transferability, a product/warranty question."
+      },
+      {
+        "case_id": "domain-v3:en:13:7:1",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "Requests a repair quote instead of warranty, still product technical (repair/service)."
+      },
+      {
+        "case_id": "domain-v3:en:13:7:2",
+        "label": "account_security",
+        "clear_and_natural": true,
+        "reason": "Shifts to a password reset request, an account access/security goal."
+      }
+    ]
+  },
+  "rows": [
+    {
+      "case_id": "domain-v3:en:13:0:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My thermostat shows offline in the app even though the Wi-Fi is fine."
+        },
+        {
+          "role": "assistant",
+          "content": "Sorry about that. Could you confirm the thermostat is within 30 feet of your router?"
+        },
+        {
+          "role": "user",
+          "content": "It's about 15 feet away, in the same room actually."
+        },
+        {
+          "role": "assistant",
+          "content": "Thanks. Try power-cycling the thermostat and then re-pairing it through the app's device menu."
+        }
+      ],
+      "text": "I did that and it still won't connect. Is there a firmware update I should install first?",
+      "label": "product_technical",
+      "language": "en",
+      "group_id": "domain-v3:en:13:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:13:0:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My thermostat shows offline in the app even though the Wi-Fi is fine."
+        },
+        {
+          "role": "assistant",
+          "content": "Sorry about that. Could you confirm the thermostat is within 30 feet of your router?"
+        },
+        {
+          "role": "user",
+          "content": "It's about 15 feet away, in the same room actually."
+        },
+        {
+          "role": "assistant",
+          "content": "Thanks. Try power-cycling the thermostat and then re-pairing it through the app's device menu."
+        }
+      ],
+      "text": "Actually, forget the troubleshooting — I'd rather return this and get the older model instead.",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:13:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:13:0:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My thermostat shows offline in the app even though the Wi-Fi is fine."
+        },
+        {
+          "role": "assistant",
+          "content": "Sorry about that. Could you confirm the thermostat is within 30 feet of your router?"
+        },
+        {
+          "role": "user",
+          "content": "It's about 15 feet away, in the same room actually."
+        },
+        {
+          "role": "assistant",
+          "content": "Thanks. Try power-cycling the thermostat and then re-pairing it through the app's device menu."
+        }
+      ],
+      "text": "Okay I'll try that later. By the way, do you sell replacement faceplates for this model?",
+      "label": "product_technical",
+      "language": "en",
+      "group_id": "domain-v3:en:13:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:13:1:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My lamp was marked delivered but I never got it."
+        },
+        {
+          "role": "assistant",
+          "content": "Let me check the delivery photo. One moment."
+        },
+        {
+          "role": "user",
+          "content": "Sure, take your time."
+        },
+        {
+          "role": "assistant",
+          "content": "The photo shows a porch with a blue door, but your building has a gray entrance. It looks misdelivered."
+        }
+      ],
+      "text": "Can you send a replacement to my office address instead? I'll be there all week.",
+      "label": "order_logistics",
+      "language": "en",
+      "group_id": "domain-v3:en:13:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:13:1:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My lamp was marked delivered but I never got it."
+        },
+        {
+          "role": "assistant",
+          "content": "Let me check the delivery photo. One moment."
+        },
+        {
+          "role": "user",
+          "content": "Sure, take your time."
+        },
+        {
+          "role": "assistant",
+          "content": "The photo shows a porch with a blue door, but your building has a gray entrance. It looks misdelivered."
+        }
+      ],
+      "text": "Oh well, just refund me then. I don't want to deal with this anymore.",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:13:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:13:1:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My lamp was marked delivered but I never got it."
+        },
+        {
+          "role": "assistant",
+          "content": "Let me check the delivery photo. One moment."
+        },
+        {
+          "role": "user",
+          "content": "Sure, take your time."
+        },
+        {
+          "role": "assistant",
+          "content": "The photo shows a porch with a blue door, but your building has a gray entrance. It looks misdelivered."
+        }
+      ],
+      "text": "Thanks for checking. Could you also tell me if this lamp works with dimmer switches?",
+      "label": "product_technical",
+      "language": "en",
+      "group_id": "domain-v3:en:13:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:13:2:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I got a burr grinder as a gift but there's no manual inside the box."
+        },
+        {
+          "role": "assistant",
+          "content": "I can email you a PDF manual. Could you share the model number on the bottom plate?"
+        },
+        {
+          "role": "user",
+          "content": "It says CG-210. Also, is this the one with the stainless steel burrs?"
+        },
+        {
+          "role": "assistant",
+          "content": "Yes, CG-210 has stainless conical burrs. I've sent the manual to your email on file."
+        }
+      ],
+      "text": "Got the manual, thanks. One more thing — what grind setting works best for pour-over?",
+      "label": "product_technical",
+      "language": "en",
+      "group_id": "domain-v3:en:13:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:13:2:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I got a burr grinder as a gift but there's no manual inside the box."
+        },
+        {
+          "role": "assistant",
+          "content": "I can email you a PDF manual. Could you share the model number on the bottom plate?"
+        },
+        {
+          "role": "user",
+          "content": "It says CG-210. Also, is this the one with the stainless steel burrs?"
+        },
+        {
+          "role": "assistant",
+          "content": "Yes, CG-210 has stainless conical burrs. I've sent the manual to your email on file."
+        }
+      ],
+      "text": "Actually, I realize I'd rather exchange this for the smaller hand-grinder model. Is that possible?",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:13:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:13:2:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I got a burr grinder as a gift but there's no manual inside the box."
+        },
+        {
+          "role": "assistant",
+          "content": "I can email you a PDF manual. Could you share the model number on the bottom plate?"
+        },
+        {
+          "role": "user",
+          "content": "It says CG-210. Also, is this the one with the stainless steel burrs?"
+        },
+        {
+          "role": "assistant",
+          "content": "Yes, CG-210 has stainless conical burrs. I've sent the manual to your email on file."
+        }
+      ],
+      "text": "Perfect, that's all I needed. Have a great day!",
+      "label": "general",
+      "language": "en",
+      "group_id": "domain-v3:en:13:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:13:3:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I can't log in, it says my account is locked."
+        },
+        {
+          "role": "assistant",
+          "content": "That happens after several failed attempts. I can unlock it once you verify your identity."
+        },
+        {
+          "role": "user",
+          "content": "Okay, what do you need from me?"
+        },
+        {
+          "role": "assistant",
+          "content": "Please confirm the email address and the last four digits of the card on file."
+        }
+      ],
+      "text": "The email is j.martinez@mail.com and the card ends in 4821.",
+      "label": "account_security",
+      "language": "en",
+      "group_id": "domain-v3:en:13:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:13:3:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I can't log in, it says my account is locked."
+        },
+        {
+          "role": "assistant",
+          "content": "That happens after several failed attempts. I can unlock it once you verify your identity."
+        },
+        {
+          "role": "user",
+          "content": "Okay, what do you need from me?"
+        },
+        {
+          "role": "assistant",
+          "content": "Please confirm the email address and the last four digits of the card on file."
+        }
+      ],
+      "text": "Hmm, actually this isn't urgent anymore — I'll just reset the password later myself.",
+      "label": "__DEFER__",
+      "language": "en",
+      "group_id": "domain-v3:en:13:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:13:3:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I can't log in, it says my account is locked."
+        },
+        {
+          "role": "assistant",
+          "content": "That happens after several failed attempts. I can unlock it once you verify your identity."
+        },
+        {
+          "role": "user",
+          "content": "Okay, what do you need from me?"
+        },
+        {
+          "role": "assistant",
+          "content": "Please confirm the email address and the last four digits of the card on file."
+        }
+      ],
+      "text": "Wait, before that — can I speak to a real person? I've been going back and forth too long.",
+      "label": "human_service",
+      "language": "en",
+      "group_id": "domain-v3:en:13:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:13:4:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My new running shoes have loose stitching near the toe on the left shoe."
+        },
+        {
+          "role": "assistant",
+          "content": "I'm sorry to see that. Would you like a replacement pair or a refund?"
+        },
+        {
+          "role": "user",
+          "content": "I'd prefer a replacement if possible."
+        },
+        {
+          "role": "assistant",
+          "content": "Sure, I can arrange that. The replacement will ship once the return is scanned."
+        }
+      ],
+      "text": "Great, I'll drop the return off tomorrow. Also, do these shoes run narrow or true to size?",
+      "label": "product_technical",
+      "language": "en",
+      "group_id": "domain-v3:en:13:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:13:4:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My new running shoes have loose stitching near the toe on the left shoe."
+        },
+        {
+          "role": "assistant",
+          "content": "I'm sorry to see that. Would you like a replacement pair or a refund?"
+        },
+        {
+          "role": "user",
+          "content": "I'd prefer a replacement if possible."
+        },
+        {
+          "role": "assistant",
+          "content": "Sure, I can arrange that. The replacement will ship once the return is scanned."
+        }
+      ],
+      "text": "Actually, on second thought, just refund me — I found the same pair cheaper elsewhere.",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:13:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:13:4:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My new running shoes have loose stitching near the toe on the left shoe."
+        },
+        {
+          "role": "assistant",
+          "content": "I'm sorry to see that. Would you like a replacement pair or a refund?"
+        },
+        {
+          "role": "user",
+          "content": "I'd prefer a replacement if possible."
+        },
+        {
+          "role": "assistant",
+          "content": "Sure, I can arrange that. The replacement will ship once the return is scanned."
+        }
+      ],
+      "text": "Perfect, thanks for handling this so quickly.",
+      "label": "general",
+      "language": "en",
+      "group_id": "domain-v3:en:13:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:13:5:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My order from last week still says 'processing' and the birthday is in three days."
+        },
+        {
+          "role": "assistant",
+          "content": "Let me look into that order for you. Can you confirm the order number?"
+        },
+        {
+          "role": "user",
+          "content": "It's order #88421. I really need it by Friday."
+        },
+        {
+          "role": "assistant",
+          "content": "I see it's held at the warehouse due to a stock discrepancy. I'll escalate it to expedite."
+        }
+      ],
+      "text": "If it can't make it by Friday, just cancel the whole thing.",
+      "label": "order_logistics",
+      "language": "en",
+      "group_id": "domain-v3:en:13:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:13:5:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My order from last week still says 'processing' and the birthday is in three days."
+        },
+        {
+          "role": "assistant",
+          "content": "Let me look into that order for you. Can you confirm the order number?"
+        },
+        {
+          "role": "user",
+          "content": "It's order #88421. I really need it by Friday."
+        },
+        {
+          "role": "assistant",
+          "content": "I see it's held at the warehouse due to a stock discrepancy. I'll escalate it to expedite."
+        }
+      ],
+      "text": "I appreciate the help, but I'd rather talk to a supervisor about this delay.",
+      "label": "human_service",
+      "language": "en",
+      "group_id": "domain-v3:en:13:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:13:6:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I ordered the olive backpack but received the black one."
+        },
+        {
+          "role": "assistant",
+          "content": "That's our mistake. I can send the correct one right away."
+        },
+        {
+          "role": "user",
+          "content": "Will I need to send the black one back first?"
+        },
+        {
+          "role": "assistant",
+          "content": "No, you can keep it as a courtesy. The olive one ships today."
+        }
+      ],
+      "text": "Oh nice, thanks! Does the olive one have the same laptop sleeve compartment?",
+      "label": "product_technical",
+      "language": "en",
+      "group_id": "domain-v3:en:13:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:13:6:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I ordered the olive backpack but received the black one."
+        },
+        {
+          "role": "assistant",
+          "content": "That's our mistake. I can send the correct one right away."
+        },
+        {
+          "role": "user",
+          "content": "Will I need to send the black one back first?"
+        },
+        {
+          "role": "assistant",
+          "content": "No, you can keep it as a courtesy. The olive one ships today."
+        }
+      ],
+      "text": "Actually, since I'm keeping the black one anyway, can you just cancel the olive shipment and refund the difference?",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:13:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:13:6:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I ordered the olive backpack but received the black one."
+        },
+        {
+          "role": "assistant",
+          "content": "That's our mistake. I can send the correct one right away."
+        },
+        {
+          "role": "user",
+          "content": "Will I need to send the black one back first?"
+        },
+        {
+          "role": "assistant",
+          "content": "No, you can keep it as a courtesy. The olive one ships today."
+        }
+      ],
+      "text": "That's very generous of you. Thanks so much!",
+      "label": "general",
+      "language": "en",
+      "group_id": "domain-v3:en:13:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:13:7:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My blender stopped spinning after three months of light use."
+        },
+        {
+          "role": "assistant",
+          "content": "It should be under the one-year warranty. When did you purchase it?"
+        },
+        {
+          "role": "user",
+          "content": "Around mid-January, I think. I don't have the receipt handy though."
+        },
+        {
+          "role": "assistant",
+          "content": "No problem — I can look it up by your account purchase history."
+        }
+      ],
+      "text": "Great. Also, is the warranty transferable if I give this blender to my sister?",
+      "label": "product_technical",
+      "language": "en",
+      "group_id": "domain-v3:en:13:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:13:7:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My blender stopped spinning after three months of light use."
+        },
+        {
+          "role": "assistant",
+          "content": "It should be under the one-year warranty. When did you purchase it?"
+        },
+        {
+          "role": "user",
+          "content": "Around mid-January, I think. I don't have the receipt handy though."
+        },
+        {
+          "role": "assistant",
+          "content": "No problem — I can look it up by your account purchase history."
+        }
+      ],
+      "text": "Hold on — I can't remember my account password. Can you help me reset it?",
+      "label": "account_security",
+      "language": "en",
+      "group_id": "domain-v3:en:13:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    }
+  ],
+  "rejected": [
+    {
+      "case_id": "domain-v3:en:13:5:0",
+      "author": "order_logistics",
+      "label": "product_technical",
+      "clear_and_natural": true,
+      "reason": "Adds a product availability question about gift wrap; product technical."
+    },
+    {
+      "case_id": "domain-v3:en:13:7:1",
+      "author": "billing_refund",
+      "label": "product_technical",
+      "clear_and_natural": true,
+      "reason": "Requests a repair quote instead of warranty, still product technical (repair/service)."
+    }
+  ],
+  "status": "reviewed"
+}
