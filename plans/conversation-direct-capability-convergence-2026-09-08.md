@@ -301,3 +301,29 @@ Still open: combined native-read→business-action approval/restart coverage, ri
 queued observation obligations, and fixed real-model/task replays proving semantic
 goal preservation and the remaining baseline repairs. No τ³/model run or encoder
 activation occurred in this stage.
+
+### Combined observed read and approved action recovery
+
+Delivery of the preceding PostgreSQL verification: committed and pushed 066e488.
+Added a combined integration witness in test_conversation_observation_postgres.py:
+the main planner reads an order through TargetToolExecutor, receives that result,
+delegates the original cancellation objective to create_agent, and waits for exact
+action approval. After closing and recreating the PostgreSQL pool, checkpoint owner,
+result Store, manager and agents, approval executes the governed write and resumes
+the domain objective. Replaying that approval invocation does not repeat the write
+or model calls. Assertions cover retained first-turn outcomes, no pre-approval
+write, consumed pending approval, committed Receipt, final request completion and
+identical replayed assembly.
+
+Initial test-fixture failures were an oversized tool allowlist and a fresh memory
+result archive after recreation. The fixture now uses exactly its registered tools
+and the existing production PostgreSQL Store wiring; no production permission,
+archive fallback or runtime branch changed. The final PostgreSQL-enabled combined
+suite (observation recovery and domain approval) passed 24 tests in 27.01 seconds.
+This uses scripted models and a counted external-write stub with the real workflow
+ledger, not a real commerce backend or an OS process kill.
+
+Still open: queued/mixed-task observation obligations and semantic goal preservation
+under the fixed real-model baseline replay. Encoder remains rejected and disabled;
+the original ten-task evaluation is unchanged. The new integration witness closes
+the combined-boundary test gap, not the full task or architecture convergence claim.
