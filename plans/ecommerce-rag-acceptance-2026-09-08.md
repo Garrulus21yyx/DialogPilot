@@ -32,4 +32,4 @@ E02开发：52通过/3数据库依赖跳过；40候选Flash162调用，来源.92
 
 评分入口修复：首批160请求均被HTTP400拒绝，另1个最小诊断确认Thinking mode不支持强制tool_choice；未产生评分。复用ModelProfile.request显式NONE，原160错误保留heldout-score，修复批另存heldout-score-v2，预算160有效评分请求。不更改rubric/样本/答案，不重跑业务。
 
-最终：80×2均正常完成；来源68→72/80，805证据偏移/checksum复验通过；自动61→76 PASS但作者审计至少6→12个PASS有问题，95%不作为业务准确率。详见docs/ecommerce-rag-heldout-pair-2026-09-08.zh-CN.md。56 tests通过/3跳过。实现/实验待本次commit push；下一项仅评分材料/引用归属，80已消费，微调暂停。
+最终：80×2均正常完成；来源68→72/80，805证据偏移/checksum复验通过；自动61→76 PASS但作者审计至少6→12个PASS有问题，95%不作为业务准确率。详见docs/ecommerce-rag-heldout-pair-2026-09-08.zh-CN.md。56 tests通过/3跳过。实现/实验已commit并push 890765d；下一项仅评分材料/引用归属，80已消费，微调暂停。
