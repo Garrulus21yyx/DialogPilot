@@ -195,4 +195,4 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 
 - G4安全/归档预注册（69ac86e）：冻结96份知识序列化视图，重放UntrustedContentGuard和领域Agent ToolResultPersistence；默认16000-1200-600输入预算的1/5=2840 token，使用该middleware实际SDK估算。API0，不伪称跑完整ToolManager/Agent。测试正常与强制归档边界，记录隔离、原文inline、引用及归档逐字恢复；DIRECT走证据事实→synthesis，不用领域middleware结果冒充DIRECT损失。
 
-- G4安全/归档完成：96视图安全隔离0；默认2840工具预算27转读取引用/69全文inline，原文96可恢复。强制256边界96归档且可恢复。首次fixture work_item_id带句点被SDK拒绝，已在fixture修正，不改生产合同。1项实际重放测试通过，API0。见[报告](../docs/rag-g4-tool-boundary-2026-09-08.zh-CN.md)。领域Agent是否读取所需页未测；DIRECT走Fact→synthesis不套用该归档率。下一步分别捕获DIRECT合成输入和领域offload读取，避免归档恢复冒充模型可见。交付待本次commit/push。
+- G4安全/归档完成：96视图安全隔离0；默认2840工具预算27转读取引用/69全文inline，原文96可恢复。强制256边界96归档且可恢复。首次fixture work_item_id带句点被SDK拒绝，已在fixture修正，不改生产合同。1项实际重放测试通过，API0。见[报告](../docs/rag-g4-tool-boundary-2026-09-08.zh-CN.md)。领域Agent是否读取所需页未测；DIRECT走Fact→synthesis不套用该归档率。下一步分别捕获DIRECT合成输入和领域offload读取，避免归档恢复冒充模型可见。交付：`b7a5440` 已提交并推送到 origin/feat/customer-service-target-architecture。
