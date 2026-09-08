@@ -1,0 +1,2471 @@
+{
+  "n": 100,
+  "api_calls": 0,
+  "document_embeddings": 0,
+  "query_embeddings": 100,
+  "routes20_reproduced": true,
+  "cases": [
+    {
+      "id": "6a738cc02c5aa0b74319acd0e8a809dd<::>6",
+      "query": "Is infertility caused by chemotherapy hereditary?",
+      "gold": [
+        {
+          "gold": "mtrag:clapnq:836413300_15575-15915-0-340",
+          "dense_rank": 15,
+          "dense_score": 0.546656608581543,
+          "bm25_rank": 37,
+          "bm25_score": 13.440848018820605
+        }
+      ]
+    },
+    {
+      "id": "3a07680acfb0f951fc3210a8c1a282c9<::>8",
+      "query": "How are vaccines made?",
+      "gold": [
+        {
+          "gold": "mtrag:clapnq:855533381_55716-57147-0-1431",
+          "dense_rank": 2,
+          "dense_score": 0.6249812841415405,
+          "bm25_rank": 1,
+          "bm25_score": 17.317479377190605
+        }
+      ]
+    },
+    {
+      "id": "29e3ec96a6e8916a0326ebcdab78abae<::>8",
+      "query": "The Indian economy began to see significant growth and \"blossoming\" primarily after the economic liberalization reforms of 1991, which opened the country to global markets, reduced state control, and spurred rapid industrialization and expansion of the services sector. Prior to that, from independence in 1947 through the 1980s, India followed a largely socialist-inspired, state-controlled model (often called the \"License Raj\"), which saw modest but steady growth. The most dramatic acceleration in economic growth, rising GDP, and global integration occurred from the mid-1990s onward, with particularly strong expansion in the 2000s and 2010s.",
+      "gold": [
+        {
+          "gold": "mtrag:clapnq:846587463_2745-3243-0-498",
+          "dense_rank": 12,
+          "dense_score": 0.6967096328735352,
+          "bm25_rank": 11,
+          "bm25_score": 47.613517090276645
+        },
+        {
+          "gold": "mtrag:clapnq:846587463_3814-4972-0-1158",
+          "dense_rank": 16,
+          "dense_score": 0.6879271864891052,
+          "bm25_rank": 6,
+          "bm25_score": 49.30377894123504
+        },
+        {
+          "gold": "mtrag:clapnq:846587463_6374-6904-0-530",
+          "dense_rank": 1,
+          "dense_score": 0.8054444789886475,
+          "bm25_rank": 97,
+          "bm25_score": 35.76274514864264
+        },
+        {
+          "gold": "mtrag:clapnq:857081732_4116-4933-0-817",
+          "dense_rank": 9,
+          "dense_score": 0.706997811794281,
+          "bm25_rank": 45,
+          "bm25_score": 39.60236985662675
+        }
+      ]
+    },
+    {
+      "id": "d5f0e7023ab90fe0240b7fc46cf00c26<::>6",
+      "query": "Which is the largest river in America?",
+      "gold": [
+        {
+          "gold": "mtrag:clapnq:818532751_1986-2845-0-859",
+          "dense_rank": 2,
+          "dense_score": 0.6475790739059448,
+          "bm25_rank": 31,
+          "bm25_score": 13.435050969015782
+        }
+      ]
+    },
+    {
+      "id": "dd6b6ffd177f2b311abe676261279d2f<::>2",
+      "query": "Do the Arizona Cardinals play outside the US?",
+      "gold": [
+        {
+          "gold": "mtrag:clapnq:822086267_453-961-0-508",
+          "dense_rank": 4,
+          "dense_score": 0.597737729549408,
+          "bm25_rank": 8,
+          "bm25_score": 19.02078557303533
+        },
+        {
+          "gold": "mtrag:clapnq:822086267_6698-7277-0-579",
+          "dense_rank": 1,
+          "dense_score": 0.6349703073501587,
+          "bm25_rank": 4,
+          "bm25_score": 20.3719640357941
+        },
+        {
+          "gold": "mtrag:clapnq:822086267_7384-8758-0-1374",
+          "dense_rank": 34,
+          "dense_score": 0.52039635181427,
+          "bm25_rank": 897,
+          "bm25_score": 7.29874326106978
+        }
+      ]
+    },
+    {
+      "id": "33431330abb38298cc79b96b2f4fde2a<::>5",
+      "query": "When was the Byzantine Empire founded?",
+      "gold": [
+        {
+          "gold": "mtrag:clapnq:818823851_2906-3702-0-796",
+          "dense_rank": 469,
+          "dense_score": 0.4731803834438324,
+          "bm25_rank": 2677,
+          "bm25_score": 5.70010354508416
+        },
+        {
+          "gold": "mtrag:clapnq:847466362_38556-39638-0-1082",
+          "dense_rank": 196,
+          "dense_score": 0.5183900594711304,
+          "bm25_rank": 48161,
+          "bm25_score": 1.498749808047919
+        }
+      ]
+    },
+    {
+      "id": "aea2634b0e5f1c2444550d31c41adc94<::>3",
+      "query": "How are weddings celebrated?",
+      "gold": [
+        {
+          "gold": "mtrag:clapnq:817115950_2342-3778-0-1436",
+          "dense_rank": 9,
+          "dense_score": 0.5960943698883057,
+          "bm25_rank": 482,
+          "bm25_score": 6.2583722922364435
+        },
+        {
+          "gold": "mtrag:clapnq:853841453_32621-33227-0-606",
+          "dense_rank": 29,
+          "dense_score": 0.5681655406951904,
+          "bm25_rank": 50,
+          "bm25_score": 9.394272006652237
+        }
+      ]
+    },
+    {
+      "id": "5b9edac124aea30a2256705d27226d7f<::>6",
+      "query": "Shakespeare's most popular historical play during his lifetime was *Henry IV, Part 1*, based on the provided document. It was his second most popular play overall at that time, surpassed only by *Hamlet*.",
+      "gold": [
+        {
+          "gold": "mtrag:clapnq:826096157_13500-14104-0-604",
+          "dense_rank": 602,
+          "dense_score": 0.4446468651294708,
+          "bm25_rank": 3160,
+          "bm25_score": 14.857980290400256
+        }
+      ]
+    },
+    {
+      "id": "13a398b30067d58d179fa8cbc2592449<::>9",
+      "query": "The American Civil War was indeed a devastating and tragic conflict, resulting in immense loss of life and widespread destruction across the nation. North Carolina, like many Southern states, suffered greatly\u2014both in terms of military casualties and the long-term social and economic upheaval that followed the war. The state's landscape, economy, and communities were deeply scarred, and the effects of the conflict, including the legacy of slavery and Reconstruction, continued to shape North Carolina for generations.",
+      "gold": [
+        {
+          "gold": "mtrag:clapnq:835214350_3577-4639-0-1062",
+          "dense_rank": 23,
+          "dense_score": 0.6776036024093628,
+          "bm25_rank": 21,
+          "bm25_score": 39.69399739464232
+        },
+        {
+          "gold": "mtrag:clapnq:837638644_19837-20135-0-298",
+          "dense_rank": 76,
+          "dense_score": 0.632768988609314,
+          "bm25_rank": 144,
+          "bm25_score": 32.88728501919906
+        }
+      ]
+    },
+    {
+      "id": "79f0d0539d9ec0acbf90cb3388b30c17<::>7",
+      "query": "What is the definition and role of a secondary source in historical research?",
+      "gold": [
+        {
+          "gold": "mtrag:clapnq:806502664_11610-11795-0-185",
+          "dense_rank": 13,
+          "dense_score": 0.5768194198608398,
+          "bm25_rank": 3,
+          "bm25_score": 24.417009792487192
+        },
+        {
+          "gold": "mtrag:clapnq:806502664_14093-14518-0-425",
+          "dense_rank": 11,
+          "dense_score": 0.5784341096878052,
+          "bm25_rank": 16,
+          "bm25_score": 18.070877539464867
+        },
+        {
+          "gold": "mtrag:clapnq:806502664_4750-5111-0-361",
+          "dense_rank": 1,
+          "dense_score": 0.6794229745864868,
+          "bm25_rank": 2,
+          "bm25_score": 24.89410909066479
+        },
+        {
+          "gold": "mtrag:clapnq:806502664_965-1711-0-746",
+          "dense_rank": 3,
+          "dense_score": 0.6592667102813721,
+          "bm25_rank": 1,
+          "bm25_score": 31.087664568746213
+        }
+      ]
+    },
+    {
+      "id": "95a0893567c7519c090ecbcdd14daccd<::>1",
+      "query": "What materials were used to build the Great Wall of China?",
+      "gold": [
+        {
+          "gold": "mtrag:clapnq:801328598_49870-50749-0-879",
+          "dense_rank": 14,
+          "dense_score": 0.6261439323425293,
+          "bm25_rank": 133,
+          "bm25_score": 14.2912676885461
+        },
+        {
+          "gold": "mtrag:clapnq:846282869_10357-11574-0-1217",
+          "dense_rank": 8,
+          "dense_score": 0.6387175917625427,
+          "bm25_rank": 49,
+          "bm25_score": 19.40831702900425
+        },
+        {
+          "gold": "mtrag:clapnq:846282869_1580-2418-0-838",
+          "dense_rank": 2,
+          "dense_score": 0.7210339307785034,
+          "bm25_rank": 2,
+          "bm25_score": 27.093992535313763
+        },
+        {
+          "gold": "mtrag:clapnq:846282869_19534-20837-0-1303",
+          "dense_rank": 1,
+          "dense_score": 0.7465478181838989,
+          "bm25_rank": 5,
+          "bm25_score": 25.011453167876123
+        }
+      ]
+    },
+    {
+      "id": "0208bf26ec357a803445290fa88a2e9e<::>6",
+      "query": "Human guinea pig",
+      "gold": [
+        {
+          "gold": "mtrag:clapnq:850931827_36728-38876-0-2146",
+          "dense_rank": 8,
+          "dense_score": 0.6121489405632019,
+          "bm25_rank": 24,
+          "bm25_score": 19.914935527659562
+        }
+      ]
+    },
+    {
+      "id": "6a738cc02c5aa0b74319acd0e8a809dd<::>5",
+      "query": "What are some good ideas or options for preserving fertility in a child who has not yet reached puberty and is about to undergo chemotherapy?",
+      "gold": [
+        {
+          "gold": "mtrag:clapnq:801197945_115-609-0-494",
+          "dense_rank": 775,
+          "dense_score": 0.425520122051239,
+          "bm25_rank": 53761,
+          "bm25_score": 6.17740799088657
+        },
+        {
+          "gold": "mtrag:clapnq:850112639_9476-9634-0-158",
+          "dense_rank": 605,
+          "dense_score": 0.4318288266658783,
+          "bm25_rank": 122750,
+          "bm25_score": 2.7811535018952567
+        }
+      ]
+    },
+    {
+      "id": "3a07680acfb0f951fc3210a8c1a282c9<::>4",
+      "query": "How did HIV originate, and where did the first cases start?",
+      "gold": [
+        {
+          "gold": "mtrag:clapnq:813042265_12741-13865-0-1122",
+          "dense_rank": 2,
+          "dense_score": 0.6280549764633179,
+          "bm25_rank": 13,
+          "bm25_score": 14.214021372670672
+        },
+        {
+          "gold": "mtrag:clapnq:813042265_15691-17303-0-1609",
+          "dense_rank": 5,
+          "dense_score": 0.5812323689460754,
+          "bm25_rank": 325,
+          "bm25_score": 9.404765826730248
+        },
+        {
+          "gold": "mtrag:clapnq:836809496_57770-58065-0-293",
+          "dense_rank": 4,
+          "dense_score": 0.5989462733268738,
+          "bm25_rank": 11,
+          "bm25_score": 14.626498413481578
+        },
+        {
+          "gold": "mtrag:clapnq:836809496_58066-58887-0-821",
+          "dense_rank": 3,
+          "dense_score": 0.6010487079620361,
+          "bm25_rank": 17,
+          "bm25_score": 13.668308292617745
+        },
+        {
+          "gold": "mtrag:clapnq:842051688_79266-79850-0-584",
+          "dense_rank": 24,
+          "dense_score": 0.5142674446105957,
+          "bm25_rank": 117,
+          "bm25_score": 10.695637506516595
+        },
+        {
+          "gold": "mtrag:clapnq:855533381_48892-49455-0-563",
+          "dense_rank": 1,
+          "dense_score": 0.6938485503196716,
+          "bm25_rank": 10,
+          "bm25_score": 14.836344203004051
+        }
+      ]
+    },
+    {
+      "id": "29e3ec96a6e8916a0326ebcdab78abae<::>4",
+      "query": "Who was Vallabhbhai Patel in relation to the Quit India Movement?",
+      "gold": [
+        {
+          "gold": "mtrag:clapnq:849690897_1310-1973-0-663",
+          "dense_rank": 2,
+          "dense_score": 0.6523183584213257,
+          "bm25_rank": 5,
+          "bm25_score": 32.321878660012494
+        },
+        {
+          "gold": "mtrag:clapnq:849690897_23126-24574-0-1448",
+          "dense_rank": 5,
+          "dense_score": 0.6360593438148499,
+          "bm25_rank": 4,
+          "bm25_score": 33.554092119213486
+        }
+      ]
+    },
+    {
+      "id": "d5f0e7023ab90fe0240b7fc46cf00c26<::>9",
+      "query": "The Hudson River is important for several reasons. It is a 315-mile river that flows from north to south primarily through eastern New York, originating in the Adirondack Mountains and emptying into the Atlantic Ocean at New York Harbor. Historically, it served as a crucial early trade route, and today it remains a major commercial waterway, particularly for the Port of New York and New Jersey. It is also significant for its role in the American Revolution, its scenic Hudson Valley, and its environmental and recreational value.",
+      "gold": [
+        {
+          "gold": "mtrag:clapnq:814479651_1775-2512-0-737",
+          "dense_rank": 1,
+          "dense_score": 0.8805208206176758,
+          "bm25_rank": 1,
+          "bm25_score": 91.97117006996197
+        },
+        {
+          "gold": "mtrag:clapnq:814479651_29614-30252-0-638",
+          "dense_rank": 36,
+          "dense_score": 0.6462940573692322,
+          "bm25_rank": 1079,
+          "bm25_score": 26.505523840065457
+        },
+        {
+          "gold": "mtrag:clapnq:855420636_2208-2769-0-561",
+          "dense_rank": 6,
+          "dense_score": 0.729387104511261,
+          "bm25_rank": 8,
+          "bm25_score": 51.55929875586932
+        }
+      ]
+    },
+    {
+      "id": "dd6b6ffd177f2b311abe676261279d2f<::>5",
+      "query": "How many teams are in the NFL playoffs?",
+      "gold": [
+        {
+          "gold": "mtrag:clapnq:832860310_25394-26168-0-774",
+          "dense_rank": 17,
+          "dense_score": 0.6705922484397888,
+          "bm25_rank": 20,
+          "bm25_score": 19.768126156030252
+        },
+        {
+          "gold": "mtrag:clapnq:832860310_28027-28822-0-795",
+          "dense_rank": 5,
+          "dense_score": 0.7228317856788635,
+          "bm25_rank": 10,
+          "bm25_score": 22.08710700483422
+        },
+        {
+          "gold": "mtrag:clapnq:832860310_2886-3341-0-455",
+          "dense_rank": 1,
+          "dense_score": 0.7684671878814697,
+          "bm25_rank": 6,
+          "bm25_score": 24.03485466126796
+        }
+      ]
+    },
+    {
+      "id": "33431330abb38298cc79b96b2f4fde2a<::>4",
+      "query": "Why did the Byzantine Empire fall?",
+      "gold": [
+        {
+          "gold": "mtrag:clapnq:865174736_5883-6118-0-235",
+          "dense_rank": 47,
+          "dense_score": 0.582810640335083,
+          "bm25_rank": 7,
+          "bm25_score": 20.2258594507638
+        },
+        {
+          "gold": "mtrag:clapnq:865174736_6119-6886-0-767",
+          "dense_rank": 14,
+          "dense_score": 0.6156606674194336,
+          "bm25_rank": 108,
+          "bm25_score": 13.822797386296834
+        },
+        {
+          "gold": "mtrag:clapnq:865174736_7030-7512-0-482",
+          "dense_rank": 20,
+          "dense_score": 0.6091861724853516,
+          "bm25_rank": 38,
+          "bm25_score": 16.1616850495437
+        }
+      ]
+    },
+    {
+      "id": "aea2634b0e5f1c2444550d31c41adc94<::>4",
+      "query": "What is the meaning of the glass being broken at a Jewish wedding?",
+      "gold": [
+        {
+          "gold": "mtrag:clapnq:866379367_6324-6973-0-649",
+          "dense_rank": 2,
+          "dense_score": 0.6928637027740479,
+          "bm25_rank": 8,
+          "bm25_score": 21.559268172403875
+        }
+      ]
+    },
+    {
+      "id": "5b9edac124aea30a2256705d27226d7f<::>3",
+      "query": "How many film adaptations of Romeo and Juliet exist?",
+      "gold": [
+        {
+          "gold": "mtrag:clapnq:806376271_1956-2855-0-899",
+          "dense_rank": 1,
+          "dense_score": 0.6917107701301575,
+          "bm25_rank": 11,
+          "bm25_score": 27.3899386470249
+        },
+        {
+          "gold": "mtrag:clapnq:806376271_55533-56132-0-595",
+          "dense_rank": 4,
+          "dense_score": 0.6420012712478638,
+          "bm25_rank": 3,
+          "bm25_score": 30.093983804946596
+        },
+        {
+          "gold": "mtrag:clapnq:806376271_58662-59259-0-595",
+          "dense_rank": 3,
+          "dense_score": 0.6787288784980774,
+          "bm25_rank": 7,
+          "bm25_score": 28.284003833063874
+        },
+        {
+          "gold": "mtrag:clapnq:806376271_61081-62730-0-1649",
+          "dense_rank": 2,
+          "dense_score": 0.6818922162055969,
+          "bm25_rank": 4,
+          "bm25_score": 29.03531177263539
+        }
+      ]
+    },
+    {
+      "id": "13a398b30067d58d179fa8cbc2592449<::>8",
+      "query": "North Carolina was one of the last states to secede from the Union, doing so on May 20, 1861, after the attack on Fort Sumter and President Lincoln's call for troops. Despite its reluctance, the state contributed more troops to the Confederate cause than any other Southern state, with roughly 125,000 men serving. North Carolina also saw significant military action, including the Battle of Bentonville in March 1865, which was the largest battle fought in the state and one of the last major Confederate offensives of the war. The state's port at Wilmington was a vital lifeline for the Confederacy, running blockades to supply goods until it fell to Union forces in early 1865. Additionally, the state was home to a notable Unionist sentiment in its western mountain regions, where many residents opposed secession and some even fought for the Union. The war left North Carolina economically devastated, and the state was readmitted to the Union in 1868 during Reconstruction.",
+      "gold": [
+        {
+          "gold": "mtrag:clapnq:842960242_29226-29717-0-491",
+          "dense_rank": 14,
+          "dense_score": 0.6868981122970581,
+          "bm25_rank": 25,
+          "bm25_score": 80.6566665567469
+        },
+        {
+          "gold": "mtrag:clapnq:842960242_29815-30429-0-614",
+          "dense_rank": 8,
+          "dense_score": 0.7098388671875,
+          "bm25_rank": 30,
+          "bm25_score": 78.22350079490658
+        },
+        {
+          "gold": "mtrag:clapnq:842960242_30430-31179-0-749",
+          "dense_rank": 1,
+          "dense_score": 0.814123272895813,
+          "bm25_rank": 1,
+          "bm25_score": 109.3018497449942
+        },
+        {
+          "gold": "mtrag:clapnq:842960242_9478-9960-0-482",
+          "dense_rank": 2,
+          "dense_score": 0.7962476015090942,
+          "bm25_rank": 4,
+          "bm25_score": 95.67211480078271
+        }
+      ]
+    },
+    {
+      "id": "79f0d0539d9ec0acbf90cb3388b30c17<::>3",
+      "query": "archaeological discoveries and colonialists",
+      "gold": [
+        {
+          "gold": "mtrag:clapnq:818823851_18203-19532-0-1329",
+          "dense_rank": 14,
+          "dense_score": 0.5503530502319336,
+          "bm25_rank": 1,
+          "bm25_score": 21.852999161436436
+        },
+        {
+          "gold": "mtrag:clapnq:837717284_3608-4247-0-639",
+          "dense_rank": 5,
+          "dense_score": 0.5661015510559082,
+          "bm25_rank": 3032,
+          "bm25_score": 0.4049776803319376
+        }
+      ]
+    },
+    {
+      "id": "95a0893567c7519c090ecbcdd14daccd<::>3",
+      "query": "The enemy the Great Wall was built to defend against varied by dynasty and region. In the north, the primary threats were nomadic and semi-nomadic steppe peoples, including the Xiongnu during the Qin and Han dynasties, the G\u00f6kt\u00fcrks during the Sui and Tang periods, the Khitan and Jurchen during the Song era, and the Mongols during the Ming dynasty. In the northeast, the wall also guarded against Jurchen and later Manchu forces. The specific enemy depended on the time period and which section of the wall was being constructed or reinforced.",
+      "gold": [
+        {
+          "gold": "mtrag:clapnq:801328598_15083-16504-0-1417",
+          "dense_rank": 2,
+          "dense_score": 0.7534425258636475,
+          "bm25_rank": 49,
+          "bm25_score": 43.815285716008184
+        },
+        {
+          "gold": "mtrag:clapnq:801328598_58653-59267-0-614",
+          "dense_rank": 3,
+          "dense_score": 0.7439222931861877,
+          "bm25_rank": 30,
+          "bm25_score": 49.218924112179685
+        },
+        {
+          "gold": "mtrag:clapnq:801328598_71797-72744-0-947",
+          "dense_rank": 14,
+          "dense_score": 0.6969246864318848,
+          "bm25_rank": 45,
+          "bm25_score": 44.493038011713814
+        },
+        {
+          "gold": "mtrag:clapnq:846282869_11575-12486-0-911",
+          "dense_rank": 24,
+          "dense_score": 0.6848066449165344,
+          "bm25_rank": 23,
+          "bm25_score": 51.29448125055168
+        },
+        {
+          "gold": "mtrag:clapnq:846282869_1580-2418-0-838",
+          "dense_rank": 4,
+          "dense_score": 0.7228360176086426,
+          "bm25_rank": 7,
+          "bm25_score": 67.025558657261
+        }
+      ]
+    },
+    {
+      "id": "0208bf26ec357a803445290fa88a2e9e<::>1",
+      "query": "Where do guinea pigs sleep in the wild?",
+      "gold": [
+        {
+          "gold": "mtrag:clapnq:850931827_11086-12414-0-1328",
+          "dense_rank": 2,
+          "dense_score": 0.6225034594535828,
+          "bm25_rank": 14,
+          "bm25_score": 22.24289035429781
+        }
+      ]
+    },
+    {
+      "id": "6a738cc02c5aa0b74319acd0e8a809dd<::>4",
+      "query": "What are the types and causes of infertility related to chemotherapy treatment before puberty, and does this still apply?",
+      "gold": [
+        {
+          "gold": "mtrag:clapnq:801197945_14330-14831-0-501",
+          "dense_rank": 123,
+          "dense_score": 0.46911323070526123,
+          "bm25_rank": 628,
+          "bm25_score": 11.790742301640684
+        },
+        {
+          "gold": "mtrag:clapnq:836413300_10980-12270-0-1290",
+          "dense_rank": 4,
+          "dense_score": 0.5657070875167847,
+          "bm25_rank": 2,
+          "bm25_score": 23.63639755013726
+        }
+      ]
+    },
+    {
+      "id": "3a07680acfb0f951fc3210a8c1a282c9<::>7",
+      "query": "Is there a vaccine for herpes, and how can herpes be prevented?",
+      "gold": [
+        {
+          "gold": "mtrag:clapnq:824547656_2905-3422-0-517",
+          "dense_rank": 1,
+          "dense_score": 0.6505846977233887,
+          "bm25_rank": 1,
+          "bm25_score": 27.08847680594023
+        },
+        {
+          "gold": "mtrag:clapnq:824547656_33603-33984-0-381",
+          "dense_rank": 2,
+          "dense_score": 0.6494478583335876,
+          "bm25_rank": 2,
+          "bm25_score": 25.89906040724309
+        }
+      ]
+    },
+    {
+      "id": "29e3ec96a6e8916a0326ebcdab78abae<::>6",
+      "query": "The Quit India Movement was officially non-violent, but it led to widespread violence in many parts of the country. The British responded with severe repression, including mass arrests, firing on crowds, and aerial bombing in some areas. The movement saw attacks on government buildings, railway lines, and telegraph posts, especially in places like Bihar, eastern Uttar Pradesh, and parts of Bengal. The British authorities used extreme force to suppress the uprising, and the movement was eventually crushed within a few months, though it marked a turning point in India's struggle for independence.",
+      "gold": [
+        {
+          "gold": "mtrag:clapnq:832941564_21119-21479-0-360",
+          "dense_rank": 1,
+          "dense_score": 0.8419756889343262,
+          "bm25_rank": 1,
+          "bm25_score": 74.17745916572005
+        },
+        {
+          "gold": "mtrag:clapnq:832941564_22793-23788-0-995",
+          "dense_rank": 4,
+          "dense_score": 0.7465037107467651,
+          "bm25_rank": 13,
+          "bm25_score": 43.93587227547642
+        },
+        {
+          "gold": "mtrag:clapnq:832941564_23848-24536-0-688",
+          "dense_rank": 2,
+          "dense_score": 0.8067901730537415,
+          "bm25_rank": 2,
+          "bm25_score": 58.892700288846925
+        }
+      ]
+    },
+    {
+      "id": "d5f0e7023ab90fe0240b7fc46cf00c26<::>3",
+      "query": "Are there any other important river systems in Maine besides the Penobscot River and its West Branch?",
+      "gold": [
+        {
+          "gold": "mtrag:clapnq:833737755_1909-2654-0-735",
+          "dense_rank": 13,
+          "dense_score": 0.556412398815155,
+          "bm25_rank": 11,
+          "bm25_score": 27.6451366345182
+        },
+        {
+          "gold": "mtrag:clapnq:833737755_6326-6797-0-471",
+          "dense_rank": 44,
+          "dense_score": 0.47898104786872864,
+          "bm25_rank": 44,
+          "bm25_score": 18.23620536589453
+        }
+      ]
+    },
+    {
+      "id": "4c86c8740c3d49e06b7aca9d308119fa<::>6",
+      "query": "How does IBM Cloud Kubernetes Service work, and why should I use it?",
+      "gold": [
+        {
+          "gold": "mtrag:cloud:ibmcld_05777-7-1924",
+          "dense_rank": 3,
+          "dense_score": 0.7745730876922607,
+          "bm25_rank": 148,
+          "bm25_score": 19.155860643463157
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_07578-373434-375500",
+          "dense_rank": 5,
+          "dense_score": 0.7575335502624512,
+          "bm25_rank": 2432,
+          "bm25_score": 12.279923793807571
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_16727-373408-375474",
+          "dense_rank": 6,
+          "dense_score": 0.7574944496154785,
+          "bm25_rank": 2433,
+          "bm25_score": 12.279923793807571
+        }
+      ]
+    },
+    {
+      "id": "1c041ce47a81941c26899fdf08bde961<::>2",
+      "query": "Query definition: What steps should I take to troubleshoot a non-working SELECT query, including checking access rights, specifying URIs, handling file formats, compression, delimiters, and header lines?",
+      "gold": [
+        {
+          "gold": "mtrag:cloud:ibmcld_00580-39512-41555",
+          "dense_rank": 808,
+          "dense_score": 0.5168405771255493,
+          "bm25_rank": 2358,
+          "bm25_score": 11.34614642023317
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_07086-7-2167",
+          "dense_rank": 1868,
+          "dense_score": 0.5018188953399658,
+          "bm25_rank": 4775,
+          "bm25_score": 9.651195841083592
+        }
+      ]
+    },
+    {
+      "id": "b4614daadceeecb400f7baf0aa48dcb8<::>7",
+      "query": "What are the limits on the number of phone numbers that can be used for phone interactions, and how can I add more phone numbers if needed?",
+      "gold": [
+        {
+          "gold": "mtrag:cloud:ibmcld_16287-7751-9832",
+          "dense_rank": 1,
+          "dense_score": 0.7075914144515991,
+          "bm25_rank": 1,
+          "bm25_score": 39.36968831878514
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_16287-9341-9853",
+          "dense_rank": 23,
+          "dense_score": 0.5953786373138428,
+          "bm25_rank": 524,
+          "bm25_score": 19.23836820499955
+        }
+      ]
+    },
+    {
+      "id": "747a810abfd6da4a9c37cdb74feec95e<::>3",
+      "query": "What are VPC clusters?",
+      "gold": [
+        {
+          "gold": "mtrag:cloud:ibmcld_05851-2919-4667",
+          "dense_rank": 6,
+          "dense_score": 0.6393983364105225,
+          "bm25_rank": 771,
+          "bm25_score": 6.98368043890214
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_06294-7-1823",
+          "dense_rank": 22,
+          "dense_score": 0.6184395551681519,
+          "bm25_rank": 312,
+          "bm25_score": 8.00103734618934
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_16098-7-1823",
+          "dense_rank": 23,
+          "dense_score": 0.6184395551681519,
+          "bm25_rank": 313,
+          "bm25_score": 8.00103734618934
+        }
+      ]
+    },
+    {
+      "id": "d5b1e735a040853ed361a3dfde1b8ef0<::>3",
+      "query": "Does IBM Cloudant support storing binary attachments (e.g., images or PDFs) alongside JSON documents, and if so, are there any size or format restrictions?",
+      "gold": [
+        {
+          "gold": "mtrag:cloud:ibmcld_00510-7123-9213",
+          "dense_rank": 4,
+          "dense_score": 0.7343264818191528,
+          "bm25_rank": 1,
+          "bm25_score": 50.72597515209144
+        }
+      ]
+    },
+    {
+      "id": "5815bb4a99e2a0d8a986348da4c49083<::>3",
+      "query": "Do both dynamic and static secrets rotate secrets?",
+      "gold": [
+        {
+          "gold": "mtrag:cloud:ibmcld_12384-4-1975",
+          "dense_rank": 5,
+          "dense_score": 0.5979685187339783,
+          "bm25_rank": 52,
+          "bm25_score": 14.307351566680756
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_12389-7-2298",
+          "dense_rank": 8,
+          "dense_score": 0.5884500741958618,
+          "bm25_rank": 26,
+          "bm25_score": 15.40935888774099
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_12467-1716-3849",
+          "dense_rank": 32,
+          "dense_score": 0.5527403354644775,
+          "bm25_rank": 6,
+          "bm25_score": 17.169105747208803
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_12498-8087-10171",
+          "dense_rank": 10,
+          "dense_score": 0.5831949710845947,
+          "bm25_rank": 1,
+          "bm25_score": 21.973932344135648
+        }
+      ]
+    },
+    {
+      "id": "674aa142d92a6b4262de254df0c3f7b2<::>3",
+      "query": "No specific browser is required to use Watson Assistant. It is a cloud-based service accessed through the IBM Cloud dashboard, which supports all modern, up-to-date web browsers such as Chrome, Firefox, Safari, and Edge. For the best experience, ensure your browser is updated to the latest version.",
+      "gold": [
+        {
+          "gold": "mtrag:cloud:ibmcld_03006-7541-9354",
+          "dense_rank": 12,
+          "dense_score": 0.736046314239502,
+          "bm25_rank": 4,
+          "bm25_score": 57.03823769413177
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_16270-0-505",
+          "dense_rank": 1,
+          "dense_score": 0.8595970869064331,
+          "bm25_rank": 46,
+          "bm25_score": 34.77377960621275
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_16449-0-679",
+          "dense_rank": 63,
+          "dense_score": 0.7002472877502441,
+          "bm25_rank": 8,
+          "bm25_score": 53.18572295332
+        }
+      ]
+    },
+    {
+      "id": "927077bd895f0c292618f4a34789bef3<::>1",
+      "query": "What are the differences between version 6.15.0 and version 6.14.0?",
+      "gold": [
+        {
+          "gold": "mtrag:cloud:ibmcld_16034-7-1778",
+          "dense_rank": 2,
+          "dense_score": 0.5935720205307007,
+          "bm25_rank": 1,
+          "bm25_score": 25.49403289177581
+        }
+      ]
+    },
+    {
+      "id": "1dcbbeb35d4d25ba1ffb787a9f2080e2<::>5",
+      "query": "What is the retention time for conversation logs?",
+      "gold": [
+        {
+          "gold": "mtrag:cloud:ibmcld_03036-7-2061",
+          "dense_rank": 174,
+          "dense_score": 0.5238463878631592,
+          "bm25_rank": 351,
+          "bm25_score": 9.698782382391324
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_03363-4413-6535",
+          "dense_rank": 93,
+          "dense_score": 0.5378644466400146,
+          "bm25_rank": 16,
+          "bm25_score": 14.324201124950918
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_03363-6198-7991",
+          "dense_rank": 32,
+          "dense_score": 0.5611876845359802,
+          "bm25_rank": 4,
+          "bm25_score": 15.721267557893508
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_05088-35529-37138",
+          "dense_rank": 480,
+          "dense_score": 0.5016946196556091,
+          "bm25_rank": 139,
+          "bm25_score": 11.737289760636921
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_09950-6051-7138",
+          "dense_rank": 609,
+          "dense_score": 0.4951213002204895,
+          "bm25_rank": 44,
+          "bm25_score": 13.320667641321537
+        }
+      ]
+    },
+    {
+      "id": "adf9b1f61c73d715809bc7b37ac02724<::>5",
+      "query": "How can I update my billing plan and view my current usage details?",
+      "gold": [
+        {
+          "gold": "mtrag:cloud:ibmcld_03727-4-1792",
+          "dense_rank": 18,
+          "dense_score": 0.6394992470741272,
+          "bm25_rank": 1393,
+          "bm25_score": 12.326703684488873
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_03800-4-2250",
+          "dense_rank": 21,
+          "dense_score": 0.6374701857566833,
+          "bm25_rank": 41,
+          "bm25_score": 24.52159004003209
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_12809-7-1712",
+          "dense_rank": 190,
+          "dense_score": 0.5756538510322571,
+          "bm25_rank": 1940,
+          "bm25_score": 11.206987877656626
+        }
+      ]
+    },
+    {
+      "id": "4c86c8740c3d49e06b7aca9d308119fa<::>5",
+      "query": "What does the term \"Kubernetes\" mean in the context of IBM Cloud Kubernetes Service?",
+      "gold": [
+        {
+          "gold": "mtrag:cloud:ibmcld_05777-7-1924",
+          "dense_rank": 1,
+          "dense_score": 0.7515851855278015,
+          "bm25_rank": 138,
+          "bm25_score": 14.60201301199452
+        }
+      ]
+    },
+    {
+      "id": "1c041ce47a81941c26899fdf08bde961<::>7",
+      "query": "To create a schema or tables in a data lake environment, you typically use a query engine or catalog service that sits on top of your object storage. The general steps are:\n\n1. **Define the schema**: Specify the structure of your data, including column names, data types, and any partitioning or clustering keys. This is often done using SQL `CREATE SCHEMA` or `CREATE TABLE` statements.\n\n2. **Point to your data location**: In a data lake, tables are logical representations of files stored in object storage (e.g., CSV, Parquet, JSON). You must provide the storage path (e.g., `s3://bucket/path/`) and the file format.\n\n3. **Use a catalog or metastore**: Tools like AWS Glue, Hive Metastore, or IBM Watson Query require you to register the schema in a central catalog so that queries can resolve the table definitions.\n\n4. **Execute the creation command**: For example, in SQL you might run:\n   ```sql\n   CREATE TABLE my_schema.my_table (\n     id INT,\n     name STRING,\n     date DATE\n   )\n   STORED AS PARQUET\n   LOCATION 's3://my-bucket/data/';\n   ```\n\n5. **Validate and query**: After creation, run a simple `SELECT` to confirm the table is accessible and returns expected results.\n\nIf you are using a specific service like IBM Watson Query, you would use its API or UI to register the data source and define the schema before querying.",
+      "gold": [
+        {
+          "gold": "mtrag:cloud:ibmcld_09947-0-947",
+          "dense_rank": 52,
+          "dense_score": 0.6818593144416809,
+          "bm25_rank": 11374,
+          "bm25_score": 37.060507399723946
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_16612-0-523",
+          "dense_rank": 4,
+          "dense_score": 0.749109148979187,
+          "bm25_rank": 2956,
+          "bm25_score": 45.89049562899825
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_16613-0-1165",
+          "dense_rank": 8,
+          "dense_score": 0.722503662109375,
+          "bm25_rank": 277,
+          "bm25_score": 61.37814259631962
+        }
+      ]
+    },
+    {
+      "id": "b4614daadceeecb400f7baf0aa48dcb8<::>4",
+      "query": "What is the customization ID in the context of using the WebSocket API for speech recognition?",
+      "gold": [
+        {
+          "gold": "mtrag:cloud:ibmcld_13352-2748-4496",
+          "dense_rank": 760,
+          "dense_score": 0.5439120531082153,
+          "bm25_rank": 3258,
+          "bm25_score": 8.192387955483797
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_13386-1713-3820",
+          "dense_rank": 93,
+          "dense_score": 0.6016454100608826,
+          "bm25_rank": 6811,
+          "bm25_score": 6.692654652864582
+        }
+      ]
+    },
+    {
+      "id": "747a810abfd6da4a9c37cdb74feec95e<::>6",
+      "query": "What is the charge for using a Virtual Private Cloud (VPC) in IBM Cloud?",
+      "gold": [
+        {
+          "gold": "mtrag:cloud:ibmcld_04031-1609-3779",
+          "dense_rank": 3,
+          "dense_score": 0.7332466840744019,
+          "bm25_rank": 411,
+          "bm25_score": 15.160618445046666
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_04031-7-2093",
+          "dense_rank": 31,
+          "dense_score": 0.696931004524231,
+          "bm25_rank": 2626,
+          "bm25_score": 11.321646610179203
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_12170-1498-3591",
+          "dense_rank": 10,
+          "dense_score": 0.7155492305755615,
+          "bm25_rank": 311,
+          "bm25_score": 15.619645101292384
+        }
+      ]
+    },
+    {
+      "id": "d5b1e735a040853ed361a3dfde1b8ef0<::>6",
+      "query": "How do I get started with IBM Cloudant, and do I find it through the IBM Cloud catalog?",
+      "gold": [
+        {
+          "gold": "mtrag:cloud:ibmcld_00547-7-1654",
+          "dense_rank": 2,
+          "dense_score": 0.7695764899253845,
+          "bm25_rank": 39,
+          "bm25_score": 22.32307183991843
+        }
+      ]
+    },
+    {
+      "id": "5815bb4a99e2a0d8a986348da4c49083<::>5",
+      "query": "Can I track my users with IAM credentials in IBM Cloud Secrets Manager?",
+      "gold": [
+        {
+          "gold": "mtrag:cloud:ibmcld_00033-4979-5757",
+          "dense_rank": 1310,
+          "dense_score": 0.5997236371040344,
+          "bm25_rank": 165,
+          "bm25_score": 20.150250931542327
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_02392-7-2321",
+          "dense_rank": 703,
+          "dense_score": 0.6153177618980408,
+          "bm25_rank": 730,
+          "bm25_score": 15.692617384541785
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_03443-7-2321",
+          "dense_rank": 704,
+          "dense_score": 0.6153177618980408,
+          "bm25_rank": 731,
+          "bm25_score": 15.692617384541785
+        }
+      ]
+    },
+    {
+      "id": "674aa142d92a6b4262de254df0c3f7b2<::>4",
+      "query": "What are some example words or phrases that Watson Assistant's emotion analysis can detect as indicating disgust?",
+      "gold": [
+        {
+          "gold": "mtrag:cloud:ibmcld_07140-17709-19868",
+          "dense_rank": 169,
+          "dense_score": 0.532748818397522,
+          "bm25_rank": 42,
+          "bm25_score": 24.089250168142442
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_13074-15255-17243",
+          "dense_rank": 79,
+          "dense_score": 0.5569563508033752,
+          "bm25_rank": 2,
+          "bm25_score": 48.45918302613831
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_13074-16820-18514",
+          "dense_rank": 2,
+          "dense_score": 0.6111934185028076,
+          "bm25_rank": 1,
+          "bm25_score": 53.66419487395616
+        }
+      ]
+    },
+    {
+      "id": "927077bd895f0c292618f4a34789bef3<::>4",
+      "query": "Can I use the scheduling functionality to schedule a status change to obsolete in a month and to deprecated in two months?",
+      "gold": [
+        {
+          "gold": "mtrag:cloud:ibmcld_15507-6657-8493",
+          "dense_rank": 12,
+          "dense_score": 0.6744896173477173,
+          "bm25_rank": 105,
+          "bm25_score": 17.394250306806388
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_15545-195860-197138",
+          "dense_rank": 59,
+          "dense_score": 0.5695579648017883,
+          "bm25_rank": 2424,
+          "bm25_score": 9.217852993352704
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_15558-195912-197190",
+          "dense_rank": 60,
+          "dense_score": 0.5695579648017883,
+          "bm25_rank": 2425,
+          "bm25_score": 9.217852993352704
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_15646-25256-26940",
+          "dense_rank": 9,
+          "dense_score": 0.6886225938796997,
+          "bm25_rank": 10,
+          "bm25_score": 32.67756525847535
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_15647-25269-26966",
+          "dense_rank": 10,
+          "dense_score": 0.6850003600120544,
+          "bm25_rank": 11,
+          "bm25_score": 32.611467577337564
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_16082-195756-197034",
+          "dense_rank": 61,
+          "dense_score": 0.5695579648017883,
+          "bm25_rank": 2426,
+          "bm25_score": 9.217852993352704
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_16092-195812-197090",
+          "dense_rank": 62,
+          "dense_score": 0.5695579648017883,
+          "bm25_rank": 2427,
+          "bm25_score": 9.217852993352704
+        }
+      ]
+    },
+    {
+      "id": "1dcbbeb35d4d25ba1ffb787a9f2080e2<::>3",
+      "query": "How do I create a user ID to find a specific conversation?",
+      "gold": [
+        {
+          "gold": "mtrag:cloud:ibmcld_11472-1559-3073",
+          "dense_rank": 1350,
+          "dense_score": 0.5348358154296875,
+          "bm25_rank": 1016,
+          "bm25_score": 11.642842340653024
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_11474-5244-7072",
+          "dense_rank": 775,
+          "dense_score": 0.5458353757858276,
+          "bm25_rank": 3480,
+          "bm25_score": 8.754562856772875
+        }
+      ]
+    },
+    {
+      "id": "adf9b1f61c73d715809bc7b37ac02724<::>10",
+      "query": "You might not be able to apply a feature code because you don't have the required access in the account, or the code has expired. To successfully apply a feature code, you must have an Editor role or higher on all account management services. If the expired code needs to be reissued, you would need to contact the person who provided the code for help with reissuing a new one.",
+      "gold": [
+        {
+          "gold": "mtrag:cloud:ibmcld_03709-0-1479",
+          "dense_rank": 1,
+          "dense_score": 0.81465083360672,
+          "bm25_rank": 2,
+          "bm25_score": 107.81753865405277
+        }
+      ]
+    },
+    {
+      "id": "4c86c8740c3d49e06b7aca9d308119fa<::>7",
+      "query": "What options and access controls should I configure to secure my IBM Cloud Kubernetes Service cluster?",
+      "gold": [
+        {
+          "gold": "mtrag:cloud:ibmcld_07578-380995-382843",
+          "dense_rank": 2,
+          "dense_score": 0.7716331481933594,
+          "bm25_rank": 3,
+          "bm25_score": 33.05845740830969
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_16727-380969-382817",
+          "dense_rank": 3,
+          "dense_score": 0.7716331481933594,
+          "bm25_rank": 4,
+          "bm25_score": 33.05845740830969
+        }
+      ]
+    },
+    {
+      "id": "1c041ce47a81941c26899fdf08bde961<::>6",
+      "query": "What is a data lake, and how does it relate to querying and managing data storage?",
+      "gold": [
+        {
+          "gold": "mtrag:cloud:ibmcld_09984-0-1283",
+          "dense_rank": 4,
+          "dense_score": 0.6703302264213562,
+          "bm25_rank": 17,
+          "bm25_score": 20.10806154423416
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_16728-6533-8457",
+          "dense_rank": 1,
+          "dense_score": 0.7636842727661133,
+          "bm25_rank": 79,
+          "bm25_score": 16.625371643010425
+        }
+      ]
+    },
+    {
+      "id": "b4614daadceeecb400f7baf0aa48dcb8<::>3",
+      "query": "How can I use the WebSocket API?",
+      "gold": [
+        {
+          "gold": "mtrag:cloud:ibmcld_13297-4312-5935",
+          "dense_rank": 1,
+          "dense_score": 0.7111508250236511,
+          "bm25_rank": 279,
+          "bm25_score": 10.193865096442654
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_13361-1589-2935",
+          "dense_rank": 12,
+          "dense_score": 0.6482163667678833,
+          "bm25_rank": 136,
+          "bm25_score": 11.127722371648122
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_13455-7-1568",
+          "dense_rank": 2,
+          "dense_score": 0.6915211081504822,
+          "bm25_rank": 11,
+          "bm25_score": 14.03453056954206
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_13790-7-1700",
+          "dense_rank": 9,
+          "dense_score": 0.6542901992797852,
+          "bm25_rank": 12,
+          "bm25_score": 14.008601716443362
+        }
+      ]
+    },
+    {
+      "id": "747a810abfd6da4a9c37cdb74feec95e<::>2",
+      "query": "What are worker nodes in the context of building a client application with dialog nodes?",
+      "gold": [
+        {
+          "gold": "mtrag:cloud:ibmcld_06063-18145-20200",
+          "dense_rank": 589,
+          "dense_score": 0.523440957069397,
+          "bm25_rank": 955,
+          "bm25_score": 12.732037777401732
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_06079-10297-12436",
+          "dense_rank": 3,
+          "dense_score": 0.6163009405136108,
+          "bm25_rank": 782,
+          "bm25_score": 13.151025341819299
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_10510-17837-19983",
+          "dense_rank": 134,
+          "dense_score": 0.557614803314209,
+          "bm25_rank": 771,
+          "bm25_score": 13.181356082135075
+        }
+      ]
+    },
+    {
+      "id": "d5b1e735a040853ed361a3dfde1b8ef0<::>9",
+      "query": "You can find the official IBM Cloudant Python SDK on PyPI and GitHub:\n\n- **PyPI package**: `ibmcloudant` \u2014 install with `pip install ibmcloudant`\n- **GitHub repository**: [IBM/cloudant-python-sdk](https://github.com/IBM/cloudant-python-sdk) \u2014 includes full API reference, examples, and migration guides from the older `cloudant` library.\n\nFor quick start, the SDK documentation shows how to authenticate with an API key and use methods like `post_document` and `get_document`.",
+      "gold": [
+        {
+          "gold": "mtrag:cloud:ibmcld_00462-1307-2903",
+          "dense_rank": 1,
+          "dense_score": 0.839934766292572,
+          "bm25_rank": 2,
+          "bm25_score": 86.77558245167421
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_00462-7-1647",
+          "dense_rank": 52,
+          "dense_score": 0.7278944253921509,
+          "bm25_rank": 1,
+          "bm25_score": 88.06469276389586
+        }
+      ]
+    },
+    {
+      "id": "5815bb4a99e2a0d8a986348da4c49083<::>8",
+      "query": "What is the Hive metastore client, and how does it relate to Spark in the context of IBM Analytics Engine?",
+      "gold": [
+        {
+          "gold": "mtrag:cloud:ibmcld_13481-5443-6857",
+          "dense_rank": 10,
+          "dense_score": 0.6424867510795593,
+          "bm25_rank": 19,
+          "bm25_score": 38.684354754214425
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_13481-6212-7871",
+          "dense_rank": 1,
+          "dense_score": 0.7181299924850464,
+          "bm25_rank": 10,
+          "bm25_score": 44.047325375591925
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_16608-0-2142",
+          "dense_rank": 74,
+          "dense_score": 0.5502128601074219,
+          "bm25_rank": 29,
+          "bm25_score": 34.32695148150321
+        }
+      ]
+    },
+    {
+      "id": "d4d8edb3e0c456d11033b14b28e99470<::>4",
+      "query": "What are the pros and cons of using a balance transfer credit card to consolidate and pay off debt, and how does it compare to a traditional debt consolidation loan?",
+      "gold": [
+        {
+          "gold": "mtrag:fiqa:113822-0-1248",
+          "dense_rank": 1,
+          "dense_score": 0.7655995488166809,
+          "bm25_rank": 24,
+          "bm25_score": 29.744476457187666
+        },
+        {
+          "gold": "mtrag:fiqa:263647-0-790",
+          "dense_rank": 27,
+          "dense_score": 0.6773961782455444,
+          "bm25_rank": 124,
+          "bm25_score": 24.393224483595073
+        },
+        {
+          "gold": "mtrag:fiqa:274690-0-2103",
+          "dense_rank": 5,
+          "dense_score": 0.7148884534835815,
+          "bm25_rank": 2,
+          "bm25_score": 38.50880500594147
+        },
+        {
+          "gold": "mtrag:fiqa:361698-0-813",
+          "dense_rank": 22,
+          "dense_score": 0.6824936866760254,
+          "bm25_rank": 21,
+          "bm25_score": 29.91884385336627
+        },
+        {
+          "gold": "mtrag:fiqa:394298-0-923",
+          "dense_rank": 40,
+          "dense_score": 0.6628842353820801,
+          "bm25_rank": 37,
+          "bm25_score": 28.59961843028099
+        },
+        {
+          "gold": "mtrag:fiqa:543776-0-672",
+          "dense_rank": 34,
+          "dense_score": 0.6674164533615112,
+          "bm25_rank": 47,
+          "bm25_score": 27.706633401849373
+        },
+        {
+          "gold": "mtrag:fiqa:65537-0-541",
+          "dense_rank": 13,
+          "dense_score": 0.6944664120674133,
+          "bm25_rank": 15,
+          "bm25_score": 31.71833463796269
+        }
+      ]
+    },
+    {
+      "id": "e0f8a53d3ab93e7900633fc8fa40631e<::>3",
+      "query": "What is the average annual return of investment gurus like Benjamin Graham and Warren Buffett?",
+      "gold": [
+        {
+          "gold": "mtrag:fiqa:411084-0-851",
+          "dense_rank": 4,
+          "dense_score": 0.6170716881752014,
+          "bm25_rank": 51,
+          "bm25_score": 17.390809487418686
+        },
+        {
+          "gold": "mtrag:fiqa:557350-0-306",
+          "dense_rank": 3,
+          "dense_score": 0.6267757415771484,
+          "bm25_rank": 903,
+          "bm25_score": 8.43271824262496
+        }
+      ]
+    },
+    {
+      "id": "2b34f5e7861ca9b1b3eab65ad6d6b4b0<::>4",
+      "query": "Does Germany have a strong economy?",
+      "gold": [
+        {
+          "gold": "mtrag:fiqa:26182-1371-2398",
+          "dense_rank": 1,
+          "dense_score": 0.7136746644973755,
+          "bm25_rank": 3,
+          "bm25_score": 15.15837889292023
+        },
+        {
+          "gold": "mtrag:fiqa:43428-0-461",
+          "dense_rank": 2,
+          "dense_score": 0.6983022093772888,
+          "bm25_rank": 29,
+          "bm25_score": 10.48217471375193
+        },
+        {
+          "gold": "mtrag:fiqa:546589-0-710",
+          "dense_rank": 33,
+          "dense_score": 0.608151376247406,
+          "bm25_rank": 8,
+          "bm25_score": 13.546004189605299
+        }
+      ]
+    },
+    {
+      "id": "ca6f0197d2c0c4d6e3be090c3f8bf30f<::>1",
+      "query": "Pay off car loan entirely or leave $1 until the end of the loan period?",
+      "gold": [
+        {
+          "gold": "mtrag:fiqa:230970-0-514",
+          "dense_rank": 6,
+          "dense_score": 0.719821035861969,
+          "bm25_rank": 234,
+          "bm25_score": 13.88979918963704
+        },
+        {
+          "gold": "mtrag:fiqa:495595-0-690",
+          "dense_rank": 17,
+          "dense_score": 0.6953724026679993,
+          "bm25_rank": 58,
+          "bm25_score": 16.732278726849977
+        },
+        {
+          "gold": "mtrag:fiqa:51873-0-862",
+          "dense_rank": 11,
+          "dense_score": 0.7107372283935547,
+          "bm25_rank": 81,
+          "bm25_score": 16.03791285619195
+        }
+      ]
+    },
+    {
+      "id": "4fb9958d3e2694c9076e696f5ac9628e<::>6",
+      "query": "Can I take out a loan to open a small business?",
+      "gold": [
+        {
+          "gold": "mtrag:fiqa:229436-0-362",
+          "dense_rank": 62,
+          "dense_score": 0.6009359955787659,
+          "bm25_rank": 1231,
+          "bm25_score": 7.9898226312419975
+        },
+        {
+          "gold": "mtrag:fiqa:282291-0-259",
+          "dense_rank": 9,
+          "dense_score": 0.6439180374145508,
+          "bm25_rank": 8049,
+          "bm25_score": 4.953239562911907
+        },
+        {
+          "gold": "mtrag:fiqa:365963-0-208",
+          "dense_rank": 19,
+          "dense_score": 0.6280167102813721,
+          "bm25_rank": 383,
+          "bm25_score": 9.687693401933476
+        },
+        {
+          "gold": "mtrag:fiqa:513580-0-340",
+          "dense_rank": 26,
+          "dense_score": 0.6239076852798462,
+          "bm25_rank": 71,
+          "bm25_score": 11.540131946568382
+        },
+        {
+          "gold": "mtrag:fiqa:553955-0-334",
+          "dense_rank": 104,
+          "dense_score": 0.5900555849075317,
+          "bm25_rank": 6,
+          "bm25_score": 14.476303154123471
+        }
+      ]
+    },
+    {
+      "id": "7cb06b3f8068674fce61a11e9777f708<::>3",
+      "query": "It is better never to be a co-signer.",
+      "gold": [
+        {
+          "gold": "mtrag:fiqa:18257-0-1145",
+          "dense_rank": 2,
+          "dense_score": 0.6600387096405029,
+          "bm25_rank": 266,
+          "bm25_score": 6.320943595887145
+        },
+        {
+          "gold": "mtrag:fiqa:369075-0-653",
+          "dense_rank": 9,
+          "dense_score": 0.6171396374702454,
+          "bm25_rank": 14671,
+          "bm25_score": 2.317871597414034
+        },
+        {
+          "gold": "mtrag:fiqa:447983-0-881",
+          "dense_rank": 12,
+          "dense_score": 0.606907844543457,
+          "bm25_rank": 3969,
+          "bm25_score": 4.369658264646515
+        }
+      ]
+    },
+    {
+      "id": "4da5a7f42f3b2dc4d875dcfa2fcdefef<::>1",
+      "query": "What is an \"international credit report\" for French nationals?",
+      "gold": [
+        {
+          "gold": "mtrag:fiqa:486729-0-1123",
+          "dense_rank": 8,
+          "dense_score": 0.5219184756278992,
+          "bm25_rank": 1,
+          "bm25_score": 16.24080159177751
+        }
+      ]
+    },
+    {
+      "id": "f1121a39d8a9e36eaef4c2367bd43532<::>1",
+      "query": "What approaches are there for pricing a small business?",
+      "gold": [
+        {
+          "gold": "mtrag:fiqa:76695-0-2025",
+          "dense_rank": 1,
+          "dense_score": 0.6563534736633301,
+          "bm25_rank": 1037,
+          "bm25_score": 7.027066052900649
+        },
+        {
+          "gold": "mtrag:fiqa:88201-0-284",
+          "dense_rank": 8,
+          "dense_score": 0.6008694767951965,
+          "bm25_rank": 266,
+          "bm25_score": 8.89384502116959
+        }
+      ]
+    },
+    {
+      "id": "4751cd8210b4adb8bce5cbc3fe913096<::>3",
+      "query": "How are common and preferred stock dividends taxed, and how does the tax treatment differ between the two?",
+      "gold": [
+        {
+          "gold": "mtrag:fiqa:189028-0-251",
+          "dense_rank": 337,
+          "dense_score": 0.550609290599823,
+          "bm25_rank": 3399,
+          "bm25_score": 7.170210086384548
+        },
+        {
+          "gold": "mtrag:fiqa:259341-0-516",
+          "dense_rank": 198,
+          "dense_score": 0.5687795877456665,
+          "bm25_rank": 581,
+          "bm25_score": 11.383175590366774
+        },
+        {
+          "gold": "mtrag:fiqa:412965-0-776",
+          "dense_rank": 44,
+          "dense_score": 0.6105043888092041,
+          "bm25_rank": 58,
+          "bm25_score": 17.694150778471908
+        }
+      ]
+    },
+    {
+      "id": "2f94b6fb4c6f941decd0609eb126610b<::>2",
+      "query": "How is a 401k account taxed?",
+      "gold": [
+        {
+          "gold": "mtrag:fiqa:253391-0-168",
+          "dense_rank": 40,
+          "dense_score": 0.6540218591690063,
+          "bm25_rank": null,
+          "bm25_score": 0.0
+        },
+        {
+          "gold": "mtrag:fiqa:383472-0-727",
+          "dense_rank": 27,
+          "dense_score": 0.6701208353042603,
+          "bm25_rank": 35,
+          "bm25_score": 11.55086220683347
+        },
+        {
+          "gold": "mtrag:fiqa:597574-0-1950",
+          "dense_rank": 7,
+          "dense_score": 0.692504346370697,
+          "bm25_rank": 4969,
+          "bm25_score": 3.2658658144702906
+        }
+      ]
+    },
+    {
+      "id": "d4d8edb3e0c456d11033b14b28e99470<::>5",
+      "query": "Are there any special programs or forgiveness options available specifically for medical debt, such as government assistance, nonprofit relief programs, or hospital charity care, that could help me reduce or eliminate what I owe?",
+      "gold": [
+        {
+          "gold": "mtrag:fiqa:464477-0-1175",
+          "dense_rank": 1,
+          "dense_score": 0.6801111102104187,
+          "bm25_rank": 628,
+          "bm25_score": 15.934666109709163
+        },
+        {
+          "gold": "mtrag:fiqa:576082-0-1260",
+          "dense_rank": 40,
+          "dense_score": 0.593991756439209,
+          "bm25_rank": 389,
+          "bm25_score": 16.993954817301002
+        }
+      ]
+    },
+    {
+      "id": "e0f8a53d3ab93e7900633fc8fa40631e<::>1",
+      "query": "Is following an investment guru a good idea?",
+      "gold": [
+        {
+          "gold": "mtrag:fiqa:311117-0-651",
+          "dense_rank": 2,
+          "dense_score": 0.6242400407791138,
+          "bm25_rank": 628,
+          "bm25_score": 7.001193254989257
+        },
+        {
+          "gold": "mtrag:fiqa:444261-0-404",
+          "dense_rank": 999,
+          "dense_score": 0.5153040885925293,
+          "bm25_rank": 200,
+          "bm25_score": 8.301921091269996
+        },
+        {
+          "gold": "mtrag:fiqa:565827-0-421",
+          "dense_rank": 8,
+          "dense_score": 0.6092907190322876,
+          "bm25_rank": 476,
+          "bm25_score": 7.298966202013363
+        }
+      ]
+    },
+    {
+      "id": "2b34f5e7861ca9b1b3eab65ad6d6b4b0<::>3",
+      "query": "What evidence is there that France has a large and growing budget deficit and a large public debt?",
+      "gold": [
+        {
+          "gold": "mtrag:fiqa:371672-0-1243",
+          "dense_rank": 14,
+          "dense_score": 0.5762282013893127,
+          "bm25_rank": 1,
+          "bm25_score": 27.907663591190584
+        }
+      ]
+    },
+    {
+      "id": "ca6f0197d2c0c4d6e3be090c3f8bf30f<::>3",
+      "query": "FICO score vs. Credit Karma score: what is the difference, and are they the same?",
+      "gold": [
+        {
+          "gold": "mtrag:fiqa:132743-0-2056",
+          "dense_rank": 8,
+          "dense_score": 0.6216381788253784,
+          "bm25_rank": 7,
+          "bm25_score": 25.77861575121494
+        },
+        {
+          "gold": "mtrag:fiqa:368484-0-831",
+          "dense_rank": 7,
+          "dense_score": 0.6259433031082153,
+          "bm25_rank": 8,
+          "bm25_score": 25.56989023579871
+        },
+        {
+          "gold": "mtrag:fiqa:564436-0-1153",
+          "dense_rank": 41,
+          "dense_score": 0.5605323314666748,
+          "bm25_rank": 36,
+          "bm25_score": 20.72260958890788
+        }
+      ]
+    },
+    {
+      "id": "4fb9958d3e2694c9076e696f5ac9628e<::>1",
+      "query": "Using credit card points to pay for tax deductible business expenses",
+      "gold": [
+        {
+          "gold": "mtrag:fiqa:245447-0-2055",
+          "dense_rank": 2,
+          "dense_score": 0.7397350668907166,
+          "bm25_rank": 2,
+          "bm25_score": 25.823893594093242
+        }
+      ]
+    },
+    {
+      "id": "7cb06b3f8068674fce61a11e9777f708<::>4",
+      "query": "In the US, does having a loan with a cosigner affect your credit rating or credit score?",
+      "gold": [
+        {
+          "gold": "mtrag:fiqa:235135-0-674",
+          "dense_rank": 199,
+          "dense_score": 0.5642392039299011,
+          "bm25_rank": 7,
+          "bm25_score": 23.700045950437413
+        },
+        {
+          "gold": "mtrag:fiqa:272890-0-1727",
+          "dense_rank": 82,
+          "dense_score": 0.5939539670944214,
+          "bm25_rank": 107,
+          "bm25_score": 17.667602683074364
+        },
+        {
+          "gold": "mtrag:fiqa:307411-0-353",
+          "dense_rank": 660,
+          "dense_score": 0.5252243876457214,
+          "bm25_rank": 2141,
+          "bm25_score": 8.856992147308898
+        },
+        {
+          "gold": "mtrag:fiqa:30913-0-1570",
+          "dense_rank": 221,
+          "dense_score": 0.5602187514305115,
+          "bm25_rank": 265,
+          "bm25_score": 15.261295001641699
+        },
+        {
+          "gold": "mtrag:fiqa:371162-0-339",
+          "dense_rank": 469,
+          "dense_score": 0.5367661714553833,
+          "bm25_rank": 159,
+          "bm25_score": 16.753944954676314
+        }
+      ]
+    },
+    {
+      "id": "4da5a7f42f3b2dc4d875dcfa2fcdefef<::>3",
+      "query": "What factors would negatively affect my credit report in the United States?",
+      "gold": [
+        {
+          "gold": "mtrag:fiqa:113167-0-2188",
+          "dense_rank": 894,
+          "dense_score": 0.5400276184082031,
+          "bm25_rank": 1525,
+          "bm25_score": 7.741219365931272
+        },
+        {
+          "gold": "mtrag:fiqa:188406-0-584",
+          "dense_rank": 8,
+          "dense_score": 0.6721238493919373,
+          "bm25_rank": 5,
+          "bm25_score": 19.673084612095224
+        },
+        {
+          "gold": "mtrag:fiqa:2460-0-671",
+          "dense_rank": 7,
+          "dense_score": 0.6751605272293091,
+          "bm25_rank": 71,
+          "bm25_score": 14.378543123076952
+        },
+        {
+          "gold": "mtrag:fiqa:44223-0-689",
+          "dense_rank": 31,
+          "dense_score": 0.6326853036880493,
+          "bm25_rank": 230,
+          "bm25_score": 12.037958623790704
+        },
+        {
+          "gold": "mtrag:fiqa:578184-0-213",
+          "dense_rank": 16,
+          "dense_score": 0.6547014713287354,
+          "bm25_rank": 453,
+          "bm25_score": 10.744583301690945
+        }
+      ]
+    },
+    {
+      "id": "f1121a39d8a9e36eaef4c2367bd43532<::>6",
+      "query": "What are the basic benefits that a company typically provides to its employees in addition to salary?",
+      "gold": [
+        {
+          "gold": "mtrag:fiqa:306533-0-556",
+          "dense_rank": 1,
+          "dense_score": 0.6871930360794067,
+          "bm25_rank": 91,
+          "bm25_score": 14.021043989961068
+        },
+        {
+          "gold": "mtrag:fiqa:50260-0-330",
+          "dense_rank": 13,
+          "dense_score": 0.6255694627761841,
+          "bm25_rank": 490,
+          "bm25_score": 10.994699196220823
+        },
+        {
+          "gold": "mtrag:fiqa:515651-0-519",
+          "dense_rank": 7,
+          "dense_score": 0.6383330821990967,
+          "bm25_rank": 70,
+          "bm25_score": 14.462349176969855
+        }
+      ]
+    },
+    {
+      "id": "4751cd8210b4adb8bce5cbc3fe913096<::>6",
+      "query": "If you sell stocks held in a trust at a loss, the trust can generally use that capital loss to offset capital gains within the same tax year. If losses exceed gains, the trust may deduct up to $3,000 against other ordinary income (for the trust, not the beneficiary), and any remaining loss carries forward to future years. However, if the trust distributes the loss or the stock to a beneficiary, special rules (like the \"carryover basis\" or \"loss disallowance\" rules) may apply, and the loss might not be usable by the beneficiary. For a grantor trust, the loss typically flows through to your personal return, subject to the same $3,000 annual limit. Always consult a CPA or tax attorney for trust-specific loss harvesting.",
+      "gold": [
+        {
+          "gold": "mtrag:fiqa:217781-0-1081",
+          "dense_rank": 19,
+          "dense_score": 0.6922687292098999,
+          "bm25_rank": 2,
+          "bm25_score": 75.33892675846144
+        },
+        {
+          "gold": "mtrag:fiqa:536610-0-1752",
+          "dense_rank": 1247,
+          "dense_score": 0.5829383134841919,
+          "bm25_rank": 314,
+          "bm25_score": 38.99314815811798
+        },
+        {
+          "gold": "mtrag:fiqa:596518-0-1424",
+          "dense_rank": 799,
+          "dense_score": 0.5965036153793335,
+          "bm25_rank": 440,
+          "bm25_score": 36.887470198126174
+        },
+        {
+          "gold": "mtrag:fiqa:61518-0-1478",
+          "dense_rank": 491,
+          "dense_score": 0.6100622415542603,
+          "bm25_rank": 62,
+          "bm25_score": 51.794856892853275
+        }
+      ]
+    },
+    {
+      "id": "2f94b6fb4c6f941decd0609eb126610b<::>1",
+      "query": "How do I balance my 401(k)?",
+      "gold": [
+        {
+          "gold": "mtrag:fiqa:530703-0-1045",
+          "dense_rank": 44,
+          "dense_score": 0.6299368143081665,
+          "bm25_rank": 30338,
+          "bm25_score": 1.0902468256958122
+        },
+        {
+          "gold": "mtrag:fiqa:570117-0-935",
+          "dense_rank": 21,
+          "dense_score": 0.6436799764633179,
+          "bm25_rank": null,
+          "bm25_score": 0.0
+        }
+      ]
+    },
+    {
+      "id": "d4d8edb3e0c456d11033b14b28e99470<::>7",
+      "query": "If a deceased relative left assets, you could really use them, but you are asking whether you can use those assets to pay off your own existing debt or whether you should use them to buy a house while the housing market is rising, given that you currently have a lot of debt.",
+      "gold": [
+        {
+          "gold": "mtrag:fiqa:102155-0-477",
+          "dense_rank": 13,
+          "dense_score": 0.6613624691963196,
+          "bm25_rank": 165,
+          "bm25_score": 27.1658866184405
+        },
+        {
+          "gold": "mtrag:fiqa:205865-0-1070",
+          "dense_rank": 35,
+          "dense_score": 0.6441540122032166,
+          "bm25_rank": 86,
+          "bm25_score": 28.763563306415538
+        },
+        {
+          "gold": "mtrag:fiqa:264029-0-562",
+          "dense_rank": 344,
+          "dense_score": 0.6020142436027527,
+          "bm25_rank": 53,
+          "bm25_score": 30.31458928076245
+        },
+        {
+          "gold": "mtrag:fiqa:395152-0-1845",
+          "dense_rank": 1910,
+          "dense_score": 0.5587387084960938,
+          "bm25_rank": 664,
+          "bm25_score": 23.38508181079672
+        },
+        {
+          "gold": "mtrag:fiqa:565428-0-1872",
+          "dense_rank": 8,
+          "dense_score": 0.6652758121490479,
+          "bm25_rank": 675,
+          "bm25_score": 23.346388897790504
+        },
+        {
+          "gold": "mtrag:fiqa:569056-0-982",
+          "dense_rank": 614,
+          "dense_score": 0.58848637342453,
+          "bm25_rank": 1634,
+          "bm25_score": 20.73415296218938
+        }
+      ]
+    },
+    {
+      "id": "e0f8a53d3ab93e7900633fc8fa40631e<::>8",
+      "query": "What is the maximum amount you can accumulate in a 401(k)?",
+      "gold": [
+        {
+          "gold": "mtrag:fiqa:159921-0-222",
+          "dense_rank": 49,
+          "dense_score": 0.5846307873725891,
+          "bm25_rank": 4061,
+          "bm25_score": 5.005019652347156
+        },
+        {
+          "gold": "mtrag:fiqa:17166-0-1508",
+          "dense_rank": 3,
+          "dense_score": 0.6493138074874878,
+          "bm25_rank": 1,
+          "bm25_score": 26.683178568159764
+        },
+        {
+          "gold": "mtrag:fiqa:441632-0-459",
+          "dense_rank": 15,
+          "dense_score": 0.6151139736175537,
+          "bm25_rank": 63,
+          "bm25_score": 18.34869244869083
+        }
+      ]
+    },
+    {
+      "id": "2b34f5e7861ca9b1b3eab65ad6d6b4b0<::>8",
+      "query": "If Germany stops bailing out the other EU member states, those countries would likely face immediate sovereign debt crises, potentially leading to defaults. Without German financial backing, they would struggle to refinance their debts, which could force them to leave the Eurozone or trigger a broader collapse of the single currency. Additionally, Germany's own economy would suffer from reduced export demand and financial instability across the region, though it might avoid taking on further debt. The exact outcome would depend on whether alternative funding sources or political agreements emerge, but the risk of a disorderly breakup would increase significantly.",
+      "gold": [
+        {
+          "gold": "mtrag:fiqa:110628-0-1025",
+          "dense_rank": 10,
+          "dense_score": 0.7184030413627625,
+          "bm25_rank": 47,
+          "bm25_score": 36.90859720918058
+        },
+        {
+          "gold": "mtrag:fiqa:371672-0-1243",
+          "dense_rank": 1,
+          "dense_score": 0.7698728442192078,
+          "bm25_rank": 133,
+          "bm25_score": 32.60843538305651
+        }
+      ]
+    },
+    {
+      "id": "ca6f0197d2c0c4d6e3be090c3f8bf30f<::>4",
+      "query": "How is the FICO score calculated versus the VantageScore calculated, or how is the credit score you see on Credit Karma calculated?",
+      "gold": [
+        {
+          "gold": "mtrag:fiqa:188406-0-584",
+          "dense_rank": 9,
+          "dense_score": 0.6171787977218628,
+          "bm25_rank": 103,
+          "bm25_score": 16.184568234233783
+        },
+        {
+          "gold": "mtrag:fiqa:54322-0-2320",
+          "dense_rank": 1,
+          "dense_score": 0.6825327277183533,
+          "bm25_rank": 1,
+          "bm25_score": 38.03470219913983
+        }
+      ]
+    },
+    {
+      "id": "62a5aee8a497bee6fc467df13bf23cfc<::>6",
+      "query": "Groundwater contamination refers to the presence of harmful substances in groundwater, such as household cleaners, flea powders, garden pesticides, paints, varnishes, motor oil, and antifreeze, which seep into the ground through improper disposal.",
+      "gold": [
+        {
+          "gold": "mtrag:govt:d7fa2708b828254f-3391-5603",
+          "dense_rank": 36,
+          "dense_score": 0.5342304706573486,
+          "bm25_rank": 2249,
+          "bm25_score": 11.495705500726517
+        },
+        {
+          "gold": "mtrag:govt:d7fa2708b828254f-5127-7288",
+          "dense_rank": 79,
+          "dense_score": 0.5164405703544617,
+          "bm25_rank": 1994,
+          "bm25_score": 11.830612131553737
+        }
+      ]
+    },
+    {
+      "id": "5b2404d71f9ff7edabddb3b1a8b329e7<::>4",
+      "query": "Which state experiences the highest number of wildfires?",
+      "gold": [
+        {
+          "gold": "mtrag:govt:2806a7d8f0775d28-14422-16441",
+          "dense_rank": 3,
+          "dense_score": 0.6007416248321533,
+          "bm25_rank": 141,
+          "bm25_score": 10.283621465237486
+        },
+        {
+          "gold": "mtrag:govt:35b1d4a5ce1b0313-1421-3591",
+          "dense_rank": 2,
+          "dense_score": 0.6226566433906555,
+          "bm25_rank": 143,
+          "bm25_score": 10.276358756233622
+        }
+      ]
+    },
+    {
+      "id": "5503c6e98c54d4901332d0f1c6030bd9<::>1",
+      "query": "What are the primary attributes and functionalities of the MOXIE instrument?",
+      "gold": [
+        {
+          "gold": "mtrag:govt:eb89f1b8e630dca6-11249-13070",
+          "dense_rank": 5,
+          "dense_score": 0.5382143259048462,
+          "bm25_rank": 8,
+          "bm25_score": 16.547294919292764
+        },
+        {
+          "gold": "mtrag:govt:eb89f1b8e630dca6-2-1656",
+          "dense_rank": 3,
+          "dense_score": 0.5686876773834229,
+          "bm25_rank": 1,
+          "bm25_score": 22.76103309861718
+        },
+        {
+          "gold": "mtrag:govt:eb89f1b8e630dca6-2585-4611",
+          "dense_rank": 4,
+          "dense_score": 0.5555242300033569,
+          "bm25_rank": 5,
+          "bm25_score": 18.69486086689394
+        },
+        {
+          "gold": "mtrag:govt:eb89f1b8e630dca6-5670-7525",
+          "dense_rank": 8,
+          "dense_score": 0.5254566073417664,
+          "bm25_rank": 3,
+          "bm25_score": 20.329645752271077
+        },
+        {
+          "gold": "mtrag:govt:eb89f1b8e630dca6-9947-11907",
+          "dense_rank": 1,
+          "dense_score": 0.6139620542526245,
+          "bm25_rank": 4,
+          "bm25_score": 20.00149031059966
+        }
+      ]
+    },
+    {
+      "id": "ccdfb6b6f98c55047ae81b705104dbd6<::>5",
+      "query": "What are the scientific objectives and mission goals of NASA's Deep Impact mission regarding its study of comet 9P/Tempel 1, and what specific spacecraft subsystems and instruments were used to achieve these objectives?",
+      "gold": [
+        {
+          "gold": "mtrag:govt:a38987d211c62a61-7578-9316",
+          "dense_rank": 10,
+          "dense_score": 0.6088870763778687,
+          "bm25_rank": 6,
+          "bm25_score": 55.604064415804984
+        },
+        {
+          "gold": "mtrag:govt:a38987d211c62a61-8916-10686",
+          "dense_rank": 84,
+          "dense_score": 0.5574355125427246,
+          "bm25_rank": 20,
+          "bm25_score": 43.40968396109449
+        }
+      ]
+    },
+    {
+      "id": "91715ec6ec7e9a11925e58e707b6626e<::>8",
+      "query": "Are there any safety requirements or regulations I need to know regarding boating in New York State?",
+      "gold": [
+        {
+          "gold": "mtrag:govt:cb37f6b17e37cc24-1686-3985",
+          "dense_rank": 54,
+          "dense_score": 0.6062712669372559,
+          "bm25_rank": 1172,
+          "bm25_score": 17.62178106822387
+        },
+        {
+          "gold": "mtrag:govt:cb37f6b17e37cc24-3510-5926",
+          "dense_rank": 75,
+          "dense_score": 0.5950860977172852,
+          "bm25_rank": 57,
+          "bm25_score": 24.650483538548233
+        },
+        {
+          "gold": "mtrag:govt:f44cbd98c81b4b40-1683-3742",
+          "dense_rank": 82,
+          "dense_score": 0.5923922657966614,
+          "bm25_rank": 1417,
+          "bm25_score": 17.106840482995885
+        }
+      ]
+    },
+    {
+      "id": "62888f39e748c217054ee3af08fb4bdd<::>2",
+      "query": "What are the regulations for motorcycle driving in New York?",
+      "gold": [
+        {
+          "gold": "mtrag:govt:06a755105ab16765-3121-4166",
+          "dense_rank": 491,
+          "dense_score": 0.47880423069000244,
+          "bm25_rank": 2906,
+          "bm25_score": 8.66694176446332
+        },
+        {
+          "gold": "mtrag:govt:21ab6c12926e35e3-1395-3346",
+          "dense_rank": 4,
+          "dense_score": 0.6504753828048706,
+          "bm25_rank": 9,
+          "bm25_score": 19.53447074418482
+        },
+        {
+          "gold": "mtrag:govt:21ab6c12926e35e3-2-1988",
+          "dense_rank": 1,
+          "dense_score": 0.6821739673614502,
+          "bm25_rank": 2,
+          "bm25_score": 22.245850456494413
+        }
+      ]
+    },
+    {
+      "id": "251e29286cef45d899d7889e94ae25d5<::>1",
+      "query": "Can you get free COVID-19 tests if you have Medi-Cal?",
+      "gold": [
+        {
+          "gold": "mtrag:govt:17a25b07af4a6429-2-1918",
+          "dense_rank": 6,
+          "dense_score": 0.5780304074287415,
+          "bm25_rank": 2,
+          "bm25_score": 29.358283426153562
+        }
+      ]
+    },
+    {
+      "id": "5e79e465134d923edf68580733a81c68<::>3",
+      "query": "What is the application process for a provisional instruction permit in California?",
+      "gold": [
+        {
+          "gold": "mtrag:govt:2946b6131be9cbab-3204-5180",
+          "dense_rank": 1,
+          "dense_score": 0.6918983459472656,
+          "bm25_rank": 2,
+          "bm25_score": 34.41632402485242
+        },
+        {
+          "gold": "mtrag:govt:2946b6131be9cbab-4797-6729",
+          "dense_rank": 3,
+          "dense_score": 0.6508281826972961,
+          "bm25_rank": 3,
+          "bm25_score": 30.668485872716023
+        }
+      ]
+    },
+    {
+      "id": "d44c3196b3d832f85160b5b4fbee1332<::>1",
+      "query": "What is the Web extension for federal government websites, and how is the security of such sites ensured?",
+      "gold": [
+        {
+          "gold": "mtrag:govt:a618f0371eb48adf-2-1800",
+          "dense_rank": 5,
+          "dense_score": 0.6355247497558594,
+          "bm25_rank": 93,
+          "bm25_score": 19.181850152320767
+        }
+      ]
+    },
+    {
+      "id": "0ef145e49938dfb9b6eefe781d21dca8<::>2",
+      "query": "How do I know if a government website is secure for sharing a child's sensitive information, specifically regarding child privacy protections?",
+      "gold": [
+        {
+          "gold": "mtrag:govt:519bf5e3d232bf9a-6956-9361",
+          "dense_rank": 20,
+          "dense_score": 0.6470421552658081,
+          "bm25_rank": 1097,
+          "bm25_score": 19.374275409760095
+        },
+        {
+          "gold": "mtrag:govt:7102224573bcb417-3555-5954",
+          "dense_rank": 9,
+          "dense_score": 0.659477710723877,
+          "bm25_rank": 697,
+          "bm25_score": 23.071654779824318
+        },
+        {
+          "gold": "mtrag:govt:a2fb394ccff09475-6973-9436",
+          "dense_rank": 171,
+          "dense_score": 0.600570559501648,
+          "bm25_rank": 2128,
+          "bm25_score": 15.908610338493293
+        }
+      ]
+    },
+    {
+      "id": "62a5aee8a497bee6fc467df13bf23cfc<::>3",
+      "query": "What is groundwater contamination?",
+      "gold": [
+        {
+          "gold": "mtrag:govt:8b076ccff5b50410-0-2279",
+          "dense_rank": 42,
+          "dense_score": 0.5037683844566345,
+          "bm25_rank": 605,
+          "bm25_score": 4.342791390894028
+        },
+        {
+          "gold": "mtrag:govt:b4521304b77788b6-2983-5131",
+          "dense_rank": 1,
+          "dense_score": 0.6401560306549072,
+          "bm25_rank": 3,
+          "bm25_score": 20.777269235145376
+        }
+      ]
+    },
+    {
+      "id": "5b2404d71f9ff7edabddb3b1a8b329e7<::>1",
+      "query": "What are the designated uses for sheltered rooms?",
+      "gold": [
+        {
+          "gold": "mtrag:govt:7d4d64e7f6aff125-3194-5132",
+          "dense_rank": 2,
+          "dense_score": 0.5656933188438416,
+          "bm25_rank": 5,
+          "bm25_score": 15.877996735695547
+        },
+        {
+          "gold": "mtrag:govt:c8db6e06ff46669e-50302-52227",
+          "dense_rank": 1,
+          "dense_score": 0.5825352668762207,
+          "bm25_rank": 8,
+          "bm25_score": 15.41374816242936
+        }
+      ]
+    },
+    {
+      "id": "5503c6e98c54d4901332d0f1c6030bd9<::>5",
+      "query": "What other instruments or experiments, besides MOXIE, have been sent to Mars in the past to produce oxygen or extract resources from the Martian environment?",
+      "gold": [
+        {
+          "gold": "mtrag:govt:b9a86475e2088940-26913-28632",
+          "dense_rank": 11,
+          "dense_score": 0.6277145147323608,
+          "bm25_rank": 12,
+          "bm25_score": 33.24021447796519
+        },
+        {
+          "gold": "mtrag:govt:c3983d1515263e63-2-2003",
+          "dense_rank": 47,
+          "dense_score": 0.5392738580703735,
+          "bm25_rank": 121,
+          "bm25_score": 20.52883729222171
+        },
+        {
+          "gold": "mtrag:govt:c9ffb07333c57d35-4113-6319",
+          "dense_rank": 12,
+          "dense_score": 0.5998715162277222,
+          "bm25_rank": 69,
+          "bm25_score": 22.735837890121214
+        },
+        {
+          "gold": "mtrag:govt:faa97cef1ed38238-21338-23680",
+          "dense_rank": 396,
+          "dense_score": 0.4981497526168823,
+          "bm25_rank": 960,
+          "bm25_score": 14.24832217542843
+        },
+        {
+          "gold": "mtrag:govt:faa97cef1ed38238-23183-25488",
+          "dense_rank": 175,
+          "dense_score": 0.5174194574356079,
+          "bm25_rank": 30,
+          "bm25_score": 27.065003597653643
+        }
+      ]
+    },
+    {
+      "id": "ccdfb6b6f98c55047ae81b705104dbd6<::>1",
+      "query": "What are the scientific objectives of NASA's Deep Impact Extended Mission?",
+      "gold": [
+        {
+          "gold": "mtrag:govt:a38987d211c62a61-5878-7995",
+          "dense_rank": 3,
+          "dense_score": 0.5823891162872314,
+          "bm25_rank": 3,
+          "bm25_score": 29.30192386911134
+        }
+      ]
+    },
+    {
+      "id": "91715ec6ec7e9a11925e58e707b6626e<::>1",
+      "query": "How can I obtain a replacement for my lost New York boating safety certificate?",
+      "gold": [
+        {
+          "gold": "mtrag:govt:fcbb1026145f7922-3175-5322",
+          "dense_rank": 4,
+          "dense_score": 0.6846249103546143,
+          "bm25_rank": 2,
+          "bm25_score": 55.74151593638778
+        },
+        {
+          "gold": "mtrag:govt:fcbb1026145f7922-4764-6943",
+          "dense_rank": 2,
+          "dense_score": 0.7150046825408936,
+          "bm25_rank": 5,
+          "bm25_score": 43.46996290287722
+        }
+      ]
+    },
+    {
+      "id": "62888f39e748c217054ee3af08fb4bdd<::>4",
+      "query": "OTS stands for the Governor's Traffic Safety Committee (GTSC). It is a state agency in New York that works to improve traffic safety and reduce crashes, injuries, and fatalities through education, enforcement, and public awareness campaigns.",
+      "gold": [
+        {
+          "gold": "mtrag:govt:c81b067e5e353f25-1651-3993",
+          "dense_rank": 8,
+          "dense_score": 0.7175003290176392,
+          "bm25_rank": 4,
+          "bm25_score": 66.6716165655626
+        },
+        {
+          "gold": "mtrag:govt:c81b067e5e353f25-2-2215",
+          "dense_rank": 6,
+          "dense_score": 0.723520040512085,
+          "bm25_rank": 28,
+          "bm25_score": 49.810112892517985
+        },
+        {
+          "gold": "mtrag:govt:c81b067e5e353f25-3369-5492",
+          "dense_rank": 7,
+          "dense_score": 0.7188532948493958,
+          "bm25_rank": 15,
+          "bm25_score": 56.615183896950995
+        }
+      ]
+    },
+    {
+      "id": "251e29286cef45d899d7889e94ae25d5<::>8",
+      "query": "COVID-19 vaccines work by teaching your immune system how to recognize and fight the virus that causes COVID-19. They do not contain the live virus, so they cannot give you the disease. Instead, they use a harmless piece of the virus's spike protein (or the genetic instructions to make it) to trigger an immune response. This prepares your body so that if you are later exposed to the real virus, your immune system can quickly recognize it and mount a defense, reducing your risk of severe illness, hospitalization, and death.",
+      "gold": [
+        {
+          "gold": "mtrag:govt:2251c4827c59360d-14377-15067",
+          "dense_rank": 1,
+          "dense_score": 0.8636195659637451,
+          "bm25_rank": 10,
+          "bm25_score": 83.57584507261993
+        },
+        {
+          "gold": "mtrag:govt:2251c4827c59360d-9487-11504",
+          "dense_rank": 5,
+          "dense_score": 0.8131507635116577,
+          "bm25_rank": 1,
+          "bm25_score": 157.29005193373027
+        }
+      ]
+    },
+    {
+      "id": "5e79e465134d923edf68580733a81c68<::>2",
+      "query": "What is the minimum age to obtain a learner's permit in California?",
+      "gold": [
+        {
+          "gold": "mtrag:govt:2946b6131be9cbab-3204-5180",
+          "dense_rank": 2,
+          "dense_score": 0.6903713941574097,
+          "bm25_rank": 2,
+          "bm25_score": 31.053642649510103
+        },
+        {
+          "gold": "mtrag:govt:2946b6131be9cbab-4797-6729",
+          "dense_rank": 1,
+          "dense_score": 0.6928982138633728,
+          "bm25_rank": 8,
+          "bm25_score": 22.611725224406275
+        }
+      ]
+    },
+    {
+      "id": "d44c3196b3d832f85160b5b4fbee1332<::>5",
+      "query": "What is the definition of \"personal information\" in the context of protecting it from identity theft?",
+      "gold": [
+        {
+          "gold": "mtrag:govt:22a8c50943dda969-4916-7497",
+          "dense_rank": 9,
+          "dense_score": 0.6490527391433716,
+          "bm25_rank": 169,
+          "bm25_score": 17.454703007811133
+        },
+        {
+          "gold": "mtrag:govt:4eadefd15b981784-1290-3848",
+          "dense_rank": 3,
+          "dense_score": 0.672221839427948,
+          "bm25_rank": 166,
+          "bm25_score": 17.562237096457856
+        },
+        {
+          "gold": "mtrag:govt:e7938c21a9f53428-1156-3768",
+          "dense_rank": 5,
+          "dense_score": 0.6701951026916504,
+          "bm25_rank": 150,
+          "bm25_score": 17.87298557596758
+        }
+      ]
+    },
+    {
+      "id": "0ef145e49938dfb9b6eefe781d21dca8<::>3",
+      "query": "What are the current rules and proposed changes for raising child privacy protections from under 13 to under 18 on government websites?",
+      "gold": [
+        {
+          "gold": "mtrag:govt:7102224573bcb417-3555-5954",
+          "dense_rank": 4,
+          "dense_score": 0.604385495185852,
+          "bm25_rank": 127,
+          "bm25_score": 20.071586160838372
+        }
+      ]
+    },
+    {
+      "id": "62a5aee8a497bee6fc467df13bf23cfc<::>2",
+      "query": "Can groundwater contamination be cleaned up?",
+      "gold": [
+        {
+          "gold": "mtrag:govt:b4521304b77788b6-2983-5131",
+          "dense_rank": 2,
+          "dense_score": 0.6522101163864136,
+          "bm25_rank": 3,
+          "bm25_score": 28.871660024478302
+        },
+        {
+          "gold": "mtrag:govt:b4521304b77788b6-4612-6743",
+          "dense_rank": 1,
+          "dense_score": 0.6919826865196228,
+          "bm25_rank": 2,
+          "bm25_score": 32.07899900984258
+        }
+      ]
+    },
+    {
+      "id": "5b2404d71f9ff7edabddb3b1a8b329e7<::>3",
+      "query": "What is the recommended duration and type of supplies to keep for earthquake preparedness?",
+      "gold": [
+        {
+          "gold": "mtrag:govt:7f851a7621a884ae-2-2292",
+          "dense_rank": 24,
+          "dense_score": 0.5484827756881714,
+          "bm25_rank": 60,
+          "bm25_score": 16.544720652936654
+        },
+        {
+          "gold": "mtrag:govt:8bb77f30210c5f4b-277-2698",
+          "dense_rank": 6,
+          "dense_score": 0.5932829976081848,
+          "bm25_rank": 6,
+          "bm25_score": 25.917305279812286
+        },
+        {
+          "gold": "mtrag:govt:8bb77f30210c5f4b-614-2843",
+          "dense_rank": 1,
+          "dense_score": 0.6416828632354736,
+          "bm25_rank": 9,
+          "bm25_score": 23.850852227045962
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "n": 100,
+  "groups": 42,
+  "score_pairs": 2718,
+  "all_stage_and_wire_replays_passed": true,
+  "paired_cluster_recall_delta_95": {
+    "dense20": [
+      -0.055319331724793454,
+      0.00362336777155975
+    ],
+    "ce_recall_mix": [
+      -0.02365079365079365,
+      0.019097222222222224
+    ]
+  },
+  "flash6": {
+    "planned": 6,
+    "paired": 5,
+    "capture_failures": 1,
+    "lost_call_count_bound": [
+      1,
+      2
+    ],
+    "recorded_calls": 5,
+    "fallbacks": 0,
+    "summary": {
+      "baseline": {
+        "recall": 0.3,
+        "mrr": 0.26666666666666666,
+        "ndcg": 0.2266753562651676
+      },
+      "flash": {
+        "recall": 0.3,
+        "mrr": 0.4,
+        "ndcg": 0.2773705614469083
+      }
+    },
+    "better": 0,
+    "worse": 0
+  }
+}
