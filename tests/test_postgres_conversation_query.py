@@ -284,6 +284,7 @@ def test_invocation_projection_keeps_admission_waiting_completion_and_delivery_s
     {},
     {"request_id": "request-one", "verified": True,
      "evaluation_trace": {"consumption": {"facts": [{"source_ref": "read-1"}]}}},
+    {"outcome": "failed", "code": "planning_invalid_provider_output"},
     {"verified": False, "response_id": "not-authoritative",
      "response": "not-authoritative", "outbound_event_id": "not-authoritative"},
 ])
@@ -296,10 +297,13 @@ def test_invocation_preserves_committed_public_payload_not_internal_metadata(
         verification={"internal_check": "not-a-public-field"},
     ))
     reader = PostgresConversationQueryService(query.pool)
-    result = reader.invocation_status(
+    view = reader.invocation_status(
         str(identity.invocation_key), tenant_id=str(identity.tenant_id),
         user_id=str(identity.user_id),
-    ).final_response
+    )
+    result = view.final_response
+    assert view.execution_status is (ExecutionStatus.FAILED if public_response.get("outcome") == "failed"
+                                    else ExecutionStatus.COMPLETED)
     for key, value in public_response.items():
         if key not in {"response_id", "response", "outbound_event_id"}:
             assert result[key] == value

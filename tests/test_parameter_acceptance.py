@@ -72,7 +72,8 @@ def test_new_selection_is_validated_before_local_transition_not_after_it():
     assert result.state_fingerprint == changed.fingerprint
     with pytest.raises(TurnPlanningError, match="stale or unauthorized"):
         RoutePolicy().accept(proposal(command), changed, registry, planning_state=changed)
-    with pytest.raises(TurnPlanningError, match="another conversation"):
+    from application.turn_planning import PlanningInvariantError
+    with pytest.raises(PlanningInvariantError, match="another conversation"):
         RoutePolicy().accept(proposal(command), changed, registry,
             planning_state=replace(state, user_id="different-user"))
 

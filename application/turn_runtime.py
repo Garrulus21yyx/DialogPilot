@@ -3,7 +3,7 @@ from __future__ import annotations
 from contextlib import nullcontext
 from langfuse import propagate_attributes
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import TypedDict
 
 from langgraph.graph import END, START, StateGraph
@@ -58,7 +58,7 @@ class TurnRuntimeResult:
 class TurnRuntime:
     """Coordinate durable turn phases without owning their domain semantics."""
 
-    version = "turn-runtime-v5"
+    version = "turn-runtime-v6-followup-boundary"
 
     def __init__(
         self,
@@ -78,15 +78,20 @@ class TurnRuntime:
 
     def _build_graph(self):
         builder = StateGraph(TurnGraphState)
-        builder.add_node("prepare_turn", self._prepare_turn)
-        builder.add_node("execute_work_plan", self._execute_work_plan)
-        builder.add_node("commit_turn_state", self._commit_turn_state)
-        builder.add_node("commit_progress", self._commit_progress)
-        builder.add_node("assemble_response", self._assemble_response)
+        for name, node in (
+            ("prepare_turn", self._prepare_turn),
+            ("execute_work_plan", self._execute_work_plan),
+            ("commit_turn_state", self._commit_turn_state),
+            ("commit_progress", self._commit_progress),
+            ("resolve_followup", self._resolve_followup),
+            ("assemble_response", self._assemble_response),
+        ):
+            builder.add_node(name, node)
         builder.add_edge(START, "prepare_turn")
         builder.add_edge("prepare_turn", "execute_work_plan")
         builder.add_edge("execute_work_plan", "commit_progress")
-        builder.add_edge("commit_progress", "assemble_response")
+        builder.add_edge("commit_progress", "resolve_followup")
+        builder.add_edge("resolve_followup", "assemble_response")
         builder.add_edge("assemble_response", "commit_turn_state")
         builder.add_edge("commit_turn_state", END)
         return builder.compile(checkpointer=self._checkpointer)
@@ -108,6 +113,9 @@ class TurnRuntime:
     async def _commit_progress(self, state: TurnGraphState):
         await self._manager.commit_progress(state["managed"])
         return {}
+
+    async def _resolve_followup(self, state: TurnGraphState):
+        return {"managed": await self._manager.resolve_followup(state["prepared"], state["managed"])}
 
     @property
     def supports_resume(self) -> bool:
@@ -163,6 +171,12 @@ class TurnRuntime:
         if board is None and not questions and not present_approval:
             return {"assembled": None}
         context = conversation_context_payload(state["prepared"].context)
+        if managed.diagnostics:
+            # Reply generation needs the outcome, not internal exception bodies.
+            context = {**(context or {}), "recovery_outcomes": [
+                {"stage": observation.stage, "status": observation.status.value,
+                 "code": observation.detail["code"]}
+                for observation in managed.diagnostics]}
         if pending_approval is not None and not present_approval:
             context = {**(context or {}), "retained_approval": {
                 "action_ref": pending_approval.action_ref,
@@ -180,6 +194,7 @@ class TurnRuntime:
             pending_approval=pending_approval if present_approval else None,
             requested_inputs=questions,
         )
+        assembled = replace(assembled, diagnostics=managed.diagnostics + assembled.diagnostics)
         if questions and not assembled.verified:
             raise InteractionAssemblyUnavailable(
                 retryable=assembled.retryable and self._checkpointer is not None,
@@ -215,7 +230,7 @@ class TurnRuntime:
                 prepared = snapshot.values.get("prepared")
                 completed = snapshot.values.get("managed") is not None and not snapshot.next
                 if not completed and (
-                    snapshot.values.get("runtime_version") != self.version
+                    snapshot.values.get("runtime_version") not in {self.version, "turn-runtime-v5"}
                     or (prepared is not None and prepared.artifact_version != "prepared-turn-v2")
                 ):
                     raise TurnCheckpointVersionError("in-flight checkpoint predates durable state decisions")

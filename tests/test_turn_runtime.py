@@ -91,6 +91,9 @@ class _CountingManager:
     async def commit_progress(self, result):
         await self.manager.commit_progress(result)
 
+    async def resolve_followup(self, prepared, result):
+        return await self.manager.resolve_followup(prepared, result)
+
 
 class _FailOncePrepareManager(_CountingManager):
     async def prepare(self, *args, **kwargs):

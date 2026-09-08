@@ -5,10 +5,13 @@ from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 
 from application.admission_contract import ExecutionPointer
+from application.chat_contracts import Failed
 from application.target_run import (
     TargetRunClaimLost,
     TargetRunItem,
     TargetRunTerminal,
+    failure_payload,
+    outcome_from_terminal,
 )
 from core.identity import InvocationKey, WorkflowRunId
 
@@ -169,6 +172,23 @@ class PostgresTargetRunStore:
         if row is None:
             raise TargetRunClaimLost("target run lease is not owned")
 
+    def select_failure(self, item: TargetRunItem, *, worker_id: str, failure: Failed) -> None:
+        if failure.retryable:
+            raise ValueError("only a terminal failure can be selected")
+        payload = failure_payload(failure)
+        with self.pool.transaction() as connection:
+            updated = connection.execute(f"""
+                UPDATE {_LEDGER}
+                SET selected_failure=%s, last_error_code=%s,
+                    attempt_failures=attempt_failures || %s::jsonb
+                WHERE workflow_run_id=%s AND claimed_by=%s AND attempts=%s
+                  AND acknowledged_at IS NULL AND lease_until > transaction_timestamp()
+                  AND (selected_failure IS NULL OR selected_failure=%s)
+            """, (Jsonb(payload), failure.code[:200], Jsonb({str(item.attempt): payload}),
+                str(item.run_id), worker_id, item.attempt, Jsonb(payload))).rowcount
+        if updated != 1:
+            raise TargetRunClaimLost("target run failure selection conflicts")
+
     def complete(
         self,
         item: TargetRunItem,
@@ -185,12 +205,15 @@ class PostgresTargetRunStore:
             updated = connection.execute(f"""
                 UPDATE {_LEDGER}
                 SET acknowledged_at=transaction_timestamp(), outcome_type=%s,
-                    terminal_ref=%s, claimed_by=NULL, lease_until=NULL
+                    terminal_ref=%s, claimed_by=NULL, lease_until=NULL,
+                    attempt_failures=attempt_failures || %s::jsonb
                 WHERE workflow_run_id=%s AND claimed_by=%s AND attempts=%s
                   AND acknowledged_at IS NULL
                   AND lease_until > transaction_timestamp()
             """, (
-                terminal.status, Jsonb(payload), str(item.run_id),
+                terminal.status, Jsonb(payload),
+                Jsonb({str(item.attempt): dict(terminal.payload)} if terminal.status == "FAILED" else {}),
+                str(item.run_id),
                 worker_id, item.attempt,
             )).rowcount
             if updated != 1:
@@ -211,7 +234,7 @@ class PostgresTargetRunStore:
         item: TargetRunItem,
         *,
         worker_id: str,
-        error_code: str,
+        failure: Failed,
         retry_after_seconds: int = 0,
     ) -> None:
         with self.pool.transaction() as connection:
@@ -219,11 +242,14 @@ class PostgresTargetRunStore:
                 UPDATE {_LEDGER}
                 SET claimed_by=NULL, lease_until=NULL,
                     available_at=transaction_timestamp() + (%s * interval '1 second'),
-                    last_error_code=%s
+                    last_error_code=%s,
+                    attempt_failures=attempt_failures || %s::jsonb
                 WHERE workflow_run_id=%s AND claimed_by=%s AND attempts=%s
                   AND acknowledged_at IS NULL
+                  AND lease_until > transaction_timestamp()
             """, (
-                max(0, retry_after_seconds), error_code[:200],
+                max(0, retry_after_seconds), failure.code[:200],
+                Jsonb({str(item.attempt): failure_payload(failure)}),
                 str(item.run_id), worker_id, item.attempt,
             )).rowcount
         if updated != 1:
@@ -252,7 +278,7 @@ class PostgresTargetRunStore:
             with connection.cursor(row_factory=dict_row) as cursor:
                 row = cursor.execute(f"""
                     SELECT workflow_run_id, claimed_by, lease_until, attempts,
-                           outcome_type, last_error_code, acknowledged_at
+                           outcome_type, last_error_code, acknowledged_at, attempt_failures
                     FROM {_LEDGER} WHERE workflow_run_id=%s
                 """, (run_id,)).fetchone()
         if row is None:
@@ -268,6 +294,14 @@ class PostgresTargetRunStore:
             "execution_status": status,
             "attempt": int(row["attempts"]),
             "reason_code": row["last_error_code"],
+            # This projection is exposed by /invocations; full exception chains
+            # remain in the diagnostic record, not the customer response.
+            "attempt_failures": {attempt: {
+                "code": failure["code"], "retryable": failure["retryable"],
+                "stages": [{"stage": stage["stage"], "status": stage["status"],
+                    "code": stage["detail"].get("code")}
+                    for stage in failure.get("stages", ())],
+            } for attempt, failure in dict(row["attempt_failures"]).items()},
         }
 
     @staticmethod
@@ -288,4 +322,7 @@ class PostgresTargetRunStore:
             },
             deletion_epoch=int(row["source_deletion_epoch"]),
             attempt=int(row["attempts"]), claimed_by=row["claimed_by"],
+            selected_failure=(outcome_from_terminal(TargetRunTerminal(
+                "FAILED", dict(row["selected_failure"]), str(row["invocation_key"])))
+                if row["selected_failure"] is not None else None),
         )

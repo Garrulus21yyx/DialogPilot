@@ -161,6 +161,26 @@ def _compile(*commands):
     return TurnPlanCompiler().compile(accepted, state, registry, _invocation())
 
 
+@pytest.mark.parametrize("disposition", list(ProposalDisposition))
+def test_nonresolved_dispositions_preserve_failure_versus_user_question(disposition):
+    from application.turn_planning import PlanningUnavailable
+    if disposition is ProposalDisposition.RESOLVED:
+        with pytest.raises(TurnPlanningError):
+            TurnProposal(disposition, (), "EMPTY_PLAN")
+        return
+    state, registry = _state(), _registry()
+    accepted = RoutePolicy().accept(TurnProposal(disposition, (), "OBSERVED"), state, registry)
+    if disposition in {ProposalDisposition.PROVIDER_FAILURE, ProposalDisposition.INVALID_PROVIDER_OUTPUT}:
+        with pytest.raises(PlanningUnavailable) as error:
+            TurnPlanCompiler().compile(accepted, state, registry, _invocation())
+        assert error.value.disposition is disposition
+    else:
+        plan = TurnPlanCompiler().compile(accepted, state, registry, _invocation())
+        assert plan.work is None
+        assert plan.route.mode is (RouteMode.CLARIFY if disposition is ProposalDisposition.CLARIFY
+                                   else RouteMode.OUT_OF_SCOPE)
+
+
 def test_direct_tool_is_the_shortest_path_and_registry_owns_its_risk():
     plan = _compile(CommandProposal(
         "order-1",
@@ -391,7 +411,8 @@ def test_compiler_rejects_state_changed_after_policy_acceptance():
         1,
     ))
 
-    with pytest.raises(TurnPlanningError, match="stale conversation state"):
+    from application.turn_planning import PlanningInvariantError
+    with pytest.raises(PlanningInvariantError, match="stale conversation state"):
         TurnPlanCompiler().compile(accepted, changed, registry, _invocation())
 
 

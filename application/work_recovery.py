@@ -1,10 +1,29 @@
 """Conversation-level decisions about stopped domain work, not tool retries."""
 from __future__ import annotations
 
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
 
 from application.agent_result import AgentResultStatus, MissingInputSpec
+from application.chat_contracts import StageObservation
 from application.work_item import ControlMode
+
+
+@dataclass(frozen=True)
+class RecoveryResult:
+    """A recovery decision is not an execution outcome or permission to retry."""
+
+    questions: tuple[MissingInputSpec, ...]
+    observation: StageObservation
+    retryable: bool = False
+
+
+class RecoveryDecisionUnavailable(RuntimeError):
+    """The follow-up node did not decide; completed business work stays saved."""
+
+    def __init__(self, result: RecoveryResult):
+        super().__init__(str(result.observation.detail["code"]))
+        self.retryable = result.retryable
+        self.diagnostics = (result.observation,)
 
 
 def planning_continuations(state, resolved_items=()):

@@ -6,6 +6,7 @@ from application.conversation_context import conversation_context_payload as _co
 from dataclasses import replace
 import logging
 from typing import Mapping, Protocol
+from langgraph.errors import GraphBubbleUp
 
 from core.provider_context_budget import ProviderContextBudgetExceeded
 from core.framework_models import ModelInvocationError
@@ -157,7 +158,7 @@ class ConversationPlanningProvider(Protocol):
 class ConversationAgent:
     """Plan one deferred turn, then compile only Registry-backed commands."""
 
-    version = "conversation-agent-v8-recovery-evidence"
+    version = "conversation-agent-v9-recovery-outcomes"
 
     def __init__(
         self,
@@ -179,19 +180,47 @@ class ConversationAgent:
 
     async def recover(self, plan, board, *, current_message, conversation_context=None):
         """One bounded hand-back after domain exhaustion; never authorize/retry writes."""
-        from application.work_recovery import recovery_candidates, recovery_payload, recovery_questions
+        from jsonschema.exceptions import ValidationError
+        from application.chat_contracts import StageObservation, StageStatus
+        from application.work_recovery import RecoveryResult, recovery_candidates, recovery_payload, recovery_questions
+        from core.tracing import exception_chain
+
+        def failed(code, error):
+            observation = StageObservation("conversation_recovery", StageStatus.FAILED, {
+                "code": code, "exception_chain": exception_chain(error),
+            })
+            logger.error("Conversation recovery failed: %s", observation.to_dict())
+            retryable = (error.retryable if isinstance(error, ModelInvocationError)
+                         else isinstance(error, (ConnectionError, TimeoutError)))
+            return RecoveryResult((), observation, retryable=retryable)
+
         candidates = recovery_candidates(plan, board)
         if not candidates:
-            return ()
+            return RecoveryResult((), StageObservation("conversation_recovery", StageStatus.SKIPPED,
+                {"code": "NO_RECOVERY_CANDIDATES"}))
         payload = recovery_payload(plan, board, candidates, current_message=current_message,
             conversation_context=conversation_context)
         try:
             fitted = self._context_budget.fit_payload(payload)
             raw = await self._provider.recover(fitted.payload)
-            return recovery_questions(raw, candidates)
-        except Exception:
-            logger.exception("Conversation recovery unavailable; retaining original work outcomes")
-            return ()
+        except GraphBubbleUp:
+            raise
+        except (ModelContextBudgetExceeded, ProviderContextBudgetExceeded) as exc:
+            return failed("RECOVERY_CONTEXT_BUDGET_EXCEEDED", exc)
+        except ConversationProviderOutputError as exc:
+            return failed("RECOVERY_PROVIDER_OUTPUT_INVALID", exc)
+        except (ModelInvocationError, ConnectionError, TimeoutError) as exc:
+            return failed("RECOVERY_PROVIDER_FAILURE", exc)
+        except Exception as exc:
+            return failed("RECOVERY_UNEXPECTED_FAILURE", exc)
+        try:
+            questions = recovery_questions(raw, candidates)
+        except (ValidationError, ValueError, TypeError, KeyError) as exc:
+            return failed("RECOVERY_DECISION_INVALID", exc)
+        return RecoveryResult(questions, StageObservation("conversation_recovery", StageStatus.OK,
+            {"code": "RECOVERY_DECIDED", "decisions": [
+                {"work_item_id": decision["work_item_id"], "action": decision["action"]}
+                for decision in raw["decisions"]]}))
 
     async def plan(
         self, observations, state, deterministic, registry, turn_context=None,
@@ -318,6 +347,8 @@ class ConversationAgent:
                 trim_oldest_paths=("conversation_context.recent_messages",),
             )
             raw = await self._provider.plan(budgeted.payload)
+        except GraphBubbleUp:
+            raise
         except (ModelContextBudgetExceeded, ProviderContextBudgetExceeded):
             return TurnProposal(
                 ProposalDisposition.PROVIDER_FAILURE, (),

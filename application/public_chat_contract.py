@@ -94,5 +94,6 @@ def project_chat_outcome(outcome: ChatOutcome) -> HttpChatProjection:
             "safe_message": outcome.safe_message,
             "client_action": "retry_same_request" if outcome.retryable else "contact_support",
             "retry_hint": "reuse_request_id" if outcome.retryable else "do_not_blind_retry",
+            **({"response_id": outcome.response_id} if outcome.response_id else {}),
         })
     raise TypeError(f"unsupported ChatOutcome v1: {type(outcome).__name__}")

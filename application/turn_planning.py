@@ -27,7 +27,20 @@ from core.identity import InvocationIdentity
 
 
 class TurnPlanningError(ValueError):
-    pass
+    """A proposed command cannot be accepted under the current contract."""
+
+
+class PlanningInvariantError(RuntimeError):
+    """Trusted planning inputs disagree; changing model output cannot repair them."""
+
+
+class PlanningUnavailable(RuntimeError):
+    """Understanding failed; there is no user clarification or executable plan."""
+
+    def __init__(self, disposition, reason_code):
+        super().__init__(reason_code)
+        self.disposition = disposition
+        self.reason_code = reason_code
 
 
 class CommandKind(str, Enum):
@@ -202,7 +215,7 @@ class RoutePolicy:
         planning_state = planning_state or state
         if (planning_state.tenant_id, planning_state.user_id, planning_state.conversation_id) != (
                 state.tenant_id, state.user_id, state.conversation_id):
-            raise TurnPlanningError("planning snapshot belongs to another conversation")
+            raise PlanningInvariantError("planning snapshot belongs to another conversation")
         # Envelopes originate in persisted waits/grants or the resolver's accepted
         # typed input, never in the proposal being checked.
         saved_items = (
@@ -213,7 +226,7 @@ class RoutePolicy:
         for item in saved_items:
             key = (item.work_item_id, item.control)
             if key in accepted_items and accepted_items[key] != item:
-                raise TurnPlanningError("persisted continuation envelopes conflict")
+                raise PlanningInvariantError("persisted continuation envelopes conflict")
             accepted_items[key] = item
         # Explicit items are supplied by the resolver after validating this
         # turn's input. A typed field replaces its old value, not its capabilities.
@@ -223,13 +236,13 @@ class RoutePolicy:
             if previous is not None and any(
                     value != getattr(item, name) for name, value in previous.__dict__.items()
                     if name not in {"arguments", "argument_bindings"}):
-                raise TurnPlanningError("resolved input changed its work envelope")
+                raise PlanningInvariantError("resolved input changed its work envelope")
             accepted_items[key] = item
         continuation_items = tuple(accepted_items.values())
         if proposal.approval_decision is not None:
-            raise TurnPlanningError("approval decision must be bound before command validation")
+            raise PlanningInvariantError("approval decision must be bound before command validation")
         if str(state.tenant_id) != registry.tenant_id:
-            raise TurnPlanningError("state and registry tenants differ")
+            raise PlanningInvariantError("state and registry tenants differ")
         if proposal.disposition is not ProposalDisposition.RESOLVED:
             return ValidatedCommandPlan(
                 proposal.disposition,
@@ -668,16 +681,16 @@ class TurnPlanCompiler:
         invocation: InvocationIdentity,
     ) -> TurnPlan:
         if validated.state_fingerprint != state.fingerprint:
-            raise TurnPlanningError("validated command uses stale conversation state")
+            raise PlanningInvariantError("validated command uses stale conversation state")
         if validated.registry_fingerprint != registry.fingerprint:
-            raise TurnPlanningError("validated command uses another registry bundle")
+            raise PlanningInvariantError("validated command uses another registry bundle")
+        if validated.disposition in {ProposalDisposition.PROVIDER_FAILURE,
+                                     ProposalDisposition.INVALID_PROVIDER_OUTPUT}:
+            raise PlanningUnavailable(validated.disposition, validated.reason_code)
         if validated.disposition is not ProposalDisposition.RESOLVED:
             route = RouteDecision(
-                RouteMode.CLARIFY if validated.disposition in {
-                    ProposalDisposition.CLARIFY,
-                    ProposalDisposition.PROVIDER_FAILURE,
-                    ProposalDisposition.INVALID_PROVIDER_OUTPUT,
-                } else RouteMode.OUT_OF_SCOPE,
+                RouteMode.CLARIFY if validated.disposition is ProposalDisposition.CLARIFY
+                else RouteMode.OUT_OF_SCOPE,
                 (), (), CapabilityRisk.LOW,
                 validated.missing_inputs,
                 validated.reason_code,

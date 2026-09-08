@@ -1,5 +1,6 @@
 """Approval lifecycle properties across goal revisions and turn presentation."""
 import asyncio
+import hashlib
 import json
 from dataclasses import replace
 from types import SimpleNamespace
@@ -116,9 +117,11 @@ def test_turn_distinguishes_retained_approval_from_unpublished_presentation(publ
         fallback_locale = "en"
         async def assemble(self, board, **kwargs):
             captured.append(kwargs)
-            return SimpleNamespace(verified=True)
+            from application.response_assembly import AssembledResponse, ResponseAssemblyMode
+            return AssembledResponse("", ResponseAssemblyMode.CONVERSATION_COMPOSE,
+                (), True, "PASS", "TEST", hashlib.sha256(b"").hexdigest())
     runtime = TurnRuntime(None, Assembler(), interaction_published=lambda *a, **k: published)
-    managed = SimpleNamespace(board=_board(), state_after=state, state_before=state,
+    managed = SimpleNamespace(board=_board(), state_after=state, state_before=state, diagnostics=(),
         plan=SimpleNamespace(route=SimpleNamespace(reason_code="SIDE_QUESTION")))
     asyncio.run(runtime._assemble_response({"managed": managed, "invocation": object(),
         "prepared": SimpleNamespace(context=None), "observations": SimpleNamespace(raw_text="How long does it take?")}))
@@ -150,7 +153,7 @@ def test_durable_interaction_can_be_presented_without_new_execution(kind, publis
             return "Please confirm the operation and/or choose your option."
     runtime = TurnRuntime(None, ResponseAssembler(Composer(), knowledge_verifier=Verifier(True)),
         interaction_published=lambda *a, **k: published)
-    managed = SimpleNamespace(board=None, state_after=state, state_before=state, interaction_questions=(),
+    managed = SimpleNamespace(board=None, state_after=state, state_before=state, interaction_questions=(), diagnostics=(),
         plan=SimpleNamespace(route=SimpleNamespace(reason_code="CLARIFY")))
     result = asyncio.run(runtime._assemble_response({"managed": managed, "invocation": object(),
         "prepared": SimpleNamespace(context=None), "observations": SimpleNamespace(raw_text="What next?")}))
@@ -223,9 +226,13 @@ def test_revised_wait_preserves_checkpoint_progress_and_dependency_closure(cance
         assert calls == ["origin", "completed"]
         revised = await manager.prepare(_identity("revise"), TurnObservations("Cancel" if cancel else "Use another target"))
         second = await manager.execute(revised)
+        await manager.commit_progress(second)
+        second = await manager.resolve_followup(revised, second)
         await manager.commit(second)
         previous_calls = tuple(calls)
         replayed = await manager.execute(revised)
+        await manager.commit_progress(replayed)
+        replayed = await manager.resolve_followup(revised, replayed)
         await manager.commit(replayed)
         assert tuple(calls) == previous_calls
         assert replayed.state_after.fingerprint == second.state_after.fingerprint

@@ -89,7 +89,10 @@ class _Publication:
             "response_seq": published.response_seq,
             "delivery_status": published.delivery_status,
         })
-        self.responses[key] = Completed(published.response_id, body, stages=execution_stages)
+        self.responses[key] = (Failed(body["code"], False, body["correlation_id"],
+            response_text, execution_stages, response_id=published.response_id)
+            if body.get("outcome") == "failed" else
+            Completed(published.response_id, body, stages=execution_stages))
         return published
 
     def publish_interaction(
@@ -103,6 +106,7 @@ class _Publication:
         expires_at,
         expected_work_controls=(),
         related_signals=(),
+        execution_stages=(),
     ):
         key = str(identity.invocation_key)
         published = PublishedTargetResponse(f"interaction:{key}", 1, "selected")
@@ -112,6 +116,7 @@ class _Publication:
             str(resume_schema.get("interaction_kind", "APPROVAL")),
             expires_at,
             published.response_id,
+            stages=execution_stages,
         )
         self.related_signals = (*getattr(self, "related_signals", ()), *related_signals)
         self.interaction_payloads = (*getattr(self, "interaction_payloads", ()), resume_schema)
@@ -452,8 +457,61 @@ def test_target_runtime_failure_is_typed_without_exposing_exception_text(monkeyp
     assert outcome.code == "target_runtime_failed"
     assert outcome.retryable is False
     assert outcome.correlation_id.startswith("invocation:v1:")
-    assert "private-provider-credential" not in repr(outcome)
+    from application.public_chat_contract import project_chat_outcome
+    assert "private-provider-credential" not in repr(project_chat_outcome(outcome))
+    assert outcome.stages[0].detail["exception_chain"][0]["type"] == "RuntimeError"
     assert tools.calls == []
+
+
+@pytest.mark.parametrize("internal", [False, True])
+def test_plan_rejection_and_trusted_state_failure_keep_distinct_outcomes(monkeypatch, internal):
+    from application.turn_planning import TurnPlanningError, PlanningInvariantError
+    from application.public_chat_contract import project_chat_outcome
+    application, tools = _application()
+
+    async def fail(*_args, **_kwargs):
+        error = PlanningInvariantError if internal else TurnPlanningError
+        raise error("diagnostic-only plan detail")
+
+    monkeypatch.setattr(application._turn_runtime, "execute", fail)
+    outcome = asyncio.run(application.handle(ChatCommand(
+        "查询订单", "user-a", "tenant-a", "conversation-a", "rejected-plan")))
+    assert isinstance(outcome, Failed)
+    assert outcome.code == ("planning_invariant_failed" if internal else "planning_candidate_rejected")
+    assert outcome.retryable is False
+    assert outcome.stages[0].detail["exception_chain"][0]["type"] == (
+        "PlanningInvariantError" if internal else "TurnPlanningError")
+    assert "diagnostic-only plan detail" not in str(project_chat_outcome(outcome))
+    assert tools.calls == []
+
+
+def test_framework_control_signal_crosses_application_without_failure_conversion(monkeypatch):
+    from langgraph.errors import GraphInterrupt
+    application, tools = _application()
+
+    async def interrupt(*args, **kwargs):
+        raise GraphInterrupt(())
+
+    monkeypatch.setattr(application._turn_runtime, "execute", interrupt)
+    with pytest.raises(GraphInterrupt):
+        asyncio.run(application.handle(ChatCommand("查询订单", "user-a", "tenant-a",
+            "conversation-a", "interrupted")))
+    assert not tools.calls
+    assert not application._publication.responses
+
+
+def test_failure_publication_remains_a_failure_on_replay():
+    application, tools = _application()
+    identity = application.identity_for(ChatCommand("查询订单", "user-a", "tenant-a",
+        "conversation-a", "failed-notice"))
+    failed = Failed("planning_candidate_rejected", False, str(identity.invocation_key))
+    published = application.publish_failure(identity, failed)
+    assert isinstance(published, Failed)
+    assert published.response_id
+    assert application.completed(identity) == published
+    assert not tools.calls
+    with pytest.raises(ValueError, match="retryable"):
+        application.publish_failure(identity, replace(failed, retryable=True))
 
 
 def test_target_chat_publishes_one_typed_interaction_and_resumes_exact_work_item():

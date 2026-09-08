@@ -61,6 +61,13 @@ def test_bound_reply_plan_owns_goal_and_wait_lifecycle(decision, depth, explicit
         observation = TurnObservations("Current user meaning", **({
             "interaction_id": pending.interaction_id, "interaction_version": pending.version}
             if explicit_binding else {}))
+        if decision in {"failure", "invalid"}:
+            from application.turn_planning import PlanningUnavailable
+            with pytest.raises(PlanningUnavailable):
+                await manager.prepare(_identity("reply"), observation)
+            identity = _identity("reply")
+            assert store.load(identity.tenant_id, identity.user_id, identity.conversation_id) == initial.state_after
+            return
         prepared = await manager.prepare(_identity("reply"), observation)
         assert len(provider.calls) == 1
         assert provider.calls[0]["pending_input"]["objectives"][0]["objective"] == "Original scope"
@@ -87,6 +94,8 @@ def test_bound_reply_plan_owns_goal_and_wait_lifecycle(decision, depth, explicit
             assert len(prepared.plan.work.items) == depth + 1
             assert all(item.dependencies for item in prepared.plan.work.items[1:])
         result = await manager.execute(prepared)
+        await manager.commit_progress(result)
+        result = await manager.resolve_followup(prepared, result)
         await manager.commit(result)
         assert sum(item.objective == "Independent" for item in seen) == 1
         assert result.state_after.pending_interaction is None

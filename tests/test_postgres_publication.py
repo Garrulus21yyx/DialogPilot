@@ -130,6 +130,31 @@ def test_interaction_uses_the_same_transactional_control_check(publication_compo
         assert connection.execute("SELECT count(*) FROM dialogpilot_app.response_deliveries").fetchone()[0] == 0
 
 
+@pytest.mark.parametrize("kind", ["FIELDS", "APPROVAL", "COMPOUND"])
+def test_interaction_replay_retains_diagnostics_without_exposing_them_in_challenge(publication_components, kind):
+    from types import SimpleNamespace
+    from application.chat_contracts import StageObservation, StageStatus
+    from infrastructure.target_chat_adapters import PostgresTargetPublication
+    pool, identity, service, _ = publication_components
+    observation = StageObservation("conversation_recovery", StageStatus.FAILED,
+                                   {"code": "RECOVERY_PROVIDER_FAILURE"})
+    command = replace(_interaction(identity), resume_schema={"interaction_kind": kind},
+                      execution_stages=(observation.to_dict(),))
+    first = service.publish_interaction_request(command)
+    adapter = PostgresTargetPublication(SimpleNamespace(pool=pool,
+        completed_for_invocation=lambda *args, **kwargs: None))
+    replay = adapter.completed(identity)
+    assert replay.stages == (observation,)
+    assert replay.kind == kind
+    assert replay.interaction_publication_id == first.record.publication_id
+    assert service.publish_interaction_request(command).record.publication_id == first.record.publication_id
+    with pool.transaction() as connection:
+        payload = connection.execute("SELECT payload FROM dialogpilot_app.response_deliveries "
+            "WHERE publication_id=%s", (first.record.publication_id,)).fetchone()[0]
+    assert payload["challenge"] == command.challenge
+    assert payload["execution_stages"] == [observation.to_dict()]
+
+
 def test_compound_interaction_records_both_signals_in_one_publication(publication_components):
     from types import SimpleNamespace
     from infrastructure.target_chat_adapters import PostgresTargetPublication

@@ -255,6 +255,8 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
                         clarification.checkpoint_thread_id, pending.checkpoint_thread_id}
                     assert prepared.state.pending_interaction is prepared.state.pending_approval is None
                     result = await manager.execute(prepared)
+                    await manager.commit_progress(result)
+                    result = await manager.resolve_followup(prepared, result)
                     close = manager._orchestration.cancel_interrupt
                     fail_once = True
                     async def interrupted_cleanup(**kwargs):

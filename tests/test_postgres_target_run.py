@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 import pytest
 
 from application.admission_contract import ClaimStart
+from application.chat_contracts import Failed
 from application.inbound_admission import NewInvocationInbound
 from application.target_run import TargetRunClaimLost, TargetRunTerminal
 from core.identity import IdentityFactory
@@ -133,13 +134,64 @@ def test_released_target_run_is_reclaimed_without_changing_identity(
     store.release(
         first,
         worker_id="worker-a",
-        error_code="process_crash",
+        failure=Failed("process_crash", True, "trace"),
         retry_after_seconds=0,
     )
     second = store.claim(worker_id="worker-b", lease_seconds=60)[0]
     assert second.run_id == identity.workflow_run_id
     assert second.invocation_key == identity.invocation_key
     assert second.attempt == first.attempt + 1
+    store.complete(second, worker_id="worker-b", terminal=TargetRunTerminal(
+        "COMPLETED", {"response_id": "reply", "response": {"response": "done"}}, "reply"))
+    record = store.runtime({"execution_run_id": str(identity.workflow_run_id)})
+    assert record["execution_status"] == "COMPLETED"
+    assert record["attempt_failures"][str(first.attempt)]["code"] == "process_crash"
+    assert record["attempt_failures"][str(first.attempt)]["retryable"] is True
+
+
+def test_selected_failure_is_immutable_and_reclaimed_for_delivery(target_run_components):
+    from application.chat_contracts import StageObservation, StageStatus
+    pool = target_run_components
+    identity = _admit_and_bind(pool, "selected-failure")
+    store = PostgresTargetRunStore(pool)
+    first = store.claim(worker_id="a", lease_seconds=60)[0]
+    failure = Failed("invalid_decision", False, "trace", stages=(
+        StageObservation("recovery", StageStatus.FAILED, {
+            "code": "INVALID", "exception_chain": [{"message": "internal-only"}]}),))
+    store.select_failure(first, worker_id="a", failure=failure)
+    store.select_failure(first, worker_id="a", failure=failure)
+    with pytest.raises(TargetRunClaimLost):
+        store.select_failure(first, worker_id="a", failure=Failed("other", False, "trace"))
+    with pool.transaction() as connection:
+        connection.execute("""UPDATE dialogpilot_app.compatibility_execution_outbox
+            SET lease_until=transaction_timestamp() - interval '1 second'
+            WHERE workflow_run_id=%s""", (str(identity.workflow_run_id),))
+    second = store.claim(worker_id="b", lease_seconds=60)[0]
+    assert second.selected_failure == failure
+    with pytest.raises(TargetRunClaimLost):
+        store.select_failure(first, worker_id="a", failure=failure)
+    assert "internal-only" not in str(store.runtime({"execution_run_id": str(identity.workflow_run_id)}))
+
+
+def test_failure_notice_and_run_terminal_replay_agree(target_run_components):
+    from application.target_run import TargetRunWorker, outcome_from_terminal
+    from infrastructure.postgres_response_delivery import PostgresResponseDeliveryService
+    from infrastructure.target_chat_adapters import PostgresTargetPublication
+    from tests.test_target_chat_cutover import _application
+    pool = target_run_components
+    identity = _admit_and_bind(pool, "failure-publication")
+    store = PostgresTargetRunStore(pool)
+    application, _ = _application()
+    application._publication = PostgresTargetPublication(PostgresResponseDeliveryService(
+        pool, resume_binding_secret="test-resume-secret"))
+    async def execute(item, guard):
+        return Failed("invalid_decision", False, str(identity.invocation_key))
+    async def publish(item, failure):
+        return application.completed(identity) or application.publish_failure(identity, failure)
+    outcome, = asyncio.run(TargetRunWorker(store, execute, finalize_failure=publish).run_once(worker_id="worker"))
+    assert isinstance(outcome, Failed) and outcome.response_id
+    assert application.completed(identity) == outcome
+    assert outcome_from_terminal(store.terminal(identity.invocation_key)) == outcome
 
 
 def test_repeated_binding_and_concurrent_claims_have_one_run_and_one_owner(target_run_components):
@@ -181,7 +233,7 @@ def test_same_worker_cannot_use_a_previous_claim_epoch(target_run_components, ac
     _admit_and_bind(pool, "epoch")
     store = PostgresTargetRunStore(pool)
     old = store.claim(worker_id="worker", lease_seconds=30)[0]
-    store.release(old, worker_id="worker", error_code="retry", retry_after_seconds=0)
+    store.release(old, worker_id="worker", failure=Failed("retry", True, "trace"), retry_after_seconds=0)
     current = store.claim(worker_id="worker", lease_seconds=30)[0]
     assert current.attempt == old.attempt + 1
     parameters = {"worker_id": "worker"}
@@ -190,7 +242,7 @@ def test_same_worker_cannot_use_a_previous_claim_epoch(target_run_components, ac
     elif action == "complete":
         parameters["terminal"] = TargetRunTerminal("COMPLETED", {}, "old")
     elif action == "release":
-        parameters["error_code"] = "old"
+        parameters["failure"] = Failed("old", True, "trace")
     with pytest.raises(TargetRunClaimLost):
         getattr(store, action)(old, **parameters)
 

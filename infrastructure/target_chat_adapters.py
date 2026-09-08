@@ -126,7 +126,7 @@ class PostgresTargetPublication:
             """, (str(identity.invocation_key), str(identity.user_id))).fetchone()
         if row is None:
             return None
-        from application.chat_contracts import NeedsInput
+        from application.chat_contracts import NeedsInput, StageObservation, StageStatus
         payload = dict(row[4] or {})
         kind = str(dict(payload.get("resume_schema") or {}).get(
             "interaction_kind", "APPROVAL",
@@ -134,6 +134,8 @@ class PostgresTargetPublication:
         return NeedsInput(
             str(identity.workflow_run_id), str(row[1]), kind,
             row[3].isoformat(), str(row[0]),
+            stages=tuple(StageObservation(stage["stage"], StageStatus(stage["status"]), stage["detail"])
+                         for stage in payload.get("execution_stages", ())),
         )
 
     def publish_interaction(
@@ -147,6 +149,7 @@ class PostgresTargetPublication:
         expires_at,
         expected_work_controls=(),
         related_signals=(),
+        execution_stages=(),
     ):
         now = datetime.now(timezone.utc).isoformat()
         result = self._delivery.publication.publish_interaction_request(
@@ -173,6 +176,7 @@ class PostgresTargetPublication:
                 ),
                 expected_work_controls=tuple(expected_work_controls),
                 related_signals=tuple(related_signals),
+                execution_stages=tuple(stage.to_dict() for stage in execution_stages),
             )
         )
         return PublishedTargetResponse(

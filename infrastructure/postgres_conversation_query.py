@@ -354,7 +354,8 @@ class PostgresConversationQueryService:
     @staticmethod
     def _execution_status(invocation, runtime, final, pending):
         if final is not None:
-            return ExecutionStatus.COMPLETED
+            public = final["payload"].get("public_response", {})
+            return ExecutionStatus.FAILED if public.get("outcome") == "failed" else ExecutionStatus.COMPLETED
         if pending is not None:
             return ExecutionStatus.WAITING
         if runtime:

@@ -110,7 +110,7 @@ class PostgresResponseDeliveryService:
         self, invocation_key: InvocationKey, *, user_id: str,
     ):
         """Recover the immutable public response before any regeneration."""
-        from application.chat_contracts import Completed, StageObservation, StageStatus
+        from application.chat_contracts import Completed, Failed, StageObservation, StageStatus
 
         with self.pool.transaction() as connection:
             row = connection.execute("""
@@ -133,6 +133,9 @@ class PostgresResponseDeliveryService:
             stage=str(item["stage"]), status=StageStatus(item["status"]),
             detail=dict(item["detail"]),
         ) for item in payload.get("execution_stages") or ())
+        if response.get("outcome") == "failed":
+            return Failed(str(response["code"]), False, str(response["correlation_id"]),
+                          str(payload["response"]), stages, response_id=str(row[0]))
         return Completed(str(row[0]), response, stages)
 
     def acknowledge(

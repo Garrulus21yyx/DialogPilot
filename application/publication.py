@@ -83,6 +83,7 @@ class InteractionRequestCommand:
     projection_disposition: ProjectionDisposition = ProjectionDisposition.APPROVAL
     expected_work_controls: tuple[WorkControlBinding, ...] = ()
     related_signals: tuple[tuple[str, int], ...] = ()
+    execution_stages: tuple[Mapping[str, Any], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -149,6 +150,10 @@ def command_fingerprint(command: PublicationCommand) -> str:
     raw.pop("created_at", None)
     if not raw.get("related_signals"):
         raw.pop("related_signals", None)
+    # Older interaction publications have no diagnostic field. An absent
+    # observation and an empty observation set describe the same publication.
+    if isinstance(command, InteractionRequestCommand) and not command.execution_stages:
+        raw.pop("execution_stages", None)
     raw["policy"] = dict(command.policy.__dict__)
     raw["invocation_key"] = str(raw.get("invocation_key") or "")
     raw["expected_work_controls"] = [

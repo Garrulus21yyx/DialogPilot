@@ -9,6 +9,7 @@ from enum import Enum
 from typing import Protocol
 
 from application.capability_registry import CapabilityRegistryBundle
+from application.chat_contracts import StageObservation
 from application.conversation_state import (
     ConversationState,
     ConversationStateConflict,
@@ -20,6 +21,7 @@ from application.conversation_state import (
 )
 from application.deterministic_resolution import (
     DeterministicResolution,
+    DeterministicResolutionError,
     DeterministicResolver,
     ResolutionKind,
     TurnObservations,
@@ -34,6 +36,7 @@ from application.turn_planning import (
     TurnPlan,
     TurnPlanCompiler,
     TurnProposal,
+    TurnPlanningError,
 )
 from application.work_item import ArgumentValue, WorkControlBinding
 from core.identity import InvocationIdentity
@@ -150,6 +153,14 @@ class ManagedTurnResult:
     close_checkpoint: bool = False
     progress_transition_count: int = 0
     source_thread_ids: tuple[str, ...] = ()
+    diagnostics: tuple[StageObservation, ...] = ()
+    followup_pending: bool = False
+
+    def __post_init__(self) -> None:
+        # The checkpoint codec restores sequences as lists. Normalize at the
+        # result owner, so live execution and resumed consumers see one contract.
+        for name in ("interaction_questions", "state_transitions", "source_thread_ids", "diagnostics"):
+            object.__setattr__(self, name, tuple(getattr(self, name)))
 
 
 @dataclass(frozen=True)
@@ -230,6 +241,8 @@ class TargetConversationManager:
             token_budget=token_budget,
         )
         result = await self.execute(prepared)
+        await self.commit_progress(result)
+        result = await self.resolve_followup(prepared, result)
         await self.commit(result)
         return result
 
@@ -282,10 +295,15 @@ class TargetConversationManager:
             # The decision references this loaded snapshot; the existing owner
             # supplies action parameters/version and the final CAS rejects races.
             approval_state = state
-            deterministic = self._resolver.resolve(replace(observations,
-                raw_text="", interaction_id=None, interaction_version=None,
-                interaction_values=(), structured_fields=(),
-                approval_id=decision.approval_id, approval_decision=decision.approved), state)
+            try:
+                deterministic = self._resolver.resolve(replace(observations,
+                    raw_text="", interaction_id=None, interaction_version=None,
+                    interaction_values=(), structured_fields=(),
+                    approval_id=decision.approval_id, approval_decision=decision.approved), state)
+            except DeterministicResolutionError as exc:
+                # This signal was proposed by the model, not supplied by the
+                # user. Preserve that provenance at the conversion boundary.
+                raise TurnPlanningError("proposed approval decision could not bind to current state") from exc
             state = self._apply_deterministic(state, deterministic)
             # The original resolver's typed fields supersede the unchanged
             # envelopes carried by the subsequently consumed approval.
@@ -426,12 +444,6 @@ class TargetConversationManager:
                 **execution_context,
             )
         )
-        recovery_inputs = ()
-        if self._conversation_agent is not None and self._orchestration.supports_resume:
-            from application.conversation_context import conversation_context_payload
-            recovery_inputs = await self._conversation_agent.recover(
-                plan.work, board, current_message=observations.raw_text,
-                conversation_context=conversation_context_payload(turn_context))
         transitions = list(prepared.state_transitions)
         state = self._apply_successful_workflows(
             state, plan, board, invocation, deterministic,
@@ -449,6 +461,33 @@ class TargetConversationManager:
             transitions.append(next_state)
             state = next_state
         progress_transition_count = len(transitions)
+        return ManagedTurnResult(
+            state_before, state, deterministic, plan, board, thread_id,
+            state_transitions=tuple(transitions),
+            progress_transition_count=progress_transition_count,
+            source_thread_ids=prepared.source_thread_ids,
+            followup_pending=True,
+        )
+
+    async def resolve_followup(self, prepared: PreparedTurn, result: ManagedTurnResult) -> ManagedTurnResult:
+        """Bind a successful follow-up decision after execution progress is durable."""
+        if not result.followup_pending:
+            return result
+        from application.chat_contracts import StageStatus
+        from application.work_recovery import RecoveryDecisionUnavailable
+        from application.conversation_context import conversation_context_payload
+        plan, board, state = result.plan, result.board, result.state_after
+        thread_id = result.checkpoint_thread_id
+        recovery_inputs, diagnostics = (), result.diagnostics
+        if self._conversation_agent is not None and self._orchestration.supports_resume:
+            recovery = await self._conversation_agent.recover(
+                plan.work, board, current_message=prepared.observations.raw_text,
+                conversation_context=conversation_context_payload(prepared.context))
+            if recovery.observation.status is StageStatus.FAILED:
+                raise RecoveryDecisionUnavailable(recovery)
+            recovery_inputs = recovery.questions
+            diagnostics = (*diagnostics, recovery.observation)
+        transitions = list(result.state_transitions)
         next_state = self._apply_missing_inputs(
             state, plan, board,
             recovery_inputs=recovery_inputs,
@@ -461,24 +500,18 @@ class TargetConversationManager:
             state = next_state
         close_checkpoint = (
             self._orchestration.supports_resume
-            and await_decision
             and not any(pending is not None and pending.checkpoint_thread_id == thread_id
                         for pending in (state.pending_approval, state.pending_interaction))
         )
-        return ManagedTurnResult(
-            state_before,
-            state,
-            deterministic,
-            plan,
-            board,
-            thread_id,
-            tuple(spec for result in board.results
+        return replace(result,
+            state_after=state,
+            interaction_questions=tuple(spec for result in board.results
                   if result.status is AgentResultStatus.NEEDS_USER_INPUT
                   for spec in result.missing_inputs) + recovery_inputs,
-            tuple(transitions),
-            close_checkpoint,
-            progress_transition_count,
-            prepared.source_thread_ids,
+            state_transitions=tuple(transitions),
+            close_checkpoint=close_checkpoint,
+            diagnostics=diagnostics,
+            followup_pending=False,
         )
 
     @property
@@ -492,6 +525,8 @@ class TargetConversationManager:
 
     async def commit(self, result: ManagedTurnResult) -> None:
         """Commit the checkpointed decision, then release its execution wait."""
+        if result.followup_pending:
+            raise RuntimeError("follow-up decision must finish before committing its wait")
         self._commit_states(result.state_before, result.state_transitions)
         if result.close_checkpoint:
             await self._orchestration.cancel_interrupt(

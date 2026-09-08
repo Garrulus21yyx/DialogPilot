@@ -67,6 +67,7 @@ class NeedsInput:
     kind: str
     expires_at: str
     interaction_publication_id: str
+    stages: tuple[StageObservation, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -93,6 +94,7 @@ class Reconciling:
     workflow_run_id: str
     public_status: Mapping[str, Any]
     next_poll_after: float
+    stages: tuple[StageObservation, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -114,6 +116,7 @@ class Failed:
     correlation_id: str
     safe_message: str = ""
     stages: tuple[StageObservation, ...] = ()
+    response_id: str | None = None
 
 
 ChatOutcome: TypeAlias = (

@@ -54,11 +54,15 @@ class _RunStore:
         self.assert_owned(item, worker_id=worker_id)
         self.terminal_value = terminal
 
+    def select_failure(self, item, *, worker_id, failure):
+        self.assert_owned(item, worker_id=worker_id)
+        self.item = replace(self.item, selected_failure=failure)
+
     def release(
-        self, item, *, worker_id, error_code, retry_after_seconds=0,
+        self, item, *, worker_id, failure, retry_after_seconds=0,
     ):
         self.assert_owned(item, worker_id=worker_id)
-        self.releases.append((error_code, retry_after_seconds))
+        self.releases.append((failure.code, retry_after_seconds))
         self.available = True
 
     def terminal(self, invocation_key):
@@ -68,6 +72,50 @@ class _RunStore:
     def takeover(self):
         self.attempt += 1
         self.owner = "replacement-worker"
+
+
+def test_selected_failure_survives_publication_crash_without_reexecuting():
+    store = _RunStore(_item())
+    calls = []
+    failure = Failed("invalid_decision", False, "trace")
+
+    async def execute(item, guard):
+        calls.append("execute")
+        return failure
+
+    async def finalize(item, selected):
+        assert selected == failure
+        calls.append("publish")
+        if calls.count("publish") == 1:
+            raise ConnectionError("publication unavailable")
+        return replace(selected, response_id="p1")
+
+    worker = TargetRunWorker(store, execute, finalize_failure=finalize, max_attempts=1)
+    with pytest.raises(ConnectionError):
+        asyncio.run(worker.run_once(worker_id="worker"))
+    assert store.item.selected_failure == failure
+    assert store.terminal_value is None
+    store.takeover()
+    store.available = True
+    result = asyncio.run(worker.run_once(worker_id="replacement-worker"))[0]
+    assert calls == ["execute", "publish", "publish"]
+    assert result.response_id == "p1"
+    assert store.terminal_value.status == "FAILED"
+
+
+def test_committed_publication_precedes_pending_failure_notice():
+    from application.target_run import TargetRunCoordinator
+    committed = Completed("p1", {"response": "Already committed"})
+    class Application:
+        def identity_for(self, command):
+            return object()
+        def completed(self, identity):
+            return committed
+        def publish_failure(self, *args):
+            raise AssertionError("must reuse committed publication")
+    coordinator = TargetRunCoordinator(Application(), dispatcher=None, store=_RunStore(_item()))
+    outcome = asyncio.run(coordinator._finalize_failure(_item(), Failed("failed", False, "trace")))
+    assert outcome == committed
 
 
 def test_completion_wait_reads_terminal_without_claiming_or_executing_work():
@@ -169,6 +217,51 @@ def test_retryable_failure_requeues_same_run_without_terminal_completion():
     assert store.releases == [("provider_timeout", 3)]
 
 
+@pytest.mark.parametrize("attempt,budget,terminal", [(1, 1, True), (1, 2, False), (2, 2, True), (4, 2, True)])
+def test_retry_budget_is_applied_before_terminal_failure_publication(attempt, budget, terminal):
+    store = _RunStore(replace(_item(), attempt=attempt))
+    finalized = []
+    async def execute(item, guard):
+        return Failed("provider_timeout", True, "trace")
+    async def finalize(item, failure):
+        assert not failure.retryable
+        finalized.append(failure)
+        return replace(failure, response_id="notice")
+    worker = TargetRunWorker(store, execute, max_attempts=budget, finalize_failure=finalize,
+                             lease_seconds=20, heartbeat_seconds=2)
+    outcome, = asyncio.run(worker.run_once(worker_id="worker-a"))
+    assert bool(finalized) == terminal
+    assert (store.terminal_value is not None) == terminal
+    assert bool(store.releases) != terminal
+    if terminal:
+        assert outcome.stages[-1].detail["code"] == "RUN_ATTEMPT_BUDGET_EXHAUSTED"
+        assert outcome.response_id == "notice"
+
+
+def test_unknown_executor_failure_does_not_authorize_another_attempt():
+    store = _RunStore(_item())
+    async def execute(item, guard):
+        raise RuntimeError("unexpected adapter error")
+    worker = TargetRunWorker(store, execute, lease_seconds=20, heartbeat_seconds=2)
+    outcome, = asyncio.run(worker.run_once(worker_id="worker-a"))
+    assert outcome.code == "unclassified_execution_failure"
+    assert not outcome.retryable
+    assert not store.releases
+    assert outcome_from_terminal(store.terminal_value) == outcome
+
+
+def test_graph_control_signal_is_not_a_run_failure():
+    from langgraph.errors import GraphInterrupt
+    store = _RunStore(_item())
+    async def execute(item, guard):
+        raise GraphInterrupt(())
+    worker = TargetRunWorker(store, execute, lease_seconds=20, heartbeat_seconds=2)
+    with pytest.raises(GraphInterrupt):
+        asyncio.run(worker.run_once(worker_id="worker-a"))
+    assert not store.releases
+    assert store.terminal_value is None
+
+
 def test_stale_attempt_cannot_commit_after_another_worker_takes_ownership():
     store = _RunStore(_item())
 
@@ -222,6 +315,21 @@ def test_target_terminal_roundtrip_preserves_public_outcome(outcome):
     terminal = terminal_from_outcome(outcome)
     assert outcome_from_terminal(terminal) == outcome
     assert terminal_from_outcome(outcome_from_terminal(terminal)) == terminal
+
+
+@pytest.mark.parametrize("kind", ["FIELDS", "APPROVAL", "COMPOUND", "RECONCILING"])
+@pytest.mark.parametrize("status", ["ok", "skipped", "failed"])
+def test_waiting_outcome_roundtrip_preserves_recovery_diagnostics(kind, status):
+    from application.chat_contracts import StageObservation, StageStatus
+    stages = (StageObservation("conversation_recovery", StageStatus(status),
+                              {"code": "RECOVERY_DECISION_INVALID", "exception_chain": []}),)
+    outcome = (Reconciling("run", {"operation_key": "op"}, 1.0, stages=stages)
+               if kind == "RECONCILING" else
+               NeedsInput("run", "signal", kind, "2030-01-01", "publication", stages=stages))
+    assert outcome_from_terminal(terminal_from_outcome(outcome)) == outcome
+    # Internal diagnostics are not a customer-facing exception body.
+    from application.public_chat_contract import project_chat_outcome
+    assert "exception_chain" not in str(project_chat_outcome(outcome))
 
 
 def test_target_outcome_union_is_covered_without_legacy_runtime_states():

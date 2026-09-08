@@ -33,6 +33,58 @@ class RecoveryProvider:
             for item in payload["stopped_tasks"]]}
 
 
+@pytest.mark.parametrize("initial_decision", ["error", "invalid"])
+def test_followup_checkpoint_restarts_decision_without_reexecuting_work(initial_decision):
+    from application.turn_runtime import TurnRuntime
+    from application.work_recovery import RecoveryDecisionUnavailable
+    from application.response_assembly import AssembledResponse, ResponseAssemblyMode
+
+    async def run():
+        calls = []
+        async def worker(context):
+            item = context.work_item
+            calls.append(item.owner_agent)
+            status = (AgentResultStatus.BLOCKED if item.owner_agent == "product_technical"
+                      else AgentResultStatus.SUCCEEDED)
+            return AgentResult(item.work_item_id, item.owner_agent, status, "RESULT", "test")
+
+        class Assembler:
+            fallback_locale = "en"
+            async def assemble(self, board, **kwargs):
+                return AssembledResponse("One task remains unsuccessful.",
+                    ResponseAssemblyMode.TEMPLATE, (), False, "NOT_CHECKED", "TEST")
+
+        provider = RecoveryProvider(initial_decision)
+        manager, work_runtime, _ = _setup(worker, provider=provider)
+        saver = InMemorySaver(serde=target_checkpoint_serializer())
+        identity = _identity("followup-restart")
+        observations = TurnObservations("Find the product and read my order")
+        runtime = TurnRuntime(manager, Assembler(), checkpointer=saver)
+        with pytest.raises(RecoveryDecisionUnavailable):
+            await runtime.execute(identity, observations)
+        config = {"configurable": {"thread_id": "turn:" + str(identity.invocation_key)}}
+        snapshot = await runtime.graph.aget_state(config)
+        assert snapshot.next == ("resolve_followup",)
+        assert snapshot.values["managed"].followup_pending
+        assert len(snapshot.values["managed"].board.results) == 2
+        assert len(calls) == 2
+        work_snapshot = await work_runtime.graph.aget_state({"configurable": {
+            "thread_id": str(identity.invocation_key)}})
+        assert work_snapshot.next
+
+        provider.decision = "finish"
+        reopened = TurnRuntime(manager, Assembler(), checkpointer=saver)
+        result = await reopened.execute(identity, observations)
+        assert not result.managed.followup_pending
+        assert not result.managed.board.task_completed
+        assert len(calls) == 2
+        assert len(provider.payloads) == 2
+        assert (await reopened.graph.aget_state(config)).next == ()
+        assert (await work_runtime.graph.aget_state({"configurable": {
+            "thread_id": str(identity.invocation_key)}})).next == ()
+    asyncio.run(run())
+
+
 @pytest.mark.parametrize("has_wait", [False, True])
 @pytest.mark.parametrize("roundtrip", [False, True])
 def test_planner_resume_choices_match_persisted_waits_not_active_revisions(has_wait, roundtrip):
@@ -234,7 +286,7 @@ def test_reply_rejection_never_reexecutes_work_and_can_resume_assembly(reject_ag
 
 @pytest.mark.parametrize("status", [AgentResultStatus.BLOCKED, AgentResultStatus.RETRYABLE_FAILURE,
                                     AgentResultStatus.TERMINAL_FAILURE])
-@pytest.mark.parametrize("decision", ["ask_user", "finish", "error"])
+@pytest.mark.parametrize("decision", ["ask_user", "finish", "error", "invalid"])
 def test_stopped_work_handback_preserves_independent_success_and_feedback(status, decision):
     async def run():
         calls = []
@@ -258,7 +310,28 @@ def test_stopped_work_handback_preserves_independent_success_and_feedback(status
 
         provider = RecoveryProvider(decision)
         manager, orchestration, store = _setup(worker, provider=provider)
+        if decision in {"error", "invalid"}:
+            from application.work_recovery import RecoveryDecisionUnavailable
+            with pytest.raises(RecoveryDecisionUnavailable) as error:
+                await manager.handle(_identity("stopped"), TurnObservations("Find the product and read my order"))
+            observation, = error.value.diagnostics
+            assert observation.detail["code"] == (
+                "RECOVERY_PROVIDER_FAILURE" if decision == "error" else "RECOVERY_DECISION_INVALID")
+            assert observation.detail["exception_chain"]
+            snapshot = await orchestration.graph.aget_state({"configurable": {
+                "thread_id": str(_identity("stopped").invocation_key)}})
+            assert snapshot.next  # Failure has not released the execution wait.
+            assert calls == ["product_technical", "order_logistics"]
+            return
         first = await manager.handle(_identity("stopped"), TurnObservations("Find the product and read my order"))
+        from application.chat_contracts import StageStatus
+        observation, = first.diagnostics
+        assert observation.stage == "conversation_recovery"
+        assert observation.status is StageStatus.OK
+        assert observation.detail["code"] == "RECOVERY_DECIDED"
+        assert observation.detail["decisions"][0]["action"] == decision
+        serializer = target_checkpoint_serializer()
+        assert serializer.loads_typed(serializer.dumps_typed(first)).diagnostics == first.diagnostics
         assert len(provider.payloads) == 1
         feedback = provider.payloads[0]["stopped_tasks"][0]["execution_feedback"]
         assert feedback[0]["error"] == "reference is ambiguous"

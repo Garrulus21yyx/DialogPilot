@@ -5,10 +5,11 @@ import hashlib
 import json
 import logging
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Mapping, Protocol
+from langgraph.errors import GraphBubbleUp
 
 from application.agent_result import AgentResultStatus
 from application.chat_contracts import ChatCommand, ChatOutcome, Completed, Conflict, Failed, NeedsInput, Reconciling, Rejected
@@ -76,7 +77,7 @@ class TargetPublicationPort(Protocol):
     def completed(
         self,
         identity: InvocationIdentity,
-    ) -> Completed | NeedsInput | None: ...
+    ) -> Completed | NeedsInput | Failed | None: ...
 
     def publish(
         self,
@@ -102,6 +103,7 @@ class TargetPublicationPort(Protocol):
         expires_at: str,
         expected_work_controls: tuple[WorkControlBinding, ...] = (),
         related_signals: tuple[tuple[str, int], ...] = (),
+        execution_stages: tuple = (),
     ) -> PublishedTargetResponse: ...
 
 
@@ -168,8 +170,28 @@ class TargetChatApplication:
 
     def completed(
         self, identity: InvocationIdentity,
-    ) -> Completed | NeedsInput | None:
+    ) -> Completed | NeedsInput | Failed | None:
         return self._publication.completed(identity)
+
+    def publish_failure(self, identity: InvocationIdentity, failure: Failed) -> Failed:
+        """Publish a run-level service notice, not a claim that a write failed."""
+        if failure.retryable:
+            raise ValueError("a retryable run has not selected its final failure response")
+        message = (
+            "I could not complete this turn. Please contact support to check the saved processing records; "
+            "do not resubmit the same business operation."
+            if self._response_locale == "en" else
+            "本轮处理未能完成。请联系人工核查已有处理记录，不要重复提交同一业务操作。"
+        )
+        public = {"outcome": "failed", "code": failure.code,
+            "correlation_id": failure.correlation_id, "response": message,
+            "task_completed": False, "verified": False,
+            "verification_reason_code": "SERVICE_FAILURE_NOTICE"}
+        published = self._publication.publish(identity, response_text=message,
+            public_response=public, bundle_version=self._bundle_version,
+            evidence_sha256=hashlib.sha256(b"").hexdigest(), verifier_status="NOT_CHECKED",
+            execution_stages=failure.stages)
+        return replace(failure, safe_message=message, response_id=published.response_id)
 
     async def execute_admitted(
         self,
@@ -202,32 +224,55 @@ class TargetChatApplication:
                 identity, observations, execution_context=execution_context,
             )
             managed = turn_result.managed
-        except DeterministicResolutionError as exc:
-            return Conflict(
-                (
-                    "INTERACTION_SIGNAL_CONFLICT"
-                    if command.interaction_id is not None
-                    or command.interaction_values
-                    else "APPROVAL_SIGNAL_CONFLICT"
-                ),
-                {"reason": str(exc)},
-            )
+        except GraphBubbleUp:
+            raise
         except Exception as exc:
             from core.framework_models import ModelInvocationError
+            from application.turn_planning import TurnPlanningError, PlanningInvariantError, PlanningUnavailable
+            from application.chat_contracts import StageObservation, StageStatus
+            from core.tracing import exception_chain
             from application.turn_runtime import InteractionAssemblyUnavailable, TurnCheckpointVersionError
+            from application.work_recovery import RecoveryDecisionUnavailable
+            diagnostics = ()
+            if isinstance(exc, PlanningUnavailable):
+                return Failed("planning_" + exc.disposition.value.lower(), False,
+                    str(identity.invocation_key), "The request could not be understood due to a system failure.",
+                    stages=(StageObservation("planning", StageStatus.FAILED,
+                        {"code": exc.reason_code}),))
+            if isinstance(exc, RecoveryDecisionUnavailable):
+                return Failed("recovery_decision_unavailable",
+                    exc.retryable and self._turn_runtime.supports_resume,
+                    str(identity.invocation_key),
+                    "Work results are saved; the follow-up decision could not be completed.",
+                    stages=exc.diagnostics)
+            if isinstance(exc, DeterministicResolutionError):
+                return Conflict(
+                    "INTERACTION_SIGNAL_CONFLICT" if command.interaction_id is not None
+                    or command.interaction_values else "APPROVAL_SIGNAL_CONFLICT",
+                    {"reason": str(exc)},
+                )
+            if isinstance(exc, (TurnPlanningError, PlanningInvariantError)):
+                code = ("planning_invariant_failed" if isinstance(exc, PlanningInvariantError)
+                        else "planning_candidate_rejected")
+                return Failed(code, False, str(identity.invocation_key),
+                    "The plan could not be accepted. No actions from this plan were started.",
+                    stages=diagnostics or (StageObservation("plan_acceptance", StageStatus.FAILED,
+                        {"code": code, "exception_chain": exception_chain(exc)}),))
             if isinstance(exc, TurnCheckpointVersionError):
                 return Failed("turn_checkpoint_version_unsupported", False,
                     str(identity.invocation_key),
-                    "This earlier task needs reconciliation before it can continue.")
+                    "This earlier task needs reconciliation before it can continue.", stages=diagnostics)
             if isinstance(exc, ModelInvocationError):
                 return Failed("conversation_provider_unavailable",
                     exc.retryable and self._turn_runtime.supports_resume,
                     str(identity.invocation_key),
-                    "The planning service could not complete this request.")
+                    "A model call could not complete this request.",
+                    stages=(StageObservation("model_invocation", StageStatus.FAILED,
+                        {"code": type(exc).__name__, "exception_chain": exception_chain(exc)}),))
             if isinstance(exc, InteractionAssemblyUnavailable):
                 return Failed("target_interaction_" + exc.reason.lower(), exc.retryable,
                     str(identity.invocation_key), "The follow-up question could not be prepared. Progress is saved.",
-                    stages=exc.diagnostics)
+                    stages=diagnostics or exc.diagnostics)
             logger.exception(
                 "Target turn execution failed invocation_key=%s",
                 identity.invocation_key,
@@ -237,6 +282,8 @@ class TargetChatApplication:
                 False,
                 str(identity.invocation_key),
                 f"Target runtime failed closed: {type(exc).__name__}",
+                stages=(StageObservation("turn_execution", StageStatus.FAILED,
+                    {"code": type(exc).__name__, "exception_chain": exception_chain(exc)}),),
             )
 
         pending = managed.state_after.pending_approval
@@ -276,6 +323,7 @@ class TargetChatApplication:
                     item.control for item in (*pending.suspended_work_items,
                         *(pending_input.suspended_work_items if present_input else ())) if item.control),
                 **({"related_signals": ((pending_input.interaction_id, pending_input.version),)} if present_input else {}),
+                execution_stages=assembly.diagnostics,
             )
             return NeedsInput(
                 str(identity.workflow_run_id),
@@ -283,6 +331,7 @@ class TargetChatApplication:
                 "COMPOUND" if present_input else "APPROVAL",
                 expires_at,
                 published.response_id,
+                stages=assembly.diagnostics,
             )
 
         if present_input:
@@ -310,6 +359,7 @@ class TargetChatApplication:
                     "properties": _input_properties(pending_input),
                 },
                 expires_at=expires_at,
+                execution_stages=assembly.diagnostics,
             )
             return NeedsInput(
                 str(identity.workflow_run_id),
@@ -317,9 +367,12 @@ class TargetChatApplication:
                 "FIELDS",
                 expires_at,
                 published.response_id,
+                stages=assembly.diagnostics,
             )
 
         if managed.plan.work is None:
+            # Decode already-completed v5 checkpoints only. New planning failures
+            # raise PlanningUnavailable before a TurnPlan/checkpoint is produced.
             failure = {
                 "CONTEXT_BUDGET_EXCEEDED": (
                     "context_budget_exceeded",
@@ -377,6 +430,7 @@ class TargetChatApplication:
                         "next_request": "submit a new request_id with the same approval_id",
                     },
                     1.0,
+                    stages=managed.diagnostics,
                 )
             assembly = turn_result.assembled
             if assembly is None:

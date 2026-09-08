@@ -3,7 +3,8 @@ from __future__ import annotations
 
 import asyncio
 import json
-from dataclasses import dataclass
+from langgraph.errors import GraphBubbleUp
+from dataclasses import dataclass, replace
 from datetime import datetime, timedelta, timezone
 from typing import Any, Awaitable, Callable, Mapping, Protocol
 
@@ -36,6 +37,7 @@ class TargetRunItem:
     deletion_epoch: int
     attempt: int
     claimed_by: str
+    selected_failure: Failed | None = None
 
 
 @dataclass(frozen=True)
@@ -62,8 +64,10 @@ class TargetRunStore(Protocol):
         terminal: TargetRunTerminal,
     ) -> None: ...
 
+    def select_failure(self, item: TargetRunItem, *, worker_id: str, failure: Failed) -> None: ...
+
     def release(
-        self, item: TargetRunItem, *, worker_id: str, error_code: str,
+        self, item: TargetRunItem, *, worker_id: str, failure: Failed,
         retry_after_seconds: int = 0,
     ) -> None: ...
 
@@ -86,16 +90,22 @@ class TargetRunWorker:
         lease_seconds: int = 300,
         heartbeat_seconds: float = 30.0,
         retry_after_seconds: int = 1,
+        max_attempts: int = 3,
+        finalize_failure: Callable[[TargetRunItem, Failed], Awaitable[ChatOutcome]] | None = None,
     ) -> None:
         if lease_seconds < 2 or heartbeat_seconds <= 0:
             raise ValueError("target run lease and heartbeat must be positive")
         if heartbeat_seconds >= lease_seconds / 2:
             raise ValueError("target run heartbeat must precede half the lease")
+        if max_attempts < 1:
+            raise ValueError("target run attempt budget must be positive")
         self._store = store
         self._executor = executor
         self._lease_seconds = lease_seconds
         self._heartbeat_seconds = heartbeat_seconds
         self._retry_after_seconds = max(0, retry_after_seconds)
+        self._max_attempts = max_attempts
+        self._finalize_failure = finalize_failure
 
     async def run_once(
         self, *, worker_id: str,
@@ -119,17 +129,50 @@ class TargetRunWorker:
                 )
 
             try:
-                outcome = await self._executor(item, guard)
+                try:
+                    if item.selected_failure is not None:
+                        outcome = item.selected_failure
+                    elif item.attempt > self._max_attempts:
+                        outcome = Failed("run_attempt_budget_exhausted", False,
+                            str(item.invocation_key), "Execution stopped; saved operation records require review.",
+                            stages=(StageObservation("run_retry", StageStatus.FAILED, {
+                                "code": "RUN_ATTEMPT_BUDGET_EXHAUSTED", "attempt": item.attempt,
+                                "max_attempts": self._max_attempts,
+                            }),))
+                    else:
+                        outcome = await self._executor(item, guard)
+                except (TargetRunClaimLost, GraphBubbleUp):
+                    raise
+                except Exception as exc:
+                    from core.tracing import exception_chain
+                    outcome = Failed("unclassified_execution_failure", False,
+                        str(item.invocation_key),
+                        "The run stopped unexpectedly. Existing operation results need to be checked.",
+                        stages=(StageObservation("run_execution", StageStatus.FAILED, {
+                            "code": type(exc).__name__, "exception_chain": exception_chain(exc),
+                        }),))
                 await guard()
+                if isinstance(outcome, Failed) and outcome.retryable and item.attempt >= self._max_attempts:
+                    outcome = replace(outcome, retryable=False, stages=(*outcome.stages,
+                        StageObservation("run_retry", StageStatus.FAILED, {
+                            "code": "RUN_ATTEMPT_BUDGET_EXHAUSTED", "attempt": item.attempt,
+                            "max_attempts": self._max_attempts,
+                        })))
                 if isinstance(outcome, Failed) and outcome.retryable:
                     await asyncio.to_thread(
                         self._store.release,
                         item,
                         worker_id=worker_id,
-                        error_code=outcome.code,
+                        failure=outcome,
                         retry_after_seconds=self._retry_after_seconds,
                     )
                 else:
+                    if isinstance(outcome, Failed) and item.selected_failure is None:
+                        await asyncio.to_thread(self._store.select_failure,
+                            item, worker_id=worker_id, failure=outcome)
+                    if isinstance(outcome, Failed) and self._finalize_failure is not None:
+                        outcome = await self._finalize_failure(item, outcome)
+                        await guard()
                     await asyncio.to_thread(
                         self._store.complete,
                         item,
@@ -137,18 +180,6 @@ class TargetRunWorker:
                         terminal=terminal_from_outcome(outcome),
                     )
                 outcomes.append(outcome)
-            except Exception as exc:
-                try:
-                    await asyncio.to_thread(
-                        self._store.release,
-                        item,
-                        worker_id=worker_id,
-                        error_code=type(exc).__name__,
-                        retry_after_seconds=self._retry_after_seconds,
-                    )
-                except TargetRunClaimLost:
-                    pass
-                raise
             finally:
                 stop.set()
                 await heartbeat
@@ -185,6 +216,7 @@ class TargetRunCoordinator:
         start_lease_seconds: int = 30,
         execution_lease_seconds: int = 300,
         heartbeat_seconds: float = 30.0,
+        max_attempts: int = 3,
         clock: Callable[[], datetime] | None = None,
     ) -> None:
         self.application = application
@@ -198,6 +230,8 @@ class TargetRunCoordinator:
             self._execute,
             lease_seconds=execution_lease_seconds,
             heartbeat_seconds=heartbeat_seconds,
+            max_attempts=max_attempts,
+            finalize_failure=self._finalize_failure,
         )
 
     async def handle(self, command: ChatCommand) -> ChatOutcome:
@@ -273,6 +307,15 @@ class TargetRunCoordinator:
         completed = await asyncio.to_thread(self.application.completed, identity)
         return completed or outcome
 
+    async def _finalize_failure(self, item: TargetRunItem, failure: Failed) -> ChatOutcome:
+        identity = self.application.identity_for(_command_from_item(item))
+        # Publication may already have committed even if its acknowledgement
+        # failed. Reuse that fact before creating any failure response.
+        completed = await asyncio.to_thread(self.application.completed, identity)
+        if completed is not None:
+            return completed
+        return await asyncio.to_thread(self.application.publish_failure, identity, failure)
+
 
 def _command_from_item(item: TargetRunItem) -> ChatCommand:
     pins = item.pinned_versions
@@ -303,6 +346,13 @@ def _command_from_item(item: TargetRunItem) -> ChatCommand:
     )
 
 
+def failure_payload(outcome: Failed) -> dict[str, Any]:
+    """The same failure record is used for retry evidence and terminal replay."""
+    return {"code": outcome.code, "retryable": outcome.retryable,
+            "correlation_id": outcome.correlation_id, "safe_message": outcome.safe_message,
+            "stages": [stage.to_dict() for stage in outcome.stages], "response_id": outcome.response_id}
+
+
 def terminal_from_outcome(outcome: ChatOutcome) -> TargetRunTerminal:
     if isinstance(outcome, Completed):
         return TargetRunTerminal(
@@ -320,12 +370,14 @@ def terminal_from_outcome(outcome: ChatOutcome) -> TargetRunTerminal:
             "kind": outcome.kind,
             "expires_at": outcome.expires_at,
             "interaction_publication_id": outcome.interaction_publication_id,
+            "stages": [stage.to_dict() for stage in outcome.stages],
         }, outcome.interaction_publication_id)
     if isinstance(outcome, Reconciling):
         return TargetRunTerminal("RECONCILING", {
             "workflow_run_id": outcome.workflow_run_id,
             "public_status": dict(outcome.public_status),
             "next_poll_after": outcome.next_poll_after,
+            "stages": [stage.to_dict() for stage in outcome.stages],
         }, outcome.workflow_run_id)
     if isinstance(outcome, HandedOff):
         return TargetRunTerminal("HANDED_OFF", {
@@ -352,13 +404,7 @@ def terminal_from_outcome(outcome: ChatOutcome) -> TargetRunTerminal:
             "existing_invocation": dict(outcome.existing_invocation),
         }, outcome.code)
     if isinstance(outcome, Failed) and not outcome.retryable:
-        return TargetRunTerminal("FAILED", {
-            "code": outcome.code,
-            "retryable": False,
-            "correlation_id": outcome.correlation_id,
-            "safe_message": outcome.safe_message,
-            "stages": [stage.to_dict() for stage in outcome.stages],
-        }, outcome.code)
+        return TargetRunTerminal("FAILED", failure_payload(outcome), outcome.code)
     raise ValueError(f"non-terminal target outcome: {type(outcome).__name__}")
 
 
@@ -373,11 +419,13 @@ def outcome_from_terminal(terminal: TargetRunTerminal) -> ChatOutcome:
             str(value["workflow_run_id"]), str(value["signal_id"]),
             str(value["kind"]), str(value["expires_at"]),
             str(value["interaction_publication_id"]),
+            stages=stages,
         )
     if terminal.status == "RECONCILING":
         return Reconciling(
             str(value["workflow_run_id"]), dict(value["public_status"]),
             float(value["next_poll_after"]),
+            stages=stages,
         )
     if terminal.status == "HANDED_OFF":
         return HandedOff(str(value["ticket_id"]), str(value["handoff_id"]))
@@ -397,5 +445,6 @@ def outcome_from_terminal(terminal: TargetRunTerminal) -> ChatOutcome:
             str(value["code"]), False, str(value["correlation_id"]),
             str(value.get("safe_message") or ""),
             stages=stages,
+            response_id=value.get("response_id"),
         )
     raise ValueError(f"unknown target run terminal status {terminal.status!r}")
