@@ -196,3 +196,7 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 - G4安全/归档预注册（69ac86e）：冻结96份知识序列化视图，重放UntrustedContentGuard和领域Agent ToolResultPersistence；默认16000-1200-600输入预算的1/5=2840 token，使用该middleware实际SDK估算。API0，不伪称跑完整ToolManager/Agent。测试正常与强制归档边界，记录隔离、原文inline、引用及归档逐字恢复；DIRECT走证据事实→synthesis，不用领域middleware结果冒充DIRECT损失。
 
 - G4安全/归档完成：96视图安全隔离0；默认2840工具预算27转读取引用/69全文inline，原文96可恢复。强制256边界96归档且可恢复。首次fixture work_item_id带句点被SDK拒绝，已在fixture修正，不改生产合同。1项实际重放测试通过，API0。见[报告](../docs/rag-g4-tool-boundary-2026-09-08.zh-CN.md)。领域Agent是否读取所需页未测；DIRECT走Fact→synthesis不套用该归档率。下一步分别捕获DIRECT合成输入和领域offload读取，避免归档恢复冒充模型可见。交付：`b7a5440` 已提交并推送到 origin/feat/customer-service-target-architecture。
+
+- G4 DIRECT合成输入预注册（ba1d307）：冻结96份模型证据视图，以可追踪的模拟知识Fact/ResultBoard注入ResponseAssembler候选阶段，调用真实compose provider与预算校验，在模型传输边界用capture stub停止。API0；核对全部原文、来源ID和query进入实际构造消息。只证明Fact→候选合成输入转换，不证明上游真实Fact生产、模型回答、verifier或发布。结果不得计为答案成功。
+
+- G4 DIRECT输入完成：96/96冻结视图从重建知识Fact经ResponseAssembler候选组装、真实compose provider/预算校验后完整到达传输stub；API0，1项96视图重放测试通过。首次fixture非canonical JSON被正确拒绝，修正fixture规范序列化后通过。见[报告](../docs/rag-g4-direct-input-2026-09-08.zh-CN.md)。不包含真实Fact生产、模型、核验/发布或多任务长历史；领域归档读取仍待验。下一项固定小样本Flash当前/候选答案配对，按证据支持与需求覆盖评分。交付待本轮推送。
