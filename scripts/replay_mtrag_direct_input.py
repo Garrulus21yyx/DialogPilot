@@ -19,7 +19,7 @@ class Capture:
         return AIMessage(content='CAPTURE_ONLY_NOT_AN_ANSWER')
 
 
-async def replay(rows):
+async def replay(rows, *, model=None, inputs=None, on_record=None):
     profile=ModelProfile('deepseek-v4-flash',ReasoningEffort.NONE,'deepseek')
     records=[]
     for row in rows:
@@ -30,15 +30,18 @@ async def replay(rows):
             fact=FactRecord('knowledge-fixture','knowledge.active_source',json.dumps(data,ensure_ascii=False,sort_keys=True,separators=(',',':')),FactSourceKind.KNOWLEDGE_ASSERTED,'fixture-source','knowledge_search','eval-reconstructed-v1',datetime(2026,9,8,tzinfo=timezone.utc))
             result=AgentResult('knowledge-fixture','general',AgentResultStatus.SUCCEEDED,'KNOWLEDGE_EVIDENCE_AVAILABLE','target-tool-executor-v1',facts=(fact,))
             board=ResultBoardSnapshot((result,),(fact,),(),(),(),(),True,False)
-            capture=Capture()
+            capture=Capture() if model is None else model
             provider=AnthropicConversationPlanningProvider({ModelRole.SYNTHESIS:capture},model_profile=profile,synthesis_profile=profile)
-            response=await ResponseAssembler(composer=provider)._assemble_candidate(board,current_message=view['query_used'])
+            entry=(inputs or {}).get(row['case_id'], {})
+            message=entry.get('current_message',view['query_used'])
+            response=await ResponseAssembler(composer=provider)._assemble_candidate(board,current_message=message,conversation_context=entry.get('conversation_context'))
             if not response.composer_used:raise ValueError(response.verification_reason)
             payload=json.loads(capture.messages[1].content)
             actual=payload['evidence']['facts'][0]['value']
             assert actual==view
-            assert payload['current_message']==view['query_used']
+            assert payload['current_message']==message
             records.append({'case_id':row['case_id'],'arm':arm,'evidence_count':len(actual['evidence']),'full_view_equal':True,'payload_sha256':hashlib.sha256(capture.messages[1].content.encode()).hexdigest(),'input_characters':len(capture.messages[1].content)})
+            if on_record is not None:on_record({**records[-1],'answer':response.text,'payload':payload})
     return records
 
 

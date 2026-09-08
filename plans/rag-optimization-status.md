@@ -200,3 +200,7 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 - G4 DIRECT合成输入预注册（ba1d307）：冻结96份模型证据视图，以可追踪的模拟知识Fact/ResultBoard注入ResponseAssembler候选阶段，调用真实compose provider与预算校验，在模型传输边界用capture stub停止。API0；核对全部原文、来源ID和query进入实际构造消息。只证明Fact→候选合成输入转换，不证明上游真实Fact生产、模型回答、verifier或发布。结果不得计为答案成功。
 
 - G4 DIRECT输入完成：96/96冻结视图从重建知识Fact经ResponseAssembler候选组装、真实compose provider/预算校验后完整到达传输stub；API0，1项96视图重放测试通过。首次fixture非canonical JSON被正确拒绝，修正fixture规范序列化后通过。见[报告](../docs/rag-g4-direct-input-2026-09-08.zh-CN.md)。不包含真实Fact生产、模型、核验/发布或多任务长历史；领域归档读取仍待验。下一项固定小样本Flash当前/候选答案配对，按证据支持与需求覆盖评分。交付：`d1bac07` 已提交并推送到 origin/feat/customer-service-target-architecture。
+
+- G4答案预注册（e4fd3e3）：每域按固定hash从32题取2题共8题，两臂.25/.75，原reference.input历史/末轮问题、冻结pack证据，不发送gold/targets。真实ResponseAssembler候选及compose provider，Flash最多16调用、输出800；不跑verifier/发布。候选输入与模型消息留痕，按事实支持/需求覆盖人工逐例评分；小样本非整体或线上准确率，原公共题不冒充电商Agent规划。
+
+- G4答案生成完成：每域2题共8题、两臂16次Flash/16份非空草稿，API任务已结束；原历史/末轮问题与真实捕获请求一致。96视图零API回归及16请求审计各1项通过。见[报告](../docs/rag-g4-answer8-2026-09-08.zh-CN.md)。没有verifier/发布、没有答案正确率结论；下一动作只读冻结答案及引用原文作逐项支持/覆盖评分，勿重复调用。当前生产不改。交付待确认推送。
