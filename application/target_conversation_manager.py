@@ -271,6 +271,7 @@ class TargetConversationManager:
             observations, state, deterministic, self._registry, turn_context,
         )
         from application.target_understanding import StateBoundTargetUnderstanding
+        proposal = StateBoundTargetUnderstanding.preserve_input_continuations(proposal, state)
         proposal = StateBoundTargetUnderstanding.preserve_approval_continuations(proposal, state)
         validated = self._route_policy.accept(proposal, state, self._registry)
         plan = self._compiler.compile(validated, state, self._registry, invocation)
@@ -280,6 +281,11 @@ class TargetConversationManager:
         if planned_state is not state:
             transitions.append(planned_state)
             state = planned_state
+        if state_before.pending_interaction is not None and state.pending_interaction is None:
+            pending = state_before.pending_interaction
+            # Goal acceptance and wait retirement are one owner transition,
+            # including semantic references from ordinary, unlabelled messages.
+            resume_thread_id = pending.checkpoint_thread_id
 
         return PreparedTurn(
             invocation,
@@ -309,13 +315,7 @@ class TargetConversationManager:
         plan = prepared.plan
         turn_context = prepared.context
         resume_thread_id = prepared.resume_thread_id
-        from application.action_approval import partition_approval_revision
-        affected_controls = {item.control.control_id for item in (plan.work.items if plan.work else ())
-                             if item.control and item.continuation_of is None} | {
-                                 item.control_id for item in plan.control_mutations}
-        closed, _ = partition_approval_revision(state_before.pending_approval, affected_controls)
-        closed_work_items = tuple({item.work_item_id: item
-            for item in (*deterministic.closed_work_items, *closed)}.values())
+        closed_work_items = self._closed_work_items(state_before, deterministic, plan)
         thread_id = resume_thread_id or str(invocation.invocation_key)
         if plan.work is None:
             return ManagedTurnResult(
@@ -345,9 +345,9 @@ class TargetConversationManager:
                 **prepared.execution_context,
                 **invocation.metadata(),
                 "conv_id": str(invocation.conversation_id),
-                "resolved_input_signal": (str(deterministic.signal_id or "")
-                    if deterministic.kind in {ResolutionKind.FILL_PENDING_INPUT, ResolutionKind.REPLY_PENDING_INPUT}
-                    else ""),
+                "resolved_input_signal": (state_before.pending_interaction.interaction_id
+                    if state_before.pending_interaction is not None
+                    and state.pending_interaction is None else ""),
                 **(
                     {
                         "approved_operation_key": str(deterministic.operation_key),
@@ -467,13 +467,23 @@ class TargetConversationManager:
         """Commit the checkpointed decision, then release its execution wait."""
         self._commit_states(result.state_before, result.state_transitions)
         if result.close_checkpoint:
-            from application.action_approval import partition_approval_revision
-            closed, _ = partition_approval_revision(result.state_before.pending_approval,
-                {item.control_id for item in result.plan.control_mutations})
             await self._orchestration.cancel_interrupt(
                 thread_id=result.checkpoint_thread_id,
-                closed_work_items=tuple({item.work_item_id: item for item in (
-                    *result.deterministic.closed_work_items, *closed)}.values()))
+                closed_work_items=self._closed_work_items(result.state_before, result.deterministic, result.plan))
+
+    @staticmethod
+    def _closed_work_items(state, resolution, plan):
+        """Project accepted goal closure into the original execution checkpoint."""
+        from application.action_approval import partition_approval_revision
+        cancelled = {item.control_id for item in plan.control_mutations}
+        affected = cancelled | {item.control.control_id for item in (plan.work.items if plan.work else ())
+                                if item.control and item.continuation_of is None}
+        approval_closed, _ = partition_approval_revision(state.pending_approval, affected)
+        input_closed = tuple(item for item in (state.pending_interaction.suspended_work_items
+                            if state.pending_interaction else ())
+                            if item.control and item.control.control_id in cancelled)
+        return tuple({item.work_item_id: item for item in (
+            *resolution.closed_work_items, *approval_closed, *input_closed)}.values())
 
     def _apply_missing_inputs(
         self,
@@ -720,7 +730,7 @@ class TargetConversationManager:
         state: ConversationState,
         resolution: DeterministicResolution,
     ) -> str | None:
-        if resolution.kind in {ResolutionKind.FILL_PENDING_INPUT, ResolutionKind.REPLY_PENDING_INPUT}:
+        if resolution.kind is ResolutionKind.FILL_PENDING_INPUT:
             return (
                 state.pending_interaction.checkpoint_thread_id
                 if state.pending_interaction is not None else None
@@ -752,11 +762,6 @@ class TargetConversationManager:
     ) -> ConversationState:
         if resolution.state_fingerprint != state.fingerprint:
             raise ConversationStateConflict("resolution is bound to stale state")
-        if resolution.kind is ResolutionKind.REPLY_PENDING_INPUT:
-            return state.consume_interaction_reply(
-                interaction_id=str(resolution.signal_id),
-                interaction_version=int(resolution.signal_version),
-            )
         if resolution.kind is ResolutionKind.FILL_PENDING_INPUT:
             return state.consume_interaction(
                 interaction_id=str(resolution.signal_id),

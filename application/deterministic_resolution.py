@@ -130,6 +130,8 @@ class DeterministicResolver:
         state: ConversationState,
     ) -> DeterministicResolution:
         pending = state.pending_interaction
+        if observations.interaction_id is not None and pending is None:
+            raise DeterministicResolutionError("interaction reply targets a retired interaction")
         if pending is not None and observations.approval_decision is not None:
             raise DeterministicResolutionError("resolve the pending clarification before deciding approval")
         if pending is not None:
@@ -140,23 +142,23 @@ class DeterministicResolver:
                 raise DeterministicResolutionError(
                     "interaction reply targets another interaction"
                 )
-            # A bound free-text reply resumes domain reasoning; it is not a
-            # verified value for every requested field (or even a single field).
-            if (observations.interaction_id is not None
-                    and observations.raw_text.strip()
+            # Bind identity only. The conversation planner distinguishes an
+            # unchanged continuation from revision, cancellation or new work.
+            free_domain_reply = (bool(observations.raw_text.strip())
                     and not observations.interaction_values
                     and not observations.structured_fields
-                    and pending.suspended_work_items
+                    and bool(pending.suspended_work_items)
                     and all(item.control_mode is ControlMode.DELEGATED
                             for item in pending.suspended_work_items
-                            if item.work_item_id in {field.target_work_item_id for field in pending.requested_fields})):
+                            if item.work_item_id in {field.target_work_item_id for field in pending.requested_fields}))
+            if observations.interaction_id is not None and free_domain_reply:
                 return DeterministicResolution(
                     ResolutionKind.REPLY_PENDING_INPUT, "PENDING_REPLY_BOUND",
                     state.fingerprint, signal_id=pending.interaction_id,
                     signal_version=pending.version,
                     resumed_work_items=pending.suspended_work_items,
                 )
-            fields = self._bind_pending_fields(observations, pending.requested_fields)
+            fields = None if free_domain_reply else self._bind_pending_fields(observations, pending.requested_fields)
             if fields is not None:
                 if observations.interaction_id is None:
                     raise DeterministicResolutionError(

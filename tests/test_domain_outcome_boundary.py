@@ -358,7 +358,10 @@ def test_direct_downstream_does_not_turn_a_free_reply_into_verified_slot_values(
     observation = TurnObservations("I'm not sure; please explain the options", interaction_id="question", interaction_version=1)
     resolved = DeterministicResolver().resolve(observation, state)
     assert resolved.kind is ResolutionKind.REPLY_PENDING_INPUT and not resolved.fields
-    commands = asyncio.run(StateBoundTargetUnderstanding()(observation, state, resolved, None)).commands
+    assert asyncio.run(StateBoundTargetUnderstanding()(observation, state, resolved, None)) is None
+    # Dependency preservation remains an owner operation after semantic choice,
+    # not an automatic consequence of a correlated free-text message.
+    commands = StateBoundTargetUnderstanding._continuations(pending.suspended_work_items, state)
     assert commands[-1].kind is CommandKind.DIRECT_TOOL
     assert commands[-1].dependencies == tuple(command.command_id for command in commands[:-1])
 

@@ -33,6 +33,7 @@ from application.work_item import ArgumentValue
 _GOAL_DESCRIPTIONS = {
     "delegate_task": "Delegate an open objective to a registered domain using target_agent and objective. The domain chooses its available tools; this does not authorize an unavailable action.",
     "cancel_active_work": "Cancel one active conversation objective using its revises_control_id; this does not cancel an order.",
+    "continue_active_work": "Continue a pending objective unchanged using its revises_control_id. The runtime restores its tools, arguments and checkpoint; do not restate or reconstruct them. For a changed scope use delegate_task with revises_control_id instead.",
     "general_qa": "Retrieve policy or FAQ evidence, including shipping, address-change rules, coupons and general procedures; performs no business action.",
     "order_status": "Read a specific order's current record; requires a bound order_id.",
     "logistics_status": "Read shipping status from a specific order record; requires a bound order_id and does not fetch carrier tracking events.",
@@ -61,7 +62,7 @@ def planning_goal_descriptions() -> dict[str, str]:
 
 
 def _available_goals(registry):
-    return frozenset({"delegate_task", "cancel_active_work", *registry.planning_shortcuts}) & _GOALS
+    return frozenset({"delegate_task", "cancel_active_work", "continue_active_work", *registry.planning_shortcuts}) & _GOALS
 
 
 _MISSING_FIELDS = {
@@ -150,7 +151,7 @@ class ConversationPlanningProvider(Protocol):
 class ConversationAgent:
     """Plan one deferred turn, then compile only Registry-backed commands."""
 
-    version = "conversation-agent-plan-v5-open-delegation"
+    version = "conversation-agent-plan-v6-pending-goal-semantics"
 
     def __init__(
         self,
@@ -213,6 +214,7 @@ class ConversationAgent:
             ResolutionKind.UNRESOLVED,
             ResolutionKind.RESUME_WORKSTREAM,
             ResolutionKind.CONTINUE_WORKSTREAM,
+            ResolutionKind.REPLY_PENDING_INPUT,
         }:
             return TurnProposal(
                 ProposalDisposition.INVALID_PROVIDER_OUTPUT, (),
@@ -235,6 +237,17 @@ class ConversationAgent:
                 ),
             },
             "observed_entities": dict(observations.structured_fields),
+            "pending_input": ({
+                "interaction_id": state.pending_interaction.interaction_id,
+                "version": state.pending_interaction.version,
+                "objectives": [{
+                    "control_id": item.control.control_id if item.control else None,
+                    "objective": item.objective,
+                    "owner_agent": item.owner_agent,
+                    "requested_fields": [field.field_name for field in state.pending_interaction.requested_fields
+                                         if field.target_work_item_id == item.work_item_id],
+                } for item in state.pending_interaction.suspended_work_items],
+            } if state.pending_interaction else None),
             "active_workstreams": [
                 {
                     "workstream_id": item.workstream_id,
@@ -440,6 +453,15 @@ class ConversationAgent:
                     argument_bindings=bindings,
                     allow_action_proposals=value["allow_action_proposals"],
                 )
+            elif kind == "continue_active_work":
+                from application.target_understanding import StateBoundTargetUnderstanding
+                pending = state.pending_interaction
+                original = next((item for item in (pending.suspended_work_items if pending else ())
+                                 if item.control and item.control.control_id == revises_control_id), None)
+                if original is None:
+                    raise ValueError("continuation requires a pending objective reference")
+                command = replace(StateBoundTargetUnderstanding._resume_command(index, original),
+                                  command_id=goal_id)
             elif kind == "cancel_active_work":
                 if not revises_control_id:
                     raise ValueError("cancel goal requires an active work control")

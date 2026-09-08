@@ -8,7 +8,7 @@ from tests.test_target_framework_agent import _context, _item
 
 @pytest.mark.parametrize("field_count", [1, 2, 5])
 @pytest.mark.parametrize("reply", ["I don't know; try another way", "A is blue, B is medium", "Please reconsider"])
-def test_bound_text_reply_resumes_without_fabricating_slot_values(field_count, reply):
+def test_bound_text_reply_correlates_without_consuming_or_fabricating_values(field_count, reply):
     from application.agent_result import RequestedField
     from application.conversation_state import ConversationState, PendingInteractionState, ConversationStateError
     from application.deterministic_resolution import DeterministicResolver, TurnObservations, ResolutionKind
@@ -23,11 +23,8 @@ def test_bound_text_reply_resumes_without_fabricating_slot_values(field_count, r
     assert resolution.kind is ResolutionKind.REPLY_PENDING_INPUT
     assert resolution.fields == ()
     assert resolution.resumed_work_items == (item,)
-    updated = state.consume_interaction_reply(interaction_id="question", interaction_version=1)
-    assert updated.pending_interaction is None
-    assert updated.workstreams == state.workstreams
-    with pytest.raises(ConversationStateError):
-        updated.consume_interaction_reply(interaction_id="question", interaction_version=1)
+    assert state.pending_interaction == pending
+    assert state.consumed_signal_ids == ()
 
 
 def test_native_input_tool_schema_repair_uses_existing_model_loop():

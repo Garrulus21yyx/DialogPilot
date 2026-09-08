@@ -204,6 +204,9 @@ def test_stopped_work_handback_preserves_independent_success_and_feedback(status
 
 def test_approval_and_clarification_have_distinct_checkpoints_and_signals():
     async def run():
+        from dataclasses import replace
+        from application.conversation_state import WorkControlState, WorkControlStatus
+        from application.work_item import WorkControlBinding
         calls = []
         async def worker(context):
             item = context.work_item
@@ -217,9 +220,11 @@ def test_approval_and_clarification_have_distinct_checkpoints_and_signals():
         manager, _, store = _setup(worker)
         identity = _identity("clarify")
         state = store.load(identity.tenant_id, identity.user_id, identity.conversation_id)
-        state_with_approval = state.wait_for_approval(PendingApprovalState("approval", 1, "action-stream",
+        bound = replace(state, work_controls=(WorkControlState("original-goal", 1, "original-work",
+            "original-invocation", "order_logistics", "Cancel the order", WorkControlStatus.ACTIVE, 0),))
+        state_with_approval = bound.wait_for_approval(PendingApprovalState("approval", 1, "action-stream",
             "write", "order.cancel:v1", "operation", "order:R1", "1", "2099-01-01T00:00:00+00:00",
-            checkpoint_thread_id="original-approval-thread"), new_workstream=WorkstreamState(
+            checkpoint_thread_id="original-approval-thread", control=WorkControlBinding("original-goal", 1)), new_workstream=WorkstreamState(
                 "action-stream", "order_logistics", "order.cancel:v1", "PREPARED", WorkstreamStatus.WAITING_APPROVAL, 1))
         assert store.compare_and_set(state, state_with_approval)
         first = await manager.handle(identity, TurnObservations("Before confirming, explain my options"))

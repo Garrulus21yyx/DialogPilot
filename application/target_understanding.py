@@ -9,6 +9,7 @@ from application.turn_planning import (
     CommandProposal,
     ProposalDisposition,
     TurnProposal,
+    TurnPlanningError,
 )
 from application.work_item import ArgumentValue, ControlMode
 
@@ -17,19 +18,19 @@ class StateBoundTargetUnderstanding:
     """Compile only facts already bound by authoritative conversation state.
 
     This stage performs no lexical or domain inference.  It exists to turn a
-    consumed pending interaction or approval into the exact command that was
+    typed pending input or explicit approval into the exact command that was
     previously suspended.  Every other turn proceeds to the encoder or the
     Conversation Agent.
     """
 
-    version = "state-bound-target-understanding-v1"
+    version = "state-bound-target-understanding-v2-typed-input"
 
     async def __call__(
         self, observations, state, deterministic, registry, turn_context=None,
     ) -> TurnProposal | None:
         del observations, turn_context
         if (
-            deterministic.kind in {ResolutionKind.FILL_PENDING_INPUT, ResolutionKind.REPLY_PENDING_INPUT}
+            deterministic.kind is ResolutionKind.FILL_PENDING_INPUT
             and deterministic.resumed_work_items
         ):
             return TurnProposal(
@@ -146,13 +147,57 @@ class StateBoundTargetUnderstanding:
                 independent, state, dependency_commands=continuation_ids)))
 
     @classmethod
+    def preserve_input_continuations(cls, proposal, state):
+        """Retain the pending DAG after a semantic decision about one of its goals.
+
+        Correlation alone never resumes work. Once a command addresses a pending
+        goal, preserve its untouched peers and dependencies. Cancellation closes
+        dependent work, while revision rebinds dependencies to the replacement.
+        """
+        pending = state.pending_interaction
+        if pending is None or proposal.disposition is not ProposalDisposition.RESOLVED:
+            return proposal
+        originals = {item.control.control_id: item for item in pending.suspended_work_items if item.control}
+        represented = {command.revises_control_id: command for command in proposal.commands
+                       if command.revises_control_id in originals}
+        if not represented:
+            return proposal
+        closed = {originals[key].work_item_id for key, command in represented.items()
+                  if command.kind is CommandKind.CANCEL_WORK}
+        while True:
+            expanded = closed | {item.work_item_id for item in originals.values()
+                                 if closed.intersection(item.dependencies)}
+            if expanded == closed:
+                break
+            closed = expanded
+        if any(originals[key].work_item_id in closed and command.kind is not CommandKind.CANCEL_WORK
+               for key, command in represented.items()):
+            raise TurnPlanningError("cannot resume a dependency of cancelled work")
+        cancellations = tuple(CommandProposal(
+            "cancel-dependent:" + item.work_item_id, CommandKind.CANCEL_WORK,
+            item.owner_agent, item.objective, revises_control_id=key,
+        ) for key, item in originals.items() if item.work_item_id in closed and key not in represented)
+        ids = {originals[key].work_item_id: command.command_id for key, command in represented.items()
+               if command.kind is not CommandKind.CANCEL_WORK}
+        untouched = tuple(item for key, item in originals.items()
+                          if key not in represented and item.work_item_id not in closed)
+        continuations = cls._continuations(untouched, state, dependency_commands=ids)
+        ids.update({command.continuation_of: command.command_id for command in continuations})
+        commands = tuple(replace(command, dependencies=tuple(dict.fromkeys((
+            *command.dependencies, *(ids[dependency] for dependency in originals[command.revises_control_id].dependencies
+                                    if dependency in ids),
+        )))) if command.revises_control_id in originals and command.kind is not CommandKind.CANCEL_WORK
+            else command for command in proposal.commands)
+        return replace(proposal, commands=(*commands, *cancellations, *continuations))
+
+    @classmethod
     def _continuations(cls, items, state, *, after=None, dependency_commands=None):
         active = tuple(work for work in items if work.control is None or any(
             control.control_id == work.control.control_id
             and control.revision == work.control.revision
             for control in state.active_work_controls))
         ids = {**(dependency_commands or {}), **{
-            work.work_item_id: f"continue-domain-objective-{index}"
+            work.work_item_id: f"continue-domain-objective:{work.work_item_id}"
             for index, work in enumerate(active, start=1)}}
         return tuple(replace(
             cls._resume_command(index, work), command_id=ids[work.work_item_id],
@@ -217,7 +262,7 @@ class CascadedTargetUnderstanding:
         )
         if resolved is not None:
             return resolved
-        if self._encoder is not None:
+        if self._encoder is not None and deterministic.kind is not ResolutionKind.REPLY_PENDING_INPUT:
             decision = await self._encoder(
                 observations, state, registry, turn_context,
             )

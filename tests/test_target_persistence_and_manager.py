@@ -108,6 +108,19 @@ class _ResumeAwareUnderstanding:
     async def __call__(
         self, observations, state, deterministic, registry, turn_context=None,
     ):
+        if deterministic.kind is ResolutionKind.REPLY_PENDING_INPUT:
+            # This fixture scripts unchanged semantic replies. The production
+            # state-only fast path must not infer that from correlation.
+            from application.conversation_agent import ConversationAgent
+            class Provider:
+                async def plan(self, payload):
+                    return {"status": "resolved", "goals": [
+                        {"kind": "continue_active_work", "revises_control_id": item.control.control_id}
+                        for item in state.pending_interaction.suspended_work_items
+                        if item.control and item.work_item_id in {
+                            field.target_work_item_id for field in state.pending_interaction.requested_fields}]}
+            return await ConversationAgent(Provider()).plan(
+                observations, state, deterministic, registry, turn_context)
         if deterministic.kind is not ResolutionKind.UNRESOLVED:
             resolved = await self.state_bound(
                 observations, state, deterministic, registry, turn_context,

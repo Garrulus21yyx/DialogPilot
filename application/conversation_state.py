@@ -573,8 +573,33 @@ class ConversationState:
             self,
             version=self.version + 1,
             work_controls=tuple(controls[key] for key in sorted(controls)),
-            **self._approval_revision_update(controls, started_workstreams),
+            **self._pending_revision_update(controls, started_workstreams),
         )
+
+    def _pending_revision_update(self, controls, started_workstreams=()):
+        updates = self._approval_revision_update(controls, started_workstreams)
+        input_updates = self._input_revision_update(controls)
+        if input_updates:
+            updates.update(input_updates)
+            targets = dict(self.pending_interaction.workstream_versions)
+            updates["resume_bindings"] = tuple(binding for binding in updates.get("resume_bindings", self.resume_bindings)
+                                               if binding.workstream_id not in targets)
+        return updates
+
+    def _input_revision_update(self, controls):
+        """Accepting a pending goal's next revision retires its wait atomically."""
+        pending = self.pending_interaction
+        if pending is None or not any(
+            item.control and (controls.get(item.control.control_id) is None
+                or controls[item.control.control_id].binding != item.control
+                or controls[item.control.control_id].terminal)
+            for item in pending.suspended_work_items
+        ):
+            return {}
+        signal_id = f"interaction:{pending.interaction_id}:v{pending.version}"
+        self._assert_unconsumed(signal_id)
+        return {"pending_interaction": None,
+                "consumed_signal_ids": (*self.consumed_signal_ids, signal_id)}
 
     def _approval_revision_update(self, controls, started_workstreams=()):
         """A goal revision and its unexecuted approval change atomically.
@@ -621,7 +646,7 @@ class ConversationState:
             self,
             version=self.version + 1,
             work_controls=tuple(controls.values()),
-            **self._approval_revision_update(controls),
+            **self._pending_revision_update(controls),
         )
 
     def start_workstream(self, workstream: WorkstreamState) -> "ConversationState":
@@ -696,21 +721,6 @@ class ConversationState:
         )
         return replace(updated, pending_approval=pending)
 
-    def consume_interaction_reply(self, *, interaction_id: str, interaction_version: int) -> "ConversationState":
-        """Consume a reply, leaving semantic field extraction to suspended agents."""
-        signal_id = f"interaction:{interaction_id}:v{interaction_version}"
-        self._assert_unconsumed(signal_id)
-        pending = self.pending_interaction
-        if pending is None or (pending.interaction_id, pending.version) != (interaction_id, interaction_version):
-            raise ConversationStateConflict("pending interaction changed")
-        if (not pending.suspended_work_items
-                or any(item.control_mode is not ControlMode.DELEGATED for item in pending.suspended_work_items)
-                or {field.target_work_item_id for field in pending.requested_fields}.difference(
-                    item.work_item_id for item in pending.suspended_work_items)):
-            raise ConversationStateError("free-text reply requires suspended domain work")
-        return replace(self, version=self.version + 1, pending_interaction=None,
-                       consumed_signal_ids=(*self.consumed_signal_ids, signal_id), resume_bindings=())
-
     def consume_interaction(
         self,
         *,
@@ -762,7 +772,8 @@ class ConversationState:
             workstreams=tuple(updated),
             pending_interaction=None,
             consumed_signal_ids=(*self.consumed_signal_ids, signal_id),
-            resume_bindings=(),
+            resume_bindings=tuple(binding for binding in self.resume_bindings
+                                  if binding.workstream_id not in expected_versions),
         )
 
     def consume_approval(
@@ -790,7 +801,8 @@ class ConversationState:
             updated,
             pending_approval=None,
             consumed_signal_ids=(*updated.consumed_signal_ids, signal_id),
-            resume_bindings=(),
+            resume_bindings=tuple(binding for binding in updated.resume_bindings
+                                  if binding.workstream_id != pending.workstream_id),
             accepted_approvals=(
                 (*updated.accepted_approvals, AcceptedApprovalState(
                     pending.approval_id,
