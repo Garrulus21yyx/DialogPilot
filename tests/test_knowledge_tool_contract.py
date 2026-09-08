@@ -3,6 +3,7 @@ from copy import deepcopy
 from dataclasses import replace
 import pytest
 from application.agent_result import AgentResultStatus
+from application.default_capability_registry import build_default_capability_registry
 from application.knowledge_tool_contract import knowledge_outcome
 from application.work_item import ControlMode
 from infrastructure.target_tool_execution import TargetToolExecutor
@@ -35,7 +36,7 @@ def test_domain_outcomes_preserved_in_both_execution_modes(status, expected):
         async def execute_for_agent(self, *args, **kwargs): return result
     item = replace(_item(allowed_tools=('knowledge_search',)), control_mode=ControlMode.DIRECT,
                    requirement_ids=('knowledge.active_source',))
-    direct = asyncio.run(TargetToolExecutor(Tools())(_context(item)))
+    direct = asyncio.run(TargetToolExecutor(Tools(), registry=build_default_capability_registry('tenant-a'))(_context(item)))
     delegated = _adapt_framework_result(_context(item), (result,), 'test',
         allowed_authorities={'knowledge_search': 'knowledge.active_source'})
     for output in (direct, delegated):

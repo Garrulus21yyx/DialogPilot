@@ -106,8 +106,8 @@ def test_uploaded_asset_reaches_real_product_tools_and_catalog(
     for tool in product_tools(asset_store, LabelOCR(), catalog):
         tool_manager.register(tool)
     product = TargetProductExecutor(tool_manager)
-    generic = TargetToolExecutor(tool_manager)
     registry = build_default_capability_registry("tenant-product-e2e")
+    generic = TargetToolExecutor(tool_manager, registry=registry)
     checkpoint_owner = AsyncPostgresCheckpointOwner(postgres_database_url, setup=True)
     prefix = uuid4().hex
     monkeypatch.setenv("DEFAULT_TENANT_ID", "tenant-product-e2e")

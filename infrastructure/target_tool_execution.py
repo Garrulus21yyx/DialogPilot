@@ -8,18 +8,9 @@ from application.agent_result import (
 from application.orchestration_runtime import AgentContextView
 from application.work_item import ControlMode
 from application.work_control import WorkControlGuard
+from application.capability_registry import CapabilityRegistryBundle
 from application.knowledge_tool_contract import tool_domain_outcome
 from infrastructure.target_agent_result_adapter import fact_from_tool_result
-
-
-_TOOL_AGENT = {
-    "general": "general",
-    "product_technical": "technical",
-    "order_logistics": "general",
-    "billing_refund": "billing",
-    "account_security": "account_security",
-    "human_service": "escalation",
-}
 
 
 class TargetToolExecutor:
@@ -27,8 +18,10 @@ class TargetToolExecutor:
 
     version = "target-tool-executor-v1"
 
-    def __init__(self, tool_manager, *, control_guard: WorkControlGuard | None = None) -> None:
+    def __init__(self, tool_manager, *, registry: CapabilityRegistryBundle,
+                 control_guard: WorkControlGuard | None = None) -> None:
         self._tools = tool_manager
+        self._registry = registry
         self._control_guard = control_guard
 
     async def __call__(self, context: AgentContextView) -> AgentResult:
@@ -42,6 +35,7 @@ class TargetToolExecutor:
                 self.version,
             )
         tool_ids = self._tool_sequence(context)
+        principal = self._registry.agent(item.owner_agent).execution_principal
         facts = []
         evidence_refs = []
         for index, tool_id in enumerate(tool_ids, start=1):
@@ -53,8 +47,9 @@ class TargetToolExecutor:
             result = await self._tools.execute_for_agent(
                 tool_id,
                 params,
-                agent_type=_TOOL_AGENT[item.owner_agent],
+                agent_type=principal,
                 context=dict(context.trusted_context),
+                allowed_tool_ids=item.allowed_tools,
                 call_id=f"{item.work_item_id}:{index}:{tool_id}",
             )
             if self._control_guard is not None:

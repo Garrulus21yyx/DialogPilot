@@ -70,7 +70,7 @@ def test_direct_media_chat_publishes_once_without_domain_dispatch_or_flow():
                 StateBoundTargetUnderstanding(), conversation,
             ),
             orchestration=OrchestrationRuntime(
-                direct_executor=TargetToolExecutor(tools), domain_workers={},
+                direct_executor=TargetToolExecutor(tools, registry=registry), domain_workers={},
             ),
         ),
         admission=_Admission(), publication=_Publication(),

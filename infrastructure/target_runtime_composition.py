@@ -132,7 +132,7 @@ async def build_target_runtime(
         state_store = PostgresConversationStateStore(postgres_pool)
         control_guard = WorkControlGuard(state_store)
         tool_executor = TargetToolExecutor(
-            tool_manager, control_guard=control_guard,
+            tool_manager, registry=registry, control_guard=control_guard,
         )
         product_executor = TargetProductExecutor(
             tool_manager, control_guard=control_guard,

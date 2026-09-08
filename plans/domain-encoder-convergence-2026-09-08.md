@@ -206,3 +206,14 @@ max_steps80、seed300、用户Flash、官方ALL及ENV/ACTION分别记录。
 试训记录已提交推送c73e79e。独立140条复核完成：中英文校准与评测各5/35，
 全部预测退款域，校准无合格阈值；不启用。37项相关单测+48项τ³适配测试通过。
 τ³新10任务已按预注册范围启动，状态in_progress；所有成绩包括失败待完整报告。
+
+### 新10任务运行结束与修复入口
+
+运行已结束，未替换任务或重跑。证据目录
+`artifacts/eval/tau3-new10-after-encoder-trial-2026-09-08/`。
+官方ALL可得5条，其中2通过；5条裁判失败保持缺失。ENV得分4/10、ACTION得分3/10，
+但任务30因max_steps被官方直接赋0，未实际执行数据库/动作核验；不得将6个ENV零分
+全部表述为“最终数据库不正确”。任务24没有参考动作，ACTION=1也不证明发生过业务写入。
+Encoder保持关闭；训练、独立验证、固定10任务运行完成，根因修复仍in_progress。
+当前HEAD ceeab4e，工作树存在用户业务恢复/Registry修改，不能整体覆盖或整体stage。
+修复因果面及验收见 `plans/conversation-direct-capability-convergence-2026-09-08.md`。

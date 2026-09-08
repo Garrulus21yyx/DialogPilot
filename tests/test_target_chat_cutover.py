@@ -180,6 +180,7 @@ class _ToolManager:
 
     async def execute_for_agent(
         self, name, params, *, agent_type, context, approved=False, call_id=None,
+        allowed_tool_ids=None,
     ):
         self.calls.append((name, dict(params), agent_type, dict(context)))
         return ToolResult(
@@ -197,8 +198,8 @@ class _ToolManager:
 
 def _application(understanding=None):
     tools = _ToolManager()
-    executor = TargetToolExecutor(tools)
     registry = build_default_capability_registry("tenant-a")
+    executor = TargetToolExecutor(tools, registry=registry)
     manager = TargetConversationManager(
         state_store=InMemoryConversationStateStore(),
         registry=registry,

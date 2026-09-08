@@ -30,6 +30,7 @@ def test_tool_queries_own_distinct_fact_subjects_not_the_work_item(tool_name):
     assert ResultBoard._conflicts((facts[0], changed))
 
 from application.agent_result import FactSourceKind
+from application.default_capability_registry import build_default_capability_registry
 from application.work_item import ControlMode
 from infrastructure.target_agent_result_adapter import (
     framework_artifact, restore_framework_artifact,
@@ -66,7 +67,7 @@ def test_direct_and_framework_preserve_identical_tool_provenance(
         control_mode=ControlMode.DIRECT,
         requirement_ids=(authority,),
     )
-    direct = asyncio.run(TargetToolExecutor(Tools())(_context(item)))
+    direct = asyncio.run(TargetToolExecutor(Tools(), registry=build_default_capability_registry('tenant-a'))(_context(item)))
     delegated = _adapt_framework_result(
         _context(replace(item, control_mode=ControlMode.DELEGATED)),
         (restore_framework_artifact(framework_artifact(result)),), "fixture-v1",
@@ -96,7 +97,7 @@ def test_later_tool_failure_preserves_prior_authoritative_facts(failure_status):
             return first if self.calls==1 else second
     item=replace(_item(allowed_tools=('order_lookup','other_lookup')),
         control_mode=ControlMode.DELEGATED,skill_hint='lookup',allowed_skills=('lookup',),requirement_ids=('order.current_state',))
-    result=asyncio.run(TargetToolExecutor(Tools())(_context(item)))
+    result=asyncio.run(TargetToolExecutor(Tools(), registry=build_default_capability_registry('tenant-a'))(_context(item)))
     assert json.loads(result.facts[0].value_json)==first.data
     assert result.evidence_refs==('read-receipt',)
     assert result.candidate_response is None

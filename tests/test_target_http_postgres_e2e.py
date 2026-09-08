@@ -49,6 +49,7 @@ class _ScenarioTools:
 
     async def execute_for_agent(
         self, name, params, *, agent_type, context, approved=False, call_id=None,
+        allowed_tool_ids=None,
     ):
         self.calls.append((name, dict(params), agent_type, dict(context), approved))
         if name == "catalog_search" and context["conversation_id"] in self.fail_catalog_for:
@@ -406,8 +407,8 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
     pool.open()
     tools = _ScenarioTools()
     conversation_provider = _ScenarioConversationProvider()
-    read_executor = TargetToolExecutor(tools)
     registry = build_default_capability_registry("tenant-target-e2e")
+    read_executor = TargetToolExecutor(tools, registry=registry)
     workflow_executor = TargetWorkflowExecutor(pool, tools, registry=registry)
     state_store = PostgresConversationStateStore(pool)
     monkeypatch.setenv("DEFAULT_TENANT_ID", "tenant-target-e2e")

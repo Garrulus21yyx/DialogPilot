@@ -247,7 +247,7 @@ def test_generic_product_qa_executes_the_shared_knowledge_tool_contract():
             self.calls = []
 
         async def execute_for_agent(
-            self, name, params, *, agent_type, context, call_id,
+            self, name, params, *, agent_type, context, call_id, allowed_tool_ids,
         ):
             self.calls.append((name, params, agent_type, context, call_id))
             return ToolResult(
@@ -263,7 +263,7 @@ def test_generic_product_qa_executes_the_shared_knowledge_tool_contract():
             )
 
     tools = KnowledgeTools()
-    result = asyncio.run(TargetToolExecutor(tools)(AgentContextView(
+    result = asyncio.run(TargetToolExecutor(tools, registry=registry)(AgentContextView(
         item, question, (), (), (), 2000,
         {"tenant_id": "tenant-a", "user_id": "user-a", "conversation_id": "conversation-a"},
     )))

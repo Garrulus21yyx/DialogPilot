@@ -79,7 +79,7 @@ def test_contextual_refund_read_replays_once_but_new_turn_refreshes(customer_ope
                 StateBoundTargetUnderstanding(), ConversationAgent(Provider()),
             ),
             orchestration=OrchestrationRuntime(
-                direct_executor=TargetToolExecutor(tools), domain_workers={},
+                direct_executor=TargetToolExecutor(tools, registry=registry), domain_workers={},
             ),
         ),
         admission=_Admission(), publication=_Publication(),
