@@ -1645,3 +1645,44 @@ Dedicated delivery excludes unrelated archive/RAG work. Next: reconcile the orig
 fixed10 failure matrix with the delivered owner repairs and their acceptance evidence,
 then perform the appropriate end-to-end verification rather than expand this archive
 work beyond its observed causal scope. Encoder remains disabled; goal not closed.
+
+## Fixed10 integration revalidation at f190c5b
+
+Previous turn delivered the archive boundary and verified it; this is progress,
+not a blocked/wait state. Reconciled the fixed10 original rows: 19/22/29 missed
+identity/continuation tools, 23/28 missed requested business changes, 21 had correct
+ENV but missing calculate action plus dialogue issues, 30 hit max_steps without DB
+assertions. 20/25 passed original ALL; 24 has no expected action and missing judge.
+Do not infer all missing actions have one cause or ENV success proves dialogue.
+
+Delivered causal owners now cover native read catalog and observed-result continuation,
+retained objectives/history, pending-state persistence, approval semantics, state-bound
+publication, source operation descriptions, preparation segment termination, sequential
+goal guidance and scoped archive errors. Component and independent reviews support
+those bounded changes; model/task-level interaction remains unverified. No known
+unimplemented owner migration from these reviews is being bypassed by this run.
+
+Pre-register one complete development repair replay of the SAME ten train tasks:
+offset14/count10 = 19,20,21,22,23,24,25,28,29,30. Existing run_tau3_full runner,
+/tmp/tau3.asUlWc source, seed300, max_steps80, Flash user with512 output tokens,
+no completion-budget override, existing worker/reviewer profiles, encoder disabled.
+Budget: ten tasks once; no replacement/restart on failure, existing per-work-item
+20 model calls and review limits. Output:
+artifacts/eval/tau3-fixed10-repair-validation-2026-09-09/.
+Record ALL/ENV/ACTION separately, actual writes and receipts, final user reply,
+repeated confirmations, residual goals, termination and typed failure attribution.
+Missing OpenAI judge credentials rechecked: absent, not a zero score. Keep original
+run immutable. This is reused development data, not ten new held-out successes.
+Current user changes remain in the runtime worktree and are recorded by source hash;
+do not attribute all before/after differences solely to these repair commits. Do not
+change running production modules while this fixed run is in progress.
+
+Started successfully: exec session84372; manifest RUNNING at f190c5b,
+2026-09-08T23:19:05.962295Z, all ten IDs verified, Langfuse enabled. Local adapter/
+semantics/archive preflight: 18 passed / 1 skipped; real runner imports tau2 from
+the existing official environment, project SDK from .venv (no dependency install).
+Early task19 citation_validation failure recorded; no run restart or code change.
+Original task30 public trajectory ends in a cancellation-success reply despite
+max_steps. Preserve the distinction: official final checks absent, and reply alone
+does not prove final DB correctness. Actual receipt/trajectory must be audited in
+the completed comparative report. Running outcome remains pending.
