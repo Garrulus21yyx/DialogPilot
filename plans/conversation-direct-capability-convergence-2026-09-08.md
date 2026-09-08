@@ -1742,3 +1742,51 @@ in addition to the earlier30742 case. These retained failures keep convergence
 open. Next work: reconcile partial-run lifecycle, inspect task22 proposal/binding
 provenance end-to-end and review input admission at its owner; no threshold patch,
 new live experiment, or completion claim follows from this status update.
+
+## Domain-owned parameter repair (task22 observed trigger)
+
+Langfuse observations API, session tau3-ad98956060f44499a26416e94fe15e66,
+returned31 generations. Observations53aaf0de1b201d0a and2aec87dba66e4258
+confirm both rejected proposals called delegate_task with new_address set to
+`101 Highway, New York, NY 10001`. This was assembled from earlier user address
+and current NY confirmation; the repeated attempt followed a status question.
+Thus the actual trigger is confirmed, not inferred solely from error wording.
+
+Shared cause: generic delegation duplicated business-parameter extraction and
+applied the direct shortcut's current-message provenance contract. The domain
+already receives original dialogue and owns preparation; the planner's redundant
+address field blocked that owner before it could execute.
+
+Positive contract implemented: delegation carries complete objective, constraints,
+and scoped object/media selections, with no independently asserted address field.
+Both native tool schema and internal interchange reject that obsolete field.
+Direct change_address retains a bounded current-user verbatim address contract;
+multi-turn composition uses delegation. EntityBindingResolver owns the excerpt
+binding. This does not prove postal validity or approval; existing preparation and
+approval retain those responsibilities. No address parser, fallback path, relaxed
+provenance, or per-case branch was added.
+
+ConversationAgent version is v15-domain-owned-parameters. Existing accepted
+WorkItems, arguments, bindings and checkpoints are untouched; no checkpoint shape
+or execution algebra changed, so no TurnRuntime version rejection is introduced.
+Fresh-context independent review found no blocking contract gap; it requested
+actual Manager-to-worker context coverage, now added. Test proves original user
+address and current correction reach the domain together without a planner address
+argument. Schema matrix verifies each other supported goal accepts its legal shape
+and rejects the extra address field. Existing direct binding/approval tests remain.
+
+No real model/business task has been rerun. This fixes the demonstrated delegation
+contract defect only; task22 dialogue quality and successful writes remain unproven.
+Other fixed-run findings (review admission budget, repeated confirmations, leaked
+planning prose, coupled-operation feasibility) remain open. Run interruption is
+separate: existing runner does not expose resume of an in-flight simulator, and
+SIGTERM skipped its normal finalization. Preserve original rows and partial attempt
+before planning any remaining-task continuation; do not relabel it a clean ten-run.
+
+Verification: 227 tests passed across delegation ownership, native actions,
+ConversationAgent, planning schema, accepted parameters, entity bindings, approval
+conversation and observation loops; git diff --check passed. Initial new-test
+failures were fixture API mistakes (schema property/context_provider.load), fixed
+in tests without production concessions. PostgreSQL/live-model evaluation not run
+in this repair step. Only owner/schema/tests/this plan are staged; user changes in
+runtime/archive and other documents remain unstaged.

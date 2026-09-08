@@ -147,7 +147,7 @@ def planning_actions(payload):
             required.append("entity")
             selections["entity"] = choices
         if kind == "change_address":
-            properties["new_address"] = {**_TEXT, "description": "The user's verbatim new shipping address."}
+            properties["new_address"] = {**_TEXT, "description": "Complete new shipping address quoted verbatim from the current user message. For an address assembled across turns, use delegate_task with the complete objective instead."}
             required.append("new_address")
         goal(kind, kind, properties, tuple(required), selections=selections)
     domains = payload.get("domain_capabilities", ())
@@ -157,7 +157,6 @@ def planning_actions(payload):
                                       "Select the domain for an open investigation or business-change preparation, not a second planner for an already explicit tool query."),
             "objective": {**_TEXT, "description": "Complete desired outcome including user constraints, not a prescribed tool sequence. Keep changes sharing object state or a one-time capability together so their compatibility can be assessed before preparation."},
             "allow_action_proposals": {"type": "boolean", "description": "True when the user's delegated outcome requests a business change, including a change conditional on eligibility. False for information-only requests. This permits preparing a proposal, never grants approval or bypasses its submission policy."},
-            "new_address": {**_TEXT, "description": "Optional user's verbatim new shipping address when relevant to this objective."},
         }
         selections = {}
         for name, field_name in (("order", "order_id"), ("media", "asset_id")):

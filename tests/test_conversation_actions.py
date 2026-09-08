@@ -244,14 +244,16 @@ def test_real_pending_input_conversion_reuses_task_not_new_goal():
     assert not result.commands
 
 
-def test_delegation_preserves_independent_order_media_and_address_bindings():
-    p, _ = provider(("delegate_task", {"target_agent": "product_technical", "objective": "调查订单和图片并改址",
-        "allow_action_proposals": True, "order": "DP1234", "media": "IMG5678", "new_address": "上海新路8号"}))
+def test_delegation_preserves_entities_and_business_details_in_objective():
+    objective = "调查订单和图片并改址到上海新路8号"
+    p, _ = provider(("delegate_task", {"target_agent": "product_technical", "objective": objective,
+        "allow_action_proposals": True, "order": "DP1234", "media": "IMG5678"}))
     proposal, state, registry = _invoke(ConversationAgent(p), "调查 DP1234 和 IMG5678，改到上海新路8号")
     command, = proposal.commands
     assert command.kind is CommandKind.DELEGATE_TASK
     assert {binding.field_name: binding.value for binding in command.argument_bindings} == {
-        'order_id': 'DP1234', 'asset_id': 'IMG5678', 'new_address': '上海新路8号'}
+        'order_id': 'DP1234', 'asset_id': 'IMG5678'}
+    assert command.objective == objective
     RoutePolicy().accept(proposal, state, registry)
 
 

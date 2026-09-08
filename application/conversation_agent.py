@@ -19,8 +19,7 @@ from application.context_budget import (
 from application.deterministic_resolution import ResolutionKind
 from application.entity_binding import (
     BindingStatus,
-    EntityBinding,
-    BindingSource,
+    EntityBindingResolver,
 )
 from application.turn_planning import (
     CommandKind,
@@ -43,7 +42,7 @@ _GOAL_DESCRIPTIONS = {
     "order_status": "Read a specific order's current record; requires a bound order_id.",
     "logistics_status": "Read shipping status from a specific order record; requires a bound order_id and does not fetch carrier tracking events.",
     "cancel_order": "Prepare cancellation of a specific order when the user requests that action; requires a bound order_id. Policy questions use general_qa.",
-    "change_address": "Prepare an actual shipping-address change requested by the user; requires a bound order_id and explicitly supplied new_address. Questions about whether or how changes work use general_qa.",
+    "change_address": "Prepare a shipping-address change with a bound order_id and a complete new_address quoted from the current user message. Delegate changes requiring address resolution across turns. Questions about whether or how changes work use general_qa.",
     "refund_policy": "Retrieve return/refund rules, after-sales conditions and the meaning of policy stages, including questions applied to a known order. An order reference does not turn a policy question into a business-state lookup. No order ID is required and no refund is started.",
     "refund_eligibility": "Read a specific order's operational refund-submission precheck (order status, configured submission window, existing application); requires a bound order_id. Does not assess gift, product-exception or refund-amount policies. Pair with refund_policy when those rules are also requested.",
     "refund_status": "Read an existing order's current refund progress; requires a bound order_id. Explaining whether one approval stage implies another outcome requires refund_policy evidence; a progress read alone does not establish that rule.",
@@ -116,7 +115,10 @@ def planning_output_schema(supported_goals=None, knowledge_filter_contract=None)
             "else": {"not": {"anyOf": [{"required": ["tool_id"]}, {"required": ["arguments"]}]}},
         }, {"if": {"properties": {"kind": {"not": {"enum": ["atomic_read", "delegate_task"]}}}},
          "then": {"not": {"required": ["target_agent"]}}
-        }, {"if": {"properties": {"kind": {"enum": sorted(_KNOWLEDGE_GOALS)}}},
+        }, {"if": {"properties": {"kind": {"const": "change_address"}}},
+             "then": {"required": ["new_address"]},
+             "else": {"not": {"required": ["new_address"]}}},
+        {"if": {"properties": {"kind": {"enum": sorted(_KNOWLEDGE_GOALS)}}},
              "then": {"required": ["resolved_query"]}}],
     }
     if supported_goals is not None and not set(supported_goals).intersection(_KNOWLEDGE_GOALS):
@@ -184,7 +186,7 @@ class ConversationPlanningProvider(Protocol):
 class ConversationAgent:
     """Plan one deferred turn, then compile only Registry-backed commands."""
 
-    version = "conversation-agent-v14-action-semantics"
+    version = "conversation-agent-v15-domain-owned-parameters"
 
     def __init__(
         self,
@@ -486,19 +488,11 @@ class ConversationAgent:
                 binding_set, "asset_id", asset_id,
                 str(value.get("asset_id_source_ref") or ""), state,
             )
-            new_address = str(value.get("new_address") or "").strip()
-            if new_address and new_address not in observations.raw_text:
-                raise ValueError("provider invented a shipping address")
-            address_binding = (
-                EntityBinding.create(
-                    "new_address", new_address,
-                    source=BindingSource.CURRENT_MESSAGE,
-                    source_ref="turn-message:current:new_address",
-                    tenant_id=str(state.tenant_id), user_id=str(state.user_id),
-                    conversation_id=str(state.conversation_id), priority=400,
+            address_binding = None
+            if kind == "change_address":
+                address_binding = EntityBindingResolver.bind_current_text(
+                    "new_address", value["new_address"], observations, state,
                 )
-                if new_address else None
-            )
             revises_control_id = str(value.get("revises_control_id") or "").strip()
             if revises_control_id and revises_control_id not in {
                 item.control_id for item in state.active_work_controls
@@ -532,7 +526,7 @@ class ConversationAgent:
                 if not isinstance(objective, str) or not objective.strip():
                     raise ValueError("delegation requires an objective")
                 bindings = tuple(binding for binding in (
-                    order_binding, asset_binding, address_binding,
+                    order_binding, asset_binding,
                 ) if binding is not None)
                 command = CommandProposal(
                     goal_id, CommandKind.DELEGATE_TASK, target_agent, objective,

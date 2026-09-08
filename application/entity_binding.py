@@ -202,6 +202,18 @@ class EntityBindingResolver:
     def __init__(self, *, history_ttl: timedelta = timedelta(days=30)) -> None:
         self._history_ttl = history_ttl
 
+    @staticmethod
+    def bind_current_text(field_name, value, observations, state) -> EntityBinding:
+        """Bind a verbatim current-turn value; composed values need domain resolution."""
+        if not isinstance(value, str) or not value.strip() or value.strip() not in observations.raw_text:
+            raise EntityBindingError("value is not supported by the current user message")
+        return EntityBinding.create(
+            field_name, value.strip(), source=BindingSource.CURRENT_MESSAGE,
+            source_ref=f"turn-message:current:{field_name}", priority=400,
+            tenant_id=str(state.tenant_id), user_id=str(state.user_id),
+            conversation_id=str(state.conversation_id),
+        )
+
     def resolve(self, observations, state, turn_context) -> EntityBindingSet:
         scope = {
             "tenant_id": str(state.tenant_id),
