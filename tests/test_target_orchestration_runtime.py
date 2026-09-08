@@ -66,6 +66,25 @@ def _fact(item, value):
     )
 
 
+def test_trusted_context_preserves_structured_runtime_values_without_serializer_warnings():
+    import warnings
+    from pydantic import TypeAdapter
+    from infrastructure.langgraph_checkpoint import target_checkpoint_serializer
+    context = AgentContextView(_item("lookup", "retail", ControlMode.DIRECT, "order"),
+        "Check shipment", (), (), (), 6000, trusted_context={
+            "tenant_id": "tenant-a", "user_id": "user-a",
+            "knowledge_filter_contract": {"catalog_id": "test-catalog", "sales_channels": {"web": {"enabled": True}}},
+        })
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        projected = TypeAdapter(AgentContextView).dump_python(context, mode="json")
+    assert projected["trusted_context"] == context.trusted_context
+    serializer = target_checkpoint_serializer()
+    # Parent/worker graph state checkpoints the mapping, not AgentContextView.
+    restored = serializer.loads_typed(serializer.dumps_typed({"trusted_context": context.trusted_context}))
+    assert restored["trusted_context"] == context.trusted_context
+
+
 class Executor:
     def __init__(self, calls, *, status=AgentResultStatus.SUCCEEDED, delay=0):
         self.calls = calls

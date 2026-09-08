@@ -264,3 +264,40 @@ queued/mixed-task observation coverage, fixed model replays demonstrating preser
 business objectives, and remaining ten-task baseline failures. No fresh τ³ run,
 encoder activation, training rerun or reranker work occurred. User-owned business
 recovery and RAG edits remain outside this delivery.
+
+### PostgreSQL connection/runtime recreation and HTTP regression
+
+At HEAD 9685d78, added three real PostgreSQL tests with a fresh isolated database.
+Each closes the PostgreSQL pool and checkpointer, then constructs new instances of
+the state store, manager and both graphs. Interruptions occur after the first read,
+after the second read, or before final delivery. All restore the two paired results,
+the committed conversation-state fingerprint and the final response, with exactly
+two actual read calls and three planning decisions. This is connection/runtime
+recreation, not an operating-system process-kill test.
+
+The first PostgreSQL run passed 38 tests but exposed serializer warnings: trusted
+context was annotated Mapping[str, str] despite carrying the structured knowledge
+filter contract. Updated its existing AgentContextView, graph state and runtime
+ports to Mapping[str, object]; an explicit warning-as-error serialization test
+checks nested values and the actual checkpointed mapping without expanding the
+checkpoint class allowlist.
+
+The wider HTTP regression initially failed before planning because its fixture
+connected an old text-classifier artifact (tuple predictions) to the current domain
+encoder port (structured predictions). Its assertions already expected Conversation
+Agent planning. Removed that obsolete fixture wiring, retaining current encoder-off
+behavior; no runtime fallback or compatibility branch was introduced. Existing
+user-owned business-recovery changes in the HTTP test remain separate.
+
+Final PostgreSQL-enabled suite: 107 passed, no skips or warnings (observation PG,
+domain approval, turn runtime, real HTTP/PostgreSQL scenarios, observation graph,
+orchestration runtime). The isolated databases were cleaned by the existing fixture.
+The stale permanent-provider-failure test was also migrated to assert the existing
+PlanningUnavailable/no-accepted-plan contract, without changing production failure
+behavior; its targeted suite passed 77 with 5 PostgreSQL skips when run without
+the DB environment. These are distinct runs, not additive benchmark scores.
+
+Still open: combined native-read→business-action approval/restart coverage, richer
+queued observation obligations, and fixed real-model/task replays proving semantic
+goal preservation and the remaining baseline repairs. No τ³/model run or encoder
+activation occurred in this stage.

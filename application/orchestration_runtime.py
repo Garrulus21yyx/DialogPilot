@@ -57,7 +57,7 @@ class AgentContextView:
     recent_relevant_turns: tuple[str, ...]
     evidence_refs: tuple[str, ...]
     token_budget: int
-    trusted_context: Mapping[str, str] = field(default_factory=dict)
+    trusted_context: Mapping[str, object] = field(default_factory=dict)
     dependency_results: tuple[AgentResult, ...] = ()
     working_messages: tuple[dict, ...] = ()
     pending_approval: PendingApprovalState | None = None
@@ -93,7 +93,7 @@ class ParentGraphState(TypedDict, total=False):
     agent_results: Annotated[list[AgentResult], operator.add]
     facts: tuple[FactRecord, ...]
     board: ResultBoardSnapshot
-    trusted_context: Mapping[str, str]
+    trusted_context: Mapping[str, object]
     interrupt_after_completion: bool
     continuation_facts: dict[str, tuple[FactRecord, ...]]
     continuation_messages: dict[str, tuple[dict, ...]]
@@ -111,7 +111,7 @@ class WorkerState(TypedDict):
     evidence_refs: tuple[str, ...]
     token_budget: int
     facts: tuple[FactRecord, ...]
-    trusted_context: Mapping[str, str]
+    trusted_context: Mapping[str, object]
     dependency_results: tuple[AgentResult, ...]
     working_messages: tuple[dict, ...]
     pending_approval: PendingApprovalState | None
@@ -520,7 +520,7 @@ class OrchestrationRuntime:
         evidence_refs: tuple[str, ...] = (),
         token_budget: int = 6000,
         thread_id: str | None = None,
-        trusted_context: Mapping[str, str] | None = None,
+        trusted_context: Mapping[str, object] | None = None,
         interrupt_after_completion: bool = False,
         pending_approval: PendingApprovalState | None = None,
         retained_outcomes: tuple[tuple[WorkItem, AgentResult | None], ...] = (),
@@ -579,7 +579,7 @@ class OrchestrationRuntime:
         recent_relevant_turns: tuple[str, ...] = (),
         evidence_refs: tuple[str, ...] = (),
         token_budget: int = 6000,
-        trusted_context: Mapping[str, str] | None = None,
+        trusted_context: Mapping[str, object] | None = None,
         pending_approval: PendingApprovalState | None = None,
         closed_work_items: tuple[WorkItem, ...] = (),
         source_thread_ids: tuple[str, ...] = (),

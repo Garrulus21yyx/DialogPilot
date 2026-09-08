@@ -14,8 +14,6 @@ from tests.test_knowledge_tool_contract import evidence_result
 from application.target_chat_application import TargetChatApplication
 from application.target_conversation_manager import TargetConversationManager
 from application.target_run import TargetRunCoordinator
-from application.target_encoder_artifact import load_target_text_encoder_artifact
-from application.target_encoder_understanding import TargetEncoderUnderstanding
 from application.conversation_agent import ConversationAgent
 from application.target_understanding import (
     CascadedTargetUnderstanding,
@@ -429,12 +427,6 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
                     understanding=CascadedTargetUnderstanding(
                         StateBoundTargetUnderstanding(),
                         ConversationAgent(conversation_provider),
-                        encoder=TargetEncoderUnderstanding(
-                            load_target_text_encoder_artifact(
-                                __import__("pathlib").Path(__file__).resolve().parents[1]
-                                / "artifacts" / "target-encoder-zh-v2"
-                            )
-                        ),
                     ),
                     orchestration=OrchestrationRuntime(
                         direct_executor=read_executor,

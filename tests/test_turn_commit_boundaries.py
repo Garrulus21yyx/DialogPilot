@@ -134,6 +134,7 @@ def test_state_commit_accepts_exact_prefix_only_and_is_idempotent(prefix):
 @pytest.mark.parametrize("transient", [True, False])
 def test_provider_failure_checkpoint_obeys_sdk_retryability(transient):
     from application.target_understanding import CascadedTargetUnderstanding, StateBoundTargetUnderstanding
+    from application.turn_planning import PlanningUnavailable
     class Provider:
         calls = 0
         async def plan(self, payload):
@@ -153,11 +154,21 @@ def test_provider_failure_checkpoint_obeys_sdk_retryability(transient):
             with pytest.raises(ModelInvocationError):
                 await runtime.execute(_identity(), TurnObservations("帮我处理一下"))
         else:
-            first = await runtime.execute(_identity(), TurnObservations("帮我处理一下"))
-            assert first.managed.plan.route.reason_code == "CONVERSATION_PROVIDER_FAILURE"
+            # Permanent understanding failure has no accepted plan. The run/API
+            # owner handles terminal delivery; do not fabricate a successful
+            # graph completion containing a failure-shaped business plan.
+            with pytest.raises(PlanningUnavailable) as failure:
+                await runtime.execute(_identity(), TurnObservations("帮我处理一下"))
+            assert failure.value.reason_code == "CONVERSATION_PROVIDER_FAILURE"
+            snapshot = await runtime.graph.aget_state({"configurable": {
+                "thread_id": "turn:" + str(_identity().invocation_key)}})
+            assert snapshot.values.get("prepared") is None
+            assert snapshot.values.get("managed") is None
+            assert provider.calls == 1
+            return
         second = await runtime.execute(_identity(), TurnObservations("帮我处理一下"))
-        assert (second.managed.plan.route.reason_code == "CONVERSATION_PROVIDER_FAILURE") is not transient
-        assert provider.calls == (2 if transient else 1)
+        assert second.managed.plan.route.reason_code != "CONVERSATION_PROVIDER_FAILURE"
+        assert provider.calls == 2
     asyncio.run(run())
 
 
