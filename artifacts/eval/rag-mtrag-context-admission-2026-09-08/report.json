@@ -1,0 +1,1375 @@
+{
+  "scope": "Replay public packed evidence through current domain context owners, no LLM.\n\nQueries and packs are frozen. This is not an Agent query-generation or answer test.\n",
+  "api_calls": 0,
+  "summary": {
+    "0.25": {
+      "fully_inline": 32,
+      "admission_errors": 0,
+      "recall@5": 0.421875,
+      "mrr@5": 0.4869791666666667,
+      "ndcg@5": 0.4077164715367356
+    },
+    "0.5": {
+      "fully_inline": 32,
+      "admission_errors": 0,
+      "recall@5": 0.4713541666666667,
+      "mrr@5": 0.5255208333333333,
+      "ndcg@5": 0.4443628505242359
+    },
+    "0.75": {
+      "fully_inline": 32,
+      "admission_errors": 0,
+      "recall@5": 0.5,
+      "mrr@5": 0.5255208333333333,
+      "ndcg@5": 0.458314607110328
+    }
+  },
+  "records": [
+    {
+      "case_id": "1534a095279f2cb888fb0bea17bd70da<::>4",
+      "arm": "0.25",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 3331,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 1.0,
+        "mrr@5": 1.0,
+        "ndcg@5": 0.8854598815714874
+      }
+    },
+    {
+      "case_id": "1534a095279f2cb888fb0bea17bd70da<::>4",
+      "arm": "0.5",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 3331,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 1.0,
+        "mrr@5": 1.0,
+        "ndcg@5": 0.8854598815714874
+      }
+    },
+    {
+      "case_id": "1534a095279f2cb888fb0bea17bd70da<::>4",
+      "arm": "0.75",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 3331,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 1.0,
+        "mrr@5": 1.0,
+        "ndcg@5": 0.8854598815714874
+      }
+    },
+    {
+      "case_id": "dd82f0f978316e73618cf0addd369cd8<::>5",
+      "arm": "0.25",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 5271,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.0,
+        "mrr@5": 0.0,
+        "ndcg@5": 0.0
+      }
+    },
+    {
+      "case_id": "dd82f0f978316e73618cf0addd369cd8<::>5",
+      "arm": "0.5",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4102,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.25,
+        "mrr@5": 0.2,
+        "ndcg@5": 0.15101961822780524
+      }
+    },
+    {
+      "case_id": "dd82f0f978316e73618cf0addd369cd8<::>5",
+      "arm": "0.75",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4102,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.25,
+        "mrr@5": 0.2,
+        "ndcg@5": 0.15101961822780524
+      }
+    },
+    {
+      "case_id": "a3f07e9ed5f257db6aecd30511f03af1<::>4",
+      "arm": "0.25",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4000,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.3333333333333333,
+        "mrr@5": 0.5,
+        "ndcg@5": 0.2960819109658652
+      }
+    },
+    {
+      "case_id": "a3f07e9ed5f257db6aecd30511f03af1<::>4",
+      "arm": "0.5",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4255,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.6666666666666666,
+        "mrr@5": 0.5,
+        "ndcg@5": 0.49818925746641285
+      }
+    },
+    {
+      "case_id": "a3f07e9ed5f257db6aecd30511f03af1<::>4",
+      "arm": "0.75",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4255,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.6666666666666666,
+        "mrr@5": 0.5,
+        "ndcg@5": 0.49818925746641285
+      }
+    },
+    {
+      "case_id": "41a4006bfa6841516188c1695ebaf16c<::>2",
+      "arm": "0.25",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 3322,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.6666666666666666,
+        "mrr@5": 1.0,
+        "ndcg@5": 0.7653606369886217
+      }
+    },
+    {
+      "case_id": "41a4006bfa6841516188c1695ebaf16c<::>2",
+      "arm": "0.5",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 3636,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 1.0,
+        "mrr@5": 1.0,
+        "ndcg@5": 1.0
+      }
+    },
+    {
+      "case_id": "41a4006bfa6841516188c1695ebaf16c<::>2",
+      "arm": "0.75",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 3636,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 1.0,
+        "mrr@5": 1.0,
+        "ndcg@5": 1.0
+      }
+    },
+    {
+      "case_id": "3f5fa378239f7475baac89fa40288aaa<::>6",
+      "arm": "0.25",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 3810,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.0,
+        "mrr@5": 0.0,
+        "ndcg@5": 0.0
+      }
+    },
+    {
+      "case_id": "3f5fa378239f7475baac89fa40288aaa<::>6",
+      "arm": "0.5",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 3915,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.0,
+        "mrr@5": 0.0,
+        "ndcg@5": 0.0
+      }
+    },
+    {
+      "case_id": "3f5fa378239f7475baac89fa40288aaa<::>6",
+      "arm": "0.75",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 3862,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.0,
+        "mrr@5": 0.0,
+        "ndcg@5": 0.0
+      }
+    },
+    {
+      "case_id": "5c13daa9432149f6243aa1115629cd1a<::>7",
+      "arm": "0.25",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4005,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 1.0,
+        "mrr@5": 1.0,
+        "ndcg@5": 0.9674679834891693
+      }
+    },
+    {
+      "case_id": "5c13daa9432149f6243aa1115629cd1a<::>7",
+      "arm": "0.5",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4067,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 1.0,
+        "mrr@5": 1.0,
+        "ndcg@5": 0.9469024295259745
+      }
+    },
+    {
+      "case_id": "5c13daa9432149f6243aa1115629cd1a<::>7",
+      "arm": "0.75",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4067,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 1.0,
+        "mrr@5": 1.0,
+        "ndcg@5": 0.9469024295259745
+      }
+    },
+    {
+      "case_id": "c1e53df98a28f19448f4af244304b89a<::>4",
+      "arm": "0.25",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4061,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.0,
+        "mrr@5": 0.0,
+        "ndcg@5": 0.0
+      }
+    },
+    {
+      "case_id": "c1e53df98a28f19448f4af244304b89a<::>4",
+      "arm": "0.5",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 3493,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.0,
+        "mrr@5": 0.0,
+        "ndcg@5": 0.0
+      }
+    },
+    {
+      "case_id": "c1e53df98a28f19448f4af244304b89a<::>4",
+      "arm": "0.75",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 3473,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.0,
+        "mrr@5": 0.0,
+        "ndcg@5": 0.0
+      }
+    },
+    {
+      "case_id": "b2805ee4c478194c234e2384ffb0a6bf<::>3",
+      "arm": "0.25",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 3878,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.0,
+        "mrr@5": 0.0,
+        "ndcg@5": 0.0
+      }
+    },
+    {
+      "case_id": "b2805ee4c478194c234e2384ffb0a6bf<::>3",
+      "arm": "0.5",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 3647,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.0,
+        "mrr@5": 0.0,
+        "ndcg@5": 0.0
+      }
+    },
+    {
+      "case_id": "b2805ee4c478194c234e2384ffb0a6bf<::>3",
+      "arm": "0.75",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 3647,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.0,
+        "mrr@5": 0.0,
+        "ndcg@5": 0.0
+      }
+    },
+    {
+      "case_id": "20c2cbd18c16c12c9c2bbead6aef1a21<::>1",
+      "arm": "0.25",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4801,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 1.0,
+        "mrr@5": 1.0,
+        "ndcg@5": 1.0
+      }
+    },
+    {
+      "case_id": "20c2cbd18c16c12c9c2bbead6aef1a21<::>1",
+      "arm": "0.5",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4801,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 1.0,
+        "mrr@5": 1.0,
+        "ndcg@5": 1.0
+      }
+    },
+    {
+      "case_id": "20c2cbd18c16c12c9c2bbead6aef1a21<::>1",
+      "arm": "0.75",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4538,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 1.0,
+        "mrr@5": 1.0,
+        "ndcg@5": 1.0
+      }
+    },
+    {
+      "case_id": "e1b602e47ded79a35d8df4eefe194e39<::>1",
+      "arm": "0.25",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4508,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.0,
+        "mrr@5": 0.0,
+        "ndcg@5": 0.0
+      }
+    },
+    {
+      "case_id": "e1b602e47ded79a35d8df4eefe194e39<::>1",
+      "arm": "0.5",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4560,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.3333333333333333,
+        "mrr@5": 0.2,
+        "ndcg@5": 0.18154179253735267
+      }
+    },
+    {
+      "case_id": "e1b602e47ded79a35d8df4eefe194e39<::>1",
+      "arm": "0.75",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4724,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.6666666666666666,
+        "mrr@5": 1.0,
+        "ndcg@5": 0.6713860725233041
+      }
+    },
+    {
+      "case_id": "2f013337236ea4635ad106813275dab7<::>2",
+      "arm": "0.25",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 5123,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 1.0,
+        "mrr@5": 1.0,
+        "ndcg@5": 1.0
+      }
+    },
+    {
+      "case_id": "2f013337236ea4635ad106813275dab7<::>2",
+      "arm": "0.5",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 5303,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 1.0,
+        "mrr@5": 1.0,
+        "ndcg@5": 1.0
+      }
+    },
+    {
+      "case_id": "2f013337236ea4635ad106813275dab7<::>2",
+      "arm": "0.75",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4694,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 1.0,
+        "mrr@5": 1.0,
+        "ndcg@5": 1.0
+      }
+    },
+    {
+      "case_id": "fdee20f7fd677e420742b09989623d68<::>6",
+      "arm": "0.25",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 5714,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.0,
+        "mrr@5": 0.0,
+        "ndcg@5": 0.0
+      }
+    },
+    {
+      "case_id": "fdee20f7fd677e420742b09989623d68<::>6",
+      "arm": "0.5",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 5681,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.0,
+        "mrr@5": 0.0,
+        "ndcg@5": 0.0
+      }
+    },
+    {
+      "case_id": "fdee20f7fd677e420742b09989623d68<::>6",
+      "arm": "0.75",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 5727,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.0,
+        "mrr@5": 0.0,
+        "ndcg@5": 0.0
+      }
+    },
+    {
+      "case_id": "c6c3b02ca32795af64c903dd76700517<::>1",
+      "arm": "0.25",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4624,
+      "packed_count": 4,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 1.0,
+        "mrr@5": 1.0,
+        "ndcg@5": 1.0
+      }
+    },
+    {
+      "case_id": "c6c3b02ca32795af64c903dd76700517<::>1",
+      "arm": "0.5",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4640,
+      "packed_count": 4,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 1.0,
+        "mrr@5": 1.0,
+        "ndcg@5": 1.0
+      }
+    },
+    {
+      "case_id": "c6c3b02ca32795af64c903dd76700517<::>1",
+      "arm": "0.75",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4639,
+      "packed_count": 4,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 1.0,
+        "mrr@5": 1.0,
+        "ndcg@5": 1.0
+      }
+    },
+    {
+      "case_id": "1be66272113492407e814eaf21a761d4<::>3",
+      "arm": "0.25",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 5244,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.5,
+        "mrr@5": 0.5,
+        "ndcg@5": 0.38685280723454163
+      }
+    },
+    {
+      "case_id": "1be66272113492407e814eaf21a761d4<::>3",
+      "arm": "0.5",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 5402,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.5,
+        "mrr@5": 0.5,
+        "ndcg@5": 0.38685280723454163
+      }
+    },
+    {
+      "case_id": "1be66272113492407e814eaf21a761d4<::>3",
+      "arm": "0.75",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 5383,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.0,
+        "mrr@5": 0.0,
+        "ndcg@5": 0.0
+      }
+    },
+    {
+      "case_id": "47b2471404382af6e973013ab1cf96b9<::>8",
+      "arm": "0.25",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 6003,
+      "packed_count": 4,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.0,
+        "mrr@5": 0.0,
+        "ndcg@5": 0.0
+      }
+    },
+    {
+      "case_id": "47b2471404382af6e973013ab1cf96b9<::>8",
+      "arm": "0.5",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 6003,
+      "packed_count": 4,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.0,
+        "mrr@5": 0.0,
+        "ndcg@5": 0.0
+      }
+    },
+    {
+      "case_id": "47b2471404382af6e973013ab1cf96b9<::>8",
+      "arm": "0.75",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 5789,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.0,
+        "mrr@5": 0.0,
+        "ndcg@5": 0.0
+      }
+    },
+    {
+      "case_id": "ddbbbe7ea13560c5768639207e1ca604<::>6",
+      "arm": "0.25",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 5606,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.0,
+        "mrr@5": 0.0,
+        "ndcg@5": 0.0
+      }
+    },
+    {
+      "case_id": "ddbbbe7ea13560c5768639207e1ca604<::>6",
+      "arm": "0.5",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 5590,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.25,
+        "mrr@5": 0.3333333333333333,
+        "ndcg@5": 0.19519002499605084
+      }
+    },
+    {
+      "case_id": "ddbbbe7ea13560c5768639207e1ca604<::>6",
+      "arm": "0.75",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 5575,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.5,
+        "mrr@5": 0.3333333333333333,
+        "ndcg@5": 0.34620964322385606
+      }
+    },
+    {
+      "case_id": "dcc0215a118ac833dfe054350df2afaa<::>4",
+      "arm": "0.25",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4742,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 1.0,
+        "mrr@5": 1.0,
+        "ndcg@5": 1.0
+      }
+    },
+    {
+      "case_id": "dcc0215a118ac833dfe054350df2afaa<::>4",
+      "arm": "0.5",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4010,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 1.0,
+        "mrr@5": 0.5,
+        "ndcg@5": 0.6309297535714575
+      }
+    },
+    {
+      "case_id": "dcc0215a118ac833dfe054350df2afaa<::>4",
+      "arm": "0.75",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4010,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 1.0,
+        "mrr@5": 0.5,
+        "ndcg@5": 0.6309297535714575
+      }
+    },
+    {
+      "case_id": "dc1aaac0b33553d8c897d4150955d803<::>7",
+      "arm": "0.25",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4271,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.6666666666666666,
+        "mrr@5": 1.0,
+        "ndcg@5": 0.7039180890341347
+      }
+    },
+    {
+      "case_id": "dc1aaac0b33553d8c897d4150955d803<::>7",
+      "arm": "0.5",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4203,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.6666666666666666,
+        "mrr@5": 1.0,
+        "ndcg@5": 0.6713860725233041
+      }
+    },
+    {
+      "case_id": "dc1aaac0b33553d8c897d4150955d803<::>7",
+      "arm": "0.75",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4427,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.6666666666666666,
+        "mrr@5": 1.0,
+        "ndcg@5": 0.6508205185601091
+      }
+    },
+    {
+      "case_id": "f05ba9633e1b377f9c4d64afd3da3c45<::>3",
+      "arm": "0.25",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 3768,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.0,
+        "mrr@5": 0.0,
+        "ndcg@5": 0.0
+      }
+    },
+    {
+      "case_id": "f05ba9633e1b377f9c4d64afd3da3c45<::>3",
+      "arm": "0.5",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 3349,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.0,
+        "mrr@5": 0.0,
+        "ndcg@5": 0.0
+      }
+    },
+    {
+      "case_id": "f05ba9633e1b377f9c4d64afd3da3c45<::>3",
+      "arm": "0.75",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 3442,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.0,
+        "mrr@5": 0.0,
+        "ndcg@5": 0.0
+      }
+    },
+    {
+      "case_id": "535ebd306304982e4e49cc989ce5b10b<::>3",
+      "arm": "0.25",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 3923,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.0,
+        "mrr@5": 0.0,
+        "ndcg@5": 0.0
+      }
+    },
+    {
+      "case_id": "535ebd306304982e4e49cc989ce5b10b<::>3",
+      "arm": "0.5",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4150,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.0,
+        "mrr@5": 0.0,
+        "ndcg@5": 0.0
+      }
+    },
+    {
+      "case_id": "535ebd306304982e4e49cc989ce5b10b<::>3",
+      "arm": "0.75",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4114,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.0,
+        "mrr@5": 0.0,
+        "ndcg@5": 0.0
+      }
+    },
+    {
+      "case_id": "af5e45e59e1254e0b7869cb477674d02<::>4",
+      "arm": "0.25",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 3506,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.0,
+        "mrr@5": 0.0,
+        "ndcg@5": 0.0
+      }
+    },
+    {
+      "case_id": "af5e45e59e1254e0b7869cb477674d02<::>4",
+      "arm": "0.5",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 3708,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.5,
+        "mrr@5": 1.0,
+        "ndcg@5": 0.6131471927654584
+      }
+    },
+    {
+      "case_id": "af5e45e59e1254e0b7869cb477674d02<::>4",
+      "arm": "0.75",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 3685,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.5,
+        "mrr@5": 1.0,
+        "ndcg@5": 0.6131471927654584
+      }
+    },
+    {
+      "case_id": "c5518952b78b171de2d5b9317103ba62<::>6",
+      "arm": "0.25",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4271,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.0,
+        "mrr@5": 0.0,
+        "ndcg@5": 0.0
+      }
+    },
+    {
+      "case_id": "c5518952b78b171de2d5b9317103ba62<::>6",
+      "arm": "0.5",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4381,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.0,
+        "mrr@5": 0.0,
+        "ndcg@5": 0.0
+      }
+    },
+    {
+      "case_id": "c5518952b78b171de2d5b9317103ba62<::>6",
+      "arm": "0.75",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4031,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.0,
+        "mrr@5": 0.0,
+        "ndcg@5": 0.0
+      }
+    },
+    {
+      "case_id": "a6eab3f851684c4ba01ae141ce590342<::>2",
+      "arm": "0.25",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 3431,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 1.0,
+        "mrr@5": 1.0,
+        "ndcg@5": 1.0
+      }
+    },
+    {
+      "case_id": "a6eab3f851684c4ba01ae141ce590342<::>2",
+      "arm": "0.5",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 3469,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 1.0,
+        "mrr@5": 1.0,
+        "ndcg@5": 1.0
+      }
+    },
+    {
+      "case_id": "a6eab3f851684c4ba01ae141ce590342<::>2",
+      "arm": "0.75",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 3862,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 1.0,
+        "mrr@5": 1.0,
+        "ndcg@5": 1.0
+      }
+    },
+    {
+      "case_id": "6af5334fbd010b919d7fa174823abd12<::>4",
+      "arm": "0.25",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4918,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.3333333333333333,
+        "mrr@5": 1.0,
+        "ndcg@5": 0.46927872602275644
+      }
+    },
+    {
+      "case_id": "6af5334fbd010b919d7fa174823abd12<::>4",
+      "arm": "0.5",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4293,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.6666666666666666,
+        "mrr@5": 1.0,
+        "ndcg@5": 0.7039180890341347
+      }
+    },
+    {
+      "case_id": "6af5334fbd010b919d7fa174823abd12<::>4",
+      "arm": "0.75",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4407,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.6666666666666666,
+        "mrr@5": 1.0,
+        "ndcg@5": 0.7039180890341347
+      }
+    },
+    {
+      "case_id": "8a19ee37ca7d97eaddbe2e19ca600556<::>6",
+      "arm": "0.25",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 5451,
+      "packed_count": 4,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 1.0,
+        "mrr@5": 1.0,
+        "ndcg@5": 1.0
+      }
+    },
+    {
+      "case_id": "8a19ee37ca7d97eaddbe2e19ca600556<::>6",
+      "arm": "0.5",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 5451,
+      "packed_count": 4,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 1.0,
+        "mrr@5": 1.0,
+        "ndcg@5": 1.0
+      }
+    },
+    {
+      "case_id": "8a19ee37ca7d97eaddbe2e19ca600556<::>6",
+      "arm": "0.75",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 5959,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 1.0,
+        "mrr@5": 1.0,
+        "ndcg@5": 1.0
+      }
+    },
+    {
+      "case_id": "6495c82abb6bef2d8efd06020cde3adf<::>1",
+      "arm": "0.25",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4909,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 1.0,
+        "mrr@5": 0.3333333333333333,
+        "ndcg@5": 0.5
+      }
+    },
+    {
+      "case_id": "6495c82abb6bef2d8efd06020cde3adf<::>1",
+      "arm": "0.5",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4886,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.0,
+        "mrr@5": 0.0,
+        "ndcg@5": 0.0
+      }
+    },
+    {
+      "case_id": "6495c82abb6bef2d8efd06020cde3adf<::>1",
+      "arm": "0.75",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4791,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.0,
+        "mrr@5": 0.0,
+        "ndcg@5": 0.0
+      }
+    },
+    {
+      "case_id": "fc3e765d7ffc28ffc7ee7ea38fd3c73a<::>5",
+      "arm": "0.25",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 5768,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.5,
+        "mrr@5": 0.25,
+        "ndcg@5": 0.2640681225725909
+      }
+    },
+    {
+      "case_id": "fc3e765d7ffc28ffc7ee7ea38fd3c73a<::>5",
+      "arm": "0.5",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 5176,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.0,
+        "mrr@5": 0.0,
+        "ndcg@5": 0.0
+      }
+    },
+    {
+      "case_id": "fc3e765d7ffc28ffc7ee7ea38fd3c73a<::>5",
+      "arm": "0.75",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4649,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.5,
+        "mrr@5": 0.2,
+        "ndcg@5": 0.23719771276929622
+      }
+    },
+    {
+      "case_id": "d2432696b32af73cf3dabd7090997afb<::>2",
+      "arm": "0.25",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4778,
+      "packed_count": 4,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.16666666666666666,
+        "mrr@5": 1.0,
+        "ndcg@5": 0.3391602052736161
+      }
+    },
+    {
+      "case_id": "d2432696b32af73cf3dabd7090997afb<::>2",
+      "arm": "0.5",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4778,
+      "packed_count": 4,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.16666666666666666,
+        "mrr@5": 1.0,
+        "ndcg@5": 0.3391602052736161
+      }
+    },
+    {
+      "case_id": "d2432696b32af73cf3dabd7090997afb<::>2",
+      "arm": "0.75",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4778,
+      "packed_count": 4,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.16666666666666666,
+        "mrr@5": 1.0,
+        "ndcg@5": 0.3391602052736161
+      }
+    },
+    {
+      "case_id": "f0d2873b877409f61da7dbdddd22d279<::>3",
+      "arm": "0.25",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 5243,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.0,
+        "mrr@5": 0.0,
+        "ndcg@5": 0.0
+      }
+    },
+    {
+      "case_id": "f0d2873b877409f61da7dbdddd22d279<::>3",
+      "arm": "0.5",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 5100,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.5,
+        "mrr@5": 1.0,
+        "ndcg@5": 0.6131471927654584
+      }
+    },
+    {
+      "case_id": "f0d2873b877409f61da7dbdddd22d279<::>3",
+      "arm": "0.75",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4932,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.5,
+        "mrr@5": 0.5,
+        "ndcg@5": 0.38685280723454163
+      }
+    },
+    {
+      "case_id": "35e6be0f2049527ae17cf77169cc4f70<::>4",
+      "arm": "0.25",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 4803,
+      "packed_count": 4,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.3333333333333333,
+        "mrr@5": 1.0,
+        "ndcg@5": 0.46927872602275644
+      }
+    },
+    {
+      "case_id": "35e6be0f2049527ae17cf77169cc4f70<::>4",
+      "arm": "0.5",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 5342,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.3333333333333333,
+        "mrr@5": 0.3333333333333333,
+        "ndcg@5": 0.23463936301137822
+      }
+    },
+    {
+      "case_id": "35e6be0f2049527ae17cf77169cc4f70<::>4",
+      "arm": "0.75",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 5297,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.6666666666666666,
+        "mrr@5": 0.3333333333333333,
+        "ndcg@5": 0.4367467095119258
+      }
+    },
+    {
+      "case_id": "941445ba11ba7ba2c92c5184c9d798d6<::>5",
+      "arm": "0.25",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 5074,
+      "packed_count": 4,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.0,
+        "mrr@5": 0.0,
+        "ndcg@5": 0.0
+      }
+    },
+    {
+      "case_id": "941445ba11ba7ba2c92c5184c9d798d6<::>5",
+      "arm": "0.5",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 5122,
+      "packed_count": 4,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.25,
+        "mrr@5": 0.25,
+        "ndcg@5": 0.16812753627111746
+      }
+    },
+    {
+      "case_id": "941445ba11ba7ba2c92c5184c9d798d6<::>5",
+      "arm": "0.75",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 5122,
+      "packed_count": 4,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 0.25,
+        "mrr@5": 0.25,
+        "ndcg@5": 0.16812753627111746
+      }
+    },
+    {
+      "case_id": "d7b4f863baa92fd08c1db2b1a95170dd<::>3",
+      "arm": "0.25",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 5171,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 1.0,
+        "mrr@5": 1.0,
+        "ndcg@5": 1.0
+      }
+    },
+    {
+      "case_id": "d7b4f863baa92fd08c1db2b1a95170dd<::>3",
+      "arm": "0.5",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 5171,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 1.0,
+        "mrr@5": 1.0,
+        "ndcg@5": 1.0
+      }
+    },
+    {
+      "case_id": "d7b4f863baa92fd08c1db2b1a95170dd<::>3",
+      "arm": "0.75",
+      "admitted": true,
+      "error": null,
+      "context_tokens": 5142,
+      "packed_count": 5,
+      "fully_inline": true,
+      "visible_metrics": {
+        "recall@5": 1.0,
+        "mrr@5": 1.0,
+        "ndcg@5": 1.0
+      }
+    }
+  ],
+  "source_sha256": "23a13c723f8a1d9ad7f665fb4a53236868960c61b72c683307f98b4cf95bf69f",
+  "history_sha256": "b3dde4076f9f692a99513e424a0a39f57591dbe45600a4c1017aaa7a7edcfaac"
+}

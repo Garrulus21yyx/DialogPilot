@@ -321,3 +321,7 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 - 固定权重重放预注册：组合语料20个合成开发问题，仅取每题真实scoped捕获（排除omitted重复），复用Dense/BM25各20及正文来源，最终chunk20、RRF k10，比较Dense权重0/.25/.5/.75/1。使用原synthetic_development证据span与已保存manifest正文校验；报告chunk预算下span Recall/完整覆盖，以及按首次出现去重source文档列表的MRR/nDCG@20，明确两种单位。零API/embedding/精排，不用此小语料选生产默认；仅验证重放与发现明显误伤。新的最终答案或精排收益不从这些指标推算。
 
 - 固定权重重放完成：20个模拟开发scoped问题，Dense0/.25/.5/.75/1的完整span覆盖20/20、20/20、20/20、19/20、19/20；文档MRR1/.9667/.9300/.9167/.9167，nDCG1/.975/.946/.925/.925。`.75`救回0丢失1，另1题排名降；audio-defect的gold BM25第1而Dense前20无，偏向Dense时弱路独有候选被截。不能据此推断答案错或BM25全局最好。与MTRAG方向不同，生产默认不变，也不训练动态权重。原语料hash、所有源span及当前融合顺序复核通过；首次投影字段名不匹配修正后运行成功。API/embedding/精排0。报告docs/rag-recorded-weight-replay-2026-09-08.zh-CN.md及产物。后续保留该组为跨数据回归，下一项公共开发数据同预算候选→最终可见验证，禁止仅以候选指标选择生产策略。
+
+- 公共证据→上下文准入预注册：复用MTRAG32三权重96份pack及官方input历史；通过当前TargetFrameworkAgent任务构造、实际工具Schema开销、持久化和ContextCompaction进行零LLM重放，14200可用预算不变。query/pack冻结，不让模型重新规划，空响应本地fake不允许假造summary成功。报告完整inline数及原qrel下可见Recall/MRR/nDCG；预算/summary失败单列，不能当答案错误。目的确认原pack收益在新上下文边界是否保留，不跑新策略/训练/API。
+
+- MTRAG上下文重放完成：32题×3配置96份pack全部完整inline、0准入错误；含官方input历史、实际任务/工具schema开销，14200预算不变。原qrel可见Recall@5 .421875/.471354/.5，MRR .486979/.525521/.525521，nDCG .407716/.444363/.458315，和原pack结果完全一致。这是已有检索/精排收益穿过当前上下文边界的验证，不是新模型答案收益，也不是模型实际回答。初次at5需要set而传list的评分脚本错误已修正；无API/新模型评分。产物rag-mtrag-context-admission-2026-09-08。下一项固定均衡.5作为跨数据候选，在中文20开发集补同本地CE与pack重放，与已有MTRAG结果并列；生产默认保持.25，微调/动态权重/新chunk策略不启动，未通过本地筛选不增加Flash费用。
