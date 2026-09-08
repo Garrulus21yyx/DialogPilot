@@ -1,5 +1,5 @@
 """Frozen WixQA dev comparison; offline full-corpus retrieval, no external API."""
-import gc, gzip, hashlib, json, math
+import argparse, gc, gzip, hashlib, json, math
 from pathlib import Path
 from statistics import mean
 import numpy as np
@@ -23,8 +23,11 @@ def measure(ids, source, gold, k):
 
 
 def main():
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--split', choices=('dev','heldout'), default='dev')
+    args=parser.parse_args()
     cache=Path('/tmp/dialogpilot-wixqa-full-index-20260908')
-    output=Path('artifacts/eval/wixqa-fixed-dev20-2026-09-08')
+    output=Path(f'artifacts/eval/wixqa-fixed-{args.split}20-2026-09-08')
     manifest_path=Path('artifacts/eval/wixqa-connected-comparison-2026-09-08/manifest.json')
     manifest=json.loads(manifest_path.read_text())
     complete=json.loads((cache/'COMPLETE.json').read_text())
@@ -46,11 +49,11 @@ def main():
     matrix=np.concatenate(vectors)
     lock=json.loads(Path('artifacts/eval/rag-three-dataset-lock-v3-2026-09-07/wixqa-test-lock.json').read_text())
     raw=Path('/tmp/dialogpilot-rag-external-lock-20260907');qas={}
-    for config in {s['config'] for s in manifest['selected']['dev']}:
+    for config in {s['config'] for s in manifest['selected'][args.split]}:
         p=raw/f'{config}.jsonl';assert digest(p)==lock['source_files'][p.name]['sha256']
         qas[config]=p.read_text().splitlines()
     cases=[]
-    for s in manifest['selected']['dev']:
+    for s in manifest['selected'][args.split]:
         q=json.loads(qas[s['config']][s['row_index']]);assert set(q['article_ids'])==set(s['article_ids'])
         cases.append({**s,'query':q['question']})
     source={c['id']:c for c in chunks};ids=list(source)
@@ -90,7 +93,7 @@ def main():
     stages=('candidate20','ce5','pack5')
     summary={a:{s:{k:mean(r['arms'][a][s][k] for r in results) for k in results[0]['arms'][a][s]} for s in stages} for a in arms}
     paired={s:{'better':sum(r['arms']['0.5'][s]['article_recall']>r['arms']['0.25'][s]['article_recall'] for r in results),'worse':sum(r['arms']['0.5'][s]['article_recall']<r['arms']['0.25'][s]['article_recall'] for r in results)} for s in stages}
-    report={'cases':len(results),'corpus_articles':6221,'chunks':len(chunks),'api_calls':0,'unique_ce_pairs':pairs,'summary':summary,'paired':paired,'metric_scope':'Article qrels; first deduplicate sources within the fixed chunk budget; nDCG ideal uses stage chunk budget. Not span recall, actual PG latency, Agent queries, or answer correctness.'}
+    report={'split':args.split,'cases':len(results),'corpus_articles':6221,'chunks':len(chunks),'api_calls':0,'unique_ce_pairs':pairs,'summary':summary,'paired':paired,'metric_scope':'Article qrels; first deduplicate sources within the fixed chunk budget; nDCG ideal uses stage chunk budget. Not span recall, actual PG latency, Agent queries, or answer correctness.'}
     (output/'report.json').write_text(json.dumps(report,indent=2)+'\n')
     (output/'cases.jsonl.gz').write_bytes(gzip.compress((output/'cases.jsonl').read_bytes(),mtime=0))
     print(json.dumps(report,indent=2),flush=True)

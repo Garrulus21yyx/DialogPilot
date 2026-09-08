@@ -1,0 +1,34 @@
+{
+  "index": {
+    "articles": 6221,
+    "articles_with_chunks": 6221,
+    "chunks": 11167,
+    "api_calls": 0,
+    "chunks_sha256": "8e36ad84c6c137c295aed69bf35a1a64d56d95abb5538cf98f0f46f63059160d",
+    "identity_sha256": "4b7cdef57fb14eab8e368b77c6a9d330ca3a503163ea666e2b1a1e195dd94b27",
+    "cache": "/tmp/dialogpilot-wixqa-full-index-20260908"
+  },
+  "selection_sha256": "fbbe360eae4b01e9974b9a26674e154c764ce584f9af58cb4388d654d075823a",
+  "reranker": {
+    "runtime": {
+      "torch": "2.13.0",
+      "transformers": "4.46.3"
+    },
+    "batch_size": 4,
+    "implementation": "local-knowledge-ce-v1",
+    "artifacts": {
+      "config.json": "13dcd6c31d9fec9d1d8e158702072f62d7fa7d312a64b9fe057bec9a08cfe41a",
+      "model.safetensors": "d9e3e081faff1eefb84019509b2f5558fd74c1a05a2c7db22f74174fcedb5286",
+      "tokenizer.json": "69564b696052886ed0ac63fa393e928384e0f8caada38c1f4864a9bfbf379c15",
+      "tokenizer_config.json": "7e4c1cc848840aeccdd763458c18dd525eb0f795c992e00ebe9c28554e7db2d4",
+      "special_tokens_map.json": "8c785abebea9ae3257b61681b4e6fd8365ceafde980c21970d001e834cf10835",
+      "sentencepiece.bpe.model": "cfc8146abe2a0488e9e2a0c56de7952f7c11ab059eca145a0a727afce0db2865"
+    },
+    "preprocessing": "child-retrieval-title-content-v1-no-truncation",
+    "max_tokens": 8192,
+    "dtype": "float16",
+    "tie_break": "input-order"
+  },
+  "script_sha256": "760d860489c983ce758a4941c93a1c4584dc3df2b8842f17c80988f2dc7b37e2",
+  "scope": "Frozen WixQA dev comparison; offline full-corpus retrieval, no external API."
+}

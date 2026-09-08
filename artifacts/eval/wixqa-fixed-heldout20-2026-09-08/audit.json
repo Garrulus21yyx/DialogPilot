@@ -1,0 +1,37 @@
+{
+  "case_count": 20,
+  "checks": "All saved stage metrics independently recomputed; candidate/score/pack membership verified",
+  "bootstrap_seed": 20260908,
+  "resamples": 10000,
+  "unit": "one selected QA per connected article group",
+  "pack_deltas": {
+    "article_recall": {
+      "mean_delta": 0.125,
+      "paired_bootstrap_95_percentile": [
+        -0.05,
+        0.325
+      ]
+    },
+    "article_mrr": {
+      "mean_delta": 0.018333333333333333,
+      "paired_bootstrap_95_percentile": [
+        -0.13999999999999999,
+        0.175
+      ]
+    },
+    "article_ndcg": {
+      "mean_delta": 0.0391470912611442,
+      "paired_bootstrap_95_percentile": [
+        -0.10955152611089458,
+        0.17586128372954413
+      ]
+    },
+    "all_articles": {
+      "mean_delta": 0.1,
+      "paired_bootstrap_95_percentile": [
+        -0.1,
+        0.3
+      ]
+    }
+  }
+}
