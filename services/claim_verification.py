@@ -74,7 +74,8 @@ information is available. Explain unresolved outcomes relevant to this turn with
 Inspect every relevant evidence.context.outcomes entry: preserve independently completed work and
 explain partial failures or blocked objectives. A relevant bound question can explain its own waiting
 task. Judge what the complete reply actually communicates, not whether it includes internal IDs.
-Knowledge claims must cite their supplied [E...] sources; honest limitations need not cite missing evidence.
+Knowledge claims must cite their supplied [E...] sources. A pure information request or honest
+limitation does not need a citation merely because knowledge evidence is available in context.
 When evidence.context.requested_inputs is present, the reply must cover the genuinely unresolved
 information or choices. Question hints are suggestions, not an authority requiring verbatim preservation.
 The execution boundary owns which information is needed; assess whether the reply faithfully conveys

@@ -200,13 +200,25 @@ def test_direct_knowledge_composition_and_support_receive_same_context():
     assert json.loads(verifier.calls[0][1]['context'])['user_context'] == context
 
 
-def test_malformed_or_missing_citations_cannot_pass_an_always_pass_verifier():
+def test_malformed_citations_cannot_pass_an_always_pass_verifier():
     citation='['+evidence_id('child-1')+']'
     class Author:
         def __init__(self,text):self.text=text
         async def compose(self,payload):return self.text
-    for marker in ('[E]','[E:abc]','[Eunknown]','',citation+'[E]',citation+'[E',citation+'[eunknown]'):
+    for marker in ('[E]','[E:abc]','[Eunknown]',citation+'[E]',citation+'[E',citation+'[eunknown]'):
         text='仅未拆封商品可退。'+marker
         result=asyncio.run(ResponseAssembler(Author(text),knowledge_verifier=Verifier(True),knowledge_source_validator=lambda packs: True).assemble(board('internal'),current_message='能退吗'))
         assert result.verification_reason=='citation_validation:ValueError'
         assert result.text!=text
+
+
+def test_uncited_knowledge_claim_is_rejected_by_semantic_support_not_marker_presence():
+    class Author:
+        async def compose(self, payload):
+            return '仅未拆封商品可退。'
+    verifier = Verifier(False)
+    result = asyncio.run(ResponseAssembler(Author(), knowledge_verifier=verifier,
+        knowledge_source_validator=lambda packs: True).assemble(board('internal'), current_message='能退吗'))
+    assert not result.verified
+    assert result.verification_reason == 'ungrounded'
+    assert verifier.calls

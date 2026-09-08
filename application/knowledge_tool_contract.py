@@ -71,7 +71,10 @@ def tool_domain_outcome(result):
 
 
 def validate_answer_citations(text: str, allowed_ids) -> None:
-    """Evidence-backed answers use at least one exact supplied citation ID.
+    """Emitted citation markers must be exact supplied IDs.
+
+    Semantic answer verification owns whether a claim needs a citation. Having
+    evidence in context does not make an ordinary question a knowledge claim.
 
     Capture malformed E-markers too: a parser that extracts only valid IDs
     silently treats [E] or [E:...] as if no citation had been emitted.
@@ -81,7 +84,7 @@ def validate_answer_citations(text: str, allowed_ids) -> None:
     found = re.findall(r"\[([Ee][^\]\r\n]*)\]", text)
     markers = set(found)
     malformed = len(re.findall(r"\[[Ee]", text)) != len(found)
-    if malformed or markers - allowed or (allowed and not markers):
+    if malformed or markers - allowed:
         raise ValueError('answer citations do not match supplied evidence')
 
 
