@@ -1,0 +1,13 @@
+{
+  "query_sha256": "b628a96624be71b71931cc462ea8618922cc39cabe608299578d96e0971a4e7d",
+  "author": "Codex manual context resolution",
+  "author_input": "id/history/query only; no gold or documents loaded during writing. Prior conversation already exposed some cases; not globally blinded or fresh acceptance.",
+  "n": 100,
+  "baseline": "fresh100 raw .5/.5 fusion20 CE final5/2600",
+  "budget": {
+    "external_api": 0,
+    "new_ce_pairs_max": 2000
+  },
+  "adoption": "diagnostic only; no production adoption",
+  "expansion": "none; standalone resolution only"
+}
