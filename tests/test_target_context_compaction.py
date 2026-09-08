@@ -118,6 +118,45 @@ def test_summary_failure_never_replaces_original_history():
     asyncio.run(run())
 
 
+@pytest.mark.parametrize("batch_size", [1, 3, 7])
+@pytest.mark.parametrize("overhead", [1600, 2000])
+def test_history_over_agent_budget_can_use_bounded_summary_invocation(batch_size, overhead):
+    async def run():
+        pinned, messages, latest = history(batch_size)
+        original = messages_to_dict(messages)
+        archive = TargetResultArchive(InMemoryStore())
+        model = ScriptedToolModel(responses=[AIMessage(content="Old checks done. No writes authorized.")])
+        compact = ContextCompaction(model, archive, available_tokens=4200,
+            overhead_tokens=overhead, pinned_message=pinned)
+        assert compact.count(messages) > compact.available
+        update = await compact.abefore_model({"messages": messages}, SimpleNamespace(context=_context()))
+        assert model.calls == 1
+        assert update["compaction_records"][0]["after_tokens"] <= compact.available
+        start = next(i for i, message in enumerate(update["messages"]) if message.id == "latest-model")
+        assert update["messages"][start:start + len(latest)] == latest
+        assert pinned in update["messages"]
+        assert messages_to_dict(messages) == original
+    asyncio.run(run())
+
+
+@pytest.mark.parametrize("oversized", ["protected", "summary"])
+def test_each_actual_invocation_rejects_oversized_input_without_model_call(oversized):
+    from application.context_budget import ModelContextBudgetExceeded
+    async def run():
+        pinned, messages, _ = history(1)
+        index = -1 if oversized == "protected" else 1
+        messages[index] = messages[index].model_copy(update={"content": "x" * 40000})
+        original = messages_to_dict(messages)
+        model = ScriptedToolModel(responses=[])
+        compact = ContextCompaction(model, TargetResultArchive(InMemoryStore()), available_tokens=4200,
+            overhead_tokens=100, pinned_message=pinned)
+        with pytest.raises(ModelContextBudgetExceeded):
+            await compact.abefore_model({"messages": messages}, SimpleNamespace(context=_context()))
+        assert model.calls == 0
+        assert messages_to_dict(messages) == original
+    asyncio.run(run())
+
+
 def test_archive_failure_checkpoints_original_and_stops_without_model():
     class Unavailable(InMemoryStore):
         async def aput(self, *args, **kwargs):
