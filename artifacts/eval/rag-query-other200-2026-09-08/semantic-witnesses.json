@@ -1,0 +1,42 @@
+{
+  "scope": "Selected explicit failures, not exhaustive output-quality labels or semantic accuracy.",
+  "reviewer": "Codex manual",
+  "items": [
+    {
+      "dataset": "MTRAG",
+      "id": "95a0893567c7519c090ecbcdd14daccd<::>3",
+      "issue": "ANSWER_INSTEAD_OF_QUERY",
+      "note": "Outputs a factual answer rather than retrieval question. Accuracy of answer not evaluated."
+    },
+    {
+      "dataset": "MTRAG",
+      "id": "2b34f5e7861ca9b1b3eab65ad6d6b4b0<::>8",
+      "issue": "ANSWER_INSTEAD_OF_QUERY",
+      "note": "Outputs a factual answer rather than retrieval question. Accuracy of answer not evaluated."
+    },
+    {
+      "dataset": "WixQA",
+      "id": "wix-expertwritten:167",
+      "issue": "SYSTEM_PROMPT_ECHO",
+      "note": "Output equals system instruction, not user retrieval query."
+    },
+    {
+      "dataset": "WixQA",
+      "id": "wix-expertwritten:197",
+      "issue": "SYSTEM_PROMPT_ECHO",
+      "note": "Output equals system instruction, not user retrieval query."
+    },
+    {
+      "dataset": "WixQA",
+      "id": "wix-simulated:2",
+      "issue": "SYSTEM_PROMPT_ECHO",
+      "note": "Output equals system instruction, not user retrieval query."
+    },
+    {
+      "dataset": "WixQA",
+      "id": "wix-simulated:61",
+      "issue": "ANSWER_INSTEAD_OF_QUERY",
+      "note": "Provides an explanation for subscription state without retrieval."
+    }
+  ]
+}

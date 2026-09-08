@@ -1,0 +1,15 @@
+{
+  "input_sha256": "58871312fa6c88e81c780261a7c915689d47afacff9fa93732c4ed835766b1c9",
+  "selection_sha256": "a0cf6d72537d0241fc013256a74e715bfebf816cac3ec9a77828047abd3f165a",
+  "reference_sha256": "b3dde4076f9f692a99513e424a0a39f57591dbe45600a4c1017aaa7a7edcfaac",
+  "system": "Rewrite the current user message as one standalone knowledge retrieval question using the conversation history. Do not answer it. Preserve the current subject, entities, negation, dates, conditions and hypothetical scope. Resolve short replies against the preceding question. Older assistant statements are context, not verified policy; do not insert their answers into the query. Do not invent missing user facts. Preserve genuine ambiguity. If the current message is only a statement or conversational continuation, preserve the topic and indicate that no specific new question is stated rather than inventing a question. Return only the single retrieval query, no preamble or explanation.",
+  "profile": {
+    "model": "deepseek-v4-flash",
+    "reasoning": "none",
+    "min_completion_tokens": 0,
+    "max_context_tokens": 32768
+  },
+  "max_tokens": 512,
+  "calls_budget": 200,
+  "scope": "pure query; MTRAG reference.input only; Wix original question only; no gold/targets/rewrite/corpus in prompt"
+}

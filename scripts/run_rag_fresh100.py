@@ -37,22 +37,22 @@ def doc():
     def metric(row,selected):
         m=evaluate_ranked_hits(row['case'],selected,hitmap,top_k=5);return {'recall':float(complete(row['case'],selected,byid)),'mrr':m['mrr'],'ndcg':m['ndcg']}
     return rows,src,dict(zip(ids,texts)),metric,{'documents':len(docs),'chunks':len(chunks),'new_document_embeddings':len(chunks),'embedding':'SentenceTransformer normalized BGE-M3 matching Doc dev recipe'}
-def wix():
+def wix(cases=None):
     from infrastructure.bge_m3_embedding import LocalBGEM3EmbeddingProvider,BGEM3EmbeddingConfig
     cache=Path('/tmp/dialogpilot-wixqa-full-index-20260908');ident=read(cache/'identity.json');finish=read(cache/'COMPLETE.json');assert digest(cache/'chunks.json.gz')==finish['chunks_sha256'];chunks=read(cache/'chunks.json.gz');ids=[c['id'] for c in chunks];byid=dict(zip(ids,chunks));texts=[build_child_retrieval_text(title=c['title'],section_path=(),content=c['text']) for c in chunks]
     arrays=[]
     for start in range(0,len(ids),128):
         p=cache/f'vectors-{start:06d}.npy';meta=read(p.with_suffix('.json'));assert digest(p)==meta['vector_sha256'];assert hashlib.sha256(json.dumps(texts[start:start+128],ensure_ascii=False).encode()).hexdigest()==meta['input_sha256'];arrays.append(np.load(p))
-    cases=read(ROOT/'selection.json')['WixQA'];model=LocalBGEM3EmbeddingProvider(BGEM3EmbeddingConfig(MODEL,MODEL.name,ident['model_files']['pytorch_model.bin'],device='cuda',batch_size=16));queries=[c['query'] for c in cases];qvec=np.asarray(model.embed_queries(queries),dtype=np.float32);release(model)
+    cases=read(ROOT/'selection.json')['WixQA'] if cases is None else cases;model=LocalBGEM3EmbeddingProvider(BGEM3EmbeddingConfig(MODEL,MODEL.name,ident['model_files']['pytorch_model.bin'],device='cuda',batch_size=16));queries=[c['query'] for c in cases];qvec=np.asarray(model.embed_queries(queries),dtype=np.float32);release(model)
     lid,lex=stream_bm25(queries,zip(ids,texts,strict=True));assert lid==ids
     routes=route_rows(queries,ids,qvec@np.concatenate(arrays).T,lex);src={cid:source(cid,c['source_id'],c['text'],c['start_char'],c['title'],c['source_checksum']) for cid,c in byid.items()}
     rows=[{'id':c['id'],'group':c['group_id'],'query':c['query'],'routes':r,'gold':set(c['article_ids'])} for c,r in zip(cases,routes,strict=True)]
     def metric(row,selected):
         m=measure(selected,byid,row['gold'],5);return {'recall':m['article_recall'],'mrr':m['article_mrr'],'ndcg':m['article_ndcg']}
     return rows,src,dict(zip(ids,texts)),metric,{'articles':6221,'chunks':len(ids),'new_document_embeddings':0}
-def mtrag():
+def mtrag(cases=None):
     from FlagEmbedding import BGEM3FlagModel
-    cases=read(ROOT/'selection.json')['MTRAG'];manifest=read('/tmp/dialogpilot-mtrag-adapted-v2-20260907/manifest.json');cache=Path('/tmp/dialogpilot-mtrag-dense-full-20260907');ident=read(cache/'identity.json')
+    cases=read(ROOT/'selection.json')['MTRAG'] if cases is None else cases;manifest=read('/tmp/dialogpilot-mtrag-adapted-v2-20260907/manifest.json');cache=Path('/tmp/dialogpilot-mtrag-dense-full-20260907');ident=read(cache/'identity.json')
     for name,h in ident['model_files'].items():assert digest(MODEL/name)==h
     model=BGEM3FlagModel(str(MODEL),use_fp16=True,devices='cuda:0');qvec=np.asarray(model.encode([c['query'] for c in cases],batch_size=4,max_length=8192,return_dense=True,return_sparse=False,return_colbert_vecs=False)['dense_vecs'],dtype=np.float32);release(model)
     rows=[];src={};texts={};counts={}
