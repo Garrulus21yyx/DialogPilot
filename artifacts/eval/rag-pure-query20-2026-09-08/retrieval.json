@@ -1,0 +1,2322 @@
+[
+  {
+    "id": "doc2dial-heldout-4f03402a8daa204a0e6b603d122466a4-11",
+    "queries": [
+      "What happens if I file a VA disability compensation claim for an illness not believed to be caused by radiation exposure?"
+    ],
+    "raw": {
+      "recall": 0.0,
+      "mrr": 0.0,
+      "ndcg": 0.0,
+      "ids": [
+        "Agent Orange Exposure On Navy Or Coast Guard Ships | Veterans Affairs#1_0::chunk-2",
+        "File a Supplemental Claim with new evidence | Veterans Affairs#1_0::chunk-0",
+        "Frequently asked questions about decision reviews | Veterans Affairs#1_0::chunk-0",
+        "File a Supplemental Claim with new evidence | Veterans Affairs#1_0::chunk-2",
+        "Fiduciary claims | Veterans Affairs#1_0::chunk-0"
+      ],
+      "tokens": 2302
+    },
+    "manual": {
+      "recall": 1.0,
+      "mrr": 0.5,
+      "ndcg": 0.6309297535714575,
+      "ids": [
+        "Ionizing Radiation Exposure | Veterans Affairs#1_0::chunk-0",
+        "Ionizing Radiation Exposure | Veterans Affairs#1_0::chunk-1",
+        "Agent Orange Exposure On Navy Or Coast Guard Ships | Veterans Affairs#1_0::chunk-2",
+        "Agent Orange Exposure On Navy Or Coast Guard Ships | Veterans Affairs#1_0::chunk-1",
+        "Agent Orange Exposure On Navy Or Coast Guard Ships | Veterans Affairs#1_0::chunk-0"
+      ],
+      "tokens": 2176
+    },
+    "agent": {
+      "recall": 1.0,
+      "mrr": 0.5,
+      "ndcg": 0.6309297535714575,
+      "ids": [
+        "Ionizing Radiation Exposure | Veterans Affairs#1_0::chunk-0",
+        "Ionizing Radiation Exposure | Veterans Affairs#1_0::chunk-1",
+        "Agent Orange Exposure On Navy Or Coast Guard Ships | Veterans Affairs#1_0::chunk-1",
+        "Agent Orange Exposure | Veterans Affairs#1_0::chunk-1",
+        "Agent Orange Exposure On Navy Or Coast Guard Ships | Veterans Affairs#1_0::chunk-0"
+      ],
+      "tokens": 2246
+    },
+    "status": "SINGLE_QUERY",
+    "routes": {
+      "dense": [
+        "Ionizing Radiation Exposure | Veterans Affairs#1_0::chunk-0",
+        "Ionizing Radiation Exposure | Veterans Affairs#1_0::chunk-1",
+        "VA Title 38 U.S.C. 1151 Claims | Veterans Affairs#1_0::chunk-0",
+        "Special Claims | Veterans Affairs#1_0::chunk-0",
+        "Agent Orange Exposure On Navy Or Coast Guard Ships | Veterans Affairs#1_0::chunk-1",
+        "Eligibility For VA Disability Benefits | Veterans Affairs#1_0::chunk-0",
+        "Eligibility For VA Disability Benefits | Veterans Affairs#1_0::chunk-1",
+        "Agent Orange Exposure On Navy Or Coast Guard Ships | Veterans Affairs#1_0::chunk-0",
+        "Agent Orange Exposure | Veterans Affairs#1_0::chunk-0",
+        "VA Disability Compensation | Veterans Affairs#1_0::chunk-0",
+        "VA Disability Compensation | Veterans Affairs#2_0::chunk-0",
+        "Agent Orange Exposure | Veterans Affairs#1_0::chunk-1",
+        "Agent Orange Exposure On Navy Or Coast Guard Ships | Veterans Affairs#1_0::chunk-2",
+        "Exposure To Specific Environmental Hazards | Veterans Affairs#1_0::chunk-0",
+        "Agent Orange Exposure In Vietnam Or Korea | Veterans Affairs#1_0::chunk-0",
+        "Agent Orange Exposure In Vietnam Or Korea | Veterans Affairs#1_0::chunk-1",
+        "Exposure To Hazardous Chemicals And Materials | Veterans Affairs#1_0::chunk-0",
+        "Eligibility For VA Health Care | Veterans Affairs#1_0::chunk-1",
+        "Eligibility For VA Health Care | Veterans Affairs#1_0::chunk-0",
+        "Fully Developed Claim For A VA Pension | Veterans Affairs#1_0::chunk-1"
+      ],
+      "bm25": [
+        "Ionizing Radiation Exposure | Veterans Affairs#1_0::chunk-0",
+        "Ionizing Radiation Exposure | Veterans Affairs#1_0::chunk-1",
+        "Exposure To Specific Environmental Hazards | Veterans Affairs#1_0::chunk-0",
+        "Mustard Gas Or Lewisite Exposure | Veterans Affairs#1_0::chunk-0",
+        "Exposure Through Project 112 Or Project SHAD | Veterans Affairs#1_0::chunk-0",
+        "Agent Orange Exposure On Navy Or Coast Guard Ships | Veterans Affairs#1_0::chunk-1",
+        "Agent Orange Exposure | Veterans Affairs#1_0::chunk-0",
+        "Exposure To Hazardous Chemicals And Materials | Veterans Affairs#1_0::chunk-1",
+        "Agent Orange Exposure In Vietnam Or Korea | Veterans Affairs#1_0::chunk-0",
+        "Agent Orange Exposure On Navy Or Coast Guard Ships | Veterans Affairs#1_0::chunk-0",
+        "Eligibility For VA Disability Benefits | Veterans Affairs#1_0::chunk-0",
+        "Agent Orange Exposure On Navy Or Coast Guard Ships | Veterans Affairs#1_0::chunk-2",
+        "Agent Orange Exposure From C-123 Aircraft | Veterans Affairs#1_0::chunk-1",
+        "Mustard Gas Or Lewisite Exposure | Veterans Affairs#1_0::chunk-1",
+        "Agent Orange Exposure | Veterans Affairs#1_0::chunk-1",
+        "Agent Orange Exposure In Vietnam Or Korea | Veterans Affairs#1_0::chunk-1",
+        "VA Disability Compensation | Veterans Affairs#1_0::chunk-0",
+        "VA Disability Compensation | Veterans Affairs#2_0::chunk-0",
+        "Agent Orange Exposure From C-123 Aircraft | Veterans Affairs#1_0::chunk-0",
+        "Exposure To Hazardous Chemicals And Materials | Veterans Affairs#1_0::chunk-0"
+      ]
+    },
+    "ce_order": [
+      "Ionizing Radiation Exposure | Veterans Affairs#1_0::chunk-0",
+      "Ionizing Radiation Exposure | Veterans Affairs#1_0::chunk-1",
+      "Agent Orange Exposure On Navy Or Coast Guard Ships | Veterans Affairs#1_0::chunk-1",
+      "Agent Orange Exposure | Veterans Affairs#1_0::chunk-1",
+      "Agent Orange Exposure On Navy Or Coast Guard Ships | Veterans Affairs#1_0::chunk-0",
+      "Agent Orange Exposure In Vietnam Or Korea | Veterans Affairs#1_0::chunk-1",
+      "Mustard Gas Or Lewisite Exposure | Veterans Affairs#1_0::chunk-0",
+      "Agent Orange Exposure | Veterans Affairs#1_0::chunk-0",
+      "Exposure To Specific Environmental Hazards | Veterans Affairs#1_0::chunk-0",
+      "Agent Orange Exposure On Navy Or Coast Guard Ships | Veterans Affairs#1_0::chunk-2",
+      "Exposure Through Project 112 Or Project SHAD | Veterans Affairs#1_0::chunk-0",
+      "Agent Orange Exposure In Vietnam Or Korea | Veterans Affairs#1_0::chunk-0",
+      "VA Disability Compensation | Veterans Affairs#1_0::chunk-0",
+      "VA Disability Compensation | Veterans Affairs#2_0::chunk-0",
+      "Exposure To Hazardous Chemicals And Materials | Veterans Affairs#1_0::chunk-1",
+      "Exposure To Hazardous Chemicals And Materials | Veterans Affairs#1_0::chunk-0",
+      "Eligibility For VA Disability Benefits | Veterans Affairs#1_0::chunk-0",
+      "VA Title 38 U.S.C. 1151 Claims | Veterans Affairs#1_0::chunk-0",
+      "Special Claims | Veterans Affairs#1_0::chunk-0",
+      "Eligibility For VA Disability Benefits | Veterans Affairs#1_0::chunk-1"
+    ],
+    "union_recall": 1.0,
+    "candidate_recall": 1.0
+  },
+  {
+    "id": "doc2dial-heldout-d9d38623b1f4e5ad093e164bac0215b5-11",
+    "queries": [
+      "What does it mean if your driver license is revoked?"
+    ],
+    "raw": {
+      "recall": 1.0,
+      "mrr": 1.0,
+      "ndcg": 1.0,
+      "ids": [
+        "Suspensions and revocations#3_0::chunk-1",
+        "Suspensions and revocations#3_0::chunk-0",
+        "Restore license after revocation#1_0::chunk-0",
+        "Restore license after revocation#1_0::chunk-1",
+        "Pay driver civil penalty#1_0::chunk-0"
+      ],
+      "tokens": 2558
+    },
+    "manual": {
+      "recall": 1.0,
+      "mrr": 1.0,
+      "ndcg": 1.0,
+      "ids": [
+        "Suspensions and revocations#3_0::chunk-1",
+        "Suspensions and revocations#3_0::chunk-0",
+        "Restore license after revocation#1_0::chunk-1",
+        "Conditional and restricted use licenses#3_0::chunk-0",
+        "Pay driver civil penalty#1_0::chunk-0"
+      ],
+      "tokens": 2328
+    },
+    "agent": {
+      "recall": 1.0,
+      "mrr": 1.0,
+      "ndcg": 1.0,
+      "ids": [
+        "Suspensions and revocations#3_0::chunk-1",
+        "Suspensions and revocations#3_0::chunk-0",
+        "Restore license after revocation#1_0::chunk-0",
+        "Restore license after revocation#1_0::chunk-1",
+        "Pay driver civil penalty#1_0::chunk-0"
+      ],
+      "tokens": 2558
+    },
+    "status": "SINGLE_QUERY",
+    "routes": {
+      "dense": [
+        "Suspensions and revocations#3_0::chunk-1",
+        "Restore license after revocation#1_0::chunk-0",
+        "Suspensions and revocations#3_0::chunk-0",
+        "Restore license after revocation#1_0::chunk-1",
+        "Restore license after revocation#1_0::chunk-15",
+        "Tickets received in another state#3_0::chunk-1",
+        "The Impaired Driver Program - Alcohol & Drug Rehabilitation Program#3_0::chunk-0",
+        "Pay driver civil penalty#1_0::chunk-0",
+        "Tickets received in another state#3_0::chunk-0",
+        "Restore license after revocation#1_0::chunk-6",
+        "Restore license after revocation#1_0::chunk-11",
+        "Insurance lapses#3_0::chunk-3",
+        "Get a driver license#1_0::chunk-2",
+        "Insurance lapses#3_0::chunk-1",
+        "Restore license after revocation#1_0::chunk-5",
+        "Restore license after revocation#1_0::chunk-7",
+        "About point reduction#3_0::chunk-1",
+        "Restore license after revocation#1_0::chunk-10",
+        "Tickets received in New York City#3_0::chunk-1",
+        "Pay suspension termination fee#1_0::chunk-2"
+      ],
+      "bm25": [
+        "Suspensions and revocations#3_0::chunk-0",
+        "Moving to NY#3_0::chunk-0",
+        "Resources for non US citizens#3_0::chunk-1",
+        "Pay driver civil penalty#1_0::chunk-0",
+        "Tickets received in another state#3_0::chunk-0",
+        "Driver license and learner permit fees and refunds#3_0::chunk-1",
+        "Get a driver license#1_0::chunk-3",
+        "Exchange your out-of-state driver license#1_0::chunk-2",
+        "Escort driver certification#1_0::chunk-2",
+        "About problem driver restrictions#3_0::chunk-1",
+        "Point & Insurance Reduction Program#3_0::chunk-2",
+        "About point reduction#3_0::chunk-0",
+        "Get a driver license#1_0::chunk-2",
+        "Restore license after revocation#1_0::chunk-12",
+        "Suspensions and revocations#3_0::chunk-1",
+        "Pay driver responsibility assessment#1_0::chunk-2",
+        "Conditional and restricted use licenses#3_0::chunk-0",
+        "Appeal a TVB ticket conviction#1_0::chunk-0",
+        "The Graduated License Law and Restrictions for Drivers under 18#1_0::chunk-0",
+        "Restore license after revocation#1_0::chunk-15"
+      ]
+    },
+    "ce_order": [
+      "Suspensions and revocations#3_0::chunk-1",
+      "Suspensions and revocations#3_0::chunk-0",
+      "Restore license after revocation#1_0::chunk-0",
+      "Restore license after revocation#1_0::chunk-1",
+      "Pay driver civil penalty#1_0::chunk-0",
+      "The Impaired Driver Program - Alcohol & Drug Rehabilitation Program#3_0::chunk-0",
+      "Tickets received in another state#3_0::chunk-0",
+      "Get a driver license#1_0::chunk-2",
+      "Restore license after revocation#1_0::chunk-15",
+      "Tickets received in another state#3_0::chunk-1",
+      "Restore license after revocation#1_0::chunk-11",
+      "Exchange your out-of-state driver license#1_0::chunk-2",
+      "About problem driver restrictions#3_0::chunk-1",
+      "Escort driver certification#1_0::chunk-2",
+      "Restore license after revocation#1_0::chunk-6",
+      "Point & Insurance Reduction Program#3_0::chunk-2",
+      "Driver license and learner permit fees and refunds#3_0::chunk-1",
+      "Resources for non US citizens#3_0::chunk-1",
+      "Get a driver license#1_0::chunk-3",
+      "Moving to NY#3_0::chunk-0"
+    ],
+    "union_recall": 1.0,
+    "candidate_recall": 1.0
+  },
+  {
+    "id": "doc2dial-heldout-aced8883d86eeba05d57c686e283b71d-11",
+    "queries": [
+      "What personal and financial information does FAFSA4caster require from students and parents to generate an estimate?"
+    ],
+    "raw": {
+      "recall": 0.0,
+      "mrr": 0.0,
+      "ndcg": 0.0,
+      "ids": [
+        "Aidan | The FSA Virtual Assistant | Federal Student Aid#1_0::chunk-0",
+        "Finding and Applying for Scholarships | Federal Student Aid#1_0::chunk-2",
+        "Filling Out the FAFSA\u00ae Form | Federal Student Aid#1_0::chunk-1",
+        "Accepting Aid | Federal Student Aid#1_0::chunk-0",
+        "Reporting Parent Information | Federal Student Aid#1_0::chunk-5"
+      ],
+      "tokens": 2150
+    },
+    "manual": {
+      "recall": 1.0,
+      "mrr": 1.0,
+      "ndcg": 1.0,
+      "ids": [
+        "Estimate Your Aid | Federal Student Aid#1_0::chunk-0",
+        "Filling Out the FAFSA\u00ae Form | Federal Student Aid#1_0::chunk-6",
+        "Estimate Your Aid | Federal Student Aid#1_0::chunk-1",
+        "Reporting Parent Information | Federal Student Aid#1_0::chunk-3",
+        "Reporting Parent Information | Federal Student Aid#1_0::chunk-4"
+      ],
+      "tokens": 2359
+    },
+    "agent": {
+      "recall": 1.0,
+      "mrr": 1.0,
+      "ndcg": 1.0,
+      "ids": [
+        "Estimate Your Aid | Federal Student Aid#1_0::chunk-0",
+        "Estimate Your Aid | Federal Student Aid#1_0::chunk-1",
+        "Filling Out the FAFSA\u00ae Form | Federal Student Aid#1_0::chunk-6",
+        "Filling Out the FAFSA\u00ae Form | Federal Student Aid#1_0::chunk-2",
+        "Reporting Parent Information | Federal Student Aid#1_0::chunk-2"
+      ],
+      "tokens": 2358
+    },
+    "status": "SINGLE_QUERY",
+    "routes": {
+      "dense": [
+        "Estimate Your Aid | Federal Student Aid#1_0::chunk-0",
+        "Estimate Your Aid | Federal Student Aid#1_0::chunk-1",
+        "How to Review and Correct Your FAFSA\u00ae Application | Federal Student Aid#1_0::chunk-1",
+        "Filling Out the FAFSA\u00ae Form | Federal Student Aid#1_0::chunk-6",
+        "Filling Out the FAFSA\u00ae Form | Federal Student Aid#1_0::chunk-2",
+        "Dependency Status | Federal Student Aid#1_0::chunk-0",
+        "FAFSA\u00ae Completion by High School and Public School District | Federal Student Aid#1_0::chunk-1",
+        "How Aid Is Calculated | Federal Student Aid#1_0::chunk-0",
+        "Reporting Parent Information | Federal Student Aid#1_0::chunk-3",
+        "How Aid Is Calculated | Federal Student Aid#1_0::chunk-1",
+        "Reporting Parent Information | Federal Student Aid#1_0::chunk-5",
+        "Reporting Parent Information | Federal Student Aid#1_0::chunk-0",
+        "How to Correct or Update Your FAFSA\u00ae Application | Federal Student Aid#1_0::chunk-1",
+        "FAFSA\u00ae Completion by High School and Public School District | Federal Student Aid#1_0::chunk-0",
+        "Student Aid Report | Federal Student Aid#1_0::chunk-1",
+        "Understand Financial Aid | Federal Student Aid#1_0::chunk-0",
+        "Reporting Parent Information | Federal Student Aid#1_0::chunk-2",
+        "Filling Out the FAFSA\u00ae Form | Federal Student Aid#1_0::chunk-1",
+        "Reporting Parent Information | Federal Student Aid#1_0::chunk-4",
+        "Dependency Status | Federal Student Aid#1_0::chunk-2"
+      ],
+      "bm25": [
+        "Estimate Your Aid | Federal Student Aid#1_0::chunk-0",
+        "Reporting Parent Information | Federal Student Aid#1_0::chunk-5",
+        "Estimate Your Aid | Federal Student Aid#1_0::chunk-1",
+        "How Aid Is Calculated | Federal Student Aid#1_0::chunk-1",
+        "Understand Financial Aid | Federal Student Aid#1_0::chunk-0",
+        "Eligibility for Non-U.S. Citizens | Federal Student Aid#1_0::chunk-2",
+        "Dependency Status | Federal Student Aid#1_0::chunk-2",
+        "Parent PLUS Loans | Federal Student Aid#1_0::chunk-0",
+        "Checklists for Academic and Financial Preparation | Federal Student Aid#1_0::chunk-0",
+        "How Aid Is Calculated | Federal Student Aid#1_0::chunk-0",
+        "Eligibility for Non-U.S. Citizens | Federal Student Aid#1_0::chunk-1",
+        "Loans | Federal Student Aid#1_0::chunk-0",
+        "Choosing a School | Federal Student Aid#1_0::chunk-2",
+        "How Financial Aid Works | Federal Student Aid#2_0::chunk-0",
+        "Eligibility Requirements | Federal Student Aid#1_0::chunk-0",
+        "Reporting Parent Information | Federal Student Aid#1_0::chunk-2",
+        "Dependency Status | Federal Student Aid#1_0::chunk-3",
+        "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-24",
+        "Financial Aid Eligibility | Federal Student Aid#1_0::chunk-1",
+        "Link to Us | Federal Student Aid#1_0::chunk-0"
+      ]
+    },
+    "ce_order": [
+      "Estimate Your Aid | Federal Student Aid#1_0::chunk-0",
+      "Estimate Your Aid | Federal Student Aid#1_0::chunk-1",
+      "Filling Out the FAFSA\u00ae Form | Federal Student Aid#1_0::chunk-6",
+      "Filling Out the FAFSA\u00ae Form | Federal Student Aid#1_0::chunk-2",
+      "Reporting Parent Information | Federal Student Aid#1_0::chunk-2",
+      "Reporting Parent Information | Federal Student Aid#1_0::chunk-3",
+      "Reporting Parent Information | Federal Student Aid#1_0::chunk-5",
+      "Dependency Status | Federal Student Aid#1_0::chunk-0",
+      "Reporting Parent Information | Federal Student Aid#1_0::chunk-0",
+      "Understand Financial Aid | Federal Student Aid#1_0::chunk-0",
+      "Dependency Status | Federal Student Aid#1_0::chunk-2",
+      "How Aid Is Calculated | Federal Student Aid#1_0::chunk-1",
+      "How Aid Is Calculated | Federal Student Aid#1_0::chunk-0",
+      "Eligibility for Non-U.S. Citizens | Federal Student Aid#1_0::chunk-2",
+      "FAFSA\u00ae Completion by High School and Public School District | Federal Student Aid#1_0::chunk-1",
+      "How to Review and Correct Your FAFSA\u00ae Application | Federal Student Aid#1_0::chunk-1",
+      "Checklists for Academic and Financial Preparation | Federal Student Aid#1_0::chunk-0",
+      "Eligibility for Non-U.S. Citizens | Federal Student Aid#1_0::chunk-1",
+      "Parent PLUS Loans | Federal Student Aid#1_0::chunk-0",
+      "Loans | Federal Student Aid#1_0::chunk-0"
+    ],
+    "union_recall": 1.0,
+    "candidate_recall": 1.0
+  },
+  {
+    "id": "doc2dial-heldout-f62aefb56b2c87b30539bcd7ea27aa83-10",
+    "queries": [
+      "What is the 2019 annual earnings limit for individuals younger than full retirement age?"
+    ],
+    "raw": {
+      "recall": 1.0,
+      "mrr": 0.5,
+      "ndcg": 0.6309297535714575,
+      "ids": [
+        "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0::chunk-3",
+        "Benefits Planner: Retirement | Getting Benefits While Working | Social Security Administration#1_0::chunk-0",
+        "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0::chunk-3",
+        "Benefits Planner: Retirement | Getting Benefits While Working | Social Security Administration#2_0::chunk-0",
+        "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0::chunk-1"
+      ],
+      "tokens": 2146
+    },
+    "manual": {
+      "recall": 1.0,
+      "mrr": 0.5,
+      "ndcg": 0.6309297535714575,
+      "ids": [
+        "Benefits Planner: Retirement | Getting Benefits While Working | Social Security Administration#2_0::chunk-0",
+        "Benefits Planner: Retirement | Getting Benefits While Working | Social Security Administration#1_0::chunk-0",
+        "Learn About Retirement Benefits | SSA#1_0::chunk-3",
+        "Benefits Planner: Retirement | Benefits For Your Family | Social Security Administration#2_0::chunk-1",
+        "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::chunk-0"
+      ],
+      "tokens": 1781
+    },
+    "agent": {
+      "recall": 1.0,
+      "mrr": 0.5,
+      "ndcg": 0.6309297535714575,
+      "ids": [
+        "Benefits Planner: Retirement | Getting Benefits While Working | Social Security Administration#2_0::chunk-0",
+        "Benefits Planner: Retirement | Getting Benefits While Working | Social Security Administration#1_0::chunk-0",
+        "Benefits Planner: Survivors | Planning For Your Survivors | Social Security Administration#2_0::chunk-0",
+        "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::chunk-0",
+        "Benefits Planner: Survivors | Planning For Your Survivors | Social Security Administration#1_0::chunk-0"
+      ],
+      "tokens": 2145
+    },
+    "status": "SINGLE_QUERY",
+    "routes": {
+      "dense": [
+        "Benefits Planner: Retirement | Getting Benefits While Working | Social Security Administration#2_0::chunk-0",
+        "Benefits Planner: Retirement | Getting Benefits While Working | Social Security Administration#1_0::chunk-0",
+        "Learn About Retirement Benefits | SSA#1_0::chunk-3",
+        "Benefits Planner: Retirement | Benefits By Year Of Birth | Social Security Administration#1_0::chunk-0",
+        "Benefits Planner: Retirement | Benefits By Year Of Birth | Social Security Administration#2_0::chunk-0",
+        "Benefits Planner: Retirement | Benefits For Your Family | Social Security Administration#2_0::chunk-1",
+        "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::chunk-0",
+        "Benefits Planner: Retirement | Benefits For Your Family | Social Security Administration#1_0::chunk-1",
+        "Learn About Retirement Benefits | SSA#1_0::chunk-2",
+        "Benefits Planner: Survivors | Planning For Your Survivors | Social Security Administration#2_0::chunk-2",
+        "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#2_0::chunk-0",
+        "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::chunk-3",
+        "Benefits Planner: Retirement | Applying for Medicare Only | Social Security Administration#2_0::chunk-0",
+        "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#2_0::chunk-3",
+        "Benefits Planner: Retirement | Applying for Medicare Only | Social Security Administration#1_0::chunk-0",
+        "Benefits Planner: Retirement | Government Pension Offset (GPO) Calculator | Social Security Administration#2_0::chunk-1",
+        "Retirement Estimator | Social Security Administration#2_0::chunk-0",
+        "Benefits Planner: Retirement | Government Pension Offset (GPO) Calculator | Social Security Administration#1_0::chunk-1",
+        "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0::chunk-3",
+        "Retirement Estimator | Social Security Administration#1_0::chunk-0"
+      ],
+      "bm25": [
+        "Benefits Planner: Retirement | Getting Benefits While Working | Social Security Administration#2_0::chunk-0",
+        "Benefits Planner: Retirement | Getting Benefits While Working | Social Security Administration#1_0::chunk-0",
+        "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::chunk-0",
+        "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#2_0::chunk-0",
+        "Benefits Planner: Survivors | Planning For Your Survivors | Social Security Administration#1_0::chunk-0",
+        "Benefits Planner: Survivors | Planning For Your Survivors | Social Security Administration#2_0::chunk-0",
+        "Benefits Planner: Survivors | Planning For Your Survivors | Social Security Administration#2_0::chunk-2",
+        "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-4",
+        "Benefits Planner: Survivors | Planning For Your Survivors | Social Security Administration#1_0::chunk-2",
+        "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-4",
+        "Learn About Retirement Benefits | SSA#1_0::chunk-3",
+        "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0::chunk-4",
+        "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0::chunk-4",
+        "Benefits Planner: Disability | Family Benefits | Social Security Administration#1_0::chunk-0",
+        "Benefits Planner: Disability | Family Benefits | Social Security Administration#2_0::chunk-0",
+        "Benefits Planner: Retirement | Benefits For Your Spouse | Social Security Administration#1_0::chunk-0",
+        "Benefits Planner: Retirement | Benefits For Your Spouse | Social Security Administration#2_0::chunk-0",
+        "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0::chunk-0",
+        "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0::chunk-0",
+        "Benefits Planner: Retirement | Government Pension Offset (GPO) Calculator | Social Security Administration#1_0::chunk-0"
+      ]
+    },
+    "ce_order": [
+      "Benefits Planner: Retirement | Getting Benefits While Working | Social Security Administration#2_0::chunk-0",
+      "Benefits Planner: Retirement | Getting Benefits While Working | Social Security Administration#1_0::chunk-0",
+      "Benefits Planner: Survivors | Planning For Your Survivors | Social Security Administration#2_0::chunk-0",
+      "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::chunk-0",
+      "Benefits Planner: Survivors | Planning For Your Survivors | Social Security Administration#1_0::chunk-0",
+      "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#2_0::chunk-0",
+      "Learn About Retirement Benefits | SSA#1_0::chunk-3",
+      "Benefits Planner: Survivors | Planning For Your Survivors | Social Security Administration#2_0::chunk-2",
+      "Benefits Planner: Survivors | Planning For Your Survivors | Social Security Administration#1_0::chunk-2",
+      "Benefits Planner: Retirement | Benefits For Your Family | Social Security Administration#1_0::chunk-1",
+      "Benefits Planner: Retirement | Benefits For Your Family | Social Security Administration#2_0::chunk-1",
+      "Benefits Planner: Retirement | Applying for Medicare Only | Social Security Administration#2_0::chunk-0",
+      "Benefits Planner: Retirement | Benefits By Year Of Birth | Social Security Administration#1_0::chunk-0",
+      "Benefits Planner: Retirement | Benefits By Year Of Birth | Social Security Administration#2_0::chunk-0",
+      "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0::chunk-4",
+      "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-4",
+      "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-4",
+      "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0::chunk-4",
+      "Learn About Retirement Benefits | SSA#1_0::chunk-2",
+      "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::chunk-3"
+    ],
+    "union_recall": 1.0,
+    "candidate_recall": 1.0
+  },
+  {
+    "id": "doc2dial-heldout-3a9508aba0ddf691ace6ccee67a2df60-10",
+    "queries": [
+      "What are the SGLI coverage options and considerations for a service member who is separating or retiring, given that they are not on active duty, not a member of the National Guard or Reserve, and have a service-connected disability?"
+    ],
+    "raw": {
+      "recall": 0.0,
+      "mrr": 0.0,
+      "ndcg": 0.0,
+      "ids": [
+        "Servicemembers\u2019 Group Life Insurance (SGLI) | Veterans Affairs#1_0::chunk-0",
+        "Servicemembers\u2019 Group Life Insurance (SGLI) | Veterans Affairs#1_0::chunk-1",
+        "Family Group Life Insurance (FSGLI) | Veterans Affairs#1_0::chunk-0",
+        "Servicemembers\u2019 Group Life Insurance (SGLI) | Veterans Affairs#1_0::chunk-2",
+        "Traumatic Injury Protection (TSGLI) | Veterans Affairs#1_0::chunk-0"
+      ],
+      "tokens": 2558
+    },
+    "manual": {
+      "recall": 1.0,
+      "mrr": 0.2,
+      "ndcg": 0.38685280723454163,
+      "ids": [
+        "Veterans\u2019 Group Life Insurance (VGLI) | Veterans Affairs#1_0::chunk-0",
+        "Servicemembers\u2019 Group Life Insurance (SGLI) | Veterans Affairs#1_0::chunk-2",
+        "Servicemembers\u2019 Group Life Insurance (SGLI) | Veterans Affairs#1_0::chunk-1",
+        "Servicemembers\u2019 Group Life Insurance (SGLI) | Veterans Affairs#1_0::chunk-0",
+        "VA Benefits For Service Members | Veterans Affairs#1_0::chunk-1"
+      ],
+      "tokens": 2559
+    },
+    "agent": {
+      "recall": 1.0,
+      "mrr": 1.0,
+      "ndcg": 1.0,
+      "ids": [
+        "VA Benefits For Service Members | Veterans Affairs#1_0::chunk-1",
+        "VA Benefits For Service Members | Veterans Affairs#2_0::chunk-1",
+        "Servicemembers\u2019 Group Life Insurance (SGLI) | Veterans Affairs#1_0::chunk-1",
+        "Servicemembers\u2019 Group Life Insurance (SGLI) | Veterans Affairs#1_0::chunk-0",
+        "Servicemembers\u2019 Group Life Insurance (SGLI) | Veterans Affairs#1_0::chunk-2"
+      ],
+      "tokens": 2559
+    },
+    "status": "SINGLE_QUERY",
+    "routes": {
+      "dense": [
+        "Servicemembers\u2019 Group Life Insurance (SGLI) | Veterans Affairs#1_0::chunk-2",
+        "Servicemembers\u2019 Group Life Insurance (SGLI) | Veterans Affairs#1_0::chunk-1",
+        "Servicemembers\u2019 Group Life Insurance (SGLI) | Veterans Affairs#1_0::chunk-0",
+        "Totally Disabled Or Terminally Ill Policyholders | Veterans Affairs#1_0::chunk-0",
+        "About VA Insurance Options And Eligibility | Veterans Affairs#1_0::chunk-0",
+        "Veterans\u2019 Group Life Insurance (VGLI) | Veterans Affairs#1_0::chunk-0",
+        "VA Benefits For Service Members | Veterans Affairs#2_0::chunk-1",
+        "VA Benefits For Service Members | Veterans Affairs#1_0::chunk-1",
+        "Family Group Life Insurance (FSGLI) | Veterans Affairs#1_0::chunk-3",
+        "Family Group Life Insurance (FSGLI) | Veterans Affairs#1_0::chunk-0",
+        "Traumatic Injury Protection (TSGLI) | Veterans Affairs#1_0::chunk-0",
+        "Family Group Life Insurance (FSGLI) | Veterans Affairs#1_0::chunk-2",
+        "Service-Disabled Veterans Life Insurance (S-DVI) | Veterans Affairs#1_0::chunk-0",
+        "VA Benefits For Service Members | Veterans Affairs#2_0::chunk-3",
+        "Family Group Life Insurance (FSGLI) | Veterans Affairs#1_0::chunk-1",
+        "Traumatic Injury Protection (TSGLI) | Veterans Affairs#1_0::chunk-1",
+        "Servicemembers\u2019 Group Life Insurance (SGLI) | Veterans Affairs#1_0::chunk-3",
+        "VA Benefits For Service Members | Veterans Affairs#1_0::chunk-2",
+        "VA Benefits For Service Members | Veterans Affairs#2_0::chunk-2",
+        "Service-Disabled Veterans Life Insurance (S-DVI) | Veterans Affairs#1_0::chunk-2"
+      ],
+      "bm25": [
+        "VA Benefits For Service Members | Veterans Affairs#1_0::chunk-1",
+        "VA Benefits For Service Members | Veterans Affairs#2_0::chunk-1",
+        "Servicemembers\u2019 Group Life Insurance (SGLI) | Veterans Affairs#1_0::chunk-0",
+        "Veterans\u2019 Group Life Insurance (VGLI) | Veterans Affairs#1_0::chunk-0",
+        "Family Group Life Insurance (FSGLI) | Veterans Affairs#1_0::chunk-0",
+        "VA Benefits For Service Members | Veterans Affairs#2_0::chunk-3",
+        "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-2",
+        "VA Benefits For Service Members | Veterans Affairs#1_0::chunk-3",
+        "VA Benefits For Service Members | Veterans Affairs#1_0::chunk-0",
+        "VA Benefits For Service Members | Veterans Affairs#2_0::chunk-0",
+        "Servicemembers\u2019 Group Life Insurance (SGLI) | Veterans Affairs#1_0::chunk-1",
+        "VA Benefits For Service Members | Veterans Affairs#1_0::chunk-2",
+        "VA Benefits For Service Members | Veterans Affairs#2_0::chunk-2",
+        "GI Bill Eligibility | Veterans Affairs#1_0::chunk-0",
+        "Aid for Military Families | Federal Student Aid#1_0::chunk-2",
+        "Family Group Life Insurance (FSGLI) | Veterans Affairs#1_0::chunk-1",
+        "Transfer Your Post-9/11 GI Bill Benefits | Veterans Affairs#1_0::chunk-2",
+        "About VA Insurance Options And Eligibility | Veterans Affairs#1_0::chunk-0",
+        "Traumatic Injury Protection (TSGLI) | Veterans Affairs#1_0::chunk-0",
+        "How To Apply For A VA Home Loan COE | Veterans Affairs#1_0::chunk-0"
+      ]
+    },
+    "ce_order": [
+      "VA Benefits For Service Members | Veterans Affairs#1_0::chunk-1",
+      "VA Benefits For Service Members | Veterans Affairs#2_0::chunk-1",
+      "Servicemembers\u2019 Group Life Insurance (SGLI) | Veterans Affairs#1_0::chunk-1",
+      "Servicemembers\u2019 Group Life Insurance (SGLI) | Veterans Affairs#1_0::chunk-0",
+      "Servicemembers\u2019 Group Life Insurance (SGLI) | Veterans Affairs#1_0::chunk-2",
+      "Family Group Life Insurance (FSGLI) | Veterans Affairs#1_0::chunk-0",
+      "Veterans\u2019 Group Life Insurance (VGLI) | Veterans Affairs#1_0::chunk-0",
+      "About VA Insurance Options And Eligibility | Veterans Affairs#1_0::chunk-0",
+      "Totally Disabled Or Terminally Ill Policyholders | Veterans Affairs#1_0::chunk-0",
+      "VA Benefits For Service Members | Veterans Affairs#1_0::chunk-2",
+      "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-2",
+      "VA Benefits For Service Members | Veterans Affairs#2_0::chunk-2",
+      "Traumatic Injury Protection (TSGLI) | Veterans Affairs#1_0::chunk-0",
+      "Family Group Life Insurance (FSGLI) | Veterans Affairs#1_0::chunk-3",
+      "Family Group Life Insurance (FSGLI) | Veterans Affairs#1_0::chunk-2",
+      "VA Benefits For Service Members | Veterans Affairs#2_0::chunk-3",
+      "VA Benefits For Service Members | Veterans Affairs#1_0::chunk-3",
+      "Family Group Life Insurance (FSGLI) | Veterans Affairs#1_0::chunk-1",
+      "VA Benefits For Service Members | Veterans Affairs#1_0::chunk-0",
+      "VA Benefits For Service Members | Veterans Affairs#2_0::chunk-0"
+    ],
+    "union_recall": 1.0,
+    "candidate_recall": 1.0
+  },
+  {
+    "id": "doc2dial-heldout-cb78c6781a9a0f072d43d810d3315c8e-10",
+    "queries": [
+      "How do I renew my hazardous materials (HazMat) endorsement?"
+    ],
+    "raw": {
+      "recall": 1.0,
+      "mrr": 1.0,
+      "ndcg": 1.0,
+      "ids": [
+        "Renew a hazardous materials (HazMat) endorsement#1_0::chunk-0",
+        "Get a  hazardous materials (HazMat) endorsement#3_0::chunk-1",
+        "Get a  hazardous materials (HazMat) endorsement#3_0::chunk-2",
+        "Renew a hazardous materials (HazMat) endorsement#1_0::chunk-2",
+        "Renew a hazardous materials (HazMat) endorsement#1_0::chunk-1"
+      ],
+      "tokens": 2535
+    },
+    "manual": {
+      "recall": 1.0,
+      "mrr": 1.0,
+      "ndcg": 1.0,
+      "ids": [
+        "Renew a hazardous materials (HazMat) endorsement#1_0::chunk-0",
+        "Get a  hazardous materials (HazMat) endorsement#3_0::chunk-1",
+        "Renew a hazardous materials (HazMat) endorsement#1_0::chunk-2",
+        "Get a  hazardous materials (HazMat) endorsement#3_0::chunk-2",
+        "Renew a hazardous materials (HazMat) endorsement#1_0::chunk-1"
+      ],
+      "tokens": 2535
+    },
+    "agent": {
+      "recall": 1.0,
+      "mrr": 0.5,
+      "ndcg": 0.6309297535714575,
+      "ids": [
+        "Renew a hazardous materials (HazMat) endorsement#1_0::chunk-2",
+        "Renew a hazardous materials (HazMat) endorsement#1_0::chunk-0",
+        "Renew a hazardous materials (HazMat) endorsement#1_0::chunk-1",
+        "Get a  hazardous materials (HazMat) endorsement#3_0::chunk-2",
+        "Get a  hazardous materials (HazMat) endorsement#3_0::chunk-0"
+      ],
+      "tokens": 2536
+    },
+    "status": "SINGLE_QUERY",
+    "routes": {
+      "dense": [
+        "Renew a hazardous materials (HazMat) endorsement#1_0::chunk-0",
+        "Renew a hazardous materials (HazMat) endorsement#1_0::chunk-2",
+        "Get a  hazardous materials (HazMat) endorsement#3_0::chunk-0",
+        "Renew a hazardous materials (HazMat) endorsement#1_0::chunk-1",
+        "Get a  hazardous materials (HazMat) endorsement#3_0::chunk-1",
+        "Get a  hazardous materials (HazMat) endorsement#3_0::chunk-2",
+        "Get a  hazardous materials (HazMat) endorsement#3_0::chunk-3",
+        "Medical Certification Requirements#3_0::chunk-2",
+        "Medical Certification Requirements#3_0::chunk-3",
+        "Medical Certification Requirements#3_0::chunk-1",
+        "Commercial Driver License Downgrades#3_0::chunk-0",
+        "Exposure To Hazardous Chemicals And Materials | Veterans Affairs#1_0::chunk-0",
+        "Restore license after revocation#1_0::chunk-3",
+        "Renew a business license or registration#1_0::chunk-0",
+        "Restore license after revocation#1_0::chunk-13",
+        "Restore license after revocation#1_0::chunk-8",
+        "Register a vehicle#1_0::chunk-4",
+        "Let the Buyer be Aware#3_0::chunk-2",
+        "Open a dealership#3_0::chunk-0",
+        "Medical Certification FAQ's#3_0::chunk-3"
+      ],
+      "bm25": [
+        "Renew a hazardous materials (HazMat) endorsement#1_0::chunk-0",
+        "Renew a hazardous materials (HazMat) endorsement#1_0::chunk-1",
+        "Get a  hazardous materials (HazMat) endorsement#3_0::chunk-2",
+        "Get a  hazardous materials (HazMat) endorsement#3_0::chunk-0",
+        "Renew a hazardous materials (HazMat) endorsement#1_0::chunk-2",
+        "Get a  hazardous materials (HazMat) endorsement#3_0::chunk-1",
+        "Get a  hazardous materials (HazMat) endorsement#3_0::chunk-3",
+        "Get a CDL#1_0::chunk-3",
+        "How to renew a license#1_0::chunk-5",
+        "Renew a CDL#1_0::chunk-1",
+        "Medical Certification Requirements#3_0::chunk-2",
+        "Medical Certification Requirements#3_0::chunk-1",
+        "Sharing your information#3_0::chunk-2",
+        "Exposure To Hazardous Chemicals And Materials | Veterans Affairs#1_0::chunk-0",
+        "Health Needs And Conditions | Veterans Affairs#1_0::chunk-0",
+        "Medical Certification Requirements#3_0::chunk-0",
+        "Eligibility For VA Disability Benefits | Veterans Affairs#1_0::chunk-0",
+        "Escort driver certification#1_0::chunk-1",
+        "Exposure To Hazardous Chemicals And Materials | Veterans Affairs#1_0::chunk-1",
+        "How to renew a registration#1_0::chunk-0"
+      ]
+    },
+    "ce_order": [
+      "Renew a hazardous materials (HazMat) endorsement#1_0::chunk-2",
+      "Renew a hazardous materials (HazMat) endorsement#1_0::chunk-0",
+      "Renew a hazardous materials (HazMat) endorsement#1_0::chunk-1",
+      "Get a  hazardous materials (HazMat) endorsement#3_0::chunk-2",
+      "Get a  hazardous materials (HazMat) endorsement#3_0::chunk-0",
+      "Get a  hazardous materials (HazMat) endorsement#3_0::chunk-1",
+      "Get a  hazardous materials (HazMat) endorsement#3_0::chunk-3",
+      "How to renew a license#1_0::chunk-5",
+      "Renew a CDL#1_0::chunk-1",
+      "Medical Certification Requirements#3_0::chunk-2",
+      "Medical Certification Requirements#3_0::chunk-1",
+      "Get a CDL#1_0::chunk-3",
+      "Exposure To Hazardous Chemicals And Materials | Veterans Affairs#1_0::chunk-0",
+      "Health Needs And Conditions | Veterans Affairs#1_0::chunk-0",
+      "Renew a business license or registration#1_0::chunk-0",
+      "Sharing your information#3_0::chunk-2",
+      "Restore license after revocation#1_0::chunk-3",
+      "Medical Certification Requirements#3_0::chunk-3",
+      "Commercial Driver License Downgrades#3_0::chunk-0",
+      "Restore license after revocation#1_0::chunk-13"
+    ],
+    "union_recall": 1.0,
+    "candidate_recall": 1.0
+  },
+  {
+    "id": "doc2dial-heldout-21f4c678cbba500b511e9ae76b2d19df-11",
+    "queries": [
+      "If your school signed your name on the promissory note or other loan documents without your authorization, and you meet the eligibility requirements for a false certification discharge, will the remaining balance of your Parent PLUS Loan be canceled?"
+    ],
+    "raw": {
+      "recall": 1.0,
+      "mrr": 1.0,
+      "ndcg": 1.0,
+      "ids": [
+        "False Certification Discharge | Federal Student Aid#1_0::chunk-1",
+        "Perkins Loan Cancellation and Discharge | Federal Student Aid#1_0::chunk-0",
+        "Closed School Discharge | Federal Student Aid#1_0::chunk-0",
+        "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-11",
+        "Closed School Discharge | Federal Student Aid#1_0::chunk-1"
+      ],
+      "tokens": 2556
+    },
+    "manual": {
+      "recall": 1.0,
+      "mrr": 1.0,
+      "ndcg": 1.0,
+      "ids": [
+        "False Certification Discharge | Federal Student Aid#1_0::chunk-1",
+        "Parent PLUS Loans | Federal Student Aid#1_0::chunk-4",
+        "False Certification Discharge | Federal Student Aid#1_0::chunk-2",
+        "Unpaid Refund Discharge | Federal Student Aid#1_0::chunk-0",
+        "False Certification Discharge | Federal Student Aid#1_0::chunk-0"
+      ],
+      "tokens": 2096
+    },
+    "agent": {
+      "recall": 1.0,
+      "mrr": 1.0,
+      "ndcg": 1.0,
+      "ids": [
+        "False Certification Discharge | Federal Student Aid#1_0::chunk-1",
+        "False Certification Discharge | Federal Student Aid#1_0::chunk-0",
+        "False Certification Discharge | Federal Student Aid#1_0::chunk-2",
+        "Parent PLUS Loans | Federal Student Aid#1_0::chunk-4",
+        "Parent PLUS Loans | Federal Student Aid#1_0::chunk-3"
+      ],
+      "tokens": 2110
+    },
+    "status": "SINGLE_QUERY",
+    "routes": {
+      "dense": [
+        "False Certification Discharge | Federal Student Aid#1_0::chunk-1",
+        "False Certification Discharge | Federal Student Aid#1_0::chunk-2",
+        "False Certification Discharge | Federal Student Aid#1_0::chunk-0",
+        "Closed School Discharge | Federal Student Aid#1_0::chunk-2",
+        "Parent PLUS Loans | Federal Student Aid#1_0::chunk-4",
+        "Parent PLUS Loans | Federal Student Aid#1_0::chunk-2",
+        "Perkins Loan Cancellation and Discharge | Federal Student Aid#1_0::chunk-5",
+        "Teacher Loan Forgiveness | Federal Student Aid#1_0::chunk-6",
+        "Perkins Loan Cancellation and Discharge | Federal Student Aid#1_0::chunk-0",
+        "Unpaid Refund Discharge | Federal Student Aid#1_0::chunk-0",
+        "Parent PLUS Loans | Federal Student Aid#1_0::chunk-1",
+        "Closed School Discharge | Federal Student Aid#1_0::chunk-1",
+        "Parent PLUS Loans | Federal Student Aid#1_0::chunk-3",
+        "Perkins Loan Cancellation and Discharge | Federal Student Aid#1_0::chunk-1",
+        "Total and Permanent Disability Discharge | Federal Student Aid#1_0::chunk-5",
+        "Closed School Discharge | Federal Student Aid#1_0::chunk-0",
+        "Total and Permanent Disability Discharge | Federal Student Aid#1_0::chunk-6",
+        "Perkins Loan Cancellation and Discharge | Federal Student Aid#1_0::chunk-4",
+        "Completing a Master Promissory Note | Federal Student Aid#1_0::chunk-0",
+        "Student Loan Repayment | Federal Student Aid#1_0::chunk-2"
+      ],
+      "bm25": [
+        "False Certification Discharge | Federal Student Aid#1_0::chunk-1",
+        "False Certification Discharge | Federal Student Aid#1_0::chunk-2",
+        "False Certification Discharge | Federal Student Aid#1_0::chunk-0",
+        "Parent PLUS Loans | Federal Student Aid#1_0::chunk-4",
+        "Parent PLUS Loan Application | Federal Student Aid#1_0::chunk-0",
+        "Parent PLUS Loans | Federal Student Aid#1_0::chunk-3",
+        "Parent PLUS Loans | Federal Student Aid#1_0::chunk-0",
+        "PLUS Loan Application | Federal Student Aid#1_0::chunk-0",
+        "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-10",
+        "Parent PLUS Loans | Federal Student Aid#1_0::chunk-2",
+        "Completing a Master Promissory Note | Federal Student Aid#1_0::chunk-0",
+        "Perkins Loan Cancellation and Discharge | Federal Student Aid#1_0::chunk-0",
+        "PLUS Loan Application for Graduate Students | Federal Student Aid#1_0::chunk-0",
+        "Parent PLUS Loans | Federal Student Aid#1_0::chunk-1",
+        "Closed School Discharge | Federal Student Aid#1_0::chunk-1",
+        "Closed School Discharge | Federal Student Aid#1_0::chunk-0",
+        "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-11",
+        "Perkins Loan Cancellation and Discharge | Federal Student Aid#1_0::chunk-4",
+        "Unpaid Refund Discharge | Federal Student Aid#1_0::chunk-0",
+        "Total and Permanent Disability Discharge | Federal Student Aid#1_0::chunk-5"
+      ]
+    },
+    "ce_order": [
+      "False Certification Discharge | Federal Student Aid#1_0::chunk-1",
+      "False Certification Discharge | Federal Student Aid#1_0::chunk-0",
+      "False Certification Discharge | Federal Student Aid#1_0::chunk-2",
+      "Parent PLUS Loans | Federal Student Aid#1_0::chunk-4",
+      "Parent PLUS Loans | Federal Student Aid#1_0::chunk-3",
+      "Parent PLUS Loans | Federal Student Aid#1_0::chunk-0",
+      "Parent PLUS Loan Application | Federal Student Aid#1_0::chunk-0",
+      "Parent PLUS Loans | Federal Student Aid#1_0::chunk-2",
+      "Unpaid Refund Discharge | Federal Student Aid#1_0::chunk-0",
+      "Parent PLUS Loans | Federal Student Aid#1_0::chunk-1",
+      "Teacher Loan Forgiveness | Federal Student Aid#1_0::chunk-6",
+      "Closed School Discharge | Federal Student Aid#1_0::chunk-0",
+      "Perkins Loan Cancellation and Discharge | Federal Student Aid#1_0::chunk-0",
+      "PLUS Loan Application | Federal Student Aid#1_0::chunk-0",
+      "Completing a Master Promissory Note | Federal Student Aid#1_0::chunk-0",
+      "Perkins Loan Cancellation and Discharge | Federal Student Aid#1_0::chunk-5",
+      "Total and Permanent Disability Discharge | Federal Student Aid#1_0::chunk-5",
+      "Closed School Discharge | Federal Student Aid#1_0::chunk-1",
+      "Perkins Loan Cancellation and Discharge | Federal Student Aid#1_0::chunk-4",
+      "Closed School Discharge | Federal Student Aid#1_0::chunk-2"
+    ],
+    "union_recall": 1.0,
+    "candidate_recall": 1.0
+  },
+  {
+    "id": "doc2dial-heldout-ca621ed0cbd5896cbdaf1c891dbffdd6-13",
+    "queries": [
+      "Where can I see my current address in my Social Security online account?"
+    ],
+    "raw": {
+      "recall": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg": 0.5,
+      "ids": [
+        "Information about transaction entries#3_0::chunk-3",
+        "Change of Address| Social Security Administration#1_0::chunk-0",
+        "Change of Address| Social Security Administration#2_0::chunk-0",
+        "Information about transaction entries#3_0::chunk-0",
+        "How to change your address#1_0::chunk-0"
+      ],
+      "tokens": 2466
+    },
+    "manual": {
+      "recall": 1.0,
+      "mrr": 0.5,
+      "ndcg": 0.6309297535714575,
+      "ids": [
+        "Change of Address| Social Security Administration#1_0::chunk-0",
+        "Change of Address| Social Security Administration#2_0::chunk-0",
+        "Manage Your Retirement Benefits | SSA#1_0::chunk-1",
+        "my Social Security | Create an Account | Social Security Administratio#1_0::chunk-0",
+        "my Social Security | Security and Protection | Social Security Administration#1_0::chunk-2"
+      ],
+      "tokens": 2469
+    },
+    "agent": {
+      "recall": 1.0,
+      "mrr": 0.5,
+      "ndcg": 0.6309297535714575,
+      "ids": [
+        "Change of Address| Social Security Administration#1_0::chunk-0",
+        "Change of Address| Social Security Administration#2_0::chunk-0",
+        "Manage Your Retirement Benefits | SSA#1_0::chunk-1",
+        "my Social Security | Security and Protection | Social Security Administration#2_0::chunk-1",
+        "my Social Security | Security and Protection | Social Security Administration#1_0::chunk-1"
+      ],
+      "tokens": 2468
+    },
+    "status": "SINGLE_QUERY",
+    "routes": {
+      "dense": [
+        "Change of Address| Social Security Administration#2_0::chunk-0",
+        "Change of Address| Social Security Administration#1_0::chunk-0",
+        "Manage Your Retirement Benefits | SSA#1_0::chunk-1",
+        "my Social Security | Security and Protection | Social Security Administration#1_0::chunk-2",
+        "my Social Security | Security and Protection | Social Security Administration#1_0::chunk-1",
+        "Apply for Retirement Benefits | SSA#1_0::chunk-5",
+        "my Social Security | Security and Protection | Social Security Administration#2_0::chunk-2",
+        "Benefits Planner: Survivors | How You Apply | Social Security Administration#1_0::chunk-1",
+        "my Social Security | Security and Protection | Social Security Administration#2_0::chunk-1",
+        "Appeal A Decision | Social Security Administration#2_0::chunk-1",
+        "Appeal A Decision | Social Security Administration#1_0::chunk-1",
+        "Benefit Verification Letter  | Social Security Administration#2_0::chunk-0",
+        "Benefit Verification Letter  | Social Security Administration#1_0::chunk-0",
+        "Retirement Benefits | Social Security Administration#2_0::chunk-2",
+        "Benefits Planner: Retirement | Online Calculator (WEP Version)#1_0::chunk-0",
+        "Retirement Benefits | Social Security Administration#1_0::chunk-2",
+        "Manage Your Retirement Benefits | SSA#1_0::chunk-0",
+        "Apply for Retirement Benefits | SSA#1_0::chunk-4",
+        "Retirement Benefits | Social Security Administration#1_0::chunk-3",
+        "my Social Security | Create an Account | Social Security Administratio#2_0::chunk-0"
+      ],
+      "bm25": [
+        "Manage Your Retirement Benefits | SSA#1_0::chunk-1",
+        "Change of Address| Social Security Administration#1_0::chunk-0",
+        "Change of Address| Social Security Administration#2_0::chunk-0",
+        "Learn what documents you will need to get a Social Security Card | Social Security Administration#15_0::chunk-0",
+        "Learn what documents you will need to get a Social Security Card | Social Security Administration#17_0::chunk-0",
+        "Manage Your Retirement Benefits | SSA#1_0::chunk-0",
+        "my Social Security | Create an Account | Social Security Administratio#1_0::chunk-0",
+        "my Social Security | Create an Account | Social Security Administratio#2_0::chunk-0",
+        "my Social Security | Security and Protection | Social Security Administration#1_0::chunk-0",
+        "my Social Security | Security and Protection | Social Security Administration#2_0::chunk-0",
+        "Manage Your Retirement Benefits | SSA#1_0::chunk-2",
+        "Schedule And View VA Appointments Online | Veterans Affairs#1_0::chunk-1",
+        "my Social Security | Security and Protection | Social Security Administration#1_0::chunk-1",
+        "Benefit Verification Letter  | Social Security Administration#1_0::chunk-0",
+        "Benefit Verification Letter  | Social Security Administration#2_0::chunk-0",
+        "Direct Deposit | Social Security Administration#1_0::chunk-0",
+        "Disability Benefits | Social Security Administration#1_0::chunk-1",
+        "Direct Deposit | Social Security Administration#2_0::chunk-0",
+        "Disability Benefits | Social Security Administration#2_0::chunk-1",
+        "Appeal A Decision | Social Security Administration#2_0::chunk-1"
+      ]
+    },
+    "ce_order": [
+      "Change of Address| Social Security Administration#1_0::chunk-0",
+      "Change of Address| Social Security Administration#2_0::chunk-0",
+      "Manage Your Retirement Benefits | SSA#1_0::chunk-1",
+      "my Social Security | Security and Protection | Social Security Administration#2_0::chunk-1",
+      "my Social Security | Security and Protection | Social Security Administration#1_0::chunk-1",
+      "my Social Security | Create an Account | Social Security Administratio#1_0::chunk-0",
+      "my Social Security | Security and Protection | Social Security Administration#1_0::chunk-0",
+      "Apply for Retirement Benefits | SSA#1_0::chunk-5",
+      "my Social Security | Security and Protection | Social Security Administration#2_0::chunk-0",
+      "Manage Your Retirement Benefits | SSA#1_0::chunk-0",
+      "my Social Security | Security and Protection | Social Security Administration#1_0::chunk-2",
+      "my Social Security | Create an Account | Social Security Administratio#2_0::chunk-0",
+      "my Social Security | Security and Protection | Social Security Administration#2_0::chunk-2",
+      "Learn what documents you will need to get a Social Security Card | Social Security Administration#15_0::chunk-0",
+      "Benefits Planner: Survivors | How You Apply | Social Security Administration#1_0::chunk-1",
+      "Learn what documents you will need to get a Social Security Card | Social Security Administration#17_0::chunk-0",
+      "Appeal A Decision | Social Security Administration#2_0::chunk-1",
+      "Appeal A Decision | Social Security Administration#1_0::chunk-1",
+      "Benefit Verification Letter  | Social Security Administration#2_0::chunk-0",
+      "Benefit Verification Letter  | Social Security Administration#1_0::chunk-0"
+    ],
+    "union_recall": 1.0,
+    "candidate_recall": 1.0
+  },
+  {
+    "id": "doc2dial-heldout-7cef1ccb554eb6ddd6c42db8d7617c49-11",
+    "queries": [
+      "How do I know if I am going to get VA survivors pension as an unmarried child under 18 of a deceased wartime Veteran, based on my family's yearly income and net worth limits set by Congress?"
+    ],
+    "raw": {
+      "recall": 1.0,
+      "mrr": 0.5,
+      "ndcg": 0.6309297535714575,
+      "ids": [
+        "VA Survivors Pension | Veterans Affairs#1_0::chunk-0",
+        "VA Survivors Pension | Veterans Affairs#1_0::chunk-1",
+        "VA Pension Benefits | Veterans Affairs#1_0::chunk-0",
+        "VA Pension Benefits | Veterans Affairs#2_0::chunk-0",
+        "Eligibility For Veterans Pension | Veterans Affairs#1_0::chunk-0"
+      ],
+      "tokens": 2433
+    },
+    "manual": {
+      "recall": 1.0,
+      "mrr": 0.5,
+      "ndcg": 0.6309297535714575,
+      "ids": [
+        "VA Survivors Pension | Veterans Affairs#1_0::chunk-0",
+        "VA Survivors Pension | Veterans Affairs#1_0::chunk-1",
+        "Eligibility For Veterans Pension | Veterans Affairs#1_0::chunk-0",
+        "VA Pension Benefits | Veterans Affairs#1_0::chunk-0",
+        "VA Pension Benefits | Veterans Affairs#2_0::chunk-0"
+      ],
+      "tokens": 2433
+    },
+    "agent": {
+      "recall": 1.0,
+      "mrr": 0.5,
+      "ndcg": 0.6309297535714575,
+      "ids": [
+        "VA Survivors Pension | Veterans Affairs#1_0::chunk-0",
+        "VA Survivors Pension | Veterans Affairs#1_0::chunk-1",
+        "Eligibility For Veterans Pension | Veterans Affairs#1_0::chunk-0",
+        "VA Pension Benefits | Veterans Affairs#1_0::chunk-0",
+        "VA Pension Benefits | Veterans Affairs#2_0::chunk-0"
+      ],
+      "tokens": 2433
+    },
+    "status": "SINGLE_QUERY",
+    "routes": {
+      "dense": [
+        "VA Survivors Pension | Veterans Affairs#1_0::chunk-0",
+        "VA Survivors Pension | Veterans Affairs#1_0::chunk-1",
+        "Benefits For Spouses And Dependents (VA DIC) | Veterans Affairs#1_0::chunk-2",
+        "Eligibility For Veterans Pension | Veterans Affairs#1_0::chunk-0",
+        "Benefits For Spouses And Dependents (VA DIC) | Veterans Affairs#1_0::chunk-1",
+        "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-4",
+        "Benefits Planner: Survivors | Planning For Your Survivors | Social Security Administration#1_0::chunk-1",
+        "Benefits For Spouses And Dependents (VA DIC) | Veterans Affairs#1_0::chunk-3",
+        "Benefits Planner: Survivors | Planning For Your Survivors | Social Security Administration#2_0::chunk-1",
+        "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-4",
+        "Benefits Planner: Survivors | Planning For Your Survivors | Social Security Administration#1_0::chunk-2",
+        "VA Pension Benefits | Veterans Affairs#2_0::chunk-0",
+        "VA Pension Benefits | Veterans Affairs#1_0::chunk-0",
+        "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-3",
+        "Benefits Planner: Survivors | Planning For Your Survivors | Social Security Administration#2_0::chunk-2",
+        "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-3",
+        "VA Pension Benefits | Veterans Affairs#1_0::chunk-1",
+        "VA Pension Benefits | Veterans Affairs#2_0::chunk-1",
+        "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-5",
+        "Explore The Benefits You May Be Due#2_0::chunk-1"
+      ],
+      "bm25": [
+        "VA Survivors Pension | Veterans Affairs#1_0::chunk-0",
+        "Eligibility For Veterans Pension | Veterans Affairs#1_0::chunk-0",
+        "VA Survivors Pension | Veterans Affairs#1_0::chunk-1",
+        "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0::chunk-0",
+        "Explore The Benefits You May Be Due#1_0::chunk-1",
+        "Explore The Benefits You May Be Due#2_0::chunk-1",
+        "VA Pension Benefits | Veterans Affairs#1_0::chunk-0",
+        "VA Pension Benefits | Veterans Affairs#2_0::chunk-0",
+        "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-1",
+        "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-1",
+        "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0::chunk-1",
+        "Benefits Planner: Survivors | Planning For Your Survivors | Social Security Administration#1_0::chunk-1",
+        "Benefits Planner: Disability | Family Benefits | Social Security Administration#2_0::chunk-1",
+        "Benefits Planner: Disability | Family Benefits | Social Security Administration#1_0::chunk-1",
+        "Fully Developed Claim For A VA Pension | Veterans Affairs#1_0::chunk-0",
+        "VA Housing Assistance | Veterans Affairs#2_0::chunk-2",
+        "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-4",
+        "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-4",
+        "Benefits Planner: Survivors | Planning For Your Survivors | Social Security Administration#1_0::chunk-2",
+        "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-5"
+      ]
+    },
+    "ce_order": [
+      "VA Survivors Pension | Veterans Affairs#1_0::chunk-0",
+      "VA Survivors Pension | Veterans Affairs#1_0::chunk-1",
+      "Eligibility For Veterans Pension | Veterans Affairs#1_0::chunk-0",
+      "VA Pension Benefits | Veterans Affairs#1_0::chunk-0",
+      "VA Pension Benefits | Veterans Affairs#2_0::chunk-0",
+      "Benefits For Spouses And Dependents (VA DIC) | Veterans Affairs#1_0::chunk-1",
+      "Benefits For Spouses And Dependents (VA DIC) | Veterans Affairs#1_0::chunk-2",
+      "Benefits For Spouses And Dependents (VA DIC) | Veterans Affairs#1_0::chunk-3",
+      "Explore The Benefits You May Be Due#1_0::chunk-1",
+      "Explore The Benefits You May Be Due#2_0::chunk-1",
+      "Benefits Planner: Survivors | Planning For Your Survivors | Social Security Administration#1_0::chunk-1",
+      "Benefits Planner: Survivors | Planning For Your Survivors | Social Security Administration#2_0::chunk-1",
+      "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0::chunk-0",
+      "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-4",
+      "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-4",
+      "Benefits Planner: Survivors | Planning For Your Survivors | Social Security Administration#1_0::chunk-2",
+      "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-1",
+      "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-1",
+      "Benefits Planner: Disability | Family Benefits | Social Security Administration#2_0::chunk-1",
+      "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0::chunk-1"
+    ],
+    "union_recall": 1.0,
+    "candidate_recall": 1.0
+  },
+  {
+    "id": "doc2dial-heldout-dc00a7f5bd17fc480e7715c5f70ccd20-13",
+    "queries": [
+      "If your Empire Gold plates are stolen, you should report the theft to your local law enforcement agency and then contact the DMV to request replacement plates. You will likely need to provide a police report and pay a replacement fee. For specific steps and fees, please check with your state's DMV website or office."
+    ],
+    "raw": {
+      "recall": 0.0,
+      "mrr": 0.0,
+      "ndcg": 0.0,
+      "ids": [
+        "Lost, stolen, or destroyed plates#3_0::chunk-0",
+        "Lost, stolen, or destroyed plates#3_0::chunk-1",
+        "Stolen and recovered vehicles#3_0::chunk-0",
+        "Replace IRP registration items#1_0::chunk-1",
+        "Stolen and recovered vehicles#3_0::chunk-1"
+      ],
+      "tokens": 2298
+    },
+    "manual": {
+      "recall": 1.0,
+      "mrr": 1.0,
+      "ndcg": 1.0,
+      "ids": [
+        "Information about Empire Gold plates#1_0::chunk-0",
+        "Lost, stolen, or destroyed plates#3_0::chunk-0",
+        "How to replace a registration#1_0::chunk-1",
+        "Replace IRP registration items#1_0::chunk-1",
+        "Information about Empire Gold plates#1_0::chunk-2"
+      ],
+      "tokens": 2190
+    },
+    "agent": {
+      "recall": 1.0,
+      "mrr": 1.0,
+      "ndcg": 1.0,
+      "ids": [
+        "Information about Empire Gold plates#1_0::chunk-0",
+        "Lost, stolen, or destroyed plates#3_0::chunk-0",
+        "Information about Empire Gold plates#1_0::chunk-1",
+        "Replace IRP registration items#1_0::chunk-1",
+        "Lost, stolen, or destroyed plates#3_0::chunk-1"
+      ],
+      "tokens": 2411
+    },
+    "status": "SINGLE_QUERY",
+    "routes": {
+      "dense": [
+        "Information about Empire Gold plates#1_0::chunk-0",
+        "Lost, stolen, or destroyed plates#3_0::chunk-0",
+        "Information about Empire Gold plates#1_0::chunk-1",
+        "Lost, stolen, or destroyed plates#3_0::chunk-1",
+        "Stolen and recovered vehicles#3_0::chunk-0",
+        "Information about Empire Gold plates#1_0::chunk-2",
+        "How to replace a registration#1_0::chunk-1",
+        "Replace or transfer personalized plates#1_0::chunk-1",
+        "Surrender (return or turn in) your plates to the DMV#3_0::chunk-1",
+        "Replace or transfer personalized plates#1_0::chunk-0",
+        "Temporary surrender of vehicle plates (store plates for a season)#3_0::chunk-0",
+        "Replace IRP registration items#1_0::chunk-0",
+        "Replace IRP registration items#1_0::chunk-1",
+        "Stolen and recovered vehicles#3_0::chunk-1",
+        "How to transfer a registration to another vehicle#3_0::chunk-0",
+        "Order personalized plates#1_0::chunk-1",
+        "Order picture and professional plates#1_0::chunk-1",
+        "How to replace a registration#1_0::chunk-0",
+        "Surrender (return or turn in) your plates to the DMV#3_0::chunk-0",
+        "Replace license or permit#1_0::chunk-0"
+      ],
+      "bm25": [
+        "Lost, stolen, or destroyed plates#3_0::chunk-0",
+        "Information about Empire Gold plates#1_0::chunk-1",
+        "Information about Empire Gold plates#1_0::chunk-0",
+        "Stolen and recovered vehicles#3_0::chunk-0",
+        "Learn about picture and professional plates#3_0::chunk-1",
+        "Replace IRP registration items#1_0::chunk-1",
+        "Surrender IRP registration and plates#1_0::chunk-1",
+        "Replace IRP registration items#1_0::chunk-0",
+        "How to replace a registration#1_0::chunk-1",
+        "ATVs: Information for Owners and Operators#3_0::chunk-2",
+        "Lost, stolen, or destroyed plates#3_0::chunk-1",
+        "Suspensions and revocations#3_0::chunk-2",
+        "Manage Your Retirement Benefits | SSA#1_0::chunk-2",
+        "Parking for People with Disabilities - The Law#3_0::chunk-5",
+        "Restore license after revocation#1_0::chunk-8",
+        "Temporary surrender of vehicle plates (store plates for a season)#3_0::chunk-0",
+        "Information about Empire Gold plates#1_0::chunk-2",
+        "Learn about picture and professional plates#3_0::chunk-0",
+        "Replace or transfer personalized plates#1_0::chunk-0",
+        "Restore license after revocation#1_0::chunk-4"
+      ]
+    },
+    "ce_order": [
+      "Information about Empire Gold plates#1_0::chunk-0",
+      "Lost, stolen, or destroyed plates#3_0::chunk-0",
+      "Information about Empire Gold plates#1_0::chunk-1",
+      "Replace IRP registration items#1_0::chunk-1",
+      "Lost, stolen, or destroyed plates#3_0::chunk-1",
+      "Replace or transfer personalized plates#1_0::chunk-1",
+      "Replace IRP registration items#1_0::chunk-0",
+      "Information about Empire Gold plates#1_0::chunk-2",
+      "Stolen and recovered vehicles#3_0::chunk-0",
+      "Surrender (return or turn in) your plates to the DMV#3_0::chunk-1",
+      "Learn about picture and professional plates#3_0::chunk-1",
+      "Replace or transfer personalized plates#1_0::chunk-0",
+      "Temporary surrender of vehicle plates (store plates for a season)#3_0::chunk-0",
+      "Surrender IRP registration and plates#1_0::chunk-1",
+      "Stolen and recovered vehicles#3_0::chunk-1",
+      "How to replace a registration#1_0::chunk-1",
+      "Suspensions and revocations#3_0::chunk-2",
+      "ATVs: Information for Owners and Operators#3_0::chunk-2",
+      "Parking for People with Disabilities - The Law#3_0::chunk-5",
+      "Manage Your Retirement Benefits | SSA#1_0::chunk-2"
+    ],
+    "union_recall": 1.0,
+    "candidate_recall": 1.0
+  },
+  {
+    "id": "doc2dial-heldout-429aa5c591d70b7e4add35d9eced3ad3-13",
+    "queries": [
+      "When can I expect disability benefits to be paid after applying?"
+    ],
+    "raw": {
+      "recall": 0.0,
+      "mrr": 0.0,
+      "ndcg": 0.0,
+      "ids": [
+        "What To Expect After You Get A Disability Rating | Veterans Affairs#1_0::chunk-0",
+        "View Your VA Payment History | Veterans Affairs#1_0::chunk-0",
+        "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::chunk-1",
+        "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#2_0::chunk-1",
+        "Benefits Planner: Disability | Approval Process | Social Security Administration#1_0::chunk-0"
+      ],
+      "tokens": 2560
+    },
+    "manual": {
+      "recall": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg": 0.5,
+      "ids": [
+        "Benefits Planner: Disability | Approval Process | Social Security Administration#1_0::chunk-0",
+        "Benefits Planner: Disability | Approval Process | Social Security Administration#2_0::chunk-0",
+        "How To Apply For Social Security Disability Benefits#3_0::chunk-0",
+        "How To Apply For Social Security Disability Benefits#1_0::chunk-0",
+        "Benefits Planner: Disability | Social Security Administration#2_0::chunk-0"
+      ],
+      "tokens": 2544
+    },
+    "agent": {
+      "recall": 1.0,
+      "mrr": 0.25,
+      "ndcg": 0.43067655807339306,
+      "ids": [
+        "Benefits Planner: Disability | Approval Process | Social Security Administration#1_0::chunk-0",
+        "What To Expect After You Get A Disability Rating | Veterans Affairs#1_0::chunk-0",
+        "Benefits Planner: Disability | Approval Process | Social Security Administration#2_0::chunk-0",
+        "How To Apply For Social Security Disability Benefits#3_0::chunk-0",
+        "How To Apply For Social Security Disability Benefits#1_0::chunk-0"
+      ],
+      "tokens": 2545
+    },
+    "status": "SINGLE_QUERY",
+    "routes": {
+      "dense": [
+        "Benefits Planner: Disability | Approval Process | Social Security Administration#1_0::chunk-0",
+        "Benefits Planner: Disability | Approval Process | Social Security Administration#2_0::chunk-0",
+        "How To Apply For Social Security Disability Benefits#1_0::chunk-0",
+        "How To Apply For Social Security Disability Benefits#3_0::chunk-0",
+        "What To Expect After You Get A Disability Rating | Veterans Affairs#1_0::chunk-0",
+        "Benefits Planner: Disability | Are You Working | Social Security Administration#2_0::chunk-0",
+        "Disability Benefits | Social Security Administration#2_0::chunk-4",
+        "Benefits Planner: Disability | Are You Working | Social Security Administration#1_0::chunk-0",
+        "Disability Benefits | Social Security Administration#2_0::chunk-0",
+        "Disability Benefits | Social Security Administration#1_0::chunk-0",
+        "Benefits Planner: Disability | How You Apply | Social Security Administration#2_0::chunk-0",
+        "Disability Benefits | Social Security Administration#1_0::chunk-4",
+        "Benefits Planner | Social Security Credits and Benefit Eligibility | SSA#1_0::chunk-1",
+        "Benefits Planner | Social Security Credits and Benefit Eligibility | SSA#2_0::chunk-1",
+        "Benefits Planner: Disability | How You Apply | Social Security Administration#1_0::chunk-0",
+        "Disability Benefits | Social Security Administration#2_0::chunk-1",
+        "Benefits Planner: Disability | Social Security Administration#1_0::chunk-0",
+        "Benefits Planner: Disability | Social Security Administration#2_0::chunk-0",
+        "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0::chunk-4",
+        "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0::chunk-3"
+      ],
+      "bm25": [
+        "What To Expect After You Get A Disability Rating | Veterans Affairs#1_0::chunk-0",
+        "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::chunk-1",
+        "Benefits Planner: Disability | Approval Process | Social Security Administration#1_0::chunk-0",
+        "Benefits Planner: Disability | Approval Process | Social Security Administration#2_0::chunk-0",
+        "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#2_0::chunk-1",
+        "What To Expect After You Get A Disability Rating | Veterans Affairs#1_0::chunk-1",
+        "VA Disability Compensation | Veterans Affairs#1_0::chunk-1",
+        "VA Disability Compensation | Veterans Affairs#2_0::chunk-1",
+        "VA Pension Benefits | Veterans Affairs#1_0::chunk-1",
+        "How To Apply For Social Security Disability Benefits#3_0::chunk-0",
+        "How To Apply For Social Security Disability Benefits#1_0::chunk-0",
+        "FAFSA\u00ae Help | Federal Student Aid#1_0::chunk-0",
+        "Benefits Planner: Disability | Family Benefits | Social Security Administration#1_0::chunk-0",
+        "Benefits Planner: Disability | Family Benefits | Social Security Administration#2_0::chunk-0",
+        "Benefits Planner: Survivors | Planning For Your Survivors | Social Security Administration#1_0::chunk-0",
+        "VA claim exam (C&P exam) | Veterans Affairs#1_0::chunk-4",
+        "Benefits Planner: Survivors | Planning For Your Survivors | Social Security Administration#2_0::chunk-0",
+        "VA Disability Compensation | Veterans Affairs#1_0::chunk-0",
+        "VA Disability Compensation | Veterans Affairs#2_0::chunk-0",
+        "View Your VA Payment History | Veterans Affairs#1_0::chunk-0"
+      ]
+    },
+    "ce_order": [
+      "Benefits Planner: Disability | Approval Process | Social Security Administration#1_0::chunk-0",
+      "What To Expect After You Get A Disability Rating | Veterans Affairs#1_0::chunk-0",
+      "Benefits Planner: Disability | Approval Process | Social Security Administration#2_0::chunk-0",
+      "How To Apply For Social Security Disability Benefits#3_0::chunk-0",
+      "How To Apply For Social Security Disability Benefits#1_0::chunk-0",
+      "Disability Benefits | Social Security Administration#2_0::chunk-0",
+      "Disability Benefits | Social Security Administration#1_0::chunk-0",
+      "Benefits Planner: Disability | Are You Working | Social Security Administration#1_0::chunk-0",
+      "Benefits Planner: Disability | Are You Working | Social Security Administration#2_0::chunk-0",
+      "Disability Benefits | Social Security Administration#1_0::chunk-4",
+      "What To Expect After You Get A Disability Rating | Veterans Affairs#1_0::chunk-1",
+      "Disability Benefits | Social Security Administration#2_0::chunk-4",
+      "Benefits Planner: Disability | How You Apply | Social Security Administration#2_0::chunk-0",
+      "VA Disability Compensation | Veterans Affairs#2_0::chunk-1",
+      "VA Disability Compensation | Veterans Affairs#1_0::chunk-1",
+      "Benefits Planner | Social Security Credits and Benefit Eligibility | SSA#1_0::chunk-1",
+      "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::chunk-1",
+      "VA Pension Benefits | Veterans Affairs#1_0::chunk-1",
+      "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#2_0::chunk-1",
+      "FAFSA\u00ae Help | Federal Student Aid#1_0::chunk-0"
+    ],
+    "union_recall": 1.0,
+    "candidate_recall": 1.0
+  },
+  {
+    "id": "doc2dial-heldout-24cfc12fb97898aaae74ce5616cb0183-11",
+    "queries": [
+      "Are you currently on active duty and seeking VA health care enrollment, or are you asking about eligibility rules that apply to you after your eventual separation from service?"
+    ],
+    "raw": {
+      "recall": 0.0,
+      "mrr": 0.0,
+      "ndcg": 0.0,
+      "ids": [
+        "Dependency Status | Federal Student Aid#1_0::chunk-1",
+        "Veterans\u2019 Educational Assistance Program (VEAP) | Veterans Affairs#1_0::chunk-1",
+        "Veterans\u2019 Educational Assistance Program (VEAP) | Veterans Affairs#1_0::chunk-0",
+        "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-3",
+        "Eligibility For VA Vocational Rehab And Employment | Veterans Affairs#1_0::chunk-0"
+      ],
+      "tokens": 2556
+    },
+    "manual": {
+      "recall": 1.0,
+      "mrr": 1.0,
+      "ndcg": 1.0,
+      "ids": [
+        "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-1",
+        "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-0",
+        "Eligibility For VA Health Care | Veterans Affairs#1_0::chunk-0",
+        "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-2",
+        "Eligibility For VA Health Care | Veterans Affairs#1_0::chunk-2"
+      ],
+      "tokens": 2560
+    },
+    "agent": {
+      "recall": 1.0,
+      "mrr": 0.25,
+      "ndcg": 0.43067655807339306,
+      "ids": [
+        "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-2",
+        "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-3",
+        "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-0",
+        "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-1",
+        "Eligibility For VA Health Care | Veterans Affairs#1_0::chunk-3"
+      ],
+      "tokens": 2321
+    },
+    "status": "SINGLE_QUERY",
+    "routes": {
+      "dense": [
+        "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-2",
+        "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-0",
+        "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-3",
+        "VA Benefits For Service Members | Veterans Affairs#2_0::chunk-2",
+        "VA Benefits For Service Members | Veterans Affairs#1_0::chunk-2",
+        "Eligibility For VA Health Care | Veterans Affairs#1_0::chunk-0",
+        "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-1",
+        "VA Benefits For Service Members | Veterans Affairs#1_0::chunk-1",
+        "VA Benefits For Service Members | Veterans Affairs#2_0::chunk-1",
+        "VA Benefits For Service Members | Veterans Affairs#2_0::chunk-0",
+        "VA Benefits For Service Members | Veterans Affairs#1_0::chunk-0",
+        "Eligibility For VA Health Care | Veterans Affairs#1_0::chunk-1",
+        "Eligibility For VA Health Care | Veterans Affairs#1_0::chunk-3",
+        "About VA Insurance Options And Eligibility | Veterans Affairs#1_0::chunk-0",
+        "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-4",
+        "VA Benefits For Service Members | Veterans Affairs#2_0::chunk-3",
+        "VA Benefits For Service Members | Veterans Affairs#1_0::chunk-3",
+        "Eligibility For VA Disability Benefits | Veterans Affairs#1_0::chunk-0",
+        "Eligibility For VA Health Care | Veterans Affairs#1_0::chunk-2",
+        "After You Apply For Health Care Benefits | Veterans Affairs#1_0::chunk-2"
+      ],
+      "bm25": [
+        "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-2",
+        "Eligibility For VA Health Care | Veterans Affairs#1_0::chunk-3",
+        "VA Benefits For Service Members | Veterans Affairs#1_0::chunk-2",
+        "VA Benefits For Service Members | Veterans Affairs#2_0::chunk-2",
+        "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-0",
+        "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-3",
+        "Eligibility For VA Health Care | Veterans Affairs#1_0::chunk-0",
+        "VA Benefits For Service Members | Veterans Affairs#1_0::chunk-0",
+        "VA Benefits For Service Members | Veterans Affairs#2_0::chunk-0",
+        "VA Benefits For Service Members | Veterans Affairs#1_0::chunk-1",
+        "VA Benefits For Service Members | Veterans Affairs#2_0::chunk-1",
+        "About VA Health Benefits | Veterans Affairs#1_0::chunk-0",
+        "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-1",
+        "Transfer Your Post-9/11 GI Bill Benefits | Veterans Affairs#1_0::chunk-0",
+        "Benefits For Spouses And Dependents (VA DIC) | Veterans Affairs#1_0::chunk-1",
+        "Eligibility For VA Vocational Rehab And Employment | Veterans Affairs#1_0::chunk-0",
+        "Transfer Your Post-9/11 GI Bill Benefits | Veterans Affairs#1_0::chunk-1",
+        "Eligibility For VA Disability Benefits | Veterans Affairs#1_0::chunk-0",
+        "How To Apply For A VA Home Loan COE | Veterans Affairs#1_0::chunk-0",
+        "After You Apply For Health Care Benefits | Veterans Affairs#1_0::chunk-2"
+      ]
+    },
+    "ce_order": [
+      "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-2",
+      "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-3",
+      "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-0",
+      "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-1",
+      "Eligibility For VA Health Care | Veterans Affairs#1_0::chunk-3",
+      "About VA Health Benefits | Veterans Affairs#1_0::chunk-0",
+      "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-4",
+      "VA Benefits For Service Members | Veterans Affairs#1_0::chunk-0",
+      "VA Benefits For Service Members | Veterans Affairs#1_0::chunk-2",
+      "VA Benefits For Service Members | Veterans Affairs#2_0::chunk-0",
+      "VA Benefits For Service Members | Veterans Affairs#2_0::chunk-2",
+      "Eligibility For VA Health Care | Veterans Affairs#1_0::chunk-0",
+      "VA Benefits For Service Members | Veterans Affairs#1_0::chunk-1",
+      "VA Benefits For Service Members | Veterans Affairs#2_0::chunk-1",
+      "Eligibility For VA Health Care | Veterans Affairs#1_0::chunk-1",
+      "Transfer Your Post-9/11 GI Bill Benefits | Veterans Affairs#1_0::chunk-0",
+      "Benefits For Spouses And Dependents (VA DIC) | Veterans Affairs#1_0::chunk-1",
+      "Eligibility For VA Disability Benefits | Veterans Affairs#1_0::chunk-0",
+      "After You Apply For Health Care Benefits | Veterans Affairs#1_0::chunk-2",
+      "About VA Insurance Options And Eligibility | Veterans Affairs#1_0::chunk-0"
+    ],
+    "union_recall": 1.0,
+    "candidate_recall": 1.0
+  },
+  {
+    "id": "doc2dial-heldout-c5261e5fcd75f694e0564c1d3e4df440-11",
+    "queries": [
+      "What are the requirements for submitting an IRP change application in person, and are there provisions for another person to assist or submit on my behalf?"
+    ],
+    "raw": {
+      "recall": 0.0,
+      "mrr": 0.0,
+      "ndcg": 0.0,
+      "ids": [
+        "Apply for Retirement Benefits | SSA#1_0::chunk-4",
+        "Change Your GI Bill School Or Program | Veterans Affairs#1_0::chunk-1",
+        "Total and Permanent Disability Discharge | Federal Student Aid#1_0::chunk-2",
+        "Register a vehicle when you are out-of-state#1_0::chunk-1",
+        "Check Your VA Claim Or Appeal Status | Veterans Affairs#1_0::chunk-1"
+      ],
+      "tokens": 2120
+    },
+    "manual": {
+      "recall": 1.0,
+      "mrr": 1.0,
+      "ndcg": 1.0,
+      "ids": [
+        "Changes to IRP registration#1_0::chunk-1",
+        "Changes to IRP registration#1_0::chunk-0",
+        "Changes to IRP registration#1_0::chunk-2",
+        "Transfer IRP registration#1_0::chunk-1",
+        "Register a vehicle when you are out-of-state#1_0::chunk-1"
+      ],
+      "tokens": 2180
+    },
+    "agent": {
+      "recall": 1.0,
+      "mrr": 1.0,
+      "ndcg": 1.0,
+      "ids": [
+        "Changes to IRP registration#1_0::chunk-1",
+        "Changes to IRP registration#1_0::chunk-0",
+        "Transfer IRP registration#1_0::chunk-1",
+        "Replace IRP registration items#1_0::chunk-0",
+        "Transfer IRP registration#1_0::chunk-0"
+      ],
+      "tokens": 2558
+    },
+    "status": "SINGLE_QUERY",
+    "routes": {
+      "dense": [
+        "Changes to IRP registration#1_0::chunk-0",
+        "Changes to IRP registration#1_0::chunk-1",
+        "Replace IRP registration items#1_0::chunk-0",
+        "Transfer IRP registration#1_0::chunk-0",
+        "Replace IRP registration items#1_0::chunk-2",
+        "Transfer IRP registration#1_0::chunk-1",
+        "Change Your GI Bill School Or Program | Veterans Affairs#1_0::chunk-1",
+        "Changes to IRP registration#1_0::chunk-2",
+        "Surrender IRP registration and plates#1_0::chunk-2",
+        "Transfer IRP registration#1_0::chunk-2",
+        "Surrender IRP registration and plates#1_0::chunk-0",
+        "Amend or replace a business license for a repair or body shop#3_0::chunk-0",
+        "Surrender IRP registration and plates#1_0::chunk-1",
+        "Point & Insurance Reduction Program#3_0::chunk-1",
+        "Income-Driven Repayment Plans | Federal Student Aid#1_0::chunk-4",
+        "Income-Driven Repayment Plans | Federal Student Aid#1_0::chunk-9",
+        "Open an inspection station#1_0::chunk-0",
+        "How to change information on DMV documents#3_0::chunk-1",
+        "Replace license or permit#1_0::chunk-0",
+        "Change Your GI Bill School Or Program | Veterans Affairs#1_0::chunk-0"
+      ],
+      "bm25": [
+        "Frequently asked questions about decision reviews | Veterans Affairs#1_0::chunk-0",
+        "Changes to IRP registration#1_0::chunk-1",
+        "Total and Permanent Disability Discharge | Federal Student Aid#1_0::chunk-2",
+        "Transfer IRP registration#1_0::chunk-1",
+        "Changes to IRP registration#1_0::chunk-0",
+        "Change Your GI Bill School Or Program | Veterans Affairs#1_0::chunk-1",
+        "Feedback Center#1_0::chunk-0",
+        "How to Correct or Update Your FAFSA\u00ae Application | Federal Student Aid#1_0::chunk-0",
+        "Restore license after revocation#1_0::chunk-10",
+        "Income-Driven Repayment Plans | Federal Student Aid#1_0::chunk-3",
+        "How to renew a registration#1_0::chunk-1",
+        "Retirement Benefits | Social Security Administration#1_0::chunk-2",
+        "Retirement Benefits | Social Security Administration#2_0::chunk-2",
+        "Change Your GI Bill School Or Program | Veterans Affairs#1_0::chunk-0",
+        "Loan Servicers | Federal Student Aid#1_0::chunk-0",
+        "Register a vehicle when you are out-of-state#1_0::chunk-1",
+        "Avoiding Student Aid Scams | Federal Student Aid#1_0::chunk-1",
+        "Retirement Benefits | Social Security Administration#1_0::chunk-3",
+        "Transfer IRP registration#1_0::chunk-0",
+        "Restore license after revocation#1_0::chunk-2"
+      ]
+    },
+    "ce_order": [
+      "Changes to IRP registration#1_0::chunk-1",
+      "Changes to IRP registration#1_0::chunk-0",
+      "Transfer IRP registration#1_0::chunk-1",
+      "Replace IRP registration items#1_0::chunk-0",
+      "Transfer IRP registration#1_0::chunk-0",
+      "Surrender IRP registration and plates#1_0::chunk-0",
+      "Changes to IRP registration#1_0::chunk-2",
+      "Change Your GI Bill School Or Program | Veterans Affairs#1_0::chunk-1",
+      "Surrender IRP registration and plates#1_0::chunk-2",
+      "Replace IRP registration items#1_0::chunk-2",
+      "Change Your GI Bill School Or Program | Veterans Affairs#1_0::chunk-0",
+      "Total and Permanent Disability Discharge | Federal Student Aid#1_0::chunk-2",
+      "How to renew a registration#1_0::chunk-1",
+      "Transfer IRP registration#1_0::chunk-2",
+      "Income-Driven Repayment Plans | Federal Student Aid#1_0::chunk-3",
+      "Feedback Center#1_0::chunk-0",
+      "Frequently asked questions about decision reviews | Veterans Affairs#1_0::chunk-0",
+      "How to Correct or Update Your FAFSA\u00ae Application | Federal Student Aid#1_0::chunk-0",
+      "Restore license after revocation#1_0::chunk-10",
+      "Amend or replace a business license for a repair or body shop#3_0::chunk-0"
+    ],
+    "union_recall": 1.0,
+    "candidate_recall": 1.0
+  },
+  {
+    "id": "doc2dial-heldout-0c98b8234370373a9ab0b7a4535bf4a1-13",
+    "queries": [
+      "If you want to reinstate the security freeze after creating your account, you must contact the credit bureau or Identity Services Provider directly to request that the freeze be put back in place. Social Security does not manage or control credit freezes."
+    ],
+    "raw": {
+      "recall": 1.0,
+      "mrr": 0.5,
+      "ndcg": 0.6309297535714575,
+      "ids": [
+        "my Social Security | Create an Account | Social Security Administratio#2_0::chunk-0",
+        "my Social Security | Create an Account | Social Security Administratio#1_0::chunk-0",
+        "Parent PLUS Loan Application | Federal Student Aid#1_0::chunk-0",
+        "PLUS Loan Application for Graduate Students | Federal Student Aid#1_0::chunk-0",
+        "PLUS Loan Application | Federal Student Aid#1_0::chunk-0"
+      ],
+      "tokens": 2487
+    },
+    "manual": {
+      "recall": 1.0,
+      "mrr": 0.5,
+      "ndcg": 0.6309297535714575,
+      "ids": [
+        "my Social Security | Create an Account | Social Security Administratio#2_0::chunk-0",
+        "my Social Security | Create an Account | Social Security Administratio#1_0::chunk-0",
+        "my Social Security | Security and Protection | Social Security Administration#1_0::chunk-0",
+        "my Social Security | Security and Protection | Social Security Administration#2_0::chunk-0",
+        "my Social Security | Security and Protection | Social Security Administration#1_0::chunk-1"
+      ],
+      "tokens": 2559
+    },
+    "agent": {
+      "recall": 1.0,
+      "mrr": 1.0,
+      "ndcg": 1.0,
+      "ids": [
+        "my Social Security | Create an Account | Social Security Administratio#1_0::chunk-0",
+        "my Social Security | Create an Account | Social Security Administratio#2_0::chunk-0",
+        "PLUS Loan Application for Graduate Students | Federal Student Aid#1_0::chunk-0",
+        "my Social Security | Security and Protection | Social Security Administration#1_0::chunk-0",
+        "Parent PLUS Loan Application | Federal Student Aid#1_0::chunk-0"
+      ],
+      "tokens": 2487
+    },
+    "status": "SINGLE_QUERY",
+    "routes": {
+      "dense": [
+        "my Social Security | Create an Account | Social Security Administratio#2_0::chunk-0",
+        "my Social Security | Create an Account | Social Security Administratio#1_0::chunk-0",
+        "Avoiding Student Aid Scams | Federal Student Aid#1_0::chunk-9",
+        "my Social Security | Security and Protection | Social Security Administration#1_0::chunk-1",
+        "my Social Security | Create an Account | Social Security Administratio#1_0::chunk-1",
+        "my Social Security | Security and Protection | Social Security Administration#1_0::chunk-0",
+        "my Social Security | Security and Protection | Social Security Administration#2_0::chunk-0",
+        "my Social Security | Security and Protection | Social Security Administration#2_0::chunk-1",
+        "Social Security Direct Deposit | Social Security Administration#1_0::chunk-0",
+        "Avoiding Student Aid Scams | Federal Student Aid#1_0::chunk-3",
+        "Avoiding Student Aid Scams | Federal Student Aid#1_0::chunk-6",
+        "Social Security Direct Deposit | Social Security Administration#2_0::chunk-0",
+        "Benefits Planner: Survivors | How You Apply | Social Security Administration#1_0::chunk-1",
+        "Direct Deposit | Social Security Administration#1_0::chunk-0",
+        "Direct Deposit | Social Security Administration#2_0::chunk-0",
+        "Manage Your Retirement Benefits | SSA#1_0::chunk-2",
+        "Avoiding Student Aid Scams | Federal Student Aid#1_0::chunk-4",
+        "Avoiding Student Aid Scams | Federal Student Aid#1_0::chunk-8",
+        "How to Review and Correct Your FAFSA\u00ae Application | Federal Student Aid#1_0::chunk-3",
+        "Avoiding Student Aid Scams | Federal Student Aid#1_0::chunk-2"
+      ],
+      "bm25": [
+        "my Social Security | Create an Account | Social Security Administratio#1_0::chunk-0",
+        "my Social Security | Create an Account | Social Security Administratio#2_0::chunk-0",
+        "my Social Security | Security and Protection | Social Security Administration#1_0::chunk-0",
+        "my Social Security | Security and Protection | Social Security Administration#1_0::chunk-1",
+        "my Social Security | Security and Protection | Social Security Administration#2_0::chunk-0",
+        "Manage Your Retirement Benefits | SSA#1_0::chunk-2",
+        "my Social Security | Security and Protection | Social Security Administration#2_0::chunk-1",
+        "Manage Your Retirement Benefits | SSA#1_0::chunk-1",
+        "PLUS Loan Application | Federal Student Aid#1_0::chunk-0",
+        "Parent PLUS Loan Application | Federal Student Aid#1_0::chunk-0",
+        "PLUS Loan Application for Graduate Students | Federal Student Aid#1_0::chunk-0",
+        "Restore license after revocation#1_0::chunk-1",
+        "Manage Your Retirement Benefits | SSA#1_0::chunk-0",
+        "Avoiding Student Aid Scams | Federal Student Aid#1_0::chunk-8",
+        "Social Security Direct Deposit | Social Security Administration#1_0::chunk-0",
+        "MyDMV Account Terms of Service#1_0::chunk-1",
+        "Direct Deposit | Social Security Administration#1_0::chunk-0",
+        "Direct Deposit | Social Security Administration#2_0::chunk-0",
+        "Change of Address| Social Security Administration#2_0::chunk-0",
+        "Change of Address| Social Security Administration#1_0::chunk-0"
+      ]
+    },
+    "ce_order": [
+      "my Social Security | Create an Account | Social Security Administratio#1_0::chunk-0",
+      "my Social Security | Create an Account | Social Security Administratio#2_0::chunk-0",
+      "PLUS Loan Application for Graduate Students | Federal Student Aid#1_0::chunk-0",
+      "my Social Security | Security and Protection | Social Security Administration#1_0::chunk-0",
+      "Parent PLUS Loan Application | Federal Student Aid#1_0::chunk-0",
+      "my Social Security | Security and Protection | Social Security Administration#2_0::chunk-0",
+      "PLUS Loan Application | Federal Student Aid#1_0::chunk-0",
+      "my Social Security | Security and Protection | Social Security Administration#1_0::chunk-1",
+      "my Social Security | Security and Protection | Social Security Administration#2_0::chunk-1",
+      "Manage Your Retirement Benefits | SSA#1_0::chunk-2",
+      "Manage Your Retirement Benefits | SSA#1_0::chunk-1",
+      "my Social Security | Create an Account | Social Security Administratio#1_0::chunk-1",
+      "Avoiding Student Aid Scams | Federal Student Aid#1_0::chunk-8",
+      "Direct Deposit | Social Security Administration#1_0::chunk-0",
+      "Avoiding Student Aid Scams | Federal Student Aid#1_0::chunk-9",
+      "Social Security Direct Deposit | Social Security Administration#1_0::chunk-0",
+      "Direct Deposit | Social Security Administration#2_0::chunk-0",
+      "Restore license after revocation#1_0::chunk-1",
+      "Avoiding Student Aid Scams | Federal Student Aid#1_0::chunk-3",
+      "Avoiding Student Aid Scams | Federal Student Aid#1_0::chunk-6"
+    ],
+    "union_recall": 1.0,
+    "candidate_recall": 1.0
+  },
+  {
+    "id": "doc2dial-heldout-a05852738bd0d26b6c2cd9921f57e5fc-10",
+    "queries": [
+      "How do I request a Board Appeal?"
+    ],
+    "raw": {
+      "recall": 1.0,
+      "mrr": 0.5,
+      "ndcg": 0.6309297535714575,
+      "ids": [
+        "Request a Board Appeal | Veterans Affairs#1_0::chunk-0",
+        "Multiple party or contested claims | Veterans Affairs#1_0::chunk-0",
+        "Request a Board Appeal | Veterans Affairs#1_0::chunk-1",
+        "VA decision reviews and appeals | Veterans Affairs#1_0::chunk-1",
+        "Insurance claims | Veterans Affairs#1_0::chunk-0"
+      ],
+      "tokens": 2293
+    },
+    "manual": {
+      "recall": 1.0,
+      "mrr": 0.5,
+      "ndcg": 0.6309297535714575,
+      "ids": [
+        "Request a Board Appeal | Veterans Affairs#1_0::chunk-0",
+        "Multiple party or contested claims | Veterans Affairs#1_0::chunk-0",
+        "Multiple party or contested claims | Veterans Affairs#1_0::chunk-1",
+        "Request a Board Appeal | Veterans Affairs#1_0::chunk-1",
+        "VA decision reviews and appeals | Veterans Affairs#1_0::chunk-1"
+      ],
+      "tokens": 2213
+    },
+    "agent": {
+      "recall": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg": 0.5,
+      "ids": [
+        "Request a Board Appeal | Veterans Affairs#1_0::chunk-0",
+        "Request a Board Appeal | Veterans Affairs#1_0::chunk-1",
+        "Multiple party or contested claims | Veterans Affairs#1_0::chunk-0",
+        "VA decision reviews and appeals | Veterans Affairs#1_0::chunk-1",
+        "Multiple party or contested claims | Veterans Affairs#1_0::chunk-1"
+      ],
+      "tokens": 2213
+    },
+    "status": "SINGLE_QUERY",
+    "routes": {
+      "dense": [
+        "Request a Board Appeal | Veterans Affairs#1_0::chunk-0",
+        "VA decision reviews and appeals | Veterans Affairs#1_0::chunk-1",
+        "Request a Board Appeal | Veterans Affairs#1_0::chunk-1",
+        "Multiple party or contested claims | Veterans Affairs#1_0::chunk-0",
+        "Board hearings with a Veterans Law Judge | Veterans Affairs#1_0::chunk-0",
+        "Appeal a TVB ticket conviction#1_0::chunk-3",
+        "VA decision reviews and appeals | Veterans Affairs#1_0::chunk-0",
+        "Multiple party or contested claims | Veterans Affairs#1_0::chunk-1",
+        "Board hearings with a Veterans Law Judge | Veterans Affairs#1_0::chunk-2",
+        "Board hearings with a Veterans Law Judge | Veterans Affairs#1_0::chunk-3",
+        "Insurance claims | Veterans Affairs#1_0::chunk-0",
+        "Appeal A Decision | Social Security Administration#1_0::chunk-2",
+        "Appeal A Decision | Social Security Administration#2_0::chunk-2",
+        "Insurance claims | Veterans Affairs#1_0::chunk-1",
+        "Appeal a TVB ticket conviction#1_0::chunk-1",
+        "Appeal a TVB ticket conviction#1_0::chunk-0",
+        "Appeal a TVB ticket conviction#1_0::chunk-2",
+        "Fiduciary claims | Veterans Affairs#1_0::chunk-0",
+        "Appeal A Decision | Social Security Administration#1_0::chunk-0",
+        "Appeal A Decision | Social Security Administration#2_0::chunk-0"
+      ],
+      "bm25": [
+        "VA decision reviews and appeals | Veterans Affairs#1_0::chunk-1",
+        "Request a Board Appeal | Veterans Affairs#1_0::chunk-0",
+        "Fiduciary claims | Veterans Affairs#1_0::chunk-0",
+        "Board hearings with a Veterans Law Judge | Veterans Affairs#1_0::chunk-0",
+        "Multiple party or contested claims | Veterans Affairs#1_0::chunk-0",
+        "VA decision reviews and appeals | Veterans Affairs#1_0::chunk-0",
+        "Insurance claims | Veterans Affairs#1_0::chunk-0",
+        "Request a Board Appeal | Veterans Affairs#1_0::chunk-1",
+        "Board hearings with a Veterans Law Judge | Veterans Affairs#1_0::chunk-3",
+        "Multiple party or contested claims | Veterans Affairs#1_0::chunk-1",
+        "Board hearings with a Veterans Law Judge | Veterans Affairs#1_0::chunk-2",
+        "Insurance claims | Veterans Affairs#1_0::chunk-1",
+        "Frequently asked questions about decision reviews | Veterans Affairs#1_0::chunk-2",
+        "After You Apply For An Eligibility Determination | Veterans Affairs#1_0::chunk-2",
+        "Board hearings with a Veterans Law Judge | Veterans Affairs#1_0::chunk-1",
+        "Frequently asked questions about decision reviews | Veterans Affairs#1_0::chunk-0",
+        "Appeal a TVB ticket conviction#1_0::chunk-1",
+        "Restore license after revocation#1_0::chunk-12",
+        "Frequently asked questions about decision reviews | Veterans Affairs#1_0::chunk-3",
+        "Appeal a TVB ticket conviction#1_0::chunk-0"
+      ]
+    },
+    "ce_order": [
+      "Request a Board Appeal | Veterans Affairs#1_0::chunk-0",
+      "Request a Board Appeal | Veterans Affairs#1_0::chunk-1",
+      "Multiple party or contested claims | Veterans Affairs#1_0::chunk-0",
+      "VA decision reviews and appeals | Veterans Affairs#1_0::chunk-1",
+      "Multiple party or contested claims | Veterans Affairs#1_0::chunk-1",
+      "Insurance claims | Veterans Affairs#1_0::chunk-0",
+      "Fiduciary claims | Veterans Affairs#1_0::chunk-0",
+      "VA decision reviews and appeals | Veterans Affairs#1_0::chunk-0",
+      "Board hearings with a Veterans Law Judge | Veterans Affairs#1_0::chunk-3",
+      "Board hearings with a Veterans Law Judge | Veterans Affairs#1_0::chunk-0",
+      "Board hearings with a Veterans Law Judge | Veterans Affairs#1_0::chunk-2",
+      "After You Apply For An Eligibility Determination | Veterans Affairs#1_0::chunk-2",
+      "Frequently asked questions about decision reviews | Veterans Affairs#1_0::chunk-2",
+      "Board hearings with a Veterans Law Judge | Veterans Affairs#1_0::chunk-1",
+      "Insurance claims | Veterans Affairs#1_0::chunk-1",
+      "Appeal a TVB ticket conviction#1_0::chunk-1",
+      "Appeal A Decision | Social Security Administration#1_0::chunk-2",
+      "Appeal A Decision | Social Security Administration#2_0::chunk-2",
+      "Appeal a TVB ticket conviction#1_0::chunk-0",
+      "Appeal a TVB ticket conviction#1_0::chunk-3"
+    ],
+    "union_recall": 1.0,
+    "candidate_recall": 1.0
+  },
+  {
+    "id": "doc2dial-heldout-5b314b3987408f6c2430048fdab6b693-11",
+    "queries": [
+      "What happens if I have additional questions after submitting the driving school license application?"
+    ],
+    "raw": {
+      "recall": 0.0,
+      "mrr": 0.0,
+      "ndcg": 0.0,
+      "ids": [
+        "VA Dental Insurance Program (VADIP) | Veterans Affairs#1_0::chunk-1",
+        "Retirement Benefits | Social Security Administration#1_0::chunk-0",
+        "Retirement Benefits | Social Security Administration#2_0::chunk-0",
+        "About online and alternative delivery method courses (I-PIRP/ADM)#3_0::chunk-1",
+        "Service-Disabled Veterans Life Insurance (S-DVI) | Veterans Affairs#1_0::chunk-1"
+      ],
+      "tokens": 2389
+    },
+    "manual": {
+      "recall": 1.0,
+      "mrr": 0.2,
+      "ndcg": 0.38685280723454163,
+      "ids": [
+        "Open a driving school#3_0::chunk-0",
+        "Open a driving school#3_0::chunk-2",
+        "Open a driving school#3_0::chunk-1",
+        "Requirements and forms for driving schools and instructors#3_0::chunk-0",
+        "Open a driving school#3_0::chunk-3"
+      ],
+      "tokens": 2132
+    },
+    "agent": {
+      "recall": 0.0,
+      "mrr": 0.0,
+      "ndcg": 0.0,
+      "ids": [
+        "Open a driving school#3_0::chunk-2",
+        "Renew Driving School License#3_0::chunk-0",
+        "Open a driving school#3_0::chunk-0",
+        "Restore license after revocation#1_0::chunk-10",
+        "Open a driving school#3_0::chunk-1"
+      ],
+      "tokens": 2558
+    },
+    "status": "SINGLE_QUERY",
+    "routes": {
+      "dense": [
+        "Open a driving school#3_0::chunk-2",
+        "Open a driving school#3_0::chunk-3",
+        "Open a driving school#3_0::chunk-1",
+        "Get a learner permit#1_0::chunk-0",
+        "Renew Driving School License#3_0::chunk-0",
+        "Open a driving school#3_0::chunk-0",
+        "Become a driving school instructor#3_0::chunk-2",
+        "Become a driving school instructor#3_0::chunk-1",
+        "Requirements and forms for driving schools and instructors#3_0::chunk-0",
+        "Restore license after revocation#1_0::chunk-10",
+        "Requirements and forms for driving schools and instructors#3_0::chunk-1",
+        "Requirements and forms for driving schools and instructors#3_0::chunk-2",
+        "Schedule and take a road test#1_0::chunk-2",
+        "Become a driving school instructor#3_0::chunk-3",
+        "Renew Driving School License#3_0::chunk-1",
+        "Medical Certification FAQ's#3_0::chunk-3",
+        "Prepare for your road test#3_0::chunk-0",
+        "Get a learner permit#1_0::chunk-1",
+        "Become a driving school instructor#3_0::chunk-0",
+        "Commercial Driver License Downgrades#3_0::chunk-0"
+      ],
+      "bm25": [
+        "Restore license after revocation#1_0::chunk-10",
+        "Restore license after revocation#1_0::chunk-2",
+        "How to Review and Correct Your FAFSA\u00ae Application | Federal Student Aid#1_0::chunk-0",
+        "Restore license after revocation#1_0::chunk-5",
+        "Open a driving school#3_0::chunk-2",
+        "CHAMPVA Benefits | Veterans Affairs#1_0::chunk-4",
+        "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-7",
+        "Restore license after revocation#1_0::chunk-6",
+        "Become a driving school instructor#3_0::chunk-1",
+        "Restore license after revocation#1_0::chunk-12",
+        "FAFSA\u00ae Help | Federal Student Aid#1_0::chunk-0",
+        "Restore license after revocation#1_0::chunk-9",
+        "How To Apply For The GI Bill | Veterans Affairs#1_0::chunk-1",
+        "Become a driving school instructor#3_0::chunk-2",
+        "How To Apply For A Veteran ID Card | Veterans Affairs#1_0::chunk-1",
+        "How To Apply For The GI Bill | Veterans Affairs#1_0::chunk-0",
+        "Renew Driving School License#3_0::chunk-0",
+        "Open a driving school#3_0::chunk-3",
+        "About problem driver restrictions#3_0::chunk-1",
+        "Frequently asked questions about decision reviews | Veterans Affairs#1_0::chunk-0"
+      ]
+    },
+    "ce_order": [
+      "Open a driving school#3_0::chunk-2",
+      "Renew Driving School License#3_0::chunk-0",
+      "Open a driving school#3_0::chunk-0",
+      "Restore license after revocation#1_0::chunk-10",
+      "Open a driving school#3_0::chunk-1",
+      "Requirements and forms for driving schools and instructors#3_0::chunk-0",
+      "Restore license after revocation#1_0::chunk-12",
+      "Open a driving school#3_0::chunk-3",
+      "Become a driving school instructor#3_0::chunk-1",
+      "Become a driving school instructor#3_0::chunk-2",
+      "Restore license after revocation#1_0::chunk-2",
+      "Requirements and forms for driving schools and instructors#3_0::chunk-1",
+      "Get a learner permit#1_0::chunk-0",
+      "Restore license after revocation#1_0::chunk-5",
+      "Restore license after revocation#1_0::chunk-6",
+      "FAFSA\u00ae Help | Federal Student Aid#1_0::chunk-0",
+      "Requirements and forms for driving schools and instructors#3_0::chunk-2",
+      "CHAMPVA Benefits | Veterans Affairs#1_0::chunk-4",
+      "How to Review and Correct Your FAFSA\u00ae Application | Federal Student Aid#1_0::chunk-0",
+      "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-7"
+    ],
+    "union_recall": 1.0,
+    "candidate_recall": 1.0
+  },
+  {
+    "id": "doc2dial-heldout-6d632aae1bb7d6e9c2bbc377717a2797-10",
+    "queries": [
+      "Do I need to sign into my Social Security account to change my address?"
+    ],
+    "raw": {
+      "recall": 0.0,
+      "mrr": 0.0,
+      "ndcg": 0.0,
+      "ids": [
+        "my Social Security | Security and Protection | Social Security Administration#1_0::chunk-0",
+        "Manage Your Retirement Benefits | SSA#1_0::chunk-0",
+        "my Social Security | Security and Protection | Social Security Administration#2_0::chunk-0",
+        "my Social Security | Security and Protection | Social Security Administration#2_0::chunk-1",
+        "my Social Security | Create an Account | Social Security Administratio#2_0::chunk-0"
+      ],
+      "tokens": 2557
+    },
+    "manual": {
+      "recall": 1.0,
+      "mrr": 0.5,
+      "ndcg": 0.6309297535714575,
+      "ids": [
+        "Change of Address| Social Security Administration#1_0::chunk-0",
+        "Change of Address| Social Security Administration#2_0::chunk-0",
+        "Manage Your Retirement Benefits | SSA#1_0::chunk-1",
+        "my Social Security | Security and Protection | Social Security Administration#1_0::chunk-1",
+        "View Your VA Payment History | Veterans Affairs#1_0::chunk-0"
+      ],
+      "tokens": 2469
+    },
+    "agent": {
+      "recall": 1.0,
+      "mrr": 0.5,
+      "ndcg": 0.6309297535714575,
+      "ids": [
+        "Change of Address| Social Security Administration#1_0::chunk-0",
+        "Change of Address| Social Security Administration#2_0::chunk-0",
+        "Manage Your Retirement Benefits | SSA#1_0::chunk-1",
+        "my Social Security | Security and Protection | Social Security Administration#2_0::chunk-1",
+        "my Social Security | Security and Protection | Social Security Administration#1_0::chunk-0"
+      ],
+      "tokens": 2468
+    },
+    "status": "SINGLE_QUERY",
+    "routes": {
+      "dense": [
+        "Change of Address| Social Security Administration#2_0::chunk-0",
+        "Change of Address| Social Security Administration#1_0::chunk-0",
+        "Learn what documents you will need to get a Social Security Card | Social Security Administration#3_0::chunk-0",
+        "Learn what documents you will need to get a Social Security Card | Social Security Administration#2_0::chunk-0",
+        "Learn what documents you will need to get a Social Security Card | Social Security Administration#2_0_1::chunk-0",
+        "Manage Your Retirement Benefits | SSA#1_0::chunk-1",
+        "Learn what documents you will need to get a Social Security Card | Social Security Administration#4_0::chunk-0",
+        "Learn what documents you will need to get a Social Security Card | Social Security Administration#4_0_1::chunk-0",
+        "Learn what documents you will need to get a Social Security Card | Social Security Administration#4_0_1_2::chunk-0",
+        "Learn what documents you will need to get a Social Security Card | Social Security Administration#3_0::chunk-1",
+        "Information about transaction entries#3_0::chunk-2",
+        "my Social Security | Security and Protection | Social Security Administration#1_0::chunk-1",
+        "Learn what documents you will need to get a Social Security Card | Social Security Administration#5_0::chunk-0",
+        "Learn what documents you will need to get a Social Security Card | Social Security Administration#6_0::chunk-0",
+        "Learn what documents you will need to get a Social Security Card | Social Security Administration#6_0_1_2::chunk-0",
+        "Learn what documents you will need to get a Social Security Card | Social Security Administration#6_0_1_2_3::chunk-0",
+        "Learn what documents you will need to get a Social Security Card | Social Security Administration#6_0_1_2_3_4::chunk-0",
+        "Learn what documents you will need to get a Social Security Card | Social Security Administration#7_0::chunk-0",
+        "Learn what documents you will need to get a Social Security Card | Social Security Administration#7_0_1_2::chunk-0",
+        "How to change your address#1_0::chunk-0"
+      ],
+      "bm25": [
+        "Change of Address| Social Security Administration#1_0::chunk-0",
+        "Change of Address| Social Security Administration#2_0::chunk-0",
+        "my Social Security | Security and Protection | Social Security Administration#1_0::chunk-1",
+        "Manage Your Retirement Benefits | SSA#1_0::chunk-1",
+        "Direct Deposit | Social Security Administration#1_0::chunk-0",
+        "Direct Deposit | Social Security Administration#2_0::chunk-0",
+        "my Social Security | Security and Protection | Social Security Administration#1_0::chunk-0",
+        "my Social Security | Security and Protection | Social Security Administration#2_0::chunk-0",
+        "my Social Security | Security and Protection | Social Security Administration#2_0::chunk-1",
+        "View Your VA Payment History | Veterans Affairs#1_0::chunk-0",
+        "Change Your VA Direct Deposit Information | Veterans Affairs#1_0::chunk-0",
+        "Signing in to MyDMV#1_0::chunk-0",
+        "Manage Your Retirement Benefits | SSA#1_0::chunk-2",
+        "Benefit Verification Letter  | Social Security Administration#2_0::chunk-0",
+        "Benefit Verification Letter  | Social Security Administration#1_0::chunk-0",
+        "Social Security Direct Deposit | Social Security Administration#2_0::chunk-0",
+        "Social Security Direct Deposit | Social Security Administration#1_0::chunk-0",
+        "Apply for Retirement Benefits | SSA#1_0::chunk-2",
+        "Creating a MyDMV account#1_0::chunk-0",
+        "Change Your VA Direct Deposit Information | Veterans Affairs#1_0::chunk-1"
+      ]
+    },
+    "ce_order": [
+      "Change of Address| Social Security Administration#1_0::chunk-0",
+      "Change of Address| Social Security Administration#2_0::chunk-0",
+      "Manage Your Retirement Benefits | SSA#1_0::chunk-1",
+      "my Social Security | Security and Protection | Social Security Administration#2_0::chunk-1",
+      "my Social Security | Security and Protection | Social Security Administration#1_0::chunk-0",
+      "my Social Security | Security and Protection | Social Security Administration#1_0::chunk-1",
+      "my Social Security | Security and Protection | Social Security Administration#2_0::chunk-0",
+      "View Your VA Payment History | Veterans Affairs#1_0::chunk-0",
+      "Direct Deposit | Social Security Administration#1_0::chunk-0",
+      "Direct Deposit | Social Security Administration#2_0::chunk-0",
+      "Change Your VA Direct Deposit Information | Veterans Affairs#1_0::chunk-0",
+      "Learn what documents you will need to get a Social Security Card | Social Security Administration#3_0::chunk-0",
+      "Learn what documents you will need to get a Social Security Card | Social Security Administration#2_0::chunk-0",
+      "Learn what documents you will need to get a Social Security Card | Social Security Administration#2_0_1::chunk-0",
+      "Learn what documents you will need to get a Social Security Card | Social Security Administration#4_0_1_2::chunk-0",
+      "Learn what documents you will need to get a Social Security Card | Social Security Administration#4_0::chunk-0",
+      "Learn what documents you will need to get a Social Security Card | Social Security Administration#4_0_1::chunk-0",
+      "Learn what documents you will need to get a Social Security Card | Social Security Administration#3_0::chunk-1",
+      "Signing in to MyDMV#1_0::chunk-0",
+      "Information about transaction entries#3_0::chunk-2"
+    ],
+    "union_recall": 1.0,
+    "candidate_recall": 1.0
+  },
+  {
+    "id": "doc2dial-heldout-2c53f2403ea43e1652ab1da9de950f0f-10",
+    "queries": [
+      "What benefits are available to a member of the National Call to Service program who has completed the required initial entry training, served 15 months on active duty in a designated military occupational specialty, and then served an additional period of active duty or 24 months in the Selected Reserve?"
+    ],
+    "raw": {
+      "recall": 0.0,
+      "mrr": 0.0,
+      "ndcg": 0.0,
+      "ids": [
+        "Post-9/11 GI Bill | Veterans Affairs#1_0::chunk-2",
+        "Yellow Ribbon Program | Veterans Affairs#1_0::chunk-1",
+        "Tuition Assistance Top-Up | Veterans Affairs#1_0::chunk-0",
+        "Benefits Planner | Social Security Administration#2_0::chunk-0",
+        "Post-9/11 GI Bill | Veterans Affairs#1_0::chunk-1"
+      ],
+      "tokens": 2559
+    },
+    "manual": {
+      "recall": 1.0,
+      "mrr": 1.0,
+      "ndcg": 1.0,
+      "ids": [
+        "National Call To Service Program | Veterans Affairs#1_0::chunk-0",
+        "Work Study | Veterans Affairs#1_0::chunk-0",
+        "GI Bill Eligibility | Veterans Affairs#1_0::chunk-1",
+        "GI Bill Eligibility | Veterans Affairs#1_0::chunk-0",
+        "Montgomery GI Bill Active Duty (MGIB-AD) | Veterans Affairs#1_0::chunk-1"
+      ],
+      "tokens": 2541
+    },
+    "agent": {
+      "recall": 1.0,
+      "mrr": 1.0,
+      "ndcg": 1.0,
+      "ids": [
+        "National Call To Service Program | Veterans Affairs#1_0::chunk-0",
+        "Montgomery GI Bill Active Duty (MGIB-AD) | Veterans Affairs#1_0::chunk-0",
+        "VA Benefits For Service Members | Veterans Affairs#1_0::chunk-2",
+        "GI Bill Eligibility | Veterans Affairs#1_0::chunk-0",
+        "VA Benefits For Service Members | Veterans Affairs#2_0::chunk-2"
+      ],
+      "tokens": 2540
+    },
+    "status": "SINGLE_QUERY",
+    "routes": {
+      "dense": [
+        "National Call To Service Program | Veterans Affairs#1_0::chunk-0",
+        "VA Benefits For Service Members | Veterans Affairs#1_0::chunk-2",
+        "VA Benefits For Service Members | Veterans Affairs#2_0::chunk-2",
+        "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-1",
+        "Eligibility Requirements | Federal Student Aid#1_0::chunk-1",
+        "VA Benefits For Service Members | Veterans Affairs#1_0::chunk-1",
+        "VA Benefits For Service Members | Veterans Affairs#2_0::chunk-1",
+        "VA Benefits For Service Members | Veterans Affairs#2_0::chunk-0",
+        "VA Benefits For Service Members | Veterans Affairs#1_0::chunk-0",
+        "GI Bill | Veterans Affairs#1_0::chunk-1",
+        "Montgomery GI Bill Active Duty (MGIB-AD) | Veterans Affairs#1_0::chunk-0",
+        "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-0",
+        "Montgomery GI Bill Active Duty (MGIB-AD) | Veterans Affairs#1_0::chunk-1",
+        "Post-9/11 GI Bill | Veterans Affairs#1_0::chunk-0",
+        "Veterans\u2019 Educational Assistance Program (VEAP) | Veterans Affairs#1_0::chunk-1",
+        "Survivors\u2019 And Dependents\u2019 Educational Assistance | Veterans Affairs#1_0::chunk-1",
+        "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-2",
+        "Servicemembers\u2019 Group Life Insurance (SGLI) | Veterans Affairs#1_0::chunk-0",
+        "Reserve Educational Assistance Program (REAP) | Veterans Affairs#1_0::chunk-1",
+        "GI Bill Eligibility | Veterans Affairs#1_0::chunk-2"
+      ],
+      "bm25": [
+        "National Call To Service Program | Veterans Affairs#1_0::chunk-0",
+        "GI Bill Eligibility | Veterans Affairs#1_0::chunk-0",
+        "Montgomery GI Bill Active Duty (MGIB-AD) | Veterans Affairs#1_0::chunk-0",
+        "Eligibility For VA Health Care | Veterans Affairs#1_0::chunk-0",
+        "Aid for Military Families | Federal Student Aid#1_0::chunk-2",
+        "Veterans\u2019 Educational Assistance Program (VEAP) | Veterans Affairs#1_0::chunk-0",
+        "Automatic license and registration extension for military personnel#3_0::chunk-0",
+        "Student Loan Deferment | Federal Student Aid#1_0::chunk-2",
+        "Benefits For Spouses And Dependents (VA DIC) | Veterans Affairs#1_0::chunk-3",
+        "Yellow Ribbon Program | Veterans Affairs#1_0::chunk-0",
+        "GI Bill | Veterans Affairs#1_0::chunk-1",
+        "VA Survivors Pension | Veterans Affairs#1_0::chunk-0",
+        "Servicemembers\u2019 Group Life Insurance (SGLI) | Veterans Affairs#1_0::chunk-0",
+        "Benefits For Spouses And Dependents (VA DIC) | Veterans Affairs#1_0::chunk-2",
+        "Transfer Your Post-9/11 GI Bill Benefits | Veterans Affairs#1_0::chunk-0",
+        "GI Bill | Veterans Affairs#1_0::chunk-0",
+        "Eligibility For Veterans Pension | Veterans Affairs#1_0::chunk-0",
+        "VA Benefits For Service Members | Veterans Affairs#1_0::chunk-2",
+        "VA Benefits For Service Members | Veterans Affairs#2_0::chunk-2",
+        "Aid for Military Families | Federal Student Aid#1_0::chunk-0"
+      ]
+    },
+    "ce_order": [
+      "National Call To Service Program | Veterans Affairs#1_0::chunk-0",
+      "Montgomery GI Bill Active Duty (MGIB-AD) | Veterans Affairs#1_0::chunk-0",
+      "VA Benefits For Service Members | Veterans Affairs#1_0::chunk-2",
+      "GI Bill Eligibility | Veterans Affairs#1_0::chunk-0",
+      "VA Benefits For Service Members | Veterans Affairs#2_0::chunk-2",
+      "Eligibility For VA Health Care | Veterans Affairs#1_0::chunk-0",
+      "GI Bill | Veterans Affairs#1_0::chunk-1",
+      "VA Benefits For Service Members | Veterans Affairs#1_0::chunk-1",
+      "VA Benefits For Service Members | Veterans Affairs#1_0::chunk-0",
+      "VA Benefits For Service Members | Veterans Affairs#2_0::chunk-1",
+      "VA Benefits For Service Members | Veterans Affairs#2_0::chunk-0",
+      "Aid for Military Families | Federal Student Aid#1_0::chunk-2",
+      "Benefits For Spouses And Dependents (VA DIC) | Veterans Affairs#1_0::chunk-3",
+      "Veterans\u2019 Educational Assistance Program (VEAP) | Veterans Affairs#1_0::chunk-0",
+      "Servicemembers\u2019 Group Life Insurance (SGLI) | Veterans Affairs#1_0::chunk-0",
+      "Yellow Ribbon Program | Veterans Affairs#1_0::chunk-0",
+      "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-1",
+      "Student Loan Deferment | Federal Student Aid#1_0::chunk-2",
+      "Eligibility Requirements | Federal Student Aid#1_0::chunk-1",
+      "Automatic license and registration extension for military personnel#3_0::chunk-0"
+    ],
+    "union_recall": 1.0,
+    "candidate_recall": 1.0
+  },
+  {
+    "id": "doc2dial-heldout-317e6ec4a06c5619d584800a60aadcf3-13",
+    "queries": [
+      "What is the civil penalty amount for an uninsured accident order issued before July 1, 1990?"
+    ],
+    "raw": {
+      "recall": 0.0,
+      "mrr": 0.0,
+      "ndcg": 0.0,
+      "ids": [
+        "Regaining Eligibility | Federal Student Aid#1_0::chunk-1",
+        "Benefits Planner: Retirement | Delayed Retirement Credits | Social Security Administration#2_0::chunk-0",
+        "Upload Evidence To Support Your Disability Claim | Veterans Affairs#1_0::chunk-0",
+        "Benefits Planner: Retirement | Delayed Retirement Credits | Social Security Administration#1_0::chunk-0",
+        "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::chunk-1"
+      ],
+      "tokens": 2166
+    },
+    "manual": {
+      "recall": 1.0,
+      "mrr": 1.0,
+      "ndcg": 1.0,
+      "ids": [
+        "Pay driver civil penalty#1_0::chunk-2",
+        "Pay driver civil penalty#1_0::chunk-1",
+        "Pay driver civil penalty#1_0::chunk-0",
+        "Insurance lapses#3_0::chunk-1",
+        "Restore license after revocation#1_0::chunk-1"
+      ],
+      "tokens": 2450
+    },
+    "agent": {
+      "recall": 1.0,
+      "mrr": 1.0,
+      "ndcg": 1.0,
+      "ids": [
+        "Pay driver civil penalty#1_0::chunk-2",
+        "Pay driver civil penalty#1_0::chunk-1",
+        "Pay insurance lapse civil penalty#1_0::chunk-0",
+        "Insurance lapses#3_0::chunk-1",
+        "Pay driver civil penalty#1_0::chunk-0"
+      ],
+      "tokens": 2451
+    },
+    "status": "SINGLE_QUERY",
+    "routes": {
+      "dense": [
+        "Pay driver civil penalty#1_0::chunk-2",
+        "Pay driver civil penalty#1_0::chunk-1",
+        "Pay insurance lapse civil penalty#1_0::chunk-0",
+        "Pay driver civil penalty#1_0::chunk-0",
+        "Pay insurance lapse civil penalty#1_0::chunk-1",
+        "Pay driver responsibility assessment#1_0::chunk-0",
+        "Insurance lapses#3_0::chunk-1",
+        "Affordable Care Act (ACA) And Your Coverage | Veterans Affairs#1_0::chunk-0",
+        "Leandra's Law & ignition interlock devices#3_0::chunk-0",
+        "Pay driver responsibility assessment#1_0::chunk-1",
+        "Agent Orange Exposure On Navy Or Coast Guard Ships | Veterans Affairs#1_0::chunk-0",
+        "About New York State Inspections#3_0::chunk-3",
+        "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::chunk-3",
+        "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0::chunk-3",
+        "Pay suspension termination fee#1_0::chunk-0",
+        "Get an Accident Report#1_0::chunk-1",
+        "Insurance lapses#3_0::chunk-0",
+        "Respond to DMV insurance letters and orders#3_0::chunk-1",
+        "Unsatisfied Judgments#3_0::chunk-0",
+        "A Guide for Facilities:#3_0::chunk-1"
+      ],
+      "bm25": [
+        "Pay driver civil penalty#1_0::chunk-1",
+        "Pay driver civil penalty#1_0::chunk-2",
+        "Pay driver civil penalty#1_0::chunk-0",
+        "Suspensions and revocations#3_0::chunk-1",
+        "Pay insurance lapse civil penalty#1_0::chunk-0",
+        "Get an Accident Report#1_0::chunk-1",
+        "Lifetime driving records#3_0::chunk-3",
+        "Renew Driving School License#3_0::chunk-1",
+        "Insurance lapses#3_0::chunk-1",
+        "Restore license after revocation#1_0::chunk-1",
+        "A Guide for Facilities:#3_0::chunk-1",
+        "About complaints and charges for repair and body shops#3_0::chunk-1",
+        "About complaints and charges for dealer and transporter businesses#3_0::chunk-1",
+        "About complaints and charges for inspection stations and certified inspectors#3_0::chunk-1",
+        "Restore license after revocation#1_0::chunk-0",
+        "Get an Accident Report#1_0::chunk-0",
+        "Lifetime driving records#3_0::chunk-2",
+        "Unsatisfied Judgments#3_0::chunk-0",
+        "Restore license after revocation#1_0::chunk-4",
+        "Montgomery GI Bill Active Duty (MGIB-AD) | Veterans Affairs#1_0::chunk-1"
+      ]
+    },
+    "ce_order": [
+      "Pay driver civil penalty#1_0::chunk-2",
+      "Pay driver civil penalty#1_0::chunk-1",
+      "Pay insurance lapse civil penalty#1_0::chunk-0",
+      "Insurance lapses#3_0::chunk-1",
+      "Pay driver civil penalty#1_0::chunk-0",
+      "Renew Driving School License#3_0::chunk-1",
+      "Pay insurance lapse civil penalty#1_0::chunk-1",
+      "Restore license after revocation#1_0::chunk-1",
+      "Suspensions and revocations#3_0::chunk-1",
+      "A Guide for Facilities:#3_0::chunk-1",
+      "About complaints and charges for repair and body shops#3_0::chunk-1",
+      "Get an Accident Report#1_0::chunk-1",
+      "Lifetime driving records#3_0::chunk-3",
+      "Unsatisfied Judgments#3_0::chunk-0",
+      "About New York State Inspections#3_0::chunk-3",
+      "Affordable Care Act (ACA) And Your Coverage | Veterans Affairs#1_0::chunk-0",
+      "Leandra's Law & ignition interlock devices#3_0::chunk-0",
+      "Pay driver responsibility assessment#1_0::chunk-1",
+      "Agent Orange Exposure On Navy Or Coast Guard Ships | Veterans Affairs#1_0::chunk-0",
+      "Pay driver responsibility assessment#1_0::chunk-0"
+    ],
+    "union_recall": 1.0,
+    "candidate_recall": 1.0
+  },
+  {
+    "id": "doc2dial-heldout-b785e699f9eeefba42d540438f5d0862-10",
+    "queries": [
+      "How much of my Social Security benefits will be deducted if I work and earn above the annual earnings limit before I reach full retirement age?"
+    ],
+    "raw": {
+      "recall": 1.0,
+      "mrr": 0.25,
+      "ndcg": 0.43067655807339306,
+      "ids": [
+        "Benefits Planner: Retirement | Applying for Medicare Only | Social Security Administration#1_0::chunk-1",
+        "Benefits Planner: Retirement | Getting Benefits While Working | Social Security Administration#2_0::chunk-0",
+        "Benefits Planner: Retirement | Applying for Medicare Only | Social Security Administration#2_0::chunk-1",
+        "Benefits Planner: Retirement | Getting Benefits While Working | Social Security Administration#1_0::chunk-0",
+        "Tax Benefits for Higher Education | Federal Student Aid#1_0::chunk-0"
+      ],
+      "tokens": 2146
+    },
+    "manual": {
+      "recall": 1.0,
+      "mrr": 1.0,
+      "ndcg": 1.0,
+      "ids": [
+        "Benefits Planner: Retirement | Getting Benefits While Working | Social Security Administration#1_0::chunk-0",
+        "Benefits Planner: Retirement | Getting Benefits While Working | Social Security Administration#2_0::chunk-0",
+        "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-5",
+        "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-5",
+        "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-4"
+      ],
+      "tokens": 2145
+    },
+    "agent": {
+      "recall": 1.0,
+      "mrr": 0.5,
+      "ndcg": 0.6309297535714575,
+      "ids": [
+        "Benefits Planner: Retirement | Getting Benefits While Working | Social Security Administration#2_0::chunk-0",
+        "Benefits Planner: Retirement | Getting Benefits While Working | Social Security Administration#1_0::chunk-0",
+        "Benefits Planner: Retirement | Government Pension Offset (GPO) Calculator | Social Security Administration#2_0::chunk-1",
+        "Benefits Planner: Retirement | Government Pension Offset (GPO) Calculator | Social Security Administration#1_0::chunk-1",
+        "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#2_0::chunk-0"
+      ],
+      "tokens": 2014
+    },
+    "status": "SINGLE_QUERY",
+    "routes": {
+      "dense": [
+        "Benefits Planner: Retirement | Getting Benefits While Working | Social Security Administration#2_0::chunk-0",
+        "Benefits Planner: Retirement | Getting Benefits While Working | Social Security Administration#1_0::chunk-0",
+        "Learn About Retirement Benefits | SSA#1_0::chunk-3",
+        "Learn About Retirement Benefits | SSA#1_0::chunk-1",
+        "Benefits Planner: Retirement | Government Pension Offset (GPO) Calculator | Social Security Administration#1_0::chunk-1",
+        "Learn About Retirement Benefits | SSA#1_0::chunk-2",
+        "Benefits Planner: Retirement | Government Pension Offset (GPO) Calculator | Social Security Administration#2_0::chunk-1",
+        "Benefits Planner: Retirement | Benefits For Your Family | Social Security Administration#2_0::chunk-1",
+        "Retirement Estimator | Social Security Administration#2_0::chunk-0",
+        "Retirement Estimator | Social Security Administration#1_0::chunk-0",
+        "Benefits Planner: Retirement | Benefits For Your Family | Social Security Administration#1_0::chunk-1",
+        "Benefits Planner: Retirement | Benefits By Year Of Birth | Social Security Administration#1_0::chunk-0",
+        "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#2_0::chunk-3",
+        "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::chunk-3",
+        "Benefits Planner: Retirement | Benefits By Year Of Birth | Social Security Administration#2_0::chunk-0",
+        "Benefits Planner | Social Security Credits and Benefit Eligibility | SSA#1_0::chunk-0",
+        "Benefits Planner | Social Security Credits and Benefit Eligibility | SSA#2_0::chunk-0",
+        "Learn About Retirement Benefits | SSA#1_0::chunk-0",
+        "Benefits Planner: Retirement | Benefits For Your Family | Social Security Administration#2_0::chunk-0",
+        "Benefits Planner: Survivors | Planning For Your Survivors | Social Security Administration#2_0::chunk-2"
+      ],
+      "bm25": [
+        "Benefits Planner: Retirement | Getting Benefits While Working | Social Security Administration#2_0::chunk-0",
+        "Benefits Planner: Retirement | Getting Benefits While Working | Social Security Administration#1_0::chunk-0",
+        "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::chunk-0",
+        "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#2_0::chunk-0",
+        "Learn About Retirement Benefits | SSA#1_0::chunk-1",
+        "Benefits Planner: Survivors | Planning For Your Survivors | Social Security Administration#1_0::chunk-2",
+        "Benefits Planner: Survivors | Planning For Your Survivors | Social Security Administration#2_0::chunk-2",
+        "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-5",
+        "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-5",
+        "Learn About Retirement Benefits | SSA#1_0::chunk-2",
+        "Benefits Planner | Social Security Credits and Benefit Eligibility | SSA#1_0::chunk-0",
+        "Benefits Planner | Social Security Credits and Benefit Eligibility | SSA#2_0::chunk-0",
+        "Benefits Planner: Retirement | Applying for Medicare Only | Social Security Administration#2_0::chunk-0",
+        "Learn About Retirement Benefits | SSA#1_0::chunk-3",
+        "Benefits Planner: Retirement | Applying for Medicare Only | Social Security Administration#1_0::chunk-0",
+        "Retirement Benefits | Social Security Administration#1_0::chunk-1",
+        "Retirement Benefits | Social Security Administration#2_0::chunk-1",
+        "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0::chunk-0",
+        "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0::chunk-0",
+        "Benefits Planner: Retirement | Applying for Medicare Only | Social Security Administration#2_0::chunk-1"
+      ]
+    },
+    "ce_order": [
+      "Benefits Planner: Retirement | Getting Benefits While Working | Social Security Administration#2_0::chunk-0",
+      "Benefits Planner: Retirement | Getting Benefits While Working | Social Security Administration#1_0::chunk-0",
+      "Benefits Planner: Retirement | Government Pension Offset (GPO) Calculator | Social Security Administration#2_0::chunk-1",
+      "Benefits Planner: Retirement | Government Pension Offset (GPO) Calculator | Social Security Administration#1_0::chunk-1",
+      "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#2_0::chunk-0",
+      "Benefits Planner: Retirement | Other Things to Consider | Social Security Administration#1_0::chunk-0",
+      "Learn About Retirement Benefits | SSA#1_0::chunk-3",
+      "Benefits Planner: Retirement | Benefits By Year Of Birth | Social Security Administration#1_0::chunk-0",
+      "Benefits Planner: Retirement | Benefits For Your Family | Social Security Administration#1_0::chunk-1",
+      "Benefits Planner: Retirement | Benefits For Your Family | Social Security Administration#2_0::chunk-1",
+      "Learn About Retirement Benefits | SSA#1_0::chunk-2",
+      "Benefits Planner: Survivors | Planning For Your Survivors | Social Security Administration#2_0::chunk-2",
+      "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-5",
+      "Learn About Retirement Benefits | SSA#1_0::chunk-1",
+      "Benefits Planner: Survivors | Planning For Your Survivors | Social Security Administration#1_0::chunk-2",
+      "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-5",
+      "Benefits Planner | Social Security Credits and Benefit Eligibility | SSA#1_0::chunk-0",
+      "Benefits Planner | Social Security Credits and Benefit Eligibility | SSA#2_0::chunk-0",
+      "Retirement Estimator | Social Security Administration#1_0::chunk-0",
+      "Retirement Estimator | Social Security Administration#2_0::chunk-0"
+    ],
+    "union_recall": 1.0,
+    "candidate_recall": 1.0
+  }
+]

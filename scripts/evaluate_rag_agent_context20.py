@@ -13,7 +13,8 @@ from evaluation.local_bge_m3_retrieval_eval import bm25_matrix
 from infrastructure.local_knowledge_reranker import LocalKnowledgeReranker
 from mcp.rank_fusion import fuse_rankings
 
-def main():
+def main(output=OUT):
+    OUT = output
     assert not (OUT/'retrieval.json').exists()
     rows=read(OUT/'captures.jsonl',True);assert len(rows)==20
     ds=RagDataset.load(ROOT/'doc2dial',verify_checksum=True);cases={c.case_id:c for c in ds.cases}
@@ -36,6 +37,8 @@ def main():
             ss.extend({'id':cid,'cid':x,'query':query,'text_sha256':hashlib.sha256(txt[x].encode()).hexdigest(),'score':s} for x,s in lookup.items())
             r.update(agent={**metric(row,selected),'ids':selected,'tokens':tokens},status='SINGLE_QUERY',routes=rr[cid],ce_order=ce,union_recall=float(complete(cases[cid],union,byid)),candidate_recall=float(complete(cases[cid],pool,byid)))
         results.append(r)
-    report={'n':20,'single_query':len(valid),'calls':sum(len(r['calls']) for r in rows),'new_ce_pairs':len(ss),'summary':{a:{k:sum(r[a][k] for r in results)/20 for k in ('recall','mrr','ndcg')} for a in ('raw','manual','agent')},'union_recall':sum(r['union_recall'] for r in results)/20,'candidate_recall':sum(r['candidate_recall'] for r in results)/20,'memory_triggered':sum(r['loaded_context']['memory_attempted'] for r in rows),'summary_envelopes_present':sum(r['loaded_context']['summary'] is not None for r in rows),'nonempty_summary_chunks':sum(bool(json.loads(r['loaded_context']['summary']['content']).get('chunks')) for r in rows if r['loaded_context']['summary']),'error_types':[r['error_type'] for r in rows if 'error_type' in r]}
+    report={'n':20,'single_query':len(valid),'calls':sum(len(r['calls']) for r in rows),'new_ce_pairs':len(ss),'summary':{a:{k:sum(r[a][k] for r in results)/20 for k in ('recall','mrr','ndcg')} for a in ('raw','manual','agent')},'union_recall':sum(r['union_recall'] for r in results)/20,'candidate_recall':sum(r['candidate_recall'] for r in results)/20,'memory_triggered':sum(r.get('loaded_context',{}).get('memory_attempted',False) for r in rows),'summary_envelopes_present':sum(r.get('loaded_context',{}).get('summary') is not None for r in rows),'nonempty_summary_chunks':sum(bool(json.loads(r['loaded_context']['summary']['content']).get('chunks')) for r in rows if r.get('loaded_context',{}).get('summary')),'error_types':[r['error_type'] for r in rows if 'error_type' in r]}
     (OUT/'retrieval.json').write_text(json.dumps(results,indent=2)+'\n');(OUT/'scores.json.gz').write_bytes(gzip.compress(json.dumps(ss).encode(),mtime=0));(OUT/'report.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(report,indent=2))
-if __name__=='__main__':main()
+if __name__=='__main__':
+    import argparse
+    parser=argparse.ArgumentParser();parser.add_argument('--output',type=Path,default=OUT);main(parser.parse_args().output)

@@ -1,0 +1,36 @@
+{
+  "ids": [
+    "doc2dial-heldout-4f03402a8daa204a0e6b603d122466a4-11",
+    "doc2dial-heldout-d9d38623b1f4e5ad093e164bac0215b5-11",
+    "doc2dial-heldout-aced8883d86eeba05d57c686e283b71d-11",
+    "doc2dial-heldout-f62aefb56b2c87b30539bcd7ea27aa83-10",
+    "doc2dial-heldout-3a9508aba0ddf691ace6ccee67a2df60-10",
+    "doc2dial-heldout-cb78c6781a9a0f072d43d810d3315c8e-10",
+    "doc2dial-heldout-21f4c678cbba500b511e9ae76b2d19df-11",
+    "doc2dial-heldout-ca621ed0cbd5896cbdaf1c891dbffdd6-13",
+    "doc2dial-heldout-7cef1ccb554eb6ddd6c42db8d7617c49-11",
+    "doc2dial-heldout-dc00a7f5bd17fc480e7715c5f70ccd20-13",
+    "doc2dial-heldout-429aa5c591d70b7e4add35d9eced3ad3-13",
+    "doc2dial-heldout-24cfc12fb97898aaae74ce5616cb0183-11",
+    "doc2dial-heldout-c5261e5fcd75f694e0564c1d3e4df440-11",
+    "doc2dial-heldout-0c98b8234370373a9ab0b7a4535bf4a1-13",
+    "doc2dial-heldout-a05852738bd0d26b6c2cd9921f57e5fc-10",
+    "doc2dial-heldout-5b314b3987408f6c2430048fdab6b693-11",
+    "doc2dial-heldout-6d632aae1bb7d6e9c2bbc377717a2797-10",
+    "doc2dial-heldout-2c53f2403ea43e1652ab1da9de950f0f-10",
+    "doc2dial-heldout-317e6ec4a06c5619d584800a60aadcf3-13",
+    "doc2dial-heldout-b785e699f9eeefba42d540438f5d0862-10"
+  ],
+  "system": "Rewrite the current user message as one standalone knowledge retrieval question using the conversation history. Do not answer it. Preserve the current subject, entities, negation, dates, conditions and hypothetical scope. Resolve short replies against the preceding question. Older assistant statements are context, not verified policy; do not insert their answers into the query. Do not invent missing user facts. Preserve genuine ambiguity. If the current message is only a statement or conversational continuation, preserve the topic and indicate that no specific new question is stated rather than inventing a question. Return only the single retrieval query, no preamble or explanation.",
+  "profile": {
+    "model": "deepseek-v4-flash",
+    "reasoning": "none",
+    "min_completion_tokens": 0,
+    "max_context_tokens": 32768
+  },
+  "max_tokens": 512,
+  "api_budget": 20,
+  "source_sha256": "42e3c6e153cf20d5bb7c59220199698d96fdcaefcb05f986710c7db707f8c6ce",
+  "mode": "full original history, isolated query generation; not production context loader or Agent",
+  "adoption": "development only; no prompt changes after scores"
+}

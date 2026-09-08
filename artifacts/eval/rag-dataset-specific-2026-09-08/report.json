@@ -1,0 +1,30 @@
+{
+  "MTRAG": {
+    "n": 100,
+    "candidate_recall": {
+      "dense20": 0.6047380952380952,
+      "bm25_20": 0.34585714285714286,
+      "fusion20": 0.5859047619047619,
+      "reserved10_each": 0.5859047619047619,
+      "union40": 0.6649047619047619
+    },
+    "scope": "candidate only; no final answer or rerank gain asserted"
+  },
+  "WixQA": {
+    "n": 100,
+    "summary": {
+      "baseline": {
+        "recall": 0.7083333333333333,
+        "mrr": 0.539,
+        "ndcg": 0.5614814714668115
+      },
+      "article_rrf20": {
+        "recall": 0.7116666666666667,
+        "mrr": 0.528,
+        "ndcg": 0.5545806834483771
+      }
+    },
+    "better": 2,
+    "worse": 1
+  }
+}

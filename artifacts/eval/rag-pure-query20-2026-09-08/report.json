@@ -1,0 +1,29 @@
+{
+  "n": 20,
+  "single_query": 20,
+  "calls": 20,
+  "new_ce_pairs": 400,
+  "summary": {
+    "raw": {
+      "recall": 0.45,
+      "mrr": 0.2791666666666667,
+      "ndcg": 0.32271977861796114
+    },
+    "manual": {
+      "recall": 1.0,
+      "mrr": 0.7116666666666667,
+      "ndcg": 0.7845106944734643
+    },
+    "agent": {
+      "recall": 0.95,
+      "mrr": 0.6666666666666667,
+      "ndcg": 0.7388930695573495
+    }
+  },
+  "union_recall": 1.0,
+  "candidate_recall": 1.0,
+  "memory_triggered": 0,
+  "summary_envelopes_present": 0,
+  "nonempty_summary_chunks": 0,
+  "error_types": []
+}
