@@ -1,0 +1,22 @@
+{
+  "scope": "4 exposed failures, same full corpus, query-only diagnosis; no rerank/answers",
+  "api_calls": 0,
+  "query_embeddings": 12,
+  "document_embeddings": 0,
+  "queries_sha256": "c3441a0a4115f0b2580ed1bb24336a1a33648f983490f9f2c438d1dbd0ec8882",
+  "cache_identity_sha256": "af8161c8296f3d36e0bfb8a5b26179a94b5ddb5f2879aa6024fbf7e511287332",
+  "summary": {
+    "official": {
+      "dense": 0.0,
+      "bm25": 0.0
+    },
+    "role_stripped": {
+      "dense": 0.05,
+      "bm25": 0.0
+    },
+    "context_authored": {
+      "dense": 0.125,
+      "bm25": 0.0
+    }
+  }
+}

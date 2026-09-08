@@ -1,0 +1,210 @@
+{
+  "method": "Codex context-only rewrite frozen before rescoring; gold source IDs/ranks already exposed historically, gold text not read for authoring; not independent blinded evaluation",
+  "source_sha256": "b3dde4076f9f692a99513e424a0a39f57591dbe45600a4c1017aaa7a7edcfaac",
+  "cases": [
+    {
+      "case_id": "c5518952b78b171de2d5b9317103ba62<::>6",
+      "history": [
+        {
+          "speaker": "user",
+          "text": "Freelancer: Should I start a second bank account?"
+        },
+        {
+          "speaker": "agent",
+          "text": "Yes, as a freelancer, it is recommended to separate your business finances from your personal finances. You can use current account for daily spending and re-investing your business, and you can have another account for your savings. You should be careful so that not to mix personal and business expenses."
+        },
+        {
+          "speaker": "user",
+          "text": "Is it free to open a second bank account?"
+        },
+        {
+          "speaker": "agent",
+          "text": "Find a bank offering a free checking account, especially if you don't anticipate much activity. Other accounts, such as IRAs and discount brokerage, are also free. If you think it would be beneficial to open another account, feel free to do so."
+        },
+        {
+          "speaker": "user",
+          "text": "if it is free, then I should make a second account for my business. how can I create?"
+        },
+        {
+          "speaker": "agent",
+          "text": "To open a second bank account, you can go to a bank of your choice and let them know that you have an existing checking account and that you would like to open a second checking account. You will need USA address to open an account in USA. You also can open one with SSN and foreign passport. However, bank will require you to deposit $1500 only to get you a debit card, and you are required to maintain min balance of $1500 only."
+        },
+        {
+          "speaker": "user",
+          "text": "what? you said it is free to open one!"
+        },
+        {
+          "speaker": "agent",
+          "text": "I apologize for any confusion. While Bank accounts are free, there may be requirements to maintain a minimum balance or set up direct deposit. The user would need to deposit and maintain a minimum balance of $1500 to open a second account. "
+        },
+        {
+          "speaker": "user",
+          "text": "should I set up my second bank account with different bank I have right now?"
+        },
+        {
+          "speaker": "agent",
+          "text": "There are advantages and disadvantages to keeping all your accounts with the same bank versus having accounts at different banks. If you open a second account at a different bank, you may have more options for products like Mortgage or credit extensions since you are not limited to just one institution. If you use the same bank, that would make it harder to lose track of, and you could probably still get reports summarizing the balances across them. Additionally, occasionally there are also perks like the bank spontaneously offering you increased credit or even a whole line of credit because the bank has your data already."
+        },
+        {
+          "speaker": "user",
+          "text": "what are people's experience with using two bank accounts?"
+        }
+      ],
+      "authored_query": "What experiences do freelancers have with using two bank accounts to keep business and personal finances separate, including keeping both accounts at one bank versus at different banks?",
+      "rationale": "Restore freelancer/business-versus-personal purpose and preceding same-bank versus different-bank discussion; no invented fees."
+    },
+    {
+      "case_id": "fdee20f7fd677e420742b09989623d68<::>6",
+      "history": [
+        {
+          "speaker": "user",
+          "text": "Is it worth having a web chat widget on my website?"
+        },
+        {
+          "speaker": "agent",
+          "text": "Yes, it is worth having a web chat widget on your website. The web chat integration can help your customers with common questions and tasks; it can understand customer messages in any of the languages that are supported by the service, and it engages your users when they need help, answering their questions quickly and efficiently, and providing fallback options so there is always a path to a solution. It is also customizable, secure, and supports a wide range of desktop and mobile browsers. Building a custom user interface for these functionalities would require significant time and effort, which could be better spent on building a high-quality assistant. Additionally, the web chat widget is easy for you to deploy and easy for customers to use."
+        },
+        {
+          "speaker": "user",
+          "text": "how to add web chat widget?"
+        },
+        {
+          "speaker": "agent",
+          "text": "From the Assistants page, click to open the assistant tile that you want to deploy to your site. From the Integrations section, click the Web chat tile and click Open. The Open web chat window opens. In the Environment field, select the environment you want the web chat widget to connect to. Click Confirm. All you need to do is embed a generated script element in your HTML source."
+        },
+        {
+          "speaker": "user",
+          "text": "Can I extend the web chat? if so, how can I do that?"
+        },
+        {
+          "speaker": "agent",
+          "text": "Yes, extend the web chat. If you are a developer, you can extend the capabilities of the web chat by using the Watson Assistant web chat toolkit on GitHub. You can also you can further customize and extend the web chat by writing code and using the web chat API."
+        },
+        {
+          "speaker": "user",
+          "text": "Is web chat secure enough for me to pass some sesitive data?"
+        },
+        {
+          "speaker": "agent",
+          "text": "When you enable web chat security, all messages received by the web chat integration that are not accompanied by a properly signed JSON Web Token (JWT) will be rejected. JWTs are digitally signed using a private encryption key that only you have, ensuring that each message originates with your website. You can also use the public key provided by IBM to add an additional level of encryption for passing sensitive data from the web chat. This private context variable will be available for use by the dialog but not by anything else."
+        },
+        {
+          "speaker": "user",
+          "text": "I do not like the look of my web chat and how it opens and closes..."
+        },
+        {
+          "speaker": "agent",
+          "text": "You can customize the look and behavior of your web chat. From the Style tab of the web chat configuration page, you can change the color of the launcher icon and the text font. You can choose to use a different base Carbon Design theme as well. If you want to make more advanced customizations, you can change the launcher icon used to open the web chat widget and how it opens and closes. For example, you can launch the web chat from a different button or process on your website, open it in a different location or size, hide the launcher icon entirely, or hide the close button. "
+        },
+        {
+          "speaker": "user",
+          "text": "i am having hard time finding web chat whenever I was trying to use"
+        }
+      ],
+      "authored_query": "I am using a Watson Assistant web chat widget on my website. After discussing its launcher and opening and closing behavior, I have trouble finding and opening the web chat when I want to use it. How can I make the web chat easy to find and open?",
+      "rationale": "Restore product, website widget and immediate launcher context; no assumed technical cause."
+    },
+    {
+      "case_id": "c1e53df98a28f19448f4af244304b89a<::>4",
+      "history": [
+        {
+          "speaker": "user",
+          "text": "robert louis stevenson a child's garden of verses"
+        },
+        {
+          "speaker": "agent",
+          "text": "Robert Louis Stevenson is the author of A Child's Garden of Verses, a collection of poetry for children about darkness and solitude. The collection was first published in 1885 under the title Penny Whistles and contains about 65 poems, including classics such as \"Foreign Children,\" \"The Lamplighter,\" \"The Land of Counterpane,\" \"Bed in Summer,\" \"My Shadow,\" and \"The Swing.\""
+        },
+        {
+          "speaker": "user",
+          "text": "is a child's garden of verses only in English?"
+        },
+        {
+          "speaker": "agent",
+          "text": "No, A Child's Garden of Verses is not only in English. It has been translated into Latin by Terrot Reaveley Glover in 1922 under the title Carmina non prius audita de ludis et hortis virginibus puerisque. "
+        },
+        {
+          "speaker": "user",
+          "text": "what are the contents of a child's garden of verses"
+        },
+        {
+          "speaker": "agent",
+          "text": "Here are the contents of the a child's garden of verses: * Foreign Children * The Lamplighter * The Land of Counterpane * Bed in Summer * My Shadow * The Swing * The Land of Nod * My Bed is a Boat * The Moon * Time to Rise * Looking-glass River * Winter-time * The Hayloft * Farewell to the Farm * Northwest Passage: Good Night, Shadow March, In Port."
+        },
+        {
+          "speaker": "user",
+          "text": "any other famous poets you recommend me to know?"
+        }
+      ],
+      "authored_query": "Which famous poets other than Robert Louis Stevenson would you recommend learning about, after discussing A Child's Garden of Verses?",
+      "rationale": "Restore the comparison referent; do not restrict recommendations to children's poets without user evidence."
+    },
+    {
+      "case_id": "47b2471404382af6e973013ab1cf96b9<::>8",
+      "history": [
+        {
+          "speaker": "user",
+          "text": "Are the Lite pricing plans available with all account types in IBM Cloud"
+        },
+        {
+          "speaker": "agent",
+          "text": "Yes, Lite pricing plans are available with all account types in IBM Cloud. You can have one instance of a Lite plan for each service. For more information about Lite accounts, you can refer to the Account types documentation."
+        },
+        {
+          "speaker": "user",
+          "text": "What is it?"
+        },
+        {
+          "speaker": "agent",
+          "text": "The Lite plan is a free service plan with usage quotas. You can use the Lite plan to develop an app without any charges. The plan may be renewed monthly or used as a one-time offer. Lite pricing plans are accessible for all account types, and you can have one instance of a Lite plan for each service."
+        },
+        {
+          "speaker": "user",
+          "text": "What is an account?"
+        },
+        {
+          "speaker": "agent",
+          "text": "Your IBM Cloud account consists of various interconnected components and systems for managing resources, users, and access. Understanding how these components are linked and how access functions will help you set up your account effectively. An IBM Cloud account is necessary for provisioning and managing IBM Cloud services that are part of the IBM Cloud for Financial Services reference architectures. In addition to outlining the high-level steps to follow, we will also describe some best practices for setting up your account that will assist you in meeting the requirements of the IBM Cloud Framework for Financial Services. We will also provide the most relevant control requirements."
+        },
+        {
+          "speaker": "user",
+          "text": "How can I create one?"
+        },
+        {
+          "speaker": "agent",
+          "text": "To sign up for an IBM Cloud account, you can use an existing IBMid or create a new one. Simply go to the IBM Cloud login page and click on \"Create an IBM Cloud account.\" Then, enter your IBMid email address. If you don't have an existing IBMid, an ID will be created based on the email you enter. Complete the remaining fields with your information.\nYou will be prompted to provide your credit card information to verify your identity and secure your account. It's important to note that you can try out IBM Cloud for free and only pay for the billable services that you choose to use, with no long-term contracts or commitments. After filling out the information, click \"Create account\" and then confirm your account by clicking the link in the confirmation email sent to your provided email address.\nFinally, you can see the \"Account types\" section to compare and choose an account type that suits your needs."
+        },
+        {
+          "speaker": "user",
+          "text": "How many megabytes can I use each month?"
+        },
+        {
+          "speaker": "agent",
+          "text": "If you signed up for a Lite account before 12 August 2021, you can use a limited number of free buildpacks and Cloud Foundry apps with up to 256 MB of free instantaneous runtime memory per month. If you created a Lite account before 25 October 2021, your account doesn't expire, and you can access IBM Cloud services for free with select Lite plans, which are marked with a Lite tag in the catalog. To access all Free plans, you can upgrade to a Pay-As-You-Go account by adding your credit card information."
+        },
+        {
+          "speaker": "user",
+          "text": "Do I need to purchase it with other products?"
+        },
+        {
+          "speaker": "agent",
+          "text": "The documents do not provide an answer to the question. "
+        },
+        {
+          "speaker": "user",
+          "text": "How many types does it offer?"
+        },
+        {
+          "speaker": "agent",
+          "text": "When you sign up with IBM Cloud®, you will be given a Pay-As-You-Go account. While you need to provide your credit card details for security and identity verification, you can still enjoy using IBM Cloud for free by choosing products from the catalog that have Free and Lite pricing plans. Another account option is the Subscription account, which offers many of the same features as the Pay-As-You-Go account, along with discounts for platform services and consistent billing through subscriptions. Educational institutions may want to provide IBM Cloud accounts to their students so they can gain practical skills by working on projects that utilize IBM Cloud services. For these institutions, such as traditional universities or online learning platforms, it is possible to group accounts by department or subject area and create accounts for each course.\nWithin each account, students can create resources to develop their projects and collaborate with their peers in the same account. The university will have a comprehensive view of the costs associated with each department and course."
+        },
+        {
+          "speaker": "user",
+          "text": "Enterprise"
+        }
+      ],
+      "authored_query": "What is an Enterprise account in IBM Cloud, and how does it differ from the other IBM Cloud account types?",
+      "rationale": "Latest topic is account types; Enterprise is an elliptical follow-up. Interpretation is plausible, not uniquely certain."
+    }
+  ]
+}
