@@ -21,6 +21,37 @@ def manager(**kwargs):
     return MCPToolManager(api_key="test-key", model="test-model", **kwargs)
 
 
+@pytest.mark.parametrize('dynamic', [False, True])
+@pytest.mark.parametrize('params,valid', [
+    ({'count': 1, 'selection': {'kind': 'read'}}, True),
+    ({'count': 3, 'selection': {'kind': 'read'}}, True),
+    ({'count': 1.0, 'selection': {'kind': 'read'}}, True),
+    ({'count': 0, 'selection': {'kind': 'read'}}, False),
+    ({'count': 4, 'selection': {'kind': 'read'}}, False),
+    ({'count': True, 'selection': {'kind': 'read'}}, False),
+    ({'count': 1, 'selection': {'kind': 'write'}}, False),
+    ({'count': 1, 'selection': {}}, False),
+    ({'count': 1, 'selection': {'kind': 'read'}, 'tenant_id': 'forged'}, False),
+])
+def test_static_and_dynamic_schemas_enforce_the_same_contract_before_handler(dynamic, params, valid):
+    runtime, calls = manager(), []
+    schema = {'type': 'object', 'additionalProperties': False,
+        'required': ['count', 'selection'], 'properties': {
+            'count': {'type': 'integer', 'minimum': 1, 'maximum': 3},
+            'selection': {'type': 'object', 'required': ['kind'],
+                'properties': {'kind': {'enum': ['read']}}},
+        }}
+    async def handler(params, context):
+        calls.append(params)
+        return {'ok': True}
+    runtime.register(Tool(name='bounded_read', description='Read', handler=handler, schema=schema,
+        schema_factory=(lambda _: schema) if dynamic else None,
+        schema_factory_version='v1' if dynamic else ''))
+    result = asyncio.run(runtime.execute_for_agent('bounded_read', params, agent_type='general'))
+    assert result.success is valid
+    assert len(calls) == int(valid)
+
+
 def test_tool_discovery_and_execution_share_agent_allowlist():
     """证明隐藏工具和执行权限读取同一 allowlist，不能只在 Prompt 层过滤。"""
     runtime = manager()

@@ -1036,32 +1036,14 @@ class MCPToolManager:
 
     # ── 参数校验 ──────────────────────────────────────────────────────────────
 
-    _TYPE_MAP = {"string": str, "number": (int, float), "integer": int, "boolean": bool, "array": list, "object": dict}
-
     def _validate_params(self, tool: Tool, params: Dict[str, Any], context=None) -> None:
         """根据工具的 JSON Schema 校验参数，不合法时抛出 ValueError。"""
         schema = tool.input_schema(context)
-        if tool.schema_factory:
-            import jsonschema
-            try:
-                jsonschema.validate(params, schema)
-            except jsonschema.ValidationError as exc:
-                raise ValueError("parameters do not match runtime tool schema") from exc
-        required = schema.get("required", [])
-        properties = schema.get("properties", {})
-
-        for field_name in required:
-            if field_name not in params:
-                raise ValueError(f"工具 {tool.name} 缺少必需参数: {field_name}")
-
-        for key, value in params.items():
-            if key in properties:
-                expected_type = properties[key].get("type")
-                if expected_type and expected_type in self._TYPE_MAP:
-                    if not isinstance(value, self._TYPE_MAP[expected_type]):
-                        raise ValueError(
-                            f"工具 {tool.name} 参数 {key} 类型错误: 期望 {expected_type}，实际 {type(value).__name__}"
-                        )
+        import jsonschema
+        try:
+            jsonschema.validate(params, schema)
+        except jsonschema.ValidationError as exc:
+            raise ValueError("parameters do not match tool schema") from exc
 
     @staticmethod
     def _strip_control_params(params: Dict[str, Any]) -> Dict[str, Any]:

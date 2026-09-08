@@ -54,6 +54,7 @@ from infrastructure.conversation_tool_catalog import ConversationToolCatalog
 from infrastructure.target_turn_context import TargetTurnContextLoader
 from infrastructure.postgres_memory_projection import PostgresMemoryProjectionReader
 from infrastructure.postgres_conversation_evidence import PostgresConversationEvidence
+from infrastructure.conversation_observation_tool import install_observation_capability
 from infrastructure.target_workflow_execution import TargetWorkflowExecutor
 from services.answer_verifier import AnswerVerifier
 
@@ -92,6 +93,8 @@ async def build_target_runtime(
     registry = registry if registry is not None else build_default_capability_registry(
         os.getenv("DEFAULT_TENANT_ID", "default")
     )
+    evidence_reader = PostgresConversationEvidence(postgres_pool, knowledge_reuse_validator)
+    registry = install_observation_capability(registry, tool_manager, evidence_reader)
     checkpoint_owner = AsyncPostgresCheckpointOwner(database_url, setup=True,
         result_ttl_minutes=float(os.getenv("TARGET_RESULT_TTL_MINUTES", "43200")))
     checkpointer = await checkpoint_owner.__aenter__()
@@ -203,7 +206,7 @@ async def build_target_runtime(
             orchestration=orchestration,
             context_provider=TargetTurnContextLoader(
                 PostgresMemoryProjectionReader(postgres_pool, memory), tool_manager,
-                evidence_reader=PostgresConversationEvidence(postgres_pool, knowledge_reuse_validator)),
+                evidence_reader=evidence_reader),
         )
         # Answer support is part of the assembled Target runtime, including
         # tool-only environments. Callers may inject a verifier, not omit it.

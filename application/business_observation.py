@@ -87,7 +87,9 @@ def capture_business_observations(board):
     for item, result in board.outcome_items:
         if result is None:
             continue
-        facts = tuple(fact for fact in result.facts if not fact.requirement_id.startswith("knowledge."))
+        # Evidence-reader outputs are references to existing historical originals,
+        # not new business observations to recursively republish.
+        facts = tuple(fact for fact in result.facts if not fact.requirement_id.startswith(("knowledge.", "memory.")))
         recovery = tuple(WriteRecoveryObservation.model_validate(feedback)
             for feedback in result.execution_feedback
             if item.effect is CapabilityEffect.WRITE and item.operation_key

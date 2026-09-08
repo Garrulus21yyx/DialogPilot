@@ -6,6 +6,7 @@ pydantic-ai-slim[anthropic]==2.37.0  # 仅用于 RAG grounded structured-output 
 langgraph==1.2.11        # Target Architecture v1 父图、Worker 派发和 interrupt/checkpoint
 langgraph-checkpoint-postgres==3.1.2  # 生产级执行位置持久化；不作为业务事实库
 langchain==1.2.11       # 标准 Agent/Tool 循环；全局编排仍由已有 LangGraph 父图负责
+jsonpointer==3.1.1     # 历史证据结构化定位；复用 RFC 6901 解析
 langchain-anthropic==1.7.1  # 领域 Agent 使用 LangGraph 标准工具循环的供应商适配
 
 # ── Web 框架 ──────────────────────────────────────────────────────────────────

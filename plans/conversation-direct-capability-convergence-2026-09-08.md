@@ -848,3 +848,37 @@ and bounded output; the installed jsonpointer 3.1.1 can resolve JSON Pointer pat
 without a handwritten path parser. Preserve historical scope in returned evidence,
 avoid recursively republishing evidence-reader wrappers, and verify budget behavior
 at main planning, domain, compose and answer verification before a fixed replay.
+
+Native historical-reader integration (in progress after 29d8e52): the existing
+ToolManager/native catalog now exposes one scoped, JSON Pointer-selectable read
+for default and custom bundles. The handler uses the installed jsonpointer library,
+returns bounded JSON pages, and never refreshes business state or grants approval.
+Memory reader wrappers are not recaptured as new business originals. Reassembly
+may rebind the reader/principals but must reject a conflicting execution manifest.
+
+Tests exposed a shared owner defect: static Tool schemas used a handwritten subset
+validator while dynamic schemas used jsonschema. Static range, nested enum and
+additional-property constraints were silently ignored. Both now use the existing
+JSON Schema library; integer-valued floats remain legal JSON Schema integers and
+are normalized at the pagination indexing boundary. Independent review identified
+that conversion bug before delivery; regression covers int and float pagination.
+
+Checks so far: broad suite 178 passed, 223 skipped without PostgreSQL; actual PG
+reader/continuity/native-read/security suites 99 passed in 25.18s. These are not
+real-model success evidence. Broader PG consumer regression and collision tests
+are in progress. No historical budget omission, encoder enablement or tau replay
+has occurred. The next causal item remains bounded context across all consumers,
+with original access now executable rather than an unreadable reference.
+
+Final checks for this increment: new reader/security suite 43 passed, 1 PG skip;
+reader suite with actual PG 14 passed. Broader PG run: 304 passed, 2 skipped,
+15 failed because that process had already imported the erroneous property call
+`registered_tools()` before its correction. The complete affected set (14 reader
+tests plus actual build_target_runtime composition) was rerun in a fresh process:
+15 passed in 5.40s. Preserve the failed run; do not report it as an all-green run.
+This was a local implementation error in collision checking, not a new business
+authority defect. jsonschema-related existing consumers passed the broader run.
+Independent review found no concrete new scope/authority escalation; its integer
+normalization and same-name replacement concerns are covered by the new tests.
+Ready to deliver this increment; overall context-budget and task19 closure remain
+unverified. No model calls or business benchmark retries in this increment.
