@@ -26,10 +26,11 @@ def rerank(ids,scores):
 
 
 def run(a):
+    arms_to_score=tuple(a.arms) if getattr(a,"arms",None) else ARMS
     with gzip.open(a.hybrid/'cases.json.gz','rt') as f:cases=json.load(f)
     manifest=json.loads(a.manifest.read_text())
-    needed=sorted({(i,p) for i,r in enumerate(cases) for arm in ARMS for p in r['variants'][arm]['ranking']})
-    assert len(needed)<=1280
+    needed=sorted({(i,p) for i,r in enumerate(cases) for arm in arms_to_score for p in r['variants'][arm]['ranking']})
+    assert len(needed)<=20*len(cases)*len(arms_to_score)
     wanted={p for _,p in needed};texts={}
     for domain in DOMAINS:
         archive=a.corpora/f'{domain}.jsonl.zip'
@@ -46,7 +47,7 @@ def run(a):
               'input_sha256':hashlib.sha256(json.dumps([(i,p,cases[i]['query'],texts[p]) for i,p in needed],ensure_ascii=False).encode()).hexdigest(),
               'recipe':'FP16 batch4 query + full passage text; no truncation; stable ID ties; unmodified pretrained BGE reranker'}
     a.output.mkdir(parents=True,exist_ok=False)
-    print(f'unique pairs {len(needed)}, arm pairs {sum(len(r["variants"][arm]["ranking"]) for r in cases for arm in ARMS)}',flush=True)
+    print(f'unique pairs {len(needed)}, arm pairs {sum(len(r["variants"][arm]["ranking"]) for r in cases for arm in arms_to_score)}',flush=True)
     start=time.monotonic()
     if a.replay:
         old=json.loads((a.replay/'identity.json').read_text())
@@ -70,14 +71,14 @@ def run(a):
     results=[]
     for i,r in enumerate(cases):
         arms={}
-        for arm in ARMS:
+        for arm in arms_to_score:
             ids=r['variants'][arm]['ranking'];ordered=rerank(ids,{p:lookup[i,p] for p in ids})
             arms[arm]={'before':at5(ids,set(r['gold'])),'after':at5(ordered,set(r['gold'])),'ranking':ordered,
                        'candidate_recall@20':r['variants'][arm]['metrics']['recall@20']}
         results.append({'case_id':r['case_id'],'group_id':r['group_id'],'domain':r['domain'],'gold':r['gold'],'arms':arms})
-    summary={arm:{stage:{m:sum(r['arms'][arm][stage][m] for r in results)/len(results) for m in results[0]['arms'][arm][stage]} for stage in ('before','after')} for arm in ARMS}
-    paired={arm:{m:{'better':sum(r['arms'][arm]['after'][m]>r['arms']['0.25']['after'][m]+1e-12 for r in results),'worse':sum(r['arms'][arm]['after'][m]<r['arms']['0.25']['after'][m]-1e-12 for r in results)} for m in results[0]['arms'][arm]['after']} for arm in ARMS[1:]}
-    report={'scope':'32 exposed dev, local CE top5 only; no pack/tool/answer outcome','api_calls':0,'unique_pairs':len(needed),'new_model_pairs':0 if a.replay else len(needed),'scoring_and_ranking_seconds':time.monotonic()-start,'max_padded_input_tokens':max(r['padded_input_tokens'] for r in scored),'summary':summary,'paired_after_vs_current':paired}
+    summary={arm:{stage:{m:sum(r['arms'][arm][stage][m] for r in results)/len(results) for m in results[0]['arms'][arm][stage]} for stage in ('before','after')} for arm in arms_to_score}
+    paired={arm:{m:{'better':sum(r['arms'][arm]['after'][m]>r['arms']['0.25']['after'][m]+1e-12 for r in results),'worse':sum(r['arms'][arm]['after'][m]<r['arms']['0.25']['after'][m]-1e-12 for r in results)} for m in results[0]['arms'][arm]['after']} for arm in arms_to_score[1:]}
+    report={'scope':'fixed supplied cases, local CE top5 only; no pack/tool/answer outcome','api_calls':0,'unique_pairs':len(needed),'new_model_pairs':0 if a.replay else len(needed),'scoring_and_ranking_seconds':time.monotonic()-start,'max_padded_input_tokens':max(r['padded_input_tokens'] for r in scored),'summary':summary,'paired_after_vs_current':paired}
     for name,value in [('scores',scored),('cases',results)]:
         with gzip.open(a.output/(name+'.json.gz'),'wt') as f:json.dump(value,f,ensure_ascii=False)
     (a.output/'identity.json').write_text(json.dumps(identity,indent=2)+'\n')
@@ -89,4 +90,5 @@ if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
     for name in ('hybrid','manifest','corpora','model','output'):p.add_argument('--'+name,type=Path,required=True)
     p.add_argument('--replay',type=Path)
+    p.add_argument('--arms',nargs='+',choices=['0.25','0.5','0.75'])
     run(p.parse_args())

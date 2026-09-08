@@ -14,13 +14,14 @@ from scripts.run_mtrag_reranker_pair import ARMS, at5
 
 
 def run(a):
+    arms_to_score=tuple(a.arms) if getattr(a,"arms",None) else ARMS
     ranks=json.loads(gzip.decompress((a.rerank/'cases.json.gz').read_bytes()))
     hybrid=json.loads(gzip.decompress((a.hybrid/'cases.json.gz').read_bytes()))
     identity=json.loads((a.rerank/'identity.json').read_text())
     assert identity['hybrid_sha256']==digest(a.hybrid/'cases.json.gz')
     assert identity['source_manifest_sha256']==digest(a.manifest)
     manifest=json.loads(a.manifest.read_text())
-    wanted={p for r in ranks for arm in ARMS for p in r['arms'][arm]['ranking']}
+    wanted={p for r in ranks for arm in arms_to_score for p in r['arms'][arm]['ranking']}
     sources={}
     for domain in DOMAINS:
         archive=a.corpora/f'{domain}.jsonl.zip'
@@ -36,7 +37,7 @@ def run(a):
     for r,h in zip(ranks,hybrid,strict=True):
         assert r['case_id']==h['case_id'] and r['gold']==h['gold']
         arms={}
-        for arm in ARMS:
+        for arm in arms_to_score:
             candidates=[]
             for p in r['arms'][arm]['ranking']:
                 source=sources[p];text=source['text']
@@ -52,8 +53,8 @@ def run(a):
                 assert e['text']==sources[e['source']['source_id']]['text']
             arms[arm]={'packed_ids':list(packed.chunk_ids),'serialized_ids':ids,'metrics':at5(ids,set(r['gold'])),'body_estimated_tokens':packed.token_count,'serialized_estimated_tokens':tokens.estimate(wire),'skipped_budget':list(packed.skipped_budget),'skipped_redundant':list(packed.skipped_redundant),'wire':wire}
         rows.append({'case_id':r['case_id'],'gold':r['gold'],'arms':arms})
-    summary={arm:{m:sum(r['arms'][arm]['metrics'][m] for r in rows)/len(rows) for m in rows[0]['arms'][arm]['metrics']} for arm in ARMS}
-    report={'scope':'production pack and serialization only; excludes guard, agent context and answer','api_calls':0,'new_model_scores':0,'case_count':len(rows),'summary':summary,'budget_skips':{a:sum(len(r['arms'][a]['skipped_budget']) for r in rows) for a in ARMS},'serialized_token_max':max(r['arms'][a]['serialized_estimated_tokens'] for r in rows for a in ARMS),'paired_recall_vs_current':{a:{'better':sum(r['arms'][a]['metrics']['recall@5']>r['arms']['0.25']['metrics']['recall@5'] for r in rows),'worse':sum(r['arms'][a]['metrics']['recall@5']<r['arms']['0.25']['metrics']['recall@5'] for r in rows)} for a in ARMS[1:]}}
+    summary={arm:{m:sum(r['arms'][arm]['metrics'][m] for r in rows)/len(rows) for m in rows[0]['arms'][arm]['metrics']} for arm in arms_to_score}
+    report={'scope':'production pack and serialization only; excludes guard, agent context and answer','api_calls':0,'new_model_scores':0,'case_count':len(rows),'summary':summary,'budget_skips':{a:sum(len(r['arms'][a]['skipped_budget']) for r in rows) for a in arms_to_score},'serialized_token_max':max(r['arms'][a]['serialized_estimated_tokens'] for r in rows for a in arms_to_score),'paired_recall_vs_current':{a:{'better':sum(r['arms'][a]['metrics']['recall@5']>r['arms']['0.25']['metrics']['recall@5'] for r in rows),'worse':sum(r['arms'][a]['metrics']['recall@5']<r['arms']['0.25']['metrics']['recall@5'] for r in rows)} for a in arms_to_score[1:]}}
     a.output.mkdir(parents=True,exist_ok=False)
     (a.output/'cases.json.gz').write_bytes(gzip.compress(json.dumps(rows,ensure_ascii=False).encode(),mtime=0))
     (a.output/'report.json').write_text(json.dumps(report,indent=2)+'\n')
@@ -64,4 +65,5 @@ def run(a):
 if __name__=='__main__':
     p=argparse.ArgumentParser()
     for name in ('rerank','hybrid','manifest','corpora','output'):p.add_argument('--'+name,type=Path,required=True)
+    p.add_argument('--arms',nargs='+',choices=['0.25','0.5','0.75'])
     run(p.parse_args())

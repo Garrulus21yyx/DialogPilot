@@ -1,0 +1,57 @@
+{
+  "scope": "35 heldout conversations, one hash-selected official-rewrite question each; frozen two-arm retrieval/CE/pack, no answers",
+  "summary": {
+    "0.25": {
+      "candidate_recall@20": 0.41333333333333333,
+      "recall@5": 0.3319047619047619,
+      "mrr@5": 0.46190476190476193,
+      "ndcg@5": 0.33652467656327223
+    },
+    "0.75": {
+      "candidate_recall@20": 0.61578231292517,
+      "recall@5": 0.4461904761904762,
+      "mrr@5": 0.57,
+      "ndcg@5": 0.43466303589119715
+    }
+  },
+  "paired_pack": {
+    "recall@5": {
+      "delta": 0.11428571428571428,
+      "bootstrap_percentile95": [
+        0.009523809523809521,
+        0.22857142857142856
+      ],
+      "better": 11,
+      "worse": 4
+    },
+    "mrr@5": {
+      "delta": 0.1080952380952381,
+      "bootstrap_percentile95": [
+        -0.0028571428571428597,
+        0.22619047619047616
+      ],
+      "better": 8,
+      "worse": 1
+    },
+    "ndcg@5": {
+      "delta": 0.09813835932792495,
+      "bootstrap_percentile95": [
+        0.02064294925239776,
+        0.18609878643595548
+      ],
+      "better": 12,
+      "worse": 3
+    }
+  },
+  "bootstrap": {
+    "seed": 20260908,
+    "resamples": 10000,
+    "unit": "conversation, one query/group",
+    "stratified": false
+  },
+  "api_calls": 0,
+  "query_embeddings": 35,
+  "document_embeddings": 0,
+  "new_reranker_pairs": 1212,
+  "heldout_now_consumed": true
+}

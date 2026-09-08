@@ -220,3 +220,7 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 - G4模型对照预注册（6828dba）：项目已有deepseek-v4-pro，NONE，与上一轮焦点Flash保持相同四个完整输入、system/schema、4096输出预算。4调用上限，不用单句替代，不改生产默认。报告两原错误/两修订的supported、publishable、错误、tokens和延迟；价格未核验不编费用。胜出也只构成开发候选，需新控制；不认为Pro必然更好。
 
 - G4 Pro对照完成：4次Pro NONE，与焦点Flash完全同system/messages/schema，两者均错放1/2、修订误拒0/2；输入均27015、输出594/485，四调用中位1.802/1.841秒仅小样本观测。1项输入身份审计通过，无错误。不切模型/不采用焦点，核验未修复。见[报告](../docs/rag-g4-verifier-pro4-2026-09-08.zh-CN.md)。主线收敛：暂停两见证反复调prompt，回到锁定MTRAG heldout消耗核对与冻结候选独立检索验收；领域读回/答案风险/其他集保持开放。交付：`8bc64e4` 已提交并推送到 origin/feat/customer-service-target-architecture。
+
+- G4独立检索预注册（0b1100d）：锁定35 heldout conversation各按hash选一题，官方rewrite、四域完整语料、BGE-M3及8192输入，每路20/最终20/k10；只比当前.25和开发候选.75，不在heldout扫参。结果文件增量扫描无heldout group匹配，范围见exposure-check，结合既有审计不签发全世界未见证明。新增query向量35，文档向量0/API0；随后固定本地CE/pack5/2600，记录Recall/MRR/nDCG及配对置信区间。小组规模只初步验收，生产不自动切换。
+
+- G4 heldout35完成：候选Recall20 41.33→61.58%，pack/序列化Recall5 33.19→44.62%（+11.43pp，11提高/4降低，bootstrap95%[+0.95,+22.86]pp）；MRR .4619→.5700区间跨0，nDCG .3365→.4347。新增35 query向量/1212本地CE pair、文档向量0/API0。5项原回归＋1项heldout审计通过。精排对.75自身Recall有小幅下降，未据验收改策略。见[报告](../docs/rag-g4-heldout35-2026-09-08.zh-CN.md)。35组已消费；不称答案提升，不切生产。下一项汇总开发/独立检索证据并推进电商实际入口与领域读回验收，核验风险保持开放。交付待本轮提交。
