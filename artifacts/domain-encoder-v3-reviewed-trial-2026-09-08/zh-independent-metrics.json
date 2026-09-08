@@ -1,0 +1,1023 @@
+{
+  "scope": "Frozen candidate raw argmax classification; no threshold selection or production enablement",
+  "model_manifest_sha256": "b404ab6f0b6d0a65e244ab7fa072822933835bda106b7e8682ced7cac5091c5d",
+  "classes": [
+    "__DEFER__",
+    "general",
+    "product_technical",
+    "order_logistics",
+    "billing_refund",
+    "account_security",
+    "human_service"
+  ],
+  "reports": {
+    "data/eval/domain-trial-independent-2026-09-08/zh/calibration.jsonl": {
+      "source_sha256": "680228dc36077a568f672f7a817b9bf3888e85c68c8d41897080046a82034998",
+      "summary": {
+        "total": 35,
+        "correct": 5,
+        "accuracy": 0.14285714285714285,
+        "macro_f1": 0.03571428571428571,
+        "predicted_counts": {
+          "billing_refund": 35
+        }
+      },
+      "details": [
+        {
+          "case_id": "independent-20260908-zh-calibration-01",
+          "expected": "general",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.1849629133939743,
+            0.09459680318832397,
+            0.16605572402477264,
+            0.09204386174678802,
+            0.2859077453613281,
+            0.09685734659433365,
+            0.07957559823989868
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-calibration-02",
+          "expected": "general",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.1615106463432312,
+            0.11062758415937424,
+            0.12034844607114792,
+            0.12794743478298187,
+            0.27066570520401,
+            0.11457949131727219,
+            0.09432068467140198
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-calibration-03",
+          "expected": "general",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.16472040116786957,
+            0.10648100823163986,
+            0.1295541673898697,
+            0.12199905514717102,
+            0.2826882302761078,
+            0.10975386202335358,
+            0.08480329811573029
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-calibration-04",
+          "expected": "general",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.16304604709148407,
+            0.10138535499572754,
+            0.13343176245689392,
+            0.1064349040389061,
+            0.30534058809280396,
+            0.10299079865217209,
+            0.0873706042766571
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-calibration-05",
+          "expected": "general",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.16771842539310455,
+            0.10050694644451141,
+            0.14808174967765808,
+            0.0916643962264061,
+            0.3084123134613037,
+            0.10290884971618652,
+            0.08070730417966843
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-calibration-06",
+          "expected": "product_technical",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.15837468206882477,
+            0.10639955848455429,
+            0.16705651581287384,
+            0.1102600023150444,
+            0.28321945667266846,
+            0.10360386967658997,
+            0.07108592242002487
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-calibration-07",
+          "expected": "product_technical",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.1726701855659485,
+            0.09778847545385361,
+            0.13883832097053528,
+            0.11841396242380142,
+            0.2907078266143799,
+            0.10327443480491638,
+            0.07830680906772614
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-calibration-08",
+          "expected": "product_technical",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.16826815903186798,
+            0.10069376230239868,
+            0.13242848217487335,
+            0.09458024054765701,
+            0.31649866700172424,
+            0.10527583211660385,
+            0.0822547972202301
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-calibration-09",
+          "expected": "product_technical",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.1577080339193344,
+            0.11072181910276413,
+            0.16410081088542938,
+            0.11118855327367783,
+            0.2536829710006714,
+            0.11477063596248627,
+            0.087827168405056
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-calibration-10",
+          "expected": "product_technical",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.1697455793619156,
+            0.09764477610588074,
+            0.14865835011005402,
+            0.09518139064311981,
+            0.313346266746521,
+            0.09372963011264801,
+            0.08169394731521606
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-calibration-11",
+          "expected": "order_logistics",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.1784316599369049,
+            0.10361941158771515,
+            0.15491467714309692,
+            0.13054729998111725,
+            0.25561821460723877,
+            0.09294095635414124,
+            0.08392781764268875
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-calibration-12",
+          "expected": "order_logistics",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.19009798765182495,
+            0.09899532794952393,
+            0.12568823993206024,
+            0.11599138379096985,
+            0.2717234492301941,
+            0.1035962626338005,
+            0.09390732645988464
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-calibration-13",
+          "expected": "order_logistics",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.1656872034072876,
+            0.10200520604848862,
+            0.13526320457458496,
+            0.12863901257514954,
+            0.26256120204925537,
+            0.114009790122509,
+            0.09183437377214432
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-calibration-14",
+          "expected": "order_logistics",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.1835555136203766,
+            0.10230833292007446,
+            0.129470556974411,
+            0.12904776632785797,
+            0.25657498836517334,
+            0.11252353340387344,
+            0.08651933073997498
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-calibration-15",
+          "expected": "order_logistics",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.15689319372177124,
+            0.10626807808876038,
+            0.14338316023349762,
+            0.11376520246267319,
+            0.28354114294052124,
+            0.10623745620250702,
+            0.08991177380084991
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-calibration-16",
+          "expected": "billing_refund",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.17152488231658936,
+            0.09707850217819214,
+            0.15059585869312286,
+            0.10604549944400787,
+            0.293601930141449,
+            0.10123532265424728,
+            0.07991797477006912
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-calibration-17",
+          "expected": "billing_refund",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.16489501297473907,
+            0.0976574495434761,
+            0.13937541842460632,
+            0.09545642137527466,
+            0.31277909874916077,
+            0.10609862208366394,
+            0.08373798429965973
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-calibration-18",
+          "expected": "billing_refund",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.17336255311965942,
+            0.09304928034543991,
+            0.12162073701620102,
+            0.12348274141550064,
+            0.2853240966796875,
+            0.11524812877178192,
+            0.08791252970695496
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-calibration-19",
+          "expected": "billing_refund",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.18338775634765625,
+            0.09986598789691925,
+            0.12960690259933472,
+            0.12400386482477188,
+            0.2671321928501129,
+            0.10958325117826462,
+            0.08642006665468216
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-calibration-20",
+          "expected": "billing_refund",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.18396474421024323,
+            0.09133855253458023,
+            0.1487044245004654,
+            0.09975100308656693,
+            0.3084658086299896,
+            0.09150824695825577,
+            0.07626722753047943
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-calibration-21",
+          "expected": "account_security",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.170843705534935,
+            0.09437951445579529,
+            0.11242370307445526,
+            0.1340303122997284,
+            0.2535206377506256,
+            0.14237543940544128,
+            0.09242666512727737
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-calibration-22",
+          "expected": "account_security",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.17787256836891174,
+            0.10269713401794434,
+            0.12687639892101288,
+            0.11542510241270065,
+            0.2671990692615509,
+            0.11944910883903503,
+            0.09048061072826385
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-calibration-23",
+          "expected": "account_security",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.171168252825737,
+            0.09302022308111191,
+            0.12137869000434875,
+            0.11514317989349365,
+            0.27064764499664307,
+            0.14263954758644104,
+            0.08600246161222458
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-calibration-24",
+          "expected": "account_security",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.16996990144252777,
+            0.09035183489322662,
+            0.13133244216442108,
+            0.12670256197452545,
+            0.262960284948349,
+            0.12968933582305908,
+            0.08899363875389099
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-calibration-25",
+          "expected": "account_security",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.16908146440982819,
+            0.0967521220445633,
+            0.12272898852825165,
+            0.12301023304462433,
+            0.2679312825202942,
+            0.1367172747850418,
+            0.08377858251333237
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-calibration-26",
+          "expected": "human_service",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.17453530430793762,
+            0.09697914123535156,
+            0.12671640515327454,
+            0.10894273221492767,
+            0.29360395669937134,
+            0.10981611162424088,
+            0.08940627425909042
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-calibration-27",
+          "expected": "human_service",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.17174814641475677,
+            0.10660556703805923,
+            0.14591898024082184,
+            0.11517509073019028,
+            0.2742186486721039,
+            0.09971624612808228,
+            0.08661740273237228
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-calibration-28",
+          "expected": "human_service",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.1900261491537094,
+            0.10087171941995621,
+            0.14200171828269958,
+            0.11308573186397552,
+            0.2730647027492523,
+            0.09752743691205978,
+            0.08342254161834717
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-calibration-29",
+          "expected": "human_service",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.17738308012485504,
+            0.11094047874212265,
+            0.12311210483312607,
+            0.12116079777479172,
+            0.24941720068454742,
+            0.12036854028701782,
+            0.0976177528500557
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-calibration-30",
+          "expected": "human_service",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.19029822945594788,
+            0.10303226113319397,
+            0.12951228022575378,
+            0.10170622169971466,
+            0.27671363949775696,
+            0.10356710851192474,
+            0.09517022222280502
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-calibration-31",
+          "expected": "__DEFER__",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.18807823956012726,
+            0.08962291479110718,
+            0.12229911237955093,
+            0.1133798286318779,
+            0.2920163869857788,
+            0.10808146744966507,
+            0.08652205765247345
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-calibration-32",
+          "expected": "__DEFER__",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.16525432467460632,
+            0.1044243723154068,
+            0.16750283539295197,
+            0.09325846284627914,
+            0.30061864852905273,
+            0.10042968392372131,
+            0.06851170212030411
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-calibration-33",
+          "expected": "__DEFER__",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.1703745424747467,
+            0.10710643231868744,
+            0.15489906072616577,
+            0.10096011310815811,
+            0.2873767614364624,
+            0.09756135940551758,
+            0.0817217156291008
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-calibration-34",
+          "expected": "__DEFER__",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.17109307646751404,
+            0.10231942683458328,
+            0.13712650537490845,
+            0.10860955715179443,
+            0.2918030321598053,
+            0.0993216410279274,
+            0.08972680568695068
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-calibration-35",
+          "expected": "__DEFER__",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.17531153559684753,
+            0.10568634420633316,
+            0.12202715873718262,
+            0.11722021549940109,
+            0.28170710802078247,
+            0.11128805577754974,
+            0.0867595300078392
+          ]
+        }
+      ]
+    },
+    "data/eval/domain-trial-independent-2026-09-08/zh/evaluation.jsonl": {
+      "source_sha256": "ce7206e63685248e280540753535d8a83d3174cb1fdd277cd10326eefc952664",
+      "summary": {
+        "total": 35,
+        "correct": 5,
+        "accuracy": 0.14285714285714285,
+        "macro_f1": 0.03571428571428571,
+        "predicted_counts": {
+          "billing_refund": 35
+        }
+      },
+      "details": [
+        {
+          "case_id": "independent-20260908-zh-evaluation-01",
+          "expected": "general",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.16050177812576294,
+            0.09765765070915222,
+            0.1269036829471588,
+            0.12516836822032928,
+            0.25984668731689453,
+            0.13658539950847626,
+            0.09333642572164536
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-evaluation-02",
+          "expected": "general",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.17668461799621582,
+            0.11090087890625,
+            0.13134463131427765,
+            0.1117183268070221,
+            0.26652589440345764,
+            0.11091560125350952,
+            0.09191005676984787
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-evaluation-03",
+          "expected": "general",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.16430331766605377,
+            0.10966236144304276,
+            0.14100399613380432,
+            0.11470090597867966,
+            0.26369524002075195,
+            0.1189238429069519,
+            0.08771032094955444
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-evaluation-04",
+          "expected": "general",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.15462303161621094,
+            0.10262458771467209,
+            0.16808024048805237,
+            0.10892312973737717,
+            0.275329053401947,
+            0.11260785907506943,
+            0.07781214267015457
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-evaluation-05",
+          "expected": "general",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.169498011469841,
+            0.10731576383113861,
+            0.1499910205602646,
+            0.12078052014112473,
+            0.26204782724380493,
+            0.10337495058774948,
+            0.08699192106723785
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-evaluation-06",
+          "expected": "product_technical",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.18218669295310974,
+            0.10798387974500656,
+            0.14648810029029846,
+            0.09729493409395218,
+            0.28153544664382935,
+            0.09760023653507233,
+            0.08691075444221497
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-evaluation-07",
+          "expected": "product_technical",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.16975589096546173,
+            0.10227154195308685,
+            0.1589081585407257,
+            0.10488701611757278,
+            0.2823406457901001,
+            0.10657298564910889,
+            0.07526376098394394
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-evaluation-08",
+          "expected": "product_technical",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.16867698729038239,
+            0.09488389641046524,
+            0.14447520673274994,
+            0.11876758188009262,
+            0.28501203656196594,
+            0.11033698916435242,
+            0.07784728705883026
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-evaluation-09",
+          "expected": "product_technical",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.16894890367984772,
+            0.09365453571081161,
+            0.178639218211174,
+            0.09906505048274994,
+            0.2718155086040497,
+            0.11141547560691833,
+            0.0764613077044487
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-evaluation-10",
+          "expected": "product_technical",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.1699448823928833,
+            0.10023624449968338,
+            0.16352035105228424,
+            0.10264484584331512,
+            0.2898966073989868,
+            0.10052025318145752,
+            0.07323683053255081
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-evaluation-11",
+          "expected": "order_logistics",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.16433006525039673,
+            0.09983374178409576,
+            0.1414470374584198,
+            0.13165026903152466,
+            0.25918474793434143,
+            0.11187376081943512,
+            0.09168034791946411
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-evaluation-12",
+          "expected": "order_logistics",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.17692117393016815,
+            0.10427453368902206,
+            0.12898218631744385,
+            0.11211822926998138,
+            0.28173258900642395,
+            0.10429747402667999,
+            0.09167386591434479
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-evaluation-13",
+          "expected": "order_logistics",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.1657591164112091,
+            0.09676625579595566,
+            0.14687901735305786,
+            0.13406291604042053,
+            0.26724258065223694,
+            0.10981739312410355,
+            0.07947269827127457
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-evaluation-14",
+          "expected": "order_logistics",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.17091679573059082,
+            0.09390407055616379,
+            0.1530885249376297,
+            0.09286068379878998,
+            0.30317920446395874,
+            0.10657435655593872,
+            0.07947634905576706
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-evaluation-15",
+          "expected": "order_logistics",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.16856001317501068,
+            0.11021553725004196,
+            0.13626748323440552,
+            0.13668371737003326,
+            0.25747689604759216,
+            0.1089523583650589,
+            0.08184396475553513
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-evaluation-16",
+          "expected": "billing_refund",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.17562991380691528,
+            0.09601304680109024,
+            0.13827349245548248,
+            0.13253122568130493,
+            0.26074323058128357,
+            0.11402320861816406,
+            0.08278590440750122
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-evaluation-17",
+          "expected": "billing_refund",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.17617645859718323,
+            0.0937582328915596,
+            0.1364433765411377,
+            0.1215541809797287,
+            0.2859056890010834,
+            0.10761692374944687,
+            0.07854511588811874
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-evaluation-18",
+          "expected": "billing_refund",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.17704126238822937,
+            0.10085433721542358,
+            0.15698081254959106,
+            0.09275747835636139,
+            0.2900630831718445,
+            0.09942321479320526,
+            0.08287982642650604
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-evaluation-19",
+          "expected": "billing_refund",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.1713266521692276,
+            0.0935094803571701,
+            0.14762189984321594,
+            0.10464312136173248,
+            0.2950199544429779,
+            0.10200241953134537,
+            0.08587650209665298
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-evaluation-20",
+          "expected": "billing_refund",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.1698017418384552,
+            0.10526300966739655,
+            0.13174448907375336,
+            0.11987800151109695,
+            0.27053746581077576,
+            0.11524545401334763,
+            0.0875297412276268
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-evaluation-21",
+          "expected": "account_security",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.1652417778968811,
+            0.09902846068143845,
+            0.13283103704452515,
+            0.11979992687702179,
+            0.27527087926864624,
+            0.12299381196498871,
+            0.08483411371707916
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-evaluation-22",
+          "expected": "account_security",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.17416924238204956,
+            0.09540358185768127,
+            0.13691286742687225,
+            0.11021155118942261,
+            0.288604736328125,
+            0.11458547413349152,
+            0.0801125094294548
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-evaluation-23",
+          "expected": "account_security",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.17002220451831818,
+            0.09972332417964935,
+            0.1356940120458603,
+            0.11430376768112183,
+            0.29382702708244324,
+            0.10712391883134842,
+            0.0793057307600975
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-evaluation-24",
+          "expected": "account_security",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.17039161920547485,
+            0.10661196708679199,
+            0.13800041377544403,
+            0.11521870642900467,
+            0.27642130851745605,
+            0.11331617087125778,
+            0.08003979176282883
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-evaluation-25",
+          "expected": "account_security",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.17553874850273132,
+            0.09508645534515381,
+            0.11434881389141083,
+            0.12262706458568573,
+            0.25892600417137146,
+            0.13976672291755676,
+            0.09370618313550949
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-evaluation-26",
+          "expected": "human_service",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.19717639684677124,
+            0.10573710501194,
+            0.15847663581371307,
+            0.09814539551734924,
+            0.2703373432159424,
+            0.09158019721508026,
+            0.07854696363210678
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-evaluation-27",
+          "expected": "human_service",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.1818089783191681,
+            0.09902334958314896,
+            0.14469048380851746,
+            0.11151674389839172,
+            0.25845110416412354,
+            0.10402707755565643,
+            0.10048224031925201
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-evaluation-28",
+          "expected": "human_service",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.17371490597724915,
+            0.10621188580989838,
+            0.13002048432826996,
+            0.12030965834856033,
+            0.2505144476890564,
+            0.12086722254753113,
+            0.09836136549711227
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-evaluation-29",
+          "expected": "human_service",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.16912312805652618,
+            0.1152091696858406,
+            0.1198078915476799,
+            0.11623366177082062,
+            0.2673563063144684,
+            0.11534725874662399,
+            0.09692256152629852
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-evaluation-30",
+          "expected": "human_service",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.17311212420463562,
+            0.10136193782091141,
+            0.13720600306987762,
+            0.11129705607891083,
+            0.28549182415008545,
+            0.10685122013092041,
+            0.08467990905046463
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-evaluation-31",
+          "expected": "__DEFER__",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.17921330034732819,
+            0.09699705243110657,
+            0.11204005032777786,
+            0.12085839360952377,
+            0.2591187059879303,
+            0.13819459080696106,
+            0.09357786178588867
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-evaluation-32",
+          "expected": "__DEFER__",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.17673707008361816,
+            0.10083576291799545,
+            0.1410980075597763,
+            0.10690711438655853,
+            0.29200664162635803,
+            0.0971149131655693,
+            0.08530055731534958
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-evaluation-33",
+          "expected": "__DEFER__",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.16680406033992767,
+            0.10000207275152206,
+            0.15075108408927917,
+            0.09863992035388947,
+            0.3031298816204071,
+            0.10470730811357498,
+            0.07596570253372192
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-evaluation-34",
+          "expected": "__DEFER__",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.17386940121650696,
+            0.10560216754674911,
+            0.1402314305305481,
+            0.13219065964221954,
+            0.2638242840766907,
+            0.10619407892227173,
+            0.07808797061443329
+          ]
+        },
+        {
+          "case_id": "independent-20260908-zh-evaluation-35",
+          "expected": "__DEFER__",
+          "predicted": "billing_refund",
+          "probabilities": [
+            0.18027687072753906,
+            0.09854442626237869,
+            0.14059653878211975,
+            0.10279432684183121,
+            0.29846814274787903,
+            0.1000693067908287,
+            0.07925041019916534
+          ]
+        }
+      ]
+    }
+  }
+}
