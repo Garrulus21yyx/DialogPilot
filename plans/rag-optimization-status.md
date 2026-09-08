@@ -215,4 +215,4 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 
 - G4焦点初结果：税表原错被UNGROUNDED拒绝，零息原错仍PASS，两修订PASS；未达门槛不采用。后续预注册：同证据/焦点prompt，关键句与支持修订各一条，共4次Flash；原问题保持，单句未答全允许answered=false，主指标只看supported，避免需求拒绝冒充语义识别。用于区分整段掩盖与单句语义判断，不替代正式验证。
 
-- G4焦点/单句完成：新增8次Flash。完整焦点与单句均只拒绝税表，excellent credit仍supported=true；四个支持修订通过。1项旧/新请求消息与schema一致性审计通过，无API/协议错误。未达两原错都拒门槛，不采用；单句未改善不能继续归因仅段落遮蔽。见[报告](../docs/rag-g4-verifier-focus-2026-09-08.zh-CN.md)。下一项同冻结输入比较更强模型能力与成本，不再堆拆分调用，微调保持暂停。交付待此次推送。
+- G4焦点/单句完成：新增8次Flash。完整焦点与单句均只拒绝税表，excellent credit仍supported=true；四个支持修订通过。1项旧/新请求消息与schema一致性审计通过，无API/协议错误。未达两原错都拒门槛，不采用；单句未改善不能继续归因仅段落遮蔽。见[报告](../docs/rag-g4-verifier-focus-2026-09-08.zh-CN.md)。下一项同冻结输入比较更强模型能力与成本，不再堆拆分调用，微调保持暂停。交付：`98af4f0` 已提交并推送到 origin/feat/customer-service-target-architecture。
