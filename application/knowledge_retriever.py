@@ -261,6 +261,8 @@ class EvidencePackResult:
                     "expansion_fallback": self.trace.expansion_fallback,
                     "rerank_fallback": self.trace.rerank_fallback,
                     "cache_hits": list(self.trace.cache_hits),
+                    "original_user_message": self.trace.original_user_message,
+                    "query_mode": self.trace.query_mode,
                 }
                 if self.trace is not None else None
             ),

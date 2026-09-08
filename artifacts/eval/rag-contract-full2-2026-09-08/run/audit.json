@@ -1,0 +1,25 @@
+{
+  "n": 2,
+  "calls": 8,
+  "cases": [
+    {
+      "id": "hypothesis",
+      "query": "耳机已拆封但不是质量问题，能否退货？",
+      "gold_document_visible": true,
+      "citations_exist": true,
+      "answer": "很抱歉，已拆封的耳机如果不是质量问题，是不适用无理由退货的。只有未拆封的耳机才能在签收后七日内申请无理由退货；已拆封耳机非质量原因不适用无理由退货，质量问题需提交检测材料后另行审核。[E9168463a30fd]",
+      "calls": 4,
+      "manual_assessment": "Conditional policy response; no assertion that this user actually opened the item."
+    },
+    {
+      "id": "switch",
+      "query": "电子发票如何申请？申请流程和条件是什么？",
+      "gold_document_visible": true,
+      "citations_exist": true,
+      "answer": "好的，电子发票可以在订单完成后申请。如果抬头有误，可以提交更正申请；已开票的订单退款后需按实退金额处理红冲，不会重复开具原金额发票。[E243253281322]",
+      "calls": 4,
+      "manual_assessment": "Application eligibility answered, operational steps missing in corpus and answer; response does not disclose that gap. Not full request completion."
+    }
+  ],
+  "scope": "synthetic 31-document corpus; no baseline comparison or overall accuracy claim; visibility reconstructed through actual serializer, semantic assessment authored separately"
+}

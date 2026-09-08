@@ -35,6 +35,8 @@ def test_raw_origin_does_not_change_resolved_retrieval_or_reuse_stale_trace():
     assert first.trace.original_user_message == '不是。'
     assert second.trace.original_user_message == '假设不是呢？'
     assert second.trace.query_mode == 'RESOLVED'
+    assert second.to_dict()['trace']['original_user_message'] == '假设不是呢？'
+    assert second.to_dict()['trace']['query_mode'] == 'RESOLVED'
     assert 'evidence-pack' in second.trace.cache_hits
 
 
