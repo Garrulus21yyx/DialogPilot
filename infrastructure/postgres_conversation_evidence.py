@@ -8,6 +8,10 @@ from application.business_observation import BusinessObservation
 from application.knowledge_tool_contract import evidence_items
 
 
+class BusinessObservationUnavailable(ValueError):
+    """The requested original is absent from the caller's conversation scope."""
+
+
 class PostgresConversationEvidence:
     def __init__(self, pool, validator=None, *, recent_limit=8, pack_limit=3):
         self._pool, self._validator = pool, validator
@@ -28,6 +32,29 @@ class PostgresConversationEvidence:
                   self._recent_limit)).fetchall()
         return ConversationEvidence(self._knowledge(rows), self._business(rows))
 
+    def read_business(self, invocation, *, publication_id, observation_id):
+        """Resolve an immutable original, not a new business lookup or cached state.
+
+        Read by authenticated scope before resolving the content identity. A
+        guessed reference cannot reveal whether another conversation owns it.
+        """
+        with self._pool.transaction() as connection:
+            row = connection.execute("""
+                SELECT verification FROM dialogpilot_app.response_deliveries
+                WHERE tenant_id=%s AND user_id=%s AND conversation_id=%s
+                  AND publication_id=%s
+            """, (str(invocation.tenant_id), str(invocation.user_id),
+                  str(invocation.conversation_id), publication_id)).fetchone()
+        if row is not None:
+            for entry in (row[0] or {}).get("business_observations", ()):
+                try:
+                    original = BusinessObservation.model_validate(entry)
+                except ValueError:
+                    continue
+                if original.observation_id == observation_id:
+                    return original
+        raise BusinessObservationUnavailable("business observation unavailable in this conversation")
+
     @staticmethod
     def _business(rows):
         result, seen = [], set()
@@ -39,11 +66,12 @@ class PostgresConversationEvidence:
                     result.append({"publication_id": publication_id, "status": "INVALID",
                                    "reason_code": "BUSINESS_OBSERVATION_INVALID"})
                     continue
-                key = observation.model_dump_json()
+                key = observation.observation_id
                 if key in seen:
                     continue
                 seen.add(key)
                 result.append({"publication_id": publication_id, "status": "HISTORICAL",
+                               "observation_id": key,
                                "observation": observation.model_dump(mode="json")})
         return tuple(result)
 

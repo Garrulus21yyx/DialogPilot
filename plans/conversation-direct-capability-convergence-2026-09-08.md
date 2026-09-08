@@ -827,3 +827,24 @@ assuming an uncompiled command ID. No production branch was added for the test.
 The earlier 21-pass run did not cover mixed waiting and is not its evidence.
 Next active item remains bounded historical evidence access across all consumers;
 this test delivery does not declare the overall repair or fixed10 closed.
+
+Historical original access increment (after ce0b29d): existing private publication
+reader now resolves an observation by publication_id + canonical content hash
+after tenant/user/conversation SQL scoping. A missing, malformed or cross-scope
+reference yields BusinessObservationUnavailable, while database failures remain
+database failures. Reads do not invoke a business tool or depend on the recent
+window. Original source metadata, coverage, receipt/action binding and write
+recovery data round-trip through the typed model. JSON object key order does not
+change the identity. No new storage, fallback or domain archive authorization
+relaxation. Combined actual-PG continuity suites: 37 passed in 28.14s.
+
+This is the source-resolution boundary, not yet model-facing lazy access. Keep
+full history projection until the bounded reader is actually in the capability
+catalog and every consumer can distinguish omitted content from absent evidence.
+Next implement one generic historical-observation read capability using the
+existing native tool/runtime path (including custom benchmark registries), not
+a business-specific Skill or an extra planning model. Use structured selection
+and bounded output; the installed jsonpointer 3.1.1 can resolve JSON Pointer paths
+without a handwritten path parser. Preserve historical scope in returned evidence,
+avoid recursively republishing evidence-reader wrappers, and verify budget behavior
+at main planning, domain, compose and answer verification before a fixed replay.

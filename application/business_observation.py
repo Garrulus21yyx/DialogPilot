@@ -1,6 +1,8 @@
 """Private, source-backed historical observations; never new action authority."""
 from typing import Any, Literal
 from dataclasses import asdict, dataclass
+import hashlib
+import json
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -69,6 +71,12 @@ class BusinessObservation(BaseModel):
     facts: tuple[FactRecord, ...] = ()
     receipts: tuple[BusinessReceipt, ...] = ()
     write_recovery: tuple[WriteRecoveryObservation, ...] = ()
+
+    @property
+    def observation_id(self) -> str:
+        encoded = json.dumps(self.model_dump(mode="json"), ensure_ascii=False,
+                             sort_keys=True, separators=(",", ":"), allow_nan=False)
+        return hashlib.sha256(encoded.encode()).hexdigest()
 
 
 def capture_business_observations(board):

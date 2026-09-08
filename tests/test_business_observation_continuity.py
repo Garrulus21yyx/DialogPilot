@@ -138,6 +138,32 @@ def test_invalid_observation_has_no_fact_payload_and_does_not_hide_valid_sibling
     assert result[1]['observation'] == observation
 
 
+def test_original_reference_is_independent_of_json_key_order():
+    observation = capture_business_observations(observed_board())[0]
+    reversed_fields = dict(reversed(list(observation.items())))
+    reversed_fields['coverage'] = dict(reversed(list(observation['coverage'].items())))
+    assert BusinessObservation.model_validate(observation).observation_id == BusinessObservation.model_validate(reversed_fields).observation_id
+
+
+def test_original_reader_is_scoped_and_does_not_depend_on_recent_window(publication_components):
+    from infrastructure.postgres_conversation_evidence import BusinessObservationUnavailable
+    pool, identity, service, _ = publication_components
+    original = BusinessObservation.model_validate(capture_business_observations(observed_board())[0])
+    command = replace(_final(identity), business_observations=(original.model_dump(mode='json'),))
+    publication = service.select_final_response(command).record.publication_id
+    reader = PostgresConversationEvidence(pool, recent_limit=0)
+    assert reader.load(identity) == ConversationEvidence()
+    restored = reader.read_business(identity, publication_id=publication, observation_id=original.observation_id)
+    assert restored == original
+    for field in ('tenant_id', 'user_id', 'conversation_id'):
+        with pytest.raises(BusinessObservationUnavailable):
+            reader.read_business(replace(identity, **{field: 'other'}),
+                publication_id=publication, observation_id=original.observation_id)
+    for publication_id, observation_id in ((publication, 'wrong'), ('missing', original.observation_id)):
+        with pytest.raises(BusinessObservationUnavailable):
+            reader.read_business(identity, publication_id=publication_id, observation_id=observation_id)
+
+
 @pytest.mark.parametrize('dependent', [False, True])
 def test_historical_coverage_preserves_conflict_impact_and_independent_success(dependent):
     board = observed_board()
