@@ -50,6 +50,7 @@ from infrastructure.target_evidence_resolution import TargetEvidenceResolver
 from infrastructure.target_framework_agent import TargetFrameworkAgent
 from infrastructure.target_product_execution import TargetProductExecutor
 from infrastructure.target_tool_execution import TargetToolExecutor
+from infrastructure.conversation_tool_catalog import ConversationToolCatalog
 from infrastructure.target_turn_context import TargetTurnContextLoader
 from infrastructure.postgres_memory_projection import PostgresMemoryProjectionReader
 from infrastructure.postgres_conversation_evidence import PostgresConversationEvidence
@@ -190,6 +191,7 @@ async def build_target_runtime(
             ),
             context_budget=conversation_context_budget,
             synthesis_context_budget=synthesis_context_budget,
+            tool_catalog=ConversationToolCatalog(tool_manager),
         )
         understanding = CascadedTargetUnderstanding(
             StateBoundTargetUnderstanding(), conversation_agent, encoder=encoder,

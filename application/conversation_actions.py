@@ -8,6 +8,9 @@ from __future__ import annotations
 from copy import deepcopy
 from dataclasses import dataclass, field
 import json
+import hashlib
+import re
+from collections import Counter
 
 from jsonschema import Draft202012Validator
 
@@ -32,9 +35,12 @@ class PlanningAction:
     kind: str | None = None
     selections: dict = field(default_factory=dict)
     bound: dict = field(default_factory=dict)
+    original_schema: dict | None = None
 
     @property
     def schema(self):
+        if self.original_schema is not None:
+            return deepcopy(self.original_schema)
         return {"type": "object", "additionalProperties": False,
                 "properties": deepcopy(self.properties), "required": list(self.required)}
 
@@ -45,6 +51,10 @@ class PlanningAction:
         # SDK owns parsing; standard JSON excludes nonfinite Python floats.
         json.dumps(arguments, allow_nan=False)
         Draft202012Validator(self.schema).validate(arguments)
+        if self.kind == "atomic_read":
+            if {"approved", "approval_token"}.intersection(arguments):
+                raise ValueError("planning_read_uses_reserved_control_fields")
+            return {"kind": self.kind, **deepcopy(self.bound), "arguments": deepcopy(arguments)}
         value = deepcopy(arguments)
         for name, choices in self.selections.items():
             if name in value:
@@ -110,7 +120,7 @@ def planning_actions(payload):
              ("query",), descriptions[knowledge] + " "
              "Include known subject, conditions and negation in query. Missing personal eligibility details do not "
              "prevent looking up general rules. Optional hard filters require explicit supported scope; omit unknown values.")
-    for kind in sorted(supported - set(_KNOWLEDGE) - {"delegate_task", "continue_active_work", "cancel_active_work"}):
+    for kind in sorted(supported - set(_KNOWLEDGE) - {"atomic_read", "delegate_task", "continue_active_work", "cancel_active_work"}):
         properties, required, selections = {}, [], {}
         field_name = "order_id" if kind in _ORDER else "asset_id" if kind in _MEDIA else None
         if field_name:
@@ -184,6 +194,32 @@ def planning_actions(payload):
             bound={"fields": fields}))
     actions.append(PlanningAction("unsupported_request",
         "The requested objective is outside the available capabilities; missing identifiers alone are not out of scope.", {}))
+    catalog = payload.get("atomic_reads", ())
+    counts = Counter(item["tool_id"] for item in catalog)
+    names = {action.name for action in actions} | {"bind_read_goals"}
+    for item in catalog:
+        name = item["tool_id"]
+        if counts[name] != 1 or name in names or not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", name):
+            name = "read_" + hashlib.sha256(json.dumps(
+                [item["owner_agent"], item["tool_id"]]).encode()).hexdigest()[:24]
+        if name in names:
+            raise ValueError("planning_action_name_collision")
+        names.add(name)
+        actions.append(PlanningAction(name,
+            f"Read tool {item['tool_id']} for domain {item['owner_agent']}. " + item["description"],
+            {}, kind="atomic_read", bound={"target_agent": item["owner_agent"], "tool_id": item["tool_id"]},
+            original_schema=item["input_schema"]))
+    if catalog:
+        actions.append(PlanningAction("bind_read_goals",
+            "Optional scheduling metadata, only when another goal depends on an atomic read. "
+            "atomic_call counts only atomic read calls in this response, starting at 1. "
+            "This does not execute work. Do not use for standalone reads.",
+            {"bindings": {"type": "array", "minItems": 1, "items": {
+                "type": "object", "additionalProperties": False,
+                "required": ["atomic_call", "goal_id"], "properties": {
+                    "atomic_call": {"type": "integer", "minimum": 1},
+                    "goal_id": _TEXT, "depends_on": common["depends_on"],
+                }}}}, ("bindings",)))
     return tuple(actions)
 
 
@@ -193,17 +229,25 @@ def action_proposal(actions, calls, text):
         if not text.strip():
             raise ValueError("planning_requires_action_or_text")
         return {"status": "respond", "response": text.strip()}
-    if len(calls) > 6 or len({call["id"] for call in calls}) != len(calls):
+    if len(calls) > 7 or len({call["id"] for call in calls}) != len(calls):
         raise ValueError("planning_action_batch_invalid")
     by_name = {action.name: action for action in actions}
     proposal = {"status": "resolved"}
+    atomic_goals, read_bindings = [], None
     for call in calls:
         if call["name"] not in by_name:
             raise ValueError("planning_action_unavailable")
         action = by_name[call["name"]]
         value = action.convert(call["args"])
         if action.kind:
+            if action.kind == "atomic_read":
+                value["goal_id"] = "atomic:" + call["id"]
+                atomic_goals.append(value)
             proposal.setdefault("goals", []).append(value)
+        elif action.name == "bind_read_goals":
+            if read_bindings is not None:
+                raise ValueError("planning_duplicate_read_bindings")
+            read_bindings = value["bindings"]
         elif action.name == "unsupported_request":
             if len(calls) != 1:
                 raise ValueError("planning_unsupported_cannot_mix_actions")
@@ -221,5 +265,14 @@ def action_proposal(actions, calls, text):
                     raise ValueError("planning_duplicate_input")
                 inputs.append({"target_work_item_id": bound["target_work_item_id"],
                                "field_name": bound["field_name"], "value": answer})
+    seen = set()
+    for binding in read_bindings or ():
+        index = binding["atomic_call"]
+        if index in seen or index > len(atomic_goals):
+            raise ValueError("planning_invalid_read_binding")
+        seen.add(index)
+        atomic_goals[index - 1].update({key: val for key, val in binding.items() if key != "atomic_call"})
+    if len(calls) - int(read_bindings is not None) > 6:
+        raise ValueError("planning_action_batch_invalid")
     Draft202012Validator(planning_output_schema()).validate(proposal)
     return proposal

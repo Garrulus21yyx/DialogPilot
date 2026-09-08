@@ -113,7 +113,7 @@ class AnthropicConversationPlanningProvider:
             # The native action schemas now carry these definitions. Keep the
             # actual history/state intact, without repeating the old goal union.
             model_payload = {key: value for key, value in payload.items()
-                             if key not in {"supported_goals", "goal_descriptions", "missing_fields_schema"}}
+                             if key not in {"supported_goals", "goal_descriptions", "missing_fields_schema", "atomic_reads"}}
             contract, messages = planning_context(model_payload)
         except (ValueError, TypeError, KeyError) as exc:
             raise ConversationProviderOutputError("planning_context_invalid") from exc

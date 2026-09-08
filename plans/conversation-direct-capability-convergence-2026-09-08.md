@@ -94,3 +94,34 @@ read-capability tests still fail before tool execution due to scripted knowledge
 goals missing resolved_query; executing their unchanged HEAD definitions reproduces
 those failures. No production contract was relaxed to suppress them. PostgreSQL E2E
 constructor migrations are not claimed verified by these in-process checks.
+
+## Native atomic read connection (implemented; goal preservation still open)
+
+ConversationToolCatalog projects the existing ToolManager definition for each
+Registry-authorized domain/read pair. Tool schemas remain at their original root,
+including $defs/$ref. Shared names bind distinct owners; collisions with protocol
+actions receive stable aliases. The optional bind_read_goals metadata action links
+atomic calls to existing goal/dependency names without consuming a WorkItem or
+inserting control fields into business arguments. Standalone reads need no metadata.
+Conversion emits the existing DIRECT_TOOL command, not a second execution path.
+
+Supported boundary: tool schema is an object-form JSON schema, actual parameters
+are JSON objects, and approved/approval_token remain reserved execution controls
+rather than supported business parameters. Context-dependent schemas receive the
+turn's knowledge_filter_contract. Registry/tool/requirement inconsistency is a
+PlanningInvariantError before the model; malformed model parameters are typed
+INVALID_PROVIDER_OUTPUT. No blanket AttributeError swallowing was added.
+
+Independent fresh-context review found and prompted fixes for dynamic schema
+context, jsonschema exception typing, reserved control-field loss, requirement
+consistency and nonobject parameter/schema handling. Tests now cover native SDK
+conversion, arbitrary tool names, shared owners, original root references, business
+goal_id/depends_on fields, configuration mismatch, typed invalid inputs, complete
+compile→read→dependent fact delivery, and invalid dependency algebra.
+
+This does not implement read→observe→new main-agent choice or prove that the model
+preserves the full user objective. Task23's original Langfuse planning observation
+e93e24ee0b512b31 also confirms identity-only delegation with action proposals false;
+the original three business changes were not in that delegated objective. Repair
+and validation of that semantic/continuation boundary remain required before
+rerunning the frozen business tasks or declaring the user goal complete.

@@ -7,6 +7,7 @@ from dataclasses import replace
 import logging
 from typing import Mapping, Protocol
 from langgraph.errors import GraphBubbleUp
+from jsonschema import ValidationError, SchemaError
 
 from core.provider_context_budget import ProviderContextBudgetExceeded
 from core.framework_models import ModelInvocationError
@@ -27,12 +28,14 @@ from application.turn_planning import (
     ProposalDisposition,
     TurnProposal,
     ApprovalDecisionProposal,
+    PlanningInvariantError,
 )
 from application.work_item import ArgumentValue
 
 
 # The compiler owns both the supported vocabulary and its planning meaning.
 _GOAL_DESCRIPTIONS = {
+    "atomic_read": "Execute one registered read tool using its native parameter schema; this does not authorize a business write.",
     "delegate_task": "Delegate an open objective to a registered domain using target_agent and objective. The domain chooses its available tools; this does not authorize an unavailable action.",
     "cancel_active_work": "Cancel one active conversation objective using its revises_control_id; this does not cancel an order.",
     "continue_active_work": "Continue an unchanged objective listed in resumable_work using its control_id as revises_control_id. An active control alone is not a resume entry. The runtime restores accepted tools and arguments; do not reconstruct them. Pending approval still requires an approval decision. For a changed scope use delegate_task with revises_control_id instead.",
@@ -64,7 +67,7 @@ def planning_goal_descriptions() -> dict[str, str]:
 
 
 def _available_goals(registry):
-    return frozenset({"delegate_task", "cancel_active_work", "continue_active_work", *registry.planning_shortcuts}) & _GOALS
+    return frozenset({"atomic_read", "delegate_task", "cancel_active_work", "continue_active_work", *registry.planning_shortcuts}) & _GOALS
 
 
 _MISSING_FIELDS = {
@@ -94,6 +97,8 @@ def planning_output_schema(supported_goals=None, knowledge_filter_contract=None)
                 "target_agent", "objective",
             )},
             "resolved_query": {**text, "maxLength": 4000},
+            "tool_id": dict(text),
+            "arguments": {"type": "object"},
             "depends_on": {"type": "array", "uniqueItems": True, "items": dict(text)},
             "allow_action_proposals": {"type": "boolean", "description": "Only for kind=delegate_task; omit for every other kind. True only if this delegated objective requests a business change; false for delegated queries, counts, rules or advice. This permits preparation, never authorizes execution."},
             "knowledge_options": knowledge_query_options_schema(knowledge_filter_contract),
@@ -102,9 +107,15 @@ def planning_output_schema(supported_goals=None, knowledge_filter_contract=None)
             "if": {"properties": {"kind": {"const": "delegate_task"}}},
             "then": {"required": ["target_agent", "objective", "allow_action_proposals"]},
             "else": {"not": {"anyOf": [
-                {"required": ["target_agent"]}, {"required": ["objective"]},
+                {"required": ["objective"]},
                 {"required": ["allow_action_proposals"]},
             ]}},
+        }, {
+            "if": {"properties": {"kind": {"const": "atomic_read"}}},
+            "then": {"required": ["target_agent", "tool_id", "arguments"]},
+            "else": {"not": {"anyOf": [{"required": ["tool_id"]}, {"required": ["arguments"]}]}},
+        }, {"if": {"properties": {"kind": {"not": {"enum": ["atomic_read", "delegate_task"]}}}},
+         "then": {"not": {"required": ["target_agent"]}}
         }, {"if": {"properties": {"kind": {"enum": sorted(_KNOWLEDGE_GOALS)}}},
              "then": {"required": ["resolved_query"]}}],
     }
@@ -181,8 +192,10 @@ class ConversationAgent:
         *,
         context_budget: ContextBudgetManager | None = None,
         synthesis_context_budget: ContextBudgetManager | None = None,
+        tool_catalog=None,
     ) -> None:
         self._provider = provider
+        self._tool_catalog = tool_catalog
         self._context_budget = context_budget or ContextBudgetManager()
         self._synthesis_context_budget = synthesis_context_budget or self._context_budget
 
@@ -212,6 +225,10 @@ class ConversationAgent:
         )
         from application.work_item import planning_continuations
         resumable = planning_continuations(state, deterministic.resumed_work_items)
+        try:
+            atomic_reads = self._tool_catalog(registry, state, turn_context) if self._tool_catalog else ()
+        except (KeyError, TypeError, ValueError, SchemaError) as exc:
+            raise PlanningInvariantError("conversation tool catalog is inconsistent") from exc
         payload = {
             "schema_version": "conversation-plan-request-v2-references",
             "knowledge_filter_contract": (turn_context.knowledge_filter_contract or None) if turn_context else None,
@@ -294,6 +311,7 @@ class ConversationAgent:
                 if turn_context is not None else []
             ),
             "supported_goals": sorted(_available_goals(registry)),
+            "atomic_reads": atomic_reads,
             "goal_descriptions": {key: _GOAL_DESCRIPTIONS[key] for key in _available_goals(registry)},
             "domain_capabilities": [
                 {
@@ -355,8 +373,9 @@ class ConversationAgent:
         try:
             return self._validate_and_compile(
                 raw, observations, state, registry, turn_context, deterministic.resumed_work_items,
+                atomic_reads=atomic_reads,
             )
-        except (KeyError, TypeError, ValueError):
+        except (KeyError, TypeError, ValueError, ValidationError):
             logger.exception("Conversation planning semantic contract rejected")
             return TurnProposal(
                 ProposalDisposition.INVALID_PROVIDER_OUTPUT, (),
@@ -364,7 +383,7 @@ class ConversationAgent:
             )
 
     def _validate_and_compile(
-        self, raw, observations, state, registry, turn_context, resolved_items,
+        self, raw, observations, state, registry, turn_context, resolved_items, *, atomic_reads=(),
     ):
         if not isinstance(raw, Mapping):
             raise TypeError("semantic result must be an object")
@@ -477,7 +496,24 @@ class ConversationAgent:
                 item.control_id for item in state.active_work_controls
             }:
                 raise ValueError("goal revises an inactive work control")
-            if kind == "delegate_task":
+            if kind == "atomic_read":
+                from jsonschema import Draft202012Validator
+                capability = next((item for item in atomic_reads
+                    if item["owner_agent"] == value["target_agent"] and item["tool_id"] == value["tool_id"]), None)
+                if capability is None:
+                    raise ValueError("atomic read is outside the current catalog")
+                if not isinstance(value["arguments"], dict):
+                    raise ValueError("atomic read arguments must be an object")
+                Draft202012Validator(capability["input_schema"]).validate(value["arguments"])
+                if {"approved", "approval_token"}.intersection(value["arguments"]):
+                    raise ValueError("atomic read uses reserved control fields")
+                command = CommandProposal(
+                    goal_id, CommandKind.DIRECT_TOOL, capability["owner_agent"],
+                    f"Read {capability['tool_id']}",
+                    arguments=tuple(ArgumentValue.create(key, val) for key, val in value["arguments"].items()),
+                    requirement_ids=tuple(capability["requirement_ids"]), tool_id=capability["tool_id"],
+                )
+            elif kind == "delegate_task":
                 target_agent = value.get("target_agent")
                 objective = value.get("objective")
                 if not isinstance(target_agent, str) or target_agent not in {
@@ -525,7 +561,7 @@ class ConversationAgent:
                     goal_id, kind, str(value.get("resolved_query") or observations.raw_text), state,
                     order_binding, asset_binding, address_binding, registry,
                 )
-            if command.tool_id == "knowledge_search":
+            if command.tool_id == "knowledge_search" and kind != "atomic_read":
                 from application.knowledge_tool_contract import knowledge_query_options
                 options = knowledge_query_options(value.get("knowledge_options", {}),
                     (turn_context.knowledge_filter_contract or None) if turn_context else None)
@@ -533,7 +569,7 @@ class ConversationAgent:
                     ArgumentValue.create(key, option) for key, option in sorted(options.items())))
             elif value.get("knowledge_options"):
                 raise ValueError("knowledge options belong to knowledge goals")
-            if command.tool_id == "knowledge_search" and not value.get("resolved_query"):
+            if command.tool_id == "knowledge_search" and kind != "atomic_read" and not value.get("resolved_query"):
                 raise ValueError("knowledge goal requires an explicit resolved query")
             if revises_control_id and kind != "cancel_active_work":
                 command = replace(
