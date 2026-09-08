@@ -317,3 +317,7 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 - R10分路捕获实现/预注册：评估专用RecordedKnowledgeSource继承现有source，在同一次_collect_sources保存完整ranks/weights，返回原_search结果不变；额外来源投影读单列projection_ms，不能当生产延迟。thread-local隔离并发请求，失败保存typed结果，无第二次embedding/search。接入校准脚本finally持久化压缩captures。3项零API测试通过（并发隔离、重建融合、typed失败）。下一步隔离PG basic candidate-scope-probe，API预算0/不生成、不精排，检验每个成功捕获的两路全集能精确重放当前候选ID顺序及来源一致性，不据此报质量提升。
 
 - R10捕获PG验证完成：basic40、applicability24、combined40次搜索均来源核对及融合ID顺序精确重放。前两套独立小语料没有被截候选，不能证明全集捕获；补用ecommerce-full组合语料后40/40有额外候选，共182次被截候选出现，全部保留。三轮API0；是搜索次数（含scoped/omitted），不是104个不同问题。3项并发/类型失败测试再次通过。校准CLI此前拒绝显式0预算，首次两次启动在网络前终止（第一次文本替换未命中已纠正），现在仅candidate-scope-probe允许0，其客户端原已硬限制0。新增来源投影读开销单列，不报生产延迟；生产检索策略不变。代码/三个隔离库产物待本次相干提交。下一步复用已有分路全集与开发标注做固定权重重放，按已选策略验证最终可见证据；不再次盲跑完整生成链。
+
+- 固定权重重放预注册：组合语料20个合成开发问题，仅取每题真实scoped捕获（排除omitted重复），复用Dense/BM25各20及正文来源，最终chunk20、RRF k10，比较Dense权重0/.25/.5/.75/1。使用原synthetic_development证据span与已保存manifest正文校验；报告chunk预算下span Recall/完整覆盖，以及按首次出现去重source文档列表的MRR/nDCG@20，明确两种单位。零API/embedding/精排，不用此小语料选生产默认；仅验证重放与发现明显误伤。新的最终答案或精排收益不从这些指标推算。
+
+- 固定权重重放完成：20个模拟开发scoped问题，Dense0/.25/.5/.75/1的完整span覆盖20/20、20/20、20/20、19/20、19/20；文档MRR1/.9667/.9300/.9167/.9167，nDCG1/.975/.946/.925/.925。`.75`救回0丢失1，另1题排名降；audio-defect的gold BM25第1而Dense前20无，偏向Dense时弱路独有候选被截。不能据此推断答案错或BM25全局最好。与MTRAG方向不同，生产默认不变，也不训练动态权重。原语料hash、所有源span及当前融合顺序复核通过；首次投影字段名不匹配修正后运行成功。API/embedding/精排0。报告docs/rag-recorded-weight-replay-2026-09-08.zh-CN.md及产物。后续保留该组为跨数据回归，下一项公共开发数据同预算候选→最终可见验证，禁止仅以候选指标选择生产策略。

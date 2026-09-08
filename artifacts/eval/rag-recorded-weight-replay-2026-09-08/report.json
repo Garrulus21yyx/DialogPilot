@@ -1,0 +1,741 @@
+{
+  "scope": "Frozen synthetic development replay; no provider or re-embedding calls.",
+  "api_calls": 0,
+  "cases": 20,
+  "source_sha256": "388ea6fb0248b6900b3134726496b007c9a121960720b29bdfb771d1ae125c66",
+  "metric_units": "Span coverage uses top20 chunks. Binary document MRR/nDCG uses first-appearance deduplicated source documents from that fixed chunk budget. Neither is final answer quality.",
+  "summary": {
+    "0": {
+      "span_recall_at_chunk20": 1,
+      "all_spans_at_chunk20": 1,
+      "document_mrr_at20": 1.0,
+      "document_ndcg_at20": 1.0
+    },
+    "0.25": {
+      "span_recall_at_chunk20": 1,
+      "all_spans_at_chunk20": 1,
+      "document_mrr_at20": 0.9666666666666667,
+      "document_ndcg_at20": 0.975
+    },
+    "0.5": {
+      "span_recall_at_chunk20": 1,
+      "all_spans_at_chunk20": 1,
+      "document_mrr_at20": 0.93,
+      "document_ndcg_at20": 0.9459997289944673
+    },
+    "0.75": {
+      "span_recall_at_chunk20": 0.95,
+      "all_spans_at_chunk20": 0.95,
+      "document_mrr_at20": 0.9166666666666666,
+      "document_ndcg_at20": 0.925
+    },
+    "1": {
+      "span_recall_at_chunk20": 0.95,
+      "all_spans_at_chunk20": 0.95,
+      "document_mrr_at20": 0.9166666666666666,
+      "document_ndcg_at20": 0.925
+    }
+  },
+  "rows": [
+    {
+      "case_id": "synthetic:opened-audio",
+      "arms": {
+        "0": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.25": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.5": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.75": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "1": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        }
+      }
+    },
+    {
+      "case_id": "synthetic:audio-defect",
+      "arms": {
+        "0": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.25": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 0.3333333333333333,
+          "document_ndcg_at20": 0.5
+        },
+        "0.5": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 0.1,
+          "document_ndcg_at20": 0.2890648263178879
+        },
+        "0.75": {
+          "span_recall_at_chunk20": 0,
+          "all_spans_at_chunk20": false,
+          "document_mrr_at20": 0,
+          "document_ndcg_at20": 0.0
+        },
+        "1": {
+          "span_recall_at_chunk20": 0,
+          "all_spans_at_chunk20": false,
+          "document_mrr_at20": 0,
+          "document_ndcg_at20": 0.0
+        }
+      }
+    },
+    {
+      "case_id": "synthetic:return-shipping",
+      "arms": {
+        "0": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.25": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.5": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.75": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "1": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        }
+      }
+    },
+    {
+      "case_id": "synthetic:remote-delivery",
+      "arms": {
+        "0": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.25": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.5": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.75": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "1": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        }
+      }
+    },
+    {
+      "case_id": "synthetic:coupon-refund",
+      "arms": {
+        "0": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.25": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.5": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 0.5,
+          "document_ndcg_at20": 0.6309297535714575
+        },
+        "0.75": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 0.3333333333333333,
+          "document_ndcg_at20": 0.5
+        },
+        "1": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 0.3333333333333333,
+          "document_ndcg_at20": 0.5
+        }
+      }
+    },
+    {
+      "case_id": "synthetic:gift-return",
+      "arms": {
+        "0": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.25": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.5": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.75": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "1": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        }
+      }
+    },
+    {
+      "case_id": "synthetic:custom-goods",
+      "arms": {
+        "0": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.25": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.5": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.75": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "1": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        }
+      }
+    },
+    {
+      "case_id": "synthetic:invoice",
+      "arms": {
+        "0": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.25": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.5": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.75": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "1": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        }
+      }
+    },
+    {
+      "case_id": "synthetic:warranty",
+      "arms": {
+        "0": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.25": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.5": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.75": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "1": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        }
+      }
+    },
+    {
+      "case_id": "synthetic:battery-install",
+      "arms": {
+        "0": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.25": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.5": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.75": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "1": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        }
+      }
+    },
+    {
+      "case_id": "synthetic:pickup",
+      "arms": {
+        "0": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.25": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.5": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.75": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "1": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        }
+      }
+    },
+    {
+      "case_id": "synthetic:address",
+      "arms": {
+        "0": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.25": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.5": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.75": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "1": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        }
+      }
+    },
+    {
+      "case_id": "synthetic:exchange",
+      "arms": {
+        "0": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.25": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.5": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.75": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "1": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        }
+      }
+    },
+    {
+      "case_id": "synthetic:membership",
+      "arms": {
+        "0": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.25": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.5": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.75": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "1": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        }
+      }
+    },
+    {
+      "case_id": "synthetic:privacy",
+      "arms": {
+        "0": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.25": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.5": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.75": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "1": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        }
+      }
+    },
+    {
+      "case_id": "synthetic:damaged-box",
+      "arms": {
+        "0": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.25": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.5": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.75": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "1": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        }
+      }
+    },
+    {
+      "case_id": "synthetic:preorder",
+      "arms": {
+        "0": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.25": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.5": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.75": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "1": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        }
+      }
+    },
+    {
+      "case_id": "synthetic:receipt",
+      "arms": {
+        "0": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.25": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.5": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.75": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "1": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        }
+      }
+    },
+    {
+      "case_id": "synthetic:elliptic",
+      "arms": {
+        "0": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.25": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.5": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.75": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "1": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        }
+      }
+    },
+    {
+      "case_id": "synthetic:multi-evidence",
+      "arms": {
+        "0": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.25": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.5": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "0.75": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        },
+        "1": {
+          "span_recall_at_chunk20": 1,
+          "all_spans_at_chunk20": true,
+          "document_mrr_at20": 1.0,
+          "document_ndcg_at20": 1.0
+        }
+      }
+    }
+  ]
+}
