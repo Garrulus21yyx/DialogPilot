@@ -1,0 +1,779 @@
+{
+  "scope": "Exact URL opportunity only, consumed dev32; not measured child rescue",
+  "api_calls": 0,
+  "summary": {
+    "cases": 32,
+    "cases_missing_gold": 15,
+    "both_routes_no_gold": 4,
+    "missed_gold": 28,
+    "missed_gold_with_url": 10,
+    "same_source_in_top20": 4,
+    "same_source_in_top3_distinct": 0
+  },
+  "url_states": {
+    "clapnq::invalid": 183408,
+    "cloud::valid": 72439,
+    "fiqa::missing": 60984,
+    "govt::valid": 49583,
+    "govt::invalid": 24
+  },
+  "source_hashes": {
+    "clapnq": "3f4bd79341b176070a83b6281bf380d7d6958270c137913f7377121b85a0747e",
+    "cloud": "a0c5427013c65556aeddfdc246dd6068f3a7fad08ce6ae7adddaa9e87aae246d",
+    "fiqa": "59f7cf5b043abe007fdb6521eb281bf055524de4376466e9cb4808466e761ee9",
+    "govt": "09adcc5a1a8d11e362c66d7dbf0ef2ea338df4327d655102bf91ea8e258399f6"
+  },
+  "input_hashes": {
+    "artifacts/eval/rag-g4-mtrag-dense-complete-2026-09-08/results.json.gz": "47770a69eb40dd895981e01da8fcb950a3f8e393d2f175f17478357ac22e3f37",
+    "artifacts/eval/rag-g4-mtrag-lexical32-2026-09-07/results.json.gz": "b756639afd17da53b83624225ba970e7f3897e810c2241786440177dc5cee895"
+  },
+  "cases": [
+    {
+      "case_id": "1534a095279f2cb888fb0bea17bd70da<::>4",
+      "query": "|user|: Is it more challenging for the photographer to take photos in air-to-air aviation photography compared to ground-to-air photography?",
+      "domain": "clapnq",
+      "gold_count": 3,
+      "both_routes_no_gold": false,
+      "missing": []
+    },
+    {
+      "case_id": "dd82f0f978316e73618cf0addd369cd8<::>5",
+      "query": "|user|: What makes a good soccer player?",
+      "domain": "clapnq",
+      "gold_count": 4,
+      "both_routes_no_gold": false,
+      "missing": [
+        {
+          "gold": "mtrag:clapnq:833398293_4782-7201-967-2377",
+          "url": null,
+          "siblings": null,
+          "locations": {
+            "dense": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            },
+            "bm25": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            }
+          },
+          "parent_in_top3": false,
+          "parent_in_any_top20": false
+        },
+        {
+          "gold": "mtrag:clapnq:864952571_4541-4821-0-280",
+          "url": null,
+          "siblings": null,
+          "locations": {
+            "dense": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            },
+            "bm25": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            }
+          },
+          "parent_in_top3": false,
+          "parent_in_any_top20": false
+        }
+      ]
+    },
+    {
+      "case_id": "a3f07e9ed5f257db6aecd30511f03af1<::>4",
+      "query": "|user|: Did Grenade by Bruno Mars become a hit?",
+      "domain": "clapnq",
+      "gold_count": 3,
+      "both_routes_no_gold": false,
+      "missing": []
+    },
+    {
+      "case_id": "41a4006bfa6841516188c1695ebaf16c<::>2",
+      "query": "|user|: When did the official reunification of Germany happen?",
+      "domain": "clapnq",
+      "gold_count": 3,
+      "both_routes_no_gold": false,
+      "missing": []
+    },
+    {
+      "case_id": "3f5fa378239f7475baac89fa40288aaa<::>6",
+      "query": "|user|: What was collected from the lunar surface?",
+      "domain": "clapnq",
+      "gold_count": 3,
+      "both_routes_no_gold": false,
+      "missing": [
+        {
+          "gold": "mtrag:clapnq:836166840_5492-5628-0-136",
+          "url": null,
+          "siblings": null,
+          "locations": {
+            "dense": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            },
+            "bm25": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            }
+          },
+          "parent_in_top3": false,
+          "parent_in_any_top20": false
+        }
+      ]
+    },
+    {
+      "case_id": "5c13daa9432149f6243aa1115629cd1a<::>7",
+      "query": "|user|: Is there a cure for Huntington's disease?",
+      "domain": "clapnq",
+      "gold_count": 3,
+      "both_routes_no_gold": false,
+      "missing": []
+    },
+    {
+      "case_id": "c1e53df98a28f19448f4af244304b89a<::>4",
+      "query": "|user|: Could you recommend any other famous poets for me to know?",
+      "domain": "clapnq",
+      "gold_count": 5,
+      "both_routes_no_gold": true,
+      "missing": [
+        {
+          "gold": "mtrag:clapnq:803829007_104850-106386-0-1536",
+          "url": null,
+          "siblings": null,
+          "locations": {
+            "dense": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            },
+            "bm25": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            }
+          },
+          "parent_in_top3": false,
+          "parent_in_any_top20": false
+        },
+        {
+          "gold": "mtrag:clapnq:806718226_31050-31385-0-335",
+          "url": null,
+          "siblings": null,
+          "locations": {
+            "dense": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            },
+            "bm25": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            }
+          },
+          "parent_in_top3": false,
+          "parent_in_any_top20": false
+        },
+        {
+          "gold": "mtrag:clapnq:818287024_15431-15519-0-88",
+          "url": null,
+          "siblings": null,
+          "locations": {
+            "dense": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            },
+            "bm25": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            }
+          },
+          "parent_in_top3": false,
+          "parent_in_any_top20": false
+        },
+        {
+          "gold": "mtrag:clapnq:851649357_437-801-0-364",
+          "url": null,
+          "siblings": null,
+          "locations": {
+            "dense": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            },
+            "bm25": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            }
+          },
+          "parent_in_top3": false,
+          "parent_in_any_top20": false
+        },
+        {
+          "gold": "mtrag:clapnq:851649357_5734-5868-0-134",
+          "url": null,
+          "siblings": null,
+          "locations": {
+            "dense": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            },
+            "bm25": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            }
+          },
+          "parent_in_top3": false,
+          "parent_in_any_top20": false
+        }
+      ]
+    },
+    {
+      "case_id": "b2805ee4c478194c234e2384ffb0a6bf<::>3",
+      "query": "|user|: Can you tell me by how much the cotton gin increased cotton production?",
+      "domain": "clapnq",
+      "gold_count": 1,
+      "both_routes_no_gold": false,
+      "missing": []
+    },
+    {
+      "case_id": "20c2cbd18c16c12c9c2bbead6aef1a21<::>1",
+      "query": "|user|: Can you summarize the differences between good bots and bad bots?",
+      "domain": "cloud",
+      "gold_count": 2,
+      "both_routes_no_gold": false,
+      "missing": []
+    },
+    {
+      "case_id": "e1b602e47ded79a35d8df4eefe194e39<::>1",
+      "query": "|user|: Is it possible to build a dialog skill in a language other than English?",
+      "domain": "cloud",
+      "gold_count": 3,
+      "both_routes_no_gold": false,
+      "missing": [
+        {
+          "gold": "mtrag:cloud:ibmcld_03369-64600-66787",
+          "url": "https://cloud.ibm.com/docs/assistant?topic=assistant-release-notes",
+          "siblings": 114,
+          "locations": {
+            "dense": {
+              "first_child_rank": 20,
+              "distinct_parent_rank": 15
+            },
+            "bm25": {
+              "first_child_rank": 11,
+              "distinct_parent_rank": 10
+            }
+          },
+          "parent_in_top3": false,
+          "parent_in_any_top20": true
+        }
+      ]
+    },
+    {
+      "case_id": "2f013337236ea4635ad106813275dab7<::>2",
+      "query": "|user|: What is the field of expertise of Cohasset Associates, Inc.?",
+      "domain": "cloud",
+      "gold_count": 1,
+      "both_routes_no_gold": false,
+      "missing": []
+    },
+    {
+      "case_id": "fdee20f7fd677e420742b09989623d68<::>6",
+      "query": "|user|: i am having hard time finding web chat whenever I was trying to use",
+      "domain": "cloud",
+      "gold_count": 2,
+      "both_routes_no_gold": true,
+      "missing": [
+        {
+          "gold": "mtrag:cloud:ibmcld_02855-8124-9934",
+          "url": "https://cloud.ibm.com/docs/assistant-data?topic=assistant-data-deploy-web-chat",
+          "siblings": 24,
+          "locations": {
+            "dense": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            },
+            "bm25": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            }
+          },
+          "parent_in_top3": false,
+          "parent_in_any_top20": false
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_03166-14421-16009",
+          "url": "https://cloud.ibm.com/docs/assistant?topic=assistant-deploy-web-chat",
+          "siblings": 17,
+          "locations": {
+            "dense": {
+              "first_child_rank": 19,
+              "distinct_parent_rank": 14
+            },
+            "bm25": {
+              "first_child_rank": 17,
+              "distinct_parent_rank": 13
+            }
+          },
+          "parent_in_top3": false,
+          "parent_in_any_top20": true
+        }
+      ]
+    },
+    {
+      "case_id": "c6c3b02ca32795af64c903dd76700517<::>1",
+      "query": "|user|: Does Vulnerability Advisor scan encrypted imagery?",
+      "domain": "cloud",
+      "gold_count": 2,
+      "both_routes_no_gold": false,
+      "missing": []
+    },
+    {
+      "case_id": "1be66272113492407e814eaf21a761d4<::>3",
+      "query": "|user|: Can you clarify what you mean by 'weak understanding metrics'?",
+      "domain": "cloud",
+      "gold_count": 2,
+      "both_routes_no_gold": false,
+      "missing": [
+        {
+          "gold": "mtrag:cloud:ibmcld_09685-4-1903",
+          "url": "https://cloud.ibm.com/docs/monitoring?topic=monitoring-about-monitor",
+          "siblings": 6,
+          "locations": {
+            "dense": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            },
+            "bm25": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            }
+          },
+          "parent_in_top3": false,
+          "parent_in_any_top20": false
+        }
+      ]
+    },
+    {
+      "case_id": "47b2471404382af6e973013ab1cf96b9<::>8",
+      "query": "|user|: Is the Lite plan available with the Enterprise account type in IBM Cloud?",
+      "domain": "cloud",
+      "gold_count": 2,
+      "both_routes_no_gold": true,
+      "missing": [
+        {
+          "gold": "mtrag:cloud:ibmcld_12559-1521-3753",
+          "url": "https://cloud.ibm.com/docs/secure-enterprise?topic=secure-enterprise-enterprise-tutorial&interface=ui",
+          "siblings": 8,
+          "locations": {
+            "dense": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            },
+            "bm25": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            }
+          },
+          "parent_in_top3": false,
+          "parent_in_any_top20": false
+        },
+        {
+          "gold": "mtrag:cloud:ibmcld_12623-7-2328",
+          "url": "https://cloud.ibm.com/docs/secure-enterprise?topic=secure-enterprise-what-is-enterprise&interface=ui",
+          "siblings": 9,
+          "locations": {
+            "dense": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            },
+            "bm25": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            }
+          },
+          "parent_in_top3": false,
+          "parent_in_any_top20": false
+        }
+      ]
+    },
+    {
+      "case_id": "ddbbbe7ea13560c5768639207e1ca604<::>6",
+      "query": "|user|: Can I use multiple types of pre-annotations at once, and are there different tools for conversational and technical documents?",
+      "domain": "cloud",
+      "gold_count": 4,
+      "both_routes_no_gold": false,
+      "missing": [
+        {
+          "gold": "mtrag:cloud:ibmcld_10916-57815-59652",
+          "url": "https://cloud.ibm.com/docs/overview?topic=overview-glossary",
+          "siblings": 60,
+          "locations": {
+            "dense": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            },
+            "bm25": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            }
+          },
+          "parent_in_top3": false,
+          "parent_in_any_top20": false
+        }
+      ]
+    },
+    {
+      "case_id": "dcc0215a118ac833dfe054350df2afaa<::>4",
+      "query": "|user|: Why do municipalities issue bonds?",
+      "domain": "fiqa",
+      "gold_count": 1,
+      "both_routes_no_gold": false,
+      "missing": []
+    },
+    {
+      "case_id": "dc1aaac0b33553d8c897d4150955d803<::>7",
+      "query": "|user|: Do the SEC rules on pattern day trading apply to IRAs?",
+      "domain": "fiqa",
+      "gold_count": 3,
+      "both_routes_no_gold": false,
+      "missing": [
+        {
+          "gold": "mtrag:fiqa:46529-0-1830",
+          "url": null,
+          "siblings": null,
+          "locations": {
+            "dense": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            },
+            "bm25": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            }
+          },
+          "parent_in_top3": false,
+          "parent_in_any_top20": false
+        }
+      ]
+    },
+    {
+      "case_id": "f05ba9633e1b377f9c4d64afd3da3c45<::>3",
+      "query": "|user|: What are the benefits of an FHA loan?",
+      "domain": "fiqa",
+      "gold_count": 4,
+      "both_routes_no_gold": false,
+      "missing": [
+        {
+          "gold": "mtrag:fiqa:234890-0-1911",
+          "url": null,
+          "siblings": null,
+          "locations": {
+            "dense": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            },
+            "bm25": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            }
+          },
+          "parent_in_top3": false,
+          "parent_in_any_top20": false
+        },
+        {
+          "gold": "mtrag:fiqa:289231-0-1708",
+          "url": null,
+          "siblings": null,
+          "locations": {
+            "dense": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            },
+            "bm25": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            }
+          },
+          "parent_in_top3": false,
+          "parent_in_any_top20": false
+        },
+        {
+          "gold": "mtrag:fiqa:538681-0-844",
+          "url": null,
+          "siblings": null,
+          "locations": {
+            "dense": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            },
+            "bm25": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            }
+          },
+          "parent_in_top3": false,
+          "parent_in_any_top20": false
+        }
+      ]
+    },
+    {
+      "case_id": "535ebd306304982e4e49cc989ce5b10b<::>3",
+      "query": "|user|: Is 0% interest the same as having the benefits of both cash and installment payments?",
+      "domain": "fiqa",
+      "gold_count": 5,
+      "both_routes_no_gold": false,
+      "missing": [
+        {
+          "gold": "mtrag:fiqa:130850-0-703",
+          "url": null,
+          "siblings": null,
+          "locations": {
+            "dense": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            },
+            "bm25": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            }
+          },
+          "parent_in_top3": false,
+          "parent_in_any_top20": false
+        },
+        {
+          "gold": "mtrag:fiqa:167129-0-1904",
+          "url": null,
+          "siblings": null,
+          "locations": {
+            "dense": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            },
+            "bm25": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            }
+          },
+          "parent_in_top3": false,
+          "parent_in_any_top20": false
+        },
+        {
+          "gold": "mtrag:fiqa:380368-0-200",
+          "url": null,
+          "siblings": null,
+          "locations": {
+            "dense": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            },
+            "bm25": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            }
+          },
+          "parent_in_top3": false,
+          "parent_in_any_top20": false
+        },
+        {
+          "gold": "mtrag:fiqa:396853-0-988",
+          "url": null,
+          "siblings": null,
+          "locations": {
+            "dense": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            },
+            "bm25": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            }
+          },
+          "parent_in_top3": false,
+          "parent_in_any_top20": false
+        }
+      ]
+    },
+    {
+      "case_id": "af5e45e59e1254e0b7869cb477674d02<::>4",
+      "query": "|user|: What are the filing requirements for companies with the SEC?",
+      "domain": "fiqa",
+      "gold_count": 2,
+      "both_routes_no_gold": false,
+      "missing": []
+    },
+    {
+      "case_id": "c5518952b78b171de2d5b9317103ba62<::>6",
+      "query": "|user|: What is the experience of people who use two bank accounts?",
+      "domain": "fiqa",
+      "gold_count": 2,
+      "both_routes_no_gold": true,
+      "missing": [
+        {
+          "gold": "mtrag:fiqa:173807-0-1094",
+          "url": null,
+          "siblings": null,
+          "locations": {
+            "dense": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            },
+            "bm25": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            }
+          },
+          "parent_in_top3": false,
+          "parent_in_any_top20": false
+        },
+        {
+          "gold": "mtrag:fiqa:579473-0-785",
+          "url": null,
+          "siblings": null,
+          "locations": {
+            "dense": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            },
+            "bm25": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            }
+          },
+          "parent_in_top3": false,
+          "parent_in_any_top20": false
+        }
+      ]
+    },
+    {
+      "case_id": "a6eab3f851684c4ba01ae141ce590342<::>2",
+      "query": "|user|: Can I use the 1040NR-EZ instead of the 1040NR for my taxes?",
+      "domain": "fiqa",
+      "gold_count": 1,
+      "both_routes_no_gold": false,
+      "missing": []
+    },
+    {
+      "case_id": "6af5334fbd010b919d7fa174823abd12<::>4",
+      "query": "|user|: Do I have to buy house insurance?",
+      "domain": "fiqa",
+      "gold_count": 3,
+      "both_routes_no_gold": false,
+      "missing": []
+    },
+    {
+      "case_id": "8a19ee37ca7d97eaddbe2e19ca600556<::>6",
+      "query": "|user|: What about Residential Yard Waste?",
+      "domain": "govt",
+      "gold_count": 2,
+      "both_routes_no_gold": false,
+      "missing": []
+    },
+    {
+      "case_id": "6495c82abb6bef2d8efd06020cde3adf<::>1",
+      "query": "|user|: \"What happens to people's bodies when there isn't enough atmospheric pressure?\"",
+      "domain": "govt",
+      "gold_count": 1,
+      "both_routes_no_gold": false,
+      "missing": []
+    },
+    {
+      "case_id": "fc3e765d7ffc28ffc7ee7ea38fd3c73a<::>5",
+      "query": "|user|: Do welfare recipients get housing assistance?",
+      "domain": "govt",
+      "gold_count": 2,
+      "both_routes_no_gold": false,
+      "missing": []
+    },
+    {
+      "case_id": "d2432696b32af73cf3dabd7090997afb<::>2",
+      "query": "|user|: What are the most important discoveries made by Juno at Jupiter?",
+      "domain": "govt",
+      "gold_count": 6,
+      "both_routes_no_gold": false,
+      "missing": []
+    },
+    {
+      "case_id": "f0d2873b877409f61da7dbdddd22d279<::>3",
+      "query": "|user|: Can you tell me the grounds for lodging an appeal?",
+      "domain": "govt",
+      "gold_count": 2,
+      "both_routes_no_gold": false,
+      "missing": [
+        {
+          "gold": "mtrag:govt:437a43c8e66cba06-1357-3494",
+          "url": "https://www.ventura.courts.ca.gov/appeals.html",
+          "siblings": 6,
+          "locations": {
+            "dense": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            },
+            "bm25": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            }
+          },
+          "parent_in_top3": false,
+          "parent_in_any_top20": false
+        }
+      ]
+    },
+    {
+      "case_id": "35e6be0f2049527ae17cf77169cc4f70<::>4",
+      "query": "|user|: What are the types of restraining orders that I can file in Sacramento?",
+      "domain": "govt",
+      "gold_count": 3,
+      "both_routes_no_gold": false,
+      "missing": [
+        {
+          "gold": "mtrag:govt:0bd568ec1b6ba2b8-5052-6906",
+          "url": "https://saccourt.ca.gov/restraining-orders/firearms.aspx",
+          "siblings": 7,
+          "locations": {
+            "dense": {
+              "first_child_rank": 8,
+              "distinct_parent_rank": 6
+            },
+            "bm25": {
+              "first_child_rank": 16,
+              "distinct_parent_rank": 10
+            }
+          },
+          "parent_in_top3": false,
+          "parent_in_any_top20": true
+        }
+      ]
+    },
+    {
+      "case_id": "941445ba11ba7ba2c92c5184c9d798d6<::>5",
+      "query": "|user|: How about mediation?",
+      "domain": "govt",
+      "gold_count": 4,
+      "both_routes_no_gold": false,
+      "missing": [
+        {
+          "gold": "mtrag:govt:6d8c260a4cf63440-5941-8167",
+          "url": "https://www.ventura.courts.ca.gov/small-claims.html",
+          "siblings": 9,
+          "locations": {
+            "dense": {
+              "first_child_rank": 8,
+              "distinct_parent_rank": 5
+            },
+            "bm25": {
+              "first_child_rank": null,
+              "distinct_parent_rank": null
+            }
+          },
+          "parent_in_top3": false,
+          "parent_in_any_top20": true
+        }
+      ]
+    },
+    {
+      "case_id": "d7b4f863baa92fd08c1db2b1a95170dd<::>3",
+      "query": "|user|: What is the difference between an Earth satellite orbit and the other orbits?",
+      "domain": "govt",
+      "gold_count": 2,
+      "both_routes_no_gold": false,
+      "missing": []
+    }
+  ]
+}
