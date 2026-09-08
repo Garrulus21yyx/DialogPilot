@@ -242,3 +242,70 @@ def test_incremental_import_embeds_only_changed_source_spans(store):
     assert third.revisions[0].revision_id != first.revisions[0].revision_id
     # Each committed receipt remains the actual stored identity after later writes.
     assert any(item.revision_id == first.revisions[0].revision_id for item in knowledge._active_sources())
+
+
+@pytest.mark.parametrize('limit', [1, 2, 3])
+def test_batch_budget_allows_cumulative_growth_and_idempotency(store, monkeypatch, limit):
+    import infrastructure.postgres_knowledge_store as module
+    monkeypatch.setattr(module, 'OFFLINE_KNOWLEDGE_INGEST_BUDGET', replace(
+        module.OFFLINE_KNOWLEDGE_INGEST_BUDGET, max_chunks_per_batch=limit))
+    knowledge, _, provider = store
+    for batch in range(3):
+        incoming = tuple(_document(f'b{batch}-{i}', f'规则{batch}项目{i}。') for i in range(limit))
+        knowledge.import_documents(incoming)
+    active = knowledge.active_generation().generation_id
+    assert knowledge.doc_count() == 3 * limit
+    assert all(len(values) <= limit for values in provider.document_inputs)
+    calls = len(provider.document_inputs)
+    knowledge.import_documents(incoming)
+    assert knowledge.active_generation().generation_id == active
+    assert len(provider.document_inputs) == calls
+    # A revision after cumulative growth is also a one-source batch.
+    knowledge.import_documents((_document('b0-0', '更新后的规则。'),))
+    assert len(provider.document_inputs[-1]) == 1
+    assert knowledge.doc_count() == 3 * limit + 1
+
+
+def test_oversized_batch_preserves_active_generation(store, monkeypatch):
+    import infrastructure.postgres_knowledge_store as module
+    from core.cost_budget import OfflineIngestBudgetExceeded
+    monkeypatch.setattr(module, 'OFFLINE_KNOWLEDGE_INGEST_BUDGET', replace(
+        module.OFFLINE_KNOWLEDGE_INGEST_BUDGET, max_chunks_per_batch=1))
+    knowledge, _, provider = store
+    knowledge.import_documents((_document('initial', '初始规则。'),))
+    active = knowledge.active_generation().generation_id
+    calls = len(provider.document_inputs)
+    with pytest.raises(OfflineIngestBudgetExceeded):
+        knowledge.import_documents((_document('new1', '规则一。'), _document('new2', '规则二。')))
+    assert knowledge.active_generation().generation_id == active
+    assert knowledge.doc_count() == 1
+    assert len(provider.document_inputs) == calls
+
+
+def test_model_rebuild_is_batched_and_failure_does_not_activate(store, monkeypatch):
+    import infrastructure.postgres_knowledge_store as module
+    monkeypatch.setattr(module, 'OFFLINE_KNOWLEDGE_INGEST_BUDGET', replace(
+        module.OFFLINE_KNOWLEDGE_INGEST_BUDGET, max_chunks_per_batch=1))
+    knowledge, pool, old_provider = store
+    for i in range(3):
+        knowledge.import_documents((_document(str(i), f'规则{i}。'),))
+    active = knowledge.active_generation().generation_id
+    provider = RecordingEmbeddingProvider(replace(old_provider.profile, model_version='revision-2'))
+    rebuilding = PostgresKnowledgeStore(pool, tenant_id='tenant-a', embedding_provider=provider)
+    original = provider.embed_documents
+    def fail_second(texts):
+        if provider.document_inputs:
+            raise RuntimeError('embedding failed during rebuild')
+        return original(texts)
+    monkeypatch.setattr(provider, 'embed_documents', fail_second)
+    from infrastructure.knowledge_embedding import KnowledgeEmbeddingContractError
+    with pytest.raises(KnowledgeEmbeddingContractError, match='embedding provider failed'):
+        rebuilding.import_documents((_document('2', '规则2。'),))
+    assert knowledge.active_generation().generation_id == active
+    assert knowledge.doc_count() == 3
+    monkeypatch.setattr(provider, 'embed_documents', original)
+    provider.document_inputs.clear()
+    rebuilding.import_documents((_document('2', '规则2。'),))
+    assert [len(values) for values in provider.document_inputs] == [1, 1, 1]
+    assert rebuilding.active_generation().generation_id != active
+    assert rebuilding.doc_count() == 3

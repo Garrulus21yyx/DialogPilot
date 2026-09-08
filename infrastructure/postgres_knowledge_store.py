@@ -198,7 +198,14 @@ class PostgresKnowledgeStore:
             except ChunkStructureError as exc:
                 from application.knowledge_source import KnowledgeSourceContractError
                 raise KnowledgeSourceContractError(str(exc)) from exc
-            self._validate_chunk_budget(chunks)
+            # Admission limits describe this request, not the accumulated corpus.
+            # A revision already present in the active generation is still an
+            # input to this batch; historical revisions are not.
+            imported_ids = {(item.source_id, item.revision_id) for item in imported}
+            self._validate_chunk_budget(tuple(
+                chunk for chunk in chunks
+                if (chunk.source_id, chunk.revision_id) in imported_ids
+            ))
             generation_id = self._generation_id(sources)
             try:
                 active = self.active_generation()
@@ -280,9 +287,14 @@ class PostgresKnowledgeStore:
             return (chunk.source_id, chunk.revision_id, chunk.source_checksum,
                     chunk.start_char, chunk.end_char, chunk.retrieval_text)
         missing = [chunk for chunk in chunks if identity(chunk) not in cached]
-        if missing:
-            vectors = self._document_embedder(tuple(chunk.retrieval_text for chunk in missing))
-            cached.update((identity(chunk), vector) for chunk, vector in zip(missing, vectors, strict=True))
+        # Profile changes or a missing cache can require rebuilding more than
+        # one import batch. Bound provider calls while keeping generation
+        # publication after every required vector has been obtained.
+        batch_size = OFFLINE_KNOWLEDGE_INGEST_BUDGET.max_chunks_per_batch
+        for start in range(0, len(missing), batch_size):
+            batch = missing[start:start + batch_size]
+            vectors = self._document_embedder(tuple(chunk.retrieval_text for chunk in batch))
+            cached.update((identity(chunk), vector) for chunk, vector in zip(batch, vectors, strict=True))
         return tuple(cached[identity(chunk)] for chunk in chunks)
 
     def active_generation(self) -> RetrievalGeneration:

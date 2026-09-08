@@ -1,0 +1,13 @@
+# 导入批次预算修复
+
+问题：PostgresKnowledgeStore.import_documents合并历史来源后，对完整generation使用max_chunks_per_batch，导致合法小批输入也在累计4096片段时被拒绝。
+
+修复后的合同：来源数/字节和片段预算都检查本次输入修订。完整generation继续包含所有原有来源；按(source_id,revision_id)选择本次输入的投影进行片段检查，旧历史修订不计入本批。单批真正超限仍在embedding及generation发布前抛原typed错误。未提高4096或其他配置值。
+
+向量缓存仍按原文位置、修订、checksum、检索文本和模型身份复用。模型切换或缓存缺失时，可能需要重建比本次输入更多的向量；此时按既有max_chunks_per_batch分批调用provider，所有向量获得后才注册/投影/激活新代。中途失败保留原有效索引，不让部分新代可见。
+
+这不把数据库累计存储当成LLM token费用。现有max_embedding_tokens_per_batch字段的执行语义不在本次修改范围；没有新增token收费或累计库容量门槛。完整generation仍采用现有全量投影与索引构建，修复不声称其大规模性能已经验证，也没有改动索引发布协议。
+
+验证：真实隔离PostgreSQL测试中，以1/2/3的缩小批次限制参数化验证三批增长、幂等重导和历史修订；单批超限不增加embedding、不改变有效代；模型重建第二批失败保留旧代，恢复后每批1条重建完成。配合现有来源projection/预算测试运行。结果见artifacts/eval/rag-ingest-batch-repair-2026-09-08/pytest.txt。
+
+WixQA预检旧报告记录的是修复前错误作用域；直接将全库传给“单批校验方法”仍应失败，修复在调用者所属导入owner的集合选择处。全量WixQA实际PG导入与向量缓存接入是后续验收，不以小规模测试冒充已经导入11167片段。

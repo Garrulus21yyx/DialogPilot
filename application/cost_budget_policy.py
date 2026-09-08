@@ -2,6 +2,8 @@
 from core.cost_budget import OfflineIngestBudget
 
 
+# Source and chunk admission limits apply to incoming revisions, not the
+# cumulative corpus. Missing vectors are processed in bounded provider batches.
 OFFLINE_KNOWLEDGE_INGEST_BUDGET = OfflineIngestBudget(
     max_sources_per_batch=256,
     max_source_bytes=10 * 1024 * 1024,
