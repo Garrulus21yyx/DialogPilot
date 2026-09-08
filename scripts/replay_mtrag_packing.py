@@ -54,7 +54,7 @@ def run(a):
             arms[arm]={'packed_ids':list(packed.chunk_ids),'serialized_ids':ids,'metrics':at5(ids,set(r['gold'])),'body_estimated_tokens':packed.token_count,'serialized_estimated_tokens':tokens.estimate(wire),'skipped_budget':list(packed.skipped_budget),'skipped_redundant':list(packed.skipped_redundant),'wire':wire}
         rows.append({'case_id':r['case_id'],'gold':r['gold'],'arms':arms})
     summary={arm:{m:sum(r['arms'][arm]['metrics'][m] for r in rows)/len(rows) for m in rows[0]['arms'][arm]['metrics']} for arm in arms_to_score}
-    report={'scope':'production pack and serialization only; excludes guard, agent context and answer','api_calls':0,'new_model_scores':0,'case_count':len(rows),'summary':summary,'budget_skips':{a:sum(len(r['arms'][a]['skipped_budget']) for r in rows) for a in arms_to_score},'serialized_token_max':max(r['arms'][a]['serialized_estimated_tokens'] for r in rows for a in arms_to_score),'paired_recall_vs_current':{a:{'better':sum(r['arms'][a]['metrics']['recall@5']>r['arms']['0.25']['metrics']['recall@5'] for r in rows),'worse':sum(r['arms'][a]['metrics']['recall@5']<r['arms']['0.25']['metrics']['recall@5'] for r in rows)} for a in arms_to_score[1:]}}
+    report={'scope':'production pack and serialization only; excludes guard, agent context and answer','api_calls':0,'new_model_scores':0,'case_count':len(rows),'summary':summary,'budget_skips':{a:sum(len(r['arms'][a]['skipped_budget']) for r in rows) for a in arms_to_score},'serialized_token_max':max(r['arms'][a]['serialized_estimated_tokens'] for r in rows for a in arms_to_score),'paired_recall_vs_current':{a:{'better':sum(r['arms'][a]['metrics']['recall@5']>r['arms'][arms_to_score[0]]['metrics']['recall@5'] for r in rows),'worse':sum(r['arms'][a]['metrics']['recall@5']<r['arms'][arms_to_score[0]]['metrics']['recall@5'] for r in rows)} for a in arms_to_score[1:]}}
     a.output.mkdir(parents=True,exist_ok=False)
     (a.output/'cases.json.gz').write_bytes(gzip.compress(json.dumps(rows,ensure_ascii=False).encode(),mtime=0))
     (a.output/'report.json').write_text(json.dumps(report,indent=2)+'\n')
@@ -65,5 +65,5 @@ def run(a):
 if __name__=='__main__':
     p=argparse.ArgumentParser()
     for name in ('rerank','hybrid','manifest','corpora','output'):p.add_argument('--'+name,type=Path,required=True)
-    p.add_argument('--arms',nargs='+',choices=['0.25','0.5','0.75'])
+    p.add_argument('--arms',nargs='+',metavar='ARM')
     run(p.parse_args())

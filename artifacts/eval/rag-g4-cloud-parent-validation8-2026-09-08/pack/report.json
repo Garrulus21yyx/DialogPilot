@@ -1,0 +1,29 @@
+{
+  "scope": "production pack and serialization only; excludes guard, agent context and answer",
+  "api_calls": 0,
+  "new_model_scores": 0,
+  "case_count": 8,
+  "summary": {
+    "dense": {
+      "recall@5": 0.5208333333333334,
+      "mrr@5": 0.5416666666666666,
+      "ndcg@5": 0.502199464468395
+    },
+    "parent_local": {
+      "recall@5": 0.5416666666666666,
+      "mrr@5": 0.5208333333333334,
+      "ndcg@5": 0.495962726683722
+    }
+  },
+  "budget_skips": {
+    "dense": 17,
+    "parent_local": 17
+  },
+  "serialized_token_max": 3103,
+  "paired_recall_vs_current": {
+    "parent_local": {
+      "better": 1,
+      "worse": 1
+    }
+  }
+}

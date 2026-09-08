@@ -1,0 +1,50 @@
+{
+  "scope": "fixed supplied cases, local CE top5 only; no pack/tool/answer outcome",
+  "api_calls": 0,
+  "unique_pairs": 193,
+  "new_model_pairs": 193,
+  "scoring_and_ranking_seconds": 4.2968040239065886,
+  "max_padded_input_tokens": 564,
+  "summary": {
+    "dense": {
+      "before": {
+        "recall@5": 0.4479166666666667,
+        "mrr@5": 0.5625,
+        "ndcg@5": 0.4644476393454358
+      },
+      "after": {
+        "recall@5": 0.5208333333333334,
+        "mrr@5": 0.5416666666666666,
+        "ndcg@5": 0.502199464468395
+      }
+    },
+    "parent_local": {
+      "before": {
+        "recall@5": 0.4375,
+        "mrr@5": 0.4166666666666667,
+        "ndcg@5": 0.4032867981913646
+      },
+      "after": {
+        "recall@5": 0.5416666666666666,
+        "mrr@5": 0.5208333333333334,
+        "ndcg@5": 0.495962726683722
+      }
+    }
+  },
+  "paired_after_vs_current": {
+    "parent_local": {
+      "recall@5": {
+        "better": 1,
+        "worse": 1
+      },
+      "mrr@5": {
+        "better": 1,
+        "worse": 1
+      },
+      "ndcg@5": {
+        "better": 1,
+        "worse": 1
+      }
+    }
+  }
+}

@@ -77,7 +77,7 @@ def run(a):
                        'candidate_recall@20':r['variants'][arm]['metrics']['recall@20']}
         results.append({'case_id':r['case_id'],'group_id':r['group_id'],'domain':r['domain'],'gold':r['gold'],'arms':arms})
     summary={arm:{stage:{m:sum(r['arms'][arm][stage][m] for r in results)/len(results) for m in results[0]['arms'][arm][stage]} for stage in ('before','after')} for arm in arms_to_score}
-    paired={arm:{m:{'better':sum(r['arms'][arm]['after'][m]>r['arms']['0.25']['after'][m]+1e-12 for r in results),'worse':sum(r['arms'][arm]['after'][m]<r['arms']['0.25']['after'][m]-1e-12 for r in results)} for m in results[0]['arms'][arm]['after']} for arm in arms_to_score[1:]}
+    paired={arm:{m:{'better':sum(r['arms'][arm]['after'][m]>r['arms'][arms_to_score[0]]['after'][m]+1e-12 for r in results),'worse':sum(r['arms'][arm]['after'][m]<r['arms'][arms_to_score[0]]['after'][m]-1e-12 for r in results)} for m in results[0]['arms'][arm]['after']} for arm in arms_to_score[1:]}
     report={'scope':'fixed supplied cases, local CE top5 only; no pack/tool/answer outcome','api_calls':0,'unique_pairs':len(needed),'new_model_pairs':0 if a.replay else len(needed),'scoring_and_ranking_seconds':time.monotonic()-start,'max_padded_input_tokens':max(r['padded_input_tokens'] for r in scored),'summary':summary,'paired_after_vs_current':paired}
     for name,value in [('scores',scored),('cases',results)]:
         with gzip.open(a.output/(name+'.json.gz'),'wt') as f:json.dump(value,f,ensure_ascii=False)
@@ -90,5 +90,5 @@ if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
     for name in ('hybrid','manifest','corpora','model','output'):p.add_argument('--'+name,type=Path,required=True)
     p.add_argument('--replay',type=Path)
-    p.add_argument('--arms',nargs='+',choices=['0.25','0.5','0.75'])
+    p.add_argument('--arms',nargs='+',metavar='ARM')
     run(p.parse_args())

@@ -248,3 +248,7 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 - R02 Cloud父BM25结果：父Recall3 Dense-child投影50.00→独立父BM25 54.17%，2改善/1下降；父Recall20 70.83→68.75，MRR下降。web chat漏gold父到3、语言支持漏gold父到1。仅开发8题，允许下一步定位验证不采用。续预注册：固定父Top3，每父局部BM25取2片段（最多6），保留其后用原Dense Top20补齐最终20；不扩预算、不改query。记录候选passage Recall和被挤掉gold；有候选净收益才进入CE，最终采用仍需可见证据收益。
 
 - R02 Cloud父/child完成：父Recall3 50→54.17%，父Recall20/MRR下降；局部固定每父2条+全局Dense补齐20，passage候选Recall20 55.21→61.46%，1提高/0下降。救回1be662一gold；语言支持/web chat gold父内仍23/14，目标失败未闭环。API/embedding0。见cloud-parent8报告；下一项固定候选本地CE/pack验证唯一救回及排序误伤，未采用、未运行heldout。
+
+- R02 Cloud CE/pack预注册：固定前轮8题baseline Dense候选与parent_local候选，每臂20；同预训练BGE全片段/无截断/FP16 batch4、pack5/2600。新CE评分最多320对、API0、文档embedding0，不微调；报告候选/精排/序列化Recall、MRR/nDCG及救回误伤。只有pack净收益且解释误伤才作为开发候选，独立验证与生产接线另议。扩展实验脚本按显式首臂比较，不能把Dense baseline误标成.25权重。
+
+- R02 Cloud CE/pack完成：193本地CE pair/最大564token，API0；pack Recall5 52.08→54.17%，1提高/1下降，MRR .5417→.5208/nDCG .5022→.4960。1be救回保留，e1b正确证据被新项挤出前5；web/语言重点miss仍在。不采用，不扩quota/付费生成/消耗heldout。5项检查通过，16视图原文一致；未覆盖Agent/答案。见cloud-parent-validation8报告。下一项回到剩余query目标与父内语义匹配归因，领域读回及跨集验收继续保留队列，微调暂停。
