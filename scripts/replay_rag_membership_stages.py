@@ -27,6 +27,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--added-scores', type=Path, help='Replay saved missing-pair scores without loading a model')
+    parser.add_argument('--fusion-weights', action='store_true', help='Compare .25/.5 weights instead of round-robin membership')
     args = parser.parse_args()
     args.output.mkdir(exist_ok=False, parents=True)
     old = Path('artifacts/eval/rag-local-selection-stages-2026-09-07')
@@ -56,12 +57,28 @@ def main():
         reproduced = fuse_rankings(route, weights={'dense': .5, 'bm25': .5}, rrf_k=10, top_k=20)
         assert list(reproduced) == manifest['candidate_orders'][i]
         routes.append({name: rank[:20] for name, rank in route.items()})
+    if args.fusion_weights:
+        rows = []
+        for case, route in zip(cases, routes, strict=True):
+            row = {'case_id': case.case_id}
+            for arm, weight in [('baseline', .25), ('balanced', .5)]:
+                order = fuse_rankings(route, weights={'dense': weight, 'bm25': 1-weight}, rrf_k=10, top_k=20)
+                row[arm] = {'ids': order, 'complete': bool(complete(case, order, byid))}
+            rows.append(row)
     model_path = Path(manifest['reranker'])
     assert hashlib.sha256((model_path/'model.safetensors').read_bytes()).hexdigest() == manifest['reranker_model_sha256']
     old_locations = [(i, cid) for i, rank in enumerate(manifest['candidate_orders']) for cid in rank]
     values = np.load(old/'crossencoder-scores.npz')['values']
     assert len(old_locations) == len(values) == 6000
     ce = dict(zip(old_locations, map(float, values)))
+    if args.fusion_weights:
+        extra_root = Path('artifacts/eval/rag-g3-membership-stages-2026-09-07')
+        extra_report = json.loads((extra_root/'report.json').read_text())
+        assert extra_report['audit']['model_sha256'] == manifest['reranker_model_sha256']
+        current_hash = hashlib.sha256(json.dumps({'queries':[c.query for c in cases], 'texts':texts}, ensure_ascii=False).encode()).hexdigest()
+        assert current_hash == extra_report['audit']['current_input_sha256']
+        for value in json.loads(gzip.decompress((extra_root/'added-scores.json.gz').read_bytes())):
+            ce[value['case_index'], value['candidate_id']] = float(value['score'])
     needed = sorted({(i, cid) for i, r in enumerate(rows) for arm in ('baseline', 'balanced') for cid in r[arm]['ids']})
     missing = [loc for loc in needed if loc not in ce]
     assert len(missing) <= 2360
@@ -96,10 +113,10 @@ def main():
         for arm in ('baseline', 'balanced'):
             candidate = row[arm]['ids']
             ordered = sorted(candidate, key=lambda cid: (-ce[(i, cid)], cid))
-            packed = ContextPacker().pack([ContextCandidate(cid, byid[cid].document_id, byid[cid].content, byid[cid].start_char, byid[cid].end_char, score=1/(n+1)) for n, cid in enumerate(ordered[:5])], max_tokens=2600, max_chunks=5)
+            packed = ContextPacker().pack([ContextCandidate(cid, byid[cid].document_id, byid[cid].content, byid[cid].start_char, byid[cid].end_char, score=1/(n+1)) for n, cid in enumerate(ordered if args.fusion_weights else ordered[:5])], max_tokens=2600, max_chunks=5)
             visible = all(any(c.document_id == e.document_id and c.start_char <= e.start_char and c.end_char >= e.end_char for c in packed.selected) for e in case.evidence)
             assert packed.token_count <= 2600
-            record['arms'][arm] = dict(candidate_complete=row[arm]['complete'], rerank_complete=bool(complete(case, ordered[:5], byid)), packed_complete=visible, metrics=evaluate_ranked_hits(case, ordered, hitmap, top_k=5), tokens=packed.token_count, reranked_ids=ordered, packed_ids=[c.chunk_id for c in packed.selected])
+            record['arms'][arm] = dict(candidate_complete=row[arm]['complete'], rerank_complete=bool(complete(case, ordered[:5], byid)), packed_complete=visible, metrics=evaluate_ranked_hits(case, [c.chunk_id for c in packed.selected] if args.fusion_weights else ordered, hitmap, top_k=5), tokens=packed.token_count, reranked_ids=ordered, packed_ids=[c.chunk_id for c in packed.selected])
         if row['baseline']['complete'] != row['balanced']['complete']:
             removed = set(row['baseline']['ids']) - set(row['balanced']['ids'])
             added_ids = set(row['balanced']['ids']) - set(row['baseline']['ids'])
@@ -115,6 +132,7 @@ def main():
         summary['arms'][arm].update({metric+'5': sum(r['arms'][arm]['metrics'][metric] for r in results)/len(results) for metric in ('mrr','ndcg')})
     for stage in ('candidate_complete','rerank_complete','packed_complete'):
         summary['paired'][stage] = dict(rescues=sum(not r['arms']['baseline'][stage] and r['arms']['balanced'][stage] for r in results), harms=sum(r['arms']['baseline'][stage] and not r['arms']['balanced'][stage] for r in results))
+    summary['comparison'] = '.25 versus .5; pack scans complete reranked pool' if args.fusion_weights else 'membership strategy; historical first-five packing'
     summary['audit'] = dict(dataset_checksums=ds.manifest, model_sha256=manifest['reranker_model_sha256'], recipe='Reconstructed old raw-query/structure512-64/full-input FP16 batch4 scoring recipe and all 6000 candidate locations; historical token tensors not saved', current_input_sha256=hashlib.sha256(json.dumps({'queries':[c.query for c in cases], 'texts':texts}, ensure_ascii=False).encode()).hexdigest())
     (args.output/'cases.jsonl.gz').write_bytes(gzip.compress(''.join(json.dumps(r)+'\n' for r in results).encode(), mtime=0))
     (args.output/'report.json').write_text(json.dumps(summary, indent=2)+'\n')

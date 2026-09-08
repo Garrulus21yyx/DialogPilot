@@ -1,0 +1,60 @@
+{
+  "scope": "EXPOSED_DEV_LOCAL_CE_AND_PACKER_NOT_TOOLMESSAGE_OR_ANSWERS",
+  "cases": 300,
+  "api_calls": 0,
+  "reused_pairs": 7828,
+  "added_pairs": 48,
+  "scoring_and_packing_wall_ms": 2193.172115832567,
+  "new_model_pairs": 48,
+  "adopted": false,
+  "arms": {
+    "baseline": {
+      "candidate_complete": 207,
+      "rerank_complete": 199,
+      "packed_complete": 199,
+      "mrr5": 0.5644444444444445,
+      "ndcg5": 0.5895147983767823
+    },
+    "balanced": {
+      "candidate_complete": 222,
+      "rerank_complete": 208,
+      "packed_complete": 208,
+      "mrr5": 0.585388888888889,
+      "ndcg5": 0.6127811159216056
+    }
+  },
+  "paired": {
+    "candidate_complete": {
+      "rescues": 22,
+      "harms": 7
+    },
+    "rerank_complete": {
+      "rescues": 11,
+      "harms": 2
+    },
+    "packed_complete": {
+      "rescues": 11,
+      "harms": 2
+    }
+  },
+  "comparison": ".25 versus .5; pack scans complete reranked pool",
+  "audit": {
+    "dataset_checksums": {
+      "case_count": 300,
+      "cases_sha256": "f0e282d4e6b0594dfc98267322bd865e846b4cc00dbbe8d534d2e6ebc6ec6363",
+      "corpus_sha256": "89a8828b798c97946e6d150851fe046692f1c8c58e1795648223345a5d526281",
+      "dataset_id": "doc2dial-rag-mini-dev-v1",
+      "document_count": 100,
+      "schema_version": 1,
+      "source": {
+        "dataset": "Doc2Dial v1.0.1",
+        "license": "CC-BY-3.0",
+        "selection": "deterministic domain-balanced prefix plus distractors",
+        "url": "https://doc2dial.github.io/file/doc2dial_v1.0.1.zip"
+      }
+    },
+    "model_sha256": "d9e3e081faff1eefb84019509b2f5558fd74c1a05a2c7db22f74174fcedb5286",
+    "recipe": "Reconstructed old raw-query/structure512-64/full-input FP16 batch4 scoring recipe and all 6000 candidate locations; historical token tensors not saved",
+    "current_input_sha256": "c8599f06ce69918a4c6bb850a5e5561a2d193a6c19d63c693999cfc441b07869"
+  }
+}
