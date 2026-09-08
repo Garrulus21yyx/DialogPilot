@@ -355,6 +355,10 @@ class PostgresConversationQueryService:
     def _execution_status(invocation, runtime, final, pending):
         if final is not None:
             public = final["payload"].get("public_response", {})
+            if public.get("outcome") == "reconciling":
+                return ExecutionStatus.RECONCILING
+            if public.get("execution") == "WAITING":
+                return ExecutionStatus.WAITING
             return ExecutionStatus.FAILED if public.get("outcome") == "failed" else ExecutionStatus.COMPLETED
         if pending is not None:
             return ExecutionStatus.WAITING

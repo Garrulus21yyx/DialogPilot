@@ -138,9 +138,12 @@ def test_durable_interaction_can_be_presented_without_new_execution(kind, publis
     from application.response_assembly import ResponseAssembler
     from infrastructure.postgres_target_runtime import conversation_state_from_payload, conversation_state_to_payload
     from tests.test_knowledge_answer_boundary import Verifier
-    state, _, other = pending_state(False)
+    state, origin, other = pending_state(False)
     if kind == "fields":
         state = replace(state, pending_approval=None)
+    elif kind == "both":
+        state = replace(state, pending_approval=replace(state.pending_approval,
+            suspended_work_items=(origin,)))
     if kind != "approval":
         state = state.wait_for_interaction(PendingInteractionState("question", 1,
             (RequestedField("reply", other.work_item_id, "string", question_hint="Which option?"),),

@@ -14,7 +14,7 @@ from application.agent_result import (
     FactSourceKind,
     MissingInputSpec,
 )
-from application.chat_contracts import ChatCommand, Completed, Conflict, Failed, NeedsInput
+from application.chat_contracts import ChatCommand, Completed, Conflict, Failed, NeedsInput, Reconciling
 from application.conversation_state import InMemoryConversationStateStore
 from application.default_capability_registry import build_default_capability_registry
 from application.orchestration_runtime import OrchestrationRuntime
@@ -92,6 +92,8 @@ class _Publication:
         self.responses[key] = (Failed(body["code"], False, body["correlation_id"],
             response_text, execution_stages, response_id=published.response_id)
             if body.get("outcome") == "failed" else
+            Reconciling(body["workflow_run_id"], body, body["next_poll_after"], stages=execution_stages)
+            if body.get("outcome") == "reconciling" else
             Completed(published.response_id, body, stages=execution_stages))
         return published
 
@@ -253,7 +255,8 @@ def test_one_publication_exposes_both_approval_and_field_bindings():
     from tests.test_response_assembly import _board, _result
     from tests.test_knowledge_answer_boundary import Verifier
     state, origin, other = pending_state(False)
-    state = replace(state, pending_approval=replace(state.pending_approval, checkpoint_thread_id="thread"))
+    state = replace(state, pending_approval=replace(state.pending_approval,
+        checkpoint_thread_id="thread", suspended_work_items=(origin,)))
     state = state.wait_for_interaction(PendingInteractionState("fields", 1,
         (RequestedField("reply", other.work_item_id, "string"),), (), (other,), "thread"))
     application, _ = _application()
@@ -284,6 +287,40 @@ def test_one_publication_exposes_both_approval_and_field_bindings():
         "target_work_item_id": other.work_item_id, "field_name": "reply", "value": "blue"}]}
     validate(values, schema)
     validate({**values, "approval_id": "approval", "approved": False}, schema)
+
+
+@pytest.mark.parametrize("unknown_count", [1, 3])
+def test_unknown_actions_publish_independent_results_and_keep_their_own_references(monkeypatch, unknown_count):
+    from application.result_board import ResultBoard
+    from tests.test_write_workflow import _item as write_item
+    original_execute = OrchestrationRuntime.execute
+
+    async def execute_with_unknown_history(self, *args, **kwargs):
+        board = await original_execute(self, *args, **kwargs)
+        retained = []
+        for index in range(unknown_count):
+            item = replace(write_item(f"operation-{index}"), work_item_id=f"write-{index}",
+                           approval_binding=f"approval-{index}")
+            result = AgentResult(item.work_item_id, item.owner_agent,
+                AgentResultStatus.RECONCILING, "OUTCOME_UNKNOWN", "test")
+            retained.append((item, result))
+        from application.work_item import WorkPlan
+        return ResultBoard().evaluate(WorkPlan(board.work_items, board.work_items[0].work_item_id),
+            board.results, retained_outcomes=tuple(retained))
+
+    monkeypatch.setattr(OrchestrationRuntime, "execute", execute_with_unknown_history)
+    application, tools = _application()
+    command = ChatCommand("查一下订单 DP1234 物流", "user-a", "tenant-a", "conversation-a", "unknown-history")
+    outcome = asyncio.run(application.handle(command))
+    assert isinstance(outcome, Reconciling)
+    assert "DP1234" in outcome.public_status["response"]
+    assert not outcome.public_status["task_completed"]
+    assert {item["approval_id"] for item in outcome.public_status["reconciling_actions"]} == {
+        f"approval-{index}" for index in range(unknown_count)}
+    assert len(application._publication.responses) == 1
+    calls = len(tools.calls)
+    assert asyncio.run(application.handle(command)) == outcome
+    assert len(tools.calls) == calls
 
 
 def test_chat_request_accepts_typed_decision_without_fabricated_user_text():
@@ -514,14 +551,20 @@ def test_failure_publication_remains_a_failure_on_replay():
         application.publish_failure(identity, replace(failed, retryable=True))
 
 
-def test_target_chat_publishes_one_typed_interaction_and_resumes_exact_work_item():
+@pytest.mark.parametrize("fail_first", [False, True])
+def test_target_chat_publishes_one_typed_interaction_and_resumes_exact_work_item(fail_first):
     from application.response_assembly import ResponseAssembler
     from tests.test_knowledge_answer_boundary import Verifier
     registry = build_default_capability_registry("tenant-a")
     executor = _MissingThenReadExecutor()
     state_store = InMemoryConversationStateStore()
     class Composer:
+        calls = 0
         async def compose(self, payload):
+            self.calls += 1
+            if fail_first and self.calls == 1:
+                from core.framework_models import ModelInvocationError
+                raise ModelInvocationError("compose", TimeoutError("injected failure"))
             question = bool(payload['evidence']['requested_inputs'])
             if question:
                 return "\n".join([('请提供订单核验信息。')])
@@ -548,8 +591,16 @@ def test_target_chat_publishes_one_typed_interaction_and_resumes_exact_work_item
         "request-input-1",
     )))
 
-    assert isinstance(first, NeedsInput)
-    assert first.kind == "FIELDS"
+    if fail_first:
+        assert isinstance(first, Completed)
+        assert first.response["execution"] == "WAITING"
+        assert first.response["interaction_presentation"] == "UNAVAILABLE"
+        assert not first.response["task_completed"]
+        assert not first.response["verified"]
+        assert first.stages
+    else:
+        assert isinstance(first, NeedsInput)
+        assert first.kind == "FIELDS"
     state = state_store.load(
         "tenant-a", "user-a", "conversation-input",
     )

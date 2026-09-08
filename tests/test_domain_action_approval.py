@@ -294,7 +294,7 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
                 assert calls == ["read"]
                 return
             if decision == "invalid_followup":
-                from application.turn_runtime import TurnRuntime, InteractionAssemblyUnavailable
+                from application.turn_runtime import TurnRuntime
                 from application.response_assembly import AssembledResponse, ResponseAssemblyMode
                 from application.conversation_state import WorkstreamStatus
                 class RejectInput:
@@ -306,14 +306,15 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
                         assert current.pending_approval is None
                         assert next(s for s in current.workstreams if s.workstream_id == pending.workstream_id).status is WorkstreamStatus.COMPLETED
                         assert board.results[0].action_receipts[0].receipt_id == "cancel-receipt"
-                        return AssembledResponse("", ResponseAssemblyMode.TEMPLATE, (), False,
+                        return AssembledResponse("Progress saved; the question is unavailable.", ResponseAssemblyMode.TEMPLATE, (), False,
                             "REJECT", "INCOMPLETE")
                 checkpoints = InMemorySaver(serde=target_checkpoint_serializer())
                 for _ in range(2):
                     runtime = TurnRuntime(manager, RejectInput(), checkpointer=checkpoints)
-                    with pytest.raises(InteractionAssemblyUnavailable):
-                        await runtime.execute(_identity("approve"), TurnObservations(
-                            "", approval_decision=True, approval_id=pending.approval_id))
+                    result = await runtime.execute(_identity("approve"), TurnObservations(
+                        "", approval_decision=True, approval_id=pending.approval_id))
+                    assert not result.assembled.verified
+                    assert result.managed.state_after.pending_interaction is not None
                 assert len([call for call in calls if isinstance(call, tuple)]) == 1
                 assert model.calls == 3  # Reply rejection never dispatches the domain again.
                 return

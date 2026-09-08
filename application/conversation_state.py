@@ -359,11 +359,7 @@ class ConversationState:
             stream = by_id.get(self.pending_approval.workstream_id)
             if stream is None or stream.status is not WorkstreamStatus.WAITING_APPROVAL:
                 raise ConversationStateError("approval is not bound to a waiting workstream")
-            if self.pending_interaction is not None and (
-                not self.pending_interaction.checkpoint_thread_id
-                or self.pending_approval.workstream_id in dict(self.pending_interaction.workstream_versions)
-            ):
-                raise ConversationStateError("approval and clarification require independently bound work")
+        self._assert_independent_waits(self.pending_interaction, self.pending_approval)
         if any(
             binding.workstream_id not in by_id
             or by_id[binding.workstream_id].state_version != binding.workstream_version
@@ -670,13 +666,25 @@ class ConversationState:
             workstreams=(*self.workstreams, *workstreams),
         )
 
+    def extend_interaction(self, pending: PendingInteractionState) -> "ConversationState":
+        """Add independent waits to one interaction; older responses become stale."""
+        previous = self.pending_interaction
+        if (previous is None or pending.interaction_id != previous.interaction_id
+                or pending.version != previous.version + 1
+                or pending.checkpoint_thread_id != previous.checkpoint_thread_id
+                or pending.workstream_versions != previous.workstream_versions
+                or not all(field in pending.requested_fields for field in previous.requested_fields)
+                or not all(item in pending.suspended_work_items for item in previous.suspended_work_items)):
+            raise ConversationStateConflict("interaction extension must preserve its existing wait")
+        signal = f"interaction:{previous.interaction_id}:v{previous.version}"
+        self._assert_unconsumed(signal)
+        return replace(self, version=self.version + 1, pending_interaction=pending,
+            consumed_signal_ids=(*self.consumed_signal_ids, signal))
+
     def wait_for_interaction(self, pending: PendingInteractionState) -> "ConversationState":
         if self.pending_interaction is not None:
             raise ConversationStateConflict("conversation already has a pending interaction")
-        if (self.pending_approval is not None and
-                (not pending.checkpoint_thread_id
-                 or self.pending_approval.workstream_id in dict(pending.workstream_versions))):
-            raise ConversationStateConflict("approval and clarification require independently bound work")
+        self._assert_independent_waits(pending, self.pending_approval)
         by_id = {item.workstream_id: item for item in self.workstreams}
         requested_ids = {item.target_work_item_id for item in pending.requested_fields}
         suspended_ids = {item.work_item_id for item in pending.suspended_work_items}
@@ -709,8 +717,9 @@ class ConversationState:
         )
 
     def wait_for_approval(self, pending: PendingApprovalState, *, new_workstream: WorkstreamState | None = None) -> "ConversationState":
-        if self.pending_interaction is not None or self.pending_approval is not None:
+        if self.pending_approval is not None:
             raise ConversationStateConflict("conversation already has a pending interaction")
+        self._assert_independent_waits(self.pending_interaction, pending)
         if new_workstream is not None:
             if new_workstream.workstream_id != pending.workstream_id or new_workstream.status is not WorkstreamStatus.WAITING_APPROVAL:
                 raise ConversationStateConflict("new action workstream must bind the pending approval")
@@ -721,6 +730,24 @@ class ConversationState:
             status=WorkstreamStatus.WAITING_APPROVAL,
         )
         return replace(updated, pending_approval=pending)
+
+    @staticmethod
+    def _assert_independent_waits(interaction, approval) -> None:
+        """Input and action grants may coexist, but cannot own the same work."""
+        if interaction is None or approval is None:
+            return
+        input_ids = {item.work_item_id for item in interaction.suspended_work_items}
+        approval_ids = {item.work_item_id for item in approval.suspended_work_items}
+        approval_ids.update((approval.work_item_id, approval.origin_work_item_id))
+        input_controls = {item.control.control_id for item in interaction.suspended_work_items if item.control}
+        approval_controls = {item.control.control_id for item in approval.suspended_work_items if item.control}
+        if approval.origin_control:
+            approval_controls.add(approval.origin_control.control_id)
+        if (not interaction.checkpoint_thread_id
+                or approval.workstream_id in dict(interaction.workstream_versions)
+                or input_ids.intersection(approval_ids)
+                or input_controls.intersection(approval_controls)):
+            raise ConversationStateConflict("approval and clarification require independently bound work")
 
     def consume_interaction(
         self,

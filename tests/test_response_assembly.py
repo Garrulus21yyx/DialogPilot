@@ -92,11 +92,12 @@ def test_pre_write_lookup_is_an_observation_not_current_state_in_fallback(locale
     assert ("submitted" if locale == "en" else "已提交") in text
 
 
-def test_question_prelude_preserves_verified_success_without_publishing_worker_drafts():
+def test_safe_rendering_preserves_verified_success_without_publishing_worker_drafts():
+    from application.response_assembly import _render_board
     board = _board(_verified_order_result(response="UNVERIFIED promise"),
                    _result("blocked", "product_technical", AgentResultStatus.BLOCKED,
                            response="UNVERIFIED failure explanation"))
-    text = ResponseAssembler.interaction_prelude(board)
+    text = _render_board(board)
     assert "DP1234" in text
     assert "UNVERIFIED" not in text
     assert len(board.results) == 2

@@ -145,8 +145,7 @@ def _manager(executor, *, checkpointer=None, context_provider=None):
     )
 
 
-def test_question_author_failure_resumes_assembly_without_repeating_work_or_rebinding_input():
-    from application.turn_runtime import InteractionAssemblyUnavailable
+def test_question_author_failure_preserves_wait_and_replays_safe_response_without_work():
     from tests.test_target_chat_cutover import _MissingThenReadExecutor
     executor = _MissingThenReadExecutor()
     checkpoint = InMemorySaver(serde=target_checkpoint_serializer())
@@ -163,23 +162,22 @@ def test_question_author_failure_resumes_assembly_without_repeating_work_or_rebi
     runtime = TurnRuntime(manager, ResponseAssembler(composer, knowledge_verifier=Verifier(True)),
                           checkpointer=checkpoint)
     async def run():
-        with pytest.raises(InteractionAssemblyUnavailable):
-            await runtime.execute(_identity(), TurnObservations('查询订单 DP1234'))
+        first = await runtime.execute(_identity(), TurnObservations('查询订单 DP1234'))
+        assert not first.assembled.verified
+        assert first.assembled.text
         saved = await runtime.graph.aget_state({'configurable': {'thread_id': 'turn:' + str(_identity().invocation_key)}})
         pending = saved.values['managed'].state_after.pending_interaction
         assert pending is not None
         result = await runtime.execute(_identity(), TurnObservations('查询订单 DP1234'))
         assert result.managed.state_after.pending_interaction == pending
-        assert result.assembled.verified
-        assert result.assembled.text == '请提供订单核验信息。'
+        assert result.assembled == first.assembled
     asyncio.run(run())
     assert manager.prepare_calls == manager.execute_calls == 1
     assert len(executor.calls) == 1
-    assert composer.calls == 2
+    assert composer.calls == 1
 
 
 def test_checkpoint_does_not_make_exhausted_question_review_retryable():
-    from application.turn_runtime import InteractionAssemblyUnavailable
     from tests.test_target_chat_cutover import _MissingThenReadExecutor
     checkpoint = InMemorySaver(serde=target_checkpoint_serializer())
     class Composer:
@@ -190,12 +188,13 @@ def test_checkpoint_does_not_make_exhausted_question_review_retryable():
     composer = Composer()
     runtime = TurnRuntime(_manager(_MissingThenReadExecutor()),
         ResponseAssembler(composer, knowledge_verifier=Verifier(False)), checkpointer=checkpoint)
-    with pytest.raises(InteractionAssemblyUnavailable) as error:
-        asyncio.run(runtime.execute(_identity(), TurnObservations('查询订单 DP1234')))
-    assert not error.value.retryable
-    assert error.value.reason == 'ungrounded'
-    assert error.value.diagnostics[0].stage == 'answer_verification'
-    assert error.value.diagnostics[0].detail['code'] == 'ungrounded'
+    result = asyncio.run(runtime.execute(_identity(), TurnObservations('查询订单 DP1234')))
+    assert result.managed.state_after.pending_interaction is not None
+    assert not result.assembled.verified
+    assert not result.assembled.retryable
+    assert result.assembled.verification_reason == 'ungrounded'
+    assert result.assembled.diagnostics[0].stage == 'answer_verification'
+    assert result.assembled.diagnostics[0].detail['code'] == 'ungrounded'
     assert composer.calls == 2
 
 
@@ -251,7 +250,6 @@ def test_checkpoint_allowlist_is_closed_over_registered_dataclass_field_types():
 
 def test_question_failure_survives_postgres_checkpoint_reopen(postgres_database_url):
     from infrastructure.langgraph_checkpoint import AsyncPostgresCheckpointOwner
-    from application.turn_runtime import InteractionAssemblyUnavailable
     from tests.test_target_chat_cutover import _MissingThenReadExecutor
     from uuid import uuid4
     identity = IdentityFactory().create_invocation(tenant_id='tenant-a', user_id='user-a',
@@ -271,9 +269,8 @@ def test_question_failure_survives_postgres_checkpoint_reopen(postgres_database_
         async with AsyncPostgresCheckpointOwner(postgres_database_url, setup=True) as checkpoint:
             runtime = TurnRuntime(manager, ResponseAssembler(composer, knowledge_verifier=Verifier(True)),
                                   checkpointer=checkpoint)
-            with pytest.raises(InteractionAssemblyUnavailable) as error:
-                await runtime.execute(identity, TurnObservations('查询订单 DP1234'))
-            assert error.value.retryable
+            first = await runtime.execute(identity, TurnObservations('查询订单 DP1234'))
+            assert first.assembled.retryable and not first.assembled.verified
             snapshot = await runtime.graph.aget_state({'configurable': {'thread_id': 'turn:' + str(identity.invocation_key)}})
             pending = snapshot.values['managed'].state_after.pending_interaction
         async with AsyncPostgresCheckpointOwner(postgres_database_url) as checkpoint:
@@ -281,10 +278,27 @@ def test_question_failure_survives_postgres_checkpoint_reopen(postgres_database_
                                   checkpointer=checkpoint)
             result = await runtime.execute(identity, TurnObservations('查询订单 DP1234'))
             assert result.managed.state_after.pending_interaction == pending
-            assert result.assembled.verified and result.assembled.text == '请提供订单核验信息。'
+            assert result.assembled == first.assembled
     asyncio.run(run())
     assert manager.prepare_calls == manager.execute_calls == len(executor.calls) == 1
-    assert composer.calls == 2
+    assert composer.calls == 1
+
+
+def test_unpublished_prior_lifecycle_checkpoint_is_not_reinterpreted_as_new_execution():
+    from application.turn_runtime import TurnCheckpointVersionError
+    executor = _Executor()
+    runtime = TurnRuntime(_manager(executor), ResponseAssembler(),
+        checkpointer=InMemorySaver(serde=target_checkpoint_serializer()))
+    async def run():
+        identity = _identity()
+        await runtime.execute(identity, TurnObservations("查询订单 DP1234"))
+        calls = executor.calls
+        config = {"configurable": {"thread_id": "turn:" + str(identity.invocation_key)}}
+        await runtime.graph.aupdate_state(config, {"runtime_version": "turn-runtime-v6-followup-boundary"})
+        with pytest.raises(TurnCheckpointVersionError, match="explicit lifecycle migration"):
+            await runtime.execute(identity, TurnObservations("查询订单 DP1234"))
+        assert executor.calls == calls
+    asyncio.run(run())
 
 
 def test_turn_graph_retries_failed_prepare_without_executing_work_early():

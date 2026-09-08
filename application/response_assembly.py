@@ -75,18 +75,6 @@ class ResponseAssembler:
 
     version = "response-assembler-v9-reply-only"
 
-    @staticmethod
-    def interaction_prelude(board, *, locale="zh-CN") -> str:
-        """Deliver independent committed results alongside a pending question.
-
-        This uses the existing deterministic renderer, not unverified domain
-        prose or a second composition call. The underlying board is unchanged.
-        """
-        from types import SimpleNamespace
-        results = tuple(result for result in board.results if result.status in _SUCCESS
-                        and (result.facts or result.action_receipts))
-        return _render_board(SimpleNamespace(results=results), locale=locale) if results else ""
-
     def __init__(self, composer: ConversationComposer | None = None, *,
                  knowledge_verifier=None, knowledge_source_validator=None,
                  fallback_locale="zh-CN", internal_tool_names=(), trace_sink=None) -> None:
@@ -113,7 +101,7 @@ class ResponseAssembler:
             system_notice=system_notice, conversation_context=conversation_context, pending_approval=pending_approval,
             requested_inputs=requested_inputs)
         if requested_inputs and not response.verified:
-            prelude = self.interaction_prelude(board, locale=self.fallback_locale)
+            prelude = _render_board(board, locale=self.fallback_locale)
             notice = _message(self.fallback_locale,
                 "暂时无法组织后续问题，已保留处理进度，请稍后重试。",
                 "I could not prepare the follow-up question. Your progress is saved; please try again later.")
@@ -375,8 +363,7 @@ class ResponseAssembler:
 
 
 def _failure_feedback(result):
-    from application.work_recovery import failure_feedback
-    return failure_feedback(result) if result.status not in _SUCCESS else []
+    return list(result.execution_feedback) if result.status not in _SUCCESS else []
 
 
 def _input_context(requested_inputs):

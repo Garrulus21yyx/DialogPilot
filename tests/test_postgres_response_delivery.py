@@ -85,6 +85,29 @@ def _metadata(identity):
     }
 
 
+def test_published_partial_response_keeps_reconciliation_on_database_replay(compat_components):
+    from application.chat_contracts import Reconciling
+    from application.target_run import terminal_from_outcome, outcome_from_terminal
+    _, identity, service = compat_components
+    metadata = {**_metadata(identity), "public_response": {
+        "outcome": "reconciling", "execution": "RECONCILING",
+        "workflow_run_id": str(identity.workflow_run_id), "next_poll_after": 1.0,
+        "task_completed": False,
+    }}
+    selected = service.select_response(user_id=str(identity.user_id),
+        conv_id=str(identity.conversation_id), request_id=str(identity.request_id),
+        response_text="The order was found; the separate action outcome is being checked.",
+        identity_metadata=metadata)
+    recovered = service.completed_for_invocation(identity.invocation_key, user_id=str(identity.user_id))
+    assert isinstance(recovered, Reconciling)
+    assert recovered.public_status["response_id"] == selected.response_id
+    assert not recovered.public_status["task_completed"]
+    assert "order was found" in recovered.public_status["response"]
+    terminal = terminal_from_outcome(recovered)
+    assert terminal.status == "RECONCILING"
+    assert outcome_from_terminal(terminal) == recovered
+
+
 def test_select_retry_ack_read_and_replay_use_postgres_authority(
     compat_components,
 ):

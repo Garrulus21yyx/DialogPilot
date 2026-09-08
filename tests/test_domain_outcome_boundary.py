@@ -306,7 +306,7 @@ def test_information_reply_restores_downstream_dag_without_reexecuting_independe
     from application.agent_result import AgentResult, AgentResultStatus, MissingInputSpec
     from application.deterministic_resolution import TurnObservations
     from application.turn_planning import CommandProposal, CommandKind, TurnProposal, ProposalDisposition
-    from tests.test_work_recovery import _setup
+    from tests.test_task_result_lifecycle import _setup
     from tests.test_target_persistence_and_manager import _identity
 
     async def run():

@@ -20,6 +20,16 @@ class WorkItemContractError(ValueError):
     pass
 
 
+def planning_continuations(state, resolved_items=()):
+    """Only persisted waits or resolver-accepted envelopes authorize continuation."""
+    items = {(item.work_item_id, item.control): item
+        for pending in (state.pending_interaction, state.pending_approval)
+        if pending is not None for item in pending.suspended_work_items}
+    items.update({(item.work_item_id, item.control): item for item in resolved_items})
+    return tuple(item for item in items.values()
+                 if item.control is not None and state.accepts(item.control))
+
+
 class ControlMode(str, Enum):
     DIRECT = "DIRECT"
     DELEGATED = "DELEGATED"

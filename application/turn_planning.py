@@ -671,7 +671,7 @@ class TurnPlan:
 
 
 class TurnPlanCompiler:
-    version = "turn-plan-compiler-v1"
+    version = "turn-plan-compiler-v2-invocation-work-identity"
 
     def compile(
         self,
@@ -806,7 +806,7 @@ class TurnPlanCompiler:
     ) -> WorkItem:
         proposal = command.proposal
         agent = registry.agent(proposal.target_agent)
-        work_item_id = f"work:{index}:{proposal.command_id}"
+        work_item_id = f"work:{invocation.invocation_key}:{index}:{proposal.command_id}"
         control_mode = {
             CommandKind.DIRECT_TOOL: ControlMode.DIRECT,
             CommandKind.DELEGATE_TASK: ControlMode.DELEGATED,

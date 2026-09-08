@@ -67,10 +67,9 @@ def test_later_model_failure_retains_tool_evidence_and_actionable_continuation(e
     assert result.candidate_response is None
     assert len(calls) == 1
     assert "execution_feedback" in str(result.working_messages[-1])
-    from application.work_recovery import failure_feedback
     compacted = replace(result, working_messages=())
-    assert failure_feedback(compacted) == failure_feedback(result)
-    assert any(row.get("call_id") == "completed" for row in failure_feedback(compacted))
+    assert compacted.execution_feedback == result.execution_feedback
+    assert any(row.get("call_id") == "completed" for row in compacted.execution_feedback)
     seen = []
     class Resumed(ScriptedToolModel):
         def _generate(self, messages, stop=None, run_manager=None, **kwargs):
@@ -95,11 +94,10 @@ def test_retry_classification_uses_status_not_exception_text(status, expected):
     ({"stage": "tool", "status": "succeeded"}, {"stage": "domain_model", "retryable": True})])
 def test_execution_diagnostics_roundtrip_without_working_messages(feedback):
     from application.agent_result import AgentResult
-    from application.work_recovery import failure_feedback
     from infrastructure.langgraph_checkpoint import target_checkpoint_serializer
     result = AgentResult("work", "general", AgentResultStatus.BLOCKED, "STOPPED", "test",
                          execution_feedback=feedback)
     serializer = target_checkpoint_serializer()
     restored = serializer.loads_typed(serializer.dumps_typed(result))
     assert restored == result
-    assert failure_feedback(restored) == list(feedback)
+    assert list(restored.execution_feedback) == list(feedback)

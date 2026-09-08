@@ -310,7 +310,7 @@ class OrchestrationRuntime:
                 item.control and new.control and item.control.control_id == new.control.control_id
                 and item.control.revision < new.control.revision) for new in plan.items))
         preserved = tuple(result for item, result in previous if item in plan.items and result is not None)
-        board = self._result_board.evaluate(plan, preserved)
+        board = self._result_board.evaluate(plan, preserved, retained_outcomes=retained)
         progress = {}
         messages = {}
         now = datetime.now(timezone.utc)
@@ -501,8 +501,8 @@ class OrchestrationRuntime:
         return {"board": board, "facts": board.facts, "ready_items": ()}
 
     def _evaluate(self, state):
-        return replace(self._result_board.evaluate(
-            state["work_plan"], tuple(state.get("agent_results", ()))),
+        return self._result_board.evaluate(
+            state["work_plan"], tuple(state.get("agent_results", ())),
             retained_outcomes=tuple(state.get("retained_outcomes", ())))
 
     async def execute(

@@ -9,7 +9,7 @@ from typing import TypedDict
 from langgraph.graph import END, START, StateGraph
 
 from application.conversation_context import conversation_context_payload
-from application.agent_result import AgentResultStatus, MissingInputSpec
+from application.agent_result import MissingInputSpec
 from application.deterministic_resolution import TurnObservations
 from application.response_assembly import AssembledResponse, ResponseAssembler
 from application.target_conversation_manager import (
@@ -26,16 +26,6 @@ class TurnRuntimeError(ValueError):
 
 class TurnCheckpointVersionError(TurnRuntimeError):
     """Old in-flight decisions need explicit reconciliation, not new execution."""
-
-
-class InteractionAssemblyUnavailable(TurnRuntimeError):
-    """Keep the assembly node resumable; no question has been published."""
-
-    def __init__(self, *, retryable: bool, reason: str = "INTERACTION_UNAVAILABLE", diagnostics=()):
-        super().__init__("The follow-up question could not be verified: " + reason)
-        self.retryable = retryable
-        self.reason = reason
-        self.diagnostics = tuple(diagnostics)
 
 
 class TurnGraphState(TypedDict, total=False):
@@ -58,7 +48,7 @@ class TurnRuntimeResult:
 class TurnRuntime:
     """Coordinate durable turn phases without owning their domain semantics."""
 
-    version = "turn-runtime-v6-followup-boundary"
+    version = "turn-runtime-v7-result-owned-delivery"
 
     def __init__(
         self,
@@ -128,7 +118,9 @@ class TurnRuntime:
         questions = ()
         if (pending_input is not None and (
                 managed.state_before.pending_interaction is None
-                or pending_input.interaction_id != managed.state_before.pending_interaction.interaction_id
+                or (pending_input.interaction_id, pending_input.version) != (
+                    managed.state_before.pending_interaction.interaction_id,
+                    managed.state_before.pending_interaction.version)
                 or self._interaction_published is not None and not self._interaction_published(
                     state["invocation"], signal_id=pending_input.interaction_id, signal_version=pending_input.version))):
             candidates = tuple(spec for item, result in (board.outcome_items if board else ())
@@ -144,13 +136,6 @@ class TurnRuntime:
                               if (spec.target_work_item_id, spec.field_name) in bindings)
             if {(spec.target_work_item_id, spec.field_name) for spec in questions} != bindings:
                 raise TurnRuntimeError("Pending input lacks its bound question specification")
-        if board is not None and any(
-            result.status in {
-                AgentResultStatus.RECONCILING,
-            }
-            for result in board.results
-        ):
-            return {"assembled": None}
         notice = (
             ("An account security risk was detected. Security handling took priority; other high-risk operations were not started this turn.\n"
              if self._assembler.fallback_locale == "en" else
@@ -195,10 +180,6 @@ class TurnRuntime:
             requested_inputs=questions,
         )
         assembled = replace(assembled, diagnostics=managed.diagnostics + assembled.diagnostics)
-        if questions and not assembled.verified:
-            raise InteractionAssemblyUnavailable(
-                retryable=assembled.retryable and self._checkpointer is not None,
-                reason=assembled.verification_reason, diagnostics=assembled.diagnostics)
         return {"assembled": assembled}
 
     async def execute(
@@ -229,11 +210,11 @@ class TurnRuntime:
                     raise TurnRuntimeError("turn checkpoint belongs to another invocation")
                 prepared = snapshot.values.get("prepared")
                 completed = snapshot.values.get("managed") is not None and not snapshot.next
-                if not completed and (
-                    snapshot.values.get("runtime_version") not in {self.version, "turn-runtime-v5"}
+                if (
+                    snapshot.values.get("runtime_version") != self.version
                     or (prepared is not None and prepared.artifact_version != "prepared-turn-v2")
                 ):
-                    raise TurnCheckpointVersionError("in-flight checkpoint predates durable state decisions")
+                    raise TurnCheckpointVersionError("unpublished checkpoint requires explicit lifecycle migration")
                 if completed:
                     return TurnRuntimeResult(
                         snapshot.values["managed"],

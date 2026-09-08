@@ -13,7 +13,7 @@ from application.turn_planning import CommandKind, CommandProposal, TurnProposal
 from application.work_item import ArgumentValue
 from tests.test_conversation_agent import Provider
 from tests.test_target_persistence_and_manager import _identity
-from tests.test_work_recovery import _setup
+from tests.test_task_result_lifecycle import _setup
 
 
 @pytest.mark.parametrize("decision", [None, "approve", "decline"])

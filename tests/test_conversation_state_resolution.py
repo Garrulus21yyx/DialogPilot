@@ -50,6 +50,28 @@ def _state(*workstreams: WorkstreamState) -> ConversationState:
     return state
 
 
+@pytest.mark.parametrize("approval_first", [False, True])
+def test_independent_waits_have_the_same_state_in_either_arrival_order(approval_first):
+    from dataclasses import replace
+    state = _state(_workstream(), _workstream("other"))
+    approval = PendingApprovalState("approval", 1, "refund-ws-1", "write", "refund.request.create:v1",
+        "operation", "order:A", "1", "2099-01-01T00:00:00+00:00")
+    interaction = PendingInteractionState("input", 1,
+        (RequestedField("reference", "other", "string"),), (), checkpoint_thread_id="input-thread")
+    if approval_first:
+        result = state.wait_for_approval(approval).wait_for_interaction(interaction)
+    else:
+        result = state.wait_for_interaction(interaction).wait_for_approval(approval)
+    assert result.pending_approval == approval
+    assert result.pending_interaction.interaction_id == "input"
+    assert result._workstream("refund-ws-1").status is WorkstreamStatus.WAITING_APPROVAL
+    assert result._workstream("other").status is WorkstreamStatus.WAITING_INPUT
+    # Construction/restoration must enforce the same rule as public mutations.
+    invalid = replace(result.pending_interaction, checkpoint_thread_id=None)
+    with pytest.raises(ConversationStateConflict, match="independently"):
+        replace(result, pending_interaction=invalid)
+
+
 def test_single_pending_field_binds_raw_reply_without_semantic_router():
     state = _state(_workstream())
     state = state.wait_for_interaction(PendingInteractionState(

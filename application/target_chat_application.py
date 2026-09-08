@@ -77,7 +77,7 @@ class TargetPublicationPort(Protocol):
     def completed(
         self,
         identity: InvocationIdentity,
-    ) -> Completed | NeedsInput | Failed | None: ...
+    ) -> Completed | NeedsInput | Reconciling | Failed | None: ...
 
     def publish(
         self,
@@ -170,7 +170,7 @@ class TargetChatApplication:
 
     def completed(
         self, identity: InvocationIdentity,
-    ) -> Completed | NeedsInput | Failed | None:
+    ) -> Completed | NeedsInput | Reconciling | Failed | None:
         return self._publication.completed(identity)
 
     def publish_failure(self, identity: InvocationIdentity, failure: Failed) -> Failed:
@@ -231,20 +231,13 @@ class TargetChatApplication:
             from application.turn_planning import TurnPlanningError, PlanningInvariantError, PlanningUnavailable
             from application.chat_contracts import StageObservation, StageStatus
             from core.tracing import exception_chain
-            from application.turn_runtime import InteractionAssemblyUnavailable, TurnCheckpointVersionError
-            from application.work_recovery import RecoveryDecisionUnavailable
+            from application.turn_runtime import TurnCheckpointVersionError
             diagnostics = ()
             if isinstance(exc, PlanningUnavailable):
                 return Failed("planning_" + exc.disposition.value.lower(), False,
                     str(identity.invocation_key), "The request could not be understood due to a system failure.",
                     stages=(StageObservation("planning", StageStatus.FAILED,
                         {"code": exc.reason_code}),))
-            if isinstance(exc, RecoveryDecisionUnavailable):
-                return Failed("recovery_decision_unavailable",
-                    exc.retryable and self._turn_runtime.supports_resume,
-                    str(identity.invocation_key),
-                    "Work results are saved; the follow-up decision could not be completed.",
-                    stages=exc.diagnostics)
             if isinstance(exc, DeterministicResolutionError):
                 return Conflict(
                     "INTERACTION_SIGNAL_CONFLICT" if command.interaction_id is not None
@@ -269,10 +262,6 @@ class TargetChatApplication:
                     "A model call could not complete this request.",
                     stages=(StageObservation("model_invocation", StageStatus.FAILED,
                         {"code": type(exc).__name__, "exception_chain": exception_chain(exc)}),))
-            if isinstance(exc, InteractionAssemblyUnavailable):
-                return Failed("target_interaction_" + exc.reason.lower(), exc.retryable,
-                    str(identity.invocation_key), "The follow-up question could not be prepared. Progress is saved.",
-                    stages=diagnostics or exc.diagnostics)
             logger.exception(
                 "Target turn execution failed invocation_key=%s",
                 identity.invocation_key,
@@ -290,6 +279,8 @@ class TargetChatApplication:
         pending_input = managed.state_after.pending_interaction
         present_input = pending_input is not None and not self._publication.has_interaction(
             identity, signal_id=pending_input.interaction_id, signal_version=pending_input.version)
+        present_approval = pending is not None and not self._publication.has_interaction(
+            identity, signal_id=pending.approval_id, signal_version=pending.version)
         assembly = turn_result.assembled
         if pending is not None and assembly is not None and (
             assembly.approval_operation_key == pending.operation_key
@@ -334,7 +325,7 @@ class TargetChatApplication:
                 stages=assembly.diagnostics,
             )
 
-        if present_input:
+        if present_input and assembly is not None and assembly.verified:
             if assembly is None:
                 return Failed("target_interaction_not_assembled", True,
                     str(identity.invocation_key), "The follow-up question could not be prepared.")
@@ -359,6 +350,8 @@ class TargetChatApplication:
                     "properties": _input_properties(pending_input),
                 },
                 expires_at=expires_at,
+                expected_work_controls=tuple(item.control for item in pending_input.suspended_work_items
+                                             if item.control),
                 execution_stages=assembly.diagnostics,
             )
             return NeedsInput(
@@ -402,35 +395,21 @@ class TargetChatApplication:
         handoff_receipt = None
         if managed.plan.work is None:
             disposition = managed.plan.route.mode.value
-            response_text = _terminal_response(managed.plan.route.reason_code, locale=self._response_locale)
-            verifier_status = "NOT_CHECKED"
+            response_text = (assembly.text if assembly is not None else
+                _terminal_response(managed.plan.route.reason_code, locale=self._response_locale))
+            verifier_status = assembly.verification_status if assembly else "NOT_CHECKED"
             coverage_complete = not managed.plan.route.missing_inputs
             task_completed = False
-            verified = False
+            verified = assembly.verified if assembly else False
             outcomes = []
             facts = ()
             missing = list(managed.plan.route.missing_inputs)
-            assembly = None
         else:
             board = managed.board
             if board is None:
                 return Failed(
                     "target_result_missing", False, str(identity.invocation_key),
                     "Target runtime produced no result board",
-                )
-            if any(
-                item.status is AgentResultStatus.RECONCILING
-                for item in board.results
-            ):
-                return Reconciling(
-                    str(identity.workflow_run_id),
-                    {
-                        "execution": "RECONCILING",
-                        "approval_id": managed.deterministic.signal_id,
-                        "next_request": "submit a new request_id with the same approval_id",
-                    },
-                    1.0,
-                    stages=managed.diagnostics,
                 )
             assembly = turn_result.assembled
             if assembly is None:
@@ -599,6 +578,29 @@ class TargetChatApplication:
                 return Failed("target_verified_answer_changed", False,
                               str(identity.invocation_key),
                               "Final answer changed after evidence verification")
+        reconciling = managed.board is not None and any(
+            result.status is AgentResultStatus.RECONCILING for result in managed.board.all_results)
+        if reconciling:
+            # A response can be committed while a remote effect remains unknown.
+            # Persist the disposition with it so replay never invents completion.
+            public_response.update(outcome="reconciling", execution="RECONCILING",
+                workflow_run_id=str(identity.workflow_run_id), next_poll_after=1.0,
+                reconciling_actions=[{
+                    "work_item_id": item.work_item_id, "operation_key": item.operation_key,
+                    "approval_id": item.approval_binding,
+                } for item, result in managed.board.outcome_items
+                  if result is not None and result.status is AgentResultStatus.RECONCILING])
+            if len(public_response["reconciling_actions"]) == 1:
+                public_response["approval_id"] = public_response["reconciling_actions"][0]["approval_id"]
+            evaluation_trace["outcome"]["kind"] = "RECONCILING"
+        elif pending is not None or pending_input is not None:
+            # The wait is valid even if its natural-language presentation failed.
+            # Publish only the existing safe response, not an unverified question
+            # or approval grant. No interaction publication is recorded, so a new
+            # turn can present the same persisted wait without rerunning its work.
+            public_response.update(execution="WAITING")
+            if (present_input or present_approval) and assembly is not None and not assembly.verified:
+                public_response["interaction_presentation"] = "UNAVAILABLE"
         published = self._publication.publish(
             identity,
             response_text=response_text,
@@ -607,15 +609,20 @@ class TargetChatApplication:
             evidence_sha256=evidence_sha,
             verifier_status=verifier_status,
             execution_stages=assembly.diagnostics if assembly else (),
-            expected_work_controls=tuple(
-                item.control for item in work_items if item.control is not None
-            ),
+            expected_work_controls=tuple(dict.fromkeys(
+                item.control for item in (*work_items,
+                    *(pending.suspended_work_items if pending else ()),
+                    *(pending_input.suspended_work_items if pending_input else ()))
+                if item.control is not None)),
         )
         public_response.update({
             "response_id": published.response_id,
             "response_seq": published.response_seq,
             "delivery_status": published.delivery_status,
         })
+        if reconciling:
+            return Reconciling(str(identity.workflow_run_id), public_response, 1.0,
+                stages=assembly.diagnostics if assembly else ())
         return Completed(published.response_id, public_response, stages=assembly.diagnostics if assembly else ())
 
 

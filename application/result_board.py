@@ -11,7 +11,7 @@ class ResultBoardError(ValueError):
     pass
 
 
-_SUCCESS = {AgentResultStatus.SUCCEEDED, AgentResultStatus.PARTIAL}
+_DELIVERABLE = {AgentResultStatus.SUCCEEDED, AgentResultStatus.PARTIAL}
 _TERMINAL = {
     AgentResultStatus.SUCCEEDED,
     AgentResultStatus.PARTIAL,
@@ -59,11 +59,7 @@ class ResultBoardSnapshot:
     @property
     def coverage_complete(self) -> bool:
         """Evidence coverage is independent of worker or answer success."""
-        return not self.missing_requirement_ids and not self.conflict_keys and all(
-            result is not None and set(item.requirement_ids) <= {
-                *(fact.requirement_id for fact in result.facts),
-                *(receipt.requirement_id for receipt in result.action_receipts),
-            } for item, result in self.retained_outcomes)
+        return not self.missing_requirement_ids and not self.conflict_keys
 
     @property
     def task_completed(self) -> bool:
@@ -75,12 +71,14 @@ class ResultBoardSnapshot:
 
 
 class ResultBoard:
-    version = "result-board-v1"
+    version = "result-board-v2-outcome-coverage"
 
     def evaluate(
         self,
         plan: WorkPlan,
         results: tuple[AgentResult, ...],
+        *,
+        retained_outcomes: tuple[tuple[WorkItem, AgentResult | None], ...] = (),
     ) -> ResultBoardSnapshot:
         items = {item.work_item_id: item for item in plan.items}
         by_id: dict[str, AgentResult] = {}
@@ -94,16 +92,28 @@ class ResultBoard:
                 raise ResultBoardError("work item produced more than one result")
             by_id[result.work_item_id] = result
 
+        for item, result in retained_outcomes:
+            if result is not None and (result.work_item_id != item.work_item_id
+                                      or result.owner_agent != item.owner_agent):
+                raise ResultBoardError("retained result differs from its work item")
+        all_facts = current_facts(merge_facts(
+            *(result.facts for _, result in retained_outcomes if result is not None),
+            *(by_id[item.work_item_id].facts for item in plan.items if item.work_item_id in by_id)))
+        conflicts = self._conflicts(all_facts)
         blocked = []
-        for item in plan.items:
+        effective_by_id = dict(by_id)
+        # Topological evaluation propagates a failed dependency through the whole
+        # graph, independent of plan declaration or worker completion order.
+        for item in (item for wave in plan.execution_waves() for item in wave):
             if item.work_item_id in by_id:
                 continue
             failed_dependencies = tuple(
                 dependency for dependency in item.dependencies
-                if dependency in by_id and by_id[dependency].status not in _SUCCESS
+                if dependency in effective_by_id and not self._dependency_satisfied(
+                    items[dependency], effective_by_id[dependency], conflicts)
             )
             if failed_dependencies and all(
-                dependency in by_id and by_id[dependency].status in _TERMINAL
+                dependency in effective_by_id and effective_by_id[dependency].status in _TERMINAL
                 for dependency in item.dependencies
             ):
                 blocked.append(AgentResult(
@@ -113,9 +123,7 @@ class ResultBoard:
                     "UPSTREAM_NOT_SUCCESSFUL:" + ",".join(failed_dependencies),
                     self.version,
                 ))
-        effective_by_id = {
-            item.work_item_id: item for item in (*by_id.values(), *blocked)
-        }
+                effective_by_id[item.work_item_id] = blocked[-1]
         # Parallel reducers may deliver Worker results in any completion order.
         # The WorkPlan is the ordering authority for every downstream projection.
         effective = tuple(
@@ -128,38 +136,47 @@ class ResultBoard:
             if item.work_item_id not in effective_by_id
             and all(
                 dependency in effective_by_id
-                and effective_by_id[dependency].status in _SUCCESS
+                and self._dependency_satisfied(items[dependency], effective_by_id[dependency], conflicts)
                 for dependency in item.dependencies
             )
         )
 
-        facts = current_facts(merge_facts(*(result.facts for result in effective)))
-        conflicts = self._conflicts(facts)
-        satisfied = {
-            fact.requirement_id for fact in facts
-        }.union(
-            receipt.requirement_id
-            for result in effective
-            for receipt in result.action_receipts
-        )
-        required = {
-            requirement for item in plan.items for requirement in item.requirement_ids
-        }
-        missing = tuple(sorted(required.difference(satisfied)))
+        outcomes = (*retained_outcomes, *((item, effective_by_id.get(item.work_item_id))
+                                         for item in plan.items))
+        missing = tuple(sorted({requirement for item, result in outcomes
+                                for requirement in self._missing(item, result)}))
         complete = len(effective) == len(plan.items)
-        successes = tuple(item for item in effective if item.status in _SUCCESS)
-        failures = tuple(item for item in effective if item.status not in _SUCCESS)
+        successes = any(result is not None and result.status in _DELIVERABLE
+                        for _, result in outcomes)
+        incomplete = any(result is None or result.status is not AgentResultStatus.SUCCEEDED
+                         or self._missing(item, result) for item, result in outcomes)
         return ResultBoardSnapshot(
             tuple(effective),
-            facts,
+            all_facts,
             ready,
             tuple(blocked),
             missing,
             conflicts,
             complete,
-            bool(successes and failures and not conflicts),
+            bool(successes and incomplete and not conflicts),
             work_items=plan.items,
+            retained_outcomes=retained_outcomes,
         )
+
+    @staticmethod
+    def _missing(item: WorkItem, result: AgentResult | None) -> set[str]:
+        supplied = set() if result is None else {
+            *(fact.requirement_id for fact in result.facts),
+            *(receipt.requirement_id for receipt in result.action_receipts),
+        }
+        return set(item.requirement_ids).difference(supplied)
+
+    @classmethod
+    def _dependency_satisfied(cls, item, result, conflicts):
+        """A task-ID edge means successful completion, not partial progress."""
+        return (result.status is AgentResultStatus.SUCCEEDED and not cls._missing(item, result)
+                and not any(f"{fact.subject_ref}:{fact.requirement_id}" in conflicts
+                            for fact in result.facts))
 
     @staticmethod
     def _conflicts(facts: tuple[FactRecord, ...]) -> tuple[str, ...]:

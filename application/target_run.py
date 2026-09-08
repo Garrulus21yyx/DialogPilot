@@ -378,7 +378,7 @@ def terminal_from_outcome(outcome: ChatOutcome) -> TargetRunTerminal:
             "public_status": dict(outcome.public_status),
             "next_poll_after": outcome.next_poll_after,
             "stages": [stage.to_dict() for stage in outcome.stages],
-        }, outcome.workflow_run_id)
+        }, str(outcome.public_status.get("response_id") or outcome.workflow_run_id))
     if isinstance(outcome, HandedOff):
         return TargetRunTerminal("HANDED_OFF", {
             "ticket_id": outcome.ticket_id, "handoff_id": outcome.handoff_id,

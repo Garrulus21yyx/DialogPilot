@@ -139,7 +139,7 @@ def test_manager_accepts_new_selection_from_snapshot_before_declining_proposal()
     from application.conversation_agent import ConversationAgent
     from application.target_understanding import CascadedTargetUnderstanding
     from tests.test_conversation_agent import Provider
-    from tests.test_work_recovery import _setup
+    from tests.test_task_result_lifecycle import _setup
     from tests.test_target_persistence_and_manager import _identity
 
     async def run():

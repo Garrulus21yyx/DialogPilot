@@ -9,7 +9,7 @@ from application.target_understanding import CascadedTargetUnderstanding, StateB
 from application.turn_planning import CommandKind, CommandProposal, ProposalDisposition, TurnProposal
 from tests.test_conversation_agent import Provider
 from tests.test_target_persistence_and_manager import _identity
-from tests.test_work_recovery import _setup
+from tests.test_task_result_lifecycle import _setup
 
 
 @pytest.mark.parametrize("decision", ["continue", "revise", "cancel", "unrelated", "failure", "clarify", "invalid"])
@@ -73,7 +73,14 @@ def test_bound_reply_plan_owns_goal_and_wait_lifecycle(decision, depth, explicit
         assert provider.calls[0]["pending_input"]["objectives"][0]["objective"] == "Original scope"
         if decision in {"unrelated", "failure", "clarify", "invalid"}:
             assert prepared.state.pending_interaction == pending
-            assert prepared.resume_thread_id is None
+            assert prepared.resume_thread_id == (pending.checkpoint_thread_id if decision == "unrelated" else None)
+            if decision == "unrelated":
+                result = await manager.execute(prepared)
+                await manager.commit_progress(result)
+                result = await manager.resolve_followup(prepared, result)
+                await manager.commit(result)
+                assert result.state_after.pending_interaction == pending
+                assert sum(item.objective == "Original scope" for item in seen) == 1
             assert prepared.state.consumed_signal_ids == initial.state_after.consumed_signal_ids
             return
         assert prepared.state.pending_interaction is None
