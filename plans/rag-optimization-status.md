@@ -260,3 +260,9 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 - R06两题答案预注册：语言/web两条已消费诊断，冻结Cloud parent-validation8 pack的dense/parent_local两臂、原reference.input历史，真实ResponseAssembler/compose provider，Flash NONE输出800，最多4调用。无新query/retrieval/verifier，不改变prompt；主要检查非英语支持/默认入口条件/真实配置与版本未确定，来源逐项复核，不报统计显著或整体准确率。API失败/非空草稿与语义支持分列。
 
 - R06两题答案完成：4次Flash/4非空/4引用合法，1项输入与引用审计通过。语言核心结论两臂均支持；web两臂均条件性默认入口+追问，不是用户故障已解决，经典/新版适用未核实；Dense的隐藏入口举例源于历史助手，未断言实际配置。Codex非盲复核，无准确率提升结论。parent_local不采用，停止两见证继续付费调参。见parent-answers2报告。活动下一项恢复领域Agent归档证据实际读回（既有27/96归档仅证明可恢复），之后其他公共集验收；微调暂停。
+
+- R05领域读回预注册：复用已消费语言支持题的MTRAG32 .75长pack，默认14200可用context/2840工具阈值；真实TargetFrameworkAgent/general＋知识工具fixture（不重检索）＋InMemoryStore，Flash NONE最多12总调用、max_steps8。保留实际schema/prompt/归档/read_tool_result返回及模型请求，区分可恢复、自主读取、来源正文实际可见与答案支持。固定首轮问题，无gold输入；不假定最终完成或读全页，领域outcome review用同Flash计费纳入预算。工作区并行修改源码SHA留痕，不混入提交。
+
+- 领域读回首轮3次Flash：2次搜索同冻结证据，主动读第一页2000字符后判发布日志并再次搜索，未翻页；实际max_steps误写4（位置参数8为timeout），导致工具5/4被限。该轮保留为fixture配置失败，不能算8步结果。修正为具名max_steps8/timeout60，新目录剩余API上限9，合计不超原12；不改生产阈值或prompt。
+
+- R05领域读回完成诊断：首轮3次+修正5次Flash=8；修正8步下5search/2read执行，读0/2000两页均逐字进入模型请求，第二页Another language被模型识别；再申请read+search触发9/8工具上限无答案。1项请求审计通过。固定fixture不能证明真实重搜重复，InMemory非PG恢复验收。原文可恢复/自主读回/实际可见已在此例确认，任务完成未通过；未改生产预算。见domain-archive-probe报告。下一项零API知识证据导航/归档边界核查，再同预算验证，跨集验收仍开放。

@@ -1,0 +1,732 @@
+{
+  "scope": "One real domain Agent over frozen long knowledge output; no retrieval or writes.",
+  "max_steps": 8,
+  "call_cap": 9,
+  "api_calls": 5,
+  "profile": {
+    "model": "deepseek-v4-flash",
+    "reasoning": "none",
+    "min_completion_tokens": 0,
+    "max_context_tokens": 32768
+  },
+  "lookup_calls": [
+    {
+      "query": "build dialog skill in language other than English"
+    },
+    {
+      "query": "dialog skill supported languages localization"
+    },
+    {
+      "query": "dialog skill supported languages list create skill language"
+    },
+    {
+      "query": "languages supported by dialog skills Watson Assistant"
+    },
+    {
+      "query": "\"dialog skill\" language choose when creating skill supported languages documentation"
+    }
+  ],
+  "result": {
+    "work_item_id": "archive-probe",
+    "owner_agent": "general",
+    "status": "TERMINAL_FAILURE",
+    "reason_code": "AGENT_STEP_BUDGET_EXCEEDED",
+    "producer_version": "target-framework-agent-v2-registry-delegation",
+    "facts": [
+      {
+        "subject_ref": "tool-query:v1:05c9994cae7c679545afb6b98ec48978f8611000c1799c7990ad7e100c0e132d",
+        "requirement_id": "knowledge.active_source",
+        "value_json": "{\"evidence_pack\":{\"index_manifest_fingerprint\":\"frozen-eval-fixture\",\"items\":[{\"chunk_id\":\"mtrag:cloud:ibmcld_16364-101992-104197\",\"source_ref\":{\"applicability\":{},\"checksum\":\"1d4407c197e7100ceb04a02ce4faef598e269005cab587ceb0ae1ddda118b6d0\",\"end_char\":2206,\"scope\":\"public\",\"source_id\":\"mtrag:cloud:ibmcld_16364-101992-104197\",\"source_revision\":\"2c618bb98db3c8526433e22d8a2f7320f10a7470\",\"source_type\":\"mtrag_official_passage\",\"start_char\":0},\"text\":\"\\n: The new model, which is being offered as a beta feature in English-language dialog and actions skills, is faster and more accurate. It combines traditional machine learning, transfer learning, and deep learning techniques in a cohesive model that is highly responsive at run time. For more information, see [Improved intent recognition](https://cloud.ibm.com/docs/assistant?topic=assistant-intent-detection).\\n\\n\\n\\n\\n\\n 3 November 2020 \\n\\nSuggestions are now generally available\\n: The Suggestions feature that is available for the web chat integration is generally available and is enabled by default when you create a new web chat integration. For more information, see [Showing more suggestions](https://cloud.ibm.com/docs/assistant?topic=assistant-deploy-web-chatdeploy-web-chat-alternate).\\n\\nNew languages supported by the dialog analysis notebook\\n: The Dialog skill analysis notebook was updated with language support for French, German, Spanish, Czech, Italian, and Portuguese. For more information, see [Analysis notebooks](https://cloud.ibm.com/docs/assistant?topic=assistant-logs-resourceslogs-resources-jupyter-logs).\\n\\nVisit the learning center!\\n: Click the Learning center link that is displayed in the header of the skill pages to find helpful product tours. The tours guide you through the steps to follow to complete a range of tasks, from adding your first intent to a dialog skill to enhancing the conversation in an actions skill. The Additional resources page has links to relevant documentation topics and how-to videos. You can search the resource link titles to find what you're looking for quickly.\\n\\n\\n\\n\\n\\n 29 October 2020 \\n\\nSystem entity support changes\\n: For English, Brazilian Portuguese, Czech, Dutch, French, German, Italian, and Spanish dialog skills only the new system entities API version is supported. For backward compatibility, both the interpretation and metadata attributes are included with the recognized entity object. The new system entity version is enabled automatically for dialog skills in the Arabic, Chinese, Korean, and Japanese languages. You can choose to use the legacy version of the system entities API by switching to it from the Options>System Entities page.\",\"title\":\"\"},{\"chunk_id\":\"mtrag:cloud:ibmcld_03120-3469-5331\",\"source_ref\":{\"applicability\":{},\"checksum\":\"2f63c12f33bdd7c729560648951104457b276428c1cc66ea043bdcb63f8611fe\",\"end_char\":1863,\"scope\":\"public\",\"source_id\":\"mtrag:cloud:ibmcld_03120-3469-5331\",\"source_revision\":\"2c618bb98db3c8526433e22d8a2f7320f10a7470\",\"source_type\":\"mtrag_official_passage\",\"start_char\":0},\"text\":\"\\nFor more information about feature support in the universal language model, see [Supported languages](https://cloud.ibm.com/docs/assistant?topic=assistant-language-support).\\n\\n\\n\\n\\n\\n Creating a skill that uses the universal language model \\n\\nTo create a skill that uses the universal language model, complete the following steps:\\n\\n\\n\\n1. From the Skills page, click Create skill.\\n2. Choose to create either a dialog or actions skill, and then click Next.\\n\\nFor more information, see [Choosing a conversational skill](https://cloud.ibm.com/docs/assistant?topic=assistant-skills-choose).\\n3. Name your skill, and optionally add a description. From the Language field, choose Another language.\\n\\nRemember, if the language you want to support is listed individually, choose it instead of using the universal model. The built-in language models provide optimal language support.\\n4. Create the skill.\\n5. If your skill will support a language with right-to-left directional text, such as Hebrew, configure the bidirectional capabilities.\\n\\nClick the options icon from the skill tile ![Skill options icon](https://cloud.ibm.com/docs-content/v1/content/417db917d18067d9dcc4cf2612564a9a87c3ddc8/assistant/images/kebab.png), and then select Language preferences. Click the Enable bidirectional capabilities switch. Specify any settings that you want to configure.\\n\\nFor more information, see [Configuring bidirectional languages](https://cloud.ibm.com/docs/assistant?topic=assistant-language-supportlanguage-support-configure-bidirectional).\\n\\n\\n\\nNext, start building your conversation.\\n\\nAs you follow the normal steps to design a conversational flow, you teach the universal language model about the language you want your skill to support. It is by adding training data that is written in the target language that the universal model is constructed. For an actions skill, add actions.\",\"title\":\"\"},{\"chunk_id\":\"mtrag:cloud:ibmcld_16364-103662-105841\",\"source_ref\":{\"applicability\":{},\"checksum\":\"fbccdc28d240a036463c0d685d10b7fe2016313c0b00c4c338b624458b2b7ac3\",\"end_char\":2180,\"scope\":\"public\",\"source_id\":\"mtrag:cloud:ibmcld_16364-103662-105841\",\"source_revision\":\"2c618bb98db3c8526433e22d8a2f7320f10a7470\",\"source_type\":\"mtrag_official_passage\",\"start_char\":0},\"text\":\"\\n: For English, Brazilian Portuguese, Czech, Dutch, French, German, Italian, and Spanish dialog skills only the new system entities API version is supported. For backward compatibility, both the interpretation and metadata attributes are included with the recognized entity object. The new system entity version is enabled automatically for dialog skills in the Arabic, Chinese, Korean, and Japanese languages. You can choose to use the legacy version of the system entities API by switching to it from the Options>System Entities page. This settings page is not displayed in English, Brazilian Portuguese, Czech, Dutch, French, German, Italian, and Spanish dialog skills because use of the legacy version of the API is no longer supported for those languages. For more information about the new system entities, see [System entities](https://cloud.ibm.com/docs/assistant?topic=assistant-system-entities).\\n\\n\\n\\n\\n\\n 28 October 2020 \\n\\nIntroducing the actions skill!\\n: The actions skill is the latest step in the continuing evolution of Watson Assistant as a software as a service application. The actions skill is designed to make it simple enough for anyone to build a virtual assistant. We've removed the need to navigate between intents, entities, and dialog to create conversational flows. Building can all now be done in one simple and intuitive interface.\\n\\nThe actions skill is available as a beta feature. For more information, see [Adding an actions skill](https://cloud.ibm.com/docs/assistant?topic=assistant-skill-actions-add).\\n\\nWeb chat integration is created automatically\\n: When you create a new assistant, a web chat integration is created for you automatically (in addition to the preview link integration, which was created previously). These integrations are added also to the assistant that is auto-generated (named My first assistant) when you create a new service instance. For more information, see [Integrating the web chat with your website](https://cloud.ibm.com/docs/assistant?topic=assistant-deploy-web-chat).\\n\\nText messaging integration was renamed\\n: The Twilio messaging integration was renamed to SMS with Twilio.\\n\\n\\n\\n\\n\\n 9 October 2020 \\n\\nSearch skill update\",\"title\":\"\"},{\"chunk_id\":\"mtrag:cloud:ibmcld_03049-2703-4536\",\"source_ref\":{\"applicability\":{},\"checksum\":\"0bf76165a608f357d909fc0d798d3587ff608615ee4b4d5470b8965e3343296c\",\"end_char\":1834,\"scope\":\"public\",\"source_id\":\"mtrag:cloud:ibmcld_03049-2703-4536\",\"source_revision\":\"2c618bb98db3c8526433e22d8a2f7320f10a7470\",\"source_type\":\"mtrag_official_passage\",\"start_char\":0},\"text\":\"\\n* Language: The language of the user input the skill will be trained to understand. The default value is English.\\n\\n\\n\\n\\n\\nAfter you create the dialog skill, it appears as a tile on the Skills page. Now, you can start identifying the user goals that you want the dialog skill to address.\\n\\n\\n\\n* To add prebuilt intents to your skill, see [Using content catalogs](https://cloud.ibm.com/docs/assistant-data?topic=assistant-data-catalog).\\n* To define your own intents, see [Defining intents](https://cloud.ibm.com/docs/assistant-data?topic=assistant-data-intents).\\n\\n\\n\\nThe dialog skill cannot interact with customers until it is added to an assistant and the assistant is deployed. See [Creating an assistant](https://cloud.ibm.com/docs/assistant-data?topic=assistant-data-assistant-add).\\n\\n\\n\\n Troubleshooting skill import issues \\n\\nIf you receive warnings when you try to upload a skill, take a moment to try to fix the issues.\\n\\n\\n\\n1. Make a note of the warning message that are displayed when you try to upload the JSON file.\\n2. Edit the skill to address the issues.\\n\\n\\n\\n* If you have access to a public service instance, open the skill from there and make edits. Export the edited skill by downloading it.\\n* Otherwise, open the JSON file in a text editor and make edits.\\n\\n\\n\\nYou might need to remove the @sys-person and @sys-location entities from your training data, and any references to them from dialog nodes, for example.\\n3. Try again to import the edited skill.\\n\\n\\n\\n\\n\\n\\n\\n Adding the skill to an assistant \\n\\nYou can add one skill to an assistant. You must open the assistant tile and add the skill to the assistant from the assistant configuration page; you cannot choose the assistant that will use the skill from within the skill configuration page. One dialog skill can be used by more than one assistant.\\n\\n\\n\\n1. Click the Assistants icon !\",\"title\":\"\"},{\"chunk_id\":\"mtrag:cloud:ibmcld_03139-3702-4938\",\"source_ref\":{\"applicability\":{},\"checksum\":\"dfe4068eb4530d0cf3dbae2208e7d544e4ee1fca149951dc4e3b3a53dd5e9e77\",\"end_char\":1237,\"scope\":\"public\",\"source_id\":\"mtrag:cloud:ibmcld_03139-3702-4938\",\"source_revision\":\"2c618bb98db3c8526433e22d8a2f7320f10a7470\",\"source_type\":\"mtrag_official_passage\",\"start_char\":0},\"text\":\"\\n* Description: An optional description no more than 200 characters in length.\\n* Language: The language of the user input the skill will be trained to understand. The default value is English.\\n\\n\\n\\n\\n\\nAfter you create the skill, it appears as a tile on the Skills page.\\n\\n\\n\\n\\n\\n Re-creating your assistant \\n\\nYou can now re-create your assistant. You can then link your uploaded skills to the assistant, and configure integrations for it.\\n\\nSee [Creating an assistant](https://cloud.ibm.com/docs/assistant?topic=assistant-assistant-add) and [Adding integrations](https://cloud.ibm.com/docs/assistant?topic=assistant-deploy-integration-adddeploy-integration-add-task) for more details.\\n\\n\\n\\n\\n\\n Update your client applications \\n\\nWhen you import a dialog skill that you exported, a new skill is created. The new skill has a new workspace ID. If you have existing client applications that use the v1 API to access this skill, then you must update any workspace ID references to use the new worskpace ID instead.\\n\\nWhen you re-create your assistant, it is given a new assistant ID. If you have existing client applications that use the v2 API to access the assistant, then you must update any assistant ID references to use the new assistant ID instead.\",\"title\":\"\"}],\"query\":\"|user|: Is it possible to build a dialog skill in a language other than English?\"},\"status\":\"OK\"}",
+        "source_kind": "KNOWLEDGE_ASSERTED",
+        "source_ref": "call_00_vn4wGNXeGFF0zjEGEFq67737",
+        "producer_id": "knowledge_search",
+        "producer_version": "tool-output-v1",
+        "observed_at": "2026-09-08 01:22:05.125818+00:00",
+        "valid_until": null,
+        "observation_started_at": "2026-09-08 01:22:05.125773+00:00"
+      },
+      {
+        "subject_ref": "tool-query:v1:5419143ecc51bf5c420826e2920075cb0471c98e6185719ed19ae24cdd87c308",
+        "requirement_id": "knowledge.active_source",
+        "value_json": "{\"evidence_pack\":{\"index_manifest_fingerprint\":\"frozen-eval-fixture\",\"items\":[{\"chunk_id\":\"mtrag:cloud:ibmcld_16364-101992-104197\",\"source_ref\":{\"applicability\":{},\"checksum\":\"1d4407c197e7100ceb04a02ce4faef598e269005cab587ceb0ae1ddda118b6d0\",\"end_char\":2206,\"scope\":\"public\",\"source_id\":\"mtrag:cloud:ibmcld_16364-101992-104197\",\"source_revision\":\"2c618bb98db3c8526433e22d8a2f7320f10a7470\",\"source_type\":\"mtrag_official_passage\",\"start_char\":0},\"text\":\"\\n: The new model, which is being offered as a beta feature in English-language dialog and actions skills, is faster and more accurate. It combines traditional machine learning, transfer learning, and deep learning techniques in a cohesive model that is highly responsive at run time. For more information, see [Improved intent recognition](https://cloud.ibm.com/docs/assistant?topic=assistant-intent-detection).\\n\\n\\n\\n\\n\\n 3 November 2020 \\n\\nSuggestions are now generally available\\n: The Suggestions feature that is available for the web chat integration is generally available and is enabled by default when you create a new web chat integration. For more information, see [Showing more suggestions](https://cloud.ibm.com/docs/assistant?topic=assistant-deploy-web-chatdeploy-web-chat-alternate).\\n\\nNew languages supported by the dialog analysis notebook\\n: The Dialog skill analysis notebook was updated with language support for French, German, Spanish, Czech, Italian, and Portuguese. For more information, see [Analysis notebooks](https://cloud.ibm.com/docs/assistant?topic=assistant-logs-resourceslogs-resources-jupyter-logs).\\n\\nVisit the learning center!\\n: Click the Learning center link that is displayed in the header of the skill pages to find helpful product tours. The tours guide you through the steps to follow to complete a range of tasks, from adding your first intent to a dialog skill to enhancing the conversation in an actions skill. The Additional resources page has links to relevant documentation topics and how-to videos. You can search the resource link titles to find what you're looking for quickly.\\n\\n\\n\\n\\n\\n 29 October 2020 \\n\\nSystem entity support changes\\n: For English, Brazilian Portuguese, Czech, Dutch, French, German, Italian, and Spanish dialog skills only the new system entities API version is supported. For backward compatibility, both the interpretation and metadata attributes are included with the recognized entity object. The new system entity version is enabled automatically for dialog skills in the Arabic, Chinese, Korean, and Japanese languages. You can choose to use the legacy version of the system entities API by switching to it from the Options>System Entities page.\",\"title\":\"\"},{\"chunk_id\":\"mtrag:cloud:ibmcld_03120-3469-5331\",\"source_ref\":{\"applicability\":{},\"checksum\":\"2f63c12f33bdd7c729560648951104457b276428c1cc66ea043bdcb63f8611fe\",\"end_char\":1863,\"scope\":\"public\",\"source_id\":\"mtrag:cloud:ibmcld_03120-3469-5331\",\"source_revision\":\"2c618bb98db3c8526433e22d8a2f7320f10a7470\",\"source_type\":\"mtrag_official_passage\",\"start_char\":0},\"text\":\"\\nFor more information about feature support in the universal language model, see [Supported languages](https://cloud.ibm.com/docs/assistant?topic=assistant-language-support).\\n\\n\\n\\n\\n\\n Creating a skill that uses the universal language model \\n\\nTo create a skill that uses the universal language model, complete the following steps:\\n\\n\\n\\n1. From the Skills page, click Create skill.\\n2. Choose to create either a dialog or actions skill, and then click Next.\\n\\nFor more information, see [Choosing a conversational skill](https://cloud.ibm.com/docs/assistant?topic=assistant-skills-choose).\\n3. Name your skill, and optionally add a description. From the Language field, choose Another language.\\n\\nRemember, if the language you want to support is listed individually, choose it instead of using the universal model. The built-in language models provide optimal language support.\\n4. Create the skill.\\n5. If your skill will support a language with right-to-left directional text, such as Hebrew, configure the bidirectional capabilities.\\n\\nClick the options icon from the skill tile ![Skill options icon](https://cloud.ibm.com/docs-content/v1/content/417db917d18067d9dcc4cf2612564a9a87c3ddc8/assistant/images/kebab.png), and then select Language preferences. Click the Enable bidirectional capabilities switch. Specify any settings that you want to configure.\\n\\nFor more information, see [Configuring bidirectional languages](https://cloud.ibm.com/docs/assistant?topic=assistant-language-supportlanguage-support-configure-bidirectional).\\n\\n\\n\\nNext, start building your conversation.\\n\\nAs you follow the normal steps to design a conversational flow, you teach the universal language model about the language you want your skill to support. It is by adding training data that is written in the target language that the universal model is constructed. For an actions skill, add actions.\",\"title\":\"\"},{\"chunk_id\":\"mtrag:cloud:ibmcld_16364-103662-105841\",\"source_ref\":{\"applicability\":{},\"checksum\":\"fbccdc28d240a036463c0d685d10b7fe2016313c0b00c4c338b624458b2b7ac3\",\"end_char\":2180,\"scope\":\"public\",\"source_id\":\"mtrag:cloud:ibmcld_16364-103662-105841\",\"source_revision\":\"2c618bb98db3c8526433e22d8a2f7320f10a7470\",\"source_type\":\"mtrag_official_passage\",\"start_char\":0},\"text\":\"\\n: For English, Brazilian Portuguese, Czech, Dutch, French, German, Italian, and Spanish dialog skills only the new system entities API version is supported. For backward compatibility, both the interpretation and metadata attributes are included with the recognized entity object. The new system entity version is enabled automatically for dialog skills in the Arabic, Chinese, Korean, and Japanese languages. You can choose to use the legacy version of the system entities API by switching to it from the Options>System Entities page. This settings page is not displayed in English, Brazilian Portuguese, Czech, Dutch, French, German, Italian, and Spanish dialog skills because use of the legacy version of the API is no longer supported for those languages. For more information about the new system entities, see [System entities](https://cloud.ibm.com/docs/assistant?topic=assistant-system-entities).\\n\\n\\n\\n\\n\\n 28 October 2020 \\n\\nIntroducing the actions skill!\\n: The actions skill is the latest step in the continuing evolution of Watson Assistant as a software as a service application. The actions skill is designed to make it simple enough for anyone to build a virtual assistant. We've removed the need to navigate between intents, entities, and dialog to create conversational flows. Building can all now be done in one simple and intuitive interface.\\n\\nThe actions skill is available as a beta feature. For more information, see [Adding an actions skill](https://cloud.ibm.com/docs/assistant?topic=assistant-skill-actions-add).\\n\\nWeb chat integration is created automatically\\n: When you create a new assistant, a web chat integration is created for you automatically (in addition to the preview link integration, which was created previously). These integrations are added also to the assistant that is auto-generated (named My first assistant) when you create a new service instance. For more information, see [Integrating the web chat with your website](https://cloud.ibm.com/docs/assistant?topic=assistant-deploy-web-chat).\\n\\nText messaging integration was renamed\\n: The Twilio messaging integration was renamed to SMS with Twilio.\\n\\n\\n\\n\\n\\n 9 October 2020 \\n\\nSearch skill update\",\"title\":\"\"},{\"chunk_id\":\"mtrag:cloud:ibmcld_03049-2703-4536\",\"source_ref\":{\"applicability\":{},\"checksum\":\"0bf76165a608f357d909fc0d798d3587ff608615ee4b4d5470b8965e3343296c\",\"end_char\":1834,\"scope\":\"public\",\"source_id\":\"mtrag:cloud:ibmcld_03049-2703-4536\",\"source_revision\":\"2c618bb98db3c8526433e22d8a2f7320f10a7470\",\"source_type\":\"mtrag_official_passage\",\"start_char\":0},\"text\":\"\\n* Language: The language of the user input the skill will be trained to understand. The default value is English.\\n\\n\\n\\n\\n\\nAfter you create the dialog skill, it appears as a tile on the Skills page. Now, you can start identifying the user goals that you want the dialog skill to address.\\n\\n\\n\\n* To add prebuilt intents to your skill, see [Using content catalogs](https://cloud.ibm.com/docs/assistant-data?topic=assistant-data-catalog).\\n* To define your own intents, see [Defining intents](https://cloud.ibm.com/docs/assistant-data?topic=assistant-data-intents).\\n\\n\\n\\nThe dialog skill cannot interact with customers until it is added to an assistant and the assistant is deployed. See [Creating an assistant](https://cloud.ibm.com/docs/assistant-data?topic=assistant-data-assistant-add).\\n\\n\\n\\n Troubleshooting skill import issues \\n\\nIf you receive warnings when you try to upload a skill, take a moment to try to fix the issues.\\n\\n\\n\\n1. Make a note of the warning message that are displayed when you try to upload the JSON file.\\n2. Edit the skill to address the issues.\\n\\n\\n\\n* If you have access to a public service instance, open the skill from there and make edits. Export the edited skill by downloading it.\\n* Otherwise, open the JSON file in a text editor and make edits.\\n\\n\\n\\nYou might need to remove the @sys-person and @sys-location entities from your training data, and any references to them from dialog nodes, for example.\\n3. Try again to import the edited skill.\\n\\n\\n\\n\\n\\n\\n\\n Adding the skill to an assistant \\n\\nYou can add one skill to an assistant. You must open the assistant tile and add the skill to the assistant from the assistant configuration page; you cannot choose the assistant that will use the skill from within the skill configuration page. One dialog skill can be used by more than one assistant.\\n\\n\\n\\n1. Click the Assistants icon !\",\"title\":\"\"},{\"chunk_id\":\"mtrag:cloud:ibmcld_03139-3702-4938\",\"source_ref\":{\"applicability\":{},\"checksum\":\"dfe4068eb4530d0cf3dbae2208e7d544e4ee1fca149951dc4e3b3a53dd5e9e77\",\"end_char\":1237,\"scope\":\"public\",\"source_id\":\"mtrag:cloud:ibmcld_03139-3702-4938\",\"source_revision\":\"2c618bb98db3c8526433e22d8a2f7320f10a7470\",\"source_type\":\"mtrag_official_passage\",\"start_char\":0},\"text\":\"\\n* Description: An optional description no more than 200 characters in length.\\n* Language: The language of the user input the skill will be trained to understand. The default value is English.\\n\\n\\n\\n\\n\\nAfter you create the skill, it appears as a tile on the Skills page.\\n\\n\\n\\n\\n\\n Re-creating your assistant \\n\\nYou can now re-create your assistant. You can then link your uploaded skills to the assistant, and configure integrations for it.\\n\\nSee [Creating an assistant](https://cloud.ibm.com/docs/assistant?topic=assistant-assistant-add) and [Adding integrations](https://cloud.ibm.com/docs/assistant?topic=assistant-deploy-integration-adddeploy-integration-add-task) for more details.\\n\\n\\n\\n\\n\\n Update your client applications \\n\\nWhen you import a dialog skill that you exported, a new skill is created. The new skill has a new workspace ID. If you have existing client applications that use the v1 API to access this skill, then you must update any workspace ID references to use the new worskpace ID instead.\\n\\nWhen you re-create your assistant, it is given a new assistant ID. If you have existing client applications that use the v2 API to access the assistant, then you must update any assistant ID references to use the new assistant ID instead.\",\"title\":\"\"}],\"query\":\"|user|: Is it possible to build a dialog skill in a language other than English?\"},\"status\":\"OK\"}",
+        "source_kind": "KNOWLEDGE_ASSERTED",
+        "source_ref": "call_01_gEfE8McKMxaTHRrxEImi6318",
+        "producer_id": "knowledge_search",
+        "producer_version": "tool-output-v1",
+        "observed_at": "2026-09-08 01:22:05.129313+00:00",
+        "valid_until": null,
+        "observation_started_at": "2026-09-08 01:22:05.129288+00:00"
+      },
+      {
+        "subject_ref": "tool-query:v1:81d2a273acebacafadfd2cfdb79e2e1799f37c397d34c5b1084072c0f6c43754",
+        "requirement_id": "knowledge.active_source",
+        "value_json": "{\"evidence_pack\":{\"index_manifest_fingerprint\":\"frozen-eval-fixture\",\"items\":[{\"chunk_id\":\"mtrag:cloud:ibmcld_16364-101992-104197\",\"source_ref\":{\"applicability\":{},\"checksum\":\"1d4407c197e7100ceb04a02ce4faef598e269005cab587ceb0ae1ddda118b6d0\",\"end_char\":2206,\"scope\":\"public\",\"source_id\":\"mtrag:cloud:ibmcld_16364-101992-104197\",\"source_revision\":\"2c618bb98db3c8526433e22d8a2f7320f10a7470\",\"source_type\":\"mtrag_official_passage\",\"start_char\":0},\"text\":\"\\n: The new model, which is being offered as a beta feature in English-language dialog and actions skills, is faster and more accurate. It combines traditional machine learning, transfer learning, and deep learning techniques in a cohesive model that is highly responsive at run time. For more information, see [Improved intent recognition](https://cloud.ibm.com/docs/assistant?topic=assistant-intent-detection).\\n\\n\\n\\n\\n\\n 3 November 2020 \\n\\nSuggestions are now generally available\\n: The Suggestions feature that is available for the web chat integration is generally available and is enabled by default when you create a new web chat integration. For more information, see [Showing more suggestions](https://cloud.ibm.com/docs/assistant?topic=assistant-deploy-web-chatdeploy-web-chat-alternate).\\n\\nNew languages supported by the dialog analysis notebook\\n: The Dialog skill analysis notebook was updated with language support for French, German, Spanish, Czech, Italian, and Portuguese. For more information, see [Analysis notebooks](https://cloud.ibm.com/docs/assistant?topic=assistant-logs-resourceslogs-resources-jupyter-logs).\\n\\nVisit the learning center!\\n: Click the Learning center link that is displayed in the header of the skill pages to find helpful product tours. The tours guide you through the steps to follow to complete a range of tasks, from adding your first intent to a dialog skill to enhancing the conversation in an actions skill. The Additional resources page has links to relevant documentation topics and how-to videos. You can search the resource link titles to find what you're looking for quickly.\\n\\n\\n\\n\\n\\n 29 October 2020 \\n\\nSystem entity support changes\\n: For English, Brazilian Portuguese, Czech, Dutch, French, German, Italian, and Spanish dialog skills only the new system entities API version is supported. For backward compatibility, both the interpretation and metadata attributes are included with the recognized entity object. The new system entity version is enabled automatically for dialog skills in the Arabic, Chinese, Korean, and Japanese languages. You can choose to use the legacy version of the system entities API by switching to it from the Options>System Entities page.\",\"title\":\"\"},{\"chunk_id\":\"mtrag:cloud:ibmcld_03120-3469-5331\",\"source_ref\":{\"applicability\":{},\"checksum\":\"2f63c12f33bdd7c729560648951104457b276428c1cc66ea043bdcb63f8611fe\",\"end_char\":1863,\"scope\":\"public\",\"source_id\":\"mtrag:cloud:ibmcld_03120-3469-5331\",\"source_revision\":\"2c618bb98db3c8526433e22d8a2f7320f10a7470\",\"source_type\":\"mtrag_official_passage\",\"start_char\":0},\"text\":\"\\nFor more information about feature support in the universal language model, see [Supported languages](https://cloud.ibm.com/docs/assistant?topic=assistant-language-support).\\n\\n\\n\\n\\n\\n Creating a skill that uses the universal language model \\n\\nTo create a skill that uses the universal language model, complete the following steps:\\n\\n\\n\\n1. From the Skills page, click Create skill.\\n2. Choose to create either a dialog or actions skill, and then click Next.\\n\\nFor more information, see [Choosing a conversational skill](https://cloud.ibm.com/docs/assistant?topic=assistant-skills-choose).\\n3. Name your skill, and optionally add a description. From the Language field, choose Another language.\\n\\nRemember, if the language you want to support is listed individually, choose it instead of using the universal model. The built-in language models provide optimal language support.\\n4. Create the skill.\\n5. If your skill will support a language with right-to-left directional text, such as Hebrew, configure the bidirectional capabilities.\\n\\nClick the options icon from the skill tile ![Skill options icon](https://cloud.ibm.com/docs-content/v1/content/417db917d18067d9dcc4cf2612564a9a87c3ddc8/assistant/images/kebab.png), and then select Language preferences. Click the Enable bidirectional capabilities switch. Specify any settings that you want to configure.\\n\\nFor more information, see [Configuring bidirectional languages](https://cloud.ibm.com/docs/assistant?topic=assistant-language-supportlanguage-support-configure-bidirectional).\\n\\n\\n\\nNext, start building your conversation.\\n\\nAs you follow the normal steps to design a conversational flow, you teach the universal language model about the language you want your skill to support. It is by adding training data that is written in the target language that the universal model is constructed. For an actions skill, add actions.\",\"title\":\"\"},{\"chunk_id\":\"mtrag:cloud:ibmcld_16364-103662-105841\",\"source_ref\":{\"applicability\":{},\"checksum\":\"fbccdc28d240a036463c0d685d10b7fe2016313c0b00c4c338b624458b2b7ac3\",\"end_char\":2180,\"scope\":\"public\",\"source_id\":\"mtrag:cloud:ibmcld_16364-103662-105841\",\"source_revision\":\"2c618bb98db3c8526433e22d8a2f7320f10a7470\",\"source_type\":\"mtrag_official_passage\",\"start_char\":0},\"text\":\"\\n: For English, Brazilian Portuguese, Czech, Dutch, French, German, Italian, and Spanish dialog skills only the new system entities API version is supported. For backward compatibility, both the interpretation and metadata attributes are included with the recognized entity object. The new system entity version is enabled automatically for dialog skills in the Arabic, Chinese, Korean, and Japanese languages. You can choose to use the legacy version of the system entities API by switching to it from the Options>System Entities page. This settings page is not displayed in English, Brazilian Portuguese, Czech, Dutch, French, German, Italian, and Spanish dialog skills because use of the legacy version of the API is no longer supported for those languages. For more information about the new system entities, see [System entities](https://cloud.ibm.com/docs/assistant?topic=assistant-system-entities).\\n\\n\\n\\n\\n\\n 28 October 2020 \\n\\nIntroducing the actions skill!\\n: The actions skill is the latest step in the continuing evolution of Watson Assistant as a software as a service application. The actions skill is designed to make it simple enough for anyone to build a virtual assistant. We've removed the need to navigate between intents, entities, and dialog to create conversational flows. Building can all now be done in one simple and intuitive interface.\\n\\nThe actions skill is available as a beta feature. For more information, see [Adding an actions skill](https://cloud.ibm.com/docs/assistant?topic=assistant-skill-actions-add).\\n\\nWeb chat integration is created automatically\\n: When you create a new assistant, a web chat integration is created for you automatically (in addition to the preview link integration, which was created previously). These integrations are added also to the assistant that is auto-generated (named My first assistant) when you create a new service instance. For more information, see [Integrating the web chat with your website](https://cloud.ibm.com/docs/assistant?topic=assistant-deploy-web-chat).\\n\\nText messaging integration was renamed\\n: The Twilio messaging integration was renamed to SMS with Twilio.\\n\\n\\n\\n\\n\\n 9 October 2020 \\n\\nSearch skill update\",\"title\":\"\"},{\"chunk_id\":\"mtrag:cloud:ibmcld_03049-2703-4536\",\"source_ref\":{\"applicability\":{},\"checksum\":\"0bf76165a608f357d909fc0d798d3587ff608615ee4b4d5470b8965e3343296c\",\"end_char\":1834,\"scope\":\"public\",\"source_id\":\"mtrag:cloud:ibmcld_03049-2703-4536\",\"source_revision\":\"2c618bb98db3c8526433e22d8a2f7320f10a7470\",\"source_type\":\"mtrag_official_passage\",\"start_char\":0},\"text\":\"\\n* Language: The language of the user input the skill will be trained to understand. The default value is English.\\n\\n\\n\\n\\n\\nAfter you create the dialog skill, it appears as a tile on the Skills page. Now, you can start identifying the user goals that you want the dialog skill to address.\\n\\n\\n\\n* To add prebuilt intents to your skill, see [Using content catalogs](https://cloud.ibm.com/docs/assistant-data?topic=assistant-data-catalog).\\n* To define your own intents, see [Defining intents](https://cloud.ibm.com/docs/assistant-data?topic=assistant-data-intents).\\n\\n\\n\\nThe dialog skill cannot interact with customers until it is added to an assistant and the assistant is deployed. See [Creating an assistant](https://cloud.ibm.com/docs/assistant-data?topic=assistant-data-assistant-add).\\n\\n\\n\\n Troubleshooting skill import issues \\n\\nIf you receive warnings when you try to upload a skill, take a moment to try to fix the issues.\\n\\n\\n\\n1. Make a note of the warning message that are displayed when you try to upload the JSON file.\\n2. Edit the skill to address the issues.\\n\\n\\n\\n* If you have access to a public service instance, open the skill from there and make edits. Export the edited skill by downloading it.\\n* Otherwise, open the JSON file in a text editor and make edits.\\n\\n\\n\\nYou might need to remove the @sys-person and @sys-location entities from your training data, and any references to them from dialog nodes, for example.\\n3. Try again to import the edited skill.\\n\\n\\n\\n\\n\\n\\n\\n Adding the skill to an assistant \\n\\nYou can add one skill to an assistant. You must open the assistant tile and add the skill to the assistant from the assistant configuration page; you cannot choose the assistant that will use the skill from within the skill configuration page. One dialog skill can be used by more than one assistant.\\n\\n\\n\\n1. Click the Assistants icon !\",\"title\":\"\"},{\"chunk_id\":\"mtrag:cloud:ibmcld_03139-3702-4938\",\"source_ref\":{\"applicability\":{},\"checksum\":\"dfe4068eb4530d0cf3dbae2208e7d544e4ee1fca149951dc4e3b3a53dd5e9e77\",\"end_char\":1237,\"scope\":\"public\",\"source_id\":\"mtrag:cloud:ibmcld_03139-3702-4938\",\"source_revision\":\"2c618bb98db3c8526433e22d8a2f7320f10a7470\",\"source_type\":\"mtrag_official_passage\",\"start_char\":0},\"text\":\"\\n* Description: An optional description no more than 200 characters in length.\\n* Language: The language of the user input the skill will be trained to understand. The default value is English.\\n\\n\\n\\n\\n\\nAfter you create the skill, it appears as a tile on the Skills page.\\n\\n\\n\\n\\n\\n Re-creating your assistant \\n\\nYou can now re-create your assistant. You can then link your uploaded skills to the assistant, and configure integrations for it.\\n\\nSee [Creating an assistant](https://cloud.ibm.com/docs/assistant?topic=assistant-assistant-add) and [Adding integrations](https://cloud.ibm.com/docs/assistant?topic=assistant-deploy-integration-adddeploy-integration-add-task) for more details.\\n\\n\\n\\n\\n\\n Update your client applications \\n\\nWhen you import a dialog skill that you exported, a new skill is created. The new skill has a new workspace ID. If you have existing client applications that use the v1 API to access this skill, then you must update any workspace ID references to use the new worskpace ID instead.\\n\\nWhen you re-create your assistant, it is given a new assistant ID. If you have existing client applications that use the v2 API to access the assistant, then you must update any assistant ID references to use the new assistant ID instead.\",\"title\":\"\"}],\"query\":\"|user|: Is it possible to build a dialog skill in a language other than English?\"},\"status\":\"OK\"}",
+        "source_kind": "KNOWLEDGE_ASSERTED",
+        "source_ref": "call_00_ANtdBNxKUM2XBHBsemFc4346",
+        "producer_id": "knowledge_search",
+        "producer_version": "tool-output-v1",
+        "observed_at": "2026-09-08 01:22:07.774903+00:00",
+        "valid_until": null,
+        "observation_started_at": "2026-09-08 01:22:07.774883+00:00"
+      },
+      {
+        "subject_ref": "tool-query:v1:1ad4af1d52be588262435eea658215125546e8c1933649c8cd5a947f02ae8638",
+        "requirement_id": "knowledge.active_source",
+        "value_json": "{\"evidence_pack\":{\"index_manifest_fingerprint\":\"frozen-eval-fixture\",\"items\":[{\"chunk_id\":\"mtrag:cloud:ibmcld_16364-101992-104197\",\"source_ref\":{\"applicability\":{},\"checksum\":\"1d4407c197e7100ceb04a02ce4faef598e269005cab587ceb0ae1ddda118b6d0\",\"end_char\":2206,\"scope\":\"public\",\"source_id\":\"mtrag:cloud:ibmcld_16364-101992-104197\",\"source_revision\":\"2c618bb98db3c8526433e22d8a2f7320f10a7470\",\"source_type\":\"mtrag_official_passage\",\"start_char\":0},\"text\":\"\\n: The new model, which is being offered as a beta feature in English-language dialog and actions skills, is faster and more accurate. It combines traditional machine learning, transfer learning, and deep learning techniques in a cohesive model that is highly responsive at run time. For more information, see [Improved intent recognition](https://cloud.ibm.com/docs/assistant?topic=assistant-intent-detection).\\n\\n\\n\\n\\n\\n 3 November 2020 \\n\\nSuggestions are now generally available\\n: The Suggestions feature that is available for the web chat integration is generally available and is enabled by default when you create a new web chat integration. For more information, see [Showing more suggestions](https://cloud.ibm.com/docs/assistant?topic=assistant-deploy-web-chatdeploy-web-chat-alternate).\\n\\nNew languages supported by the dialog analysis notebook\\n: The Dialog skill analysis notebook was updated with language support for French, German, Spanish, Czech, Italian, and Portuguese. For more information, see [Analysis notebooks](https://cloud.ibm.com/docs/assistant?topic=assistant-logs-resourceslogs-resources-jupyter-logs).\\n\\nVisit the learning center!\\n: Click the Learning center link that is displayed in the header of the skill pages to find helpful product tours. The tours guide you through the steps to follow to complete a range of tasks, from adding your first intent to a dialog skill to enhancing the conversation in an actions skill. The Additional resources page has links to relevant documentation topics and how-to videos. You can search the resource link titles to find what you're looking for quickly.\\n\\n\\n\\n\\n\\n 29 October 2020 \\n\\nSystem entity support changes\\n: For English, Brazilian Portuguese, Czech, Dutch, French, German, Italian, and Spanish dialog skills only the new system entities API version is supported. For backward compatibility, both the interpretation and metadata attributes are included with the recognized entity object. The new system entity version is enabled automatically for dialog skills in the Arabic, Chinese, Korean, and Japanese languages. You can choose to use the legacy version of the system entities API by switching to it from the Options>System Entities page.\",\"title\":\"\"},{\"chunk_id\":\"mtrag:cloud:ibmcld_03120-3469-5331\",\"source_ref\":{\"applicability\":{},\"checksum\":\"2f63c12f33bdd7c729560648951104457b276428c1cc66ea043bdcb63f8611fe\",\"end_char\":1863,\"scope\":\"public\",\"source_id\":\"mtrag:cloud:ibmcld_03120-3469-5331\",\"source_revision\":\"2c618bb98db3c8526433e22d8a2f7320f10a7470\",\"source_type\":\"mtrag_official_passage\",\"start_char\":0},\"text\":\"\\nFor more information about feature support in the universal language model, see [Supported languages](https://cloud.ibm.com/docs/assistant?topic=assistant-language-support).\\n\\n\\n\\n\\n\\n Creating a skill that uses the universal language model \\n\\nTo create a skill that uses the universal language model, complete the following steps:\\n\\n\\n\\n1. From the Skills page, click Create skill.\\n2. Choose to create either a dialog or actions skill, and then click Next.\\n\\nFor more information, see [Choosing a conversational skill](https://cloud.ibm.com/docs/assistant?topic=assistant-skills-choose).\\n3. Name your skill, and optionally add a description. From the Language field, choose Another language.\\n\\nRemember, if the language you want to support is listed individually, choose it instead of using the universal model. The built-in language models provide optimal language support.\\n4. Create the skill.\\n5. If your skill will support a language with right-to-left directional text, such as Hebrew, configure the bidirectional capabilities.\\n\\nClick the options icon from the skill tile ![Skill options icon](https://cloud.ibm.com/docs-content/v1/content/417db917d18067d9dcc4cf2612564a9a87c3ddc8/assistant/images/kebab.png), and then select Language preferences. Click the Enable bidirectional capabilities switch. Specify any settings that you want to configure.\\n\\nFor more information, see [Configuring bidirectional languages](https://cloud.ibm.com/docs/assistant?topic=assistant-language-supportlanguage-support-configure-bidirectional).\\n\\n\\n\\nNext, start building your conversation.\\n\\nAs you follow the normal steps to design a conversational flow, you teach the universal language model about the language you want your skill to support. It is by adding training data that is written in the target language that the universal model is constructed. For an actions skill, add actions.\",\"title\":\"\"},{\"chunk_id\":\"mtrag:cloud:ibmcld_16364-103662-105841\",\"source_ref\":{\"applicability\":{},\"checksum\":\"fbccdc28d240a036463c0d685d10b7fe2016313c0b00c4c338b624458b2b7ac3\",\"end_char\":2180,\"scope\":\"public\",\"source_id\":\"mtrag:cloud:ibmcld_16364-103662-105841\",\"source_revision\":\"2c618bb98db3c8526433e22d8a2f7320f10a7470\",\"source_type\":\"mtrag_official_passage\",\"start_char\":0},\"text\":\"\\n: For English, Brazilian Portuguese, Czech, Dutch, French, German, Italian, and Spanish dialog skills only the new system entities API version is supported. For backward compatibility, both the interpretation and metadata attributes are included with the recognized entity object. The new system entity version is enabled automatically for dialog skills in the Arabic, Chinese, Korean, and Japanese languages. You can choose to use the legacy version of the system entities API by switching to it from the Options>System Entities page. This settings page is not displayed in English, Brazilian Portuguese, Czech, Dutch, French, German, Italian, and Spanish dialog skills because use of the legacy version of the API is no longer supported for those languages. For more information about the new system entities, see [System entities](https://cloud.ibm.com/docs/assistant?topic=assistant-system-entities).\\n\\n\\n\\n\\n\\n 28 October 2020 \\n\\nIntroducing the actions skill!\\n: The actions skill is the latest step in the continuing evolution of Watson Assistant as a software as a service application. The actions skill is designed to make it simple enough for anyone to build a virtual assistant. We've removed the need to navigate between intents, entities, and dialog to create conversational flows. Building can all now be done in one simple and intuitive interface.\\n\\nThe actions skill is available as a beta feature. For more information, see [Adding an actions skill](https://cloud.ibm.com/docs/assistant?topic=assistant-skill-actions-add).\\n\\nWeb chat integration is created automatically\\n: When you create a new assistant, a web chat integration is created for you automatically (in addition to the preview link integration, which was created previously). These integrations are added also to the assistant that is auto-generated (named My first assistant) when you create a new service instance. For more information, see [Integrating the web chat with your website](https://cloud.ibm.com/docs/assistant?topic=assistant-deploy-web-chat).\\n\\nText messaging integration was renamed\\n: The Twilio messaging integration was renamed to SMS with Twilio.\\n\\n\\n\\n\\n\\n 9 October 2020 \\n\\nSearch skill update\",\"title\":\"\"},{\"chunk_id\":\"mtrag:cloud:ibmcld_03049-2703-4536\",\"source_ref\":{\"applicability\":{},\"checksum\":\"0bf76165a608f357d909fc0d798d3587ff608615ee4b4d5470b8965e3343296c\",\"end_char\":1834,\"scope\":\"public\",\"source_id\":\"mtrag:cloud:ibmcld_03049-2703-4536\",\"source_revision\":\"2c618bb98db3c8526433e22d8a2f7320f10a7470\",\"source_type\":\"mtrag_official_passage\",\"start_char\":0},\"text\":\"\\n* Language: The language of the user input the skill will be trained to understand. The default value is English.\\n\\n\\n\\n\\n\\nAfter you create the dialog skill, it appears as a tile on the Skills page. Now, you can start identifying the user goals that you want the dialog skill to address.\\n\\n\\n\\n* To add prebuilt intents to your skill, see [Using content catalogs](https://cloud.ibm.com/docs/assistant-data?topic=assistant-data-catalog).\\n* To define your own intents, see [Defining intents](https://cloud.ibm.com/docs/assistant-data?topic=assistant-data-intents).\\n\\n\\n\\nThe dialog skill cannot interact with customers until it is added to an assistant and the assistant is deployed. See [Creating an assistant](https://cloud.ibm.com/docs/assistant-data?topic=assistant-data-assistant-add).\\n\\n\\n\\n Troubleshooting skill import issues \\n\\nIf you receive warnings when you try to upload a skill, take a moment to try to fix the issues.\\n\\n\\n\\n1. Make a note of the warning message that are displayed when you try to upload the JSON file.\\n2. Edit the skill to address the issues.\\n\\n\\n\\n* If you have access to a public service instance, open the skill from there and make edits. Export the edited skill by downloading it.\\n* Otherwise, open the JSON file in a text editor and make edits.\\n\\n\\n\\nYou might need to remove the @sys-person and @sys-location entities from your training data, and any references to them from dialog nodes, for example.\\n3. Try again to import the edited skill.\\n\\n\\n\\n\\n\\n\\n\\n Adding the skill to an assistant \\n\\nYou can add one skill to an assistant. You must open the assistant tile and add the skill to the assistant from the assistant configuration page; you cannot choose the assistant that will use the skill from within the skill configuration page. One dialog skill can be used by more than one assistant.\\n\\n\\n\\n1. Click the Assistants icon !\",\"title\":\"\"},{\"chunk_id\":\"mtrag:cloud:ibmcld_03139-3702-4938\",\"source_ref\":{\"applicability\":{},\"checksum\":\"dfe4068eb4530d0cf3dbae2208e7d544e4ee1fca149951dc4e3b3a53dd5e9e77\",\"end_char\":1237,\"scope\":\"public\",\"source_id\":\"mtrag:cloud:ibmcld_03139-3702-4938\",\"source_revision\":\"2c618bb98db3c8526433e22d8a2f7320f10a7470\",\"source_type\":\"mtrag_official_passage\",\"start_char\":0},\"text\":\"\\n* Description: An optional description no more than 200 characters in length.\\n* Language: The language of the user input the skill will be trained to understand. The default value is English.\\n\\n\\n\\n\\n\\nAfter you create the skill, it appears as a tile on the Skills page.\\n\\n\\n\\n\\n\\n Re-creating your assistant \\n\\nYou can now re-create your assistant. You can then link your uploaded skills to the assistant, and configure integrations for it.\\n\\nSee [Creating an assistant](https://cloud.ibm.com/docs/assistant?topic=assistant-assistant-add) and [Adding integrations](https://cloud.ibm.com/docs/assistant?topic=assistant-deploy-integration-adddeploy-integration-add-task) for more details.\\n\\n\\n\\n\\n\\n Update your client applications \\n\\nWhen you import a dialog skill that you exported, a new skill is created. The new skill has a new workspace ID. If you have existing client applications that use the v1 API to access this skill, then you must update any workspace ID references to use the new worskpace ID instead.\\n\\nWhen you re-create your assistant, it is given a new assistant ID. If you have existing client applications that use the v2 API to access the assistant, then you must update any assistant ID references to use the new assistant ID instead.\",\"title\":\"\"}],\"query\":\"|user|: Is it possible to build a dialog skill in a language other than English?\"},\"status\":\"OK\"}",
+        "source_kind": "KNOWLEDGE_ASSERTED",
+        "source_ref": "call_01_IWemjveCkMGdsZzMACDi6876",
+        "producer_id": "knowledge_search",
+        "producer_version": "tool-output-v1",
+        "observed_at": "2026-09-08 01:22:07.778023+00:00",
+        "valid_until": null,
+        "observation_started_at": "2026-09-08 01:22:07.777999+00:00"
+      },
+      {
+        "subject_ref": "tool-query:v1:fc77c5ace409312a41ed85f9e7d1cc5e342140d68a1c93273e6e36603caf2532",
+        "requirement_id": "knowledge.active_source",
+        "value_json": "{\"evidence_pack\":{\"index_manifest_fingerprint\":\"frozen-eval-fixture\",\"items\":[{\"chunk_id\":\"mtrag:cloud:ibmcld_16364-101992-104197\",\"source_ref\":{\"applicability\":{},\"checksum\":\"1d4407c197e7100ceb04a02ce4faef598e269005cab587ceb0ae1ddda118b6d0\",\"end_char\":2206,\"scope\":\"public\",\"source_id\":\"mtrag:cloud:ibmcld_16364-101992-104197\",\"source_revision\":\"2c618bb98db3c8526433e22d8a2f7320f10a7470\",\"source_type\":\"mtrag_official_passage\",\"start_char\":0},\"text\":\"\\n: The new model, which is being offered as a beta feature in English-language dialog and actions skills, is faster and more accurate. It combines traditional machine learning, transfer learning, and deep learning techniques in a cohesive model that is highly responsive at run time. For more information, see [Improved intent recognition](https://cloud.ibm.com/docs/assistant?topic=assistant-intent-detection).\\n\\n\\n\\n\\n\\n 3 November 2020 \\n\\nSuggestions are now generally available\\n: The Suggestions feature that is available for the web chat integration is generally available and is enabled by default when you create a new web chat integration. For more information, see [Showing more suggestions](https://cloud.ibm.com/docs/assistant?topic=assistant-deploy-web-chatdeploy-web-chat-alternate).\\n\\nNew languages supported by the dialog analysis notebook\\n: The Dialog skill analysis notebook was updated with language support for French, German, Spanish, Czech, Italian, and Portuguese. For more information, see [Analysis notebooks](https://cloud.ibm.com/docs/assistant?topic=assistant-logs-resourceslogs-resources-jupyter-logs).\\n\\nVisit the learning center!\\n: Click the Learning center link that is displayed in the header of the skill pages to find helpful product tours. The tours guide you through the steps to follow to complete a range of tasks, from adding your first intent to a dialog skill to enhancing the conversation in an actions skill. The Additional resources page has links to relevant documentation topics and how-to videos. You can search the resource link titles to find what you're looking for quickly.\\n\\n\\n\\n\\n\\n 29 October 2020 \\n\\nSystem entity support changes\\n: For English, Brazilian Portuguese, Czech, Dutch, French, German, Italian, and Spanish dialog skills only the new system entities API version is supported. For backward compatibility, both the interpretation and metadata attributes are included with the recognized entity object. The new system entity version is enabled automatically for dialog skills in the Arabic, Chinese, Korean, and Japanese languages. You can choose to use the legacy version of the system entities API by switching to it from the Options>System Entities page.\",\"title\":\"\"},{\"chunk_id\":\"mtrag:cloud:ibmcld_03120-3469-5331\",\"source_ref\":{\"applicability\":{},\"checksum\":\"2f63c12f33bdd7c729560648951104457b276428c1cc66ea043bdcb63f8611fe\",\"end_char\":1863,\"scope\":\"public\",\"source_id\":\"mtrag:cloud:ibmcld_03120-3469-5331\",\"source_revision\":\"2c618bb98db3c8526433e22d8a2f7320f10a7470\",\"source_type\":\"mtrag_official_passage\",\"start_char\":0},\"text\":\"\\nFor more information about feature support in the universal language model, see [Supported languages](https://cloud.ibm.com/docs/assistant?topic=assistant-language-support).\\n\\n\\n\\n\\n\\n Creating a skill that uses the universal language model \\n\\nTo create a skill that uses the universal language model, complete the following steps:\\n\\n\\n\\n1. From the Skills page, click Create skill.\\n2. Choose to create either a dialog or actions skill, and then click Next.\\n\\nFor more information, see [Choosing a conversational skill](https://cloud.ibm.com/docs/assistant?topic=assistant-skills-choose).\\n3. Name your skill, and optionally add a description. From the Language field, choose Another language.\\n\\nRemember, if the language you want to support is listed individually, choose it instead of using the universal model. The built-in language models provide optimal language support.\\n4. Create the skill.\\n5. If your skill will support a language with right-to-left directional text, such as Hebrew, configure the bidirectional capabilities.\\n\\nClick the options icon from the skill tile ![Skill options icon](https://cloud.ibm.com/docs-content/v1/content/417db917d18067d9dcc4cf2612564a9a87c3ddc8/assistant/images/kebab.png), and then select Language preferences. Click the Enable bidirectional capabilities switch. Specify any settings that you want to configure.\\n\\nFor more information, see [Configuring bidirectional languages](https://cloud.ibm.com/docs/assistant?topic=assistant-language-supportlanguage-support-configure-bidirectional).\\n\\n\\n\\nNext, start building your conversation.\\n\\nAs you follow the normal steps to design a conversational flow, you teach the universal language model about the language you want your skill to support. It is by adding training data that is written in the target language that the universal model is constructed. For an actions skill, add actions.\",\"title\":\"\"},{\"chunk_id\":\"mtrag:cloud:ibmcld_16364-103662-105841\",\"source_ref\":{\"applicability\":{},\"checksum\":\"fbccdc28d240a036463c0d685d10b7fe2016313c0b00c4c338b624458b2b7ac3\",\"end_char\":2180,\"scope\":\"public\",\"source_id\":\"mtrag:cloud:ibmcld_16364-103662-105841\",\"source_revision\":\"2c618bb98db3c8526433e22d8a2f7320f10a7470\",\"source_type\":\"mtrag_official_passage\",\"start_char\":0},\"text\":\"\\n: For English, Brazilian Portuguese, Czech, Dutch, French, German, Italian, and Spanish dialog skills only the new system entities API version is supported. For backward compatibility, both the interpretation and metadata attributes are included with the recognized entity object. The new system entity version is enabled automatically for dialog skills in the Arabic, Chinese, Korean, and Japanese languages. You can choose to use the legacy version of the system entities API by switching to it from the Options>System Entities page. This settings page is not displayed in English, Brazilian Portuguese, Czech, Dutch, French, German, Italian, and Spanish dialog skills because use of the legacy version of the API is no longer supported for those languages. For more information about the new system entities, see [System entities](https://cloud.ibm.com/docs/assistant?topic=assistant-system-entities).\\n\\n\\n\\n\\n\\n 28 October 2020 \\n\\nIntroducing the actions skill!\\n: The actions skill is the latest step in the continuing evolution of Watson Assistant as a software as a service application. The actions skill is designed to make it simple enough for anyone to build a virtual assistant. We've removed the need to navigate between intents, entities, and dialog to create conversational flows. Building can all now be done in one simple and intuitive interface.\\n\\nThe actions skill is available as a beta feature. For more information, see [Adding an actions skill](https://cloud.ibm.com/docs/assistant?topic=assistant-skill-actions-add).\\n\\nWeb chat integration is created automatically\\n: When you create a new assistant, a web chat integration is created for you automatically (in addition to the preview link integration, which was created previously). These integrations are added also to the assistant that is auto-generated (named My first assistant) when you create a new service instance. For more information, see [Integrating the web chat with your website](https://cloud.ibm.com/docs/assistant?topic=assistant-deploy-web-chat).\\n\\nText messaging integration was renamed\\n: The Twilio messaging integration was renamed to SMS with Twilio.\\n\\n\\n\\n\\n\\n 9 October 2020 \\n\\nSearch skill update\",\"title\":\"\"},{\"chunk_id\":\"mtrag:cloud:ibmcld_03049-2703-4536\",\"source_ref\":{\"applicability\":{},\"checksum\":\"0bf76165a608f357d909fc0d798d3587ff608615ee4b4d5470b8965e3343296c\",\"end_char\":1834,\"scope\":\"public\",\"source_id\":\"mtrag:cloud:ibmcld_03049-2703-4536\",\"source_revision\":\"2c618bb98db3c8526433e22d8a2f7320f10a7470\",\"source_type\":\"mtrag_official_passage\",\"start_char\":0},\"text\":\"\\n* Language: The language of the user input the skill will be trained to understand. The default value is English.\\n\\n\\n\\n\\n\\nAfter you create the dialog skill, it appears as a tile on the Skills page. Now, you can start identifying the user goals that you want the dialog skill to address.\\n\\n\\n\\n* To add prebuilt intents to your skill, see [Using content catalogs](https://cloud.ibm.com/docs/assistant-data?topic=assistant-data-catalog).\\n* To define your own intents, see [Defining intents](https://cloud.ibm.com/docs/assistant-data?topic=assistant-data-intents).\\n\\n\\n\\nThe dialog skill cannot interact with customers until it is added to an assistant and the assistant is deployed. See [Creating an assistant](https://cloud.ibm.com/docs/assistant-data?topic=assistant-data-assistant-add).\\n\\n\\n\\n Troubleshooting skill import issues \\n\\nIf you receive warnings when you try to upload a skill, take a moment to try to fix the issues.\\n\\n\\n\\n1. Make a note of the warning message that are displayed when you try to upload the JSON file.\\n2. Edit the skill to address the issues.\\n\\n\\n\\n* If you have access to a public service instance, open the skill from there and make edits. Export the edited skill by downloading it.\\n* Otherwise, open the JSON file in a text editor and make edits.\\n\\n\\n\\nYou might need to remove the @sys-person and @sys-location entities from your training data, and any references to them from dialog nodes, for example.\\n3. Try again to import the edited skill.\\n\\n\\n\\n\\n\\n\\n\\n Adding the skill to an assistant \\n\\nYou can add one skill to an assistant. You must open the assistant tile and add the skill to the assistant from the assistant configuration page; you cannot choose the assistant that will use the skill from within the skill configuration page. One dialog skill can be used by more than one assistant.\\n\\n\\n\\n1. Click the Assistants icon !\",\"title\":\"\"},{\"chunk_id\":\"mtrag:cloud:ibmcld_03139-3702-4938\",\"source_ref\":{\"applicability\":{},\"checksum\":\"dfe4068eb4530d0cf3dbae2208e7d544e4ee1fca149951dc4e3b3a53dd5e9e77\",\"end_char\":1237,\"scope\":\"public\",\"source_id\":\"mtrag:cloud:ibmcld_03139-3702-4938\",\"source_revision\":\"2c618bb98db3c8526433e22d8a2f7320f10a7470\",\"source_type\":\"mtrag_official_passage\",\"start_char\":0},\"text\":\"\\n* Description: An optional description no more than 200 characters in length.\\n* Language: The language of the user input the skill will be trained to understand. The default value is English.\\n\\n\\n\\n\\n\\nAfter you create the skill, it appears as a tile on the Skills page.\\n\\n\\n\\n\\n\\n Re-creating your assistant \\n\\nYou can now re-create your assistant. You can then link your uploaded skills to the assistant, and configure integrations for it.\\n\\nSee [Creating an assistant](https://cloud.ibm.com/docs/assistant?topic=assistant-assistant-add) and [Adding integrations](https://cloud.ibm.com/docs/assistant?topic=assistant-deploy-integration-adddeploy-integration-add-task) for more details.\\n\\n\\n\\n\\n\\n Update your client applications \\n\\nWhen you import a dialog skill that you exported, a new skill is created. The new skill has a new workspace ID. If you have existing client applications that use the v1 API to access this skill, then you must update any workspace ID references to use the new worskpace ID instead.\\n\\nWhen you re-create your assistant, it is given a new assistant ID. If you have existing client applications that use the v2 API to access the assistant, then you must update any assistant ID references to use the new assistant ID instead.\",\"title\":\"\"}],\"query\":\"|user|: Is it possible to build a dialog skill in a language other than English?\"},\"status\":\"OK\"}",
+        "source_kind": "KNOWLEDGE_ASSERTED",
+        "source_ref": "call_01_rzQdP66o9u6kRPoxTLQL7548",
+        "producer_id": "knowledge_search",
+        "producer_version": "tool-output-v1",
+        "observed_at": "2026-09-08 01:22:09.727111+00:00",
+        "valid_until": null,
+        "observation_started_at": "2026-09-08 01:22:09.727091+00:00"
+      }
+    ],
+    "evidence_refs": [
+      "call_00_vn4wGNXeGFF0zjEGEFq67737",
+      "call_01_gEfE8McKMxaTHRrxEImi6318",
+      "call_00_ANtdBNxKUM2XBHBsemFc4346",
+      "call_01_IWemjveCkMGdsZzMACDi6876",
+      "call_01_rzQdP66o9u6kRPoxTLQL7548"
+    ],
+    "action_receipts": [],
+    "missing_inputs": [],
+    "requested_evidence": [],
+    "state_mutation_proposals": [],
+    "candidate_response": null,
+    "retryable": false,
+    "pending_action": null,
+    "working_messages": [
+      {
+        "type": "human",
+        "data": {
+          "content": "{\"action_proposals_allowed\": false, \"arguments\": {\"question\": \"Is it possible to build a dialog skill in a language other than English?\"}, \"completed_actions\": [], \"evidence_refs\": [], \"objective\": \"Is it possible to build a dialog skill in a language other than English?\", \"pending_approval\": null, \"recent_relevant_turns\": [], \"requirements\": [\"knowledge.active_source\"], \"source_conversation\": {\"current_message\": \"Is it possible to build a dialog skill in a language other than English?\"}, \"verified_facts\": []}",
+          "additional_kwargs": {},
+          "response_metadata": {},
+          "type": "human",
+          "name": null,
+          "id": "task-context:work-item:v1:3a7eb38a3036bb9c6e5178e4ae940b0d0db6c19e5d8959049d8815b192e8869f"
+        }
+      },
+      {
+        "type": "ai",
+        "data": {
+          "content": [
+            {
+              "text": "I'll search the documentation for information about building dialog skills in languages other than English.",
+              "type": "text"
+            },
+            {
+              "id": "call_00_vn4wGNXeGFF0zjEGEFq67737",
+              "input": {
+                "query": "build dialog skill in language other than English"
+              },
+              "name": "knowledge_search",
+              "type": "tool_use",
+              "toolset_name": null
+            },
+            {
+              "id": "call_01_gEfE8McKMxaTHRrxEImi6318",
+              "input": {
+                "query": "dialog skill supported languages localization"
+              },
+              "name": "knowledge_search",
+              "type": "tool_use",
+              "toolset_name": null
+            }
+          ],
+          "additional_kwargs": {},
+          "response_metadata": {
+            "id": "6a38aab0-7903-486f-b658-c80f50850430",
+            "container": null,
+            "model": "deepseek-v4-flash",
+            "stop_details": null,
+            "stop_reason": "tool_use",
+            "stop_sequence": null,
+            "usage": {
+              "cache_creation": null,
+              "cache_creation_input_tokens": 0,
+              "cache_read_input_tokens": 1280,
+              "inference_geo": null,
+              "input_tokens": 89,
+              "output_tokens": 100,
+              "output_tokens_details": null,
+              "server_tool_use": null,
+              "service_tier": "standard"
+            },
+            "model_name": "deepseek-v4-flash",
+            "model_provider": "anthropic"
+          },
+          "type": "ai",
+          "name": "general_agent",
+          "id": "lc_run--01a07e9b-9d50-7203-b817-d3628bd83341-0",
+          "tool_calls": [
+            {
+              "name": "knowledge_search",
+              "args": {
+                "query": "build dialog skill in language other than English"
+              },
+              "id": "call_00_vn4wGNXeGFF0zjEGEFq67737",
+              "type": "tool_call"
+            },
+            {
+              "name": "knowledge_search",
+              "args": {
+                "query": "dialog skill supported languages localization"
+              },
+              "id": "call_01_gEfE8McKMxaTHRrxEImi6318",
+              "type": "tool_call"
+            }
+          ],
+          "invalid_tool_calls": [],
+          "usage_metadata": {
+            "input_tokens": 1369,
+            "output_tokens": 100,
+            "total_tokens": 1469,
+            "input_token_details": {
+              "cache_read": 1280,
+              "cache_creation": 0
+            }
+          }
+        }
+      },
+      {
+        "type": "tool",
+        "data": {
+          "content": "{\"result_ref\": \"cc4e7c643276e5fce0109d98b0a3cfc694d74eaf294bee8fdaa26319445d387a\", \"total_characters\": 11403, \"preview\": \"{\\\"status\\\":\\\"OK\\\",\\\"query_used\\\":\\\"|user|: Is it possible to build a dialog skill in a language other than English?\\\",\\\"evidence\\\":[{\\\"evidence_id\\\":\\\"E307702b970d8\\\",\\\"title\\\":\\\"\\\",\\\"text\\\":\\\"\\\\n: The new model, which is being offered as a beta feature in English-language dialog and actions skills, is faster and more accurate. It combines traditional machine learning, transfer learning, and deep learning techniques i\", \"complete\": false, \"read_tool_result\": {\"reference\": \"cc4e7c643276e5fce0109d98b0a3cfc694d74eaf294bee8fdaa26319445d387a\", \"offset\": 0}, \"note\": \"Preview only. Read required pages before concluding; absence from a page is not absence from the result.\"}",
+          "additional_kwargs": {},
+          "response_metadata": {},
+          "type": "tool",
+          "name": "knowledge_search",
+          "id": "bb10bbc5-decd-4e75-bff6-0cdbc3eef76b",
+          "tool_call_id": "call_00_vn4wGNXeGFF0zjEGEFq67737",
+          "artifact": {
+            "schema": "tool-result-v1",
+            "reference": "cc4e7c643276e5fce0109d98b0a3cfc694d74eaf294bee8fdaa26319445d387a",
+            "result": {
+              "status": "success",
+              "success": true,
+              "tool_name": "knowledge_search",
+              "effect_status": "none"
+            },
+            "observation": "97487d0cc961a5aa7a618248f3609f91b20f783b03c13bc8e990d1db15fd8376"
+          },
+          "status": "success"
+        }
+      },
+      {
+        "type": "tool",
+        "data": {
+          "content": "{\"result_ref\": \"07e418772b5c77f65f82c4d782f116ef06eb69ff3514e0f5b351cc4dd78371e5\", \"total_characters\": 11403, \"preview\": \"{\\\"status\\\":\\\"OK\\\",\\\"query_used\\\":\\\"|user|: Is it possible to build a dialog skill in a language other than English?\\\",\\\"evidence\\\":[{\\\"evidence_id\\\":\\\"E307702b970d8\\\",\\\"title\\\":\\\"\\\",\\\"text\\\":\\\"\\\\n: The new model, which is being offered as a beta feature in English-language dialog and actions skills, is faster and more accurate. It combines traditional machine learning, transfer learning, and deep learning techniques i\", \"complete\": false, \"read_tool_result\": {\"reference\": \"07e418772b5c77f65f82c4d782f116ef06eb69ff3514e0f5b351cc4dd78371e5\", \"offset\": 0}, \"note\": \"Preview only. Read required pages before concluding; absence from a page is not absence from the result.\"}",
+          "additional_kwargs": {},
+          "response_metadata": {},
+          "type": "tool",
+          "name": "knowledge_search",
+          "id": "d9b80717-9e24-4be4-9f72-67a41a5a3124",
+          "tool_call_id": "call_01_gEfE8McKMxaTHRrxEImi6318",
+          "artifact": {
+            "schema": "tool-result-v1",
+            "reference": "07e418772b5c77f65f82c4d782f116ef06eb69ff3514e0f5b351cc4dd78371e5",
+            "result": {
+              "status": "success",
+              "success": true,
+              "tool_name": "knowledge_search",
+              "effect_status": "none"
+            },
+            "observation": "97487d0cc961a5aa7a618248f3609f91b20f783b03c13bc8e990d1db15fd8376"
+          },
+          "status": "success"
+        }
+      },
+      {
+        "type": "ai",
+        "data": {
+          "content": [
+            {
+              "text": "Let me read the full result to understand the context better.",
+              "type": "text"
+            },
+            {
+              "id": "call_00_UGeekoZxJmJKbPxPzI8J6263",
+              "input": {
+                "reference": "cc4e7c643276e5fce0109d98b0a3cfc694d74eaf294bee8fdaa26319445d387a"
+              },
+              "name": "read_tool_result",
+              "type": "tool_use",
+              "toolset_name": null
+            }
+          ],
+          "additional_kwargs": {},
+          "response_metadata": {
+            "id": "23522e46-fcaf-4791-9bf3-981793ff1fff",
+            "container": null,
+            "model": "deepseek-v4-flash",
+            "stop_details": null,
+            "stop_reason": "tool_use",
+            "stop_sequence": null,
+            "usage": {
+              "cache_creation": null,
+              "cache_creation_input_tokens": 0,
+              "cache_read_input_tokens": 1408,
+              "inference_geo": null,
+              "input_tokens": 573,
+              "output_tokens": 93,
+              "output_tokens_details": null,
+              "server_tool_use": null,
+              "service_tier": "standard"
+            },
+            "model_name": "deepseek-v4-flash",
+            "model_provider": "anthropic"
+          },
+          "type": "ai",
+          "name": "general_agent",
+          "id": "lc_run--01a07e9b-a6d0-7e02-ad56-e4acbdb67227-0",
+          "tool_calls": [
+            {
+              "name": "read_tool_result",
+              "args": {
+                "reference": "cc4e7c643276e5fce0109d98b0a3cfc694d74eaf294bee8fdaa26319445d387a"
+              },
+              "id": "call_00_UGeekoZxJmJKbPxPzI8J6263",
+              "type": "tool_call"
+            }
+          ],
+          "invalid_tool_calls": [],
+          "usage_metadata": {
+            "input_tokens": 1981,
+            "output_tokens": 93,
+            "total_tokens": 2074,
+            "input_token_details": {
+              "cache_read": 1408,
+              "cache_creation": 0
+            }
+          }
+        }
+      },
+      {
+        "type": "tool",
+        "data": {
+          "content": "{\"reference\": \"cc4e7c643276e5fce0109d98b0a3cfc694d74eaf294bee8fdaa26319445d387a\", \"offset\": 0, \"total_characters\": 11403, \"text\": \"{\\\"status\\\":\\\"OK\\\",\\\"query_used\\\":\\\"|user|: Is it possible to build a dialog skill in a language other than English?\\\",\\\"evidence\\\":[{\\\"evidence_id\\\":\\\"E307702b970d8\\\",\\\"title\\\":\\\"\\\",\\\"text\\\":\\\"\\\\n: The new model, which is being offered as a beta feature in English-language dialog and actions skills, is faster and more accurate. It combines traditional machine learning, transfer learning, and deep learning techniques in a cohesive model that is highly responsive at run time. For more information, see [Improved intent recognition](https://cloud.ibm.com/docs/assistant?topic=assistant-intent-detection).\\\\n\\\\n\\\\n\\\\n\\\\n\\\\n 3 November 2020 \\\\n\\\\nSuggestions are now generally available\\\\n: The Suggestions feature that is available for the web chat integration is generally available and is enabled by default when you create a new web chat integration. For more information, see [Showing more suggestions](https://cloud.ibm.com/docs/assistant?topic=assistant-deploy-web-chatdeploy-web-chat-alternate).\\\\n\\\\nNew languages supported by the dialog analysis notebook\\\\n: The Dialog skill analysis notebook was updated with language support for French, German, Spanish, Czech, Italian, and Portuguese. For more information, see [Analysis notebooks](https://cloud.ibm.com/docs/assistant?topic=assistant-logs-resourceslogs-resources-jupyter-logs).\\\\n\\\\nVisit the learning center!\\\\n: Click the Learning center link that is displayed in the header of the skill pages to find helpful product tours. The tours guide you through the steps to follow to complete a range of tasks, from adding your first intent to a dialog skill to enhancing the conversation in an actions skill. The Additional resources page has links to relevant documentation topics and how-to videos. You can search the resource link titles to find what you're looking for quickly.\\\\n\\\\n\\\\n\\\\n\\\\n\\\\n 29 October 2020 \\\\n\\\\nSystem entity support changes\\\\n: For English, Brazilian Portuguese, Czech, Dutch, French, German, Italian, and Spanish dialog skills only the new system entities \", \"next_offset\": 2000, \"historical\": true}",
+          "additional_kwargs": {},
+          "response_metadata": {},
+          "type": "tool",
+          "name": "read_tool_result",
+          "id": "46dc511d-8faf-4440-b28e-224ffeea8a79",
+          "tool_call_id": "call_00_UGeekoZxJmJKbPxPzI8J6263",
+          "artifact": null,
+          "status": "success"
+        }
+      },
+      {
+        "type": "ai",
+        "data": {
+          "content": [
+            {
+              "text": "This result is a changelog/release notes page. Let me search more specifically for the language support documentation for dialog skills.",
+              "type": "text"
+            },
+            {
+              "id": "call_00_ANtdBNxKUM2XBHBsemFc4346",
+              "input": {
+                "query": "dialog skill supported languages list create skill language"
+              },
+              "name": "knowledge_search",
+              "type": "tool_use",
+              "toolset_name": null
+            },
+            {
+              "id": "call_01_IWemjveCkMGdsZzMACDi6876",
+              "input": {
+                "query": "languages supported by dialog skills Watson Assistant"
+              },
+              "name": "knowledge_search",
+              "type": "tool_use",
+              "toolset_name": null
+            }
+          ],
+          "additional_kwargs": {},
+          "response_metadata": {
+            "id": "cfec671d-e62c-410d-88a5-cd594dd4fea9",
+            "container": null,
+            "model": "deepseek-v4-flash",
+            "stop_details": null,
+            "stop_reason": "tool_use",
+            "stop_sequence": null,
+            "usage": {
+              "cache_creation": null,
+              "cache_creation_input_tokens": 0,
+              "cache_read_input_tokens": 2048,
+              "inference_geo": null,
+              "input_tokens": 585,
+              "output_tokens": 112,
+              "output_tokens_details": null,
+              "server_tool_use": null,
+              "service_tier": "standard"
+            },
+            "model_name": "deepseek-v4-flash",
+            "model_provider": "anthropic"
+          },
+          "type": "ai",
+          "name": "general_agent",
+          "id": "lc_run--01a07e9b-ac47-7dd3-811b-5b4afa613f75-0",
+          "tool_calls": [
+            {
+              "name": "knowledge_search",
+              "args": {
+                "query": "dialog skill supported languages list create skill language"
+              },
+              "id": "call_00_ANtdBNxKUM2XBHBsemFc4346",
+              "type": "tool_call"
+            },
+            {
+              "name": "knowledge_search",
+              "args": {
+                "query": "languages supported by dialog skills Watson Assistant"
+              },
+              "id": "call_01_IWemjveCkMGdsZzMACDi6876",
+              "type": "tool_call"
+            }
+          ],
+          "invalid_tool_calls": [],
+          "usage_metadata": {
+            "input_tokens": 2633,
+            "output_tokens": 112,
+            "total_tokens": 2745,
+            "input_token_details": {
+              "cache_read": 2048,
+              "cache_creation": 0
+            }
+          }
+        }
+      },
+      {
+        "type": "tool",
+        "data": {
+          "content": "{\"result_ref\": \"9a8c40dbbf5db5b1f44d2886121a332a24f97a3c72519f00f445d9072d0ad2de\", \"total_characters\": 11403, \"preview\": \"{\\\"status\\\":\\\"OK\\\",\\\"query_used\\\":\\\"|user|: Is it possible to build a dialog skill in a language other than English?\\\",\\\"evidence\\\":[{\\\"evidence_id\\\":\\\"E307702b970d8\\\",\\\"title\\\":\\\"\\\",\\\"text\\\":\\\"\\\\n: The new model, which is being offered as a beta feature in English-language dialog and actions skills, is faster and more accurate. It combines traditional machine learning, transfer learning, and deep learning techniques i\", \"complete\": false, \"read_tool_result\": {\"reference\": \"9a8c40dbbf5db5b1f44d2886121a332a24f97a3c72519f00f445d9072d0ad2de\", \"offset\": 0}, \"note\": \"Preview only. Read required pages before concluding; absence from a page is not absence from the result.\"}",
+          "additional_kwargs": {},
+          "response_metadata": {},
+          "type": "tool",
+          "name": "knowledge_search",
+          "id": "636dbcda-042f-466c-a2d7-c2ae05be7b73",
+          "tool_call_id": "call_00_ANtdBNxKUM2XBHBsemFc4346",
+          "artifact": {
+            "schema": "tool-result-v1",
+            "reference": "9a8c40dbbf5db5b1f44d2886121a332a24f97a3c72519f00f445d9072d0ad2de",
+            "result": {
+              "status": "success",
+              "success": true,
+              "tool_name": "knowledge_search",
+              "effect_status": "none"
+            },
+            "observation": "97487d0cc961a5aa7a618248f3609f91b20f783b03c13bc8e990d1db15fd8376"
+          },
+          "status": "success"
+        }
+      },
+      {
+        "type": "tool",
+        "data": {
+          "content": "{\"result_ref\": \"ec4cd91a74d86870416c089957a0c80be9c11fec1531866bcb498b835d39d2b4\", \"total_characters\": 11403, \"preview\": \"{\\\"status\\\":\\\"OK\\\",\\\"query_used\\\":\\\"|user|: Is it possible to build a dialog skill in a language other than English?\\\",\\\"evidence\\\":[{\\\"evidence_id\\\":\\\"E307702b970d8\\\",\\\"title\\\":\\\"\\\",\\\"text\\\":\\\"\\\\n: The new model, which is being offered as a beta feature in English-language dialog and actions skills, is faster and more accurate. It combines traditional machine learning, transfer learning, and deep learning techniques i\", \"complete\": false, \"read_tool_result\": {\"reference\": \"ec4cd91a74d86870416c089957a0c80be9c11fec1531866bcb498b835d39d2b4\", \"offset\": 0}, \"note\": \"Preview only. Read required pages before concluding; absence from a page is not absence from the result.\"}",
+          "additional_kwargs": {},
+          "response_metadata": {},
+          "type": "tool",
+          "name": "knowledge_search",
+          "id": "012ef87e-59ca-4685-ba2a-27cf5874adb1",
+          "tool_call_id": "call_01_IWemjveCkMGdsZzMACDi6876",
+          "artifact": {
+            "schema": "tool-result-v1",
+            "reference": "ec4cd91a74d86870416c089957a0c80be9c11fec1531866bcb498b835d39d2b4",
+            "result": {
+              "status": "success",
+              "success": true,
+              "tool_name": "knowledge_search",
+              "effect_status": "none"
+            },
+            "observation": "97487d0cc961a5aa7a618248f3609f91b20f783b03c13bc8e990d1db15fd8376"
+          },
+          "status": "success"
+        }
+      },
+      {
+        "type": "ai",
+        "data": {
+          "content": [
+            {
+              "text": "The searches keep returning the same changelog page. Let me read more of that page to see the full content, and also try more specific searches.",
+              "type": "text"
+            },
+            {
+              "id": "call_00_5wJ4eHAAj0h3h3dtsI5Y5878",
+              "input": {
+                "reference": "cc4e7c643276e5fce0109d98b0a3cfc694d74eaf294bee8fdaa26319445d387a",
+                "offset": 2000
+              },
+              "name": "read_tool_result",
+              "type": "tool_use",
+              "toolset_name": null
+            },
+            {
+              "id": "call_01_rzQdP66o9u6kRPoxTLQL7548",
+              "input": {
+                "query": "\"dialog skill\" language choose when creating skill supported languages documentation"
+              },
+              "name": "knowledge_search",
+              "type": "tool_use",
+              "toolset_name": null
+            }
+          ],
+          "additional_kwargs": {},
+          "response_metadata": {
+            "id": "b006d526-350c-45e5-baa1-890d116ea576",
+            "container": null,
+            "model": "deepseek-v4-flash",
+            "stop_details": null,
+            "stop_reason": "tool_use",
+            "stop_sequence": null,
+            "usage": {
+              "cache_creation": null,
+              "cache_creation_input_tokens": 0,
+              "cache_read_input_tokens": 2688,
+              "inference_geo": null,
+              "input_tokens": 575,
+              "output_tokens": 170,
+              "output_tokens_details": null,
+              "server_tool_use": null,
+              "service_tier": "standard"
+            },
+            "model_name": "deepseek-v4-flash",
+            "model_provider": "anthropic"
+          },
+          "type": "ai",
+          "name": "general_agent",
+          "id": "lc_run--01a07e9b-b127-7aa0-b43a-3ee86bc9d4fd-0",
+          "tool_calls": [
+            {
+              "name": "read_tool_result",
+              "args": {
+                "reference": "cc4e7c643276e5fce0109d98b0a3cfc694d74eaf294bee8fdaa26319445d387a",
+                "offset": 2000
+              },
+              "id": "call_00_5wJ4eHAAj0h3h3dtsI5Y5878",
+              "type": "tool_call"
+            },
+            {
+              "name": "knowledge_search",
+              "args": {
+                "query": "\"dialog skill\" language choose when creating skill supported languages documentation"
+              },
+              "id": "call_01_rzQdP66o9u6kRPoxTLQL7548",
+              "type": "tool_call"
+            }
+          ],
+          "invalid_tool_calls": [],
+          "usage_metadata": {
+            "input_tokens": 3263,
+            "output_tokens": 170,
+            "total_tokens": 3433,
+            "input_token_details": {
+              "cache_read": 2688,
+              "cache_creation": 0
+            }
+          }
+        }
+      },
+      {
+        "type": "tool",
+        "data": {
+          "content": "{\"reference\": \"cc4e7c643276e5fce0109d98b0a3cfc694d74eaf294bee8fdaa26319445d387a\", \"offset\": 2000, \"total_characters\": 11403, \"text\": \"API version is supported. For backward compatibility, both the interpretation and metadata attributes are included with the recognized entity object. The new system entity version is enabled automatically for dialog skills in the Arabic, Chinese, Korean, and Japanese languages. You can choose to use the legacy version of the system entities API by switching to it from the Options>System Entities page.\\\",\\\"source\\\":{\\\"source_id\\\":\\\"mtrag:cloud:ibmcld_16364-101992-104197\\\",\\\"source_revision\\\":\\\"2c618bb98db3c8526433e22d8a2f7320f10a7470\\\",\\\"start_char\\\":0,\\\"end_char\\\":2206,\\\"source_type\\\":\\\"mtrag_official_passage\\\",\\\"checksum\\\":\\\"1d4407c197e7100ceb04a02ce4faef598e269005cab587ceb0ae1ddda118b6d0\\\",\\\"scope\\\":\\\"public\\\",\\\"applicability\\\":{}}},{\\\"evidence_id\\\":\\\"E99c60c360a38\\\",\\\"title\\\":\\\"\\\",\\\"text\\\":\\\"\\\\nFor more information about feature support in the universal language model, see [Supported languages](https://cloud.ibm.com/docs/assistant?topic=assistant-language-support).\\\\n\\\\n\\\\n\\\\n\\\\n\\\\n Creating a skill that uses the universal language model \\\\n\\\\nTo create a skill that uses the universal language model, complete the following steps:\\\\n\\\\n\\\\n\\\\n1. From the Skills page, click Create skill.\\\\n2. Choose to create either a dialog or actions skill, and then click Next.\\\\n\\\\nFor more information, see [Choosing a conversational skill](https://cloud.ibm.com/docs/assistant?topic=assistant-skills-choose).\\\\n3. Name your skill, and optionally add a description. From the Language field, choose Another language.\\\\n\\\\nRemember, if the language you want to support is listed individually, choose it instead of using the universal model. The built-in language models provide optimal language support.\\\\n4. Create the skill.\\\\n5. If your skill will support a language with right-to-left directional text, such as Hebrew, configure the bidirectional capabilities.\\\\n\\\\nClick the options icon from the skill tile ![Skill options icon](https://cloud.ibm.com/docs-content/v1/content/417db917d18067d9dcc4cf2612564a9a87c3ddc8/assistant/images/kebab.png), and th\", \"next_offset\": 4000, \"historical\": true}",
+          "additional_kwargs": {},
+          "response_metadata": {},
+          "type": "tool",
+          "name": "read_tool_result",
+          "id": "84cf5e2c-b809-445e-95aa-c920ca0a43af",
+          "tool_call_id": "call_00_5wJ4eHAAj0h3h3dtsI5Y5878",
+          "artifact": null,
+          "status": "success"
+        }
+      },
+      {
+        "type": "tool",
+        "data": {
+          "content": "{\"result_ref\": \"0e6cee2b862b63dcdee5514ac947899eb2c469e75140ee1b4d189a673bfc6031\", \"total_characters\": 11403, \"preview\": \"{\\\"status\\\":\\\"OK\\\",\\\"query_used\\\":\\\"|user|: Is it possible to build a dialog skill in a language other than English?\\\",\\\"evidence\\\":[{\\\"evidence_id\\\":\\\"E307702b970d8\\\",\\\"title\\\":\\\"\\\",\\\"text\\\":\\\"\\\\n: The new model, which is being offered as a beta feature in English-language dialog and actions skills, is faster and more accurate. It combines traditional machine learning, transfer learning, and deep learning techniques i\", \"complete\": false, \"read_tool_result\": {\"reference\": \"0e6cee2b862b63dcdee5514ac947899eb2c469e75140ee1b4d189a673bfc6031\", \"offset\": 0}, \"note\": \"Preview only. Read required pages before concluding; absence from a page is not absence from the result.\"}",
+          "additional_kwargs": {},
+          "response_metadata": {},
+          "type": "tool",
+          "name": "knowledge_search",
+          "id": "9a40ba48-f91c-4188-af2f-c9d0b2c3cb1f",
+          "tool_call_id": "call_01_rzQdP66o9u6kRPoxTLQL7548",
+          "artifact": {
+            "schema": "tool-result-v1",
+            "reference": "0e6cee2b862b63dcdee5514ac947899eb2c469e75140ee1b4d189a673bfc6031",
+            "result": {
+              "status": "success",
+              "success": true,
+              "tool_name": "knowledge_search",
+              "effect_status": "none"
+            },
+            "observation": "97487d0cc961a5aa7a618248f3609f91b20f783b03c13bc8e990d1db15fd8376"
+          },
+          "status": "success"
+        }
+      },
+      {
+        "type": "human",
+        "data": {
+          "content": "{\"execution_feedback\": {\"reason_code\": \"AGENT_STEP_BUDGET_EXCEEDED\", \"retryable\": false, \"uncompleted_tool_batch\": [{\"name\": \"read_tool_result\", \"args\": {\"offset\": 4000, \"reference\": \"cc4e7c643276e5fce0109d98b0a3cfc694d74eaf294bee8fdaa26319445d387a\"}, \"id\": \"call_00_IhePQY8khc4yIfqVkAsR1832\", \"type\": \"tool_call\"}, {\"name\": \"knowledge_search\", \"args\": {\"query\": \"supported languages universal language model dialog skill list\"}, \"id\": \"call_01_vLzMDD2X9NhwtL9EPuPE3462\", \"type\": \"tool_call\"}], \"instruction\": \"Retain completed evidence. The uncompleted batch has no confirmed result; do not infer success. Reassess the remaining objective before continuing.\"}}",
+          "additional_kwargs": {},
+          "response_metadata": {},
+          "type": "human",
+          "name": null,
+          "id": null
+        }
+      }
+    ],
+    "execution_feedback": [
+      {
+        "stage": "agent_execution",
+        "status": "failed",
+        "detail": {
+          "code": "AGENT_STEP_BUDGET_EXCEEDED",
+          "retryable": false,
+          "work_item_id": "archive-probe",
+          "owner_agent": "general",
+          "invocation_key": "archive-probe",
+          "conversation_id": "archive-probe",
+          "control_id": null,
+          "revision": null,
+          "exception_chain": [
+            {
+              "type": "ToolCallLimitExceededError",
+              "frames": [
+                {
+                  "file": "/home/yang/DialogPilot/infrastructure/target_framework_agent.py",
+                  "line": 187,
+                  "function": "__call__"
+                },
+                {
+                  "file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/main.py",
+                  "line": 3440,
+                  "function": "astream"
+                },
+                {
+                  "file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/_runner.py",
+                  "line": 396,
+                  "function": "atick"
+                },
+                {
+                  "file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/_retry.py",
+                  "line": 744,
+                  "function": "arun_with_retry"
+                },
+                {
+                  "file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/_internal/_runnable.py",
+                  "line": 756,
+                  "function": "ainvoke"
+                },
+                {
+                  "file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/_internal/_runnable.py",
+                  "line": 522,
+                  "function": "ainvoke"
+                },
+                {
+                  "file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain/agents/middleware/tool_call_limit.py",
+                  "line": 488,
+                  "function": "aafter_model"
+                },
+                {
+                  "file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain/agents/middleware/tool_call_limit.py",
+                  "line": 400,
+                  "function": "after_model"
+                }
+              ],
+              "message": "Tool call limit reached: thread limit exceeded (9/8 calls)."
+            }
+          ],
+          "related_errors": []
+        }
+      },
+      {
+        "stage": "tool",
+        "tool": "knowledge_search",
+        "call_id": "call_00_vn4wGNXeGFF0zjEGEFq67737",
+        "status": "success",
+        "success": true,
+        "error": null,
+        "effect_status": "none"
+      },
+      {
+        "stage": "tool",
+        "tool": "knowledge_search",
+        "call_id": "call_01_gEfE8McKMxaTHRrxEImi6318",
+        "status": "success",
+        "success": true,
+        "error": null,
+        "effect_status": "none"
+      },
+      {
+        "stage": "tool",
+        "tool": "knowledge_search",
+        "call_id": "call_00_ANtdBNxKUM2XBHBsemFc4346",
+        "status": "success",
+        "success": true,
+        "error": null,
+        "effect_status": "none"
+      },
+      {
+        "stage": "tool",
+        "tool": "knowledge_search",
+        "call_id": "call_01_IWemjveCkMGdsZzMACDi6876",
+        "status": "success",
+        "success": true,
+        "error": null,
+        "effect_status": "none"
+      },
+      {
+        "stage": "tool",
+        "tool": "knowledge_search",
+        "call_id": "call_01_rzQdP66o9u6kRPoxTLQL7548",
+        "status": "success",
+        "success": true,
+        "error": null,
+        "effect_status": "none"
+      },
+      {
+        "reason_code": "AGENT_STEP_BUDGET_EXCEEDED",
+        "retryable": false,
+        "uncompleted_tool_batch": [
+          {
+            "name": "read_tool_result",
+            "args": {
+              "offset": 4000,
+              "reference": "cc4e7c643276e5fce0109d98b0a3cfc694d74eaf294bee8fdaa26319445d387a"
+            },
+            "id": "call_00_IhePQY8khc4yIfqVkAsR1832",
+            "type": "tool_call"
+          },
+          {
+            "name": "knowledge_search",
+            "args": {
+              "query": "supported languages universal language model dialog skill list"
+            },
+            "id": "call_01_vLzMDD2X9NhwtL9EPuPE3462",
+            "type": "tool_call"
+          }
+        ],
+        "instruction": "Retain completed evidence. The uncompleted batch has no confirmed result; do not infer success. Reassess the remaining objective before continuing."
+      }
+    ]
+  },
+  "error": null
+}
