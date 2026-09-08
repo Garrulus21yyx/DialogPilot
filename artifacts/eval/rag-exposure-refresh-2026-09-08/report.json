@@ -1,0 +1,36 @@
+{
+  "scope": "Local case/query/prediction JSON and gzip inventory; conservative exposure, NOT execution or global freshness proof. Reports, opaque snapshots, renamed queries, remote runs and deleted files may be absent.",
+  "api_calls": 0,
+  "scan_roots": [
+    "artifacts/eval",
+    "/tmp/dialogpilot-wixqa-heldout.XlAqyC/output",
+    "/tmp/dialogpilot-wixqa-smoke.2sEbkr/output"
+  ],
+  "parse_errors": [],
+  "doc2dial": {
+    "official_test_groups": 661,
+    "locally_present_test_groups": 516,
+    "not_observed_test_groups": 145
+  },
+  "mtrag": {
+    "total_groups": 110,
+    "identity_matched_groups": 67,
+    "query_matched_groups": 68,
+    "locked_heldout_groups": 35
+  },
+  "wixqa": {
+    "wix-expertwritten": {
+      "rows": 200,
+      "query_matches": 15,
+      "article_matches": 37
+    },
+    "wix-simulated": {
+      "rows": 200,
+      "query_matches": 16,
+      "article_matches": 17
+    }
+  },
+  "freshness_attested": false,
+  "file_count": 318,
+  "source_checks_passed": 21
+}
