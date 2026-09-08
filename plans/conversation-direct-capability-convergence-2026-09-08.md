@@ -795,3 +795,35 @@ it requires actual workflow-produced recovery/receipt roundtrips rather than
 only constructed dictionaries for final acceptance. The above pending budget
 and application-level acceptance work is unchanged. Deliver this as the
 historical-observation foundation, not verified closure of task19 or fixed10.
+
+Next verification step at 1bb96fd: actual GovernedWriteRuntime outputs (COMMITTED,
+REJECTED, OUTCOME_UNKNOWN with one bounded reconciliation) now go through private
+Publication -> PostgreSQL -> recreated TargetTurnContextLoader. The test asserts
+the exact original detail/source/effect and receipt action terms, and that loading
+history does not call the write/reconciliation ports again. Actual Chat application
+publication tests now exercise successful and rejected response verification;
+initial test accidentally used template mode, caught by requiring verifier.calls,
+then corrected by supplying a scripted composer. 21 PG tests passed before adding
+the mixed success/wait extension; that extension is being verified.
+
+Budget diagnosis (no model calls, generated business observation only): one
+360,000-character detail string in historical FactRecord makes main planning
+return CONTEXT_BUDGET_EXCEEDED before provider invocation; compose requires 90,509
+tokens vs 14,200 available; domain pinned prompt requires 90,544 vs 14,200 and
+invokes no model. This is not a provider outage. Main planning only trims recent
+messages, composition trims none, domain externalizes only verified_facts; the
+new historical observations bypass that existing externalization surface.
+The archive reader is scoped to domain task ownership, so merely placing its hash
+in the main Agent prompt would create an unreadable reference. Resolve a shared
+bounded historical-evidence access contract before changing limits or moving
+payloads. Source originals stay in the existing private publication record;
+do not drop evidence and then treat absence as proof that no earlier lookup ran.
+
+Completed this verification increment: 23 PG tests passed in 21.92s, including
+mixed completed read + waiting input and both response-verifier outcomes through
+the real Chat publication path. Checkpoint-derived work IDs contain the invocation
+prefix; the test executor now identifies its waiting command suffix instead of
+assuming an uncompiled command ID. No production branch was added for the test.
+The earlier 21-pass run did not cover mixed waiting and is not its evidence.
+Next active item remains bounded historical evidence access across all consumers;
+this test delivery does not declare the overall repair or fixed10 closed.
