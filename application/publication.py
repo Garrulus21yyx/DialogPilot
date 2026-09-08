@@ -67,6 +67,7 @@ class FinalResponseCommand:
     execution_stages: tuple[Mapping[str, Any], ...] = ()
     expected_work_controls: tuple[WorkControlBinding, ...] = ()
     knowledge_evidence: tuple[Mapping[str, Any], ...] = ()
+    business_observations: tuple[Mapping[str, Any], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -86,6 +87,7 @@ class InteractionRequestCommand:
     related_signals: tuple[tuple[str, int], ...] = ()
     execution_stages: tuple[Mapping[str, Any], ...] = ()
     knowledge_evidence: tuple[Mapping[str, Any], ...] = ()
+    business_observations: tuple[Mapping[str, Any], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -152,6 +154,8 @@ def command_fingerprint(command: PublicationCommand) -> str:
     raw.pop("created_at", None)
     if not raw.get("knowledge_evidence"):
         raw.pop("knowledge_evidence", None)
+    if not raw.get("business_observations"):
+        raw.pop("business_observations", None)
     if not raw.get("related_signals"):
         raw.pop("related_signals", None)
     # Older interaction publications have no diagnostic field. An absent

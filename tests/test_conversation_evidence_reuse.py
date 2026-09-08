@@ -6,6 +6,7 @@ from dataclasses import replace
 import pytest
 
 from application.conversation_context import conversation_context_payload
+from application.conversation_evidence import ConversationEvidence
 from application.knowledge_tool_contract import evidence_id
 from application.response_assembly import ResponseAssembler
 from infrastructure.postgres_conversation_evidence import PostgresConversationEvidence
@@ -100,10 +101,10 @@ def test_composer_gets_actual_labels_without_computing_hashes():
 def test_loader_delivers_shared_evidence_without_calling_memory_search():
     class Reader:
         def load(self, invocation):
-            return ({**entry(), "status": "CURRENT", "publication_id": "p1"},)
+            return ConversationEvidence(knowledge=({**entry(), "status": "CURRENT", "publication_id": "p1"},))
     tools = Tools()
     obs, state = TurnObservations("解释一下刚才的规则"), _state()
-    ctx = asyncio.run(TargetTurnContextLoader(Memory(), tools, knowledge_reader=Reader()).load(
+    ctx = asyncio.run(TargetTurnContextLoader(Memory(), tools, evidence_reader=Reader()).load(
         _identity(), obs, state, DeterministicResolver().resolve(obs, state)))
     payload = conversation_context_payload(ctx)
     assert payload['knowledge_evidence'][0]['pack'] == evidence_result()
@@ -134,12 +135,12 @@ def test_committed_evidence_roundtrip_is_scoped_private_and_deduplicated(publica
         user_id=str(identity.user_id), conversation_id=str(identity.conversation_id), request_id='next')
     calls = []
     reader = PostgresConversationEvidence(pool, lambda packs: calls.append(packs) or True)
-    assert reader.load(identity) == ()
-    result = reader.load(next_identity)
+    assert reader.load(identity) == ConversationEvidence()
+    result = reader.load(next_identity).knowledge
     assert len(result) == len(calls) == 1
     assert result[0]['observed_at'] == source['observed_at']
     assert result[0]['status'] == 'CURRENT'
     for field in ('tenant_id', 'user_id', 'conversation_id'):
-        assert reader.load(replace(next_identity, **{field: 'other'})) == ()
-    stale = PostgresConversationEvidence(pool, lambda _: False).load(next_identity)
+        assert reader.load(replace(next_identity, **{field: 'other'})) == ConversationEvidence()
+    stale = PostgresConversationEvidence(pool, lambda _: False).load(next_identity).knowledge
     assert stale[0]['status'] == 'NOT_REUSABLE' and 'pack' not in stale[0]

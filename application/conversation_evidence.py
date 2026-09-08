@@ -3,6 +3,13 @@ from __future__ import annotations
 
 import hashlib
 import json
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class ConversationEvidence:
+    knowledge: tuple[dict, ...] = ()
+    business: tuple[dict, ...] = ()
 
 
 def evidence_identity(entry: dict) -> str:

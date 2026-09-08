@@ -1,0 +1,189 @@
+"""Historical business support survives publication without becoming action authority."""
+import asyncio
+import json
+from dataclasses import replace
+
+import pytest
+
+from application.business_observation import BusinessObservation, capture_business_observations
+from application.conversation_context import conversation_context_payload
+from application.conversation_evidence import ConversationEvidence
+from application.deterministic_resolution import DeterministicResolver, TurnObservations
+from application.publication import command_fingerprint
+from application.response_assembly import ResponseAssembler
+from core.identity import IdentityFactory
+from infrastructure.postgres_conversation_evidence import PostgresConversationEvidence
+from infrastructure.target_turn_context import TargetTurnContextLoader
+from tests.test_knowledge_answer_boundary import Verifier
+from tests.test_postgres_publication import publication_components, _final, _interaction
+from tests.test_response_assembly import _board, _verified_order_result
+from tests.test_target_turn_context import Memory, Tools, _identity, _state
+from tests.test_work_control import _item
+
+
+def observed_board():
+    item = replace(_item('read', 1, work_item_id='lookup'), owner_agent='order_logistics',
+                   requirement_ids=('order.current_state',))
+    result = _verified_order_result(item.work_item_id)
+    return replace(_board(result), work_items=(item,))
+
+
+def test_capture_uses_original_governed_facts_not_response_prose():
+    board = observed_board()
+    captured = capture_business_observations(board)
+    altered = replace(board, results=(replace(board.results[0], candidate_response='No order data exists'),))
+    assert capture_business_observations(altered) == captured
+    restored = BusinessObservation.model_validate_json(json.dumps(captured[0]))
+    assert restored.facts == board.results[0].facts
+    assert capture_business_observations(None) == ()
+    assert capture_business_observations(replace(board, results=())) == ()
+
+
+def test_historical_support_reaches_author_and_verifier_without_becoming_current_facts():
+    observation = capture_business_observations(observed_board())[0]
+    historical = {'publication_id': 'p1', 'status': 'HISTORICAL', 'observation': observation}
+    class Reader:
+        def load(self, invocation):
+            return ConversationEvidence(business=(historical,))
+    tools = Tools()
+    obs, state = TurnObservations('Explain the result'), _state()
+    context = asyncio.run(TargetTurnContextLoader(Memory(), tools, evidence_reader=Reader()).load(
+        _identity(), obs, state, DeterministicResolver().resolve(obs, state)))
+    payload = conversation_context_payload(context)
+    assert payload['business_observations'] == [historical]
+    from infrastructure.target_model_context import planning_context
+    _, messages = planning_context({'message': obs.raw_text, 'conversation_context': payload})
+    runtime = json.loads(messages[-1].content[0]['text'])['runtime_context']
+    assert runtime['conversation_context']['business_observations'] == [historical]
+    assert tools.calls == []
+    class Author:
+        async def compose(self, request):
+            assert request['conversation_context']['business_observations'] == [historical]
+            assert request['evidence']['facts'] == []
+            return 'The previous lookup reported shipped.'
+    verifier = Verifier(True)
+    assembler = ResponseAssembler(Author(), knowledge_verifier=verifier)
+    authored = asyncio.run(assembler._assemble_candidate(_board(), current_message=obs.raw_text,
+        conversation_context=payload, repair_feedback={'reason': 'verify historical result'}))
+    assert authored.text == 'The previous lookup reported shipped.'
+    response = asyncio.run(assembler.assemble(
+        None, current_message=obs.raw_text, conversation_context=payload,
+        response_candidate='The previous lookup reported shipped.'))
+    assert response.verified
+    evidence = json.loads(verifier.calls[0][1]['context'])
+    assert evidence['facts'] == [] and evidence['pending_actions'] == []
+    assert evidence['user_context']['business_observations'] == [historical]
+
+
+def test_domain_receives_historical_observation_separately_from_verified_facts():
+    from infrastructure.target_framework_agent import TargetFrameworkAgent
+    from tests.test_target_framework_agent import (
+        ScriptedToolModel, _context, _manager, InMemoryStore, build_default_capability_registry,
+    )
+    observation = {'status': 'HISTORICAL', 'publication_id': 'p1',
+                   'observation': capture_business_observations(observed_board())[0]}
+    model = ScriptedToolModel(responses=[])
+    agent = TargetFrameworkAgent(model, _manager([]), review_model=model,
+        review_available_tokens=14200, result_store=InMemoryStore(),
+        registry=build_default_capability_registry('tenant-a'), system_prompt='product')
+    context = _context(business_observations=(observation,))
+    blocks = agent._build_prompt(context)
+    runtime = json.loads(blocks[1]['text'])['runtime_context']
+    assert runtime['business_observations'] == [observation]
+    assert runtime['verified_facts'] == []
+    assert runtime['pending_approval'] is None
+
+
+@pytest.mark.parametrize('kind', ['final', 'FIELDS', 'APPROVAL'])
+@pytest.mark.parametrize('verifier_status', ['passed', 'failed'])
+def test_publication_roundtrip_preserves_private_business_observations(
+        publication_components, kind, verifier_status):
+    pool, identity, service, _ = publication_components
+    observation = capture_business_observations(observed_board())[0]
+    command = (_final(identity) if kind == 'final' else
+               replace(_interaction(identity), resume_schema={'interaction_kind': kind}))
+    if kind == 'final':
+        command = replace(command, verifier_status=verifier_status)
+    changed = replace(command, business_observations=(observation, observation))
+    assert command_fingerprint(command) != command_fingerprint(changed)
+    publish = service.select_final_response if kind == 'final' else service.publish_interaction_request
+    selected = publish(changed)
+    assert publish(changed).record.publication_id == selected.record.publication_id
+    with pool.transaction() as connection:
+        public, private = connection.execute(
+            'SELECT payload, verification FROM dialogpilot_app.response_deliveries WHERE publication_id=%s',
+            (selected.record.publication_id,)).fetchone()
+    assert 'business_observations' not in json.dumps(public)
+    assert private['business_observations'] == [observation, observation]
+    following = IdentityFactory(lambda: 'unused').create_invocation(
+        tenant_id=str(identity.tenant_id), user_id=str(identity.user_id),
+        conversation_id=str(identity.conversation_id), request_id='following')
+    # Recreate the reader, including the tool-only environment without a knowledge validator.
+    reader = PostgresConversationEvidence(pool)
+    assert reader.load(identity) == ConversationEvidence()
+    evidence = reader.load(following)
+    assert evidence.knowledge == () and len(evidence.business) == 1
+    assert evidence.business[0]['status'] == 'HISTORICAL'
+    assert evidence.business[0]['observation'] == observation
+    for field in ('tenant_id', 'user_id', 'conversation_id'):
+        assert reader.load(replace(following, **{field: 'other'})) == ConversationEvidence()
+
+
+def test_invalid_observation_has_no_fact_payload_and_does_not_hide_valid_sibling():
+    observation = capture_business_observations(observed_board())[0]
+    result = PostgresConversationEvidence._business([
+        ('p1', {'business_observations': [{'schema_version': 'future'}, observation]})])
+    assert result[0] == {'publication_id': 'p1', 'status': 'INVALID',
+                         'reason_code': 'BUSINESS_OBSERVATION_INVALID'}
+    assert result[1]['observation'] == observation
+
+
+@pytest.mark.parametrize('dependent', [False, True])
+def test_historical_coverage_preserves_conflict_impact_and_independent_success(dependent):
+    board = observed_board()
+    first = board.work_items[0]
+    second = replace(first, work_item_id='second', dependencies=(first.work_item_id,) if dependent else ())
+    other = _verified_order_result('second', order_id='DP9876')
+    conflict = f'{board.results[0].facts[0].subject_ref}:order.current_state'
+    board = replace(board, work_items=(first, second), results=(*board.results, other), conflict_keys=(conflict,))
+    observations = capture_business_observations(board)
+    assert observations[0]['coverage']['delivery_reason'] == 'CONFLICT_AFFECTED'
+    assert observations[1]['coverage']['delivery_reason'] == ('CONFLICT_AFFECTED' if dependent else 'DELIVERABLE')
+    assert observations[1]['status'] == 'SUCCEEDED'
+
+
+@pytest.mark.parametrize('effect', ['NOT_COMMITTED', 'UNCONFIRMED'])
+def test_write_recovery_without_facts_survives_with_its_exact_operation(effect):
+    from application.agent_result import AgentResultStatus
+    from tests.test_write_workflow import _item as write_item
+    from tests.test_response_assembly import _result
+    item = write_item('operation-1')
+    feedback = {'stage': 'write_recovery', 'operation_key': item.operation_key,
+        'status': 'MANUAL_REVIEW', 'reason': 'REJECTED', 'ticket_id': None,
+        'recovery_attempts': 1, 'business_outcome': effect, 'last_outcome': None,
+        'outcome_scope': 'OPERATION', 'detail': 'Read the operation status', 'source_ref': 'ledger:1'}
+    result = replace(_result(item.work_item_id, item.owner_agent, AgentResultStatus.BLOCKED),
+                     execution_feedback=(feedback,))
+    board = replace(_board(result), work_items=(item,))
+    observation, = capture_business_observations(board)
+    assert observation['write_recovery'] == [feedback]
+    assert observation['facts'] == observation['receipts'] == []
+    assert BusinessObservation.model_validate_json(json.dumps(observation)).write_recovery[0].business_outcome == effect
+    assert capture_business_observations(replace(board,
+        results=(replace(result, execution_feedback=({**feedback, 'operation_key': 'other'},)),))) == ()
+
+
+@pytest.mark.parametrize('matching', [False, True])
+def test_receipt_action_terms_use_the_same_operation_join_as_current_response(matching):
+    from application.agent_result import ReceiptRef
+    from application.response_assembly import _response_context
+    from tests.test_write_workflow import _item as write_item
+    from tests.test_response_assembly import _result
+    item = write_item('operation-1')
+    receipt = ReceiptRef('receipt', 'v1', 'operation-1' if matching else 'operation-2',
+                         'COMMITTED', 'refund.request_action')
+    result = _result(item.work_item_id, item.owner_agent, receipts=(receipt,))
+    board = replace(_board(result), work_items=(item,))
+    observation, = capture_business_observations(board)
+    assert observation['receipts'] == _response_context(board)['receipts']
+    assert (observation['receipts'][0]['action'] is not None) == matching

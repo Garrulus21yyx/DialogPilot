@@ -440,6 +440,7 @@ def _allowed_claims(board, pending_approval=None, *, requested_inputs=()) -> tup
 def _response_context(board, pending_approval=None, requested_inputs=(), conversation_context=None):
     """One authoritative snapshot for authoring, verification and publication."""
     from dataclasses import asdict
+    from application.business_observation import receipt_context
     claims = _allowed_claims(board, pending_approval, requested_inputs=requested_inputs)
     # Retained work IDs may recur in a later turn: keep each result paired with
     # its original contract instead of joining historical goals on the local ID.
@@ -453,13 +454,7 @@ def _response_context(board, pending_approval=None, requested_inputs=(), convers
                    "observation_started_at": fact.observation_started_at.isoformat() if fact.observation_started_at else None,
                    "valid_until": fact.valid_until.isoformat() if fact.valid_until else None,
                    "value": _fact_view(fact)} for fact in facts],
-        "receipts": [{**asdict(receipt),
-                      "action": {
-                          "work_item_id": item.work_item_id,
-                          "action_ref": item.action_ref,
-                          "target_entity_ref": item.aggregate_ref,
-                          "arguments": {arg.name: arg.value for arg in item.arguments},
-                      } if item is not None and item.operation_key == receipt.operation_key else None}
+        "receipts": [receipt_context(item, receipt)
                      for item, result in pairs if result is not None
                      for receipt in result.action_receipts],
         "pending_actions": [c.value for c in claims if c.kind == "PENDING_ACTION"],

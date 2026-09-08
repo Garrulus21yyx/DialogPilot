@@ -107,6 +107,7 @@ class TargetTurnContext:
     entity_bindings: EntityBindingSet = EntityBindingSet()
     knowledge_filter_contract: dict = field(default_factory=dict)
     knowledge_evidence: tuple[dict, ...] = ()
+    business_observations: tuple[dict, ...] = ()
     observed_execution: ResultBoardSnapshot | None = None
     observation_feedback: str = ""
 
@@ -486,6 +487,7 @@ class TargetConversationManager:
             "trusted_context": {
                 **prepared.execution_context,
                 **invocation.metadata(),
+                "business_observations": turn_context.business_observations,
                 "conv_id": str(invocation.conversation_id),
                 "resolved_input_signal": (state_before.pending_interaction.interaction_id
                     if state_before.pending_interaction is not None

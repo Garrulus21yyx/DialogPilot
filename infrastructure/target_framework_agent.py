@@ -499,8 +499,10 @@ class TargetFrameworkAgent:
                 values[index] = json.loads(result_pointer(reference, original))
 
     def _build_prompt(self, context: AgentContextView, *, fact_values=None) -> str:
+        from application.business_observation import business_observation_context
         item = context.work_item
         payload = {
+            **business_observation_context(context.trusted_context.get("business_observations", ())),
             "objective": item.objective,
             "action_proposals_allowed": bool(item.allowed_actions) and context.pending_approval is None,
             "source_conversation": {"current_message": context.current_message},

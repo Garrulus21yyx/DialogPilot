@@ -3,12 +3,13 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from application.conversation_evidence import evidence_identity
+from application.conversation_evidence import ConversationEvidence, evidence_identity
+from application.business_observation import BusinessObservation
 from application.knowledge_tool_contract import evidence_items
 
 
 class PostgresConversationEvidence:
-    def __init__(self, pool, validator, *, recent_limit=8, pack_limit=3):
+    def __init__(self, pool, validator=None, *, recent_limit=8, pack_limit=3):
         self._pool, self._validator = pool, validator
         self._recent_limit, self._pack_limit = recent_limit, pack_limit
 
@@ -25,6 +26,28 @@ class PostgresConversationEvidence:
             """, (str(invocation.tenant_id), str(invocation.user_id),
                   str(invocation.conversation_id), str(invocation.invocation_key),
                   self._recent_limit)).fetchall()
+        return ConversationEvidence(self._knowledge(rows), self._business(rows))
+
+    @staticmethod
+    def _business(rows):
+        result, seen = [], set()
+        for publication_id, verification in rows:
+            for entry in (verification or {}).get("business_observations", ()):
+                try:
+                    observation = BusinessObservation.model_validate(entry)
+                except ValueError:
+                    result.append({"publication_id": publication_id, "status": "INVALID",
+                                   "reason_code": "BUSINESS_OBSERVATION_INVALID"})
+                    continue
+                key = observation.model_dump_json()
+                if key in seen:
+                    continue
+                seen.add(key)
+                result.append({"publication_id": publication_id, "status": "HISTORICAL",
+                               "observation": observation.model_dump(mode="json")})
+        return tuple(result)
+
+    def _knowledge(self, rows):
         seen, result = set(), []
         checked_at = datetime.now(timezone.utc).isoformat()
         for publication_id, verification in rows:
@@ -44,7 +67,7 @@ class PostgresConversationEvidence:
                 if key in seen:
                     continue
                 seen.add(key)
-                valid = self._validator([entry["pack"]])
+                valid = self._validator is not None and self._validator([entry["pack"]])
                 result.append({"publication_id": publication_id,
                     "observed_at": entry["observed_at"], "checked_at": checked_at,
                     "status": "CURRENT" if valid else "NOT_REUSABLE",

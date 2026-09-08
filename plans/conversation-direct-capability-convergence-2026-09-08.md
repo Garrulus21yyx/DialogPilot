@@ -748,3 +748,50 @@ knowledge evidence, not previous business observations; same-turn ResultBoard
 retention is not cross-turn support continuity. Independent review requested of
 existing durable business-result readers before designing the owner repair.
 No new task/model run, prompt edit, annotation score or completion claim.
+
+Business continuity implementation started: source is the governed paired
+WorkItem/AgentResult, not generated prose. Private publication metadata captures
+typed FactRecord/ReceiptRef observations with original times and source identities
+for final, input and approval publications, including reply-verification failure.
+This is historical evidence, not a second current business state or approval grant.
+Publication fingerprint must include it; empty old records remain empty, without
+invented migration. Next connect the existing scoped evidence reader and all model
+consumers, with explicit historical validity and no promotion into write authority.
+
+Continuation implementation (in progress, not closure): replaced the knowledge-only
+loader port with one ConversationEvidence bundle and one scoped publication read.
+Tool-only environments now load it too. Original business observations reach the
+shared planning/author/verifier context and domain working context separately from
+current verified_facts and approvals. Publication metadata remains private and
+fingerprinted; empty legacy publications remain empty. Migrated the loader's
+production assembly and scripted consumers; no alternative loader path retained.
+
+Checks before the fresh review: 65 targeted tests passed / 14 skipped; actual PG
+business+knowledge continuity tests 22 passed. An earlier combined PG run had 63
+passes and one test assertion error (the fake verifier stores context as JSON,
+not flattened evidence); corrected the test to inspect the actual contract and
+reran. These are no-model checks, not task19 success.
+
+Independent fresh-context review found three remaining causal-boundary issues:
+coverage/conflict propagation was lost, receipt/action association lost terms,
+and governed write-recovery outcomes without facts were omitted. Capture now
+preserves ResultBoard.coverage_for, shares receipt_context with response assembly
+(action terms only for matching operation_key), and retains typed write recovery
+for matching WRITE operations. Tests added for conflict-dependent vs independent
+work, receipt mismatch, and NOT_COMMITTED vs UNCONFIRMED without facts. Publication
+interaction protocol updated as well. Those changes require refreshed verification.
+
+Still pending before closure/replay: large historical payload handling through
+existing context/archive facilities (not fixed facts pinned without budget),
+real application-level mixed wait/failed reply capture and recovery integration,
+fresh review of the completed surface. History is not current action authority.
+No new model run, encoder enablement, or business-closure claim.
+
+Refreshed checks after the coverage/receipt/recovery projection changes:
+101 passed in 20.41s with real PostgreSQL enabled across continuity, publication
+through chat cutover, context loader and response assembly suites. Independent
+review found no further concrete blocker in those three owner projections;
+it requires actual workflow-produced recovery/receipt roundtrips rather than
+only constructed dictionaries for final acceptance. The above pending budget
+and application-level acceptance work is unchanged. Deliver this as the
+historical-observation foundation, not verified closure of task19 or fixed10.

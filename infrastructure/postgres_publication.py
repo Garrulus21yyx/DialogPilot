@@ -334,6 +334,12 @@ class PostgresPublicationService:
                 **(result["verification"] or {}),
                 "knowledge_evidence": list(evidence),
             }
+        observations = getattr(command, "business_observations", ())
+        if observations:
+            from application.business_observation import BusinessObservation
+            result["verification"] = {**(result["verification"] or {}),
+                "business_observations": [BusinessObservation.model_validate(entry).model_dump(mode="json")
+                                          for entry in observations]}
         return result
 
     def _resume_signature(self, publication_id: str, signal_id: str, version: int) -> str:

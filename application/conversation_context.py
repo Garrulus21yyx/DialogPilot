@@ -2,6 +2,7 @@
 import json
 
 from application.work_item import ControlMode
+from application.business_observation import business_observation_context
 
 def conversation_context_payload(turn_context):
     from application.knowledge_tool_contract import evidence_id, evidence_items
@@ -68,6 +69,7 @@ def conversation_context_payload(turn_context):
                 "observed_at": fact.observed_at.isoformat()}
                 for fact in turn_context.observed_execution.facts],
         }} if turn_context.observed_execution is not None else {}),
+        **business_observation_context(turn_context.business_observations),
         **({"knowledge_evidence": list(turn_context.knowledge_evidence),
         "knowledge_evidence_labels": {
             item["chunk_id"]: evidence_id(item["chunk_id"])

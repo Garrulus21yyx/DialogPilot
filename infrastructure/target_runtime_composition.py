@@ -203,8 +203,7 @@ async def build_target_runtime(
             orchestration=orchestration,
             context_provider=TargetTurnContextLoader(
                 PostgresMemoryProjectionReader(postgres_pool, memory), tool_manager,
-                knowledge_reader=(PostgresConversationEvidence(postgres_pool, knowledge_reuse_validator)
-                                  if knowledge_reuse_validator is not None else None)),
+                evidence_reader=PostgresConversationEvidence(postgres_pool, knowledge_reuse_validator)),
         )
         # Answer support is part of the assembled Target runtime, including
         # tool-only environments. Callers may inject a verifier, not omit it.

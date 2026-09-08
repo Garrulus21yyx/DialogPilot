@@ -12,6 +12,7 @@ from typing import Mapping, Protocol
 from langgraph.errors import GraphBubbleUp
 
 from application.agent_result import AgentResultStatus
+from application.business_observation import capture_business_observations
 from application.chat_contracts import ChatCommand, ChatOutcome, Completed, Conflict, Failed, NeedsInput, Reconciling, Rejected
 from application.deterministic_resolution import (
     DeterministicResolutionError,
@@ -91,6 +92,7 @@ class TargetPublicationPort(Protocol):
         expected_work_controls: tuple[WorkControlBinding, ...] = (),
         execution_stages: tuple = (),
         knowledge_evidence: tuple[dict, ...] = (),
+        business_observations: tuple[dict, ...] = (),
     ) -> PublishedTargetResponse: ...
 
     def publish_interaction(
@@ -106,6 +108,7 @@ class TargetPublicationPort(Protocol):
         related_signals: tuple[tuple[str, int], ...] = (),
         execution_stages: tuple = (),
         knowledge_evidence: tuple[dict, ...] = (),
+        business_observations: tuple[dict, ...] = (),
     ) -> PublishedTargetResponse: ...
 
 
@@ -319,6 +322,7 @@ class TargetChatApplication:
                 **({"related_signals": ((pending_input.interaction_id, pending_input.version),)} if present_input else {}),
                 execution_stages=assembly.diagnostics,
                 knowledge_evidence=assembly.knowledge_evidence,
+                business_observations=capture_business_observations(managed.board),
             )
             return NeedsInput(
                 str(identity.workflow_run_id),
@@ -358,6 +362,7 @@ class TargetChatApplication:
                                              if item.control),
                 execution_stages=assembly.diagnostics,
                 knowledge_evidence=assembly.knowledge_evidence,
+                business_observations=capture_business_observations(managed.board),
             )
             return NeedsInput(
                 str(identity.workflow_run_id),
@@ -622,6 +627,7 @@ class TargetChatApplication:
             verifier_status=verifier_status,
             execution_stages=assembly.diagnostics if assembly else (),
             knowledge_evidence=assembly.knowledge_evidence if assembly and assembly.verified else (),
+            business_observations=capture_business_observations(managed.board),
             expected_work_controls=tuple(dict.fromkeys(
                 item.control for item in (*work_items,
                     *(pending.suspended_work_items if pending else ()),
