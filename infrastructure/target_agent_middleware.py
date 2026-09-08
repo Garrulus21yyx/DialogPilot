@@ -12,6 +12,7 @@ from application.context_budget import ContextBudgetManager, ModelContextBudgetE
 from application.work_control import WorkControlGuard
 from core.framework_models import invoke_model
 from infrastructure.target_domain_outcome import DomainOutcomeRejected
+from application.execution_progress import advance_progress, observation_key, PROGRESS_FEEDBACK
 
 
 class ModelInvocationMiddleware(AgentMiddleware):
@@ -46,11 +47,19 @@ def tool_observation_digests(result):
     return [tool_observation_digest(result)]
 
 
+def tool_observation_uses_arguments(result):
+    from application.knowledge_tool_contract import knowledge_outcome
+    from application.agent_result import AgentResultStatus
+    return not (result.get("authority") == "knowledge.active_source"
+                and knowledge_outcome(result.get("data"))[0] is AgentResultStatus.SUCCEEDED)
+
+
 class ProgressState(AgentState):
     observed_results: list[str]
     stagnant_rounds: int
     progress_warning: bool
     progress_blocked: bool
+    consumed_progress_calls: list[str]
 
 
 class AgentProgressMiddleware(AgentMiddleware):
@@ -66,13 +75,19 @@ class AgentProgressMiddleware(AgentMiddleware):
     @hook_config(can_jump_to=["end"])
     async def abefore_model(self, state, runtime):
         batch = []
+        consumed = set(state.get("consumed_progress_calls", ()))
+        calls = {call["id"]: call for message in state["messages"] if isinstance(message, AIMessage)
+                 for call in message.tool_calls}
         for message in reversed(state["messages"]):
             if not isinstance(message, ToolMessage):
                 break
             artifact = message.artifact or {}
             if artifact.get("schema") == "agent-result-v1":
                 # Interactions/actions are governed by their own boundary.
-                return None
+                continue
+            if message.tool_call_id in consumed:
+                continue
+            consumed.add(message.tool_call_id)
             result = artifact.get("result", {})
             digests = artifact.get("observation") or tool_observation_digests(result if result else {
                 "data": message.content, "status": message.status})
@@ -80,20 +95,17 @@ class AgentProgressMiddleware(AgentMiddleware):
             # carry one per evidence item, so recombining old hits is not novelty.
             if isinstance(digests, str):
                 digests = [digests]
-            batch.extend(hashlib.sha256(json.dumps([message.name, digest]).encode()).hexdigest()
-                         for digest in digests)
+            # Successful knowledge novelty is per evidence, not query rephrasing.
+            uses_arguments = artifact.get("observation_uses_arguments", tool_observation_uses_arguments(result))
+            arguments = calls.get(message.tool_call_id, {}).get("args") if uses_arguments else None
+            batch.extend(observation_key(message.name, arguments, digest) for digest in digests)
         if not batch:
             return None
-        seen = set(state.get("observed_results", ()))
-        new = set(batch) - seen
-        stagnant = 0 if new else state.get("stagnant_rounds", 0) + 1
-        update = {"observed_results": sorted(seen | set(batch)), "stagnant_rounds": stagnant,
-                  "progress_warning": False if new else state.get("progress_warning", False)}
-        if not new and state.get("progress_warning", False):
-            return {**update, "progress_blocked": True, "jump_to": "end"}
-        if stagnant >= 2:
-            update.update(progress_warning=True, messages=[HumanMessage(
-                content="Execution feedback: the last two tool rounds produced no new evidence or changed outcome. Review the recorded calls and errors, change the approach, ask for missing input, or report the blocker. Do not repeat the unchanged calls. Completed results remain valid; no task state has been reset.")])
+        update = {**advance_progress(state, batch), "consumed_progress_calls": sorted(consumed)}
+        if update["progress_blocked"]:
+            return {**update, "jump_to": "end"}
+        if update["progress_warning"]:
+            update["messages"] = [HumanMessage(content=PROGRESS_FEEDBACK)]
         return update
 
 

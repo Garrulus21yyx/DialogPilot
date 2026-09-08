@@ -676,3 +676,34 @@ No production progress change or live task replay has been made in this review.
 Next action is implementation of this shared transition and both adapters, not
 another prompt modification or a new benchmark trial. Selector and interaction
 semantic failures remain separate open items.
+
+Implementation in progress: shared `application/execution_progress.py` owns only
+the pure transition and main read-observation projection. Domain middleware now
+pairs arguments by native call ID, skips consumed calls, and does not discard a
+read batch merely because an interaction is also present. Main TurnRuntime stores
+progress in its existing checkpoint, passes warning feedback to the existing
+planner, and reports OBSERVATION_NO_PROGRESS through retained-result delivery.
+Runtime checkpoint version advances to v11; no old in-flight checkpoint is silently
+reinterpreted. Result archive pointers retain whether request arguments participate
+in knowledge novelty, matching inline evidence after compaction.
+
+Initial tests: 81 passed, one PostgreSQL case skipped. Added generated transition
+sequences, argument/result identity, mixed interaction/read, native-call replay,
+main warning/recovery/stop and committed replay tests. Broader tests and independent
+review are still running; no semantic task replay or closure claim.
+
+Review corrections implemented: successful main knowledge observations now reuse
+the knowledge owner's per-evidence identity; scheduler BLOCKED/CANCELLED/waiting
+outcomes are not counted as executed reads. Random fact subject/call references
+are excluded from business novelty. Independent re-review found no further concrete
+blocking issue in this bounded progress implementation.
+
+Final targeted run: 158 passed / 1 PostgreSQL test skipped in 6.72s. PostgreSQL-
+enabled turn-runtime + observation suites then passed all 63 tests in 5.57s.
+New main warning/recovery/stop and fresh-user tests use InMemorySaver with the
+production serializer; committed invocation replay performs no extra tools.
+Generated transition states also round-trip that serializer. These are not a new
+OS-kill recovery test or a real-model effectiveness measurement. No tau replay.
+Remaining causal work: entity selector contract, whole-goal preparation and actual
+model response behavior. Encoder remains disabled. Selective commit excludes the
+pre-existing framework/archive/RAG edits owned by the user.

@@ -39,6 +39,7 @@ def conversation_context_payload(turn_context):
             for item in turn_context.recent_messages
         ],
         "evidence_refs": list(turn_context.evidence_refs),
+        **({"observation_feedback": turn_context.observation_feedback} if turn_context.observation_feedback else {}),
         **({"observed_execution": {
             "contract": (
                 "These are completed tool/task observations for the unchanged current user request. "

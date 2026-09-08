@@ -54,9 +54,10 @@ class ToolResultPersistence(AgentMiddleware):
         envelope = {key: result[key] for key in
                     ("status", "success", "tool_name", "effect_status", "pending_action", "producer_version")
                     if key in result}
-        from infrastructure.target_agent_middleware import tool_observation_digests
+        from infrastructure.target_agent_middleware import tool_observation_digests, tool_observation_uses_arguments
         pointer = {"schema": artifact["schema"], "reference": reference, "result": envelope,
-                   "observation": tool_observation_digests(result)}
+                   "observation": tool_observation_digests(result),
+                   "observation_uses_arguments": tool_observation_uses_arguments(result)}
         content = response.content
         # Persistence preserves content. ContextCompaction owns model admission
         # after the complete parallel tool batch and prompt overhead are known.

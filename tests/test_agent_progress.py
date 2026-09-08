@@ -129,12 +129,14 @@ def test_rephrased_reordered_knowledge_has_same_progress_in_archive_and_inline(p
             current['diagnostics'] = {'duration': turn}
             artifact = {'schema': 'tool-result-v1', 'result': {'authority': 'knowledge.active_source', 'status': 'SUCCESS', 'data': current}}
             message = ToolMessage(content='evidence', name='knowledge_search', tool_call_id=str(turn), artifact=artifact)
-            inline = await progress.abefore_model({**state, 'messages': [message]}, None)
+            request = AIMessage(content='', tool_calls=[{'id': str(turn), 'name': 'knowledge_search',
+                'args': {'query': f'rephrase {turn}'}}])
+            inline = await progress.abefore_model({**state, 'messages': [request, message]}, None)
             if persisted:
                 async def handler(request): return message
                 update = await persistence.awrap_tool_call(SimpleNamespace(runtime=SimpleNamespace(context=_context())), handler)
                 message = update.update['messages'][0]
-            update = await progress.abefore_model({**state, 'messages': [message]}, None)
+            update = await progress.abefore_model({**state, 'messages': [request, message]}, None)
             assert {k: v for k, v in update.items() if k != 'messages'} == {k: v for k, v in inline.items() if k != 'messages'}
             state.update(update)
         assert state['progress_blocked'] and state['jump_to'] == 'end'

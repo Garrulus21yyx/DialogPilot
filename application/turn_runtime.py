@@ -22,6 +22,7 @@ from application.chat_contracts import StageObservation, StageStatus
 from application.conversation_state import ConversationState
 from application.turn_planning import PlanningUnavailable, TurnPlanningError
 from core.framework_models import ModelInvocationError
+from application.execution_progress import advance_progress, direct_read_observations, PROGRESS_FEEDBACK
 
 
 class TurnRuntimeError(ValueError):
@@ -42,6 +43,7 @@ class TurnGraphState(TypedDict, total=False):
     managed: ManagedTurnResult
     assembled: AssembledResponse | None
     observation_failed: bool
+    observation_progress: dict
     presentation_state: ConversationState
     preparation_options: dict
 
@@ -55,7 +57,7 @@ class TurnRuntimeResult:
 class TurnRuntime:
     """Coordinate durable turn phases without owning their domain semantics."""
 
-    version = "turn-runtime-v10-durable-read-observation"
+    version = "turn-runtime-v11-observation-progress"
 
     def __init__(
         self,
@@ -134,14 +136,21 @@ class TurnRuntime:
 
     async def _plan_observation(self, state: TurnGraphState):
         prepared, managed = state["prepared"], state["managed"]
+        progress = advance_progress(state.get("observation_progress", {}),
+                                    direct_read_observations(managed.board))
         failure = None
-        if prepared.planning_step >= self._max_observation_steps:
+        if progress.get("progress_blocked"):
+            failure = StageObservation("planning_observation", StageStatus.FAILED,
+                                       {"code": "OBSERVATION_NO_PROGRESS"})
+        elif prepared.planning_step >= self._max_observation_steps:
             failure = StageObservation("planning_observation", StageStatus.FAILED,
                                        {"code": "OBSERVATION_BUDGET_EXHAUSTED"})
         else:
             try:
-                next_plan = await self._manager.prepare_observation(prepared, managed)
-                return {"prepared": next_plan, "observation_failed": False}
+                next_plan = await self._manager.prepare_observation(prepared, managed,
+                    progress_feedback=PROGRESS_FEEDBACK if progress.get("progress_warning") else "")
+                return {"prepared": next_plan, "observation_failed": False,
+                        "observation_progress": progress}
             except (PlanningUnavailable, TurnPlanningError, ModelInvocationError) as exc:
                 from core.tracing import exception_chain
                 code = (exc.reason_code if isinstance(exc, PlanningUnavailable)
@@ -150,7 +159,7 @@ class TurnRuntime:
                 failure = StageObservation("planning_observation", StageStatus.FAILED,
                     {"code": code, "exception_chain": exception_chain(exc)})
         return {"managed": replace(managed, diagnostics=(*managed.diagnostics, failure)),
-                "observation_failed": True}
+                "observation_failed": True, "observation_progress": progress}
 
     @property
     def supports_resume(self) -> bool:

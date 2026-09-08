@@ -108,6 +108,7 @@ class TargetTurnContext:
     knowledge_filter_contract: dict = field(default_factory=dict)
     knowledge_evidence: tuple[dict, ...] = ()
     observed_execution: ResultBoardSnapshot | None = None
+    observation_feedback: str = ""
 
     def __post_init__(self) -> None:
         if self.source_watermark < 0:
@@ -393,7 +394,8 @@ class TargetConversationManager:
             source_thread_ids=tuple(thread for thread in retired_threads if thread != resume_thread_id),
         )
 
-    async def prepare_observation(self, previous: PreparedTurn, result: ManagedTurnResult) -> PreparedTurn:
+    async def prepare_observation(self, previous: PreparedTurn, result: ManagedTurnResult,
+                                  *, progress_feedback: str = "") -> PreparedTurn:
         """Plan from completed native reads under the same original user request.
 
         The turn graph commits the preceding phase before calling this method.
@@ -411,7 +413,7 @@ class TargetConversationManager:
         if current.fingerprint != state.fingerprint:
             raise ConversationStateConflict("observed execution state is not the committed conversation state")
         deterministic = DeterministicResolution(ResolutionKind.UNRESOLVED, "OBSERVE_EXECUTION", state.fingerprint)
-        context = replace(previous.context, observed_execution=board)
+        context = replace(previous.context, observed_execution=board, observation_feedback=progress_feedback)
         proposal = await self._understanding(previous.observations, state, deterministic,
                                              self._registry, context)
         if proposal.input_values or proposal.approval_decision is not None:

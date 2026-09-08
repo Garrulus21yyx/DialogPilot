@@ -17,6 +17,87 @@ from infrastructure.langgraph_checkpoint import target_checkpoint_serializer
 from tests.test_turn_runtime import _Executor, _OrderUnderstanding, _identity
 
 
+@pytest.mark.parametrize("recover", [False, True])
+def test_main_observation_progress_feedback_stop_and_replay(recover):
+    from application.turn_runtime import TurnRuntime
+    from application.response_assembly import ResponseAssembler
+    from tests.test_knowledge_answer_boundary import Verifier
+
+    async def run():
+        seen = []
+
+        class Understanding:
+            async def __call__(self, observations, state, deterministic, registry, context):
+                seen.append(context.observation_feedback)
+                if context.observation_feedback and recover:
+                    return TurnProposal(ProposalDisposition.RESPOND, (), "DONE",
+                                        response_text="The order shipped.")
+                base = await _OrderUnderstanding()()
+                return replace(base, commands=(replace(base.commands[0], observe_result=True),))
+
+        saver = InMemorySaver(serde=target_checkpoint_serializer())
+        executor = _Executor()
+        manager = TargetConversationManager(state_store=InMemoryConversationStateStore(),
+            registry=build_default_capability_registry("tenant-a"), understanding=Understanding(),
+            orchestration=OrchestrationRuntime(direct_executor=executor, domain_workers={}, checkpointer=saver))
+        runtime = TurnRuntime(manager, ResponseAssembler(knowledge_verifier=Verifier(True)),
+                              checkpointer=saver, max_observation_steps=8)
+        identity, message = _identity(), TurnObservations("Check my order and help me")
+        result = await runtime.execute(identity, message)
+        assert executor.calls == (3 if recover else 4)
+        assert sum(bool(feedback) for feedback in seen) == 1
+        assert result.managed.board.facts
+        assert result.managed.request_completed is recover
+        if not recover:
+            assert result.managed.diagnostics[-1].detail["code"] == "OBSERVATION_NO_PROGRESS"
+        calls = executor.calls
+        replay = await runtime.execute(identity, message)
+        assert executor.calls == calls
+        assert replay.managed.request_completed is recover
+        from application.execution_progress import direct_read_observations
+        board = result.managed.board
+        original = direct_read_observations(board)
+        # Adapter-created subjects can contain call IDs; those are not novelty.
+        changed = replace(board, results=tuple(replace(r, facts=tuple(
+            replace(f, subject_ref="tool-observation:new-call-id", source_ref="new-call-id")
+            for f in r.facts)) for r in board.results))
+        assert direct_read_observations(changed) == original
+        from application.agent_result import AgentResultStatus
+        for status in (AgentResultStatus.BLOCKED, AgentResultStatus.CANCELLED,
+                       AgentResultStatus.SUPERSEDED, AgentResultStatus.WAITING_APPROVAL):
+            unexecuted = replace(board, results=tuple(replace(r, status=status, facts=(),
+                reason_code="SCHEDULER:new-work-id") for r in board.results))
+            assert direct_read_observations(unexecuted) == []
+        import json
+        from application.work_item import ArgumentValue
+        from tests.test_knowledge_tool_contract import evidence_result
+        knowledge_keys = None
+        for index in range(3):
+            data = evidence_result()
+            data["evidence_pack"]["query"] = f"rephrased {index}"
+            data["diagnostics"] = {"duration": index}
+            data["evidence_pack"]["items"].reverse()
+            knowledge = replace(board, work_items=tuple(replace(i,
+                arguments=(ArgumentValue.create("query", f"rephrased {index}"),)) for i in board.work_items),
+                results=tuple(replace(r, facts=tuple(replace(f,
+                    requirement_id="knowledge.active_source", value_json=json.dumps(data, sort_keys=True,
+                        ensure_ascii=False, separators=(",", ":")))
+                    for f in r.facts)) for r in board.results))
+            keys = direct_read_observations(knowledge)
+            assert keys
+            if knowledge_keys is not None:
+                assert keys == knowledge_keys
+            knowledge_keys = keys
+        from core.identity import IdentityFactory
+        fresh = IdentityFactory().create_invocation(tenant_id="tenant-a", user_id="user-a",
+            conversation_id="conversation-a", request_id="fresh-request")
+        start = len(seen)
+        await runtime.execute(fresh, message)
+        assert seen[start] == ""
+        assert executor.calls == calls * 2
+    asyncio.run(run())
+
+
 @pytest.mark.parametrize("status", ["SUCCEEDED", "TERMINAL_FAILURE", "RETRYABLE_FAILURE", None])
 @pytest.mark.parametrize("delegated", [False, True])
 def test_observation_pairs_task_input_with_outcome_across_checkpoint(status, delegated):
