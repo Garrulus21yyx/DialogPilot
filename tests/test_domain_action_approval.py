@@ -10,7 +10,7 @@ from langgraph.checkpoint.memory import InMemorySaver
 
 from application.conversation_state import InMemoryConversationStateStore, WorkControlStatus
 from application.default_capability_registry import build_default_capability_registry
-from application.deterministic_resolution import TurnObservations
+from application.deterministic_resolution import TurnObservations, DeterministicResolutionError
 from application.orchestration_runtime import OrchestrationRuntime
 from application.target_conversation_manager import TargetConversationManager
 from application.turn_planning import CommandKind, CommandProposal, ProposalDisposition, TurnProposal, TurnPlanningError
@@ -223,7 +223,8 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
                 updated = first.state_after.close_work_control(
                     pending.suspended_work_items[0].control, status=WorkControlStatus.CANCELLED)
                 assert store.compare_and_set(first.state_after, updated)
-                with pytest.raises(TurnPlanningError, match="superseded"):
+                assert updated.pending_approval is None
+                with pytest.raises(DeterministicResolutionError, match="stale or unknown"):
                     await manager.handle(_identity("approve-stale"), TurnObservations(
                         "Yes", approval_decision=True, approval_id=pending.approval_id))
                 assert calls == ["read"]

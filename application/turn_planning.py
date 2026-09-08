@@ -478,8 +478,8 @@ class RoutePolicy:
                 raise TurnPlanningError("action continuation uses another registry version")
             origin = next((work for work in grant.suspended_work_items
                            if work.work_item_id == grant.origin_work_item_id), None)
-            if origin is not None and origin.control is not None:
-                binding = origin.control
+            binding = grant.control or (origin.control if origin is not None else None)
+            if binding is not None:
                 if not any(control.control_id == binding.control_id and control.revision == binding.revision
                            for control in state.active_work_controls):
                     raise TurnPlanningError("approved action objective was superseded")

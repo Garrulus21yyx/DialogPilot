@@ -114,7 +114,8 @@ class TargetChatApplication:
         self._identity_factory = identity_factory or IdentityFactory()
         assembler = response_assembler or ResponseAssembler()
         self._response_locale = assembler.fallback_locale
-        self._turn_runtime = turn_runtime or TurnRuntime(manager, assembler)
+        self._turn_runtime = turn_runtime or TurnRuntime(manager, assembler,
+            interaction_published=publication.has_interaction)
 
     async def handle(self, command: ChatCommand) -> ChatOutcome:
         started = time.monotonic()

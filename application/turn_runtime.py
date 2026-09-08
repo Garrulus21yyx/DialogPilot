@@ -68,11 +68,13 @@ class TurnRuntime:
         callbacks=(),
         *,
         checkpointer=None,
+        interaction_published=None,
     ) -> None:
         self._manager = manager
         self._assembler = response_assembler
         self._callbacks = callbacks
         self._checkpointer = checkpointer
+        self._interaction_published = interaction_published
         self.graph = self._build_graph()
 
     def _build_graph(self):
@@ -154,14 +156,31 @@ class TurnRuntime:
             == "SECURITY_PREEMPTED_NONESSENTIAL_WRITES"
             else ""
         )
+        pending_approval = managed.state_after.pending_approval
+        previous_approval = managed.state_before.pending_approval
+        present_approval = pending_approval is not None and (
+            previous_approval is None or
+            (pending_approval.approval_id, pending_approval.version) !=
+            (previous_approval.approval_id, previous_approval.version) or
+            (self._interaction_published is not None and not self._interaction_published(
+                state["invocation"], signal_id=pending_approval.approval_id,
+                signal_version=pending_approval.version)))
+        context = conversation_context_payload(state["prepared"].context)
+        if pending_approval is not None and not present_approval:
+            context = {**(context or {}), "retained_approval": {
+                "action_ref": pending_approval.action_ref,
+                "arguments": {arg.name: arg.value for arg in pending_approval.arguments},
+                "status": "AWAITING_DECISION_NOT_EXECUTED",
+                "presentation": "Already presented; answer this turn without soliciting approval again.",
+            }}
         assembled = await self._assembler.assemble(
             board,
             current_message=state["observations"].raw_text,
             system_notice=notice,
-            conversation_context=conversation_context_payload(state["prepared"].context),
+            conversation_context=context,
             # An information request is not a second approval presentation.
             # The existing approval stays in ConversationState unchanged.
-            pending_approval=managed.state_after.pending_approval,
+            pending_approval=pending_approval if present_approval else None,
             requested_inputs=questions,
         )
         if questions and not assembled.verified:

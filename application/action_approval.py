@@ -7,6 +7,29 @@ from application.conversation_state import (
 )
 
 
+def partition_approval_revision(pending, affected_controls):
+    """Separate invalidated work and unaffected continuations of one wait.
+
+    Dependencies of a changed objective require a new plan, not implicit reuse.
+    The checkpoint remains the owner of previously completed results.
+    """
+    binding = pending.origin_control if pending else None
+    if binding is None or binding.control_id not in affected_controls:
+        return (), ()
+    suspended = pending.suspended_work_items
+    excluded = {item.work_item_id for item in suspended
+                if item.control and item.control.control_id in affected_controls}
+    excluded.update(value for value in (pending.origin_work_item_id, pending.work_item_id) if value)
+    while True:
+        expanded = excluded | {item.work_item_id for item in suspended
+                               if excluded.intersection(item.dependencies)}
+        if expanded == excluded:
+            break
+        excluded = expanded
+    return (tuple(item for item in suspended if item.work_item_id in excluded),
+            tuple(item for item in suspended if item.work_item_id not in excluded))
+
+
 def bind_action_approval(state, plan, board, registry, checkpoint_thread_id):
     proposed = tuple(result for result in board.results if result.pending_action is not None)
     if len(proposed) > 1:
@@ -62,4 +85,5 @@ def bind_action_approval(state, plan, board, registry, checkpoint_thread_id):
             and work.work_item_id not in finished
         )),
         origin_work_item_id=parent.work_item_id,
+        control=parent.control,
     ), new_workstream=stream)

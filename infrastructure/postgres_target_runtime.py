@@ -231,6 +231,7 @@ def conversation_state_to_payload(state: ConversationState) -> dict[str, object]
                     {"name": item.name, "value_json": item.value_json}
                     for item in state.pending_approval.arguments
                 ],
+                "control": dict(state.pending_approval.control.__dict__) if state.pending_approval.control else None,
                 "suspended_work_items": [_work_item_to_payload(work) for work in state.pending_approval.suspended_work_items],
                 "argument_bindings": [
                     _binding_to_payload(binding)
@@ -251,6 +252,7 @@ def conversation_state_to_payload(state: ConversationState) -> dict[str, object]
                     {"name": arg.name, "value_json": arg.value_json}
                     for arg in item.arguments
                 ],
+                "control": dict(item.control.__dict__) if item.control else None,
                 "suspended_work_items": [_work_item_to_payload(work) for work in item.suspended_work_items],
                 "argument_bindings": [
                     _binding_to_payload(binding) for binding in item.argument_bindings
@@ -359,6 +361,7 @@ def conversation_state_from_payload(raw: Mapping[str, object]) -> ConversationSt
                 ),
                 tuple(_work_item_from_payload(work) for work in approval_raw.get("suspended_work_items", ())),
                 approval_raw.get("origin_work_item_id"),
+                WorkControlBinding(**approval_raw["control"]) if approval_raw.get("control") else None,
             )
             if isinstance(approval_raw, Mapping) else None
         ),
@@ -396,6 +399,7 @@ def conversation_state_from_payload(raw: Mapping[str, object]) -> ConversationSt
                 ),
                 tuple(_work_item_from_payload(work) for work in item.get("suspended_work_items", ())),
                 item.get("origin_work_item_id"),
+                WorkControlBinding(**item["control"]) if item.get("control") else None,
             )
             for item in payload.get("accepted_approvals", ())
         ),

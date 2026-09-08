@@ -203,6 +203,12 @@ class PendingApprovalState:
     argument_bindings: tuple[EntityBinding, ...] = ()
     suspended_work_items: tuple[WorkItem, ...] = ()
     origin_work_item_id: str | None = None
+    control: WorkControlBinding | None = None
+
+    @property
+    def origin_control(self) -> WorkControlBinding | None:
+        return self.control or next((item.control for item in self.suspended_work_items
+                     if item.work_item_id == self.origin_work_item_id), None)
 
     def __post_init__(self) -> None:
         _required(
@@ -224,6 +230,11 @@ class PendingApprovalState:
             item.work_item_id for item in self.suspended_work_items
         }:
             raise ConversationStateError("approval origin is not a suspended objective")
+        if self.control is not None and any(
+            item.work_item_id == self.origin_work_item_id and item.control != self.control
+            for item in self.suspended_work_items
+        ):
+            raise ConversationStateError("approval control differs from its originating objective")
         arguments = {item.name: item.value_json for item in self.arguments}
         if any(
             item.field_name not in arguments or arguments[item.field_name] != item.value_json
@@ -253,6 +264,7 @@ class AcceptedApprovalState:
     argument_bindings: tuple[EntityBinding, ...] = ()
     suspended_work_items: tuple[WorkItem, ...] = ()
     origin_work_item_id: str | None = None
+    control: WorkControlBinding | None = None
 
     def __post_init__(self) -> None:
         _required(
@@ -272,6 +284,11 @@ class AcceptedApprovalState:
             item.work_item_id for item in self.suspended_work_items
         }:
             raise ConversationStateError("accepted approval origin is not a suspended objective")
+        if self.control is not None and any(
+            item.work_item_id == self.origin_work_item_id and item.control != self.control
+            for item in self.suspended_work_items
+        ):
+            raise ConversationStateError("accepted approval control differs from its originating objective")
         arguments = {item.name: item.value_json for item in self.arguments}
         if any(
             item.field_name not in arguments or arguments[item.field_name] != item.value_json
@@ -433,6 +450,8 @@ class ConversationState:
                 self.pending_approval.checkpoint_thread_id,
                 tuple(item.fingerprint for item in self.pending_approval.suspended_work_items),
                 self.pending_approval.origin_work_item_id,
+                (self.pending_approval.control.control_id, self.pending_approval.control.revision)
+                if self.pending_approval.control else None,
                 tuple(
                     (item.field_name, item.value_json, item.source_ref, item.type_selection)
                     for item in self.pending_approval.argument_bindings
@@ -453,6 +472,7 @@ class ConversationState:
                     item.target_entity_version,
                     tuple(work.fingerprint for work in item.suspended_work_items),
                     item.origin_work_item_id,
+                    (item.control.control_id, item.control.revision) if item.control else None,
                     tuple((arg.name, arg.value_json) for arg in item.arguments),
                     tuple(
                         (binding.field_name, binding.value_json, binding.source_ref, binding.type_selection)
@@ -553,8 +573,36 @@ class ConversationState:
             self,
             version=self.version + 1,
             work_controls=tuple(controls[key] for key in sorted(controls)),
-            workstreams=(*self.workstreams, *started_workstreams),
+            **self._approval_revision_update(controls, started_workstreams),
         )
+
+    def _approval_revision_update(self, controls, started_workstreams=()):
+        """A goal revision and its unexecuted approval change atomically.
+
+        Accepted grants/receipts are history, not revocable pending proposals.
+        Only the proposal's originating goal can invalidate it; unrelated work
+        queued behind the same approval does not own that decision.
+        """
+        pending = self.pending_approval
+        binding = pending.origin_control if pending else None
+        if pending is not None and binding is None and any(
+            controls.get(item.control_id) != item for item in self.work_controls
+        ):
+            raise ConversationStateConflict("pending approval lacks its originating control")
+        current = controls.get(binding.control_id) if binding else None
+        stale = binding is not None and (
+            current is None or current.binding != binding or current.terminal)
+        streams = (*self.workstreams, *started_workstreams)
+        if not stale:
+            return {"workstreams": streams}
+        return {
+            "pending_approval": None,
+            "workstreams": tuple(item.transition(WorkstreamStatus.CANCELLED,
+                phase="PROPOSAL_SUPERSEDED") if item.workstream_id == pending.workstream_id
+                else item for item in streams),
+            "resume_bindings": tuple(item for item in self.resume_bindings
+                if item.workstream_id != pending.workstream_id),
+        }
 
     def close_work_control(
         self,
@@ -566,14 +614,14 @@ class ConversationState:
             raise ConversationStateError("closing status must be terminal")
         if not self.accepts(binding):
             raise ConversationStateConflict("work control binding is stale")
+        controls = {item.control_id: (replace(item, status=status)
+                    if item.control_id == binding.control_id else item)
+                    for item in self.work_controls}
         return replace(
             self,
             version=self.version + 1,
-            work_controls=tuple(
-                replace(item, status=status)
-                if item.control_id == binding.control_id else item
-                for item in self.work_controls
-            ),
+            work_controls=tuple(controls.values()),
+            **self._approval_revision_update(controls),
         )
 
     def start_workstream(self, workstream: WorkstreamState) -> "ConversationState":
@@ -756,6 +804,7 @@ class ConversationState:
                     pending.argument_bindings,
                     pending.suspended_work_items,
                     pending.origin_work_item_id,
+                    pending.origin_control,
                 ))
                 if approved else updated.accepted_approvals
             ),

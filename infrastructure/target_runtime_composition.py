@@ -203,10 +203,11 @@ async def build_target_runtime(
                                       knowledge_verifier=knowledge_verifier,
                                       knowledge_source_validator=knowledge_source_validator,
                                       trace_sink=langfuse_sink)
+        publication = PostgresTargetPublication(response_delivery)
         application = TargetChatApplication(
             manager=manager,
             admission=PostgresTargetAdmission(postgres_pool, durable=True),
-            publication=PostgresTargetPublication(response_delivery),
+            publication=publication,
             bundle_version=registry.bundle_version,
             knowledge_context_factory=knowledge_context_factory,
             response_assembler=assembler,
@@ -215,6 +216,7 @@ async def build_target_runtime(
                 assembler,
                 callbacks=(langfuse_sink.callback(),) if langfuse_sink else (),
                 checkpointer=checkpointer,
+                interaction_published=publication.has_interaction,
             ),
         )
         run_store = PostgresTargetRunStore(postgres_pool)

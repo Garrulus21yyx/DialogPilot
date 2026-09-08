@@ -270,9 +270,13 @@ class TargetConversationManager:
         proposal = await self._understanding(
             observations, state, deterministic, self._registry, turn_context,
         )
+        from application.target_understanding import StateBoundTargetUnderstanding
+        proposal = StateBoundTargetUnderstanding.preserve_approval_continuations(proposal, state)
         validated = self._route_policy.accept(proposal, state, self._registry)
         plan = self._compiler.compile(validated, state, self._registry, invocation)
         planned_state = self._apply_plan_accepted(state, plan, invocation)
+        if state.pending_approval is not None and planned_state.pending_approval is None:
+            resume_thread_id = state.pending_approval.checkpoint_thread_id
         if planned_state is not state:
             transitions.append(planned_state)
             state = planned_state
@@ -305,6 +309,13 @@ class TargetConversationManager:
         plan = prepared.plan
         turn_context = prepared.context
         resume_thread_id = prepared.resume_thread_id
+        from application.action_approval import partition_approval_revision
+        affected_controls = {item.control.control_id for item in (plan.work.items if plan.work else ())
+                             if item.control and item.continuation_of is None} | {
+                                 item.control_id for item in plan.control_mutations}
+        closed, _ = partition_approval_revision(state_before.pending_approval, affected_controls)
+        closed_work_items = tuple({item.work_item_id: item
+            for item in (*deterministic.closed_work_items, *closed)}.values())
         thread_id = resume_thread_id or str(invocation.invocation_key)
         if plan.work is None:
             return ManagedTurnResult(
@@ -361,7 +372,7 @@ class TargetConversationManager:
             await self._orchestration.resume(
                 plan.work,
                 thread_id=thread_id,
-                closed_work_items=deterministic.closed_work_items,
+                closed_work_items=closed_work_items,
                 interrupt_after_completion=await_decision,
                 **execution_context,
             )
@@ -456,9 +467,13 @@ class TargetConversationManager:
         """Commit the checkpointed decision, then release its execution wait."""
         self._commit_states(result.state_before, result.state_transitions)
         if result.close_checkpoint:
+            from application.action_approval import partition_approval_revision
+            closed, _ = partition_approval_revision(result.state_before.pending_approval,
+                {item.control_id for item in result.plan.control_mutations})
             await self._orchestration.cancel_interrupt(
                 thread_id=result.checkpoint_thread_id,
-                closed_work_items=result.deterministic.closed_work_items)
+                closed_work_items=tuple({item.work_item_id: item for item in (
+                    *result.deterministic.closed_work_items, *closed)}.values()))
 
     def _apply_missing_inputs(
         self,
@@ -678,6 +693,7 @@ class TargetConversationManager:
                     arguments,
                     checkpoint_thread_id,
                     plan_items[mutation.bound_work_item_id].argument_bindings,
+                    control=plan_items[mutation.bound_work_item_id].control,
                 ))
                 transitions.append(next_state)
                 state = next_state
@@ -772,7 +788,7 @@ class TargetConversationManager:
         plan: TurnPlan,
         invocation: InvocationIdentity,
     ) -> ConversationState:
-        if plan.work is None:
+        if plan.work is None and not plan.control_mutations:
             return state
         if (
             plan.transitions is not None

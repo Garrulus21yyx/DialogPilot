@@ -116,13 +116,44 @@ class StateBoundTargetUnderstanding:
         return None
 
     @classmethod
-    def _continuations(cls, items, state, *, after=None):
+    def preserve_approval_continuations(cls, proposal, state):
+        """Carry independent queued goals into a revised approval plan.
+
+        These are state-bound commands and still pass through RoutePolicy.
+        Old dependent goals close unless the semantic plan explicitly replaces
+        them; their previous dependency is never silently discarded.
+        """
+        from application.action_approval import partition_approval_revision
+        affected = {command.revises_control_id for command in proposal.commands
+                    if command.revises_control_id and command.continuation_of is None}
+        represented = {command.revises_control_id for command in proposal.commands
+                       if command.revises_control_id}
+        closed, independent = partition_approval_revision(state.pending_approval, affected)
+        if not closed and not independent:
+            return proposal
+        cancellations = tuple(CommandProposal(
+            command_id="retire-dependent:" + item.work_item_id,
+            kind=CommandKind.CANCEL_WORK, target_agent=item.owner_agent,
+            objective=item.objective, revises_control_id=item.control.control_id,
+        ) for item in closed if item.control and item.control.control_id not in represented
+            and state.accepts(item.control))
+        continuation_ids = {command.continuation_of: command.command_id for command in proposal.commands
+                            if command.continuation_of}
+        independent = tuple(item for item in independent
+                            if not item.control or item.control.control_id not in represented)
+        return replace(proposal, commands=(
+            *proposal.commands, *cancellations, *cls._continuations(
+                independent, state, dependency_commands=continuation_ids)))
+
+    @classmethod
+    def _continuations(cls, items, state, *, after=None, dependency_commands=None):
         active = tuple(work for work in items if work.control is None or any(
             control.control_id == work.control.control_id
             and control.revision == work.control.revision
             for control in state.active_work_controls))
-        ids = {work.work_item_id: f"continue-domain-objective-{index}"
-               for index, work in enumerate(active, start=1)}
+        ids = {**(dependency_commands or {}), **{
+            work.work_item_id: f"continue-domain-objective-{index}"
+            for index, work in enumerate(active, start=1)}}
         return tuple(replace(
             cls._resume_command(index, work), command_id=ids[work.work_item_id],
             dependencies=tuple(ids[dependency] for dependency in work.dependencies
