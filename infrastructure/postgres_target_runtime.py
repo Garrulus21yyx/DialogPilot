@@ -440,6 +440,7 @@ def _work_item_to_payload(item: WorkItem) -> dict[str, object]:
         "dependencies": list(item.dependencies),
         "allowed_actions": list(item.allowed_actions),
         "continuation_of": item.continuation_of,
+        "observe_result": item.observe_result,
         "effect": item.effect.value,
         "risk": item.risk.value,
         "expected_output_schema": item.expected_output_schema,
@@ -480,6 +481,8 @@ def _work_item_to_payload(item: WorkItem) -> dict[str, object]:
 
 
 def _work_item_from_payload(raw: Mapping[str, object]) -> WorkItem:
+    if "observe_result" not in raw:
+        raise ValueError("stored work item requires explicit observation-contract migration")
     reconciliation_raw = raw.get("reconciliation")
     reconciliation = (
         ActionReconciliationDefinition(
@@ -541,6 +544,7 @@ def _work_item_from_payload(raw: Mapping[str, object]) -> WorkItem:
         ),
         tuple(str(value) for value in raw.get("allowed_actions", ())),
         raw.get("continuation_of"),
+        raw["observe_result"],
     )
 
 

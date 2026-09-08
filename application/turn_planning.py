@@ -343,6 +343,7 @@ class RoutePolicy:
                     or original.registry_fingerprint != registry.fingerprint
                     or command.arguments != original.arguments
                     or command.argument_bindings != original.argument_bindings
+                    or command.observe_result != original.observe_result
                     or command.requirement_ids != original.requirement_ids):
                 raise TurnPlanningError("continuation parameters differ from accepted work")
             if command.kind is CommandKind.DIRECT_TOOL and original.allowed_tools != (command.tool_id,):
@@ -721,7 +722,7 @@ class TurnPlan:
 
 
 class TurnPlanCompiler:
-    version = "turn-plan-compiler-v4-planning-step"
+    version = "turn-plan-compiler-v5-durable-observation"
 
     def compile(
         self,
@@ -854,8 +855,8 @@ class TurnPlanCompiler:
                 for item in cancellations
             ),
             observation_work_item_ids=tuple(
-                item.work_item_id for command, item in zip(executable, items)
-                if command.proposal.observe_result and not any(
+                item.work_item_id for item in items
+                if item.observe_result and not any(
                     item.work_item_id in consumer.dependencies for consumer in items)
             ),
         )
@@ -941,6 +942,7 @@ class TurnPlanCompiler:
             control=control,
             allowed_actions=command.allowed_actions,
             continuation_of=proposal.continuation_of,
+            observe_result=proposal.observe_result,
         )
 
     @staticmethod

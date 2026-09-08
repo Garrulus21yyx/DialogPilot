@@ -293,6 +293,7 @@ class StateBoundTargetUnderstanding:
             return CommandProposal(
                 kind=CommandKind.DIRECT_TOOL,
                 tool_id=item.allowed_tools[0],
+                observe_result=item.observe_result,
                 **common,
             )
         if item.skill_hint is not None:

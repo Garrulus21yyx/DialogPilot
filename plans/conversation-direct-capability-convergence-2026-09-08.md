@@ -1,10 +1,11 @@
 # Conversation capability execution convergence
 
-Status: repair in progress; direct executor identity migration implemented, full
-capability exposure and goal-continuation repair not complete or verified closed.
+Status: repair in progress; direct capability exposure and observation continuation
+implemented with deterministic and PostgreSQL integration evidence. Real-model
+goal preservation and remaining baseline failures are not verified closed.
 Scope: failures from the fixed ten-task run after the rejected encoder trial.
 Baseline evidence: `artifacts/eval/tau3-new10-after-encoder-trial-2026-09-08/`.
-Current inspection HEAD: 32984bb, with existing user-owned business recovery changes.
+Current inspection HEAD: 6ee765f, with existing user-owned business recovery changes.
 
 ## Established causal chain
 
@@ -327,3 +328,45 @@ Still open: queued/mixed-task observation obligations and semantic goal preserva
 under the fixed real-model baseline replay. Encoder remains rejected and disabled;
 the original ten-task evaluation is unchanged. The new integration witness closes
 the combined-boundary test gap, not the full task or architecture convergence claim.
+### Mixed waiting and dependent-work verification
+
+Hypothesis under investigation: an independent native read might not be observed
+when another worker waits and has dependent work. This hypothesis did not reproduce.
+ResultBoard produces explicit upstream-blocked outcomes for dependent work rather
+than leaving absent results; the observation is therefore available, and existing
+pending-state/resume handling restores the dependent chain after input arrives.
+
+Extended the existing integration test into twelve combinations: zero/one/three
+dependent steps, forward/reverse plan declaration order, and with/without an extra
+main-agent read during the wait. Each asserts the original wait survives, the main
+agent receives the independent reads, no read is repeated on user resume, dependent
+work runs in order, and the request finishes. No production code changed based on
+the speculative gap. Observation plus orchestration suite: 75 passed, three
+PostgreSQL tests skipped in this non-DB run. Independent review requested for the
+causal surface before treating this bounded verification gap as resolved.
+
+Independent review falsified the broader claim for a different supported case:
+the queued tail is itself a native DIRECT read. The original command sets an
+observation obligation, but only WorkItem survives pending-state persistence and
+it did not carry that obligation. Recompilation after user input silently used
+observe_result=False. Eight added matrix cases reproduced the missing planner
+call, despite the read itself completing successfully.
+
+The positive contract is now attached to WorkItem: host-owned observe_result is a
+boolean allowed only for direct reads, contributes to execution identity, survives
+PostgreSQL payload and SDK checkpoint round trips, and is copied by state-bound
+resume. RoutePolicy verifies it against the accepted continuation envelope.
+TurnPlan's unconsumed observation IDs are projected from these WorkItems. No global
+rule reclassifies all direct queries as observations. Legacy stored WorkItems
+without the field need explicit migration; new turn checkpoints use runtime v10
+and compiler v5, preventing silent replay under the changed contract.
+
+The matrix now has 24 combinations, including native and delegated tails; added
+false/true codec, fingerprint, resume and invalid-type tests. The focused non-DB
+suite passed 132 with six DB skips. PostgreSQL regression and independent review
+completed: 81 PostgreSQL-enabled tests passed with no skips, including observation
+recreation, action approval, HTTP scenarios and persistence/manager tests. The
+independent reviewer found no remaining concrete conversion omission in the
+changed scope; internal evidence-only reads correctly retain observe_result=False.
+This repairs a persistence ownership omission, not an LLM prompt
+or a per-business special case. Original baseline model replays remain pending.

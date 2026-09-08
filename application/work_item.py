@@ -105,8 +105,13 @@ class WorkItem:
     control: WorkControlBinding | None = None
     allowed_actions: tuple[str, ...] = ()
     continuation_of: str | None = None
+    # Host-owned return-to-conversation obligation; preserved through suspension.
+    observe_result: bool = False
 
     def __post_init__(self) -> None:
+        if type(self.observe_result) is not bool or (self.observe_result and (
+                self.control_mode is not ControlMode.DIRECT or self.effect is not CapabilityEffect.READ)):
+            raise WorkItemContractError("conversation observation requires direct read work")
         # Checkpoint codecs accept JSON-style sequences; the immutable contract
         # has one representation regardless of whether it was freshly compiled.
         for name in ("allowed_tools", "allowed_skills", "arguments", "requirement_ids",
@@ -206,6 +211,7 @@ class WorkItem:
             "allowed_skills": self.allowed_skills,
             "allowed_actions": self.allowed_actions,
             "continuation_of": self.continuation_of,
+            "observe_result": self.observe_result,
             "arguments": [(item.name, item.value_json) for item in self.arguments],
             "argument_bindings": [
                 {

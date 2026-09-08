@@ -17,6 +17,35 @@ from infrastructure.langgraph_checkpoint import target_checkpoint_serializer
 from tests.test_turn_runtime import _Executor, _OrderUnderstanding, _identity
 
 
+@pytest.mark.parametrize("observe", [False, True])
+def test_observation_obligation_roundtrips_and_changes_work_identity(observe):
+    from infrastructure.postgres_target_runtime import _work_item_from_payload, _work_item_to_payload
+    from application.target_understanding import StateBoundTargetUnderstanding
+    from application.work_item import WorkItemContractError
+
+    async def scenario():
+        manager = TargetConversationManager(state_store=InMemoryConversationStateStore(),
+            registry=build_default_capability_registry("tenant-a"), understanding=_OrderUnderstanding(),
+            orchestration=OrchestrationRuntime(direct_executor=_Executor(), domain_workers={}))
+        prepared = await manager.prepare(_identity(), TurnObservations("Check order DP1234"))
+        base = prepared.plan.work.items[0]
+        item = replace(base, observe_result=observe)
+        assert item.fingerprint != replace(item, observe_result=not observe).fingerprint
+        payload = _work_item_to_payload(item)
+        restored = _work_item_from_payload(payload)
+        codec = target_checkpoint_serializer()
+        checkpointed = codec.loads_typed(codec.dumps_typed(restored))
+        assert checkpointed == item
+        assert StateBoundTargetUnderstanding._resume_command(1, checkpointed).observe_result is observe
+        for invalid in (None, "true", 1):
+            with pytest.raises(WorkItemContractError, match="observation"):
+                _work_item_from_payload({**payload, "observe_result": invalid})
+        del payload["observe_result"]
+        with pytest.raises(ValueError, match="migration"):
+            _work_item_from_payload(payload)
+    asyncio.run(scenario())
+
+
 def test_read_observe_read_respond_preserves_request_results_and_step_scope():
     async def scenario():
         seen = []
@@ -165,7 +194,12 @@ def test_turn_graph_observes_and_delivers_retained_results(ending):
 
 
 @pytest.mark.parametrize("extra_read", [False, True])
-def test_successful_read_is_observed_while_independent_domain_wait_is_preserved(extra_read):
+@pytest.mark.parametrize("queued_count", [0, 1, 3])
+@pytest.mark.parametrize("reverse_declarations", [False, True])
+@pytest.mark.parametrize("native_tail", [False, True])
+def test_successful_read_is_observed_while_independent_domain_wait_is_preserved(
+    extra_read, queued_count, reverse_declarations, native_tail,
+):
     from application.agent_result import AgentResult, AgentResultStatus, MissingInputSpec
     from application.turn_runtime import TurnRuntime
     from application.response_assembly import ResponseAssembler
@@ -180,6 +214,9 @@ def test_successful_read_is_observed_while_independent_domain_wait_is_preserved(
                 planned.append(context)
                 if len(planned) > 1:
                     assert context.observed_execution is not None
+                    if state.pending_interaction is None:
+                        return TurnProposal(ProposalDisposition.RESPOND, (), "OBSERVED_AFTER_RESUME",
+                            response_text="The arrangement is complete.")
                     assert state.pending_interaction is not None
                     if extra_read and len(planned) == 2:
                         base = (await _OrderUnderstanding()()).commands[0]
@@ -188,10 +225,18 @@ def test_successful_read_is_observed_while_independent_domain_wait_is_preserved(
                     return TurnProposal(ProposalDisposition.RESPOND, (), "OBSERVED",
                         response_text="The order has shipped. Where should it be delivered?")
                 base = (await _OrderUnderstanding()()).commands[0]
-                return TurnProposal(ProposalDisposition.RESOLVED, (
+                commands = (
                     replace(base, observe_result=True),
                     replace(base, command_id="delivery", kind=CommandKind.DELEGATE_TASK,
-                            tool_id=None, objective="Confirm the delivery preference")), "MIXED")
+                            tool_id=None, objective="Confirm the delivery preference"),
+                    *(replace(base, command_id=f"after-delivery-{index}",
+                        dependencies=("delivery" if index == 0 else f"after-delivery-{index - 1}",),
+                        kind=CommandKind.DIRECT_TOOL if native_tail and index == queued_count - 1 else CommandKind.DELEGATE_TASK,
+                        tool_id=base.tool_id if native_tail and index == queued_count - 1 else None,
+                        observe_result=native_tail and index == queued_count - 1,
+                        objective=f"Finish delivery arrangement step {index}") for index in range(queued_count)))
+                return TurnProposal(ProposalDisposition.RESOLVED,
+                    tuple(reversed(commands)) if reverse_declarations else commands, "MIXED")
 
         worker_calls = []
         async def worker(context):
@@ -228,9 +273,13 @@ def test_successful_read_is_observed_while_independent_domain_wait_is_preserved(
             interaction_id=pending.interaction_id, interaction_version=pending.version,
             interaction_values=((pending.requested_fields[0].target_work_item_id, "delivery_preference", "Home"),)))
         assert resumed.managed.state_after.pending_interaction is None
-        assert executor.calls == 1 + extra_read
-        assert len(worker_calls) == 2
-        assert len(planned) == 2 + extra_read
+        resumed_read = int(native_tail and queued_count > 0)
+        assert executor.calls == 1 + extra_read + resumed_read
+        assert len(worker_calls) == 2 + queued_count - resumed_read
+        assert resumed.managed.request_completed
+        assert [call.work_item.objective for call in worker_calls[2:]] == [
+            f"Finish delivery arrangement step {index}" for index in range(queued_count - resumed_read)]
+        assert len(planned) == 2 + extra_read + resumed_read
     asyncio.run(scenario())
 
 
