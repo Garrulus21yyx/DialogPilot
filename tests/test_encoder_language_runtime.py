@@ -14,14 +14,22 @@ ROOT = Path(__file__).resolve().parents[1]
 
 @pytest.mark.parametrize("language,expected", [("zh", "zh"), ("zh-CN", "zh"), ("en", "en"), ("en-US", "en")])
 def test_language_selects_one_independently_calibrated_artifact(monkeypatch, language, expected):
+    from types import SimpleNamespace
+    def load(path, device):
+        assert path.name == f"target-domain-encoder-{expected}-v1"
+        return SimpleNamespace(manifest=SimpleNamespace(language=expected, thresholds={"billing_refund": .98}))
+    monkeypatch.setattr("infrastructure.target_runtime_composition.TargetDomainEncoder", load)
     monkeypatch.setenv("TARGET_ENCODER_ENABLED", "true")
     monkeypatch.delenv("TARGET_ENCODER_ARTIFACT_DIR", raising=False)
     encoder = _target_encoder(ROOT, language=language)
-    assert encoder._artifact.manifest.required_languages == (expected,)
-    assert encoder._artifact.manifest.threshold_by_capability
+    assert encoder._artifact.manifest.language == expected
+    assert encoder._artifact.manifest.thresholds
 
 
 def test_artifact_override_cannot_misrepresent_its_language(monkeypatch):
+    from types import SimpleNamespace
+    monkeypatch.setattr("infrastructure.target_runtime_composition.TargetDomainEncoder",
+                        lambda path, device: SimpleNamespace(manifest=SimpleNamespace(language="zh")))
     monkeypatch.setenv("TARGET_ENCODER_ENABLED", "true")
     monkeypatch.setenv("TARGET_ENCODER_ARTIFACT_DIR", str(ROOT / "artifacts/target-encoder-zh-context-v2"))
     with pytest.raises(RuntimeError, match="calibrated for the selected language"):

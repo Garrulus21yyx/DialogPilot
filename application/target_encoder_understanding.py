@@ -1,75 +1,44 @@
-"""Adapt a Target-native encoder artifact into the turn-understanding cascade."""
-from __future__ import annotations
-
-from application.encoder_fast_path import (
-    EncoderFastPathPolicy,
-    IntentEncoderOutput,
-    FastPathDecision,
-)
-from application.target_encoder_artifact import DEFER_LABEL, TargetTextEncoderArtifact
+"""Domain-only fast routing into the existing governed delegation chain."""
+import asyncio
+import logging
+from application.domain_encoder import DOMAIN_MINIMUM_MARGIN, DomainEncoderUnavailable
+from application.encoder_fast_path import FastPathDecision
 from application.encoder_input import EncoderInput
+from application.turn_planning import CommandKind, CommandProposal, ProposalDisposition, TurnProposal
 
 
 class TargetEncoderUnderstanding:
-    version = "target-encoder-understanding-v1"
+    version = "target-domain-encoder-understanding-v1"
 
-    def __init__(self, artifact: TargetTextEncoderArtifact) -> None:
+    def __init__(self, artifact):
         self._artifact = artifact
-        self._policy = EncoderFastPathPolicy(
-            capability_thresholds=artifact.manifest.threshold_by_capability,
-            required_arguments=artifact.manifest.required_arguments_by_capability,
-            max_boundary_score=0.65,
-            minimum_margin=0.08,
-        )
 
     async def __call__(self, observations, state, registry, turn_context=None):
-        self._artifact.validate_registry(registry)
+        if (state.pending_interaction or state.pending_approval or state.active_workstreams
+                or state.active_work_controls):
+            return FastPathDecision(False, "ENCODER_STATE_COORDINATION_REQUIRED")
         if turn_context is not None and turn_context.summary is not None:
             return FastPathDecision(False, "ENCODER_SUMMARY_UNCALIBRATED")
-        value = EncoderInput.from_turn(observations, state, turn_context)
-        if self._artifact.input_schema == "text-v1" and (value.messages or value.objectives):
-            return FastPathDecision(False, "ENCODER_CONTEXT_UNCALIBRATED")
-        candidates, defer_score = self._artifact.predict(value)
-        top = candidates[0]
-        class_by_label = {
-            item.label: item for item in self._artifact.manifest.classes
-        }
-        target = class_by_label[top.candidate_id]
-        # A category prediction cannot resolve an elliptical search query. The
-        # existing planner owns query authorship; never send bare "yes" to RAG.
-        if value.messages and {"query", "question"}.intersection(target.required_arguments):
-            return FastPathDecision(False, "ENCODER_QUERY_AUTHORING_REQUIRED")
-        fields = dict(observations.structured_fields)
-        bindings = turn_context.entity_bindings
-        for name in target.required_arguments:
-            selected = bindings.resolve(name, state).selected
-            if selected is not None:
-                fields.setdefault(name, selected.value)
-        if "query" in target.required_arguments:
-            fields["query"] = observations.raw_text
-        if "question" in target.required_arguments:
-            fields["question"] = observations.raw_text
-        missing = tuple(
-            name for name in target.required_arguments if not fields.get(name)
+        try:
+            prediction = await asyncio.to_thread(self._artifact.predict,
+                EncoderInput.from_turn(observations, state, turn_context))
+        except DomainEncoderUnavailable:
+            logging.getLogger(__name__).warning("Domain encoder inference unavailable", exc_info=True)
+            return FastPathDecision(False, "ENCODER_PROVIDER_UNAVAILABLE")
+        ranked = sorted(prediction.candidates, key=lambda r: (-r.score, r.candidate_id))
+        top = ranked[0]
+        threshold = self._artifact.manifest.thresholds.get(top.candidate_id)
+        runner_up = max(prediction.defer_score, ranked[1].score if len(ranked) > 1 else 0.)
+        if threshold is None or top.score < threshold or top.score - runner_up < DOMAIN_MINIMUM_MARGIN:
+            return FastPathDecision(False, "ENCODER_DOMAIN_UNCERTAIN")
+        if top.candidate_id not in {agent.agent_id for agent in registry.agents}:
+            return FastPathDecision(False, "ENCODER_DOMAIN_UNSUPPORTED")
+        # Selection is not authorization. Policy compiles read tools and scoped
+        # action proposals; only the existing approval/write runtime may commit.
+        command = CommandProposal(
+            command_id=f"encoder:domain:{top.candidate_id}", kind=CommandKind.DELEGATE_TASK,
+            target_agent=top.candidate_id, objective=observations.raw_text,
+            allow_action_proposals=True,
         )
-        output = IntentEncoderOutput(
-            domains=(type(top)(target.owner_agent, top.score),),
-            capabilities=tuple(
-                type(item)(
-                    class_by_label[item.candidate_id].capability_ref,
-                    item.score,
-                )
-                for item in candidates
-            ),
-            entities=tuple(fields.items()),
-            boundary_score=defer_score,
-            multi_intent=False,
-            out_of_distribution=(
-                defer_score >= max(item.score for item in candidates)
-                or top.candidate_id == DEFER_LABEL
-            ),
-            missing_inputs=missing,
-        )
-        return self._policy.decide(
-            output, state, registry, entity_bindings=bindings.bindings,
-        )
+        return FastPathDecision(True, "ENCODER_DOMAIN_ACCEPTED", TurnProposal(
+            ProposalDisposition.RESOLVED, (command,), "ENCODER_DOMAIN_ACCEPTED"))

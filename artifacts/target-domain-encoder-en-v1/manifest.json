@@ -1,0 +1,120 @@
+{
+  "input_files_sha256": {
+    "config.json": "cc89592bfbce7f08c82f1f024135a26a21b4e8a8b6fc039abee9b9b6d46a9d8f",
+    "tokenizer.json": "d241a60d5e8f04cc1b2b3e9ef7a4921b27bf526d9f6050ab90f9267a1f9e5c66",
+    "tokenizer_config.json": "0b29c7bfc889e53b36d9dd3e686dd4300f6525110eaa98c76a5dafceb2029f53",
+    "special_tokens_map.json": "5d5b662e421ea9fac075174bb0688ee0d9431699900b90662acd44b2a350503a",
+    "vocab.txt": "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3"
+  },
+  "language": "en",
+  "thresholds": {
+    "product_technical": 0.6398557424545288,
+    "order_logistics": 0.9789780974388123,
+    "billing_refund": 0.9038654565811157,
+    "account_security": 0.878847599029541,
+    "human_service": 0.9381228089332581
+  },
+  "model_sha256": "5d908bbd3295b48e7f5011cf30f99d8c20a2b7730ad7db91fac8a54687f5f698",
+  "schema_version": "dialogpilot-domain-encoder-v1",
+  "input_schema": "dialogpilot-encoder-context-v1",
+  "status": "REJECTED",
+  "calibration": {
+    "general": {
+      "threshold": 1.0,
+      "enabled": false,
+      "accepted": 0,
+      "correct": 0,
+      "precision_lower_bound": 0.0
+    },
+    "product_technical": {
+      "threshold": 0.6398557424545288,
+      "enabled": true,
+      "accepted": 139,
+      "correct": 139,
+      "precision_lower_bound": 0.9809072857127014
+    },
+    "order_logistics": {
+      "threshold": 0.9789780974388123,
+      "enabled": true,
+      "accepted": 172,
+      "correct": 169,
+      "precision_lower_bound": 0.9571617841294444
+    },
+    "billing_refund": {
+      "threshold": 0.9038654565811157,
+      "enabled": true,
+      "accepted": 834,
+      "correct": 834,
+      "precision_lower_bound": 0.9967664329760189
+    },
+    "account_security": {
+      "threshold": 0.878847599029541,
+      "enabled": true,
+      "accepted": 85,
+      "correct": 85,
+      "precision_lower_bound": 0.9691519675091977
+    },
+    "human_service": {
+      "threshold": 0.9381228089332581,
+      "enabled": true,
+      "accepted": 43,
+      "correct": 43,
+      "precision_lower_bound": 0.9408049166549625
+    }
+  },
+  "development": {
+    "general": {
+      "threshold": 1.0,
+      "enabled": false,
+      "accepted": 0,
+      "correct": 0,
+      "precision_lower_bound": 0.0
+    },
+    "product_technical": {
+      "threshold": 0.6398557424545288,
+      "enabled": true,
+      "accepted": 85,
+      "correct": 84,
+      "precision_lower_bound": 0.9489773968383608
+    },
+    "order_logistics": {
+      "threshold": 0.9789780974388123,
+      "enabled": true,
+      "accepted": 127,
+      "correct": 127,
+      "precision_lower_bound": 0.979140880319792
+    },
+    "billing_refund": {
+      "threshold": 0.9038654565811157,
+      "enabled": true,
+      "accepted": 632,
+      "correct": 632,
+      "precision_lower_bound": 0.9957373249973968
+    },
+    "account_security": {
+      "threshold": 0.878847599029541,
+      "enabled": true,
+      "accepted": 116,
+      "correct": 116,
+      "precision_lower_bound": 0.9772079434930377
+    },
+    "human_service": {
+      "threshold": 0.9381228089332581,
+      "enabled": true,
+      "accepted": 23,
+      "correct": 23,
+      "precision_lower_bound": 0.8947486382100057
+    }
+  },
+  "max_tokens": 256,
+  "backbone": {
+    "name": "BAAI/bge-small-en",
+    "revision": "2275a7bdee235e9b4f01fa73aa60d3311983cfea"
+  },
+  "calibration_device": "cuda",
+  "datasets": {
+    "train": "c5e815ca606e9897245ed36ca49943d3f9c9e45198297bbcac75f9ca907494f4",
+    "calibration": "eb48302a448073b115315a478d3012b57b20807f2fe59b6f815005e4ba8cd5a1",
+    "heldout": "b7391a5cedef829a979802b6fc163d38d4f7e924ef6d73c32afa802a61745771"
+  }
+}

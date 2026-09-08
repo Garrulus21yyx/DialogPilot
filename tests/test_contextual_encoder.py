@@ -7,7 +7,7 @@ import pytest
 
 from application.encoder_input import CONTEXT_INPUT_SCHEMA, EncoderInput
 from application.target_encoder_artifact import encoder_vector, load_target_text_encoder_artifact, TargetEncoderArtifactError
-from application.target_encoder_understanding import TargetEncoderUnderstanding
+from evaluation.legacy_capability_encoder import TargetEncoderUnderstanding
 from application.target_conversation_manager import TargetContextMessage, TargetTurnContext, TargetContextSummary
 from application.conversation_state import ConversationState
 from application.deterministic_resolution import TurnObservations

@@ -17,7 +17,7 @@ from application.deterministic_resolution import DeterministicResolver, TurnObse
 from application.entity_binding import EntityBindingResolver
 from application.target_conversation_manager import TargetContextMessage, TargetTurnContext
 from application.target_encoder_artifact import load_target_text_encoder_artifact
-from application.target_encoder_understanding import TargetEncoderUnderstanding
+from evaluation.legacy_capability_encoder import TargetEncoderUnderstanding
 from application.target_understanding import CascadedTargetUnderstanding, StateBoundTargetUnderstanding
 from application.turn_planning import RoutePolicy, TurnProposal, ProposalDisposition
 

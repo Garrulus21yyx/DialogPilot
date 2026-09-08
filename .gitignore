@@ -5,6 +5,9 @@ __pycache__/
 dist/
 build/
 .venv/
+# Domain model weights are generated locally; manifests/recipes stay versioned.
+artifacts/target-domain-encoder-*/model.safetensors
+artifacts/target-domain-encoder-*/trainer/
 venv/
 .pytest_cache/
 

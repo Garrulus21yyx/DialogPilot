@@ -20,7 +20,7 @@ from application.orchestration_runtime import OrchestrationRuntime
 from application.response_assembly import ResponseAssembler
 from application.target_chat_application import TargetChatApplication
 from application.target_conversation_manager import TargetConversationManager, TurnUnderstanding
-from application.target_encoder_artifact import load_target_text_encoder_artifact
+from infrastructure.target_domain_encoder import TargetDomainEncoder
 from application.target_encoder_understanding import TargetEncoderUnderstanding
 from application.target_run import TargetRunCoordinator
 from application.target_understanding import (
@@ -271,9 +271,7 @@ async def build_target_runtime(
 
 
 def _target_encoder(project_root: Path, *, language: str | None = None) -> TargetEncoderUnderstanding | None:
-    # Temporary containment: the frozen semantic/contextual challenge exposed
-    # dropped compound goals in the shipped classifier. Re-enable by default
-    # only after the documented whole-message acceptance gate passes.
+    # Optional domain router. Old capability artifacts are not a fallback.
     enabled = os.getenv("TARGET_ENCODER_ENABLED", "false").strip().lower()
     if enabled not in {"true", "false"}:
         raise RuntimeError("TARGET_ENCODER_ENABLED must be true or false")
@@ -284,9 +282,9 @@ def _target_encoder(project_root: Path, *, language: str | None = None) -> Targe
         raise RuntimeError("TARGET_ENCODER_LANGUAGE must select zh or en")
     artifact_dir = Path(os.getenv(
         "TARGET_ENCODER_ARTIFACT_DIR",
-        str(project_root / "artifacts" / f"target-encoder-{language}-context-v2"),
+        str(project_root / "artifacts" / f"target-domain-encoder-{language}-v1"),
     ))
-    artifact = load_target_text_encoder_artifact(artifact_dir)
-    if artifact.manifest.required_languages != (language,):
+    artifact = TargetDomainEncoder(artifact_dir, device=os.getenv("TARGET_ENCODER_DEVICE", "cpu"))
+    if artifact.manifest.language != language:
         raise RuntimeError("encoder artifact must be calibrated for the selected language")
     return TargetEncoderUnderstanding(artifact)

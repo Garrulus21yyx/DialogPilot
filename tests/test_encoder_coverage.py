@@ -118,7 +118,7 @@ def test_pair_inference_batches_once_and_overflow_does_not_call_model():
 def test_coverage_algebra_through_real_fast_path_policy():
     from types import SimpleNamespace
     from application.encoder_fast_path import RankedCandidate
-    from application.target_encoder_understanding import TargetEncoderUnderstanding
+    from evaluation.legacy_capability_encoder import TargetEncoderUnderstanding
     from evaluation.encoder_fastpath_evaluation import prepare
 
     labels = tuple(hypotheses("en"))

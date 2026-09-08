@@ -14,7 +14,7 @@ from application.target_encoder_artifact import (
     TargetEncoderArtifactError,
     load_target_text_encoder_artifact,
 )
-from application.target_encoder_understanding import TargetEncoderUnderstanding
+from evaluation.legacy_capability_encoder import TargetEncoderUnderstanding
 from infrastructure.target_runtime_composition import _target_encoder
 from application.target_understanding import (
     CascadedTargetUnderstanding,
@@ -195,7 +195,7 @@ def test_target_training_rejects_heldout_overlap_before_export(tmp_path, reused_
     assert list(tmp_path.iterdir()) == []
 
 
-def test_target_runtime_encoder_switch_is_explicit_and_uses_checked_in_artifact(
+def test_target_runtime_encoder_switch_is_explicit_and_uses_domain_artifact(
     monkeypatch,
 ):
     project_root = Path(__file__).resolve().parents[1]
@@ -203,7 +203,12 @@ def test_target_runtime_encoder_switch_is_explicit_and_uses_checked_in_artifact(
     assert _target_encoder(project_root) is None
 
     monkeypatch.setenv("TARGET_ENCODER_ENABLED", "true")
-    assert isinstance(_target_encoder(project_root), TargetEncoderUnderstanding)
+    from types import SimpleNamespace
+    from application.target_encoder_understanding import TargetEncoderUnderstanding as DomainUnderstanding
+    monkeypatch.setattr("infrastructure.target_runtime_composition.TargetDomainEncoder",
+                        lambda path, device: SimpleNamespace(manifest=SimpleNamespace(language="zh")))
+    monkeypatch.setenv("TARGET_ENCODER_LANGUAGE", "zh")
+    assert isinstance(_target_encoder(project_root), DomainUnderstanding)
 
 
 def test_target_runtime_rejects_unknown_encoder_switch(monkeypatch):
