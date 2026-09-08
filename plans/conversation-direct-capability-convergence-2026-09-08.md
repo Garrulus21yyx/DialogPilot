@@ -1790,3 +1790,44 @@ failures were fixture API mistakes (schema property/context_provider.load), fixe
 in tests without production concessions. PostgreSQL/live-model evaluation not run
 in this repair step. Only owner/schema/tests/this plan are staged; user changes in
 runtime/archive and other documents remain unstaged.
+
+## Reviewer admission convergence design (in progress)
+
+Revalidated after a519962: reviewer still serializes all SDK working messages plus
+policy, tool schemas, receipts, objective and candidate into its own request. Actor
+ContextCompaction only admits the actor envelope. Reviewer input allowance28072
+is independently smaller than actor30968. Thus actor-fit is not reviewer-fit;
+recorded30742 and28518 failures are consequences of the same ownership gap.
+Independent fresh-context review confirmed this explanation and rejected a limit
+increase, middleware reordering alone, or an independent reviewer summary store.
+
+Bounded positive target: DomainOutcomeReview constructs and measures its actual
+request; existing ContextCompaction remains the only working-history editing and
+archive owner. Admission considers both consumers, with a final check after the
+actor adds its candidate. Accepted candidate, assigned objective/constraints,
+relevant receipts/policy and current supporting evidence remain available as body
+content. Reviewer has no archive-tool loop: a pointer alone cannot be treated as
+proof that necessary evidence remains reviewable. Irreducible overflow retains
+required/available and rejects execution, never turns into acceptance.
+
+Implementation surface to resolve before editing: expose reviewer request building
+and counting without transport side effects; reuse one compaction path and records
+from both pre-model and pre-review admission, persisting any shared message edit in
+the SDK state. Protect the latest completed tool batch PLUS the new candidate:
+current StrictSummarization cutoff follows the last AI tool-call message, which
+at pre-review time may be an unexecuted preparation. Reusing it unchanged would
+permit summarizing the immediately preceding supporting results. This is a causal
+integration requirement, not a new business-case exception.
+
+Alternatives: native review messages can reduce serialization overhead but do not
+close admission for differing output reserves or long candidates; two independent
+compact views risk divergent summaries; lowering actor's fixed budget ignores
+dynamic reviewer payload. Prefer shared editing with actual consumer counters,
+and no necessary-evidence offload solely to make the reviewer fit.
+
+Acceptance must capture final provider input, vary policy/schema/candidate size,
+escaped text, output reservations and complete/pending parallel tool batches;
+verify shared archive/checkpoint records, no candidate acceptance or business calls
+on archive/summary/irreducible admission failure, and no repeated summarization on
+replay. Existing regression examples support but do not replace these properties.
+No new live evaluation or production budget change has been made in this review.
