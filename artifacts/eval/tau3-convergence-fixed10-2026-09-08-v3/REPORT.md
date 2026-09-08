@@ -160,3 +160,38 @@ Unlike v2 the wrong fourth item is not returned. Assistant14 still asks the user
 to reconfirm the already-explicit target set before actual proposal16; record
 this as avoidable dialogue, not a second committed operation. Successful official
 reward does not establish that unnecessary confirmation is eliminated.
+
+## Task14 — no-progress domain result and failed explanation
+
+ERROR before any return. User asks for gaming-related items; after identifying
+the orders, the system asks for exact items again. On the next turn the domain
+review rejects repeated refund-method questioning: only the original PayPal is
+available for the selected mouse return, so it requests preparing the action.
+The actor does not reach an accepted proposal within its bounded reviews.
+Composition subsequently claims it will prepare a return and is rejected because
+the outcome is TERMINAL_FAILURE with no proposal. A generic failure is published;
+the user's request for explanation then ends in runtime failure. Preserve the
+actual feedback/actor handling and final stack for post-batch attribution; do
+not turn this into a gaming-item or PayPal-specific rule.
+# Terminal batch audit
+
+The original exec session8342 exited with code0; all ten fixed task result files exist. The runner completing is not application success. No task was restarted or substituted.
+
+| Task | Recorded status | ALL | ENV | ACTION |
+|---|---|---|---|---|
+|4|EVALUATION_INCOMPLETE|unavailable|1|0|
+|6|ERROR|unavailable|unavailable|unavailable|
+|7|EVALUATED|1|1|1|
+|8|EVALUATED|1|1|1|
+|10|ERROR|unavailable|unavailable|unavailable|
+|11|ERROR|unavailable|unavailable|unavailable|
+|13|EVALUATED|1|1|1|
+|14|ERROR|unavailable|unavailable|unavailable|
+|15|EVALUATED|1|1|1|
+|16|ERROR|unavailable|unavailable|unavailable|
+
+Four official ALL passes, one completed simulation with unavailable ALL judge, five application errors. This is not a complete ten-task success rate and not business closure. Task4's missing judge and five execution failures remain different failure classes.
+
+Task15 is a positive single-proposal witness: payment choice at message19, complete size/material/waterproof and price-difference proposal at20, approval21, successful modification and accurate final reply24. ALL/ENV/ACTION are1. It does not test compound approval/revision.
+
+Task16 extends the shared failure evidence: user17 supplies both cancellation targets/reason and the watch refund method; reply18 is the unassembled awaiting-approval fallback. Reply30 finally asks approval of the first prepared cancellation while identifying the second as future work. User31 approves cancellations and asks the watch refund amount. The application then fails in RoutePolicy with `command carries a stale or unauthorized binding`, as in6/10. Thus parameter acceptance ordering and interaction verification are coupled in the same multi-goal conversation, not independent product-specific exceptions. No new benchmark run should precede the owner/consumer migration described in the maintained plan.
