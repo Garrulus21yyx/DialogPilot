@@ -1,0 +1,881 @@
+{
+  "api_calls": 0,
+  "scope": "Reconstruct recorded stages without APIs; missing route pools stay missing.",
+  "executions": 7,
+  "reconstructed": 6,
+  "rows": [
+    {
+      "run": "rag-current-entry2-2026-09-08",
+      "case_id": "opened-negation",
+      "outcome": "Completed",
+      "classification": "stages_reconstructed",
+      "query": "耳机已拆封（已开封）的情况下，是否仍可享受七天无理由退货？七天无理由退货对已拆封商品的条件和限制是什么？",
+      "candidate_count": 20,
+      "candidate_ids": [
+        "knowledge-chunk-d9019c7932d1b6632b2090542f35fd1e01e79acf9a32d530f757e4109748ce14",
+        "knowledge-chunk-1df84b24cdcf80a276049697d361f00c1f1f9409575abf6fe05d9c96582534d2",
+        "knowledge-chunk-17720344f1c759c56c0f8e324db7ea516deec34b376f911b689bbc01c593c64a",
+        "knowledge-chunk-729b27d29a52c9ae9ff9785012a567e829413b355e124502a1ae1e6828db16c7",
+        "knowledge-chunk-f21e466f7d66146e45598963df6c40e39733841957f710805b34c3e8768227e7",
+        "knowledge-chunk-90aa8dbfe3d7f0d56a20177e3ec280e17e56a54e894baa93684af26c7ac3ab86",
+        "knowledge-chunk-3ed28fab14f7c66cfffd5fd5b772cb0f3fdf6b86966e52e662ee02528e888b08",
+        "knowledge-chunk-1598776e8ce3a5e1f3b745efbdd1379ff5c25898bd2e86421daf6f548cf255db",
+        "knowledge-chunk-6b0791170547c3372729633a7daac8ad871553a2b5bab583e4141ce596072dd6",
+        "knowledge-chunk-7405c3e186669d2cf649fd866682236c2ea25ca2422518b2c80fcefe4aafb419",
+        "knowledge-chunk-241363475671662979df1cd16d45ebf55a653783c5495e5a9df5baa32faba553",
+        "knowledge-chunk-1a88ba6c83a3b4a4acfaf91529b5ef93707489cf441732ecdb65c79bb8b874ed",
+        "knowledge-chunk-e8b3acb0b9700fb85368117681cfb14a3d1989200f40017299726d1e04789a95",
+        "knowledge-chunk-061f09a071f6f200c836075c8276c320c8c0fbbd750792d2b790b6b7b1656001",
+        "knowledge-chunk-b71b8a242ca8c860b1635aa9d29ccf775fc0cb76c3c434d15a1abab0abda4ebb",
+        "knowledge-chunk-93b4c7f3904ebf0fdd7fde43ba55ae817db004ef21f9b6173f595043fcfc4fae",
+        "knowledge-chunk-5955b7c34afd0721281f525608836800378c24d56c36bbd986e14b128bd5262e",
+        "knowledge-chunk-b3c1903d8f5eea57de9fa4dcc63faa7c7a41bc51da9eb1dbf77e2530cf992da3",
+        "knowledge-chunk-507eda4f698ca98248adf7d8fdf790c7c6847ec8943e05c44ab1837517762a33",
+        "knowledge-chunk-82b714be072843e5e0f94f2b083c9d825adcfa5f7e2d6927f733a92438b11ba8"
+      ],
+      "rerank_ids": [
+        "knowledge-chunk-d9019c7932d1b6632b2090542f35fd1e01e79acf9a32d530f757e4109748ce14",
+        "knowledge-chunk-729b27d29a52c9ae9ff9785012a567e829413b355e124502a1ae1e6828db16c7",
+        "knowledge-chunk-1df84b24cdcf80a276049697d361f00c1f1f9409575abf6fe05d9c96582534d2",
+        "knowledge-chunk-f21e466f7d66146e45598963df6c40e39733841957f710805b34c3e8768227e7",
+        "knowledge-chunk-3ed28fab14f7c66cfffd5fd5b772cb0f3fdf6b86966e52e662ee02528e888b08",
+        "knowledge-chunk-e8b3acb0b9700fb85368117681cfb14a3d1989200f40017299726d1e04789a95",
+        "knowledge-chunk-507eda4f698ca98248adf7d8fdf790c7c6847ec8943e05c44ab1837517762a33",
+        "knowledge-chunk-17720344f1c759c56c0f8e324db7ea516deec34b376f911b689bbc01c593c64a",
+        "knowledge-chunk-90aa8dbfe3d7f0d56a20177e3ec280e17e56a54e894baa93684af26c7ac3ab86",
+        "knowledge-chunk-1598776e8ce3a5e1f3b745efbdd1379ff5c25898bd2e86421daf6f548cf255db",
+        "knowledge-chunk-6b0791170547c3372729633a7daac8ad871553a2b5bab583e4141ce596072dd6",
+        "knowledge-chunk-7405c3e186669d2cf649fd866682236c2ea25ca2422518b2c80fcefe4aafb419",
+        "knowledge-chunk-241363475671662979df1cd16d45ebf55a653783c5495e5a9df5baa32faba553",
+        "knowledge-chunk-1a88ba6c83a3b4a4acfaf91529b5ef93707489cf441732ecdb65c79bb8b874ed",
+        "knowledge-chunk-061f09a071f6f200c836075c8276c320c8c0fbbd750792d2b790b6b7b1656001",
+        "knowledge-chunk-b71b8a242ca8c860b1635aa9d29ccf775fc0cb76c3c434d15a1abab0abda4ebb",
+        "knowledge-chunk-93b4c7f3904ebf0fdd7fde43ba55ae817db004ef21f9b6173f595043fcfc4fae",
+        "knowledge-chunk-5955b7c34afd0721281f525608836800378c24d56c36bbd986e14b128bd5262e",
+        "knowledge-chunk-b3c1903d8f5eea57de9fa4dcc63faa7c7a41bc51da9eb1dbf77e2530cf992da3",
+        "knowledge-chunk-82b714be072843e5e0f94f2b083c9d825adcfa5f7e2d6927f733a92438b11ba8"
+      ],
+      "packed_ids": [
+        "knowledge-chunk-d9019c7932d1b6632b2090542f35fd1e01e79acf9a32d530f757e4109748ce14",
+        "knowledge-chunk-729b27d29a52c9ae9ff9785012a567e829413b355e124502a1ae1e6828db16c7",
+        "knowledge-chunk-1df84b24cdcf80a276049697d361f00c1f1f9409575abf6fe05d9c96582534d2",
+        "knowledge-chunk-f21e466f7d66146e45598963df6c40e39733841957f710805b34c3e8768227e7",
+        "knowledge-chunk-3ed28fab14f7c66cfffd5fd5b772cb0f3fdf6b86966e52e662ee02528e888b08"
+      ],
+      "packed_verbatim_in_synthesis": 5,
+      "full_pre_fusion_route_pools_saved": false,
+      "candidates": [
+        {
+          "chunk_id": "knowledge-chunk-d9019c7932d1b6632b2090542f35fd1e01e79acf9a32d530f757e4109748ce14",
+          "text_sha256": "0b4488bd37a90f521f7482d0bbaa99d310360ffcdc446fa4a6e779b5e293e339"
+        },
+        {
+          "chunk_id": "knowledge-chunk-1df84b24cdcf80a276049697d361f00c1f1f9409575abf6fe05d9c96582534d2",
+          "text_sha256": "5402124df120178fac68fbe2a7cf2d24773366e75d726dcc2cff0a56456c5349"
+        },
+        {
+          "chunk_id": "knowledge-chunk-17720344f1c759c56c0f8e324db7ea516deec34b376f911b689bbc01c593c64a",
+          "text_sha256": "dba84bb67ac3405ecf4980d6545ed4edd671e5ce6f552b4d9e802dacad378b82"
+        },
+        {
+          "chunk_id": "knowledge-chunk-729b27d29a52c9ae9ff9785012a567e829413b355e124502a1ae1e6828db16c7",
+          "text_sha256": "f703e0d7e29f6b49c5c9f3f63e33bc7a4782b0acb70761db604350769332af13"
+        },
+        {
+          "chunk_id": "knowledge-chunk-f21e466f7d66146e45598963df6c40e39733841957f710805b34c3e8768227e7",
+          "text_sha256": "f66688e6963e7379a201c5b2c86d0a268c5c9496bd299e499a7408cb72cec688"
+        },
+        {
+          "chunk_id": "knowledge-chunk-90aa8dbfe3d7f0d56a20177e3ec280e17e56a54e894baa93684af26c7ac3ab86",
+          "text_sha256": "d2f2fb5a56114bd2ec9d236af37614f0c6459e47b1b2a3676d7b7bf56acf9f16"
+        },
+        {
+          "chunk_id": "knowledge-chunk-3ed28fab14f7c66cfffd5fd5b772cb0f3fdf6b86966e52e662ee02528e888b08",
+          "text_sha256": "2914393d6001b4b8e16d93fd5d944fc15b4a402d197d22732bfed033f43787db"
+        },
+        {
+          "chunk_id": "knowledge-chunk-1598776e8ce3a5e1f3b745efbdd1379ff5c25898bd2e86421daf6f548cf255db",
+          "text_sha256": "d0952b1caec850e5ef89755aa7ce4015f0a2855f0e74be1b782fd49cf971b45f"
+        },
+        {
+          "chunk_id": "knowledge-chunk-6b0791170547c3372729633a7daac8ad871553a2b5bab583e4141ce596072dd6",
+          "text_sha256": "2a88729e83f967439662ca13d74e81add685cf829306427bfb92eaeb2f5c0563"
+        },
+        {
+          "chunk_id": "knowledge-chunk-7405c3e186669d2cf649fd866682236c2ea25ca2422518b2c80fcefe4aafb419",
+          "text_sha256": "5307ee14c3354dce83b98b926dc563555e911076637fbf1e8e722a7c82895683"
+        },
+        {
+          "chunk_id": "knowledge-chunk-241363475671662979df1cd16d45ebf55a653783c5495e5a9df5baa32faba553",
+          "text_sha256": "d38b8ceada41f6cc059dfe2c7eb28c3225175637fe7addb463b5797c6cd8ec7f"
+        },
+        {
+          "chunk_id": "knowledge-chunk-1a88ba6c83a3b4a4acfaf91529b5ef93707489cf441732ecdb65c79bb8b874ed",
+          "text_sha256": "6666e95eb7f813750695b99b32a6be26ea818912699b58d5c69adb59f3ef0b7c"
+        },
+        {
+          "chunk_id": "knowledge-chunk-e8b3acb0b9700fb85368117681cfb14a3d1989200f40017299726d1e04789a95",
+          "text_sha256": "e505c05051f37fd8b32b144f0cc38d799a5b824331c914a9fd146b26524e9ee7"
+        },
+        {
+          "chunk_id": "knowledge-chunk-061f09a071f6f200c836075c8276c320c8c0fbbd750792d2b790b6b7b1656001",
+          "text_sha256": "f886b45de8148631561bdb36211a69a572192d397df7e7b93edf1c88405e3663"
+        },
+        {
+          "chunk_id": "knowledge-chunk-b71b8a242ca8c860b1635aa9d29ccf775fc0cb76c3c434d15a1abab0abda4ebb",
+          "text_sha256": "9cff2b43c16e36049b569e88c0a77af15f7460d368f6311c0935d81473e7f1a0"
+        },
+        {
+          "chunk_id": "knowledge-chunk-93b4c7f3904ebf0fdd7fde43ba55ae817db004ef21f9b6173f595043fcfc4fae",
+          "text_sha256": "19d5b679d078c7254963cf65e2ea34bb2faba7fbe165c965f0ede39676c2b210"
+        },
+        {
+          "chunk_id": "knowledge-chunk-5955b7c34afd0721281f525608836800378c24d56c36bbd986e14b128bd5262e",
+          "text_sha256": "3a3cce35ca47387561374755b39f9b1181bdcf7604b5fbad7f67ee78eb127cc5"
+        },
+        {
+          "chunk_id": "knowledge-chunk-b3c1903d8f5eea57de9fa4dcc63faa7c7a41bc51da9eb1dbf77e2530cf992da3",
+          "text_sha256": "6e2db1fbf465bf2ede548bbd426fd1d66f2d0d510b94ed092c1b1eae9a796a23"
+        },
+        {
+          "chunk_id": "knowledge-chunk-507eda4f698ca98248adf7d8fdf790c7c6847ec8943e05c44ab1837517762a33",
+          "text_sha256": "a1fe73bc50a7e9214ea25402c54834cebb9d09e572c2e0497e9e6ac3dfb9914b"
+        },
+        {
+          "chunk_id": "knowledge-chunk-82b714be072843e5e0f94f2b083c9d825adcfa5f7e2d6927f733a92438b11ba8",
+          "text_sha256": "85696ccc35924fbc951fb33c6b34f457575f81849e9341d1e621b9b4e76bc71a"
+        }
+      ]
+    },
+    {
+      "run": "rag-current-entry2-2026-09-08",
+      "case_id": "historical-policy",
+      "outcome": "Completed",
+      "classification": "stages_reconstructed",
+      "query": "质量退货的标准寄回运费报销政策在2026年3月1日适用的规则，最多报销金额是多少？请按2026年3月1日当时适用的规则回答，不要使用当前规则。",
+      "candidate_count": 20,
+      "candidate_ids": [
+        "knowledge-chunk-4f6d905d04c1dfa6aca14f298e4d50f824b93e671800d0b35d78e65d85941f1a",
+        "knowledge-chunk-507eda4f698ca98248adf7d8fdf790c7c6847ec8943e05c44ab1837517762a33",
+        "knowledge-chunk-93b4c7f3904ebf0fdd7fde43ba55ae817db004ef21f9b6173f595043fcfc4fae",
+        "knowledge-chunk-45ffa746e52d8cfc7f849e4c11126946fbf0a5d5a00637d2e849d359a7574070",
+        "knowledge-chunk-729b27d29a52c9ae9ff9785012a567e829413b355e124502a1ae1e6828db16c7",
+        "knowledge-chunk-1598776e8ce3a5e1f3b745efbdd1379ff5c25898bd2e86421daf6f548cf255db",
+        "knowledge-chunk-90aa8dbfe3d7f0d56a20177e3ec280e17e56a54e894baa93684af26c7ac3ab86",
+        "knowledge-chunk-e8b3acb0b9700fb85368117681cfb14a3d1989200f40017299726d1e04789a95",
+        "knowledge-chunk-d9019c7932d1b6632b2090542f35fd1e01e79acf9a32d530f757e4109748ce14",
+        "knowledge-chunk-979a85114acd17cba69ef198a9d3b41a56f69cc09a6996c503ba3a91d8879780",
+        "knowledge-chunk-9b56d99ce3a71cc1f958cad97d099868c9185b8a213abeed8006326623c1dec6",
+        "knowledge-chunk-6b0791170547c3372729633a7daac8ad871553a2b5bab583e4141ce596072dd6",
+        "knowledge-chunk-82b714be072843e5e0f94f2b083c9d825adcfa5f7e2d6927f733a92438b11ba8",
+        "knowledge-chunk-ebb646f9d14c6ad74fe79a52cdfb01510cb911e0d408e4c999509f5ff3f4c564",
+        "knowledge-chunk-1df84b24cdcf80a276049697d361f00c1f1f9409575abf6fe05d9c96582534d2",
+        "knowledge-chunk-f8194a701826b422cdb6c99d5b8eebc12273bf52a9d9ebc3b4aac5570d183a29",
+        "knowledge-chunk-3ed28fab14f7c66cfffd5fd5b772cb0f3fdf6b86966e52e662ee02528e888b08",
+        "knowledge-chunk-5955b7c34afd0721281f525608836800378c24d56c36bbd986e14b128bd5262e",
+        "knowledge-chunk-7405c3e186669d2cf649fd866682236c2ea25ca2422518b2c80fcefe4aafb419",
+        "knowledge-chunk-ca7aba5b3b8da3b6763401dede009ff6b9c63e1136f145c3a03b2bd75fe2b9b3"
+      ],
+      "rerank_ids": [
+        "knowledge-chunk-4f6d905d04c1dfa6aca14f298e4d50f824b93e671800d0b35d78e65d85941f1a",
+        "knowledge-chunk-507eda4f698ca98248adf7d8fdf790c7c6847ec8943e05c44ab1837517762a33",
+        "knowledge-chunk-729b27d29a52c9ae9ff9785012a567e829413b355e124502a1ae1e6828db16c7",
+        "knowledge-chunk-1598776e8ce3a5e1f3b745efbdd1379ff5c25898bd2e86421daf6f548cf255db",
+        "knowledge-chunk-90aa8dbfe3d7f0d56a20177e3ec280e17e56a54e894baa93684af26c7ac3ab86",
+        "knowledge-chunk-e8b3acb0b9700fb85368117681cfb14a3d1989200f40017299726d1e04789a95",
+        "knowledge-chunk-d9019c7932d1b6632b2090542f35fd1e01e79acf9a32d530f757e4109748ce14",
+        "knowledge-chunk-93b4c7f3904ebf0fdd7fde43ba55ae817db004ef21f9b6173f595043fcfc4fae",
+        "knowledge-chunk-45ffa746e52d8cfc7f849e4c11126946fbf0a5d5a00637d2e849d359a7574070",
+        "knowledge-chunk-979a85114acd17cba69ef198a9d3b41a56f69cc09a6996c503ba3a91d8879780",
+        "knowledge-chunk-9b56d99ce3a71cc1f958cad97d099868c9185b8a213abeed8006326623c1dec6",
+        "knowledge-chunk-6b0791170547c3372729633a7daac8ad871553a2b5bab583e4141ce596072dd6",
+        "knowledge-chunk-82b714be072843e5e0f94f2b083c9d825adcfa5f7e2d6927f733a92438b11ba8",
+        "knowledge-chunk-ebb646f9d14c6ad74fe79a52cdfb01510cb911e0d408e4c999509f5ff3f4c564",
+        "knowledge-chunk-1df84b24cdcf80a276049697d361f00c1f1f9409575abf6fe05d9c96582534d2",
+        "knowledge-chunk-f8194a701826b422cdb6c99d5b8eebc12273bf52a9d9ebc3b4aac5570d183a29",
+        "knowledge-chunk-3ed28fab14f7c66cfffd5fd5b772cb0f3fdf6b86966e52e662ee02528e888b08",
+        "knowledge-chunk-5955b7c34afd0721281f525608836800378c24d56c36bbd986e14b128bd5262e",
+        "knowledge-chunk-7405c3e186669d2cf649fd866682236c2ea25ca2422518b2c80fcefe4aafb419",
+        "knowledge-chunk-ca7aba5b3b8da3b6763401dede009ff6b9c63e1136f145c3a03b2bd75fe2b9b3"
+      ],
+      "packed_ids": [
+        "knowledge-chunk-4f6d905d04c1dfa6aca14f298e4d50f824b93e671800d0b35d78e65d85941f1a",
+        "knowledge-chunk-507eda4f698ca98248adf7d8fdf790c7c6847ec8943e05c44ab1837517762a33",
+        "knowledge-chunk-729b27d29a52c9ae9ff9785012a567e829413b355e124502a1ae1e6828db16c7",
+        "knowledge-chunk-1598776e8ce3a5e1f3b745efbdd1379ff5c25898bd2e86421daf6f548cf255db",
+        "knowledge-chunk-90aa8dbfe3d7f0d56a20177e3ec280e17e56a54e894baa93684af26c7ac3ab86"
+      ],
+      "packed_verbatim_in_synthesis": 5,
+      "full_pre_fusion_route_pools_saved": false,
+      "candidates": [
+        {
+          "chunk_id": "knowledge-chunk-4f6d905d04c1dfa6aca14f298e4d50f824b93e671800d0b35d78e65d85941f1a",
+          "text_sha256": "cf8279bae79e1f52aff14c9f9579ea14cafafa25bf51a760c112f65a542b91b1"
+        },
+        {
+          "chunk_id": "knowledge-chunk-507eda4f698ca98248adf7d8fdf790c7c6847ec8943e05c44ab1837517762a33",
+          "text_sha256": "a1fe73bc50a7e9214ea25402c54834cebb9d09e572c2e0497e9e6ac3dfb9914b"
+        },
+        {
+          "chunk_id": "knowledge-chunk-93b4c7f3904ebf0fdd7fde43ba55ae817db004ef21f9b6173f595043fcfc4fae",
+          "text_sha256": "19d5b679d078c7254963cf65e2ea34bb2faba7fbe165c965f0ede39676c2b210"
+        },
+        {
+          "chunk_id": "knowledge-chunk-45ffa746e52d8cfc7f849e4c11126946fbf0a5d5a00637d2e849d359a7574070",
+          "text_sha256": "6148aadb3d3918b5e89ee20f31d2dfdc31287fde06885640d0f8ce335053c8f5"
+        },
+        {
+          "chunk_id": "knowledge-chunk-729b27d29a52c9ae9ff9785012a567e829413b355e124502a1ae1e6828db16c7",
+          "text_sha256": "f703e0d7e29f6b49c5c9f3f63e33bc7a4782b0acb70761db604350769332af13"
+        },
+        {
+          "chunk_id": "knowledge-chunk-1598776e8ce3a5e1f3b745efbdd1379ff5c25898bd2e86421daf6f548cf255db",
+          "text_sha256": "d0952b1caec850e5ef89755aa7ce4015f0a2855f0e74be1b782fd49cf971b45f"
+        },
+        {
+          "chunk_id": "knowledge-chunk-90aa8dbfe3d7f0d56a20177e3ec280e17e56a54e894baa93684af26c7ac3ab86",
+          "text_sha256": "d2f2fb5a56114bd2ec9d236af37614f0c6459e47b1b2a3676d7b7bf56acf9f16"
+        },
+        {
+          "chunk_id": "knowledge-chunk-e8b3acb0b9700fb85368117681cfb14a3d1989200f40017299726d1e04789a95",
+          "text_sha256": "e505c05051f37fd8b32b144f0cc38d799a5b824331c914a9fd146b26524e9ee7"
+        },
+        {
+          "chunk_id": "knowledge-chunk-d9019c7932d1b6632b2090542f35fd1e01e79acf9a32d530f757e4109748ce14",
+          "text_sha256": "0b4488bd37a90f521f7482d0bbaa99d310360ffcdc446fa4a6e779b5e293e339"
+        },
+        {
+          "chunk_id": "knowledge-chunk-979a85114acd17cba69ef198a9d3b41a56f69cc09a6996c503ba3a91d8879780",
+          "text_sha256": "a0b4b434bee5d94d14db9c5d8c124869ada671786c91c50d91b60ca165345990"
+        },
+        {
+          "chunk_id": "knowledge-chunk-9b56d99ce3a71cc1f958cad97d099868c9185b8a213abeed8006326623c1dec6",
+          "text_sha256": "7950cb4cb6703b0fc289f7e3a51c01daf7d9e1d0e59f7151667236638ae22ecf"
+        },
+        {
+          "chunk_id": "knowledge-chunk-6b0791170547c3372729633a7daac8ad871553a2b5bab583e4141ce596072dd6",
+          "text_sha256": "2a88729e83f967439662ca13d74e81add685cf829306427bfb92eaeb2f5c0563"
+        },
+        {
+          "chunk_id": "knowledge-chunk-82b714be072843e5e0f94f2b083c9d825adcfa5f7e2d6927f733a92438b11ba8",
+          "text_sha256": "85696ccc35924fbc951fb33c6b34f457575f81849e9341d1e621b9b4e76bc71a"
+        },
+        {
+          "chunk_id": "knowledge-chunk-ebb646f9d14c6ad74fe79a52cdfb01510cb911e0d408e4c999509f5ff3f4c564",
+          "text_sha256": "b2058449b3168f8904f311d11436851ec941c58d6df900cd14c5a105748ce064"
+        },
+        {
+          "chunk_id": "knowledge-chunk-1df84b24cdcf80a276049697d361f00c1f1f9409575abf6fe05d9c96582534d2",
+          "text_sha256": "5402124df120178fac68fbe2a7cf2d24773366e75d726dcc2cff0a56456c5349"
+        },
+        {
+          "chunk_id": "knowledge-chunk-f8194a701826b422cdb6c99d5b8eebc12273bf52a9d9ebc3b4aac5570d183a29",
+          "text_sha256": "9fb012c5fbd4f020eba5d78c8e4861d8b8874705cde79995844b6fe045fe3dc4"
+        },
+        {
+          "chunk_id": "knowledge-chunk-3ed28fab14f7c66cfffd5fd5b772cb0f3fdf6b86966e52e662ee02528e888b08",
+          "text_sha256": "2914393d6001b4b8e16d93fd5d944fc15b4a402d197d22732bfed033f43787db"
+        },
+        {
+          "chunk_id": "knowledge-chunk-5955b7c34afd0721281f525608836800378c24d56c36bbd986e14b128bd5262e",
+          "text_sha256": "3a3cce35ca47387561374755b39f9b1181bdcf7604b5fbad7f67ee78eb127cc5"
+        },
+        {
+          "chunk_id": "knowledge-chunk-7405c3e186669d2cf649fd866682236c2ea25ca2422518b2c80fcefe4aafb419",
+          "text_sha256": "5307ee14c3354dce83b98b926dc563555e911076637fbf1e8e722a7c82895683"
+        },
+        {
+          "chunk_id": "knowledge-chunk-ca7aba5b3b8da3b6763401dede009ff6b9c63e1136f145c3a03b2bd75fe2b9b3",
+          "text_sha256": "f3c742fef53232f7ba7b56518d45fd17fe809fd71298ac727ceabbd9cfc29d91"
+        }
+      ]
+    },
+    {
+      "run": "rag-entry-multicondition4-2026-09-08",
+      "case_id": "boundary-express",
+      "outcome": "Completed",
+      "classification": "stages_reconstructed",
+      "query": "2026年4月1日当天适用的退货退款运费报销上限是多少？加急寄回的运费是否也报销？仅询问规则，不执行任何操作。",
+      "candidate_count": 20,
+      "candidate_ids": [
+        "knowledge-chunk-8af114c8031bd6b811ca71096c0f90026e6c04246e42869bf76e3528f4b836f2",
+        "knowledge-chunk-507eda4f698ca98248adf7d8fdf790c7c6847ec8943e05c44ab1837517762a33",
+        "knowledge-chunk-729b27d29a52c9ae9ff9785012a567e829413b355e124502a1ae1e6828db16c7",
+        "knowledge-chunk-1598776e8ce3a5e1f3b745efbdd1379ff5c25898bd2e86421daf6f548cf255db",
+        "knowledge-chunk-979a85114acd17cba69ef198a9d3b41a56f69cc09a6996c503ba3a91d8879780",
+        "knowledge-chunk-93b4c7f3904ebf0fdd7fde43ba55ae817db004ef21f9b6173f595043fcfc4fae",
+        "knowledge-chunk-90aa8dbfe3d7f0d56a20177e3ec280e17e56a54e894baa93684af26c7ac3ab86",
+        "knowledge-chunk-e8b3acb0b9700fb85368117681cfb14a3d1989200f40017299726d1e04789a95",
+        "knowledge-chunk-f21e466f7d66146e45598963df6c40e39733841957f710805b34c3e8768227e7",
+        "knowledge-chunk-45ffa746e52d8cfc7f849e4c11126946fbf0a5d5a00637d2e849d359a7574070",
+        "knowledge-chunk-3ed28fab14f7c66cfffd5fd5b772cb0f3fdf6b86966e52e662ee02528e888b08",
+        "knowledge-chunk-5955b7c34afd0721281f525608836800378c24d56c36bbd986e14b128bd5262e",
+        "knowledge-chunk-1df84b24cdcf80a276049697d361f00c1f1f9409575abf6fe05d9c96582534d2",
+        "knowledge-chunk-d9019c7932d1b6632b2090542f35fd1e01e79acf9a32d530f757e4109748ce14",
+        "knowledge-chunk-006981e659d461c3a2fff2701a6955acdd9aee6aab1427bdbf4da01b26846996",
+        "knowledge-chunk-f8194a701826b422cdb6c99d5b8eebc12273bf52a9d9ebc3b4aac5570d183a29",
+        "knowledge-chunk-9b56d99ce3a71cc1f958cad97d099868c9185b8a213abeed8006326623c1dec6",
+        "knowledge-chunk-17720344f1c759c56c0f8e324db7ea516deec34b376f911b689bbc01c593c64a",
+        "knowledge-chunk-6b0791170547c3372729633a7daac8ad871553a2b5bab583e4141ce596072dd6",
+        "knowledge-chunk-e51188bb29a06f4b37e554f5ee16e440b345dd914832a9626a725ca571cda689"
+      ],
+      "rerank_ids": [
+        "knowledge-chunk-507eda4f698ca98248adf7d8fdf790c7c6847ec8943e05c44ab1837517762a33",
+        "knowledge-chunk-8af114c8031bd6b811ca71096c0f90026e6c04246e42869bf76e3528f4b836f2",
+        "knowledge-chunk-729b27d29a52c9ae9ff9785012a567e829413b355e124502a1ae1e6828db16c7",
+        "knowledge-chunk-1598776e8ce3a5e1f3b745efbdd1379ff5c25898bd2e86421daf6f548cf255db",
+        "knowledge-chunk-979a85114acd17cba69ef198a9d3b41a56f69cc09a6996c503ba3a91d8879780",
+        "knowledge-chunk-93b4c7f3904ebf0fdd7fde43ba55ae817db004ef21f9b6173f595043fcfc4fae",
+        "knowledge-chunk-90aa8dbfe3d7f0d56a20177e3ec280e17e56a54e894baa93684af26c7ac3ab86",
+        "knowledge-chunk-e8b3acb0b9700fb85368117681cfb14a3d1989200f40017299726d1e04789a95",
+        "knowledge-chunk-f21e466f7d66146e45598963df6c40e39733841957f710805b34c3e8768227e7",
+        "knowledge-chunk-45ffa746e52d8cfc7f849e4c11126946fbf0a5d5a00637d2e849d359a7574070",
+        "knowledge-chunk-3ed28fab14f7c66cfffd5fd5b772cb0f3fdf6b86966e52e662ee02528e888b08",
+        "knowledge-chunk-5955b7c34afd0721281f525608836800378c24d56c36bbd986e14b128bd5262e",
+        "knowledge-chunk-1df84b24cdcf80a276049697d361f00c1f1f9409575abf6fe05d9c96582534d2",
+        "knowledge-chunk-d9019c7932d1b6632b2090542f35fd1e01e79acf9a32d530f757e4109748ce14",
+        "knowledge-chunk-006981e659d461c3a2fff2701a6955acdd9aee6aab1427bdbf4da01b26846996",
+        "knowledge-chunk-f8194a701826b422cdb6c99d5b8eebc12273bf52a9d9ebc3b4aac5570d183a29",
+        "knowledge-chunk-9b56d99ce3a71cc1f958cad97d099868c9185b8a213abeed8006326623c1dec6",
+        "knowledge-chunk-17720344f1c759c56c0f8e324db7ea516deec34b376f911b689bbc01c593c64a",
+        "knowledge-chunk-6b0791170547c3372729633a7daac8ad871553a2b5bab583e4141ce596072dd6",
+        "knowledge-chunk-e51188bb29a06f4b37e554f5ee16e440b345dd914832a9626a725ca571cda689"
+      ],
+      "packed_ids": [
+        "knowledge-chunk-507eda4f698ca98248adf7d8fdf790c7c6847ec8943e05c44ab1837517762a33",
+        "knowledge-chunk-8af114c8031bd6b811ca71096c0f90026e6c04246e42869bf76e3528f4b836f2",
+        "knowledge-chunk-729b27d29a52c9ae9ff9785012a567e829413b355e124502a1ae1e6828db16c7",
+        "knowledge-chunk-1598776e8ce3a5e1f3b745efbdd1379ff5c25898bd2e86421daf6f548cf255db",
+        "knowledge-chunk-979a85114acd17cba69ef198a9d3b41a56f69cc09a6996c503ba3a91d8879780"
+      ],
+      "packed_verbatim_in_synthesis": 5,
+      "full_pre_fusion_route_pools_saved": false,
+      "candidates": [
+        {
+          "chunk_id": "knowledge-chunk-8af114c8031bd6b811ca71096c0f90026e6c04246e42869bf76e3528f4b836f2",
+          "text_sha256": "5f55157513b7b1b36c6145d11a1f66ffbb3647b6e4caf788169f9bf8c40c1b47"
+        },
+        {
+          "chunk_id": "knowledge-chunk-507eda4f698ca98248adf7d8fdf790c7c6847ec8943e05c44ab1837517762a33",
+          "text_sha256": "a1fe73bc50a7e9214ea25402c54834cebb9d09e572c2e0497e9e6ac3dfb9914b"
+        },
+        {
+          "chunk_id": "knowledge-chunk-729b27d29a52c9ae9ff9785012a567e829413b355e124502a1ae1e6828db16c7",
+          "text_sha256": "f703e0d7e29f6b49c5c9f3f63e33bc7a4782b0acb70761db604350769332af13"
+        },
+        {
+          "chunk_id": "knowledge-chunk-1598776e8ce3a5e1f3b745efbdd1379ff5c25898bd2e86421daf6f548cf255db",
+          "text_sha256": "d0952b1caec850e5ef89755aa7ce4015f0a2855f0e74be1b782fd49cf971b45f"
+        },
+        {
+          "chunk_id": "knowledge-chunk-979a85114acd17cba69ef198a9d3b41a56f69cc09a6996c503ba3a91d8879780",
+          "text_sha256": "a0b4b434bee5d94d14db9c5d8c124869ada671786c91c50d91b60ca165345990"
+        },
+        {
+          "chunk_id": "knowledge-chunk-93b4c7f3904ebf0fdd7fde43ba55ae817db004ef21f9b6173f595043fcfc4fae",
+          "text_sha256": "19d5b679d078c7254963cf65e2ea34bb2faba7fbe165c965f0ede39676c2b210"
+        },
+        {
+          "chunk_id": "knowledge-chunk-90aa8dbfe3d7f0d56a20177e3ec280e17e56a54e894baa93684af26c7ac3ab86",
+          "text_sha256": "d2f2fb5a56114bd2ec9d236af37614f0c6459e47b1b2a3676d7b7bf56acf9f16"
+        },
+        {
+          "chunk_id": "knowledge-chunk-e8b3acb0b9700fb85368117681cfb14a3d1989200f40017299726d1e04789a95",
+          "text_sha256": "e505c05051f37fd8b32b144f0cc38d799a5b824331c914a9fd146b26524e9ee7"
+        },
+        {
+          "chunk_id": "knowledge-chunk-f21e466f7d66146e45598963df6c40e39733841957f710805b34c3e8768227e7",
+          "text_sha256": "f66688e6963e7379a201c5b2c86d0a268c5c9496bd299e499a7408cb72cec688"
+        },
+        {
+          "chunk_id": "knowledge-chunk-45ffa746e52d8cfc7f849e4c11126946fbf0a5d5a00637d2e849d359a7574070",
+          "text_sha256": "6148aadb3d3918b5e89ee20f31d2dfdc31287fde06885640d0f8ce335053c8f5"
+        },
+        {
+          "chunk_id": "knowledge-chunk-3ed28fab14f7c66cfffd5fd5b772cb0f3fdf6b86966e52e662ee02528e888b08",
+          "text_sha256": "2914393d6001b4b8e16d93fd5d944fc15b4a402d197d22732bfed033f43787db"
+        },
+        {
+          "chunk_id": "knowledge-chunk-5955b7c34afd0721281f525608836800378c24d56c36bbd986e14b128bd5262e",
+          "text_sha256": "3a3cce35ca47387561374755b39f9b1181bdcf7604b5fbad7f67ee78eb127cc5"
+        },
+        {
+          "chunk_id": "knowledge-chunk-1df84b24cdcf80a276049697d361f00c1f1f9409575abf6fe05d9c96582534d2",
+          "text_sha256": "5402124df120178fac68fbe2a7cf2d24773366e75d726dcc2cff0a56456c5349"
+        },
+        {
+          "chunk_id": "knowledge-chunk-d9019c7932d1b6632b2090542f35fd1e01e79acf9a32d530f757e4109748ce14",
+          "text_sha256": "0b4488bd37a90f521f7482d0bbaa99d310360ffcdc446fa4a6e779b5e293e339"
+        },
+        {
+          "chunk_id": "knowledge-chunk-006981e659d461c3a2fff2701a6955acdd9aee6aab1427bdbf4da01b26846996",
+          "text_sha256": "00a7161ccdf4810928b8ca72a4d2f130f9f52d17ac7011795cf4dd8476e8d67b"
+        },
+        {
+          "chunk_id": "knowledge-chunk-f8194a701826b422cdb6c99d5b8eebc12273bf52a9d9ebc3b4aac5570d183a29",
+          "text_sha256": "9fb012c5fbd4f020eba5d78c8e4861d8b8874705cde79995844b6fe045fe3dc4"
+        },
+        {
+          "chunk_id": "knowledge-chunk-9b56d99ce3a71cc1f958cad97d099868c9185b8a213abeed8006326623c1dec6",
+          "text_sha256": "7950cb4cb6703b0fc289f7e3a51c01daf7d9e1d0e59f7151667236638ae22ecf"
+        },
+        {
+          "chunk_id": "knowledge-chunk-17720344f1c759c56c0f8e324db7ea516deec34b376f911b689bbc01c593c64a",
+          "text_sha256": "dba84bb67ac3405ecf4980d6545ed4edd671e5ce6f552b4d9e802dacad378b82"
+        },
+        {
+          "chunk_id": "knowledge-chunk-6b0791170547c3372729633a7daac8ad871553a2b5bab583e4141ce596072dd6",
+          "text_sha256": "2a88729e83f967439662ca13d74e81add685cf829306427bfb92eaeb2f5c0563"
+        },
+        {
+          "chunk_id": "knowledge-chunk-e51188bb29a06f4b37e554f5ee16e440b345dd914832a9626a725ca571cda689",
+          "text_sha256": "8f359f8b18369c82bae9802315d92521fb934ad367663571c8684ea8c92f2275"
+        }
+      ]
+    },
+    {
+      "run": "rag-entry-multicondition4-2026-09-08",
+      "case_id": "eu-day10",
+      "outcome": "Completed",
+      "classification": "stages_reconstructed",
+      "query": "欧洲区购买、未拆封的普通商品，签收第十天申请无理由退货，期限是否来得及？退货申请期限如何计算？",
+      "candidate_count": 20,
+      "candidate_ids": [
+        "knowledge-chunk-17720344f1c759c56c0f8e324db7ea516deec34b376f911b689bbc01c593c64a",
+        "knowledge-chunk-d9019c7932d1b6632b2090542f35fd1e01e79acf9a32d530f757e4109748ce14",
+        "knowledge-chunk-f21e466f7d66146e45598963df6c40e39733841957f710805b34c3e8768227e7",
+        "knowledge-chunk-3ed28fab14f7c66cfffd5fd5b772cb0f3fdf6b86966e52e662ee02528e888b08",
+        "knowledge-chunk-e8b3acb0b9700fb85368117681cfb14a3d1989200f40017299726d1e04789a95",
+        "knowledge-chunk-90aa8dbfe3d7f0d56a20177e3ec280e17e56a54e894baa93684af26c7ac3ab86",
+        "knowledge-chunk-006981e659d461c3a2fff2701a6955acdd9aee6aab1427bdbf4da01b26846996",
+        "knowledge-chunk-8af114c8031bd6b811ca71096c0f90026e6c04246e42869bf76e3528f4b836f2",
+        "knowledge-chunk-45ffa746e52d8cfc7f849e4c11126946fbf0a5d5a00637d2e849d359a7574070",
+        "knowledge-chunk-93b4c7f3904ebf0fdd7fde43ba55ae817db004ef21f9b6173f595043fcfc4fae",
+        "knowledge-chunk-6b0791170547c3372729633a7daac8ad871553a2b5bab583e4141ce596072dd6",
+        "knowledge-chunk-507eda4f698ca98248adf7d8fdf790c7c6847ec8943e05c44ab1837517762a33",
+        "knowledge-chunk-7405c3e186669d2cf649fd866682236c2ea25ca2422518b2c80fcefe4aafb419",
+        "knowledge-chunk-ebb646f9d14c6ad74fe79a52cdfb01510cb911e0d408e4c999509f5ff3f4c564",
+        "knowledge-chunk-241363475671662979df1cd16d45ebf55a653783c5495e5a9df5baa32faba553",
+        "knowledge-chunk-82b714be072843e5e0f94f2b083c9d825adcfa5f7e2d6927f733a92438b11ba8",
+        "knowledge-chunk-979a85114acd17cba69ef198a9d3b41a56f69cc09a6996c503ba3a91d8879780",
+        "knowledge-chunk-5955b7c34afd0721281f525608836800378c24d56c36bbd986e14b128bd5262e",
+        "knowledge-chunk-b71b8a242ca8c860b1635aa9d29ccf775fc0cb76c3c434d15a1abab0abda4ebb",
+        "knowledge-chunk-b3c1903d8f5eea57de9fa4dcc63faa7c7a41bc51da9eb1dbf77e2530cf992da3"
+      ],
+      "rerank_ids": [
+        "knowledge-chunk-17720344f1c759c56c0f8e324db7ea516deec34b376f911b689bbc01c593c64a",
+        "knowledge-chunk-f21e466f7d66146e45598963df6c40e39733841957f710805b34c3e8768227e7",
+        "knowledge-chunk-3ed28fab14f7c66cfffd5fd5b772cb0f3fdf6b86966e52e662ee02528e888b08",
+        "knowledge-chunk-d9019c7932d1b6632b2090542f35fd1e01e79acf9a32d530f757e4109748ce14",
+        "knowledge-chunk-e8b3acb0b9700fb85368117681cfb14a3d1989200f40017299726d1e04789a95",
+        "knowledge-chunk-507eda4f698ca98248adf7d8fdf790c7c6847ec8943e05c44ab1837517762a33",
+        "knowledge-chunk-90aa8dbfe3d7f0d56a20177e3ec280e17e56a54e894baa93684af26c7ac3ab86",
+        "knowledge-chunk-006981e659d461c3a2fff2701a6955acdd9aee6aab1427bdbf4da01b26846996",
+        "knowledge-chunk-8af114c8031bd6b811ca71096c0f90026e6c04246e42869bf76e3528f4b836f2",
+        "knowledge-chunk-45ffa746e52d8cfc7f849e4c11126946fbf0a5d5a00637d2e849d359a7574070",
+        "knowledge-chunk-93b4c7f3904ebf0fdd7fde43ba55ae817db004ef21f9b6173f595043fcfc4fae",
+        "knowledge-chunk-6b0791170547c3372729633a7daac8ad871553a2b5bab583e4141ce596072dd6",
+        "knowledge-chunk-7405c3e186669d2cf649fd866682236c2ea25ca2422518b2c80fcefe4aafb419",
+        "knowledge-chunk-ebb646f9d14c6ad74fe79a52cdfb01510cb911e0d408e4c999509f5ff3f4c564",
+        "knowledge-chunk-241363475671662979df1cd16d45ebf55a653783c5495e5a9df5baa32faba553",
+        "knowledge-chunk-82b714be072843e5e0f94f2b083c9d825adcfa5f7e2d6927f733a92438b11ba8",
+        "knowledge-chunk-979a85114acd17cba69ef198a9d3b41a56f69cc09a6996c503ba3a91d8879780",
+        "knowledge-chunk-5955b7c34afd0721281f525608836800378c24d56c36bbd986e14b128bd5262e",
+        "knowledge-chunk-b71b8a242ca8c860b1635aa9d29ccf775fc0cb76c3c434d15a1abab0abda4ebb",
+        "knowledge-chunk-b3c1903d8f5eea57de9fa4dcc63faa7c7a41bc51da9eb1dbf77e2530cf992da3"
+      ],
+      "packed_ids": [
+        "knowledge-chunk-17720344f1c759c56c0f8e324db7ea516deec34b376f911b689bbc01c593c64a",
+        "knowledge-chunk-f21e466f7d66146e45598963df6c40e39733841957f710805b34c3e8768227e7",
+        "knowledge-chunk-3ed28fab14f7c66cfffd5fd5b772cb0f3fdf6b86966e52e662ee02528e888b08",
+        "knowledge-chunk-d9019c7932d1b6632b2090542f35fd1e01e79acf9a32d530f757e4109748ce14",
+        "knowledge-chunk-e8b3acb0b9700fb85368117681cfb14a3d1989200f40017299726d1e04789a95"
+      ],
+      "packed_verbatim_in_synthesis": 5,
+      "full_pre_fusion_route_pools_saved": false,
+      "candidates": [
+        {
+          "chunk_id": "knowledge-chunk-17720344f1c759c56c0f8e324db7ea516deec34b376f911b689bbc01c593c64a",
+          "text_sha256": "dba84bb67ac3405ecf4980d6545ed4edd671e5ce6f552b4d9e802dacad378b82"
+        },
+        {
+          "chunk_id": "knowledge-chunk-d9019c7932d1b6632b2090542f35fd1e01e79acf9a32d530f757e4109748ce14",
+          "text_sha256": "0b4488bd37a90f521f7482d0bbaa99d310360ffcdc446fa4a6e779b5e293e339"
+        },
+        {
+          "chunk_id": "knowledge-chunk-f21e466f7d66146e45598963df6c40e39733841957f710805b34c3e8768227e7",
+          "text_sha256": "f66688e6963e7379a201c5b2c86d0a268c5c9496bd299e499a7408cb72cec688"
+        },
+        {
+          "chunk_id": "knowledge-chunk-3ed28fab14f7c66cfffd5fd5b772cb0f3fdf6b86966e52e662ee02528e888b08",
+          "text_sha256": "2914393d6001b4b8e16d93fd5d944fc15b4a402d197d22732bfed033f43787db"
+        },
+        {
+          "chunk_id": "knowledge-chunk-e8b3acb0b9700fb85368117681cfb14a3d1989200f40017299726d1e04789a95",
+          "text_sha256": "e505c05051f37fd8b32b144f0cc38d799a5b824331c914a9fd146b26524e9ee7"
+        },
+        {
+          "chunk_id": "knowledge-chunk-90aa8dbfe3d7f0d56a20177e3ec280e17e56a54e894baa93684af26c7ac3ab86",
+          "text_sha256": "d2f2fb5a56114bd2ec9d236af37614f0c6459e47b1b2a3676d7b7bf56acf9f16"
+        },
+        {
+          "chunk_id": "knowledge-chunk-006981e659d461c3a2fff2701a6955acdd9aee6aab1427bdbf4da01b26846996",
+          "text_sha256": "00a7161ccdf4810928b8ca72a4d2f130f9f52d17ac7011795cf4dd8476e8d67b"
+        },
+        {
+          "chunk_id": "knowledge-chunk-8af114c8031bd6b811ca71096c0f90026e6c04246e42869bf76e3528f4b836f2",
+          "text_sha256": "5f55157513b7b1b36c6145d11a1f66ffbb3647b6e4caf788169f9bf8c40c1b47"
+        },
+        {
+          "chunk_id": "knowledge-chunk-45ffa746e52d8cfc7f849e4c11126946fbf0a5d5a00637d2e849d359a7574070",
+          "text_sha256": "6148aadb3d3918b5e89ee20f31d2dfdc31287fde06885640d0f8ce335053c8f5"
+        },
+        {
+          "chunk_id": "knowledge-chunk-93b4c7f3904ebf0fdd7fde43ba55ae817db004ef21f9b6173f595043fcfc4fae",
+          "text_sha256": "19d5b679d078c7254963cf65e2ea34bb2faba7fbe165c965f0ede39676c2b210"
+        },
+        {
+          "chunk_id": "knowledge-chunk-6b0791170547c3372729633a7daac8ad871553a2b5bab583e4141ce596072dd6",
+          "text_sha256": "2a88729e83f967439662ca13d74e81add685cf829306427bfb92eaeb2f5c0563"
+        },
+        {
+          "chunk_id": "knowledge-chunk-507eda4f698ca98248adf7d8fdf790c7c6847ec8943e05c44ab1837517762a33",
+          "text_sha256": "a1fe73bc50a7e9214ea25402c54834cebb9d09e572c2e0497e9e6ac3dfb9914b"
+        },
+        {
+          "chunk_id": "knowledge-chunk-7405c3e186669d2cf649fd866682236c2ea25ca2422518b2c80fcefe4aafb419",
+          "text_sha256": "5307ee14c3354dce83b98b926dc563555e911076637fbf1e8e722a7c82895683"
+        },
+        {
+          "chunk_id": "knowledge-chunk-ebb646f9d14c6ad74fe79a52cdfb01510cb911e0d408e4c999509f5ff3f4c564",
+          "text_sha256": "b2058449b3168f8904f311d11436851ec941c58d6df900cd14c5a105748ce064"
+        },
+        {
+          "chunk_id": "knowledge-chunk-241363475671662979df1cd16d45ebf55a653783c5495e5a9df5baa32faba553",
+          "text_sha256": "d38b8ceada41f6cc059dfe2c7eb28c3225175637fe7addb463b5797c6cd8ec7f"
+        },
+        {
+          "chunk_id": "knowledge-chunk-82b714be072843e5e0f94f2b083c9d825adcfa5f7e2d6927f733a92438b11ba8",
+          "text_sha256": "85696ccc35924fbc951fb33c6b34f457575f81849e9341d1e621b9b4e76bc71a"
+        },
+        {
+          "chunk_id": "knowledge-chunk-979a85114acd17cba69ef198a9d3b41a56f69cc09a6996c503ba3a91d8879780",
+          "text_sha256": "a0b4b434bee5d94d14db9c5d8c124869ada671786c91c50d91b60ca165345990"
+        },
+        {
+          "chunk_id": "knowledge-chunk-5955b7c34afd0721281f525608836800378c24d56c36bbd986e14b128bd5262e",
+          "text_sha256": "3a3cce35ca47387561374755b39f9b1181bdcf7604b5fbad7f67ee78eb127cc5"
+        },
+        {
+          "chunk_id": "knowledge-chunk-b71b8a242ca8c860b1635aa9d29ccf775fc0cb76c3c434d15a1abab0abda4ebb",
+          "text_sha256": "9cff2b43c16e36049b569e88c0a77af15f7460d368f6311c0935d81473e7f1a0"
+        },
+        {
+          "chunk_id": "knowledge-chunk-b3c1903d8f5eea57de9fa4dcc63faa7c7a41bc51da9eb1dbf77e2530cf992da3",
+          "text_sha256": "6e2db1fbf465bf2ede548bbd426fd1d66f2d0d510b94ed092c1b1eae9a796a23"
+        }
+      ]
+    },
+    {
+      "run": "rag-entry-multicondition4-2026-09-08",
+      "case_id": "custom-not-quality",
+      "outcome": "Completed",
+      "classification": "stages_reconstructed",
+      "query": "刻有名字的定制商品（未拆封，收到三天）是否适用七日无理由退货？定制/刻字商品是否属于无理由退货的例外情形？",
+      "candidate_count": 20,
+      "candidate_ids": [
+        "knowledge-chunk-729b27d29a52c9ae9ff9785012a567e829413b355e124502a1ae1e6828db16c7",
+        "knowledge-chunk-d9019c7932d1b6632b2090542f35fd1e01e79acf9a32d530f757e4109748ce14",
+        "knowledge-chunk-1df84b24cdcf80a276049697d361f00c1f1f9409575abf6fe05d9c96582534d2",
+        "knowledge-chunk-90aa8dbfe3d7f0d56a20177e3ec280e17e56a54e894baa93684af26c7ac3ab86",
+        "knowledge-chunk-17720344f1c759c56c0f8e324db7ea516deec34b376f911b689bbc01c593c64a",
+        "knowledge-chunk-1598776e8ce3a5e1f3b745efbdd1379ff5c25898bd2e86421daf6f548cf255db",
+        "knowledge-chunk-f21e466f7d66146e45598963df6c40e39733841957f710805b34c3e8768227e7",
+        "knowledge-chunk-507eda4f698ca98248adf7d8fdf790c7c6847ec8943e05c44ab1837517762a33",
+        "knowledge-chunk-006981e659d461c3a2fff2701a6955acdd9aee6aab1427bdbf4da01b26846996",
+        "knowledge-chunk-3ed28fab14f7c66cfffd5fd5b772cb0f3fdf6b86966e52e662ee02528e888b08",
+        "knowledge-chunk-1a88ba6c83a3b4a4acfaf91529b5ef93707489cf441732ecdb65c79bb8b874ed",
+        "knowledge-chunk-e8b3acb0b9700fb85368117681cfb14a3d1989200f40017299726d1e04789a95",
+        "knowledge-chunk-45ffa746e52d8cfc7f849e4c11126946fbf0a5d5a00637d2e849d359a7574070",
+        "knowledge-chunk-b71b8a242ca8c860b1635aa9d29ccf775fc0cb76c3c434d15a1abab0abda4ebb",
+        "knowledge-chunk-9b56d99ce3a71cc1f958cad97d099868c9185b8a213abeed8006326623c1dec6",
+        "knowledge-chunk-93b4c7f3904ebf0fdd7fde43ba55ae817db004ef21f9b6173f595043fcfc4fae",
+        "knowledge-chunk-5955b7c34afd0721281f525608836800378c24d56c36bbd986e14b128bd5262e",
+        "knowledge-chunk-b3c1903d8f5eea57de9fa4dcc63faa7c7a41bc51da9eb1dbf77e2530cf992da3",
+        "knowledge-chunk-7405c3e186669d2cf649fd866682236c2ea25ca2422518b2c80fcefe4aafb419",
+        "knowledge-chunk-061f09a071f6f200c836075c8276c320c8c0fbbd750792d2b790b6b7b1656001"
+      ],
+      "rerank_ids": [
+        "knowledge-chunk-729b27d29a52c9ae9ff9785012a567e829413b355e124502a1ae1e6828db16c7",
+        "knowledge-chunk-90aa8dbfe3d7f0d56a20177e3ec280e17e56a54e894baa93684af26c7ac3ab86",
+        "knowledge-chunk-1df84b24cdcf80a276049697d361f00c1f1f9409575abf6fe05d9c96582534d2",
+        "knowledge-chunk-f21e466f7d66146e45598963df6c40e39733841957f710805b34c3e8768227e7",
+        "knowledge-chunk-3ed28fab14f7c66cfffd5fd5b772cb0f3fdf6b86966e52e662ee02528e888b08",
+        "knowledge-chunk-d9019c7932d1b6632b2090542f35fd1e01e79acf9a32d530f757e4109748ce14",
+        "knowledge-chunk-17720344f1c759c56c0f8e324db7ea516deec34b376f911b689bbc01c593c64a",
+        "knowledge-chunk-1598776e8ce3a5e1f3b745efbdd1379ff5c25898bd2e86421daf6f548cf255db",
+        "knowledge-chunk-e8b3acb0b9700fb85368117681cfb14a3d1989200f40017299726d1e04789a95",
+        "knowledge-chunk-507eda4f698ca98248adf7d8fdf790c7c6847ec8943e05c44ab1837517762a33",
+        "knowledge-chunk-b71b8a242ca8c860b1635aa9d29ccf775fc0cb76c3c434d15a1abab0abda4ebb",
+        "knowledge-chunk-7405c3e186669d2cf649fd866682236c2ea25ca2422518b2c80fcefe4aafb419",
+        "knowledge-chunk-006981e659d461c3a2fff2701a6955acdd9aee6aab1427bdbf4da01b26846996",
+        "knowledge-chunk-1a88ba6c83a3b4a4acfaf91529b5ef93707489cf441732ecdb65c79bb8b874ed",
+        "knowledge-chunk-45ffa746e52d8cfc7f849e4c11126946fbf0a5d5a00637d2e849d359a7574070",
+        "knowledge-chunk-9b56d99ce3a71cc1f958cad97d099868c9185b8a213abeed8006326623c1dec6",
+        "knowledge-chunk-93b4c7f3904ebf0fdd7fde43ba55ae817db004ef21f9b6173f595043fcfc4fae",
+        "knowledge-chunk-5955b7c34afd0721281f525608836800378c24d56c36bbd986e14b128bd5262e",
+        "knowledge-chunk-b3c1903d8f5eea57de9fa4dcc63faa7c7a41bc51da9eb1dbf77e2530cf992da3",
+        "knowledge-chunk-061f09a071f6f200c836075c8276c320c8c0fbbd750792d2b790b6b7b1656001"
+      ],
+      "packed_ids": [
+        "knowledge-chunk-729b27d29a52c9ae9ff9785012a567e829413b355e124502a1ae1e6828db16c7",
+        "knowledge-chunk-90aa8dbfe3d7f0d56a20177e3ec280e17e56a54e894baa93684af26c7ac3ab86",
+        "knowledge-chunk-1df84b24cdcf80a276049697d361f00c1f1f9409575abf6fe05d9c96582534d2",
+        "knowledge-chunk-f21e466f7d66146e45598963df6c40e39733841957f710805b34c3e8768227e7",
+        "knowledge-chunk-3ed28fab14f7c66cfffd5fd5b772cb0f3fdf6b86966e52e662ee02528e888b08"
+      ],
+      "packed_verbatim_in_synthesis": 5,
+      "full_pre_fusion_route_pools_saved": false,
+      "candidates": [
+        {
+          "chunk_id": "knowledge-chunk-729b27d29a52c9ae9ff9785012a567e829413b355e124502a1ae1e6828db16c7",
+          "text_sha256": "f703e0d7e29f6b49c5c9f3f63e33bc7a4782b0acb70761db604350769332af13"
+        },
+        {
+          "chunk_id": "knowledge-chunk-d9019c7932d1b6632b2090542f35fd1e01e79acf9a32d530f757e4109748ce14",
+          "text_sha256": "0b4488bd37a90f521f7482d0bbaa99d310360ffcdc446fa4a6e779b5e293e339"
+        },
+        {
+          "chunk_id": "knowledge-chunk-1df84b24cdcf80a276049697d361f00c1f1f9409575abf6fe05d9c96582534d2",
+          "text_sha256": "5402124df120178fac68fbe2a7cf2d24773366e75d726dcc2cff0a56456c5349"
+        },
+        {
+          "chunk_id": "knowledge-chunk-90aa8dbfe3d7f0d56a20177e3ec280e17e56a54e894baa93684af26c7ac3ab86",
+          "text_sha256": "d2f2fb5a56114bd2ec9d236af37614f0c6459e47b1b2a3676d7b7bf56acf9f16"
+        },
+        {
+          "chunk_id": "knowledge-chunk-17720344f1c759c56c0f8e324db7ea516deec34b376f911b689bbc01c593c64a",
+          "text_sha256": "dba84bb67ac3405ecf4980d6545ed4edd671e5ce6f552b4d9e802dacad378b82"
+        },
+        {
+          "chunk_id": "knowledge-chunk-1598776e8ce3a5e1f3b745efbdd1379ff5c25898bd2e86421daf6f548cf255db",
+          "text_sha256": "d0952b1caec850e5ef89755aa7ce4015f0a2855f0e74be1b782fd49cf971b45f"
+        },
+        {
+          "chunk_id": "knowledge-chunk-f21e466f7d66146e45598963df6c40e39733841957f710805b34c3e8768227e7",
+          "text_sha256": "f66688e6963e7379a201c5b2c86d0a268c5c9496bd299e499a7408cb72cec688"
+        },
+        {
+          "chunk_id": "knowledge-chunk-507eda4f698ca98248adf7d8fdf790c7c6847ec8943e05c44ab1837517762a33",
+          "text_sha256": "a1fe73bc50a7e9214ea25402c54834cebb9d09e572c2e0497e9e6ac3dfb9914b"
+        },
+        {
+          "chunk_id": "knowledge-chunk-006981e659d461c3a2fff2701a6955acdd9aee6aab1427bdbf4da01b26846996",
+          "text_sha256": "00a7161ccdf4810928b8ca72a4d2f130f9f52d17ac7011795cf4dd8476e8d67b"
+        },
+        {
+          "chunk_id": "knowledge-chunk-3ed28fab14f7c66cfffd5fd5b772cb0f3fdf6b86966e52e662ee02528e888b08",
+          "text_sha256": "2914393d6001b4b8e16d93fd5d944fc15b4a402d197d22732bfed033f43787db"
+        },
+        {
+          "chunk_id": "knowledge-chunk-1a88ba6c83a3b4a4acfaf91529b5ef93707489cf441732ecdb65c79bb8b874ed",
+          "text_sha256": "6666e95eb7f813750695b99b32a6be26ea818912699b58d5c69adb59f3ef0b7c"
+        },
+        {
+          "chunk_id": "knowledge-chunk-e8b3acb0b9700fb85368117681cfb14a3d1989200f40017299726d1e04789a95",
+          "text_sha256": "e505c05051f37fd8b32b144f0cc38d799a5b824331c914a9fd146b26524e9ee7"
+        },
+        {
+          "chunk_id": "knowledge-chunk-45ffa746e52d8cfc7f849e4c11126946fbf0a5d5a00637d2e849d359a7574070",
+          "text_sha256": "6148aadb3d3918b5e89ee20f31d2dfdc31287fde06885640d0f8ce335053c8f5"
+        },
+        {
+          "chunk_id": "knowledge-chunk-b71b8a242ca8c860b1635aa9d29ccf775fc0cb76c3c434d15a1abab0abda4ebb",
+          "text_sha256": "9cff2b43c16e36049b569e88c0a77af15f7460d368f6311c0935d81473e7f1a0"
+        },
+        {
+          "chunk_id": "knowledge-chunk-9b56d99ce3a71cc1f958cad97d099868c9185b8a213abeed8006326623c1dec6",
+          "text_sha256": "7950cb4cb6703b0fc289f7e3a51c01daf7d9e1d0e59f7151667236638ae22ecf"
+        },
+        {
+          "chunk_id": "knowledge-chunk-93b4c7f3904ebf0fdd7fde43ba55ae817db004ef21f9b6173f595043fcfc4fae",
+          "text_sha256": "19d5b679d078c7254963cf65e2ea34bb2faba7fbe165c965f0ede39676c2b210"
+        },
+        {
+          "chunk_id": "knowledge-chunk-5955b7c34afd0721281f525608836800378c24d56c36bbd986e14b128bd5262e",
+          "text_sha256": "3a3cce35ca47387561374755b39f9b1181bdcf7604b5fbad7f67ee78eb127cc5"
+        },
+        {
+          "chunk_id": "knowledge-chunk-b3c1903d8f5eea57de9fa4dcc63faa7c7a41bc51da9eb1dbf77e2530cf992da3",
+          "text_sha256": "6e2db1fbf465bf2ede548bbd426fd1d66f2d0d510b94ed092c1b1eae9a796a23"
+        },
+        {
+          "chunk_id": "knowledge-chunk-7405c3e186669d2cf649fd866682236c2ea25ca2422518b2c80fcefe4aafb419",
+          "text_sha256": "5307ee14c3354dce83b98b926dc563555e911076637fbf1e8e722a7c82895683"
+        },
+        {
+          "chunk_id": "knowledge-chunk-061f09a071f6f200c836075c8276c320c8c0fbbd750792d2b790b6b7b1656001",
+          "text_sha256": "f886b45de8148631561bdb36211a69a572192d397df7e7b93edf1c88405e3663"
+        }
+      ]
+    },
+    {
+      "run": "rag-entry-multicondition4-2026-09-08",
+      "case_id": "manual-address-arrival",
+      "outcome": "Failed",
+      "classification": "did_not_reach_retrieval"
+    },
+    {
+      "run": "rag-manual-entry1-2026-09-08",
+      "case_id": "manual-address-arrival",
+      "outcome": "Completed",
+      "classification": "stages_reconstructed",
+      "query": "综合售后手册中关于退货寄回地址的一般流程：寄回地址能否使用包装上的生产商地址？仓库收到包裹或审核通过是否代表退款到账？分别如何确认退款到账？请说明一般流程规则，不涉及具体订单。",
+      "candidate_count": 20,
+      "candidate_ids": [
+        "knowledge-chunk-1598776e8ce3a5e1f3b745efbdd1379ff5c25898bd2e86421daf6f548cf255db",
+        "knowledge-chunk-e8b3acb0b9700fb85368117681cfb14a3d1989200f40017299726d1e04789a95",
+        "knowledge-chunk-729b27d29a52c9ae9ff9785012a567e829413b355e124502a1ae1e6828db16c7",
+        "knowledge-chunk-3ed28fab14f7c66cfffd5fd5b772cb0f3fdf6b86966e52e662ee02528e888b08",
+        "knowledge-chunk-241363475671662979df1cd16d45ebf55a653783c5495e5a9df5baa32faba553",
+        "knowledge-chunk-f21e466f7d66146e45598963df6c40e39733841957f710805b34c3e8768227e7",
+        "knowledge-chunk-7405c3e186669d2cf649fd866682236c2ea25ca2422518b2c80fcefe4aafb419",
+        "knowledge-chunk-979a85114acd17cba69ef198a9d3b41a56f69cc09a6996c503ba3a91d8879780",
+        "knowledge-chunk-5955b7c34afd0721281f525608836800378c24d56c36bbd986e14b128bd5262e",
+        "knowledge-chunk-93b4c7f3904ebf0fdd7fde43ba55ae817db004ef21f9b6173f595043fcfc4fae",
+        "knowledge-chunk-507eda4f698ca98248adf7d8fdf790c7c6847ec8943e05c44ab1837517762a33",
+        "knowledge-chunk-b3c1903d8f5eea57de9fa4dcc63faa7c7a41bc51da9eb1dbf77e2530cf992da3",
+        "knowledge-chunk-90aa8dbfe3d7f0d56a20177e3ec280e17e56a54e894baa93684af26c7ac3ab86",
+        "knowledge-chunk-f8194a701826b422cdb6c99d5b8eebc12273bf52a9d9ebc3b4aac5570d183a29",
+        "knowledge-chunk-b71b8a242ca8c860b1635aa9d29ccf775fc0cb76c3c434d15a1abab0abda4ebb",
+        "knowledge-chunk-8af114c8031bd6b811ca71096c0f90026e6c04246e42869bf76e3528f4b836f2",
+        "knowledge-chunk-9b56d99ce3a71cc1f958cad97d099868c9185b8a213abeed8006326623c1dec6",
+        "knowledge-chunk-ebb646f9d14c6ad74fe79a52cdfb01510cb911e0d408e4c999509f5ff3f4c564",
+        "knowledge-chunk-7582a4ee63b08704ad22f41279e92c9d4f34a63c83001d3831dd73047958b491",
+        "knowledge-chunk-1a88ba6c83a3b4a4acfaf91529b5ef93707489cf441732ecdb65c79bb8b874ed"
+      ],
+      "rerank_ids": [
+        "knowledge-chunk-1598776e8ce3a5e1f3b745efbdd1379ff5c25898bd2e86421daf6f548cf255db",
+        "knowledge-chunk-e8b3acb0b9700fb85368117681cfb14a3d1989200f40017299726d1e04789a95",
+        "knowledge-chunk-3ed28fab14f7c66cfffd5fd5b772cb0f3fdf6b86966e52e662ee02528e888b08",
+        "knowledge-chunk-729b27d29a52c9ae9ff9785012a567e829413b355e124502a1ae1e6828db16c7",
+        "knowledge-chunk-f21e466f7d66146e45598963df6c40e39733841957f710805b34c3e8768227e7",
+        "knowledge-chunk-7405c3e186669d2cf649fd866682236c2ea25ca2422518b2c80fcefe4aafb419",
+        "knowledge-chunk-241363475671662979df1cd16d45ebf55a653783c5495e5a9df5baa32faba553",
+        "knowledge-chunk-979a85114acd17cba69ef198a9d3b41a56f69cc09a6996c503ba3a91d8879780",
+        "knowledge-chunk-93b4c7f3904ebf0fdd7fde43ba55ae817db004ef21f9b6173f595043fcfc4fae",
+        "knowledge-chunk-507eda4f698ca98248adf7d8fdf790c7c6847ec8943e05c44ab1837517762a33",
+        "knowledge-chunk-90aa8dbfe3d7f0d56a20177e3ec280e17e56a54e894baa93684af26c7ac3ab86",
+        "knowledge-chunk-b71b8a242ca8c860b1635aa9d29ccf775fc0cb76c3c434d15a1abab0abda4ebb",
+        "knowledge-chunk-8af114c8031bd6b811ca71096c0f90026e6c04246e42869bf76e3528f4b836f2",
+        "knowledge-chunk-5955b7c34afd0721281f525608836800378c24d56c36bbd986e14b128bd5262e",
+        "knowledge-chunk-b3c1903d8f5eea57de9fa4dcc63faa7c7a41bc51da9eb1dbf77e2530cf992da3",
+        "knowledge-chunk-f8194a701826b422cdb6c99d5b8eebc12273bf52a9d9ebc3b4aac5570d183a29",
+        "knowledge-chunk-9b56d99ce3a71cc1f958cad97d099868c9185b8a213abeed8006326623c1dec6",
+        "knowledge-chunk-ebb646f9d14c6ad74fe79a52cdfb01510cb911e0d408e4c999509f5ff3f4c564",
+        "knowledge-chunk-7582a4ee63b08704ad22f41279e92c9d4f34a63c83001d3831dd73047958b491",
+        "knowledge-chunk-1a88ba6c83a3b4a4acfaf91529b5ef93707489cf441732ecdb65c79bb8b874ed"
+      ],
+      "packed_ids": [
+        "knowledge-chunk-1598776e8ce3a5e1f3b745efbdd1379ff5c25898bd2e86421daf6f548cf255db",
+        "knowledge-chunk-e8b3acb0b9700fb85368117681cfb14a3d1989200f40017299726d1e04789a95",
+        "knowledge-chunk-3ed28fab14f7c66cfffd5fd5b772cb0f3fdf6b86966e52e662ee02528e888b08",
+        "knowledge-chunk-729b27d29a52c9ae9ff9785012a567e829413b355e124502a1ae1e6828db16c7",
+        "knowledge-chunk-f21e466f7d66146e45598963df6c40e39733841957f710805b34c3e8768227e7"
+      ],
+      "packed_verbatim_in_synthesis": 5,
+      "full_pre_fusion_route_pools_saved": false,
+      "candidates": [
+        {
+          "chunk_id": "knowledge-chunk-1598776e8ce3a5e1f3b745efbdd1379ff5c25898bd2e86421daf6f548cf255db",
+          "text_sha256": "d0952b1caec850e5ef89755aa7ce4015f0a2855f0e74be1b782fd49cf971b45f"
+        },
+        {
+          "chunk_id": "knowledge-chunk-e8b3acb0b9700fb85368117681cfb14a3d1989200f40017299726d1e04789a95",
+          "text_sha256": "e505c05051f37fd8b32b144f0cc38d799a5b824331c914a9fd146b26524e9ee7"
+        },
+        {
+          "chunk_id": "knowledge-chunk-729b27d29a52c9ae9ff9785012a567e829413b355e124502a1ae1e6828db16c7",
+          "text_sha256": "f703e0d7e29f6b49c5c9f3f63e33bc7a4782b0acb70761db604350769332af13"
+        },
+        {
+          "chunk_id": "knowledge-chunk-3ed28fab14f7c66cfffd5fd5b772cb0f3fdf6b86966e52e662ee02528e888b08",
+          "text_sha256": "2914393d6001b4b8e16d93fd5d944fc15b4a402d197d22732bfed033f43787db"
+        },
+        {
+          "chunk_id": "knowledge-chunk-241363475671662979df1cd16d45ebf55a653783c5495e5a9df5baa32faba553",
+          "text_sha256": "d38b8ceada41f6cc059dfe2c7eb28c3225175637fe7addb463b5797c6cd8ec7f"
+        },
+        {
+          "chunk_id": "knowledge-chunk-f21e466f7d66146e45598963df6c40e39733841957f710805b34c3e8768227e7",
+          "text_sha256": "f66688e6963e7379a201c5b2c86d0a268c5c9496bd299e499a7408cb72cec688"
+        },
+        {
+          "chunk_id": "knowledge-chunk-7405c3e186669d2cf649fd866682236c2ea25ca2422518b2c80fcefe4aafb419",
+          "text_sha256": "5307ee14c3354dce83b98b926dc563555e911076637fbf1e8e722a7c82895683"
+        },
+        {
+          "chunk_id": "knowledge-chunk-979a85114acd17cba69ef198a9d3b41a56f69cc09a6996c503ba3a91d8879780",
+          "text_sha256": "a0b4b434bee5d94d14db9c5d8c124869ada671786c91c50d91b60ca165345990"
+        },
+        {
+          "chunk_id": "knowledge-chunk-5955b7c34afd0721281f525608836800378c24d56c36bbd986e14b128bd5262e",
+          "text_sha256": "3a3cce35ca47387561374755b39f9b1181bdcf7604b5fbad7f67ee78eb127cc5"
+        },
+        {
+          "chunk_id": "knowledge-chunk-93b4c7f3904ebf0fdd7fde43ba55ae817db004ef21f9b6173f595043fcfc4fae",
+          "text_sha256": "19d5b679d078c7254963cf65e2ea34bb2faba7fbe165c965f0ede39676c2b210"
+        },
+        {
+          "chunk_id": "knowledge-chunk-507eda4f698ca98248adf7d8fdf790c7c6847ec8943e05c44ab1837517762a33",
+          "text_sha256": "a1fe73bc50a7e9214ea25402c54834cebb9d09e572c2e0497e9e6ac3dfb9914b"
+        },
+        {
+          "chunk_id": "knowledge-chunk-b3c1903d8f5eea57de9fa4dcc63faa7c7a41bc51da9eb1dbf77e2530cf992da3",
+          "text_sha256": "6e2db1fbf465bf2ede548bbd426fd1d66f2d0d510b94ed092c1b1eae9a796a23"
+        },
+        {
+          "chunk_id": "knowledge-chunk-90aa8dbfe3d7f0d56a20177e3ec280e17e56a54e894baa93684af26c7ac3ab86",
+          "text_sha256": "d2f2fb5a56114bd2ec9d236af37614f0c6459e47b1b2a3676d7b7bf56acf9f16"
+        },
+        {
+          "chunk_id": "knowledge-chunk-f8194a701826b422cdb6c99d5b8eebc12273bf52a9d9ebc3b4aac5570d183a29",
+          "text_sha256": "9fb012c5fbd4f020eba5d78c8e4861d8b8874705cde79995844b6fe045fe3dc4"
+        },
+        {
+          "chunk_id": "knowledge-chunk-b71b8a242ca8c860b1635aa9d29ccf775fc0cb76c3c434d15a1abab0abda4ebb",
+          "text_sha256": "9cff2b43c16e36049b569e88c0a77af15f7460d368f6311c0935d81473e7f1a0"
+        },
+        {
+          "chunk_id": "knowledge-chunk-8af114c8031bd6b811ca71096c0f90026e6c04246e42869bf76e3528f4b836f2",
+          "text_sha256": "5f55157513b7b1b36c6145d11a1f66ffbb3647b6e4caf788169f9bf8c40c1b47"
+        },
+        {
+          "chunk_id": "knowledge-chunk-9b56d99ce3a71cc1f958cad97d099868c9185b8a213abeed8006326623c1dec6",
+          "text_sha256": "7950cb4cb6703b0fc289f7e3a51c01daf7d9e1d0e59f7151667236638ae22ecf"
+        },
+        {
+          "chunk_id": "knowledge-chunk-ebb646f9d14c6ad74fe79a52cdfb01510cb911e0d408e4c999509f5ff3f4c564",
+          "text_sha256": "b2058449b3168f8904f311d11436851ec941c58d6df900cd14c5a105748ce064"
+        },
+        {
+          "chunk_id": "knowledge-chunk-7582a4ee63b08704ad22f41279e92c9d4f34a63c83001d3831dd73047958b491",
+          "text_sha256": "56547dafcb5cf1f8879bffb08158edd55f42d3c3e99c2dd9638e0d6cec4be253"
+        },
+        {
+          "chunk_id": "knowledge-chunk-1a88ba6c83a3b4a4acfaf91529b5ef93707489cf441732ecdb65c79bb8b874ed",
+          "text_sha256": "6666e95eb7f813750695b99b32a6be26ea818912699b58d5c69adb59f3ef0b7c"
+        }
+      ]
+    }
+  ],
+  "missing": [
+    "Full Dense/BM25 lists before fusion for actual Agent queries",
+    "Full provenance for candidates discarded before packing",
+    "Independent qrels for the synthetic full-chain cases"
+  ],
+  "not_claimed": [
+    "Benchmark Recall or nDCG",
+    "Before-after answer improvement"
+  ]
+}
