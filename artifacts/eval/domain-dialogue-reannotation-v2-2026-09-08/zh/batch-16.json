@@ -1,0 +1,70 @@
+{
+  "batch_id": "domain-v3:zh:16",
+  "language": "zh",
+  "split": "calibration",
+  "source": "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-16.json",
+  "source_sha256": "cd1b94c6db1c1de58b3a718a7a7fe285e138ba4ddec4a1a5ec89a22d685b3a1f",
+  "rubric_version": "domain-active-request-v2",
+  "model": "deepseek-v4-pro",
+  "call": {
+    "rubric_version": "domain-active-request-v2",
+    "rubric_sha256": "a40843822e777415273a7d6ccba129a6764fcb9f73f47c9375c90eea717abef2",
+    "response": {
+      "content": [
+        {
+          "id": "call_00_ztQ7oL2gM5tl2JAdI36E3112",
+          "input": {},
+          "name": "ReviewedBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "e002996e-79f9-4ef6-b365-ed5fd72b5099",
+        "container": null,
+        "model": "deepseek-v4-pro",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 768,
+          "inference_geo": null,
+          "input_tokens": 3931,
+          "output_tokens": 1517,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-pro",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081e4-5784-7ff0-9fd3-8b362cfce084-0",
+      "tool_calls": [
+        {
+          "name": "ReviewedBatch",
+          "args": {},
+          "id": "call_00_ztQ7oL2gM5tl2JAdI36E3112",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 4699,
+        "output_tokens": 1517,
+        "total_tokens": 6216,
+        "input_token_details": {
+          "cache_read": 768,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": "1 validation error for ReviewedBatch\nverdicts\n  Field required [type=missing, input_value={}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/missing"
+  },
+  "status": "failed",
+  "error_code": "review_schema_invalid"
+}

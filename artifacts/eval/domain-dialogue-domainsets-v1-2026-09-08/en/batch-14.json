@@ -1,0 +1,1472 @@
+{
+  "batch_id": "domain-v3:en:14",
+  "language": "en",
+  "split": "train",
+  "source": "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-14.json",
+  "source_sha256": "4cba3a02228a2fbec868082549eaefa3e6daa819e3d93324ca02ba3c79969d89",
+  "rubric_version": "domain-active-request-v2",
+  "annotation_version": "active-domain-set-v1",
+  "model": "deepseek-v4-pro",
+  "call": {
+    "rubric_version": "domain-active-request-v2",
+    "rubric_sha256": "a40843822e777415273a7d6ccba129a6764fcb9f73f47c9375c90eea717abef2",
+    "response": {
+      "content": [
+        {
+          "id": "call_00_SGiGyHULLjfcX4SBj71t5080",
+          "input": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:en:14:0:0",
+                "active_domains": [
+                  "general",
+                  "product_technical"
+                ],
+                "clear_and_natural": true,
+                "reason": "Thanks for completed replacement (general courtesy), plus new question about smart bulb compatibility (product_technical)."
+              },
+              {
+                "case_id": "domain-v3:en:14:0:1",
+                "active_domains": [
+                  "billing_refund"
+                ],
+                "clear_and_natural": true,
+                "reason": "User withdraws replacement and requests a full refund instead; refund is billing_refund."
+              },
+              {
+                "case_id": "domain-v3:en:14:0:2",
+                "active_domains": [
+                  "general",
+                  "order_logistics"
+                ],
+                "clear_and_natural": true,
+                "reason": "Acknowledgement of completed replacement (general) plus new request to check shipping status of another order (order_logistics)."
+              },
+              {
+                "case_id": "domain-v3:en:14:1:0",
+                "active_domains": [
+                  "general",
+                  "product_technical"
+                ],
+                "clear_and_natural": true,
+                "reason": "Acknowledgement of return process (general) plus new question about store hours (general info/product_technical). Store hours is general info; classify as general."
+              },
+              {
+                "case_id": "domain-v3:en:14:1:1",
+                "active_domains": [
+                  "billing_refund"
+                ],
+                "clear_and_natural": true,
+                "reason": "User changes from return to exchange for a different size; exchange is after-sales billing_refund."
+              },
+              {
+                "case_id": "domain-v3:en:14:1:2",
+                "active_domains": [
+                  "general",
+                  "order_logistics"
+                ],
+                "clear_and_natural": true,
+                "reason": "Acknowledgement (general) plus new request to track package (order_logistics)."
+              },
+              {
+                "case_id": "domain-v3:en:14:2:0",
+                "active_domains": [
+                  "general",
+                  "product_technical"
+                ],
+                "clear_and_natural": true,
+                "reason": "Acknowledgement of replacement carafe (general) plus new question about descaling (product_technical)."
+              },
+              {
+                "case_id": "domain-v3:en:14:2:1",
+                "active_domains": [
+                  "human_service"
+                ],
+                "clear_and_natural": true,
+                "reason": "User withdraws carafe replacement and requests to speak to a manager (human_service escalation)."
+              },
+              {
+                "case_id": "domain-v3:en:14:2:2",
+                "active_domains": [
+                  "general",
+                  "order_logistics"
+                ],
+                "clear_and_natural": true,
+                "reason": "Acknowledgement (general) plus new request to verify delivery address on pending order (order_logistics)."
+              },
+              {
+                "case_id": "domain-v3:en:14:3:0",
+                "active_domains": [
+                  "general",
+                  "order_logistics"
+                ],
+                "clear_and_natural": true,
+                "reason": "Thanks for cleaning tips (general) plus new request about order confirmation (order_logistics)."
+              },
+              {
+                "case_id": "domain-v3:en:14:3:1",
+                "active_domains": [
+                  "billing_refund"
+                ],
+                "clear_and_natural": true,
+                "reason": "User wants to return mat and get thicker version; return/exchange is billing_refund."
+              },
+              {
+                "case_id": "domain-v3:en:14:3:2",
+                "active_domains": [
+                  "general",
+                  "product_technical"
+                ],
+                "clear_and_natural": true,
+                "reason": "Acknowledgement (general) plus new question about replacement carrying straps (product_technical)."
+              },
+              {
+                "case_id": "domain-v3:en:14:4:0",
+                "active_domains": [
+                  "general",
+                  "account_security"
+                ],
+                "clear_and_natural": true,
+                "reason": "Thanks for address fix (general) plus new login/password issue (account_security)."
+              },
+              {
+                "case_id": "domain-v3:en:14:4:1",
+                "active_domains": [
+                  "general",
+                  "order_logistics"
+                ],
+                "clear_and_natural": true,
+                "reason": "Acknowledgement (general) plus new question about courier delivery times (order_logistics)."
+              },
+              {
+                "case_id": "domain-v3:en:14:4:2",
+                "active_domains": [
+                  "order_logistics"
+                ],
+                "clear_and_natural": true,
+                "reason": "User cancels the address-fix request and instead wants to cancel the order entirely; cancellation before dispatch is order_logistics."
+              },
+              {
+                "case_id": "domain-v3:en:14:5:0",
+                "active_domains": [
+                  "general",
+                  "billing_refund"
+                ],
+                "clear_and_natural": true,
+                "reason": "Thanks for pairing fix (general) plus new double-charge issue (billing_refund)."
+              },
+              {
+                "case_id": "domain-v3:en:14:5:1",
+                "active_domains": [
+                  "human_service"
+                ],
+                "clear_and_natural": true,
+                "reason": "User is fed up and requests a live agent (human_service escalation)."
+              },
+              {
+                "case_id": "domain-v3:en:14:5:2",
+                "active_domains": [
+                  "general",
+                  "order_logistics"
+                ],
+                "clear_and_natural": true,
+                "reason": "Acknowledgement of troubleshooting (general) plus new request about headphone order shipping (order_logistics)."
+              },
+              {
+                "case_id": "domain-v3:en:14:6:0",
+                "active_domains": [
+                  "product_technical"
+                ],
+                "clear_and_natural": true,
+                "reason": "User asks about color availability of the coat (product_technical)."
+              },
+              {
+                "case_id": "domain-v3:en:14:6:1",
+                "active_domains": [
+                  "order_logistics"
+                ],
+                "clear_and_natural": true,
+                "reason": "User asks about delivery status of scarf order (order_logistics)."
+              },
+              {
+                "case_id": "domain-v3:en:14:6:2",
+                "active_domains": [
+                  "general"
+                ],
+                "clear_and_natural": true,
+                "reason": "Thanks plus question about job posting; ordinary chat/general info, no business domain."
+              },
+              {
+                "case_id": "domain-v3:en:14:7:0",
+                "active_domains": [
+                  "general",
+                  "billing_refund"
+                ],
+                "clear_and_natural": true,
+                "reason": "Video sent (general continuation) plus new request to resend invoice (billing_refund)."
+              },
+              {
+                "case_id": "domain-v3:en:14:7:1",
+                "active_domains": [
+                  "general",
+                  "order_logistics"
+                ],
+                "clear_and_natural": true,
+                "reason": "Video sent (general) plus new request to check desk mat order status (order_logistics)."
+              },
+              {
+                "case_id": "domain-v3:en:14:7:2",
+                "active_domains": [
+                  "billing_refund"
+                ],
+                "clear_and_natural": true,
+                "reason": "User withdraws warranty/video path and wants to return the desk for a refund (billing_refund)."
+              }
+            ]
+          },
+          "name": "DomainSetReview",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "526208c2-bdc3-4c2a-8570-727c6d5c1993",
+        "container": null,
+        "model": "deepseek-v4-pro",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 896,
+          "inference_geo": null,
+          "input_tokens": 4068,
+          "output_tokens": 1523,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-pro",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081e6-fab5-7bc1-94aa-6c65b69aafc0-0",
+      "tool_calls": [
+        {
+          "name": "DomainSetReview",
+          "args": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:en:14:0:0",
+                "active_domains": [
+                  "general",
+                  "product_technical"
+                ],
+                "clear_and_natural": true,
+                "reason": "Thanks for completed replacement (general courtesy), plus new question about smart bulb compatibility (product_technical)."
+              },
+              {
+                "case_id": "domain-v3:en:14:0:1",
+                "active_domains": [
+                  "billing_refund"
+                ],
+                "clear_and_natural": true,
+                "reason": "User withdraws replacement and requests a full refund instead; refund is billing_refund."
+              },
+              {
+                "case_id": "domain-v3:en:14:0:2",
+                "active_domains": [
+                  "general",
+                  "order_logistics"
+                ],
+                "clear_and_natural": true,
+                "reason": "Acknowledgement of completed replacement (general) plus new request to check shipping status of another order (order_logistics)."
+              },
+              {
+                "case_id": "domain-v3:en:14:1:0",
+                "active_domains": [
+                  "general",
+                  "product_technical"
+                ],
+                "clear_and_natural": true,
+                "reason": "Acknowledgement of return process (general) plus new question about store hours (general info/product_technical). Store hours is general info; classify as general."
+              },
+              {
+                "case_id": "domain-v3:en:14:1:1",
+                "active_domains": [
+                  "billing_refund"
+                ],
+                "clear_and_natural": true,
+                "reason": "User changes from return to exchange for a different size; exchange is after-sales billing_refund."
+              },
+              {
+                "case_id": "domain-v3:en:14:1:2",
+                "active_domains": [
+                  "general",
+                  "order_logistics"
+                ],
+                "clear_and_natural": true,
+                "reason": "Acknowledgement (general) plus new request to track package (order_logistics)."
+              },
+              {
+                "case_id": "domain-v3:en:14:2:0",
+                "active_domains": [
+                  "general",
+                  "product_technical"
+                ],
+                "clear_and_natural": true,
+                "reason": "Acknowledgement of replacement carafe (general) plus new question about descaling (product_technical)."
+              },
+              {
+                "case_id": "domain-v3:en:14:2:1",
+                "active_domains": [
+                  "human_service"
+                ],
+                "clear_and_natural": true,
+                "reason": "User withdraws carafe replacement and requests to speak to a manager (human_service escalation)."
+              },
+              {
+                "case_id": "domain-v3:en:14:2:2",
+                "active_domains": [
+                  "general",
+                  "order_logistics"
+                ],
+                "clear_and_natural": true,
+                "reason": "Acknowledgement (general) plus new request to verify delivery address on pending order (order_logistics)."
+              },
+              {
+                "case_id": "domain-v3:en:14:3:0",
+                "active_domains": [
+                  "general",
+                  "order_logistics"
+                ],
+                "clear_and_natural": true,
+                "reason": "Thanks for cleaning tips (general) plus new request about order confirmation (order_logistics)."
+              },
+              {
+                "case_id": "domain-v3:en:14:3:1",
+                "active_domains": [
+                  "billing_refund"
+                ],
+                "clear_and_natural": true,
+                "reason": "User wants to return mat and get thicker version; return/exchange is billing_refund."
+              },
+              {
+                "case_id": "domain-v3:en:14:3:2",
+                "active_domains": [
+                  "general",
+                  "product_technical"
+                ],
+                "clear_and_natural": true,
+                "reason": "Acknowledgement (general) plus new question about replacement carrying straps (product_technical)."
+              },
+              {
+                "case_id": "domain-v3:en:14:4:0",
+                "active_domains": [
+                  "general",
+                  "account_security"
+                ],
+                "clear_and_natural": true,
+                "reason": "Thanks for address fix (general) plus new login/password issue (account_security)."
+              },
+              {
+                "case_id": "domain-v3:en:14:4:1",
+                "active_domains": [
+                  "general",
+                  "order_logistics"
+                ],
+                "clear_and_natural": true,
+                "reason": "Acknowledgement (general) plus new question about courier delivery times (order_logistics)."
+              },
+              {
+                "case_id": "domain-v3:en:14:4:2",
+                "active_domains": [
+                  "order_logistics"
+                ],
+                "clear_and_natural": true,
+                "reason": "User cancels the address-fix request and instead wants to cancel the order entirely; cancellation before dispatch is order_logistics."
+              },
+              {
+                "case_id": "domain-v3:en:14:5:0",
+                "active_domains": [
+                  "general",
+                  "billing_refund"
+                ],
+                "clear_and_natural": true,
+                "reason": "Thanks for pairing fix (general) plus new double-charge issue (billing_refund)."
+              },
+              {
+                "case_id": "domain-v3:en:14:5:1",
+                "active_domains": [
+                  "human_service"
+                ],
+                "clear_and_natural": true,
+                "reason": "User is fed up and requests a live agent (human_service escalation)."
+              },
+              {
+                "case_id": "domain-v3:en:14:5:2",
+                "active_domains": [
+                  "general",
+                  "order_logistics"
+                ],
+                "clear_and_natural": true,
+                "reason": "Acknowledgement of troubleshooting (general) plus new request about headphone order shipping (order_logistics)."
+              },
+              {
+                "case_id": "domain-v3:en:14:6:0",
+                "active_domains": [
+                  "product_technical"
+                ],
+                "clear_and_natural": true,
+                "reason": "User asks about color availability of the coat (product_technical)."
+              },
+              {
+                "case_id": "domain-v3:en:14:6:1",
+                "active_domains": [
+                  "order_logistics"
+                ],
+                "clear_and_natural": true,
+                "reason": "User asks about delivery status of scarf order (order_logistics)."
+              },
+              {
+                "case_id": "domain-v3:en:14:6:2",
+                "active_domains": [
+                  "general"
+                ],
+                "clear_and_natural": true,
+                "reason": "Thanks plus question about job posting; ordinary chat/general info, no business domain."
+              },
+              {
+                "case_id": "domain-v3:en:14:7:0",
+                "active_domains": [
+                  "general",
+                  "billing_refund"
+                ],
+                "clear_and_natural": true,
+                "reason": "Video sent (general continuation) plus new request to resend invoice (billing_refund)."
+              },
+              {
+                "case_id": "domain-v3:en:14:7:1",
+                "active_domains": [
+                  "general",
+                  "order_logistics"
+                ],
+                "clear_and_natural": true,
+                "reason": "Video sent (general) plus new request to check desk mat order status (order_logistics)."
+              },
+              {
+                "case_id": "domain-v3:en:14:7:2",
+                "active_domains": [
+                  "billing_refund"
+                ],
+                "clear_and_natural": true,
+                "reason": "User withdraws warranty/video path and wants to return the desk for a refund (billing_refund)."
+              }
+            ]
+          },
+          "id": "call_00_SGiGyHULLjfcX4SBj71t5080",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 4964,
+        "output_tokens": 1523,
+        "total_tokens": 6487,
+        "input_token_details": {
+          "cache_read": 896,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "annotation": {
+    "verdicts": [
+      {
+        "case_id": "domain-v3:en:14:0:0",
+        "active_domains": [
+          "general",
+          "product_technical"
+        ],
+        "clear_and_natural": true,
+        "reason": "Thanks for completed replacement (general courtesy), plus new question about smart bulb compatibility (product_technical)."
+      },
+      {
+        "case_id": "domain-v3:en:14:0:1",
+        "active_domains": [
+          "billing_refund"
+        ],
+        "clear_and_natural": true,
+        "reason": "User withdraws replacement and requests a full refund instead; refund is billing_refund."
+      },
+      {
+        "case_id": "domain-v3:en:14:0:2",
+        "active_domains": [
+          "general",
+          "order_logistics"
+        ],
+        "clear_and_natural": true,
+        "reason": "Acknowledgement of completed replacement (general) plus new request to check shipping status of another order (order_logistics)."
+      },
+      {
+        "case_id": "domain-v3:en:14:1:0",
+        "active_domains": [
+          "general",
+          "product_technical"
+        ],
+        "clear_and_natural": true,
+        "reason": "Acknowledgement of return process (general) plus new question about store hours (general info/product_technical). Store hours is general info; classify as general."
+      },
+      {
+        "case_id": "domain-v3:en:14:1:1",
+        "active_domains": [
+          "billing_refund"
+        ],
+        "clear_and_natural": true,
+        "reason": "User changes from return to exchange for a different size; exchange is after-sales billing_refund."
+      },
+      {
+        "case_id": "domain-v3:en:14:1:2",
+        "active_domains": [
+          "general",
+          "order_logistics"
+        ],
+        "clear_and_natural": true,
+        "reason": "Acknowledgement (general) plus new request to track package (order_logistics)."
+      },
+      {
+        "case_id": "domain-v3:en:14:2:0",
+        "active_domains": [
+          "general",
+          "product_technical"
+        ],
+        "clear_and_natural": true,
+        "reason": "Acknowledgement of replacement carafe (general) plus new question about descaling (product_technical)."
+      },
+      {
+        "case_id": "domain-v3:en:14:2:1",
+        "active_domains": [
+          "human_service"
+        ],
+        "clear_and_natural": true,
+        "reason": "User withdraws carafe replacement and requests to speak to a manager (human_service escalation)."
+      },
+      {
+        "case_id": "domain-v3:en:14:2:2",
+        "active_domains": [
+          "general",
+          "order_logistics"
+        ],
+        "clear_and_natural": true,
+        "reason": "Acknowledgement (general) plus new request to verify delivery address on pending order (order_logistics)."
+      },
+      {
+        "case_id": "domain-v3:en:14:3:0",
+        "active_domains": [
+          "general",
+          "order_logistics"
+        ],
+        "clear_and_natural": true,
+        "reason": "Thanks for cleaning tips (general) plus new request about order confirmation (order_logistics)."
+      },
+      {
+        "case_id": "domain-v3:en:14:3:1",
+        "active_domains": [
+          "billing_refund"
+        ],
+        "clear_and_natural": true,
+        "reason": "User wants to return mat and get thicker version; return/exchange is billing_refund."
+      },
+      {
+        "case_id": "domain-v3:en:14:3:2",
+        "active_domains": [
+          "general",
+          "product_technical"
+        ],
+        "clear_and_natural": true,
+        "reason": "Acknowledgement (general) plus new question about replacement carrying straps (product_technical)."
+      },
+      {
+        "case_id": "domain-v3:en:14:4:0",
+        "active_domains": [
+          "general",
+          "account_security"
+        ],
+        "clear_and_natural": true,
+        "reason": "Thanks for address fix (general) plus new login/password issue (account_security)."
+      },
+      {
+        "case_id": "domain-v3:en:14:4:1",
+        "active_domains": [
+          "general",
+          "order_logistics"
+        ],
+        "clear_and_natural": true,
+        "reason": "Acknowledgement (general) plus new question about courier delivery times (order_logistics)."
+      },
+      {
+        "case_id": "domain-v3:en:14:4:2",
+        "active_domains": [
+          "order_logistics"
+        ],
+        "clear_and_natural": true,
+        "reason": "User cancels the address-fix request and instead wants to cancel the order entirely; cancellation before dispatch is order_logistics."
+      },
+      {
+        "case_id": "domain-v3:en:14:5:0",
+        "active_domains": [
+          "general",
+          "billing_refund"
+        ],
+        "clear_and_natural": true,
+        "reason": "Thanks for pairing fix (general) plus new double-charge issue (billing_refund)."
+      },
+      {
+        "case_id": "domain-v3:en:14:5:1",
+        "active_domains": [
+          "human_service"
+        ],
+        "clear_and_natural": true,
+        "reason": "User is fed up and requests a live agent (human_service escalation)."
+      },
+      {
+        "case_id": "domain-v3:en:14:5:2",
+        "active_domains": [
+          "general",
+          "order_logistics"
+        ],
+        "clear_and_natural": true,
+        "reason": "Acknowledgement of troubleshooting (general) plus new request about headphone order shipping (order_logistics)."
+      },
+      {
+        "case_id": "domain-v3:en:14:6:0",
+        "active_domains": [
+          "product_technical"
+        ],
+        "clear_and_natural": true,
+        "reason": "User asks about color availability of the coat (product_technical)."
+      },
+      {
+        "case_id": "domain-v3:en:14:6:1",
+        "active_domains": [
+          "order_logistics"
+        ],
+        "clear_and_natural": true,
+        "reason": "User asks about delivery status of scarf order (order_logistics)."
+      },
+      {
+        "case_id": "domain-v3:en:14:6:2",
+        "active_domains": [
+          "general"
+        ],
+        "clear_and_natural": true,
+        "reason": "Thanks plus question about job posting; ordinary chat/general info, no business domain."
+      },
+      {
+        "case_id": "domain-v3:en:14:7:0",
+        "active_domains": [
+          "general",
+          "billing_refund"
+        ],
+        "clear_and_natural": true,
+        "reason": "Video sent (general continuation) plus new request to resend invoice (billing_refund)."
+      },
+      {
+        "case_id": "domain-v3:en:14:7:1",
+        "active_domains": [
+          "general",
+          "order_logistics"
+        ],
+        "clear_and_natural": true,
+        "reason": "Video sent (general) plus new request to check desk mat order status (order_logistics)."
+      },
+      {
+        "case_id": "domain-v3:en:14:7:2",
+        "active_domains": [
+          "billing_refund"
+        ],
+        "clear_and_natural": true,
+        "reason": "User withdraws warranty/video path and wants to return the desk for a refund (billing_refund)."
+      }
+    ]
+  },
+  "review": {
+    "verdicts": [
+      {
+        "case_id": "domain-v3:en:14:0:0",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "Thanks for completed replacement (general courtesy), plus new question about smart bulb compatibility (product_technical)."
+      },
+      {
+        "case_id": "domain-v3:en:14:0:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User withdraws replacement and requests a full refund instead; refund is billing_refund."
+      },
+      {
+        "case_id": "domain-v3:en:14:0:2",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "Acknowledgement of completed replacement (general) plus new request to check shipping status of another order (order_logistics)."
+      },
+      {
+        "case_id": "domain-v3:en:14:1:0",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "Acknowledgement of return process (general) plus new question about store hours (general info/product_technical). Store hours is general info; classify as general."
+      },
+      {
+        "case_id": "domain-v3:en:14:1:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User changes from return to exchange for a different size; exchange is after-sales billing_refund."
+      },
+      {
+        "case_id": "domain-v3:en:14:1:2",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "Acknowledgement (general) plus new request to track package (order_logistics)."
+      },
+      {
+        "case_id": "domain-v3:en:14:2:0",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "Acknowledgement of replacement carafe (general) plus new question about descaling (product_technical)."
+      },
+      {
+        "case_id": "domain-v3:en:14:2:1",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "User withdraws carafe replacement and requests to speak to a manager (human_service escalation)."
+      },
+      {
+        "case_id": "domain-v3:en:14:2:2",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "Acknowledgement (general) plus new request to verify delivery address on pending order (order_logistics)."
+      },
+      {
+        "case_id": "domain-v3:en:14:3:0",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "Thanks for cleaning tips (general) plus new request about order confirmation (order_logistics)."
+      },
+      {
+        "case_id": "domain-v3:en:14:3:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User wants to return mat and get thicker version; return/exchange is billing_refund."
+      },
+      {
+        "case_id": "domain-v3:en:14:3:2",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "Acknowledgement (general) plus new question about replacement carrying straps (product_technical)."
+      },
+      {
+        "case_id": "domain-v3:en:14:4:0",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "Thanks for address fix (general) plus new login/password issue (account_security)."
+      },
+      {
+        "case_id": "domain-v3:en:14:4:1",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "Acknowledgement (general) plus new question about courier delivery times (order_logistics)."
+      },
+      {
+        "case_id": "domain-v3:en:14:4:2",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "User cancels the address-fix request and instead wants to cancel the order entirely; cancellation before dispatch is order_logistics."
+      },
+      {
+        "case_id": "domain-v3:en:14:5:0",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "Thanks for pairing fix (general) plus new double-charge issue (billing_refund)."
+      },
+      {
+        "case_id": "domain-v3:en:14:5:1",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "User is fed up and requests a live agent (human_service escalation)."
+      },
+      {
+        "case_id": "domain-v3:en:14:5:2",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "Acknowledgement of troubleshooting (general) plus new request about headphone order shipping (order_logistics)."
+      },
+      {
+        "case_id": "domain-v3:en:14:6:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "User asks about color availability of the coat (product_technical)."
+      },
+      {
+        "case_id": "domain-v3:en:14:6:1",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "User asks about delivery status of scarf order (order_logistics)."
+      },
+      {
+        "case_id": "domain-v3:en:14:6:2",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "Thanks plus question about job posting; ordinary chat/general info, no business domain."
+      },
+      {
+        "case_id": "domain-v3:en:14:7:0",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "Video sent (general continuation) plus new request to resend invoice (billing_refund)."
+      },
+      {
+        "case_id": "domain-v3:en:14:7:1",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "Video sent (general) plus new request to check desk mat order status (order_logistics)."
+      },
+      {
+        "case_id": "domain-v3:en:14:7:2",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User withdraws warranty/video path and wants to return the desk for a refund (billing_refund)."
+      }
+    ]
+  },
+  "rows": [
+    {
+      "case_id": "domain-v3:en:14:0:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Hi, my lamp arrived yesterday and the base is cracked. Can I get a replacement?"
+        },
+        {
+          "role": "assistant",
+          "content": "I'm sorry about that! I can send you a replacement base at no charge. May I have your order number?"
+        },
+        {
+          "role": "user",
+          "content": "Sure, it's #48291. Will the whole lamp need to go back?"
+        },
+        {
+          "role": "assistant",
+          "content": "No, just the base. I've placed the replacement order — you should receive it in 3-5 business days."
+        }
+      ],
+      "text": "Great, thanks for handling that. Also, do you know if this lamp works with smart bulbs?",
+      "language": "en",
+      "label": "__DEFER__",
+      "group_id": "domain-v3:en:14:0",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:14:0:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Hi, my lamp arrived yesterday and the base is cracked. Can I get a replacement?"
+        },
+        {
+          "role": "assistant",
+          "content": "I'm sorry about that! I can send you a replacement base at no charge. May I have your order number?"
+        },
+        {
+          "role": "user",
+          "content": "Sure, it's #48291. Will the whole lamp need to go back?"
+        },
+        {
+          "role": "assistant",
+          "content": "No, just the base. I've placed the replacement order — you should receive it in 3-5 business days."
+        }
+      ],
+      "text": "Actually, on second thought, could you just send me a full refund instead? I'd rather not deal with a replacement.",
+      "language": "en",
+      "label": "billing_refund",
+      "group_id": "domain-v3:en:14:0",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:14:0:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Hi, my lamp arrived yesterday and the base is cracked. Can I get a replacement?"
+        },
+        {
+          "role": "assistant",
+          "content": "I'm sorry about that! I can send you a replacement base at no charge. May I have your order number?"
+        },
+        {
+          "role": "user",
+          "content": "Sure, it's #48291. Will the whole lamp need to go back?"
+        },
+        {
+          "role": "assistant",
+          "content": "No, just the base. I've placed the replacement order — you should receive it in 3-5 business days."
+        }
+      ],
+      "text": "Perfect. And while you're at it, can you check if my other order #48310 has shipped yet?",
+      "language": "en",
+      "label": "__DEFER__",
+      "group_id": "domain-v3:en:14:0",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:14:1:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "These shoes are a half size too small. What's your return policy?"
+        },
+        {
+          "role": "assistant",
+          "content": "You have 30 days for returns. I've emailed you a prepaid label — just drop the shoes at any UPS location."
+        },
+        {
+          "role": "user",
+          "content": "Do I need to include the original box?"
+        },
+        {
+          "role": "assistant",
+          "content": "The original box is preferred but not required. Just make sure the shoes are in unworn condition."
+        }
+      ],
+      "text": "Got it, I'll send them back today. By the way, is the store open on Sundays?",
+      "language": "en",
+      "label": "__DEFER__",
+      "group_id": "domain-v3:en:14:1",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:14:1:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "These shoes are a half size too small. What's your return policy?"
+        },
+        {
+          "role": "assistant",
+          "content": "You have 30 days for returns. I've emailed you a prepaid label — just drop the shoes at any UPS location."
+        },
+        {
+          "role": "user",
+          "content": "Do I need to include the original box?"
+        },
+        {
+          "role": "assistant",
+          "content": "The original box is preferred but not required. Just make sure the shoes are in unworn condition."
+        }
+      ],
+      "text": "Actually, I changed my mind — I'd like to exchange for a half size up instead of returning. Can you arrange that?",
+      "language": "en",
+      "label": "billing_refund",
+      "group_id": "domain-v3:en:14:1",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:14:1:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "These shoes are a half size too small. What's your return policy?"
+        },
+        {
+          "role": "assistant",
+          "content": "You have 30 days for returns. I've emailed you a prepaid label — just drop the shoes at any UPS location."
+        },
+        {
+          "role": "user",
+          "content": "Do I need to include the original box?"
+        },
+        {
+          "role": "assistant",
+          "content": "The original box is preferred but not required. Just make sure the shoes are in unworn condition."
+        }
+      ],
+      "text": "Okay. Can you also tell me where my package is? Tracking says it's been in transit for four days.",
+      "language": "en",
+      "label": "__DEFER__",
+      "group_id": "domain-v3:en:14:1",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:14:2:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "The carafe on my new coffee maker is chipped. This is frustrating."
+        },
+        {
+          "role": "assistant",
+          "content": "I completely understand. I can offer you 15% off your order, or send a replacement carafe."
+        },
+        {
+          "role": "user",
+          "content": "A replacement carafe would be better. How long will that take?"
+        },
+        {
+          "role": "assistant",
+          "content": "About a week. I've started the process — you'll get a confirmation email shortly."
+        }
+      ],
+      "text": "Alright, I'll wait for the carafe. Also, can you tell me how to descale this machine?",
+      "language": "en",
+      "label": "__DEFER__",
+      "group_id": "domain-v3:en:14:2",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:14:2:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "The carafe on my new coffee maker is chipped. This is frustrating."
+        },
+        {
+          "role": "assistant",
+          "content": "I completely understand. I can offer you 15% off your order, or send a replacement carafe."
+        },
+        {
+          "role": "user",
+          "content": "A replacement carafe would be better. How long will that take?"
+        },
+        {
+          "role": "assistant",
+          "content": "About a week. I've started the process — you'll get a confirmation email shortly."
+        }
+      ],
+      "text": "You know what, forget the carafe. I want to speak to a manager about this whole experience.",
+      "language": "en",
+      "label": "human_service",
+      "group_id": "domain-v3:en:14:2",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:14:2:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "The carafe on my new coffee maker is chipped. This is frustrating."
+        },
+        {
+          "role": "assistant",
+          "content": "I completely understand. I can offer you 15% off your order, or send a replacement carafe."
+        },
+        {
+          "role": "user",
+          "content": "A replacement carafe would be better. How long will that take?"
+        },
+        {
+          "role": "assistant",
+          "content": "About a week. I've started the process — you'll get a confirmation email shortly."
+        }
+      ],
+      "text": "Fine. And can you double-check the delivery address on my pending order for the grinder?",
+      "language": "en",
+      "label": "__DEFER__",
+      "group_id": "domain-v3:en:14:2",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:14:3:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "How should I clean my new yoga mat without damaging it?"
+        },
+        {
+          "role": "assistant",
+          "content": "Use a mild soap and water solution with a soft cloth. Avoid harsh chemicals and machine washing."
+        },
+        {
+          "role": "user",
+          "content": "Can I put it in the dryer to speed things up?"
+        },
+        {
+          "role": "assistant",
+          "content": "No, air-dry only. Heat will warp the mat's surface."
+        }
+      ],
+      "text": "Thanks for the tips. Oh wait — I never got a confirmation for my order. Did it actually go through?",
+      "language": "en",
+      "label": "__DEFER__",
+      "group_id": "domain-v3:en:14:3",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:14:3:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "How should I clean my new yoga mat without damaging it?"
+        },
+        {
+          "role": "assistant",
+          "content": "Use a mild soap and water solution with a soft cloth. Avoid harsh chemicals and machine washing."
+        },
+        {
+          "role": "user",
+          "content": "Can I put it in the dryer to speed things up?"
+        },
+        {
+          "role": "assistant",
+          "content": "No, air-dry only. Heat will warp the mat's surface."
+        }
+      ],
+      "text": "Understood. Actually, I think I want to return the mat and get the thicker pro version instead. How do I do that?",
+      "language": "en",
+      "label": "billing_refund",
+      "group_id": "domain-v3:en:14:3",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:14:3:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "How should I clean my new yoga mat without damaging it?"
+        },
+        {
+          "role": "assistant",
+          "content": "Use a mild soap and water solution with a soft cloth. Avoid harsh chemicals and machine washing."
+        },
+        {
+          "role": "user",
+          "content": "Can I put it in the dryer to speed things up?"
+        },
+        {
+          "role": "assistant",
+          "content": "No, air-dry only. Heat will warp the mat's surface."
+        }
+      ],
+      "text": "Got it, air-dry only. Do you sell replacement carrying straps for these mats?",
+      "language": "en",
+      "label": "__DEFER__",
+      "group_id": "domain-v3:en:14:3",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:14:4:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I think I put the wrong apartment number on my order. Can you fix it?"
+        },
+        {
+          "role": "assistant",
+          "content": "I can update that if the order hasn't shipped yet. What's your order number?"
+        },
+        {
+          "role": "user",
+          "content": "It's #77521. The apartment should be 4B, not 4D."
+        },
+        {
+          "role": "assistant",
+          "content": "Done — I've updated it to 4B. Your order is still scheduled for tomorrow's dispatch."
+        }
+      ],
+      "text": "Perfect, thank you. Also, I can't log into my account anymore — it says my password is wrong.",
+      "language": "en",
+      "label": "__DEFER__",
+      "group_id": "domain-v3:en:14:4",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:14:4:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I think I put the wrong apartment number on my order. Can you fix it?"
+        },
+        {
+          "role": "assistant",
+          "content": "I can update that if the order hasn't shipped yet. What's your order number?"
+        },
+        {
+          "role": "user",
+          "content": "It's #77521. The apartment should be 4B, not 4D."
+        },
+        {
+          "role": "assistant",
+          "content": "Done — I've updated it to 4B. Your order is still scheduled for tomorrow's dispatch."
+        }
+      ],
+      "text": "Great. Can you tell me what time the courier usually delivers in my area?",
+      "language": "en",
+      "label": "__DEFER__",
+      "group_id": "domain-v3:en:14:4",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:14:4:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I think I put the wrong apartment number on my order. Can you fix it?"
+        },
+        {
+          "role": "assistant",
+          "content": "I can update that if the order hasn't shipped yet. What's your order number?"
+        },
+        {
+          "role": "user",
+          "content": "It's #77521. The apartment should be 4B, not 4D."
+        },
+        {
+          "role": "assistant",
+          "content": "Done — I've updated it to 4B. Your order is still scheduled for tomorrow's dispatch."
+        }
+      ],
+      "text": "Actually, never mind all that — I'd rather cancel the order entirely.",
+      "language": "en",
+      "label": "order_logistics",
+      "group_id": "domain-v3:en:14:4",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:14:5:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "How do I pair this speaker with my Samsung TV?"
+        },
+        {
+          "role": "assistant",
+          "content": "Put the speaker in pairing mode by holding the Bluetooth button for 3 seconds, then search for it in your TV's sound settings."
+        },
+        {
+          "role": "user",
+          "content": "I tried that but the TV doesn't find it."
+        },
+        {
+          "role": "assistant",
+          "content": "Try resetting the speaker by holding the power button for 10 seconds, then attempt pairing again."
+        }
+      ],
+      "text": "That worked, thanks! Oh, and I noticed my credit card was charged twice for this order — can you look into that?",
+      "language": "en",
+      "label": "__DEFER__",
+      "group_id": "domain-v3:en:14:5",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:14:5:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "How do I pair this speaker with my Samsung TV?"
+        },
+        {
+          "role": "assistant",
+          "content": "Put the speaker in pairing mode by holding the Bluetooth button for 3 seconds, then search for it in your TV's sound settings."
+        },
+        {
+          "role": "user",
+          "content": "I tried that but the TV doesn't find it."
+        },
+        {
+          "role": "assistant",
+          "content": "Try resetting the speaker by holding the power button for 10 seconds, then attempt pairing again."
+        }
+      ],
+      "text": "Still nothing. Honestly, I'm fed up — can you just connect me to a live agent?",
+      "language": "en",
+      "label": "human_service",
+      "group_id": "domain-v3:en:14:5",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:14:5:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "How do I pair this speaker with my Samsung TV?"
+        },
+        {
+          "role": "assistant",
+          "content": "Put the speaker in pairing mode by holding the Bluetooth button for 3 seconds, then search for it in your TV's sound settings."
+        },
+        {
+          "role": "user",
+          "content": "I tried that but the TV doesn't find it."
+        },
+        {
+          "role": "assistant",
+          "content": "Try resetting the speaker by holding the power button for 10 seconds, then attempt pairing again."
+        }
+      ],
+      "text": "Okay, I'll try that. Meanwhile, has my other order with the headphones shipped yet?",
+      "language": "en",
+      "label": "__DEFER__",
+      "group_id": "domain-v3:en:14:5",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:14:6:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I'm between sizes for the winter coat. Should I go with medium or large?"
+        },
+        {
+          "role": "assistant",
+          "content": "If you're between sizes, I'd recommend large since the coat runs slightly snug in the shoulders."
+        },
+        {
+          "role": "user",
+          "content": "Okay, I'll go with large. When will it arrive if I order today?"
+        },
+        {
+          "role": "assistant",
+          "content": "Standard shipping would put it at your door in about 5-7 business days."
+        }
+      ],
+      "text": "Alright, I'll place the order now. Actually, do you have this coat in a different color, like olive?",
+      "language": "en",
+      "label": "product_technical",
+      "group_id": "domain-v3:en:14:6",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:14:6:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I'm between sizes for the winter coat. Should I go with medium or large?"
+        },
+        {
+          "role": "assistant",
+          "content": "If you're between sizes, I'd recommend large since the coat runs slightly snug in the shoulders."
+        },
+        {
+          "role": "user",
+          "content": "Okay, I'll go with large. When will it arrive if I order today?"
+        },
+        {
+          "role": "assistant",
+          "content": "Standard shipping would put it at your door in about 5-7 business days."
+        }
+      ],
+      "text": "Hmm, actually I realize I should check — is my current order for the scarf still on track for delivery this week?",
+      "language": "en",
+      "label": "order_logistics",
+      "group_id": "domain-v3:en:14:6",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:14:6:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I'm between sizes for the winter coat. Should I go with medium or large?"
+        },
+        {
+          "role": "assistant",
+          "content": "If you're between sizes, I'd recommend large since the coat runs slightly snug in the shoulders."
+        },
+        {
+          "role": "user",
+          "content": "Okay, I'll go with large. When will it arrive if I order today?"
+        },
+        {
+          "role": "assistant",
+          "content": "Standard shipping would put it at your door in about 5-7 business days."
+        }
+      ],
+      "text": "Thanks for the help. By the way, are you guys hiring? I saw a job posting.",
+      "language": "en",
+      "label": "general",
+      "group_id": "domain-v3:en:14:6",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:14:7:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "The motor on my standing desk is grinding when I adjust the height. It's only two weeks old."
+        },
+        {
+          "role": "assistant",
+          "content": "That shouldn't happen. Could you send a short video of the noise so our warranty team can assess it?"
+        },
+        {
+          "role": "user",
+          "content": "Sure, I'll send it over. What happens after that?"
+        },
+        {
+          "role": "assistant",
+          "content": "Once they review it, they'll either send a replacement motor or arrange a full unit swap."
+        }
+      ],
+      "text": "Video sent. Also, I never received the invoice for this purchase — can you resend it?",
+      "language": "en",
+      "label": "__DEFER__",
+      "group_id": "domain-v3:en:14:7",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:14:7:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "The motor on my standing desk is grinding when I adjust the height. It's only two weeks old."
+        },
+        {
+          "role": "assistant",
+          "content": "That shouldn't happen. Could you send a short video of the noise so our warranty team can assess it?"
+        },
+        {
+          "role": "user",
+          "content": "Sure, I'll send it over. What happens after that?"
+        },
+        {
+          "role": "assistant",
+          "content": "Once they review it, they'll either send a replacement motor or arrange a full unit swap."
+        }
+      ],
+      "text": "Video sent. While I wait, can you check the status of my desk mat order from last week?",
+      "language": "en",
+      "label": "__DEFER__",
+      "group_id": "domain-v3:en:14:7",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:14:7:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "The motor on my standing desk is grinding when I adjust the height. It's only two weeks old."
+        },
+        {
+          "role": "assistant",
+          "content": "That shouldn't happen. Could you send a short video of the noise so our warranty team can assess it?"
+        },
+        {
+          "role": "user",
+          "content": "Sure, I'll send it over. What happens after that?"
+        },
+        {
+          "role": "assistant",
+          "content": "Once they review it, they'll either send a replacement motor or arrange a full unit swap."
+        }
+      ],
+      "text": "Actually, forget the video — I just want to return the whole desk and get my money back.",
+      "language": "en",
+      "label": "billing_refund",
+      "group_id": "domain-v3:en:14:7",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    }
+  ],
+  "status": "reviewed_candidate"
+}

@@ -1,0 +1,1137 @@
+{
+  "batch_id": "domain-v3:zh:23",
+  "language": "zh",
+  "split": "heldout",
+  "source": "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-23.json",
+  "source_sha256": "55edbfea4c64c3038b13fd4ded7444cf9a2ce2a74068e2a67cb0c97e8e25ef20",
+  "rubric_version": "domain-active-request-v2",
+  "model": "deepseek-v4-pro",
+  "call": {
+    "rubric_version": "domain-active-request-v2",
+    "rubric_sha256": "a40843822e777415273a7d6ccba129a6764fcb9f73f47c9375c90eea717abef2",
+    "response": {
+      "content": [
+        {
+          "id": "call_00_hDPYNUlTgQgheo1K9xnf3450",
+          "input": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:zh:23:0:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户询问寄回维修所需时间，属于已收到的商品售后维修流程，属于billing_refund（售后规则/维修）。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:0:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户明确放弃维修，改为申请退货退款，属于退款/退货售后，归billing_refund。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:0:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户明确要求转人工客服并投诉，属于human_service。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:1:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问滤网价格，属于产品/配件咨询，归product_technical。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:1:1",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户放弃购买，转而询问售后电话，属于寻求人工/售后联系方式，归human_service。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:1:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "用户澄清实际想咨询磨豆机刀盘配件，仍属产品配件咨询，归product_technical。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:2:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "用户继续请求修改收货地址，属于订单/物流地址修改，归order_logistics。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:2:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "用户改为取消订单并重新下单到新地址，属于发货前取消订单，归order_logistics。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:2:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户放弃改地址，要求转人工处理退款，明确请求人工服务，归human_service。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:3:0",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "用户提供历史订单信息以验证身份更新手机号，属于账号登录/安全验证，归account_security。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:3:1",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户放弃账号找回，转而询问人工客服电话，归human_service。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:3:2",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "用户询问找回账号后优惠券是否可用，仍围绕账号找回，归account_security。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:4:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "用户反馈快递柜没有包裹，属于未收到包裹的物流/配送问题，归order_logistics。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:4:1",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "用户表示已找到包裹并致谢，无新的业务请求，归general。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:4:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户提出猫粮导致拉肚子并要求找负责人谈谈，属于投诉/人工服务，归human_service。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:5:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户请求申请售后检测，属于已收到商品的售后/退换流程，归billing_refund。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:5:1",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "用户发现问题自行解决并明确表示不用售后，无剩余业务请求，归general。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:5:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户询问线下售后网点并要求人工客服电话，明确请求人工服务，归human_service。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:6:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户提供公司名称和税号以重新开具发票，属于发票/支付相关，归billing_refund。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:6:1",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "用户明确表示不用改发票，主动撤回请求且无新目标，归general（无剩余业务请求）。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:6:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户提出冰箱异响问题并要求转人工，明确请求人工服务，归human_service。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:7:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "用户请求取消未发货订单，属于发货前取消，归order_logistics。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:7:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "用户请求到货后短信通知，仍围绕订单发货状态，归order_logistics。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:7:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户明确要求投诉并转人工，归human_service。"
+              }
+            ]
+          },
+          "name": "ReviewedBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "4b505d54-b4af-4a71-9e80-af257b6adaef",
+        "container": null,
+        "model": "deepseek-v4-pro",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 768,
+          "inference_geo": null,
+          "input_tokens": 3562,
+          "output_tokens": 1415,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-pro",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081e4-adb4-7302-a2ce-e40f3d2f5c1f-0",
+      "tool_calls": [
+        {
+          "name": "ReviewedBatch",
+          "args": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:zh:23:0:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户询问寄回维修所需时间，属于已收到的商品售后维修流程，属于billing_refund（售后规则/维修）。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:0:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户明确放弃维修，改为申请退货退款，属于退款/退货售后，归billing_refund。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:0:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户明确要求转人工客服并投诉，属于human_service。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:1:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问滤网价格，属于产品/配件咨询，归product_technical。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:1:1",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户放弃购买，转而询问售后电话，属于寻求人工/售后联系方式，归human_service。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:1:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "用户澄清实际想咨询磨豆机刀盘配件，仍属产品配件咨询，归product_technical。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:2:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "用户继续请求修改收货地址，属于订单/物流地址修改，归order_logistics。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:2:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "用户改为取消订单并重新下单到新地址，属于发货前取消订单，归order_logistics。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:2:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户放弃改地址，要求转人工处理退款，明确请求人工服务，归human_service。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:3:0",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "用户提供历史订单信息以验证身份更新手机号，属于账号登录/安全验证，归account_security。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:3:1",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户放弃账号找回，转而询问人工客服电话，归human_service。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:3:2",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "用户询问找回账号后优惠券是否可用，仍围绕账号找回，归account_security。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:4:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "用户反馈快递柜没有包裹，属于未收到包裹的物流/配送问题，归order_logistics。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:4:1",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "用户表示已找到包裹并致谢，无新的业务请求，归general。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:4:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户提出猫粮导致拉肚子并要求找负责人谈谈，属于投诉/人工服务，归human_service。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:5:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户请求申请售后检测，属于已收到商品的售后/退换流程，归billing_refund。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:5:1",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "用户发现问题自行解决并明确表示不用售后，无剩余业务请求，归general。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:5:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户询问线下售后网点并要求人工客服电话，明确请求人工服务，归human_service。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:6:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "用户提供公司名称和税号以重新开具发票，属于发票/支付相关，归billing_refund。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:6:1",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "用户明确表示不用改发票，主动撤回请求且无新目标，归general（无剩余业务请求）。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:6:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户提出冰箱异响问题并要求转人工，明确请求人工服务，归human_service。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:7:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "用户请求取消未发货订单，属于发货前取消，归order_logistics。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:7:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "用户请求到货后短信通知，仍围绕订单发货状态，归order_logistics。"
+              },
+              {
+                "case_id": "domain-v3:zh:23:7:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "用户明确要求投诉并转人工，归human_service。"
+              }
+            ]
+          },
+          "id": "call_00_hDPYNUlTgQgheo1K9xnf3450",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 4330,
+        "output_tokens": 1415,
+        "total_tokens": 5745,
+        "input_token_details": {
+          "cache_read": 768,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "review": {
+    "verdicts": [
+      {
+        "case_id": "domain-v3:zh:23:0:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户询问寄回维修所需时间，属于已收到的商品售后维修流程，属于billing_refund（售后规则/维修）。"
+      },
+      {
+        "case_id": "domain-v3:zh:23:0:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户明确放弃维修，改为申请退货退款，属于退款/退货售后，归billing_refund。"
+      },
+      {
+        "case_id": "domain-v3:zh:23:0:2",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "用户明确要求转人工客服并投诉，属于human_service。"
+      },
+      {
+        "case_id": "domain-v3:zh:23:1:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "询问滤网价格，属于产品/配件咨询，归product_technical。"
+      },
+      {
+        "case_id": "domain-v3:zh:23:1:1",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "用户放弃购买，转而询问售后电话，属于寻求人工/售后联系方式，归human_service。"
+      },
+      {
+        "case_id": "domain-v3:zh:23:1:2",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "用户澄清实际想咨询磨豆机刀盘配件，仍属产品配件咨询，归product_technical。"
+      },
+      {
+        "case_id": "domain-v3:zh:23:2:0",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "用户继续请求修改收货地址，属于订单/物流地址修改，归order_logistics。"
+      },
+      {
+        "case_id": "domain-v3:zh:23:2:1",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "用户改为取消订单并重新下单到新地址，属于发货前取消订单，归order_logistics。"
+      },
+      {
+        "case_id": "domain-v3:zh:23:2:2",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "用户放弃改地址，要求转人工处理退款，明确请求人工服务，归human_service。"
+      },
+      {
+        "case_id": "domain-v3:zh:23:3:0",
+        "label": "account_security",
+        "clear_and_natural": true,
+        "reason": "用户提供历史订单信息以验证身份更新手机号，属于账号登录/安全验证，归account_security。"
+      },
+      {
+        "case_id": "domain-v3:zh:23:3:1",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "用户放弃账号找回，转而询问人工客服电话，归human_service。"
+      },
+      {
+        "case_id": "domain-v3:zh:23:3:2",
+        "label": "account_security",
+        "clear_and_natural": true,
+        "reason": "用户询问找回账号后优惠券是否可用，仍围绕账号找回，归account_security。"
+      },
+      {
+        "case_id": "domain-v3:zh:23:4:0",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "用户反馈快递柜没有包裹，属于未收到包裹的物流/配送问题，归order_logistics。"
+      },
+      {
+        "case_id": "domain-v3:zh:23:4:1",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "用户表示已找到包裹并致谢，无新的业务请求，归general。"
+      },
+      {
+        "case_id": "domain-v3:zh:23:4:2",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "用户提出猫粮导致拉肚子并要求找负责人谈谈，属于投诉/人工服务，归human_service。"
+      },
+      {
+        "case_id": "domain-v3:zh:23:5:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户请求申请售后检测，属于已收到商品的售后/退换流程，归billing_refund。"
+      },
+      {
+        "case_id": "domain-v3:zh:23:5:1",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "用户发现问题自行解决并明确表示不用售后，无剩余业务请求，归general。"
+      },
+      {
+        "case_id": "domain-v3:zh:23:5:2",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "用户询问线下售后网点并要求人工客服电话，明确请求人工服务，归human_service。"
+      },
+      {
+        "case_id": "domain-v3:zh:23:6:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户提供公司名称和税号以重新开具发票，属于发票/支付相关，归billing_refund。"
+      },
+      {
+        "case_id": "domain-v3:zh:23:6:1",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "用户明确表示不用改发票，主动撤回请求且无新目标，归general（无剩余业务请求）。"
+      },
+      {
+        "case_id": "domain-v3:zh:23:6:2",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "用户提出冰箱异响问题并要求转人工，明确请求人工服务，归human_service。"
+      },
+      {
+        "case_id": "domain-v3:zh:23:7:0",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "用户请求取消未发货订单，属于发货前取消，归order_logistics。"
+      },
+      {
+        "case_id": "domain-v3:zh:23:7:1",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "用户请求到货后短信通知，仍围绕订单发货状态，归order_logistics。"
+      },
+      {
+        "case_id": "domain-v3:zh:23:7:2",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "用户明确要求投诉并转人工，归human_service。"
+      }
+    ]
+  },
+  "rows": [
+    {
+      "case_id": "domain-v3:zh:23:0:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上周买的智能手表屏幕突然不亮了，能修吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，请问手表是否在保修期内？方便提供订单号吗？"
+        },
+        {
+          "role": "user",
+          "content": "订单号是20240518，还在保修期。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，已查到您的订单。屏幕问题可以免费维修，请寄回检测。"
+        }
+      ],
+      "text": "那寄回去大概要多久能修好？",
+      "language": "zh",
+      "label": "billing_refund",
+      "group_id": "domain-v3:zh:23:0",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:23:0:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上周买的智能手表屏幕突然不亮了，能修吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，请问手表是否在保修期内？方便提供订单号吗？"
+        },
+        {
+          "role": "user",
+          "content": "订单号是20240518，还在保修期。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，已查到您的订单。屏幕问题可以免费维修，请寄回检测。"
+        }
+      ],
+      "text": "算了，我不修了，直接帮我申请退货退款吧。",
+      "language": "zh",
+      "label": "billing_refund",
+      "group_id": "domain-v3:zh:23:0",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:23:0:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上周买的智能手表屏幕突然不亮了，能修吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，请问手表是否在保修期内？方便提供订单号吗？"
+        },
+        {
+          "role": "user",
+          "content": "订单号是20240518，还在保修期。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，已查到您的订单。屏幕问题可以免费维修，请寄回检测。"
+        }
+      ],
+      "text": "我不想跟你们扯了，给我转人工客服，我要投诉。",
+      "language": "zh",
+      "label": "human_service",
+      "group_id": "domain-v3:zh:23:0",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:23:1:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "你们这款咖啡机的滤网单独卖吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "卖的，请问您需要哪个型号的滤网？"
+        },
+        {
+          "role": "user",
+          "content": "就是你们首页那款意式咖啡机的，型号我忘了。"
+        },
+        {
+          "role": "assistant",
+          "content": "是EC-300那款吗？滤网有原装和兼容两种。"
+        }
+      ],
+      "text": "对，就是EC-300，原装的多少钱？",
+      "language": "zh",
+      "label": "product_technical",
+      "group_id": "domain-v3:zh:23:1",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:23:1:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "你们这款咖啡机的滤网单独卖吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "卖的，请问您需要哪个型号的滤网？"
+        },
+        {
+          "role": "user",
+          "content": "就是你们首页那款意式咖啡机的，型号我忘了。"
+        },
+        {
+          "role": "assistant",
+          "content": "是EC-300那款吗？滤网有原装和兼容两种。"
+        }
+      ],
+      "text": "算了不买了，我朋友说他的那台也坏了，你们售后电话是多少？",
+      "language": "zh",
+      "label": "human_service",
+      "group_id": "domain-v3:zh:23:1",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:23:1:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "你们这款咖啡机的滤网单独卖吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "卖的，请问您需要哪个型号的滤网？"
+        },
+        {
+          "role": "user",
+          "content": "就是你们首页那款意式咖啡机的，型号我忘了。"
+        },
+        {
+          "role": "assistant",
+          "content": "是EC-300那款吗？滤网有原装和兼容两种。"
+        }
+      ],
+      "text": "嗯……其实我想问的是磨豆机，不是咖啡机，磨豆机的刀盘有卖吗？",
+      "language": "zh",
+      "label": "product_technical",
+      "group_id": "domain-v3:zh:23:1",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:23:2:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我昨天下的那单衣服，能帮我改一下收货地址吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "请问您的订单号是多少？我帮您查一下发货状态。"
+        },
+        {
+          "role": "user",
+          "content": "订单号是A88231，还没发货吧？"
+        },
+        {
+          "role": "assistant",
+          "content": "查到了，订单还在仓库待处理，可以修改地址。"
+        }
+      ],
+      "text": "太好了，那帮我改成公司地址，我发你具体信息。",
+      "language": "zh",
+      "label": "order_logistics",
+      "group_id": "domain-v3:zh:23:2",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:23:2:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我昨天下的那单衣服，能帮我改一下收货地址吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "请问您的订单号是多少？我帮您查一下发货状态。"
+        },
+        {
+          "role": "user",
+          "content": "订单号是A88231，还没发货吧？"
+        },
+        {
+          "role": "assistant",
+          "content": "查到了，订单还在仓库待处理，可以修改地址。"
+        }
+      ],
+      "text": "等等，我其实想取消这单，重新下一单到新地址。",
+      "language": "zh",
+      "label": "order_logistics",
+      "group_id": "domain-v3:zh:23:2",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:23:2:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我昨天下的那单衣服，能帮我改一下收货地址吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "请问您的订单号是多少？我帮您查一下发货状态。"
+        },
+        {
+          "role": "user",
+          "content": "订单号是A88231，还没发货吧？"
+        },
+        {
+          "role": "assistant",
+          "content": "查到了，订单还在仓库待处理，可以修改地址。"
+        }
+      ],
+      "text": "算了，不用改了，反正我明天出差也收不到，你们帮我转人工处理一下退款的事吧。",
+      "language": "zh",
+      "label": "human_service",
+      "group_id": "domain-v3:zh:23:2",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:23:3:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我登录账号一直提示密码错误，但我确定密码是对的。"
+        },
+        {
+          "role": "assistant",
+          "content": "别着急，您可以尝试用手机验证码登录，或者点击忘记密码重置。"
+        },
+        {
+          "role": "user",
+          "content": "验证码也收不到，手机号好像换过了。"
+        },
+        {
+          "role": "assistant",
+          "content": "那需要验证身份后才能更新手机号，请问您能提供历史订单信息吗？"
+        }
+      ],
+      "text": "可以，我去年买过一个电饭煲，订单号是B5567。",
+      "language": "zh",
+      "label": "account_security",
+      "group_id": "domain-v3:zh:23:3",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:23:3:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我登录账号一直提示密码错误，但我确定密码是对的。"
+        },
+        {
+          "role": "assistant",
+          "content": "别着急，您可以尝试用手机验证码登录，或者点击忘记密码重置。"
+        },
+        {
+          "role": "user",
+          "content": "验证码也收不到，手机号好像换过了。"
+        },
+        {
+          "role": "assistant",
+          "content": "那需要验证身份后才能更新手机号，请问您能提供历史订单信息吗？"
+        }
+      ],
+      "text": "太麻烦了，我不想弄了，你们有没有人工客服电话？",
+      "language": "zh",
+      "label": "human_service",
+      "group_id": "domain-v3:zh:23:3",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:23:3:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我登录账号一直提示密码错误，但我确定密码是对的。"
+        },
+        {
+          "role": "assistant",
+          "content": "别着急，您可以尝试用手机验证码登录，或者点击忘记密码重置。"
+        },
+        {
+          "role": "user",
+          "content": "验证码也收不到，手机号好像换过了。"
+        },
+        {
+          "role": "assistant",
+          "content": "那需要验证身份后才能更新手机号，请问您能提供历史订单信息吗？"
+        }
+      ],
+      "text": "对了，顺便问一下，我那个账号里还有优惠券，如果找回账号还能用吗？",
+      "language": "zh",
+      "label": "account_security",
+      "group_id": "domain-v3:zh:23:3",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:23:4:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我买的猫粮显示签收了，但我没收到，怎么回事？"
+        },
+        {
+          "role": "assistant",
+          "content": "我帮您查一下物流记录。请问订单号是多少？"
+        },
+        {
+          "role": "user",
+          "content": "订单号C90871，显示今天上午十点签收的。"
+        },
+        {
+          "role": "assistant",
+          "content": "查到了，快递员备注放在小区快递柜了，您去取一下看看。"
+        }
+      ],
+      "text": "快递柜我看了，没有啊，是不是放错了？",
+      "language": "zh",
+      "label": "order_logistics",
+      "group_id": "domain-v3:zh:23:4",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:23:4:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我买的猫粮显示签收了，但我没收到，怎么回事？"
+        },
+        {
+          "role": "assistant",
+          "content": "我帮您查一下物流记录。请问订单号是多少？"
+        },
+        {
+          "role": "user",
+          "content": "订单号C90871，显示今天上午十点签收的。"
+        },
+        {
+          "role": "assistant",
+          "content": "查到了，快递员备注放在小区快递柜了，您去取一下看看。"
+        }
+      ],
+      "text": "哦找到了，在柜子里，谢谢，没事了。",
+      "language": "zh",
+      "label": "general",
+      "group_id": "domain-v3:zh:23:4",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:23:4:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我买的猫粮显示签收了，但我没收到，怎么回事？"
+        },
+        {
+          "role": "assistant",
+          "content": "我帮您查一下物流记录。请问订单号是多少？"
+        },
+        {
+          "role": "user",
+          "content": "订单号C90871，显示今天上午十点签收的。"
+        },
+        {
+          "role": "assistant",
+          "content": "查到了，快递员备注放在小区快递柜了，您去取一下看看。"
+        }
+      ],
+      "text": "找到了就好。对了，你们这个猫粮我家猫吃了拉肚子，我想找你们负责人谈谈。",
+      "language": "zh",
+      "label": "human_service",
+      "group_id": "domain-v3:zh:23:4",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:23:5:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "新买的蓝牙耳机左耳没声音，是不是坏了？"
+        },
+        {
+          "role": "assistant",
+          "content": "您可以先试试重新配对，或者检查一下是不是没电了。"
+        },
+        {
+          "role": "user",
+          "content": "都试过了，还是只有右耳响。"
+        },
+        {
+          "role": "assistant",
+          "content": "那可能是硬件问题，建议您申请售后检测。"
+        }
+      ],
+      "text": "好的，那帮我申请售后吧，需要提供什么？",
+      "language": "zh",
+      "label": "billing_refund",
+      "group_id": "domain-v3:zh:23:5",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:23:5:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "新买的蓝牙耳机左耳没声音，是不是坏了？"
+        },
+        {
+          "role": "assistant",
+          "content": "您可以先试试重新配对，或者检查一下是不是没电了。"
+        },
+        {
+          "role": "user",
+          "content": "都试过了，还是只有右耳响。"
+        },
+        {
+          "role": "assistant",
+          "content": "那可能是硬件问题，建议您申请售后检测。"
+        }
+      ],
+      "text": "等等，我重新看了一下，好像是我手机音量平衡设置的问题，现在好了，不用售后了。",
+      "language": "zh",
+      "label": "general",
+      "group_id": "domain-v3:zh:23:5",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:23:5:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "新买的蓝牙耳机左耳没声音，是不是坏了？"
+        },
+        {
+          "role": "assistant",
+          "content": "您可以先试试重新配对，或者检查一下是不是没电了。"
+        },
+        {
+          "role": "user",
+          "content": "都试过了，还是只有右耳响。"
+        },
+        {
+          "role": "assistant",
+          "content": "那可能是硬件问题，建议您申请售后检测。"
+        }
+      ],
+      "text": "行吧，不过我不想走线上流程，你们线下售后网点在哪？给我人工客服电话。",
+      "language": "zh",
+      "label": "human_service",
+      "group_id": "domain-v3:zh:23:5",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:23:6:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上个月买的冰箱，发票能重新开一张吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "可以的，请问您需要修改发票抬头还是其他信息？"
+        },
+        {
+          "role": "user",
+          "content": "抬头要改成公司名称，之前开的是个人。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，请提供公司名称和税号，我帮您重新开具。"
+        }
+      ],
+      "text": "公司名称是XX科技有限公司，税号我找一下发你。",
+      "language": "zh",
+      "label": "billing_refund",
+      "group_id": "domain-v3:zh:23:6",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:23:6:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上个月买的冰箱，发票能重新开一张吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "可以的，请问您需要修改发票抬头还是其他信息？"
+        },
+        {
+          "role": "user",
+          "content": "抬头要改成公司名称，之前开的是个人。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，请提供公司名称和税号，我帮您重新开具。"
+        }
+      ],
+      "text": "算了，公司说不用报销了，不用改了。",
+      "language": "zh",
+      "label": "general",
+      "group_id": "domain-v3:zh:23:6",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:23:6:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上个月买的冰箱，发票能重新开一张吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "可以的，请问您需要修改发票抬头还是其他信息？"
+        },
+        {
+          "role": "user",
+          "content": "抬头要改成公司名称，之前开的是个人。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，请提供公司名称和税号，我帮您重新开具。"
+        }
+      ],
+      "text": "先别开，我还有个问题，冰箱制冷有异响，这个找谁处理？能帮我转人工吗？",
+      "language": "zh",
+      "label": "human_service",
+      "group_id": "domain-v3:zh:23:6",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:23:7:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上周买的书怎么还没发货？"
+        },
+        {
+          "role": "assistant",
+          "content": "抱歉让您久等了，我查一下您的订单状态。"
+        },
+        {
+          "role": "user",
+          "content": "订单号是D33456，显示备货中已经三天了。"
+        },
+        {
+          "role": "assistant",
+          "content": "这本书目前缺货，供应商预计三天后到货，到货后会尽快发出。"
+        }
+      ],
+      "text": "那太慢了，我急着用，帮我取消订单吧。",
+      "language": "zh",
+      "label": "order_logistics",
+      "group_id": "domain-v3:zh:23:7",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:23:7:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上周买的书怎么还没发货？"
+        },
+        {
+          "role": "assistant",
+          "content": "抱歉让您久等了，我查一下您的订单状态。"
+        },
+        {
+          "role": "user",
+          "content": "订单号是D33456，显示备货中已经三天了。"
+        },
+        {
+          "role": "assistant",
+          "content": "这本书目前缺货，供应商预计三天后到货，到货后会尽快发出。"
+        }
+      ],
+      "text": "好吧，那我再等等，到货了能发短信通知我吗？",
+      "language": "zh",
+      "label": "order_logistics",
+      "group_id": "domain-v3:zh:23:7",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:23:7:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上周买的书怎么还没发货？"
+        },
+        {
+          "role": "assistant",
+          "content": "抱歉让您久等了，我查一下您的订单状态。"
+        },
+        {
+          "role": "user",
+          "content": "订单号是D33456，显示备货中已经三天了。"
+        },
+        {
+          "role": "assistant",
+          "content": "这本书目前缺货，供应商预计三天后到货，到货后会尽快发出。"
+        }
+      ],
+      "text": "你们这服务太差了，我要投诉，给我转人工！",
+      "language": "zh",
+      "label": "human_service",
+      "group_id": "domain-v3:zh:23:7",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    }
+  ],
+  "status": "reviewed_candidate"
+}

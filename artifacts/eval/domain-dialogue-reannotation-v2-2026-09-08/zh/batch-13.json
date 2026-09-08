@@ -1,0 +1,1137 @@
+{
+  "batch_id": "domain-v3:zh:13",
+  "language": "zh",
+  "split": "train",
+  "source": "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-13.json",
+  "source_sha256": "c235b8971587b444dede356e6b57b8588eca1d2bd09c18be6b20c5e1381a91ff",
+  "rubric_version": "domain-active-request-v2",
+  "model": "deepseek-v4-pro",
+  "call": {
+    "rubric_version": "domain-active-request-v2",
+    "rubric_sha256": "a40843822e777415273a7d6ccba129a6764fcb9f73f47c9375c90eea717abef2",
+    "response": {
+      "content": [
+        {
+          "id": "call_00_aYU5OkRsWGwWClPOdo5g3584",
+          "input": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:zh:13:0:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问尼龙表带价格及能否单独购买，属于产品规格/购买信息，product_technical。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:0:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户主动放弃换表带请求，改为先去医院，无剩余目标，属于撤回且无替代目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:0:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "同时请求下单表带（购买/订单）和充电线损坏处理（可能售后），两个不同域的服务并存，无法归为单一域。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:1:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "询问退货运费和退款时间，属于退货退款规则，billing_refund。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:1:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "用户暂缓退货，改为自行尝试排查水箱故障，属于产品使用/故障排查，product_technical。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:1:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "同时请求退货（billing_refund）和推荐其他型号（product_technical），两个不同域服务并存。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:2:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "物流问题已解决，当前新请求是询问鞋底耐磨性，属于产品特性，product_technical。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:2:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "请求改派送时间，属于配送安排，order_logistics。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:2:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "仅表达感谢，无新业务请求，属于general。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:3:0",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "明确请求人工解锁/人工服务，属于human_service。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:3:1",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "询问解锁后仍不行是否联系技术部门，仍是账号访问/安全问题的延续，account_security。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:3:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户放弃原账号问题，改为注册新账号，撤回原请求且无明确替代业务目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:4:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问是否支持LDAC及兼容性，属于产品规格/兼容性，product_technical。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:4:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "请求下单购买，属于下单/订单，order_logistics。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:4:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户表示再考虑、去实体店试听，撤回购买意图且无替代目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:5:0",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "明确要求投诉并转人工客服，属于human_service。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:5:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "询问剩余产品能否退货，属于退货规则，billing_refund。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:5:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问烟酰胺浓度及敏感肌适用性，属于产品成分/适用性，product_technical。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:6:0",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户主动取消修改配置的请求，撤回原目标且无替代目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:6:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "询问修改配置后的价格差及优惠券使用，属于价格/支付相关，billing_refund。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:6:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问能否加装固态硬盘，属于产品硬件规格/扩展性，product_technical。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:7:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "请求加急配送，属于物流/配送，order_logistics。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:7:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问两款猫粮蛋白质含量对比，属于产品成分/规格，product_technical。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:7:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "物流问题已解决，当前仅表达感谢和客套，无新业务请求，general。"
+              }
+            ]
+          },
+          "name": "ReviewedBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "2cab72cd-024f-4365-a5a3-de84d9aa8a7e",
+        "container": null,
+        "model": "deepseek-v4-pro",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 768,
+          "inference_geo": null,
+          "input_tokens": 3909,
+          "output_tokens": 1400,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-pro",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081e4-4b1c-7323-874c-c23e584a9cf6-0",
+      "tool_calls": [
+        {
+          "name": "ReviewedBatch",
+          "args": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:zh:13:0:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问尼龙表带价格及能否单独购买，属于产品规格/购买信息，product_technical。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:0:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户主动放弃换表带请求，改为先去医院，无剩余目标，属于撤回且无替代目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:0:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "同时请求下单表带（购买/订单）和充电线损坏处理（可能售后），两个不同域的服务并存，无法归为单一域。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:1:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "询问退货运费和退款时间，属于退货退款规则，billing_refund。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:1:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "用户暂缓退货，改为自行尝试排查水箱故障，属于产品使用/故障排查，product_technical。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:1:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "同时请求退货（billing_refund）和推荐其他型号（product_technical），两个不同域服务并存。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:2:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "物流问题已解决，当前新请求是询问鞋底耐磨性，属于产品特性，product_technical。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:2:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "请求改派送时间，属于配送安排，order_logistics。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:2:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "仅表达感谢，无新业务请求，属于general。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:3:0",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "明确请求人工解锁/人工服务，属于human_service。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:3:1",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "询问解锁后仍不行是否联系技术部门，仍是账号访问/安全问题的延续，account_security。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:3:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户放弃原账号问题，改为注册新账号，撤回原请求且无明确替代业务目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:4:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问是否支持LDAC及兼容性，属于产品规格/兼容性，product_technical。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:4:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "请求下单购买，属于下单/订单，order_logistics。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:4:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户表示再考虑、去实体店试听，撤回购买意图且无替代目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:5:0",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "明确要求投诉并转人工客服，属于human_service。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:5:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "询问剩余产品能否退货，属于退货规则，billing_refund。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:5:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问烟酰胺浓度及敏感肌适用性，属于产品成分/适用性，product_technical。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:6:0",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户主动取消修改配置的请求，撤回原目标且无替代目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:6:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "询问修改配置后的价格差及优惠券使用，属于价格/支付相关，billing_refund。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:6:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问能否加装固态硬盘，属于产品硬件规格/扩展性，product_technical。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:7:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "请求加急配送，属于物流/配送，order_logistics。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:7:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问两款猫粮蛋白质含量对比，属于产品成分/规格，product_technical。"
+              },
+              {
+                "case_id": "domain-v3:zh:13:7:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "物流问题已解决，当前仅表达感谢和客套，无新业务请求，general。"
+              }
+            ]
+          },
+          "id": "call_00_aYU5OkRsWGwWClPOdo5g3584",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 4677,
+        "output_tokens": 1400,
+        "total_tokens": 6077,
+        "input_token_details": {
+          "cache_read": 768,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "review": {
+    "verdicts": [
+      {
+        "case_id": "domain-v3:zh:13:0:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "询问尼龙表带价格及能否单独购买，属于产品规格/购买信息，product_technical。"
+      },
+      {
+        "case_id": "domain-v3:zh:13:0:1",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "用户主动放弃换表带请求，改为先去医院，无剩余目标，属于撤回且无替代目标。"
+      },
+      {
+        "case_id": "domain-v3:zh:13:0:2",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "同时请求下单表带（购买/订单）和充电线损坏处理（可能售后），两个不同域的服务并存，无法归为单一域。"
+      },
+      {
+        "case_id": "domain-v3:zh:13:1:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "询问退货运费和退款时间，属于退货退款规则，billing_refund。"
+      },
+      {
+        "case_id": "domain-v3:zh:13:1:1",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "用户暂缓退货，改为自行尝试排查水箱故障，属于产品使用/故障排查，product_technical。"
+      },
+      {
+        "case_id": "domain-v3:zh:13:1:2",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "同时请求退货（billing_refund）和推荐其他型号（product_technical），两个不同域服务并存。"
+      },
+      {
+        "case_id": "domain-v3:zh:13:2:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "物流问题已解决，当前新请求是询问鞋底耐磨性，属于产品特性，product_technical。"
+      },
+      {
+        "case_id": "domain-v3:zh:13:2:1",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "请求改派送时间，属于配送安排，order_logistics。"
+      },
+      {
+        "case_id": "domain-v3:zh:13:2:2",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "仅表达感谢，无新业务请求，属于general。"
+      },
+      {
+        "case_id": "domain-v3:zh:13:3:0",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "明确请求人工解锁/人工服务，属于human_service。"
+      },
+      {
+        "case_id": "domain-v3:zh:13:3:1",
+        "label": "account_security",
+        "clear_and_natural": true,
+        "reason": "询问解锁后仍不行是否联系技术部门，仍是账号访问/安全问题的延续，account_security。"
+      },
+      {
+        "case_id": "domain-v3:zh:13:3:2",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "用户放弃原账号问题，改为注册新账号，撤回原请求且无明确替代业务目标。"
+      },
+      {
+        "case_id": "domain-v3:zh:13:4:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "询问是否支持LDAC及兼容性，属于产品规格/兼容性，product_technical。"
+      },
+      {
+        "case_id": "domain-v3:zh:13:4:1",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "请求下单购买，属于下单/订单，order_logistics。"
+      },
+      {
+        "case_id": "domain-v3:zh:13:4:2",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "用户表示再考虑、去实体店试听，撤回购买意图且无替代目标。"
+      },
+      {
+        "case_id": "domain-v3:zh:13:5:0",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "明确要求投诉并转人工客服，属于human_service。"
+      },
+      {
+        "case_id": "domain-v3:zh:13:5:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "询问剩余产品能否退货，属于退货规则，billing_refund。"
+      },
+      {
+        "case_id": "domain-v3:zh:13:5:2",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "询问烟酰胺浓度及敏感肌适用性，属于产品成分/适用性，product_technical。"
+      },
+      {
+        "case_id": "domain-v3:zh:13:6:0",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "用户主动取消修改配置的请求，撤回原目标且无替代目标。"
+      },
+      {
+        "case_id": "domain-v3:zh:13:6:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "询问修改配置后的价格差及优惠券使用，属于价格/支付相关，billing_refund。"
+      },
+      {
+        "case_id": "domain-v3:zh:13:6:2",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "询问能否加装固态硬盘，属于产品硬件规格/扩展性，product_technical。"
+      },
+      {
+        "case_id": "domain-v3:zh:13:7:0",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "请求加急配送，属于物流/配送，order_logistics。"
+      },
+      {
+        "case_id": "domain-v3:zh:13:7:1",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "询问两款猫粮蛋白质含量对比，属于产品成分/规格，product_technical。"
+      },
+      {
+        "case_id": "domain-v3:zh:13:7:2",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "物流问题已解决，当前仅表达感谢和客套，无新业务请求，general。"
+      }
+    ]
+  },
+  "rows": [
+    {
+      "case_id": "domain-v3:zh:13:0:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上周买的智能手表，表带戴着有点过敏，想问问能不能换别的材质。"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，请问您购买的是哪一款手表呢？过敏的话建议先停戴观察。"
+        },
+        {
+          "role": "user",
+          "content": "是S5那款，硅胶表带。我皮肤比较敏感。"
+        },
+        {
+          "role": "assistant",
+          "content": "S5支持更换尼龙编织或真皮表带，这两款透气性更好，适合敏感肌肤。"
+        }
+      ],
+      "text": "那尼龙表带多少钱一条？能单独买吗？",
+      "language": "zh",
+      "label": "product_technical",
+      "group_id": "domain-v3:zh:13:0",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:13:0:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上周买的智能手表，表带戴着有点过敏，想问问能不能换别的材质。"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，请问您购买的是哪一款手表呢？过敏的话建议先停戴观察。"
+        },
+        {
+          "role": "user",
+          "content": "是S5那款，硅胶表带。我皮肤比较敏感。"
+        },
+        {
+          "role": "assistant",
+          "content": "S5支持更换尼龙编织或真皮表带，这两款透气性更好，适合敏感肌肤。"
+        }
+      ],
+      "text": "算了，我还是先去医院看看是不是过敏再说吧。",
+      "language": "zh",
+      "label": "__DEFER__",
+      "group_id": "domain-v3:zh:13:0",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:13:0:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上周买的智能手表，表带戴着有点过敏，想问问能不能换别的材质。"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，请问您购买的是哪一款手表呢？过敏的话建议先停戴观察。"
+        },
+        {
+          "role": "user",
+          "content": "是S5那款，硅胶表带。我皮肤比较敏感。"
+        },
+        {
+          "role": "assistant",
+          "content": "S5支持更换尼龙编织或真皮表带，这两款透气性更好，适合敏感肌肤。"
+        }
+      ],
+      "text": "好的，那帮我下单一条尼龙表带，另外我上次买的充电线好像也坏了，能一起处理吗？",
+      "language": "zh",
+      "label": "__DEFER__",
+      "group_id": "domain-v3:zh:13:0",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:13:1:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我买的咖啡机用了三天就出故障了，不出咖啡。"
+        },
+        {
+          "role": "assistant",
+          "content": "非常抱歉给您带来不便。请问机器有报错代码吗？"
+        },
+        {
+          "role": "user",
+          "content": "屏幕显示E2，我查了一下好像是水箱问题，但我已经重新装了好几次。"
+        },
+        {
+          "role": "assistant",
+          "content": "E2确实是水箱感应异常。您购买还在7天内，可以申请退货退款。"
+        }
+      ],
+      "text": "那退货的话运费谁出？我什么时候能收到退款？",
+      "language": "zh",
+      "label": "billing_refund",
+      "group_id": "domain-v3:zh:13:1",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:13:1:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我买的咖啡机用了三天就出故障了，不出咖啡。"
+        },
+        {
+          "role": "assistant",
+          "content": "非常抱歉给您带来不便。请问机器有报错代码吗？"
+        },
+        {
+          "role": "user",
+          "content": "屏幕显示E2，我查了一下好像是水箱问题，但我已经重新装了好几次。"
+        },
+        {
+          "role": "assistant",
+          "content": "E2确实是水箱感应异常。您购买还在7天内，可以申请退货退款。"
+        }
+      ],
+      "text": "等等，我先试试把水箱彻底擦干再装一次，如果还不行再退。",
+      "language": "zh",
+      "label": "product_technical",
+      "group_id": "domain-v3:zh:13:1",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:13:1:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我买的咖啡机用了三天就出故障了，不出咖啡。"
+        },
+        {
+          "role": "assistant",
+          "content": "非常抱歉给您带来不便。请问机器有报错代码吗？"
+        },
+        {
+          "role": "user",
+          "content": "屏幕显示E2，我查了一下好像是水箱问题，但我已经重新装了好几次。"
+        },
+        {
+          "role": "assistant",
+          "content": "E2确实是水箱感应异常。您购买还在7天内，可以申请退货退款。"
+        }
+      ],
+      "text": "好，帮我申请退货。另外你们有没有别的型号推荐？我想要个操作简单点的。",
+      "language": "zh",
+      "label": "__DEFER__",
+      "group_id": "domain-v3:zh:13:1",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:13:2:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我前天买的运动鞋，物流显示已经到本地了，怎么还没派送？"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，我帮您查一下。请问订单号方便提供吗？"
+        },
+        {
+          "role": "user",
+          "content": "订单号是20240915A88，显示昨天下午就到配送站了。"
+        },
+        {
+          "role": "assistant",
+          "content": "查到了，您的包裹在配送站，今天下午会安排派送，请保持电话畅通。"
+        }
+      ],
+      "text": "好的谢谢，那我等着。顺便问一下，这双鞋的鞋底耐磨吗？我平时跑步比较多。",
+      "language": "zh",
+      "label": "product_technical",
+      "group_id": "domain-v3:zh:13:2",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:13:2:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我前天买的运动鞋，物流显示已经到本地了，怎么还没派送？"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，我帮您查一下。请问订单号方便提供吗？"
+        },
+        {
+          "role": "user",
+          "content": "订单号是20240915A88，显示昨天下午就到配送站了。"
+        },
+        {
+          "role": "assistant",
+          "content": "查到了，您的包裹在配送站，今天下午会安排派送，请保持电话畅通。"
+        }
+      ],
+      "text": "能不能帮我改成明天再送？我今天不在家。",
+      "language": "zh",
+      "label": "order_logistics",
+      "group_id": "domain-v3:zh:13:2",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:13:2:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我前天买的运动鞋，物流显示已经到本地了，怎么还没派送？"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，我帮您查一下。请问订单号方便提供吗？"
+        },
+        {
+          "role": "user",
+          "content": "订单号是20240915A88，显示昨天下午就到配送站了。"
+        },
+        {
+          "role": "assistant",
+          "content": "查到了，您的包裹在配送站，今天下午会安排派送，请保持电话畅通。"
+        }
+      ],
+      "text": "谢谢，没事了。",
+      "language": "zh",
+      "label": "general",
+      "group_id": "domain-v3:zh:13:2",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:13:3:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我登录不了账号了，一直提示密码错误。"
+        },
+        {
+          "role": "assistant",
+          "content": "别着急，您可以尝试点击忘记密码来重置。如果收不到验证码，请告诉我。"
+        },
+        {
+          "role": "user",
+          "content": "验证码能收到，但我重置之后还是登不进去，提示账号被锁定。"
+        },
+        {
+          "role": "assistant",
+          "content": "可能是多次尝试触发了安全锁定，一般30分钟后会自动解锁。"
+        }
+      ],
+      "text": "等不了30分钟，我有急事要下单，能不能帮我人工解锁？",
+      "language": "zh",
+      "label": "human_service",
+      "group_id": "domain-v3:zh:13:3",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:13:3:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我登录不了账号了，一直提示密码错误。"
+        },
+        {
+          "role": "assistant",
+          "content": "别着急，您可以尝试点击忘记密码来重置。如果收不到验证码，请告诉我。"
+        },
+        {
+          "role": "user",
+          "content": "验证码能收到，但我重置之后还是登不进去，提示账号被锁定。"
+        },
+        {
+          "role": "assistant",
+          "content": "可能是多次尝试触发了安全锁定，一般30分钟后会自动解锁。"
+        }
+      ],
+      "text": "好的，那我等半小时再试。另外我想问下，如果解锁后还是不行，是不是要联系你们技术部门？",
+      "language": "zh",
+      "label": "account_security",
+      "group_id": "domain-v3:zh:13:3",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:13:3:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我登录不了账号了，一直提示密码错误。"
+        },
+        {
+          "role": "assistant",
+          "content": "别着急，您可以尝试点击忘记密码来重置。如果收不到验证码，请告诉我。"
+        },
+        {
+          "role": "user",
+          "content": "验证码能收到，但我重置之后还是登不进去，提示账号被锁定。"
+        },
+        {
+          "role": "assistant",
+          "content": "可能是多次尝试触发了安全锁定，一般30分钟后会自动解锁。"
+        }
+      ],
+      "text": "算了，我换个新账号重新注册算了。",
+      "language": "zh",
+      "label": "__DEFER__",
+      "group_id": "domain-v3:zh:13:3",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:13:4:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "你们那个降噪耳机，和苹果的比怎么样？"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，请问您说的是我们哪一款降噪耳机呢？不同价位定位不同。"
+        },
+        {
+          "role": "user",
+          "content": "就是799那款Pro版，我看评价说降噪不错但音质一般。"
+        },
+        {
+          "role": "assistant",
+          "content": "Pro版采用10mm动圈单元，中高频表现不错，低频量感偏少，适合人声和古典。"
+        }
+      ],
+      "text": "那它支持LDAC吗？我的手机是安卓的，想用无损音质。",
+      "language": "zh",
+      "label": "product_technical",
+      "group_id": "domain-v3:zh:13:4",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:13:4:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "你们那个降噪耳机，和苹果的比怎么样？"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，请问您说的是我们哪一款降噪耳机呢？不同价位定位不同。"
+        },
+        {
+          "role": "user",
+          "content": "就是799那款Pro版，我看评价说降噪不错但音质一般。"
+        },
+        {
+          "role": "assistant",
+          "content": "Pro版采用10mm动圈单元，中高频表现不错，低频量感偏少，适合人声和古典。"
+        }
+      ],
+      "text": "听起来还行，那帮我下单吧，黑色款。",
+      "language": "zh",
+      "label": "order_logistics",
+      "group_id": "domain-v3:zh:13:4",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:13:4:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "你们那个降噪耳机，和苹果的比怎么样？"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，请问您说的是我们哪一款降噪耳机呢？不同价位定位不同。"
+        },
+        {
+          "role": "user",
+          "content": "就是799那款Pro版，我看评价说降噪不错但音质一般。"
+        },
+        {
+          "role": "assistant",
+          "content": "Pro版采用10mm动圈单元，中高频表现不错，低频量感偏少，适合人声和古典。"
+        }
+      ],
+      "text": "嗯，我再想想，可能还是去实体店试听一下比较好。",
+      "language": "zh",
+      "label": "__DEFER__",
+      "group_id": "domain-v3:zh:13:4",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:13:5:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我用了你们的面霜第二天脸上就起红疹了，太气人了！"
+        },
+        {
+          "role": "assistant",
+          "content": "非常抱歉！请问您是第一次使用这款产品吗？之前有没有过敏史？"
+        },
+        {
+          "role": "user",
+          "content": "第一次用，我之前用别家都没事。你们这产品肯定有问题。"
+        },
+        {
+          "role": "assistant",
+          "content": "我们理解您的感受。这款产品含烟酰胺，部分人群初期会有不耐受反应。建议先停用并观察。"
+        }
+      ],
+      "text": "我不想听这些解释，我要投诉，给我转人工客服！",
+      "language": "zh",
+      "label": "human_service",
+      "group_id": "domain-v3:zh:13:5",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:13:5:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我用了你们的面霜第二天脸上就起红疹了，太气人了！"
+        },
+        {
+          "role": "assistant",
+          "content": "非常抱歉！请问您是第一次使用这款产品吗？之前有没有过敏史？"
+        },
+        {
+          "role": "user",
+          "content": "第一次用，我之前用别家都没事。你们这产品肯定有问题。"
+        },
+        {
+          "role": "assistant",
+          "content": "我们理解您的感受。这款产品含烟酰胺，部分人群初期会有不耐受反应。建议先停用并观察。"
+        }
+      ],
+      "text": "那如果停用几天好了的话，剩下的还能退吗？",
+      "language": "zh",
+      "label": "billing_refund",
+      "group_id": "domain-v3:zh:13:5",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:13:5:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我用了你们的面霜第二天脸上就起红疹了，太气人了！"
+        },
+        {
+          "role": "assistant",
+          "content": "非常抱歉！请问您是第一次使用这款产品吗？之前有没有过敏史？"
+        },
+        {
+          "role": "user",
+          "content": "第一次用，我之前用别家都没事。你们这产品肯定有问题。"
+        },
+        {
+          "role": "assistant",
+          "content": "我们理解您的感受。这款产品含烟酰胺，部分人群初期会有不耐受反应。建议先停用并观察。"
+        }
+      ],
+      "text": "原来是这样，那烟酰胺浓度是多少？敏感肌是不是不适合用？",
+      "language": "zh",
+      "label": "product_technical",
+      "group_id": "domain-v3:zh:13:5",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:13:6:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我刚下单了一台笔记本，但发现选错配置了，想改一下。"
+        },
+        {
+          "role": "assistant",
+          "content": "请问订单是否已经发货？如果未发货可以修改配置。"
+        },
+        {
+          "role": "user",
+          "content": "还没发货，订单状态显示正在拣货。我想把内存从16G换成32G。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，我帮您提交修改申请，拣货中订单一般可以拦截修改。"
+        }
+      ],
+      "text": "等等，我突然不想改了，还是保持16G吧，麻烦取消修改。",
+      "language": "zh",
+      "label": "__DEFER__",
+      "group_id": "domain-v3:zh:13:6",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:13:6:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我刚下单了一台笔记本，但发现选错配置了，想改一下。"
+        },
+        {
+          "role": "assistant",
+          "content": "请问订单是否已经发货？如果未发货可以修改配置。"
+        },
+        {
+          "role": "user",
+          "content": "还没发货，订单状态显示正在拣货。我想把内存从16G换成32G。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，我帮您提交修改申请，拣货中订单一般可以拦截修改。"
+        }
+      ],
+      "text": "好的，那修改后价格会差多少？我之前用了优惠券，还能继续用吗？",
+      "language": "zh",
+      "label": "billing_refund",
+      "group_id": "domain-v3:zh:13:6",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:13:6:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我刚下单了一台笔记本，但发现选错配置了，想改一下。"
+        },
+        {
+          "role": "assistant",
+          "content": "请问订单是否已经发货？如果未发货可以修改配置。"
+        },
+        {
+          "role": "user",
+          "content": "还没发货，订单状态显示正在拣货。我想把内存从16G换成32G。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，我帮您提交修改申请，拣货中订单一般可以拦截修改。"
+        }
+      ],
+      "text": "顺便问下，这台机器能加装第二块固态硬盘吗？",
+      "language": "zh",
+      "label": "product_technical",
+      "group_id": "domain-v3:zh:13:6",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:13:7:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我买的猫粮什么时候能到？我家猫快断粮了。"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，请提供一下订单号，我帮您查询物流进度。"
+        },
+        {
+          "role": "user",
+          "content": "订单号是C2024091803，上周五下的单。"
+        },
+        {
+          "role": "assistant",
+          "content": "查到您的猫粮今天上午已从广州发出，预计后天送达。"
+        }
+      ],
+      "text": "后天太晚了！能不能加急？我家猫真的没吃的了。",
+      "language": "zh",
+      "label": "order_logistics",
+      "group_id": "domain-v3:zh:13:7",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:13:7:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我买的猫粮什么时候能到？我家猫快断粮了。"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，请提供一下订单号，我帮您查询物流进度。"
+        },
+        {
+          "role": "user",
+          "content": "订单号是C2024091803，上周五下的单。"
+        },
+        {
+          "role": "assistant",
+          "content": "查到您的猫粮今天上午已从广州发出，预计后天送达。"
+        }
+      ],
+      "text": "好的，谢谢。另外这款猫粮和之前那款比，蛋白质含量哪个高？",
+      "language": "zh",
+      "label": "product_technical",
+      "group_id": "domain-v3:zh:13:7",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:13:7:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我买的猫粮什么时候能到？我家猫快断粮了。"
+        },
+        {
+          "role": "assistant",
+          "content": "您好，请提供一下订单号，我帮您查询物流进度。"
+        },
+        {
+          "role": "user",
+          "content": "订单号是C2024091803，上周五下的单。"
+        },
+        {
+          "role": "assistant",
+          "content": "查到您的猫粮今天上午已从广州发出，预计后天送达。"
+        }
+      ],
+      "text": "行吧，那我先买点应急的。你们客服态度真好，谢谢啊。",
+      "language": "zh",
+      "label": "general",
+      "group_id": "domain-v3:zh:13:7",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    }
+  ],
+  "status": "reviewed_candidate"
+}

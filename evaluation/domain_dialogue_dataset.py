@@ -9,7 +9,8 @@ import random
 from transformers import AutoTokenizer
 
 from application.encoder_input import EncoderInput
-from evaluation.domain_dialogue_teacher import AuthoredBatch, ReviewedBatch, accepted_rows
+from evaluation.domain_dialogue_teacher import AuthoredBatch, ReviewedBatch, accepted_rows, blind_cases, RUBRIC_VERSION
+from evaluation.domain_dialogue_reannotation import reannotated_rows, DomainSetReview, ANNOTATION_VERSION
 from evaluation.semantic_encoder_experiment import BACKBONES
 from infrastructure.target_domain_encoder import render_domain_input
 
@@ -46,10 +47,27 @@ def validate_batch(record, language, index):
         raise ValueError("unknown batch outcome")
 
 
-def build(source: Path, output: Path):
+def reviewed_source_rows(record, review_record, source_sha256):
+    if (review_record["source_sha256"] != source_sha256
+        or review_record["batch_id"] != record["batch_id"]
+        or review_record["language"] != record["language"]
+        or review_record["split"] != record["split"]
+        or review_record["rubric_version"] != RUBRIC_VERSION
+        or review_record.get("annotation_version") != ANNOTATION_VERSION
+        or review_record["status"] != "reviewed_candidate"):
+        raise ValueError("reannotation provenance or outcome mismatch")
+    cases = blind_cases(AuthoredBatch.model_validate(record["authored"]), record["batch_id"])
+    review = DomainSetReview.model_validate(review_record["annotation"]).labels()
+    rows = reannotated_rows(cases, review, record["language"])
+    rejected = [v.model_dump() for v in review.verdicts if not v.clear_and_natural]
+    return rows, rejected
+
+
+def build(source: Path, output: Path, reannotations: Path | None = None):
     if output.exists():
         raise ValueError("dataset destination already exists")
-    manifest = {"scope": "Synthetic author/blind-review agreement, not independent human gold",
+    manifest = {"scope": "Synthetic candidates, not independent human gold",
+                "label_policy": RUBRIC_VERSION if reannotations else "original-author-review-agreement",
                 "sources": {}, "splits": {}, "rejections": []}
     seen, owners = set(), {}
     pending = {}
@@ -67,8 +85,14 @@ def build(source: Path, output: Path):
             if record["status"] != "reviewed":
                 manifest["rejections"].append({"source": str(path), "reason": "failed_batch"})
                 continue
-            rows, rejected = accepted_rows(AuthoredBatch.model_validate(record["authored"]),
-                ReviewedBatch.model_validate(record["reviewed"]), record["batch_id"], language)
+            if reannotations is not None:
+                review_path = reannotations / path.relative_to(source)
+                reviewed = json.loads(review_path.read_text())
+                rows, rejected = reviewed_source_rows(record, reviewed, manifest["sources"][str(path)])
+                manifest["sources"][str(review_path)] = hashlib.sha256(review_path.read_bytes()).hexdigest()
+            else:
+                rows, rejected = accepted_rows(AuthoredBatch.model_validate(record["authored"]),
+                    ReviewedBatch.model_validate(record["reviewed"]), record["batch_id"], language)
             manifest["rejections"].extend(rejected)
             for row in rows:
                 if len(tokenizer(render_domain_input(EncoderInput.from_record(row)))["input_ids"]) > 256:
@@ -77,8 +101,11 @@ def build(source: Path, output: Path):
                     additions[record["split"]].append(row)
         for split in ("train", "calibration", "heldout"):
             base = Path(f"data/training/domain-encoder-v1/{language}/{split}.jsonl")
-            rows = [json.loads(line) for line in base.read_text().splitlines()]
-            manifest["sources"][str(base)] = hashlib.sha256(base.read_bytes()).hexdigest()
+            # Historical experiments keep their original inputs. New-policy candidates
+            # must not silently inherit unreviewed labels from an older policy.
+            rows = [] if reannotations else [json.loads(line) for line in base.read_text().splitlines()]
+            if not reannotations:
+                manifest["sources"][str(base)] = hashlib.sha256(base.read_bytes()).hexdigest()
             rows += additions[split]
             for row in rows:
                 identity = (language, EncoderInput.from_record(row).identity())
@@ -103,4 +130,5 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--reannotations", type=Path)
     build(**vars(parser.parse_args()))

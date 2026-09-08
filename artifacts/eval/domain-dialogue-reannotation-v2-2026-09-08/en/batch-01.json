@@ -1,0 +1,1137 @@
+{
+  "batch_id": "domain-v3:en:1",
+  "language": "en",
+  "split": "train",
+  "source": "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/en/batch-01.json",
+  "source_sha256": "c367831c33bc900e96995c57652fcb8913cb184e6fb9d9d9072c672e23397b80",
+  "rubric_version": "domain-active-request-v2",
+  "model": "deepseek-v4-pro",
+  "call": {
+    "rubric_version": "domain-active-request-v2",
+    "rubric_sha256": "a40843822e777415273a7d6ccba129a6764fcb9f73f47c9375c90eea717abef2",
+    "response": {
+      "content": [
+        {
+          "id": "call_00_Y4wk1C9l402U9Xk8dfeB7175",
+          "input": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:en:1:0:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User requests adding the power extender kit to an existing order, which is an order modification request."
+              },
+              {
+                "case_id": "domain-v3:en:1:0:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "User withdraws the pending decision to buy the extender kit, saying they need to double-check before deciding anything; no remaining goal is active."
+              },
+              {
+                "case_id": "domain-v3:en:1:0:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User asks a technical compatibility question about the extender kit's voltage requirements."
+              },
+              {
+                "case_id": "domain-v3:en:1:1:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User agrees to pay the price difference (billing) and also asks a product question; the billing request is the active business goal, and the product question is a secondary courtesy. The primary requested service is the charge/refund adjustment."
+              },
+              {
+                "case_id": "domain-v3:en:1:1:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User requests a replacement of the received wrong item (desk lamp) and return of the floor lamp, which is after-sales return/exchange."
+              },
+              {
+                "case_id": "domain-v3:en:1:1:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "User defers the decision overnight with no remaining active request."
+              },
+              {
+                "case_id": "domain-v3:en:1:2:0",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "User thanks and asks about promo codes, which is a general inquiry not tied to a specific domain."
+              },
+              {
+                "case_id": "domain-v3:en:1:2:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User asks a product usage/compatibility question about the steel burrs handling oily beans."
+              },
+              {
+                "case_id": "domain-v3:en:1:2:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User requests checking the shipping address on file, an order/logistics request."
+              },
+              {
+                "case_id": "domain-v3:en:1:3:0",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "User explicitly requests to talk to a real person (escalation to human service)."
+              },
+              {
+                "case_id": "domain-v3:en:1:3:1",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "User continues the account access/password issue, deciding to try the password themselves; still account security domain."
+              },
+              {
+                "case_id": "domain-v3:en:1:3:2",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "User asks about setting up two-factor authentication, an account security feature."
+              },
+              {
+                "case_id": "domain-v3:en:1:4:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User asks a product care/usage question about using essential oil spray on the mat."
+              },
+              {
+                "case_id": "domain-v3:en:1:4:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User requests an exchange for the thicker version, an after-sales return/exchange request."
+              },
+              {
+                "case_id": "domain-v3:en:1:4:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "User acknowledges and decides to keep the mat with no new work requested; a closing statement."
+              },
+              {
+                "case_id": "domain-v3:en:1:5:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User requests the estimated delivery date to the new address, an order/logistics request."
+              },
+              {
+                "case_id": "domain-v3:en:1:5:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User requests reverting the delivery address, an order modification request."
+              },
+              {
+                "case_id": "domain-v3:en:1:5:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User asks a product specification question about the hip belt sizing."
+              },
+              {
+                "case_id": "domain-v3:en:1:6:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User confirms the replacement (after-sales) and also asks about late deliveries; the replacement is the active business goal. The late-delivery question is a secondary logistics inquiry, but the primary requested service is the replacement."
+              },
+              {
+                "case_id": "domain-v3:en:1:6:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User switches from replacement to a refund, an after-sales refund request."
+              },
+              {
+                "case_id": "domain-v3:en:1:6:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "User withdraws the replacement request and defers with no remaining active goal."
+              },
+              {
+                "case_id": "domain-v3:en:1:7:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User asks a product usage/capability question about crushing ice."
+              },
+              {
+                "case_id": "domain-v3:en:1:7:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User asks whether this is the same model as a previous sale, a product identification question."
+              },
+              {
+                "case_id": "domain-v3:en:1:7:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "User explicitly requests to be connected to a supervisor for a bulk order, an escalation to human service."
+              }
+            ]
+          },
+          "name": "ReviewedBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "c770d8d0-7836-4700-b6fe-e1f0ddfcd431",
+        "container": null,
+        "model": "deepseek-v4-pro",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "inference_geo": null,
+          "input_tokens": 5444,
+          "output_tokens": 1427,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-pro",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081e3-316e-71e0-866b-64950f485462-0",
+      "tool_calls": [
+        {
+          "name": "ReviewedBatch",
+          "args": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:en:1:0:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User requests adding the power extender kit to an existing order, which is an order modification request."
+              },
+              {
+                "case_id": "domain-v3:en:1:0:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "User withdraws the pending decision to buy the extender kit, saying they need to double-check before deciding anything; no remaining goal is active."
+              },
+              {
+                "case_id": "domain-v3:en:1:0:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User asks a technical compatibility question about the extender kit's voltage requirements."
+              },
+              {
+                "case_id": "domain-v3:en:1:1:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User agrees to pay the price difference (billing) and also asks a product question; the billing request is the active business goal, and the product question is a secondary courtesy. The primary requested service is the charge/refund adjustment."
+              },
+              {
+                "case_id": "domain-v3:en:1:1:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User requests a replacement of the received wrong item (desk lamp) and return of the floor lamp, which is after-sales return/exchange."
+              },
+              {
+                "case_id": "domain-v3:en:1:1:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "User defers the decision overnight with no remaining active request."
+              },
+              {
+                "case_id": "domain-v3:en:1:2:0",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "User thanks and asks about promo codes, which is a general inquiry not tied to a specific domain."
+              },
+              {
+                "case_id": "domain-v3:en:1:2:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User asks a product usage/compatibility question about the steel burrs handling oily beans."
+              },
+              {
+                "case_id": "domain-v3:en:1:2:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User requests checking the shipping address on file, an order/logistics request."
+              },
+              {
+                "case_id": "domain-v3:en:1:3:0",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "User explicitly requests to talk to a real person (escalation to human service)."
+              },
+              {
+                "case_id": "domain-v3:en:1:3:1",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "User continues the account access/password issue, deciding to try the password themselves; still account security domain."
+              },
+              {
+                "case_id": "domain-v3:en:1:3:2",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "User asks about setting up two-factor authentication, an account security feature."
+              },
+              {
+                "case_id": "domain-v3:en:1:4:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User asks a product care/usage question about using essential oil spray on the mat."
+              },
+              {
+                "case_id": "domain-v3:en:1:4:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User requests an exchange for the thicker version, an after-sales return/exchange request."
+              },
+              {
+                "case_id": "domain-v3:en:1:4:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "User acknowledges and decides to keep the mat with no new work requested; a closing statement."
+              },
+              {
+                "case_id": "domain-v3:en:1:5:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User requests the estimated delivery date to the new address, an order/logistics request."
+              },
+              {
+                "case_id": "domain-v3:en:1:5:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User requests reverting the delivery address, an order modification request."
+              },
+              {
+                "case_id": "domain-v3:en:1:5:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User asks a product specification question about the hip belt sizing."
+              },
+              {
+                "case_id": "domain-v3:en:1:6:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User confirms the replacement (after-sales) and also asks about late deliveries; the replacement is the active business goal. The late-delivery question is a secondary logistics inquiry, but the primary requested service is the replacement."
+              },
+              {
+                "case_id": "domain-v3:en:1:6:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User switches from replacement to a refund, an after-sales refund request."
+              },
+              {
+                "case_id": "domain-v3:en:1:6:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "User withdraws the replacement request and defers with no remaining active goal."
+              },
+              {
+                "case_id": "domain-v3:en:1:7:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User asks a product usage/capability question about crushing ice."
+              },
+              {
+                "case_id": "domain-v3:en:1:7:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User asks whether this is the same model as a previous sale, a product identification question."
+              },
+              {
+                "case_id": "domain-v3:en:1:7:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "User explicitly requests to be connected to a supervisor for a bulk order, an escalation to human service."
+              }
+            ]
+          },
+          "id": "call_00_Y4wk1C9l402U9Xk8dfeB7175",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 5444,
+        "output_tokens": 1427,
+        "total_tokens": 6871,
+        "input_token_details": {
+          "cache_read": 0,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "review": {
+    "verdicts": [
+      {
+        "case_id": "domain-v3:en:1:0:0",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "User requests adding the power extender kit to an existing order, which is an order modification request."
+      },
+      {
+        "case_id": "domain-v3:en:1:0:1",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "User withdraws the pending decision to buy the extender kit, saying they need to double-check before deciding anything; no remaining goal is active."
+      },
+      {
+        "case_id": "domain-v3:en:1:0:2",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "User asks a technical compatibility question about the extender kit's voltage requirements."
+      },
+      {
+        "case_id": "domain-v3:en:1:1:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User agrees to pay the price difference (billing) and also asks a product question; the billing request is the active business goal, and the product question is a secondary courtesy. The primary requested service is the charge/refund adjustment."
+      },
+      {
+        "case_id": "domain-v3:en:1:1:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User requests a replacement of the received wrong item (desk lamp) and return of the floor lamp, which is after-sales return/exchange."
+      },
+      {
+        "case_id": "domain-v3:en:1:1:2",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "User defers the decision overnight with no remaining active request."
+      },
+      {
+        "case_id": "domain-v3:en:1:2:0",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "User thanks and asks about promo codes, which is a general inquiry not tied to a specific domain."
+      },
+      {
+        "case_id": "domain-v3:en:1:2:1",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "User asks a product usage/compatibility question about the steel burrs handling oily beans."
+      },
+      {
+        "case_id": "domain-v3:en:1:2:2",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "User requests checking the shipping address on file, an order/logistics request."
+      },
+      {
+        "case_id": "domain-v3:en:1:3:0",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "User explicitly requests to talk to a real person (escalation to human service)."
+      },
+      {
+        "case_id": "domain-v3:en:1:3:1",
+        "label": "account_security",
+        "clear_and_natural": true,
+        "reason": "User continues the account access/password issue, deciding to try the password themselves; still account security domain."
+      },
+      {
+        "case_id": "domain-v3:en:1:3:2",
+        "label": "account_security",
+        "clear_and_natural": true,
+        "reason": "User asks about setting up two-factor authentication, an account security feature."
+      },
+      {
+        "case_id": "domain-v3:en:1:4:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "User asks a product care/usage question about using essential oil spray on the mat."
+      },
+      {
+        "case_id": "domain-v3:en:1:4:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User requests an exchange for the thicker version, an after-sales return/exchange request."
+      },
+      {
+        "case_id": "domain-v3:en:1:4:2",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "User acknowledges and decides to keep the mat with no new work requested; a closing statement."
+      },
+      {
+        "case_id": "domain-v3:en:1:5:0",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "User requests the estimated delivery date to the new address, an order/logistics request."
+      },
+      {
+        "case_id": "domain-v3:en:1:5:1",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "User requests reverting the delivery address, an order modification request."
+      },
+      {
+        "case_id": "domain-v3:en:1:5:2",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "User asks a product specification question about the hip belt sizing."
+      },
+      {
+        "case_id": "domain-v3:en:1:6:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User confirms the replacement (after-sales) and also asks about late deliveries; the replacement is the active business goal. The late-delivery question is a secondary logistics inquiry, but the primary requested service is the replacement."
+      },
+      {
+        "case_id": "domain-v3:en:1:6:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User switches from replacement to a refund, an after-sales refund request."
+      },
+      {
+        "case_id": "domain-v3:en:1:6:2",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "User withdraws the replacement request and defers with no remaining active goal."
+      },
+      {
+        "case_id": "domain-v3:en:1:7:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "User asks a product usage/capability question about crushing ice."
+      },
+      {
+        "case_id": "domain-v3:en:1:7:1",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "User asks whether this is the same model as a previous sale, a product identification question."
+      },
+      {
+        "case_id": "domain-v3:en:1:7:2",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "User explicitly requests to be connected to a supervisor for a bulk order, an escalation to human service."
+      }
+    ]
+  },
+  "rows": [
+    {
+      "case_id": "domain-v3:en:1:0:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I got the smart thermostat yesterday. Before I open the box, does it work with a millivolt heating system?"
+        },
+        {
+          "role": "assistant",
+          "content": "Great question — our thermostat requires a 24V common wire (C-wire). Millivolt systems typically don't supply that, so it likely won't be compatible."
+        },
+        {
+          "role": "user",
+          "content": "Hmm, that's disappointing. What about my old two-wire setup in the cabin — same problem?"
+        },
+        {
+          "role": "assistant",
+          "content": "Yes, two-wire systems without a C-wire would also need an adapter. We sell a power extender kit separately that solves this."
+        }
+      ],
+      "text": "Okay, I'll grab the power extender kit too. Can you add it to my existing order?",
+      "language": "en",
+      "label": "order_logistics",
+      "group_id": "domain-v3:en:1:0",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:1:0:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I got the smart thermostat yesterday. Before I open the box, does it work with a millivolt heating system?"
+        },
+        {
+          "role": "assistant",
+          "content": "Great question — our thermostat requires a 24V common wire (C-wire). Millivolt systems typically don't supply that, so it likely won't be compatible."
+        },
+        {
+          "role": "user",
+          "content": "Hmm, that's disappointing. What about my old two-wire setup in the cabin — same problem?"
+        },
+        {
+          "role": "assistant",
+          "content": "Yes, two-wire systems without a C-wire would also need an adapter. We sell a power extender kit separately that solves this."
+        }
+      ],
+      "text": "Actually, wait — I think my cabin has three wires, not two. Let me double-check before deciding anything.",
+      "language": "en",
+      "label": "__DEFER__",
+      "group_id": "domain-v3:en:1:0",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:1:0:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I got the smart thermostat yesterday. Before I open the box, does it work with a millivolt heating system?"
+        },
+        {
+          "role": "assistant",
+          "content": "Great question — our thermostat requires a 24V common wire (C-wire). Millivolt systems typically don't supply that, so it likely won't be compatible."
+        },
+        {
+          "role": "user",
+          "content": "Hmm, that's disappointing. What about my old two-wire setup in the cabin — same problem?"
+        },
+        {
+          "role": "assistant",
+          "content": "Yes, two-wire systems without a C-wire would also need an adapter. We sell a power extender kit separately that solves this."
+        }
+      ],
+      "text": "Does the extender kit work with a 24V transformer that only outputs 20V?",
+      "language": "en",
+      "label": "product_technical",
+      "group_id": "domain-v3:en:1:0",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:1:1:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My order #4821 arrived but it's the floor lamp, not the desk lamp I picked."
+        },
+        {
+          "role": "assistant",
+          "content": "I'm sorry about the mix-up. Would you like a replacement desk lamp shipped out, or a refund?"
+        },
+        {
+          "role": "user",
+          "content": "I'd rather keep the floor lamp actually — it fits my reading corner better."
+        },
+        {
+          "role": "assistant",
+          "content": "No problem! I can process a partial refund for the price difference. The floor lamp is $12 more, so you'd owe the difference."
+        }
+      ],
+      "text": "Fine, charge me the difference. But also — is the floor lamp dimmable with a standard wall switch?",
+      "language": "en",
+      "label": "billing_refund",
+      "group_id": "domain-v3:en:1:1",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:1:1:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My order #4821 arrived but it's the floor lamp, not the desk lamp I picked."
+        },
+        {
+          "role": "assistant",
+          "content": "I'm sorry about the mix-up. Would you like a replacement desk lamp shipped out, or a refund?"
+        },
+        {
+          "role": "user",
+          "content": "I'd rather keep the floor lamp actually — it fits my reading corner better."
+        },
+        {
+          "role": "assistant",
+          "content": "No problem! I can process a partial refund for the price difference. The floor lamp is $12 more, so you'd owe the difference."
+        }
+      ],
+      "text": "Actually, on second thought, just send me the desk lamp I originally ordered and I'll return the floor one.",
+      "language": "en",
+      "label": "billing_refund",
+      "group_id": "domain-v3:en:1:1",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:1:1:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My order #4821 arrived but it's the floor lamp, not the desk lamp I picked."
+        },
+        {
+          "role": "assistant",
+          "content": "I'm sorry about the mix-up. Would you like a replacement desk lamp shipped out, or a refund?"
+        },
+        {
+          "role": "user",
+          "content": "I'd rather keep the floor lamp actually — it fits my reading corner better."
+        },
+        {
+          "role": "assistant",
+          "content": "No problem! I can process a partial refund for the price difference. The floor lamp is $12 more, so you'd owe the difference."
+        }
+      ],
+      "text": "Hmm, let me think about it overnight and get back to you tomorrow.",
+      "language": "en",
+      "label": "__DEFER__",
+      "group_id": "domain-v3:en:1:1",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:1:2:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I'm comparing your conical burr grinder with a cheaper blade model. What's the actual difference in grind consistency?"
+        },
+        {
+          "role": "assistant",
+          "content": "Conical burrs crush beans uniformly between two serrated surfaces, giving you consistent particle size. Blade grinders chop unevenly, which affects espresso extraction."
+        },
+        {
+          "role": "user",
+          "content": "Got it. And the burrs are ceramic, right? I read somewhere that ceramic can chip."
+        },
+        {
+          "role": "assistant",
+          "content": "Ours are actually hardened stainless steel, not ceramic. They're more durable and won't chip, though they do need occasional cleaning."
+        }
+      ],
+      "text": "Thanks, that helps. By the way, do you have any promo codes active right now?",
+      "language": "en",
+      "label": "general",
+      "group_id": "domain-v3:en:1:2",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:1:2:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I'm comparing your conical burr grinder with a cheaper blade model. What's the actual difference in grind consistency?"
+        },
+        {
+          "role": "assistant",
+          "content": "Conical burrs crush beans uniformly between two serrated surfaces, giving you consistent particle size. Blade grinders chop unevenly, which affects espresso extraction."
+        },
+        {
+          "role": "user",
+          "content": "Got it. And the burrs are ceramic, right? I read somewhere that ceramic can chip."
+        },
+        {
+          "role": "assistant",
+          "content": "Ours are actually hardened stainless steel, not ceramic. They're more durable and won't chip, though they do need occasional cleaning."
+        }
+      ],
+      "text": "Can the steel burrs handle very oily dark-roast beans without clogging?",
+      "language": "en",
+      "label": "product_technical",
+      "group_id": "domain-v3:en:1:2",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:1:2:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I'm comparing your conical burr grinder with a cheaper blade model. What's the actual difference in grind consistency?"
+        },
+        {
+          "role": "assistant",
+          "content": "Conical burrs crush beans uniformly between two serrated surfaces, giving you consistent particle size. Blade grinders chop unevenly, which affects espresso extraction."
+        },
+        {
+          "role": "user",
+          "content": "Got it. And the burrs are ceramic, right? I read somewhere that ceramic can chip."
+        },
+        {
+          "role": "assistant",
+          "content": "Ours are actually hardened stainless steel, not ceramic. They're more durable and won't chip, though they do need occasional cleaning."
+        }
+      ],
+      "text": "I'll take the grinder then. But first, can you check if my shipping address on file is still current?",
+      "language": "en",
+      "label": "order_logistics",
+      "group_id": "domain-v3:en:1:2",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:1:3:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I can't get into my account — it says locked after I tried my password a few times."
+        },
+        {
+          "role": "assistant",
+          "content": "That happens after five failed attempts as a security measure. I can unlock it now if you verify your email on file."
+        },
+        {
+          "role": "user",
+          "content": "It's j***@gmail.com. But honestly I'm not sure I remember the password either."
+        },
+        {
+          "role": "assistant",
+          "content": "No worries — I've unlocked the account. Use the 'forgot password' link to reset it, and you'll get a reset email within a minute."
+        }
+      ],
+      "text": "Thanks, I'll reset it. Also, someone please call me — I'd rather talk to a real person about my order history.",
+      "language": "en",
+      "label": "human_service",
+      "group_id": "domain-v3:en:1:3",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:1:3:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I can't get into my account — it says locked after I tried my password a few times."
+        },
+        {
+          "role": "assistant",
+          "content": "That happens after five failed attempts as a security measure. I can unlock it now if you verify your email on file."
+        },
+        {
+          "role": "user",
+          "content": "It's j***@gmail.com. But honestly I'm not sure I remember the password either."
+        },
+        {
+          "role": "assistant",
+          "content": "No worries — I've unlocked the account. Use the 'forgot password' link to reset it, and you'll get a reset email within a minute."
+        }
+      ],
+      "text": "Wait, actually I think I remember now — it might be the same password I use for my bank. Let me try that first.",
+      "language": "en",
+      "label": "account_security",
+      "group_id": "domain-v3:en:1:3",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:1:3:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I can't get into my account — it says locked after I tried my password a few times."
+        },
+        {
+          "role": "assistant",
+          "content": "That happens after five failed attempts as a security measure. I can unlock it now if you verify your email on file."
+        },
+        {
+          "role": "user",
+          "content": "It's j***@gmail.com. But honestly I'm not sure I remember the password either."
+        },
+        {
+          "role": "assistant",
+          "content": "No worries — I've unlocked the account. Use the 'forgot password' link to reset it, and you'll get a reset email within a minute."
+        }
+      ],
+      "text": "Before I reset — is there a way to set up two-factor authentication so this doesn't happen again?",
+      "language": "en",
+      "label": "account_security",
+      "group_id": "domain-v3:en:1:3",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:1:4:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Just got the 6mm cork yoga mat. The care card says wipe with a damp cloth — is that really enough after sweaty sessions?"
+        },
+        {
+          "role": "assistant",
+          "content": "For daily sweat, a damp cloth with a drop of mild soap works well. Avoid soaking it or using harsh cleaners, since cork is porous."
+        },
+        {
+          "role": "user",
+          "content": "Okay. And what about rolling it up — should I roll it with the cork side out or in for storage?"
+        },
+        {
+          "role": "assistant",
+          "content": "Roll it cork side out. That prevents the cork from cracking along the curve and keeps the mat lying flat when you unroll it."
+        }
+      ],
+      "text": "Perfect, thanks. Oh — and can I use a citrus-based essential oil spray on it for freshness?",
+      "language": "en",
+      "label": "product_technical",
+      "group_id": "domain-v3:en:1:4",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:1:4:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Just got the 6mm cork yoga mat. The care card says wipe with a damp cloth — is that really enough after sweaty sessions?"
+        },
+        {
+          "role": "assistant",
+          "content": "For daily sweat, a damp cloth with a drop of mild soap works well. Avoid soaking it or using harsh cleaners, since cork is porous."
+        },
+        {
+          "role": "user",
+          "content": "Okay. And what about rolling it up — should I roll it with the cork side out or in for storage?"
+        },
+        {
+          "role": "assistant",
+          "content": "Roll it cork side out. That prevents the cork from cracking along the curve and keeps the mat lying flat when you unroll it."
+        }
+      ],
+      "text": "Alright, I'll store it that way. Actually, you know what, I think I want the thicker 8mm version instead. Can I exchange?",
+      "language": "en",
+      "label": "billing_refund",
+      "group_id": "domain-v3:en:1:4",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:1:4:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Just got the 6mm cork yoga mat. The care card says wipe with a damp cloth — is that really enough after sweaty sessions?"
+        },
+        {
+          "role": "assistant",
+          "content": "For daily sweat, a damp cloth with a drop of mild soap works well. Avoid soaking it or using harsh cleaners, since cork is porous."
+        },
+        {
+          "role": "user",
+          "content": "Okay. And what about rolling it up — should I roll it with the cork side out or in for storage?"
+        },
+        {
+          "role": "assistant",
+          "content": "Roll it cork side out. That prevents the cork from cracking along the curve and keeps the mat lying flat when you unroll it."
+        }
+      ],
+      "text": "Got it. I'll just keep this one for now and see how it holds up over a few months.",
+      "language": "en",
+      "label": "general",
+      "group_id": "domain-v3:en:1:4",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:1:5:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My order #7732 for the hiking backpack still says 'processing'. I'm moving next week — can I change the delivery address?"
+        },
+        {
+          "role": "assistant",
+          "content": "Since it hasn't shipped yet, I can update the address. What's the new one?"
+        },
+        {
+          "role": "user",
+          "content": "It's 214 Birch Lane, Apt 3B, Portland. Also, is the backpack waterproof enough for light rain?"
+        },
+        {
+          "role": "assistant",
+          "content": "Address updated. And yes, the shell has a PU coating rated for light to moderate rain, though it's not submersible."
+        }
+      ],
+      "text": "Great. Can you also tell me the estimated delivery date to the new address?",
+      "language": "en",
+      "label": "order_logistics",
+      "group_id": "domain-v3:en:1:5",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:1:5:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My order #7732 for the hiking backpack still says 'processing'. I'm moving next week — can I change the delivery address?"
+        },
+        {
+          "role": "assistant",
+          "content": "Since it hasn't shipped yet, I can update the address. What's the new one?"
+        },
+        {
+          "role": "user",
+          "content": "It's 214 Birch Lane, Apt 3B, Portland. Also, is the backpack waterproof enough for light rain?"
+        },
+        {
+          "role": "assistant",
+          "content": "Address updated. And yes, the shell has a PU coating rated for light to moderate rain, though it's not submersible."
+        }
+      ],
+      "text": "Actually, hold on — I might not move after all. Can you revert the address to the original one?",
+      "language": "en",
+      "label": "order_logistics",
+      "group_id": "domain-v3:en:1:5",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:1:5:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My order #7732 for the hiking backpack still says 'processing'. I'm moving next week — can I change the delivery address?"
+        },
+        {
+          "role": "assistant",
+          "content": "Since it hasn't shipped yet, I can update the address. What's the new one?"
+        },
+        {
+          "role": "user",
+          "content": "It's 214 Birch Lane, Apt 3B, Portland. Also, is the backpack waterproof enough for light rain?"
+        },
+        {
+          "role": "assistant",
+          "content": "Address updated. And yes, the shell has a PU coating rated for light to moderate rain, though it's not submersible."
+        }
+      ],
+      "text": "Thanks. One more thing — does the hip belt come in a separate size, or is it one-size-fits-all?",
+      "language": "en",
+      "label": "product_technical",
+      "group_id": "domain-v3:en:1:5",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:1:6:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "The vase from order #9051 arrived cracked at the base. I have photos if you need them."
+        },
+        {
+          "role": "assistant",
+          "content": "I'm sorry to hear that. I can send a replacement or issue a full refund — which would you prefer?"
+        },
+        {
+          "role": "user",
+          "content": "I'd like a replacement, but only if you can guarantee it'll be packed better this time."
+        },
+        {
+          "role": "assistant",
+          "content": "Absolutely — I'll add a note for extra bubble wrap and double-boxing on the replacement shipment."
+        }
+      ],
+      "text": "Okay, go ahead with the replacement. And can you also check why my last two orders both arrived late?",
+      "language": "en",
+      "label": "billing_refund",
+      "group_id": "domain-v3:en:1:6",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:1:6:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "The vase from order #9051 arrived cracked at the base. I have photos if you need them."
+        },
+        {
+          "role": "assistant",
+          "content": "I'm sorry to hear that. I can send a replacement or issue a full refund — which would you prefer?"
+        },
+        {
+          "role": "user",
+          "content": "I'd like a replacement, but only if you can guarantee it'll be packed better this time."
+        },
+        {
+          "role": "assistant",
+          "content": "Absolutely — I'll add a note for extra bubble wrap and double-boxing on the replacement shipment."
+        }
+      ],
+      "text": "Actually, forget the replacement — just refund me. I found a similar vase at a local shop.",
+      "language": "en",
+      "label": "billing_refund",
+      "group_id": "domain-v3:en:1:6",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:1:6:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "The vase from order #9051 arrived cracked at the base. I have photos if you need them."
+        },
+        {
+          "role": "assistant",
+          "content": "I'm sorry to hear that. I can send a replacement or issue a full refund — which would you prefer?"
+        },
+        {
+          "role": "user",
+          "content": "I'd like a replacement, but only if you can guarantee it'll be packed better this time."
+        },
+        {
+          "role": "assistant",
+          "content": "Absolutely — I'll add a note for extra bubble wrap and double-boxing on the replacement shipment."
+        }
+      ],
+      "text": "Hmm, actually I'm not sure I want to deal with another shipment. Let me think about it.",
+      "language": "en",
+      "label": "__DEFER__",
+      "group_id": "domain-v3:en:1:6",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:1:7:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "How many smoothies can your portable blender make on a single charge?"
+        },
+        {
+          "role": "assistant",
+          "content": "About 12 to 15 single-serving smoothies per charge, depending on thickness and frozen ingredients."
+        },
+        {
+          "role": "user",
+          "content": "That's decent. What's the charging time from empty to full?"
+        },
+        {
+          "role": "assistant",
+          "content": "Roughly two hours via USB-C. It also has pass-through charging, so you can use it while plugged in."
+        }
+      ],
+      "text": "Nice. Can I use it to crush ice for cocktails, or will that burn out the motor?",
+      "language": "en",
+      "label": "product_technical",
+      "group_id": "domain-v3:en:1:7",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:1:7:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "How many smoothies can your portable blender make on a single charge?"
+        },
+        {
+          "role": "assistant",
+          "content": "About 12 to 15 single-serving smoothies per charge, depending on thickness and frozen ingredients."
+        },
+        {
+          "role": "user",
+          "content": "That's decent. What's the charging time from empty to full?"
+        },
+        {
+          "role": "assistant",
+          "content": "Roughly two hours via USB-C. It also has pass-through charging, so you can use it while plugged in."
+        }
+      ],
+      "text": "Sounds good — I'll order one. Actually, wait, is this the same model that was on sale last month?",
+      "language": "en",
+      "label": "product_technical",
+      "group_id": "domain-v3:en:1:7",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:en:1:7:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "How many smoothies can your portable blender make on a single charge?"
+        },
+        {
+          "role": "assistant",
+          "content": "About 12 to 15 single-serving smoothies per charge, depending on thickness and frozen ingredients."
+        },
+        {
+          "role": "user",
+          "content": "That's decent. What's the charging time from empty to full?"
+        },
+        {
+          "role": "assistant",
+          "content": "Roughly two hours via USB-C. It also has pass-through charging, so you can use it while plugged in."
+        }
+      ],
+      "text": "I'm interested, but I need to talk to a supervisor about a bulk order for my office. Can you connect me?",
+      "language": "en",
+      "label": "human_service",
+      "group_id": "domain-v3:en:1:7",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    }
+  ],
+  "status": "reviewed_candidate"
+}

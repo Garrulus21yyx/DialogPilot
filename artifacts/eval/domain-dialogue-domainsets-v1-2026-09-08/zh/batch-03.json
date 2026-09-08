@@ -1,0 +1,1433 @@
+{
+  "batch_id": "domain-v3:zh:3",
+  "language": "zh",
+  "split": "train",
+  "source": "artifacts/eval/domain-teacher-flash-pro-pilot-2026-09-08/zh/batch-03.json",
+  "source_sha256": "80a04d4b9ad28d01a68bfe79795e31f30eafcb0b1d4e22566b90b1664861ef6c",
+  "rubric_version": "domain-active-request-v2",
+  "annotation_version": "active-domain-set-v1",
+  "model": "deepseek-v4-pro",
+  "call": {
+    "rubric_version": "domain-active-request-v2",
+    "rubric_sha256": "a40843822e777415273a7d6ccba129a6764fcb9f73f47c9375c90eea717abef2",
+    "response": {
+      "content": [
+        {
+          "id": "call_00_VMhLMmqDcpTxPaaIefU72434",
+          "input": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:zh:3:0:0",
+                "active_domains": [
+                  "billing_refund"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户明确放弃购买配件，改为申请换新（退换货），属于售后换货，归入 billing_refund。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:0:1",
+                "active_domains": [
+                  "product_technical"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户转而询问内胆材质和涂层耐久性，属于产品规格/技术咨询，归入 product_technical。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:0:2",
+                "active_domains": [
+                  "__DEFER__"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户主动表示不处理了，撤回原有售后请求且无新目标，归入 __DEFER__。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:1:0",
+                "active_domains": [
+                  "billing_refund"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户确认换浅灰色并请求提交换货申请，属于售后换货，归入 billing_refund。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:1:1",
+                "active_domains": [
+                  "billing_refund"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户改为直接退货，仍属售后退换货，归入 billing_refund。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:1:2",
+                "active_domains": [
+                  "product_technical"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户转而询问是否有直筒休闲裤推荐，属于产品咨询，归入 product_technical。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:2:0",
+                "active_domains": [
+                  "billing_refund"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户同意寄回检测并退款，属于售后退货退款，归入 billing_refund。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:2:1",
+                "active_domains": [
+                  "__DEFER__"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户表示不退货了，撤回请求且无新目标，归入 __DEFER__。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:2:2",
+                "active_domains": [
+                  "product_technical"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户转而询问耳机固件更新及降噪改善，属于产品技术咨询，归入 product_technical。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:3:0",
+                "active_domains": [
+                  "billing_refund"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户请求用积分兑换礼品，涉及积分扣减/兑换，归入 billing_refund。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:3:1",
+                "active_domains": [
+                  "billing_refund"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户请求补开发票，属于发票/账单类，归入 billing_refund。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:3:2",
+                "active_domains": [
+                  "general"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户仅表达感谢和闲聊，无新业务请求，归入 general。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:4:0",
+                "active_domains": [
+                  "order_logistics"
+                ],
+                "clear_and_natural": true,
+                "reason": "运输途中破损，用户选择补发一套，属于未完好送达的补发/重发，归入 order_logistics。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:4:1",
+                "active_domains": [
+                  "billing_refund"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户选择全额退款，属于退款，归入 billing_refund。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:4:2",
+                "active_domains": [
+                  "order_logistics"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户询问补发到货时间，属于配送/物流咨询，归入 order_logistics。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:5:0",
+                "active_domains": [
+                  "account_security"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户提供信息请求提交账号申诉流程，属于账号访问/安全，归入 account_security。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:5:1",
+                "active_domains": [
+                  "__DEFER__"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户放弃申诉，表示重新注册，撤回原请求且无新目标，归入 __DEFER__。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:5:2",
+                "active_domains": [
+                  "account_security"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户询问账号内购买记录查询，仍属账号相关，归入 account_security。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:6:0",
+                "active_domains": [
+                  "order_logistics"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户请求备注放快递柜，属于配送安排，归入 order_logistics。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:6:1",
+                "active_domains": [
+                  "billing_refund"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户转而询问猫砂盆质量问题能否退货，属于售后退货，归入 billing_refund。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:6:2",
+                "active_domains": [
+                  "human_service"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户请求人工客服并投诉快递员，属于投诉/人工服务，归入 human_service。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:7:0",
+                "active_domains": [
+                  "product_technical"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户选择安排师傅上门检修，属于产品安装/维修服务，归入 product_technical。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:7:1",
+                "active_domains": [
+                  "product_technical",
+                  "billing_refund"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户请求补发加固配件（产品维修/技术）并询问保修期（售后规则），两个独立请求分别归入 product_technical 和 billing_refund。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:7:2",
+                "active_domains": [
+                  "__DEFER__"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户表示自己用胶水处理，撤回请求且无新目标，归入 __DEFER__。"
+              }
+            ]
+          },
+          "name": "DomainSetReview",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "e03d9e56-5e2f-466b-9ac6-daf497bf628e",
+        "container": null,
+        "model": "deepseek-v4-pro",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 896,
+          "inference_geo": null,
+          "input_tokens": 4274,
+          "output_tokens": 1548,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-pro",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081e7-4559-7a90-88ec-333b1088b45b-0",
+      "tool_calls": [
+        {
+          "name": "DomainSetReview",
+          "args": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:zh:3:0:0",
+                "active_domains": [
+                  "billing_refund"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户明确放弃购买配件，改为申请换新（退换货），属于售后换货，归入 billing_refund。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:0:1",
+                "active_domains": [
+                  "product_technical"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户转而询问内胆材质和涂层耐久性，属于产品规格/技术咨询，归入 product_technical。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:0:2",
+                "active_domains": [
+                  "__DEFER__"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户主动表示不处理了，撤回原有售后请求且无新目标，归入 __DEFER__。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:1:0",
+                "active_domains": [
+                  "billing_refund"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户确认换浅灰色并请求提交换货申请，属于售后换货，归入 billing_refund。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:1:1",
+                "active_domains": [
+                  "billing_refund"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户改为直接退货，仍属售后退换货，归入 billing_refund。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:1:2",
+                "active_domains": [
+                  "product_technical"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户转而询问是否有直筒休闲裤推荐，属于产品咨询，归入 product_technical。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:2:0",
+                "active_domains": [
+                  "billing_refund"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户同意寄回检测并退款，属于售后退货退款，归入 billing_refund。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:2:1",
+                "active_domains": [
+                  "__DEFER__"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户表示不退货了，撤回请求且无新目标，归入 __DEFER__。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:2:2",
+                "active_domains": [
+                  "product_technical"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户转而询问耳机固件更新及降噪改善，属于产品技术咨询，归入 product_technical。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:3:0",
+                "active_domains": [
+                  "billing_refund"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户请求用积分兑换礼品，涉及积分扣减/兑换，归入 billing_refund。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:3:1",
+                "active_domains": [
+                  "billing_refund"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户请求补开发票，属于发票/账单类，归入 billing_refund。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:3:2",
+                "active_domains": [
+                  "general"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户仅表达感谢和闲聊，无新业务请求，归入 general。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:4:0",
+                "active_domains": [
+                  "order_logistics"
+                ],
+                "clear_and_natural": true,
+                "reason": "运输途中破损，用户选择补发一套，属于未完好送达的补发/重发，归入 order_logistics。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:4:1",
+                "active_domains": [
+                  "billing_refund"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户选择全额退款，属于退款，归入 billing_refund。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:4:2",
+                "active_domains": [
+                  "order_logistics"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户询问补发到货时间，属于配送/物流咨询，归入 order_logistics。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:5:0",
+                "active_domains": [
+                  "account_security"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户提供信息请求提交账号申诉流程，属于账号访问/安全，归入 account_security。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:5:1",
+                "active_domains": [
+                  "__DEFER__"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户放弃申诉，表示重新注册，撤回原请求且无新目标，归入 __DEFER__。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:5:2",
+                "active_domains": [
+                  "account_security"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户询问账号内购买记录查询，仍属账号相关，归入 account_security。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:6:0",
+                "active_domains": [
+                  "order_logistics"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户请求备注放快递柜，属于配送安排，归入 order_logistics。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:6:1",
+                "active_domains": [
+                  "billing_refund"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户转而询问猫砂盆质量问题能否退货，属于售后退货，归入 billing_refund。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:6:2",
+                "active_domains": [
+                  "human_service"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户请求人工客服并投诉快递员，属于投诉/人工服务，归入 human_service。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:7:0",
+                "active_domains": [
+                  "product_technical"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户选择安排师傅上门检修，属于产品安装/维修服务，归入 product_technical。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:7:1",
+                "active_domains": [
+                  "product_technical",
+                  "billing_refund"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户请求补发加固配件（产品维修/技术）并询问保修期（售后规则），两个独立请求分别归入 product_technical 和 billing_refund。"
+              },
+              {
+                "case_id": "domain-v3:zh:3:7:2",
+                "active_domains": [
+                  "__DEFER__"
+                ],
+                "clear_and_natural": true,
+                "reason": "用户表示自己用胶水处理，撤回请求且无新目标，归入 __DEFER__。"
+              }
+            ]
+          },
+          "id": "call_00_VMhLMmqDcpTxPaaIefU72434",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 5170,
+        "output_tokens": 1548,
+        "total_tokens": 6718,
+        "input_token_details": {
+          "cache_read": 896,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "annotation": {
+    "verdicts": [
+      {
+        "case_id": "domain-v3:zh:3:0:0",
+        "active_domains": [
+          "billing_refund"
+        ],
+        "clear_and_natural": true,
+        "reason": "用户明确放弃购买配件，改为申请换新（退换货），属于售后换货，归入 billing_refund。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:0:1",
+        "active_domains": [
+          "product_technical"
+        ],
+        "clear_and_natural": true,
+        "reason": "用户转而询问内胆材质和涂层耐久性，属于产品规格/技术咨询，归入 product_technical。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:0:2",
+        "active_domains": [
+          "__DEFER__"
+        ],
+        "clear_and_natural": true,
+        "reason": "用户主动表示不处理了，撤回原有售后请求且无新目标，归入 __DEFER__。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:1:0",
+        "active_domains": [
+          "billing_refund"
+        ],
+        "clear_and_natural": true,
+        "reason": "用户确认换浅灰色并请求提交换货申请，属于售后换货，归入 billing_refund。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:1:1",
+        "active_domains": [
+          "billing_refund"
+        ],
+        "clear_and_natural": true,
+        "reason": "用户改为直接退货，仍属售后退换货，归入 billing_refund。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:1:2",
+        "active_domains": [
+          "product_technical"
+        ],
+        "clear_and_natural": true,
+        "reason": "用户转而询问是否有直筒休闲裤推荐，属于产品咨询，归入 product_technical。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:2:0",
+        "active_domains": [
+          "billing_refund"
+        ],
+        "clear_and_natural": true,
+        "reason": "用户同意寄回检测并退款，属于售后退货退款，归入 billing_refund。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:2:1",
+        "active_domains": [
+          "__DEFER__"
+        ],
+        "clear_and_natural": true,
+        "reason": "用户表示不退货了，撤回请求且无新目标，归入 __DEFER__。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:2:2",
+        "active_domains": [
+          "product_technical"
+        ],
+        "clear_and_natural": true,
+        "reason": "用户转而询问耳机固件更新及降噪改善，属于产品技术咨询，归入 product_technical。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:3:0",
+        "active_domains": [
+          "billing_refund"
+        ],
+        "clear_and_natural": true,
+        "reason": "用户请求用积分兑换礼品，涉及积分扣减/兑换，归入 billing_refund。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:3:1",
+        "active_domains": [
+          "billing_refund"
+        ],
+        "clear_and_natural": true,
+        "reason": "用户请求补开发票，属于发票/账单类，归入 billing_refund。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:3:2",
+        "active_domains": [
+          "general"
+        ],
+        "clear_and_natural": true,
+        "reason": "用户仅表达感谢和闲聊，无新业务请求，归入 general。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:4:0",
+        "active_domains": [
+          "order_logistics"
+        ],
+        "clear_and_natural": true,
+        "reason": "运输途中破损，用户选择补发一套，属于未完好送达的补发/重发，归入 order_logistics。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:4:1",
+        "active_domains": [
+          "billing_refund"
+        ],
+        "clear_and_natural": true,
+        "reason": "用户选择全额退款，属于退款，归入 billing_refund。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:4:2",
+        "active_domains": [
+          "order_logistics"
+        ],
+        "clear_and_natural": true,
+        "reason": "用户询问补发到货时间，属于配送/物流咨询，归入 order_logistics。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:5:0",
+        "active_domains": [
+          "account_security"
+        ],
+        "clear_and_natural": true,
+        "reason": "用户提供信息请求提交账号申诉流程，属于账号访问/安全，归入 account_security。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:5:1",
+        "active_domains": [
+          "__DEFER__"
+        ],
+        "clear_and_natural": true,
+        "reason": "用户放弃申诉，表示重新注册，撤回原请求且无新目标，归入 __DEFER__。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:5:2",
+        "active_domains": [
+          "account_security"
+        ],
+        "clear_and_natural": true,
+        "reason": "用户询问账号内购买记录查询，仍属账号相关，归入 account_security。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:6:0",
+        "active_domains": [
+          "order_logistics"
+        ],
+        "clear_and_natural": true,
+        "reason": "用户请求备注放快递柜，属于配送安排，归入 order_logistics。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:6:1",
+        "active_domains": [
+          "billing_refund"
+        ],
+        "clear_and_natural": true,
+        "reason": "用户转而询问猫砂盆质量问题能否退货，属于售后退货，归入 billing_refund。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:6:2",
+        "active_domains": [
+          "human_service"
+        ],
+        "clear_and_natural": true,
+        "reason": "用户请求人工客服并投诉快递员，属于投诉/人工服务，归入 human_service。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:7:0",
+        "active_domains": [
+          "product_technical"
+        ],
+        "clear_and_natural": true,
+        "reason": "用户选择安排师傅上门检修，属于产品安装/维修服务，归入 product_technical。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:7:1",
+        "active_domains": [
+          "product_technical",
+          "billing_refund"
+        ],
+        "clear_and_natural": true,
+        "reason": "用户请求补发加固配件（产品维修/技术）并询问保修期（售后规则），两个独立请求分别归入 product_technical 和 billing_refund。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:7:2",
+        "active_domains": [
+          "__DEFER__"
+        ],
+        "clear_and_natural": true,
+        "reason": "用户表示自己用胶水处理，撤回请求且无新目标，归入 __DEFER__。"
+      }
+    ]
+  },
+  "review": {
+    "verdicts": [
+      {
+        "case_id": "domain-v3:zh:3:0:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户明确放弃购买配件，改为申请换新（退换货），属于售后换货，归入 billing_refund。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:0:1",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "用户转而询问内胆材质和涂层耐久性，属于产品规格/技术咨询，归入 product_technical。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:0:2",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "用户主动表示不处理了，撤回原有售后请求且无新目标，归入 __DEFER__。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:1:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户确认换浅灰色并请求提交换货申请，属于售后换货，归入 billing_refund。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:1:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户改为直接退货，仍属售后退换货，归入 billing_refund。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:1:2",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "用户转而询问是否有直筒休闲裤推荐，属于产品咨询，归入 product_technical。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:2:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户同意寄回检测并退款，属于售后退货退款，归入 billing_refund。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:2:1",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "用户表示不退货了，撤回请求且无新目标，归入 __DEFER__。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:2:2",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "用户转而询问耳机固件更新及降噪改善，属于产品技术咨询，归入 product_technical。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:3:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户请求用积分兑换礼品，涉及积分扣减/兑换，归入 billing_refund。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:3:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户请求补开发票，属于发票/账单类，归入 billing_refund。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:3:2",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "用户仅表达感谢和闲聊，无新业务请求，归入 general。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:4:0",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "运输途中破损，用户选择补发一套，属于未完好送达的补发/重发，归入 order_logistics。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:4:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户选择全额退款，属于退款，归入 billing_refund。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:4:2",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "用户询问补发到货时间，属于配送/物流咨询，归入 order_logistics。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:5:0",
+        "label": "account_security",
+        "clear_and_natural": true,
+        "reason": "用户提供信息请求提交账号申诉流程，属于账号访问/安全，归入 account_security。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:5:1",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "用户放弃申诉，表示重新注册，撤回原请求且无新目标，归入 __DEFER__。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:5:2",
+        "label": "account_security",
+        "clear_and_natural": true,
+        "reason": "用户询问账号内购买记录查询，仍属账号相关，归入 account_security。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:6:0",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "用户请求备注放快递柜，属于配送安排，归入 order_logistics。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:6:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "用户转而询问猫砂盆质量问题能否退货，属于售后退货，归入 billing_refund。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:6:2",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "用户请求人工客服并投诉快递员，属于投诉/人工服务，归入 human_service。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:7:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "用户选择安排师傅上门检修，属于产品安装/维修服务，归入 product_technical。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:7:1",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "用户请求补发加固配件（产品维修/技术）并询问保修期（售后规则），两个独立请求分别归入 product_technical 和 billing_refund。"
+      },
+      {
+        "case_id": "domain-v3:zh:3:7:2",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "用户表示自己用胶水处理，撤回请求且无新目标，归入 __DEFER__。"
+      }
+    ]
+  },
+  "rows": [
+    {
+      "case_id": "domain-v3:zh:3:0:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上个月买的电饭煲，内胆涂层开始掉了，煮饭会粘锅。"
+        },
+        {
+          "role": "assistant",
+          "content": "非常抱歉给您带来不便。请问您方便提供一下订单号吗？我帮您核实购买信息。"
+        },
+        {
+          "role": "user",
+          "content": "订单号是20240518XXXX，你们这个内胆有单独卖吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "查到了您的订单，这款内胆配件目前有库存，售价89元。不过您的商品还在15天退换期内，也可以选择直接换新。"
+        }
+      ],
+      "text": "那我不买配件了，直接帮我申请换新吧。",
+      "language": "zh",
+      "label": "billing_refund",
+      "group_id": "domain-v3:zh:3:0",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:3:0:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上个月买的电饭煲，内胆涂层开始掉了，煮饭会粘锅。"
+        },
+        {
+          "role": "assistant",
+          "content": "非常抱歉给您带来不便。请问您方便提供一下订单号吗？我帮您核实购买信息。"
+        },
+        {
+          "role": "user",
+          "content": "订单号是20240518XXXX，你们这个内胆有单独卖吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "查到了您的订单，这款内胆配件目前有库存，售价89元。不过您的商品还在15天退换期内，也可以选择直接换新。"
+        }
+      ],
+      "text": "等等，我其实想先问问这个内胆是什么材质的，会不会也容易掉涂层？",
+      "language": "zh",
+      "label": "product_technical",
+      "group_id": "domain-v3:zh:3:0",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:3:0:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我上个月买的电饭煲，内胆涂层开始掉了，煮饭会粘锅。"
+        },
+        {
+          "role": "assistant",
+          "content": "非常抱歉给您带来不便。请问您方便提供一下订单号吗？我帮您核实购买信息。"
+        },
+        {
+          "role": "user",
+          "content": "订单号是20240518XXXX，你们这个内胆有单独卖吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "查到了您的订单，这款内胆配件目前有库存，售价89元。不过您的商品还在15天退换期内，也可以选择直接换新。"
+        }
+      ],
+      "text": "算了，涂层掉了也不影响煮饭，我就先不处理了。",
+      "language": "zh",
+      "label": "__DEFER__",
+      "group_id": "domain-v3:zh:3:0",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:3:1:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "昨天收到那条牛仔裤，腰围大了好多，穿着直往下掉。"
+        },
+        {
+          "role": "assistant",
+          "content": "抱歉给您带来不好的体验。这款裤子支持七天无理由退换，您看是想换小一码还是直接退货呢？"
+        },
+        {
+          "role": "user",
+          "content": "我想先看看有没有同款的其他颜色，如果有的话我换一条别的颜色。"
+        },
+        {
+          "role": "assistant",
+          "content": "同款目前有深蓝和浅灰两个颜色可选，尺码都有货。您需要我帮您操作换货吗？"
+        }
+      ],
+      "text": "有浅灰的话就换浅灰吧，麻烦帮我提交换货申请。",
+      "language": "zh",
+      "label": "billing_refund",
+      "group_id": "domain-v3:zh:3:1",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:3:1:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "昨天收到那条牛仔裤，腰围大了好多，穿着直往下掉。"
+        },
+        {
+          "role": "assistant",
+          "content": "抱歉给您带来不好的体验。这款裤子支持七天无理由退换，您看是想换小一码还是直接退货呢？"
+        },
+        {
+          "role": "user",
+          "content": "我想先看看有没有同款的其他颜色，如果有的话我换一条别的颜色。"
+        },
+        {
+          "role": "assistant",
+          "content": "同款目前有深蓝和浅灰两个颜色可选，尺码都有货。您需要我帮您操作换货吗？"
+        }
+      ],
+      "text": "等等，我重新想了一下，还是直接退货吧，这个版型不适合我。",
+      "language": "zh",
+      "label": "billing_refund",
+      "group_id": "domain-v3:zh:3:1",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:3:1:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "昨天收到那条牛仔裤，腰围大了好多，穿着直往下掉。"
+        },
+        {
+          "role": "assistant",
+          "content": "抱歉给您带来不好的体验。这款裤子支持七天无理由退换，您看是想换小一码还是直接退货呢？"
+        },
+        {
+          "role": "user",
+          "content": "我想先看看有没有同款的其他颜色，如果有的话我换一条别的颜色。"
+        },
+        {
+          "role": "assistant",
+          "content": "同款目前有深蓝和浅灰两个颜色可选，尺码都有货。您需要我帮您操作换货吗？"
+        }
+      ],
+      "text": "对了，顺便问一下，你们家有没有那种直筒的休闲裤推荐？",
+      "language": "zh",
+      "label": "product_technical",
+      "group_id": "domain-v3:zh:3:1",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:3:2:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "你们这个耳机降噪效果也太差了，地铁上根本听不清，我要退货。"
+        },
+        {
+          "role": "assistant",
+          "content": "很抱歉让您失望了。耳机属于电子产品，拆封后如需退货需要符合质量问题条件。您方便描述一下具体问题吗？"
+        },
+        {
+          "role": "user",
+          "content": "就是降噪完全没效果，跟宣传差太多了，这算不算质量问题？"
+        },
+        {
+          "role": "assistant",
+          "content": "如果降噪功能确实异常，可以按质量问题为您办理退货退款。请问您是否愿意先寄回检测？"
+        }
+      ],
+      "text": "可以，你们安排上门取件吧，检测完没问题就退款。",
+      "language": "zh",
+      "label": "billing_refund",
+      "group_id": "domain-v3:zh:3:2",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:3:2:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "你们这个耳机降噪效果也太差了，地铁上根本听不清，我要退货。"
+        },
+        {
+          "role": "assistant",
+          "content": "很抱歉让您失望了。耳机属于电子产品，拆封后如需退货需要符合质量问题条件。您方便描述一下具体问题吗？"
+        },
+        {
+          "role": "user",
+          "content": "就是降噪完全没效果，跟宣传差太多了，这算不算质量问题？"
+        },
+        {
+          "role": "assistant",
+          "content": "如果降噪功能确实异常，可以按质量问题为您办理退货退款。请问您是否愿意先寄回检测？"
+        }
+      ],
+      "text": "算了，检测太麻烦了，我留着用吧，就当买个教训。",
+      "language": "zh",
+      "label": "__DEFER__",
+      "group_id": "domain-v3:zh:3:2",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:3:2:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "你们这个耳机降噪效果也太差了，地铁上根本听不清，我要退货。"
+        },
+        {
+          "role": "assistant",
+          "content": "很抱歉让您失望了。耳机属于电子产品，拆封后如需退货需要符合质量问题条件。您方便描述一下具体问题吗？"
+        },
+        {
+          "role": "user",
+          "content": "就是降噪完全没效果，跟宣传差太多了，这算不算质量问题？"
+        },
+        {
+          "role": "assistant",
+          "content": "如果降噪功能确实异常，可以按质量问题为您办理退货退款。请问您是否愿意先寄回检测？"
+        }
+      ],
+      "text": "先不说退货了，你们这个耳机固件最近有没有更新？会不会升级后降噪会好一点？",
+      "language": "zh",
+      "label": "product_technical",
+      "group_id": "domain-v3:zh:3:2",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:3:3:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我攒了好久的积分，想看看能换点什么。"
+        },
+        {
+          "role": "assistant",
+          "content": "您目前有3200积分，可以兑换厨房用品、个护清洁或数码配件类的小礼品，需要我帮您查看具体清单吗？"
+        },
+        {
+          "role": "user",
+          "content": "好，帮我看看有什么厨房用品可以换。"
+        },
+        {
+          "role": "assistant",
+          "content": "厨房类可兑换的有：保鲜盒三件套（2800分）、硅胶锅铲（1500分）、玻璃调味罐（2000分）。您想兑换哪一个呢？"
+        }
+      ],
+      "text": "帮我换那个保鲜盒三件套吧，积分够的话直接扣。",
+      "language": "zh",
+      "label": "billing_refund",
+      "group_id": "domain-v3:zh:3:3",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:3:3:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我攒了好久的积分，想看看能换点什么。"
+        },
+        {
+          "role": "assistant",
+          "content": "您目前有3200积分，可以兑换厨房用品、个护清洁或数码配件类的小礼品，需要我帮您查看具体清单吗？"
+        },
+        {
+          "role": "user",
+          "content": "好，帮我看看有什么厨房用品可以换。"
+        },
+        {
+          "role": "assistant",
+          "content": "厨房类可兑换的有：保鲜盒三件套（2800分）、硅胶锅铲（1500分）、玻璃调味罐（2000分）。您想兑换哪一个呢？"
+        }
+      ],
+      "text": "对了，我上次买的东西发票一直没收到，能帮我补开一下吗？",
+      "language": "zh",
+      "label": "billing_refund",
+      "group_id": "domain-v3:zh:3:3",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:3:3:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我攒了好久的积分，想看看能换点什么。"
+        },
+        {
+          "role": "assistant",
+          "content": "您目前有3200积分，可以兑换厨房用品、个护清洁或数码配件类的小礼品，需要我帮您查看具体清单吗？"
+        },
+        {
+          "role": "user",
+          "content": "好，帮我看看有什么厨房用品可以换。"
+        },
+        {
+          "role": "assistant",
+          "content": "厨房类可兑换的有：保鲜盒三件套（2800分）、硅胶锅铲（1500分）、玻璃调味罐（2000分）。您想兑换哪一个呢？"
+        }
+      ],
+      "text": "你们客服态度真好，比隔壁那家强多了，谢谢啊。",
+      "language": "zh",
+      "label": "general",
+      "group_id": "domain-v3:zh:3:3",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:3:4:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "刚收到快递，打开一看碗碎了好几个，包装里面全是渣。"
+        },
+        {
+          "role": "assistant",
+          "content": "非常抱歉！运输途中破损是我们的责任。请问破损了几个碗？我马上为您处理补发或退款。"
+        },
+        {
+          "role": "user",
+          "content": "一套六个碗碎了四个，剩下两个也有裂纹，根本没法用。"
+        },
+        {
+          "role": "assistant",
+          "content": "那确实很严重。您可以选全额退款，或者我们重新补发一套全新的给您，您看怎么处理？"
+        }
+      ],
+      "text": "补发一套吧，不过麻烦你们这次包装结实点，别再碎一路了。",
+      "language": "zh",
+      "label": "order_logistics",
+      "group_id": "domain-v3:zh:3:4",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:3:4:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "刚收到快递，打开一看碗碎了好几个，包装里面全是渣。"
+        },
+        {
+          "role": "assistant",
+          "content": "非常抱歉！运输途中破损是我们的责任。请问破损了几个碗？我马上为您处理补发或退款。"
+        },
+        {
+          "role": "user",
+          "content": "一套六个碗碎了四个，剩下两个也有裂纹，根本没法用。"
+        },
+        {
+          "role": "assistant",
+          "content": "那确实很严重。您可以选全额退款，或者我们重新补发一套全新的给您，您看怎么处理？"
+        }
+      ],
+      "text": "退款吧，碎成这样我都不想再要了，麻烦全额退。",
+      "language": "zh",
+      "label": "billing_refund",
+      "group_id": "domain-v3:zh:3:4",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:3:4:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "刚收到快递，打开一看碗碎了好几个，包装里面全是渣。"
+        },
+        {
+          "role": "assistant",
+          "content": "非常抱歉！运输途中破损是我们的责任。请问破损了几个碗？我马上为您处理补发或退款。"
+        },
+        {
+          "role": "user",
+          "content": "一套六个碗碎了四个，剩下两个也有裂纹，根本没法用。"
+        },
+        {
+          "role": "assistant",
+          "content": "那确实很严重。您可以选全额退款，或者我们重新补发一套全新的给您，您看怎么处理？"
+        }
+      ],
+      "text": "我想先问一下，如果补发的话大概几天能到？我下周要搬家，怕收不到。",
+      "language": "zh",
+      "label": "order_logistics",
+      "group_id": "domain-v3:zh:3:4",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:3:5:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我密码忘了，登录不进去了，怎么办？"
+        },
+        {
+          "role": "assistant",
+          "content": "别着急，您可以在登录页面点击“忘记密码”，通过绑定的手机号接收验证码来重置密码。"
+        },
+        {
+          "role": "user",
+          "content": "我试了，但是手机号也换了，收不到验证码。"
+        },
+        {
+          "role": "assistant",
+          "content": "那需要人工验证身份。请您提供注册时的邮箱或常用收货地址，我帮您提交申诉流程。"
+        }
+      ],
+      "text": "邮箱是abc@163.com，收货地址是上海浦东XX路XX号，帮我提交吧。",
+      "language": "zh",
+      "label": "account_security",
+      "group_id": "domain-v3:zh:3:5",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:3:5:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我密码忘了，登录不进去了，怎么办？"
+        },
+        {
+          "role": "assistant",
+          "content": "别着急，您可以在登录页面点击“忘记密码”，通过绑定的手机号接收验证码来重置密码。"
+        },
+        {
+          "role": "user",
+          "content": "我试了，但是手机号也换了，收不到验证码。"
+        },
+        {
+          "role": "assistant",
+          "content": "那需要人工验证身份。请您提供注册时的邮箱或常用收货地址，我帮您提交申诉流程。"
+        }
+      ],
+      "text": "算了，这个账号里也没多少钱，我重新注册一个算了。",
+      "language": "zh",
+      "label": "__DEFER__",
+      "group_id": "domain-v3:zh:3:5",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:3:5:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我密码忘了，登录不进去了，怎么办？"
+        },
+        {
+          "role": "assistant",
+          "content": "别着急，您可以在登录页面点击“忘记密码”，通过绑定的手机号接收验证码来重置密码。"
+        },
+        {
+          "role": "user",
+          "content": "我试了，但是手机号也换了，收不到验证码。"
+        },
+        {
+          "role": "assistant",
+          "content": "那需要人工验证身份。请您提供注册时的邮箱或常用收货地址，我帮您提交申诉流程。"
+        }
+      ],
+      "text": "好的，不过我想先问一下，我账号里之前买的东西还能查到购买记录吗？",
+      "language": "zh",
+      "label": "account_security",
+      "group_id": "domain-v3:zh:3:5",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:3:6:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我昨天拍的猫粮显示发货了，大概什么时候能到？"
+        },
+        {
+          "role": "assistant",
+          "content": "您的猫粮今天凌晨已从广州仓发出，预计后天下午送达。您可以随时在订单页面查看物流轨迹。"
+        },
+        {
+          "role": "user",
+          "content": "后天我可能不在家，能改一下收货时间吗？或者放快递柜也行。"
+        },
+        {
+          "role": "assistant",
+          "content": "可以的，您可以在订单详情页选择“修改配送时间”，也可以备注放快递柜。需要我帮您操作吗？"
+        }
+      ],
+      "text": "帮我备注放快递柜吧，谢谢。",
+      "language": "zh",
+      "label": "order_logistics",
+      "group_id": "domain-v3:zh:3:6",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:3:6:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我昨天拍的猫粮显示发货了，大概什么时候能到？"
+        },
+        {
+          "role": "assistant",
+          "content": "您的猫粮今天凌晨已从广州仓发出，预计后天下午送达。您可以随时在订单页面查看物流轨迹。"
+        },
+        {
+          "role": "user",
+          "content": "后天我可能不在家，能改一下收货时间吗？或者放快递柜也行。"
+        },
+        {
+          "role": "assistant",
+          "content": "可以的，您可以在订单详情页选择“修改配送时间”，也可以备注放快递柜。需要我帮您操作吗？"
+        }
+      ],
+      "text": "对了，我上次买的猫砂盆好像有质量问题，底座裂了，能退吗？",
+      "language": "zh",
+      "label": "billing_refund",
+      "group_id": "domain-v3:zh:3:6",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:3:6:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我昨天拍的猫粮显示发货了，大概什么时候能到？"
+        },
+        {
+          "role": "assistant",
+          "content": "您的猫粮今天凌晨已从广州仓发出，预计后天下午送达。您可以随时在订单页面查看物流轨迹。"
+        },
+        {
+          "role": "user",
+          "content": "后天我可能不在家，能改一下收货时间吗？或者放快递柜也行。"
+        },
+        {
+          "role": "assistant",
+          "content": "可以的，您可以在订单详情页选择“修改配送时间”，也可以备注放快递柜。需要我帮您操作吗？"
+        }
+      ],
+      "text": "你们有没有人工客服？我想投诉一下上次那个快递员，态度特别差。",
+      "language": "zh",
+      "label": "human_service",
+      "group_id": "domain-v3:zh:3:6",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:3:7:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "书桌装好了，但是桌腿的螺丝拧不紧，老是晃。"
+        },
+        {
+          "role": "assistant",
+          "content": "您看一下螺丝孔里是不是有木屑堵住了？可以用螺丝刀把螺丝完全取出，清理一下孔内再重新拧入。"
+        },
+        {
+          "role": "user",
+          "content": "我试过了，还是不行，感觉孔太大了，螺丝咬不住。"
+        },
+        {
+          "role": "assistant",
+          "content": "这种情况可能是安装孔位偏差。我们可以为您补发一套加固配件，或者安排师傅上门检修，您选哪种？"
+        }
+      ],
+      "text": "安排师傅上门吧，我自己搞不定了。",
+      "language": "zh",
+      "label": "product_technical",
+      "group_id": "domain-v3:zh:3:7",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:3:7:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "书桌装好了，但是桌腿的螺丝拧不紧，老是晃。"
+        },
+        {
+          "role": "assistant",
+          "content": "您看一下螺丝孔里是不是有木屑堵住了？可以用螺丝刀把螺丝完全取出，清理一下孔内再重新拧入。"
+        },
+        {
+          "role": "user",
+          "content": "我试过了，还是不行，感觉孔太大了，螺丝咬不住。"
+        },
+        {
+          "role": "assistant",
+          "content": "这种情况可能是安装孔位偏差。我们可以为您补发一套加固配件，或者安排师傅上门检修，您选哪种？"
+        }
+      ],
+      "text": "补发配件吧，我自己再试试。对了，这个书桌还在保修期内吧？",
+      "language": "zh",
+      "label": "__DEFER__",
+      "group_id": "domain-v3:zh:3:7",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    },
+    {
+      "case_id": "domain-v3:zh:3:7:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "书桌装好了，但是桌腿的螺丝拧不紧，老是晃。"
+        },
+        {
+          "role": "assistant",
+          "content": "您看一下螺丝孔里是不是有木屑堵住了？可以用螺丝刀把螺丝完全取出，清理一下孔内再重新拧入。"
+        },
+        {
+          "role": "user",
+          "content": "我试过了，还是不行，感觉孔太大了，螺丝咬不住。"
+        },
+        {
+          "role": "assistant",
+          "content": "这种情况可能是安装孔位偏差。我们可以为您补发一套加固配件，或者安排师傅上门检修，您选哪种？"
+        }
+      ],
+      "text": "算了，我拿个胶水粘一下算了，不麻烦你们了。",
+      "language": "zh",
+      "label": "__DEFER__",
+      "group_id": "domain-v3:zh:3:7",
+      "source": "synthetic-reannotation:domain-active-request-v2"
+    }
+  ],
+  "status": "reviewed_candidate"
+}

@@ -20,17 +20,35 @@ from core.model_policy import ModelPolicy, ModelRole
 Label = Literal["general", "product_technical", "order_logistics", "billing_refund",
                 "account_security", "human_service", "__DEFER__"]
 
+RUBRIC_VERSION = "domain-active-request-v2"
 RUBRIC = """Classify ONLY the currently effective customer request using its prior dialogue.
 general: greetings, thanks, ordinary chat, or general help/capabilities.
 product_technical: products, specifications, compatibility, usage, troubleshooting.
-order_logistics: order/shipping/delivery/address, cancellation before dispatch.
-billing_refund: payment/invoice/refund/return/exchange and after-sales rules.
+order_logistics: order/shipping/delivery/address, cancellation before dispatch;
+delivery recovery or reshipment of an undelivered/lost parcel.
+billing_refund: payment/invoice/refund/return/exchange and after-sales rules;
+replacement of a received defective/wrong item, warranty terms or repair charges.
 account_security: login/account access/security.
 human_service: explicit human service/escalation/complaint ticket or ticket status.
 __DEFER__: unresolved referent, withdrawal with no remaining goal, or simultaneous
 requests in different domains. Explicit replacement discards the old goal. Two
 requests in ONE domain remain that domain. Courtesy attached to a business request
 is not an extra goal. A completed old request does not remain active forever.
+First identify the still-requested services, then assign their domains separately.
+A shared order, product or after-sales story does NOT merge services owned by
+different domains. An explicitly requested ticket-status lookup belongs to
+human_service even when the ticket concerns a refund. Merely mentioning a ticket
+as background does not itself request a ticket lookup. Classify the services,
+not the subject matter of the conversation as a whole.
+Distinguish three endings: (1) thanks/acknowledgement or 'I will wait and contact
+you later', with no new work requested now, is general; (2) actively withdrawing
+or cancelling an unresolved request with no replacement goal is __DEFER__;
+(3) requesting the system to keep checking or explaining retains that service's
+domain. Do not create new business work merely because an old business noun occurs.
+If 'replacement' cannot be resolved as delivery recovery versus received-item
+after-sales from the prefix, use __DEFER__ rather than guessing the owner.
+For review, clear_and_natural=false when the prefix is internally contradictory,
+incoherent or insufficient to support a reliable label, even if a keyword suggests one.
 Do not infer a goal from isolated keywords or provide tool/parameter/action labels.
 There is no pending formal approval/control signal in these examples.
 """
@@ -112,7 +130,9 @@ async def structured_call(model, schema, prompt, name):
         SystemMessage(content=RUBRIC), HumanMessage(content=prompt)
     ], config={"run_name": name}), timeout=180)
     raw = result["raw"]
-    record = {"response": raw.model_dump(mode="json"),
+    record = {"rubric_version": RUBRIC_VERSION,
+              "rubric_sha256": hashlib.sha256(RUBRIC.encode()).hexdigest(),
+              "response": raw.model_dump(mode="json"),
               "error": str(result["parsing_error"]) if result["parsing_error"] else None}
     return result["parsed"], record
 

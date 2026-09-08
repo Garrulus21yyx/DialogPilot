@@ -4,7 +4,9 @@ from types import SimpleNamespace
 
 import pytest
 
-from evaluation.domain_dialogue_dataset import family_indices, validate_batch
+from evaluation.domain_dialogue_dataset import family_indices, validate_batch, reviewed_source_rows
+from evaluation.domain_dialogue_teacher import RUBRIC_VERSION
+from evaluation.domain_dialogue_reannotation import ANNOTATION_VERSION
 
 
 @pytest.mark.parametrize("seed", range(20))
@@ -34,3 +36,15 @@ def test_batch_provenance_is_bound_to_language_and_split(language, index):
                          ("status", "pending")):
         with pytest.raises(ValueError):
             validate_batch({**record, field: value}, language, index)
+
+
+@pytest.mark.parametrize("field,value", [
+    ("source_sha256", "stale"), ("batch_id", "other"), ("language", "en"),
+    ("split", "heldout"), ("rubric_version", "old"), ("annotation_version", "old"), ("status", "failed")])
+def test_new_labels_cannot_fall_back_to_old_or_cross_source(field, value):
+    original = dict(batch_id="domain-v3:zh:1", language="zh", split="train")
+    review = dict(**original, source_sha256="current", rubric_version=RUBRIC_VERSION,
+                  annotation_version=ANNOTATION_VERSION,
+                  status="reviewed_candidate")
+    with pytest.raises(ValueError, match="provenance"):
+        reviewed_source_rows(original, {**review, field: value}, "current")
