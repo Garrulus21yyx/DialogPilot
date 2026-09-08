@@ -1,4 +1,12 @@
-# Fixed10 v4 — running, not a closure result
+# Fixed10 v4 — stopped, not a closure result
+
+Stopped after user challenged premature full-task validation. Verified runner
+PID287504, sent SIGINT, and session44536 exited130. Preserve all partial artifacts;
+do not restart or report the interrupted batch as ten completed cases. Before
+termination output reported task4 failing in merge_approval_plan: approval and
+goal change coexist in one proposal. This is an observed conflict, not yet a
+root-cause attribution to the model or application. Return to whole-chain audit
+and remaining-contract review before another full task run.
 
 Launched from `3679b9b`, exec session44536. Manifest records the exact worktree
 source hashes and model profiles. Concurrent RAG/archive work means this is a
