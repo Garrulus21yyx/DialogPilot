@@ -1379,3 +1379,70 @@ before any prompt change. Verify rejection, one correction, exactly one pending
 proposal, preserved remaining goal, zero external writes. If a fresh run never emits
 the original bad choice, report no correction triggered rather than claiming recovery
 was proven. No production change or Encoder activation in this step.
+
+Full-worker follow-up registered: only close_and_adjust and independent_shipments;
+same synthetic fixtures, configured models and unchanged production middleware.
+Four actor calls maximum per worker plus bounded domain reviews; no summary expected
+at this small context size. Maximum sixteen model calls and 360s per worker. Export
+full working messages, feedback, pending proposal and raw SDK captures. All external
+business handlers hard-reject and count attempted calls; expected count zero.
+Preparation is permitted and is not a business write. A scripted fixture test must
+first establish that valid preparation reaches WAITING_APPROVAL, so environment
+wiring errors cannot be misreported as model reasoning failures. Do not infer full
+customer delivery or live task success from this bounded worker experiment.
+
+Full-worker result: close_and_adjust incorrectly ended NEEDS_USER_INPUT (two model
+calls; reviewer accepted the unnecessary either/or). independent_shipments rejected
+the initial two proposals, prepared cancel(S1), then attempted redirect(S2) despite
+the segment already owning a proposal; finally ToolCallLimitExceededError (5/4).
+Pending cancel and complete objective survived, but no candidate response. Five
+model calls, zero external business calls. Evidence: action-boundary-worker2-2026-09-09.
+
+Proven interface mismatch: the execution boundary rejects additional preparation,
+while the model and reviewer still advertise those actions. Repair at the existing
+InteractionBoundaryMiddleware: one current-segment prepared-observation predicate
+drives model tool filtering and reviewer callable capabilities. Preserve read and
+interaction tools; keep excluded descriptions as non-callable semantic context.
+Preparation must actually succeed; acceptance alone is insufficient. Historical
+prepared records do not lock a new segment; accepted withdrawal ends this segment.
+State, preparation and approval owners remain unchanged. No parallel-call global
+override or increased step budget. Shared interaction contract explicitly describes
+the existing one-proposal segment lifecycle. Version boundaries migrate together.
+This does not fix the independently observed false either/or semantic judgment.
+
+Owner repair implementation tests: 112 passed / 3 skipped. Eight combinations of
+preparation success, historical origin and semantic acceptance show that only a
+current successful observation closes proposal availability. Actual SDK calls and
+review inputs share the filtered tool table; reads/archive/interaction tools remain.
+Existing withdrawal/continuation tests retained. Independent diff review requested.
+
+Register one bounded repaired full-worker check for independent_shipments only,
+same fixture/profile/budget as worker2, no business calls. Expected one pending
+proposal with complete retained goal and a candidate explaining outstanding work,
+without tool budget exhaustion. This validates the lifecycle correction, not action
+compatibility reasoning or customer delivery; close_and_adjust remains open and is
+not rerun as though the capability filter were its fix.
+
+Filtered real worker check failed its behavior criterion. Capture proves prepare
+tools are absent after successful preparation, but the actor still emits the old
+prepare_redirect name from history. It again reaches ToolCallLimitExceededError,
+with pending cancel retained and no candidate. Source/catalog consistency is proven,
+not loop termination. PostgreSQL framework/TurnRuntime checks: 41 passed, one fork
+deprecation warning. The provisional filtering implementation is NOT delivered as
+behavioral closure and remains uncommitted pending lifecycle review.
+
+Independent lifecycle review supports a smaller end-state: successful persisted
+preparation ends the worker segment as WAITING_APPROVAL, not overall completion.
+The adapter does not require candidate_response; ResponseAssembler already owns
+pending-action wording; bind_action_approval retains the full parent WorkItem in
+suspended_work_items. Wait for the whole tool batch and archive persistence before
+ending. Failed preparation may still revise. No extra main planning loop by default.
+
+Required migration before adopting that design: move action-selection/compatibility/
+approval-relevant reads before preparation; accurately keep independent unanswered
+goals pending. Remove post-preparation model/withdrawal-specific instructions and
+budget reset, while retaining host cancellation/revision of existing approvals.
+Revalidate batch reads, zero post-prepare model calls, complete pending parameters,
+existing resume/Receipt behavior and reply assembly without domain prose. Do not
+simply end the loop while retaining the old promise of post-prepare investigation.
+False either/or acceptance remains a separate open semantic issue.

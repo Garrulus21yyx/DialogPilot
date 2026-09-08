@@ -5,6 +5,7 @@ No tools execute; first-decision observations are reviewed separately from verdi
 """
 import argparse
 import asyncio
+from dataclasses import asdict
 from datetime import datetime, timezone
 import hashlib
 import json
@@ -41,7 +42,9 @@ def fixture(case, actor, verifier):
     environment = SimpleNamespace(get_tools=lambda: tools, get_policy=lambda: policy,
         tools=SimpleNamespace(tool_type=lambda name: SimpleNamespace(value='write')))
     manager = MCPToolManager('diagnostic-only', model='not-used')
+    external_calls = []
     async def forbidden_call(*args):
+        external_calls.append(str(args[0]))
         raise AssertionError('No business tool may execute in a first-decision probe')
     registry = bind_environment(environment, manager, forbidden_call)
     item = WorkItem(case['id'], 'retail', case['goal'], ControlMode.DELEGATED,
@@ -51,17 +54,23 @@ def fixture(case, actor, verifier):
     fact = FactRecord(case['id'], 'fixture.state', json.dumps(case['facts']),
         FactSourceKind.VERIFIED_STATE, 'fixture:' + case['id'], 'synthetic-fixture', 'v1',
         datetime(2026, 9, 9, tzinfo=timezone.utc))
-    context = AgentContextView(item, case['goal'], (fact,), (), (), 24000)
+    context = AgentContextView(item, case['goal'], (fact,), (), (), 24000,
+        trusted_context={'tenant_id': 'diagnostic', 'user_id': 'fixture-user',
+            'conversation_id': case['id'], 'invocation_key': 'probe:' + case['id']})
     worker = TargetFrameworkAgent(actor, manager, review_model=verifier,
         review_available_tokens=24000, result_store=InMemoryStore(),
         registry=registry, system_prompt=policy)
     exposed = [*(worker._action_tool(action.ref) for action in registry.actions),
                *worker._interaction_tools()]
-    return worker, context, exposed, policy
+    return worker, context, exposed, policy, external_calls
 
 
 async def run(args):
     cases = json.loads(args.cases.read_text())
+    if args.case_ids:
+        cases = [case for case in cases if case['id'] in args.case_ids]
+        if {case['id'] for case in cases} != set(args.case_ids):
+            raise ValueError('unknown or duplicate requested case IDs')
     values = {**dotenv_values('.env'), **os.environ}
     policy = ModelPolicy.from_env(values)
     models = {role: framework_model(policy.profile(role),
@@ -71,13 +80,30 @@ async def run(args):
     manifest = {'scope': __doc__, 'cases': cases,
         'cases_sha256': hashlib.sha256(args.cases.read_bytes()).hexdigest(),
         'profiles': {role.value: policy.profile(role).to_dict() for role in models},
-        'max_api_calls': len(cases) * 2, 'business_tools_enabled': False,
-        'max_tokens_per_call': 4096, 'timeout_seconds': 90}
+        'mode': 'full-worker' if args.full_worker else 'first-decision',
+        'max_api_calls': len(cases) * (8 if args.full_worker else 2), 'business_tools_enabled': False,
+        'max_tokens_per_call': 4096, 'timeout_seconds': 360 if args.full_worker else 90}
     (args.output / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
     for case in cases:
-        worker, context, tools, business_policy = fixture(case, models[ModelRole.WORKER], models[ModelRole.VERIFIER])
+        worker, context, tools, business_policy, external_calls = fixture(case, models[ModelRole.WORKER], models[ModelRole.VERIFIER])
         messages = [HumanMessage(worker._build_prompt(context))]
         row = {'id': case['id'], 'expected_review': case['expected']}
+        if args.full_worker:
+            capture = FrameworkCapture(limit=16)
+            worker._callbacks = (capture,)
+            try:
+                async with asyncio.timeout(360):
+                    result = await worker(context)
+                row['result'] = asdict(result)
+            except Exception as exc:
+                row['error'] = {'type': type(exc).__name__, 'detail': str(exc)}
+            row.update(calls=capture.calls, external_calls=external_calls,
+                objective=context.work_item.objective)
+            with (args.output / 'results.jsonl').open('a') as stream:
+                stream.write(json.dumps(row, ensure_ascii=False, default=str) + '\n')
+            print(case['id'], row.get('result', {}).get('status'), row.get('error'),
+                  'model calls', len(capture.calls), 'external calls', len(external_calls), flush=True)
+            continue
         for stage in ('actor', 'reviewer'):
             capture = FrameworkCapture(limit=1)
             try:
@@ -109,4 +135,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--cases', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--case-ids', nargs='+')
+    parser.add_argument('--full-worker', action='store_true', help='Run existing worker/middleware; business handlers still reject all calls.')
     asyncio.run(run(parser.parse_args()))
