@@ -13,7 +13,7 @@ import uuid
 from tau2.agent.base_agent import HalfDuplexAgent
 from tau2.data_model.message import AssistantMessage, MultiToolMessage, ToolCall, ToolMessage
 
-from application.chat_contracts import ChatCommand, Completed, Accepted, NeedsInput
+from application.chat_contracts import ChatCommand, Completed, Accepted, NeedsInput, Failed, Reconciling
 from infrastructure.postgres_target_runtime import PostgresConversationStateStore
 
 
@@ -108,6 +108,21 @@ class Tau3TargetAgent(HalfDuplexAgent):
                     raise RuntimeError("pending interaction has no committed publication")
                 self.events.put(AssistantMessage(role="assistant", content=row[0]))
                 return
+            if isinstance(outcome, (Failed, Reconciling)):
+                response_id = (outcome.response_id if isinstance(outcome, Failed)
+                               else outcome.public_status.get("response_id"))
+                if response_id:
+                    with self.pool.transaction() as connection:
+                        row = connection.execute(
+                            "SELECT payload->>'response' FROM dialogpilot_app.response_deliveries "
+                            "WHERE publication_id=%s AND tenant_id=%s AND user_id=%s AND conversation_id=%s",
+                            (response_id, "default", "benchmark-visitor", self.conversation_id),
+                        ).fetchone()
+                    if row and isinstance(row[0], str) and row[0].strip():
+                        # Deliver the committed notice; the trace above retains
+                        # Failed/Reconciling, never a synthetic business success.
+                        self.events.put(AssistantMessage(role="assistant", content=row[0]))
+                        return
             if not isinstance(outcome, Completed):
                 raise RuntimeError("Target did not publish a completed reply: " + type(outcome).__name__)
             self.events.put(AssistantMessage(role="assistant", content=str(outcome.response["response"])))

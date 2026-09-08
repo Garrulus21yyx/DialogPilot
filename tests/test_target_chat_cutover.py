@@ -271,7 +271,7 @@ def test_one_publication_exposes_both_approval_and_field_bindings():
         assembly = await assembler.assemble(_board(_result(origin.work_item_id, origin.owner_agent)),
             current_message="Proceed", pending_approval=state.pending_approval,
             requested_inputs=(MissingInputSpec("reply", other.work_item_id, "INPUT", "string", "Which option?"),))
-        return SimpleNamespace(managed=SimpleNamespace(state_before=replace(state,
+        return SimpleNamespace(managed=SimpleNamespace(plan=SimpleNamespace(response_text=None), state_before=replace(state,
             pending_interaction=None, pending_approval=None), state_after=state),
             assembled=assembly)
     application._turn_runtime.execute = execute

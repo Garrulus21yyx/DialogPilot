@@ -48,7 +48,7 @@ class TurnRuntimeResult:
 class TurnRuntime:
     """Coordinate durable turn phases without owning their domain semantics."""
 
-    version = "turn-runtime-v7-result-owned-delivery"
+    version = "turn-runtime-v8-response-or-work"
 
     def __init__(
         self,
@@ -114,6 +114,17 @@ class TurnRuntime:
     async def _assemble_response(self, state: TurnGraphState):
         managed = state["managed"]
         board = managed.board
+        if managed.plan.response_text is not None:
+            # A conversational reply neither presents nor consumes an existing
+            # wait. Verify the model's candidate through the same reply boundary.
+            context = conversation_context_payload(state["prepared"].context) or {}
+            context = {**context, "turn_contract": "RESPONSE_ONLY_NO_STATE_CHANGE",
+                "pending_interaction": managed.state_after.pending_interaction is not None,
+                "pending_approval": managed.state_after.pending_approval is not None}
+            assembled = await self._assembler.assemble(
+                None, current_message=state["observations"].raw_text,
+                conversation_context=context, response_candidate=managed.plan.response_text)
+            return {"assembled": assembled}
         pending_input = managed.state_after.pending_interaction
         questions = ()
         if (pending_input is not None and (

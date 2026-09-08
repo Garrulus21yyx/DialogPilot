@@ -270,7 +270,7 @@ class StateBoundTargetUnderstanding:
     @staticmethod
     def _resume_command(index, item) -> CommandProposal:
         if item.control_mode in {ControlMode.WORKFLOW, ControlMode.ACTION}:
-            raise ValueError(
+            raise TurnPlanningError(
                 "business workflows use their approval/resume contract"
             )
         common = {

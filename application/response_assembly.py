@@ -88,10 +88,10 @@ class ResponseAssembler:
         self._trace_sink = trace_sink
 
     async def assemble(self, board, *, current_message: str, system_notice: str = "", conversation_context=None,
-                       pending_approval=None, requested_inputs=()) -> AssembledResponse:
+                       pending_approval=None, requested_inputs=(), response_candidate: str | None = None) -> AssembledResponse:
         from dataclasses import replace
         if board is None:
-            if pending_approval is None and not requested_inputs:
+            if pending_approval is None and not requested_inputs and response_candidate is None:
                 raise ValueError("response requires execution evidence or a pending interaction")
             from application.result_board import ResultBoardSnapshot
             # There was no execution this turn. Pending interaction contracts
@@ -99,7 +99,7 @@ class ResponseAssembler:
             board = ResultBoardSnapshot((), (), (), (), (), (), False, False)
         response = await self._assemble(board, current_message=current_message,
             system_notice=system_notice, conversation_context=conversation_context, pending_approval=pending_approval,
-            requested_inputs=requested_inputs)
+            requested_inputs=requested_inputs, response_candidate=response_candidate)
         if requested_inputs and not response.verified:
             prelude = _render_board(board, locale=self.fallback_locale)
             notice = _message(self.fallback_locale,
@@ -116,7 +116,7 @@ class ResponseAssembler:
         return response
 
     async def _assemble(self, board, *, current_message: str, system_notice: str = "", conversation_context=None,
-                        pending_approval=None, requested_inputs=()) -> AssembledResponse:
+                        pending_approval=None, requested_inputs=(), response_candidate=None) -> AssembledResponse:
         from dataclasses import replace
         from application.knowledge_tool_contract import evidence_items, evidence_id, model_evidence
 
@@ -143,7 +143,8 @@ class ResponseAssembler:
             # Failed work remains an outcome alongside independent results/input.
             candidate = await self._assemble_candidate(
                 board, current_message=current_message, conversation_context=conversation_context,
-                pending_approval=pending_approval, requested_inputs=requested_inputs)
+                pending_approval=pending_approval, requested_inputs=requested_inputs,
+                response_candidate=response_candidate)
             candidate = replace(candidate, text=system_notice + candidate.text)
             if not candidate.composer_used:
                 if requested_inputs:
@@ -279,12 +280,12 @@ class ResponseAssembler:
                                  "NOT_CHECKED", "KNOWLEDGE_SAFE_ABSTENTION")
 
     async def _assemble_candidate(
-        self, board, *, current_message: str, system_notice: str = "", conversation_context=None, repair_feedback=None, pending_approval=None, requested_inputs=(),
+        self, board, *, current_message: str, system_notice: str = "", conversation_context=None, repair_feedback=None, pending_approval=None, requested_inputs=(), response_candidate=None,
     ) -> AssembledResponse:
         claims = _allowed_claims(board, pending_approval, requested_inputs=requested_inputs)
-        mode = ResponseAssemblyMode.CONVERSATION_COMPOSE if repair_feedback is not None or pending_approval or requested_inputs else self._select_mode(board)
+        mode = ResponseAssemblyMode.CONVERSATION_COMPOSE if response_candidate is not None or repair_feedback is not None or pending_approval or requested_inputs else self._select_mode(board)
         fallback = _render_board(board, locale=self.fallback_locale)
-        if mode is ResponseAssemblyMode.TEMPLATE or self._composer is None:
+        if mode is ResponseAssemblyMode.TEMPLATE or self._composer is None and response_candidate is None:
             return AssembledResponse(
                 system_notice + fallback, ResponseAssemblyMode.TEMPLATE,
                 _evidence_refs(board), False,
@@ -319,7 +320,7 @@ class ResponseAssembler:
             evidence_json = json.dumps(payload["evidence"], ensure_ascii=False,
                 sort_keys=True, separators=(",", ":"))
             evidence_sha = hashlib.sha256(evidence_json.encode()).hexdigest()
-            text = await self._composer.compose(payload)
+            text = response_candidate if response_candidate is not None else await self._composer.compose(payload)
             if not isinstance(text, str) or not text.strip():
                 raise ValueError("composer must return nonempty text")
             text = text.strip()

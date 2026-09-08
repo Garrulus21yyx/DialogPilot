@@ -54,6 +54,7 @@ class CommandKind(str, Enum):
 
 
 class ProposalDisposition(str, Enum):
+    RESPOND = "RESPOND"
     RESOLVED = "RESOLVED"
     CLARIFY = "CLARIFY"
     OUT_OF_SCOPE = "OUT_OF_SCOPE"
@@ -62,6 +63,7 @@ class ProposalDisposition(str, Enum):
 
 
 class RouteMode(str, Enum):
+    RESPONSE = "RESPONSE"
     DIRECT = "DIRECT"
     CLARIFY = "CLARIFY"
     KNOWLEDGE_QA = "KNOWLEDGE_QA"
@@ -167,11 +169,20 @@ class TurnProposal:
     reason_code: str
     missing_inputs: tuple[str, ...] = ()
     approval_decision: ApprovalDecisionProposal | None = None
+    response_text: str | None = None
+    input_values: tuple[tuple[str, str, object], ...] = ()
 
     def __post_init__(self) -> None:
+        if self.disposition is ProposalDisposition.RESPOND:
+            if not isinstance(self.response_text, str) or not self.response_text.strip() or self.missing_inputs:
+                raise TurnPlanningError("response proposal requires only nonblank response text")
+        elif self.response_text is not None:
+            raise TurnPlanningError("only response proposals carry response text")
         if not self.reason_code.strip():
             raise TurnPlanningError("proposal reason code is required")
-        if self.disposition is ProposalDisposition.RESOLVED and not (self.commands or self.approval_decision):
+        if self.input_values and self.disposition is not ProposalDisposition.RESOLVED:
+            raise TurnPlanningError("input values require a resolved proposal")
+        if self.disposition is ProposalDisposition.RESOLVED and not (self.commands or self.approval_decision or self.input_values):
             raise TurnPlanningError("resolved proposal requires commands or an approval decision")
         if self.disposition is not ProposalDisposition.RESOLVED and (self.commands or self.approval_decision):
             raise TurnPlanningError("terminal proposal cannot carry commands")
@@ -198,6 +209,7 @@ class ValidatedCommandPlan:
     state_fingerprint: str
     registry_fingerprint: str
     policy_version: str
+    response_text: str | None = None
 
 
 class RoutePolicy:
@@ -241,6 +253,8 @@ class RoutePolicy:
         continuation_items = tuple(accepted_items.values())
         if proposal.approval_decision is not None:
             raise PlanningInvariantError("approval decision must be bound before command validation")
+        if proposal.input_values:
+            raise PlanningInvariantError("input values must be bound before command validation")
         if str(state.tenant_id) != registry.tenant_id:
             raise PlanningInvariantError("state and registry tenants differ")
         if proposal.disposition is not ProposalDisposition.RESOLVED:
@@ -252,6 +266,7 @@ class RoutePolicy:
                 state.fingerprint,
                 registry.fingerprint,
                 self.version,
+                response_text=proposal.response_text,
             )
         command_ids = {item.command_id for item in proposal.commands}
         if len(command_ids) != len(proposal.commands):
@@ -639,6 +654,10 @@ class RouteDecision:
     missing_inputs: tuple[str, ...]
     reason_code: str
 
+    def __post_init__(self):
+        for name in ("owner_ids", "requirement_ids", "missing_inputs"):
+            object.__setattr__(self, name, tuple(getattr(self, name)))
+
 
 @dataclass(frozen=True)
 class TurnPlan:
@@ -649,6 +668,16 @@ class TurnPlan:
     registry_fingerprint: str
     compiler_version: str
     control_mutations: tuple[WorkControlMutation, ...] = ()
+    response_text: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "control_mutations", tuple(self.control_mutations))
+        if self.route.mode is RouteMode.RESPONSE:
+            if (not isinstance(self.response_text, str) or not self.response_text.strip()
+                    or self.work is not None or self.transitions is not None or self.control_mutations):
+                raise TurnPlanningError("response plan requires text without work or mutations")
+        elif self.response_text is not None:
+            raise TurnPlanningError("only response plans carry response text")
 
     @property
     def plan_id(self) -> str:
@@ -662,6 +691,7 @@ class TurnPlan:
             "state": self.state_fingerprint,
             "registry": self.registry_fingerprint,
             "compiler": self.compiler_version,
+            "response_text": self.response_text,
             "control_mutations": [
                 (item.kind, item.control_id, item.expected_revision)
                 for item in self.control_mutations
@@ -671,7 +701,7 @@ class TurnPlan:
 
 
 class TurnPlanCompiler:
-    version = "turn-plan-compiler-v2-invocation-work-identity"
+    version = "turn-plan-compiler-v3-response-or-work"
 
     def compile(
         self,
@@ -689,7 +719,8 @@ class TurnPlanCompiler:
             raise PlanningUnavailable(validated.disposition, validated.reason_code)
         if validated.disposition is not ProposalDisposition.RESOLVED:
             route = RouteDecision(
-                RouteMode.CLARIFY if validated.disposition is ProposalDisposition.CLARIFY
+                RouteMode.RESPONSE if validated.disposition is ProposalDisposition.RESPOND
+                else RouteMode.CLARIFY if validated.disposition is ProposalDisposition.CLARIFY
                 else RouteMode.OUT_OF_SCOPE,
                 (), (), CapabilityRisk.LOW,
                 validated.missing_inputs,
@@ -697,6 +728,7 @@ class TurnPlanCompiler:
             )
             return TurnPlan(
                 route, None, None, state.fingerprint, registry.fingerprint, self.version,
+                response_text=validated.response_text,
             )
         executable = tuple(
             item for item in validated.commands

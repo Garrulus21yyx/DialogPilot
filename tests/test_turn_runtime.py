@@ -294,7 +294,7 @@ def test_unpublished_prior_lifecycle_checkpoint_is_not_reinterpreted_as_new_exec
         await runtime.execute(identity, TurnObservations("查询订单 DP1234"))
         calls = executor.calls
         config = {"configurable": {"thread_id": "turn:" + str(identity.invocation_key)}}
-        await runtime.graph.aupdate_state(config, {"runtime_version": "turn-runtime-v6-followup-boundary"})
+        await runtime.graph.aupdate_state(config, {"runtime_version": "turn-runtime-v7-result-owned-delivery"})
         with pytest.raises(TurnCheckpointVersionError, match="explicit lifecycle migration"):
             await runtime.execute(identity, TurnObservations("查询订单 DP1234"))
         assert executor.calls == calls

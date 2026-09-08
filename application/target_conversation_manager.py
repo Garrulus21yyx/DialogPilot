@@ -287,6 +287,29 @@ class TargetConversationManager:
             observations, state, deterministic, self._registry, turn_context,
         )
         from application.target_understanding import StateBoundTargetUnderstanding
+        if proposal.input_values:
+            pending = state.pending_interaction
+            # The model proposes values; the existing signal owner binds them
+            # to this loaded wait, consumes once, and restores the work envelope.
+            try:
+                input_resolution = self._resolver.resolve(replace(observations,
+                    raw_text="", structured_fields=(), approval_id=None, approval_decision=None,
+                    interaction_id=pending.interaction_id, interaction_version=pending.version,
+                    interaction_values=proposal.input_values), state)
+            except DeterministicResolutionError as exc:
+                raise TurnPlanningError("proposed input values could not bind to current state") from exc
+            updated = self._apply_deterministic(state, input_resolution)
+            resumed = input_resolution.resumed_work_items
+            if any(command.revises_control_id in {item.control.control_id for item in resumed if item.control}
+                   for command in proposal.commands):
+                raise TurnPlanningError("input submission already resumes its goals; do not duplicate or revise them")
+            restored = StateBoundTargetUnderstanding._continuations(resumed, updated)
+            proposal = replace(proposal, input_values=(), commands=(*proposal.commands, *restored))
+            if updated is not state:
+                transitions.append(updated)
+            state, deterministic = updated, input_resolution
+            continuation_items = resumed
+            resume_thread_id = pending.checkpoint_thread_id
         if proposal.approval_decision is not None:
             semantic = proposal
             decision = proposal.approval_decision

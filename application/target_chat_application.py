@@ -277,9 +277,10 @@ class TargetChatApplication:
 
         pending = managed.state_after.pending_approval
         pending_input = managed.state_after.pending_interaction
-        present_input = pending_input is not None and not self._publication.has_interaction(
+        response_only = managed.plan.response_text is not None
+        present_input = not response_only and pending_input is not None and not self._publication.has_interaction(
             identity, signal_id=pending_input.interaction_id, signal_version=pending_input.version)
-        present_approval = pending is not None and not self._publication.has_interaction(
+        present_approval = not response_only and pending is not None and not self._publication.has_interaction(
             identity, signal_id=pending.approval_id, signal_version=pending.version)
         assembly = turn_result.assembled
         if pending is not None and assembly is not None and (
@@ -508,7 +509,7 @@ class TargetChatApplication:
             },
             "cost": {
                 "conversation_planner_invoked": (
-                    route.reason_code == "CONVERSATION_AGENT_PLAN"
+                    route.reason_code in {"CONVERSATION_AGENT_PLAN", "CONVERSATION_RESPONSE"}
                 ),
                 "work_item_count": len(work_items),
                 "latency_ms": elapsed_ms,

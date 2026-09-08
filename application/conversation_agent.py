@@ -114,9 +114,15 @@ def planning_output_schema(supported_goals=None, knowledge_filter_contract=None)
         "type": "object", "additionalProperties": False, "required": ["status"],
         "properties": {
             "status": {"type": "string", "enum": [
-                "resolved", "insufficient_context", "out_of_scope",
+                "resolved", "respond", "insufficient_context", "out_of_scope",
             ]},
             "goals": {"type": "array", "minItems": 1, "maxItems": 4, "items": goal},
+            "response": dict(text),
+            "input_values": {"type": "array", "minItems": 1, "items": {
+                "type": "object", "additionalProperties": False,
+                "required": ["target_work_item_id", "field_name", "value"],
+                "properties": {"target_work_item_id": dict(text), "field_name": dict(text),
+                               "value": {"type": ["string", "number", "boolean"]}}}},
             "approval_decision": {"type": "object", "additionalProperties": False,
                 "required": ["approval_id", "decision"], "properties": {
                     "approval_id": dict(text),
@@ -127,14 +133,22 @@ def planning_output_schema(supported_goals=None, knowledge_filter_contract=None)
             },
         },
         "oneOf": [
+            {"properties": {"status": {"const": "respond"}},
+             "required": ["response"], "not": {"anyOf": [
+                 {"required": ["goals"]}, {"required": ["approval_decision"]},
+                 {"required": ["missing_fields"]}, {"required": ["input_values"]}]}},
             {"properties": {"status": {"const": "resolved"}},
-             "anyOf": [{"required": ["goals"]}, {"required": ["approval_decision"]}],
+             "anyOf": [{"required": ["goals"]}, {"required": ["approval_decision"]}, {"required": ["input_values"]}],
              "not": {"required": ["missing_fields"]}},
             {"properties": {"status": {"const": "insufficient_context"}},
              "required": ["missing_fields"], "not": {"anyOf": [{"required": ["goals"]}, {"required": ["approval_decision"]}]}},
             {"properties": {"status": {"const": "out_of_scope"}},
              "not": {"anyOf": [{"required": ["goals"]}, {"required": ["missing_fields"]}, {"required": ["approval_decision"]}]}},
         ],
+        "allOf": [{"if": {"properties": {"status": {"enum": ["resolved", "insufficient_context", "out_of_scope"]}}},
+                   "then": {"not": {"required": ["response"]}}},
+                  {"if": {"properties": {"status": {"enum": ["respond", "insufficient_context", "out_of_scope"]}}},
+                   "then": {"not": {"required": ["input_values"]}}}],
     }
 
 
@@ -157,7 +171,7 @@ class ConversationPlanningProvider(Protocol):
 class ConversationAgent:
     """Plan one deferred turn, then compile only Registry-backed commands."""
 
-    version = "conversation-agent-v10-plan-and-compose"
+    version = "conversation-agent-v11-response-or-plan"
 
     def __init__(
         self,
@@ -223,6 +237,9 @@ class ConversationAgent:
             "pending_input": ({
                 "interaction_id": state.pending_interaction.interaction_id,
                 "version": state.pending_interaction.version,
+                "requested_fields": [{"target_work_item_id": field.target_work_item_id,
+                    "field_name": field.field_name, "value_schema": field.value_schema}
+                    for field in state.pending_interaction.requested_fields],
                 "objectives": [{
                     "control_id": item.control.control_id if item.control else None,
                     "objective": item.objective,
@@ -350,6 +367,27 @@ class ConversationAgent:
         if not isinstance(raw, Mapping):
             raise TypeError("semantic result must be an object")
         status = str(raw["status"])
+        input_values = ()
+        if "input_values" in raw:
+            if status != "resolved" or state.pending_interaction is None:
+                raise ValueError("input values require a current pending interaction")
+            values = raw["input_values"]
+            if not isinstance(values, list) or not values:
+                raise ValueError("input values must be a nonempty list")
+            for value in values:
+                if not isinstance(value, Mapping) or set(value) != {"target_work_item_id", "field_name", "value"}:
+                    raise ValueError("invalid pending field value")
+            input_values = tuple((v["target_work_item_id"], v["field_name"], v["value"]) for v in values)
+            expected = {(f.target_work_item_id, f.field_name) for f in state.pending_interaction.requested_fields}
+            if len(input_values) != len(expected) or {(w, f) for w, f, _ in input_values} != expected:
+                raise ValueError("input values do not match pending fields")
+        if status == "respond":
+            if set(raw) != {"status", "response"}:
+                raise ValueError("response-only turn cannot contain actions or interactions")
+            return TurnProposal(ProposalDisposition.RESPOND, (), "CONVERSATION_RESPONSE",
+                                response_text=raw["response"])
+        if "response" in raw:
+            raise ValueError("response text requires respond status")
         decision = None
         if "approval_decision" in raw:
             value = raw["approval_decision"]
@@ -374,7 +412,7 @@ class ConversationAgent:
         if status != "resolved":
             raise ValueError("unsupported semantic status")
         goals = raw.get("goals", [])
-        if not isinstance(goals, list) or not (1 <= len(goals) <= 4 or decision and not goals and "goals" not in raw):
+        if not isinstance(goals, list) or not (1 <= len(goals) <= 4 or (decision or input_values) and not goals and "goals" not in raw):
             raise ValueError("semantic goals are invalid")
         goal_ids = tuple(
             str(value.get("goal_id") or f"semantic-{index}")
@@ -502,6 +540,7 @@ class ConversationAgent:
         return TurnProposal(
             ProposalDisposition.RESOLVED, tuple(commands), "CONVERSATION_AGENT_PLAN",
             approval_decision=decision,
+            input_values=input_values,
         )
 
     @staticmethod

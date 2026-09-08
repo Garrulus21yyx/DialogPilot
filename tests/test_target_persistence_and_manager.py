@@ -820,6 +820,7 @@ def test_manager_consumes_pending_input_before_understanding_and_persists_it():
 
     result = asyncio.run(manager.handle(identity, TurnObservations(
         "DP1234", interaction_id="interaction-1", interaction_version=1,
+        interaction_values=(("work-1", "order_id", "DP1234"),),
     )))
 
     observed_state, deterministic = understanding.calls[0]

@@ -122,7 +122,7 @@ def test_turn_distinguishes_retained_approval_from_unpublished_presentation(publ
                 (), True, "PASS", "TEST", hashlib.sha256(b"").hexdigest())
     runtime = TurnRuntime(None, Assembler(), interaction_published=lambda *a, **k: published)
     managed = SimpleNamespace(board=_board(), state_after=state, state_before=state, diagnostics=(),
-        plan=SimpleNamespace(route=SimpleNamespace(reason_code="SIDE_QUESTION")))
+        plan=SimpleNamespace(response_text=None, route=SimpleNamespace(reason_code="SIDE_QUESTION")))
     asyncio.run(runtime._assemble_response({"managed": managed, "invocation": object(),
         "prepared": SimpleNamespace(context=None), "observations": SimpleNamespace(raw_text="How long does it take?")}))
     assert captured[0]["pending_approval"] == (None if published else state.pending_approval)
@@ -157,7 +157,7 @@ def test_durable_interaction_can_be_presented_without_new_execution(kind, publis
     runtime = TurnRuntime(None, ResponseAssembler(Composer(), knowledge_verifier=Verifier(True)),
         interaction_published=lambda *a, **k: published)
     managed = SimpleNamespace(board=None, state_after=state, state_before=state, interaction_questions=(), diagnostics=(),
-        plan=SimpleNamespace(route=SimpleNamespace(reason_code="CLARIFY")))
+        plan=SimpleNamespace(response_text=None, route=SimpleNamespace(reason_code="CLARIFY")))
     result = asyncio.run(runtime._assemble_response({"managed": managed, "invocation": object(),
         "prepared": SimpleNamespace(context=None), "observations": SimpleNamespace(raw_text="What next?")}))
     if published:

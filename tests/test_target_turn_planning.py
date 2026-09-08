@@ -164,7 +164,7 @@ def _compile(*commands):
 @pytest.mark.parametrize("disposition", list(ProposalDisposition))
 def test_nonresolved_dispositions_preserve_failure_versus_user_question(disposition):
     from application.turn_planning import PlanningUnavailable
-    if disposition is ProposalDisposition.RESOLVED:
+    if disposition in {ProposalDisposition.RESOLVED, ProposalDisposition.RESPOND}:
         with pytest.raises(TurnPlanningError):
             TurnProposal(disposition, (), "EMPTY_PLAN")
         return

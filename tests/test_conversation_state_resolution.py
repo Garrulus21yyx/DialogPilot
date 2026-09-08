@@ -72,7 +72,7 @@ def test_independent_waits_have_the_same_state_in_either_arrival_order(approval_
         replace(result, pending_interaction=invalid)
 
 
-def test_single_pending_field_binds_raw_reply_without_semantic_router():
+def test_single_pending_field_binds_typed_reply_without_semantic_router():
     state = _state(_workstream())
     state = state.wait_for_interaction(PendingInteractionState(
         "interaction-1",
@@ -84,6 +84,7 @@ def test_single_pending_field_binds_raw_reply_without_semantic_router():
     resolution = DeterministicResolver().resolve(
         TurnObservations(
             "DP1234", interaction_id="interaction-1", interaction_version=1,
+            interaction_values=(("refund-ws-1", "order_id", "DP1234"),),
         ),
         state,
     )

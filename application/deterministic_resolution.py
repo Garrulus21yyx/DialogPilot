@@ -7,7 +7,7 @@ from enum import Enum
 
 from application.conversation_state import ConversationState
 from application.entity_binding import BindingSource, EntityBinding
-from application.work_item import ArgumentValue, ControlMode, WorkItem
+from application.work_item import ArgumentValue, WorkItem
 
 
 class DeterministicResolutionError(ValueError):
@@ -162,11 +162,7 @@ class DeterministicResolver:
             # unchanged continuation from revision, cancellation or new work.
             free_domain_reply = (bool(observations.raw_text.strip())
                     and not observations.interaction_values
-                    and not observations.structured_fields
-                    and bool(pending.suspended_work_items)
-                    and all(item.control_mode is ControlMode.DELEGATED
-                            for item in pending.suspended_work_items
-                            if item.work_item_id in {field.target_work_item_id for field in pending.requested_fields}))
+                    and not observations.structured_fields)
             if observations.interaction_id is not None and free_domain_reply:
                 return DeterministicResolution(
                     ResolutionKind.REPLY_PENDING_INPUT, "PENDING_REPLY_BOUND",
@@ -336,13 +332,6 @@ class DeterministicResolver:
                 for item in requested_fields
             )
         provided = dict(observations.structured_fields)
-        if len(requested_fields) == 1 and not provided and observations.raw_text.strip():
-            requested = requested_fields[0]
-            return (ResolvedField(
-                requested.target_work_item_id,
-                requested.field_name,
-                observations.raw_text.strip(),
-            ),)
         names = {item.field_name for item in requested_fields}
         if names != set(provided):
             return None
