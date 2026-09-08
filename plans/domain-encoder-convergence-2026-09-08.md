@@ -51,7 +51,8 @@ account_security / human_service。语义不明确或跨领域 coordination 标�
 
 ## v2 多轮数据补充（用户已要求继续，2026-09-08）
 
-起点 e0ee987。状态 in_progress。只补数据/训练/评测，不增加线上分类字段或业务分支。
+起点 e0ee987。状态：数据补充与固定实验完成，独立模型验证失败，未恢复可上线闭环。
+只补数据/训练/评测，不增加线上分类字段或业务分支。
 假设：角色交替和当前诉求关系在训练/校准中缺失，导致独立多轮分布过度接受。
 数据补充覆盖 continuation / replacement / withdrawal / same-domain addition /
 cross-domain addition / unresolved reference；标签依据当前有效诉求，关系仅作数据审计元数据。
@@ -63,3 +64,14 @@ cross-domain addition / unresolved reference；标签依据当前有效诉求，
 采用条件：开发各启用类>=10接受且>=98%精度，独立集每语言>=20接受且>=98%精度。
 未通过保持CANDIDATE/REJECTED；不以旧120条成绩决定发布，不修改旧数据。
 退出证据：输入与语义族隔离、标签审核、相同当前短答不同历史对照、新鲜独立评测及审查。
+
+### v2 交付结果
+
+- 数据/评测分组提交eda53e8，已push；模型与报告另提交，哈希见最终回复/Git。
+- 每语言新增3483训练+302校准+302开发，按场景和答复表达划分；领域FOLLOWUPS仍共用，属于模板增强不是自然会话抽样。
+- 数据审查两项错误在训练前修正；独立审核核对30336行、manifest一致、无输入/ID重复、无跨split group。
+- 中英文各拟合一次；旧集回归22/17与23/19（接受/正确），新集20/16与17/14。不调阈值，不回流测试。
+- 新模型均REJECTED，配置不启用。开发高分未掩盖独立失败及撤销误接受。
+- 隔离176 passed / 3 skipped。真实客服任务未执行。
+- 报告docs/domain-encoder-multiturn-v2-2026-09-08.zh-CN.md；原输出artifacts/eval/domain-encoder-v2-2026-09-08/。
+- 下一缺口是自然澄清、否定作用域、已完成历史和双域并存的自由会话族；不自动追加试训，不扩充Encoder职责。

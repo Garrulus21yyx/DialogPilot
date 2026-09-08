@@ -1,0 +1,119 @@
+{
+  "language": "en",
+  "thresholds": {
+    "product_technical": 0.9669217467308044,
+    "order_logistics": 0.9889329671859741,
+    "billing_refund": 0.5568479299545288,
+    "account_security": 0.9840099215507507
+  },
+  "model_sha256": "04f79b69d9df98127f5a4ae460906c6fc09fbe761cb9c8aff03e4472f96e90d8",
+  "schema_version": "dialogpilot-domain-encoder-v1",
+  "input_schema": "dialogpilot-encoder-context-v1",
+  "status": "REJECTED",
+  "calibration": {
+    "general": {
+      "threshold": 1.0,
+      "enabled": false,
+      "accepted": 0,
+      "correct": 0,
+      "precision_lower_bound": 0.0
+    },
+    "product_technical": {
+      "threshold": 0.9669217467308044,
+      "enabled": true,
+      "accepted": 162,
+      "correct": 159,
+      "precision_lower_bound": 0.9545693610751262
+    },
+    "order_logistics": {
+      "threshold": 0.9889329671859741,
+      "enabled": true,
+      "accepted": 161,
+      "correct": 158,
+      "precision_lower_bound": 0.9542927577653605
+    },
+    "billing_refund": {
+      "threshold": 0.5568479299545288,
+      "enabled": true,
+      "accepted": 855,
+      "correct": 851,
+      "precision_lower_bound": 0.9896204054034153
+    },
+    "account_security": {
+      "threshold": 0.9840099215507507,
+      "enabled": true,
+      "accepted": 91,
+      "correct": 90,
+      "precision_lower_bound": 0.9522391165409857
+    },
+    "human_service": {
+      "threshold": 1.0,
+      "enabled": false,
+      "accepted": 0,
+      "correct": 0,
+      "precision_lower_bound": 0.0
+    }
+  },
+  "development": {
+    "general": {
+      "threshold": 1.0,
+      "enabled": false,
+      "accepted": 0,
+      "correct": 0,
+      "precision_lower_bound": 0.0
+    },
+    "product_technical": {
+      "threshold": 0.9669217467308044,
+      "enabled": true,
+      "accepted": 111,
+      "correct": 111,
+      "precision_lower_bound": 0.9762057031530068
+    },
+    "order_logistics": {
+      "threshold": 0.9889329671859741,
+      "enabled": true,
+      "accepted": 99,
+      "correct": 99,
+      "precision_lower_bound": 0.9733982695317235
+    },
+    "billing_refund": {
+      "threshold": 0.5568479299545288,
+      "enabled": true,
+      "accepted": 665,
+      "correct": 660,
+      "precision_lower_bound": 0.9846359456535339
+    },
+    "account_security": {
+      "threshold": 0.9840099215507507,
+      "enabled": true,
+      "accepted": 89,
+      "correct": 88,
+      "precision_lower_bound": 0.9511992188200772
+    },
+    "human_service": {
+      "threshold": 1.0,
+      "enabled": false,
+      "accepted": 0,
+      "correct": 0,
+      "precision_lower_bound": 0.0
+    }
+  },
+  "max_tokens": 256,
+  "input_files_sha256": {
+    "config.json": "cc89592bfbce7f08c82f1f024135a26a21b4e8a8b6fc039abee9b9b6d46a9d8f",
+    "tokenizer.json": "d241a60d5e8f04cc1b2b3e9ef7a4921b27bf526d9f6050ab90f9267a1f9e5c66",
+    "tokenizer_config.json": "0b29c7bfc889e53b36d9dd3e686dd4300f6525110eaa98c76a5dafceb2029f53",
+    "special_tokens_map.json": "5d5b662e421ea9fac075174bb0688ee0d9431699900b90662acd44b2a350503a",
+    "vocab.txt": "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3"
+  },
+  "backbone": {
+    "name": "BAAI/bge-small-en",
+    "revision": "2275a7bdee235e9b4f01fa73aa60d3311983cfea"
+  },
+  "calibration_device": "cuda",
+  "datasets": {
+    "train": "30f308f52b0899f1e56fd7286a4e7381ca2bc92cb24d11e479421387cac8e85b",
+    "calibration": "0b730fc48371073b2b1d672c397a23a2187529fe5fbb89456319371f4112f831",
+    "heldout": "4d1ce79252e8bc14de4950885b077271b0f53cde69895d93f53c536f7a9b0230"
+  }
+}
