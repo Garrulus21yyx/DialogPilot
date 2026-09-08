@@ -1097,3 +1097,39 @@ Next active item is the already observed coupled return/exchange feasibility
 failure, including policy visibility, pre-write promises and confirmation scope.
 Do not rerun the fixed task until that causal review determines the required
 repair. Encoder remains rejected/disabled; original ten-task evidence is unchanged.
+
+Coupled-action causal review: the actual main, domain and domain-review inputs
+contained the whole objective and policy. Their compatibility acceptance was a
+semantic false positive, not missing history. Reply verification separately lacked
+that policy. A deterministic lifecycle defect also exists: preparation permits
+further reads but blocks a subsequent reviewed input/blocker handback, while the
+adapter selects the historical pending artifact before the accepted outcome.
+The existing accepted handback must own the current proposal selection. A reviewed
+NEEDS_USER_INPUT/BLOCKED handback may withdraw an unsubmitted segment proposal;
+its evidence remains historical, with no business write or receipt reversal.
+Keep one proposal per segment and the existing bounded review; add no task-specific
+branch or additional reviewer. Verify both terminal kinds after preparation and
+new evidence on the real SDK graph, including retained prior receipts. Policy
+transport and semantic compatibility remain separate open work; no live replay.
+
+Withdrawal regression first failed twice: the runtime returned WAITING_APPROVAL
+after blocking the new handback. Owner repair allows reviewed interaction tools
+after preparation and selects their executed handback over historical proposals.
+Independent review found shared review-budget ownership and failure-priority gaps:
+successful preparation now closes its decision budget; a subsequent handback has
+its own bounded correction, without raising the global model/tool budget. Accepted
+handbacks precede ordinary tool failures, not invalid-authority failures. The
+16-case matrix covers both handbacks, preparation/handback correction and retained
+independent receipts. SDK suite passed 96 / skipped 6. A continuation test initially
+reused the exact old execution contract, invalidly replacing its pinned message;
+the fixture now uses a new continuation contract as the real manager does.
+
+Continuation fixture additionally needed the same goal control identity on both
+revisions (otherwise archive isolation correctly rejected cross-task access).
+Fresh final SDK run: 98 passed / 6 skipped in 11.57s, including actual archived
+working-message restoration into a new revision, no renewed pending proposal,
+and bounded rejection of two post-preparation handbacks. Independent review of
+budget and result-priority changes found no new concrete issue. This is bounded
+runtime evidence with scripted semantic judgments, not model-quality closure or
+a live tau rerun. Policy-to-response transport remains the next implementation
+item; do not claim the coupled-action failure fully repaired.

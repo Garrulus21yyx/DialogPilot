@@ -618,6 +618,15 @@ def _adapt_framework_result(
     tool_results = tuple(result for result in observed if isinstance(result, ToolResult))
     skill_results = tuple(result for result in observed if isinstance(result, AgentResult))
     pending = tuple(result.pending_action for result in skill_results if result.pending_action)
+    # Preparation is historical evidence, not an irrevocable selection. A later
+    # reviewed and executed interaction hands control back without this proposal.
+    # No receipt is reversed: preparation has not submitted a business write.
+    handback = (accepted_outcome or {}).get("kind")
+    if handback in {"NEEDS_USER_INPUT", "BLOCKED"} and any(
+        result.producer_version == "domain-interaction-v1"
+        and result.status.value == handback for result in skill_results
+    ):
+        pending = ()
     facts = merge_facts(
         tuple(fact for fact in context.verified_facts
               if fact.requirement_id in allowed_authorities.values()
@@ -665,25 +674,25 @@ def _adapt_framework_result(
         status = AgentResultStatus.TERMINAL_FAILURE
         reason = "FRAMEWORK_AGENT_INVALID_TOOL_AUTHORITY"
         retryable = False
+    elif missing_inputs and handback == "NEEDS_USER_INPUT":
+        status = AgentResultStatus.NEEDS_USER_INPUT
+        reason = "FRAMEWORK_AGENT_NEEDS_USER_INPUT"
+        retryable = False
+    elif any(result.status is AgentResultStatus.BLOCKED for result in skill_results) and handback == "BLOCKED":
+        status = AgentResultStatus.BLOCKED
+        reason = next(result.reason_code for result in skill_results if result.status is AgentResultStatus.BLOCKED)
+        retryable = False
     elif (missing or not item.requirement_ids) and domain_failures:
         status, reason = next((outcome for outcome in domain_failures
                                if outcome[0] is AgentResultStatus.TERMINAL_FAILURE),
                               next((outcome for outcome in domain_failures
                                     if outcome[0] is AgentResultStatus.RETRYABLE_FAILURE), domain_failures[-1]))
         retryable = status is AgentResultStatus.RETRYABLE_FAILURE
-    elif missing_inputs and (accepted_outcome or {}).get("kind") == "NEEDS_USER_INPUT":
-        status = AgentResultStatus.NEEDS_USER_INPUT
-        reason = "FRAMEWORK_AGENT_NEEDS_USER_INPUT"
-        retryable = False
     elif not item.requirement_ids and failed_tools and not facts:
         retryable = any(_retryable_tool_result(result) for result in failed_tools)
         status = (AgentResultStatus.RETRYABLE_FAILURE if retryable
                   else AgentResultStatus.TERMINAL_FAILURE)
         reason = "FRAMEWORK_AGENT_TOOL_FAILURE"
-    elif any(result.status is AgentResultStatus.BLOCKED for result in skill_results) and (accepted_outcome or {}).get("kind") == "BLOCKED":
-        status = AgentResultStatus.BLOCKED
-        reason = next(result.reason_code for result in skill_results if result.status is AgentResultStatus.BLOCKED)
-        retryable = False
     elif not missing and candidate_response and candidate_response.strip() and (accepted_outcome or {}).get("kind") == "COMPLETE":
         status = AgentResultStatus.PARTIAL if failed_tools and not item.requirement_ids else AgentResultStatus.SUCCEEDED
         reason = "FRAMEWORK_AGENT_PARTIAL_RESULTS" if status is AgentResultStatus.PARTIAL else "FRAMEWORK_AGENT_REQUIREMENTS_SATISFIED"

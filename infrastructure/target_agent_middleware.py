@@ -134,11 +134,9 @@ class InteractionBoundaryMiddleware(AgentMiddleware):
                             if entry.get("type") == "tool"}
         prepared = any(record.get("pending_action") and call_id not in historical_calls
                        for call_id, record in state.get("tool_observations", {}).items())
-        if len(proposals) > 1 or (prepared and any(
-                call["name"] in self.action_tools | {"request_user_input", "report_blocked"}
-                for call in calls)):
+        if len(proposals) > 1 or (prepared and proposals):
             return {"messages": [ToolMessage(
-                content="No calls in this batch were executed. Only one prepared action is supported per segment. Continue read-only checks and answer the user's questions; describe the pending action as not executed. Do not request a separate confirmation or replace the prepared action.",
+                content="No calls in this batch were executed. Only one prepared action is supported per segment. Continue read-only checks; the pending action is not executed. If new evidence prevents proceeding, request the unresolved choice or report the blocker; an accepted handback withdraws this unsubmitted proposal. Do not request a separate execution confirmation.",
                 tool_call_id=call["id"], name=call["name"], status="error") for call in calls],
                 "jump_to": "model"}
         if len(calls) > 1 and any(call["name"] in {"request_user_input", "report_blocked"} for call in calls):
@@ -159,6 +157,11 @@ class InteractionBoundaryMiddleware(AgentMiddleware):
         candidate = ({"tool": proposals[0]["name"], "arguments": proposals[0]["args"]}
                      if proposals else calls[0]["args"] if calls else message.text)
         review_calls = state.get("outcome_review_calls", 0)
+        if prepared and state.get("accepted_outcome", {}).get("kind") == "PREPARE_ACTION":
+            # A successful preparation ends its selection decision. New evidence
+            # can require a different handback, with its own one correction.
+            # A rejected handback clears accepted_outcome, so it cannot reset again.
+            review_calls = 0
         if review_calls >= self.max_review_calls:
             raise DomainOutcomeRejected("domain_outcome_correction_budget_exhausted")
         assessment = await self.review.assess(context=runtime.context,

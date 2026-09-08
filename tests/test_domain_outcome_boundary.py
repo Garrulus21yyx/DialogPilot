@@ -51,6 +51,80 @@ def test_valid_handback_stays_bound_to_assigned_work(kind, text, status):
         assert result.missing_inputs[0].target_work_item_id == result.work_item_id
 
 
+@pytest.mark.parametrize("kind,status", [
+    ("request_user_input", "NEEDS_USER_INPUT"), ("report_blocked", "BLOCKED"),
+])
+@pytest.mark.parametrize("prior_commit", [False, True])
+@pytest.mark.parametrize("correct_preparation", [False, True])
+@pytest.mark.parametrize("correct_handback", [False, True])
+def test_new_evidence_can_withdraw_unsubmitted_proposal_via_reviewed_handback(
+        kind, status, prior_commit, correct_preparation, correct_handback):
+    from application.agent_result import AgentResult, AgentResultStatus, ReceiptRef
+    agent, context, model, executed = domain([
+        *([call("prepare_order_cancel", "rejected-proposal")] if correct_preparation else []),
+        call("prepare_order_cancel", "proposal"),
+        call("order_lookup", "check"),
+        *([terminal(kind, "Incorrect reason", "rejected-handback")] if correct_handback else []),
+        terminal(kind, "The proposed action prevents the other requested change."),
+    ])
+    model.outcome_reviews = [
+        *([{"accepted": False, "feedback": "Correct the selected target."}] if correct_preparation else []),
+        {"accepted": True, "feedback": ""},
+        *([{"accepted": False, "feedback": "Describe the actual newly discovered constraint."}] if correct_handback else []),
+        {"accepted": True, "feedback": ""},
+    ]
+    prior = AgentResult("independent", context.work_item.owner_agent, AgentResultStatus.SUCCEEDED,
+        "COMMITTED", "test", action_receipts=(ReceiptRef("receipt", "v1", "earlier-operation",
+                                                    "COMMITTED", "order.address_action"),))
+    if prior_commit:
+        context = replace(context, dependency_results=(prior,))
+    result = asyncio.run(agent(context))
+    assert result.status.value == status
+    assert result.pending_action is None and not result.action_receipts
+    assert result.facts and len(executed) == 2
+    corrections = int(correct_preparation) + int(correct_handback)
+    assert model.review_calls == 2 + corrections and model.calls == 3 + corrections
+    assert context.dependency_results == ((prior,) if prior_commit else ())
+    assert any((entry["data"].get("artifact") or {}).get("result", {}).get("pending_action")
+               for entry in result.working_messages if entry["type"] == "tool")
+
+
+def test_withdrawn_proposal_remains_history_not_a_new_approval_on_continuation():
+    from application.work_item import WorkControlBinding
+    agent, context, model, executed = domain([
+        call("prepare_order_cancel"), terminal("request_user_input", "Which remaining option?"),
+        AIMessage(content="The selected option needs no further action."),
+    ])
+    context = replace(context, work_item=replace(context.work_item, control=WorkControlBinding("goal", 1)))
+    first = asyncio.run(agent(context))
+    assert first.status.value == "NEEDS_USER_INPUT" and first.pending_action is None
+    resumed = replace(context, work_item=replace(context.work_item,
+                      work_item_id="continued", continuation_of=context.work_item.work_item_id,
+                      control=WorkControlBinding("goal", 2)),
+                      working_messages=first.working_messages,
+                      verified_facts=first.facts, current_message="Keep the order unchanged")
+    second = asyncio.run(agent(resumed))
+    assert second.status.value == "SUCCEEDED" and second.pending_action is None
+    assert not second.missing_inputs and not second.action_receipts
+    assert len(executed) == 1 and model.calls == 3
+
+
+def test_rejected_post_preparation_handback_has_one_correction_not_an_unbounded_reset():
+    agent, context, model, executed = domain([
+        call("prepare_order_cancel"),
+        terminal("request_user_input", "Repeat the known target", "first"),
+        terminal("request_user_input", "Repeat it again", "second"),
+    ])
+    model.outcome_reviews = [{"accepted": True, "feedback": ""},
+        *[{"accepted": False, "feedback": "The target is already known."}] * 2]
+    result = asyncio.run(agent(context))
+    assert model.review_calls == 3 and model.calls == 3
+    assert not result.missing_inputs and not result.action_receipts
+    assert any(entry.get("detail", {}).get("code") == "DOMAIN_OUTCOME_REJECTED"
+               for entry in result.execution_feedback)
+    assert len(executed) == 1
+
+
 @pytest.mark.parametrize("batch", ["single", "read_first", "read_last"])
 @pytest.mark.parametrize("reason", ["wrong objective", "wrong target", "already completed action"])
 def test_rejected_action_selection_never_prepares_or_executes_its_batch(batch, reason, monkeypatch):
