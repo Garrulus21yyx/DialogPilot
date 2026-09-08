@@ -1213,3 +1213,41 @@ the demonstrated cause. Next isolate scheduler advice while retaining the factua
 "No calls in this batch were executed" result. Do not delete history in production,
 raise budgets blindly, or add a case-specific acceptance rule. Runner transform
 test passed; production code/config unchanged in this experiment.
+
+Scheduler-advice probe registered: same original c27f46378bd94a40 input, NONE,
+original twice vs replacing only the two runtime rejection messages with their
+first factual sentence (no calls executed). Keep actor prose, tool calls, human
+context, policy/candidate/system unchanged. Four calls, 4096 completion tokens,
+no execution. A changed binary decision alone is not success: correction must
+identify the shared order-state incompatibility. No production adoption from
+this single development example.
+
+Scheduler-advice probe completed at `artifacts/eval/action-feasibility-runtime4-2026-09-09`:
+original accepted 2/2 and advice-removed accepted 2/2, both semantically wrong.
+Two transform tests passed. Combined evidence does not support actor prose or
+scheduler advice alone as a demonstrated cause, and neither deletion is adopted.
+Next design question is the existing acceptance output: it records no policy basis
+on acceptance (true + empty feedback), so positive constraint reasoning is not
+observable. Independent review requested before a diagnostic schema intervention;
+do not add another reviewer or impose extra fields on the executing domain agent.
+
+Independent review supports one final bounded schema diagnostic on this case:
+full original input/system/NONE; two original outputs vs two outputs requiring
+brief policy_basis and goal_impact before unchanged accepted/feedback. Four calls,
+4096 tokens. Fields describe policy prerequisites/resulting state and remaining-goal
+impact, not internal chain-of-thought. This changes generation behavior as well as
+observability; do not claim pure observation or isolate a single field's effect.
+If still wrong, stop same-example schema/prompt tuning and revisit supported
+guarantees/owner-provided computable constraints. No production schema change.
+
+Basis probe completed: `artifacts/eval/action-feasibility-basis4-2026-09-09`.
+Original accepted 2/2. Added-basis arm: one wrong acceptance, one schema-invalid
+empty tool arguments. The explicit wrong rationale validates only current delivered
+state and parameters, then says exchanges remain possible because return/exchange
+are distinct operations. It fails to apply the order-wide post-return state.
+Thus extra explanation fields are NOT adopted. Stop same-case prompt/schema tuning.
+Next review the semantic boundary between a preparation operation (no write yet)
+and the future business effect being approved. The current contract mixes
+PREPARE_ACTION and whole-goal feasibility; phase/effect ambiguity is a hypothesis
+for owner-level review, not yet a proven repair. Three runner tests pass. No
+production change, no new tool calls, no claims of completed business closure.

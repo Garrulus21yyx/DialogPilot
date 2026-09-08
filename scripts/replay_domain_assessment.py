@@ -21,6 +21,16 @@ from evaluation.framework_capture import FrameworkCapture
 from infrastructure.target_domain_outcome import SCHEMA, SYSTEM
 
 
+ASSESSMENT_BASIS_SCHEMA = {**SCHEMA,
+    'properties': {
+        'policy_basis': {'type': 'string', 'description': 'Brief applicable prerequisites and resulting business state, or explicitly insufficient policy evidence.'},
+        'goal_impact': {'type': 'string', 'description': 'Brief impact on the remaining assigned requests, including unknown or not applicable.'},
+        **SCHEMA['properties'],
+    },
+    'required': ['policy_basis', 'goal_impact', *SCHEMA['required']],
+}
+
+
 def remove_actor_text(payload):
     """Keep observations and tool calls; isolate only actor prose, not evidence."""
     payload = json.loads(json.dumps(payload))
@@ -28,6 +38,16 @@ def remove_actor_text(payload):
         if message['role'] == 'ai':
             content = message['content']
             message['content'] = [block for block in content if block.get('type') != 'text'] if isinstance(content, list) else ''
+    return payload
+
+
+def remove_runtime_advice(payload):
+    """Keep the tool non-execution fact; isolate subsequent scheduler advice."""
+    payload = json.loads(json.dumps(payload))
+    fact = 'No calls in this batch were executed.'
+    for message in payload['working_context']:
+        if message['role'] == 'tool' and isinstance(message['content'], str) and message['content'].startswith(fact):
+            message['content'] = fact
     return payload
 
 
@@ -68,15 +88,19 @@ async def run(args):
         model = framework_model(profile, {'api_key': values['ANTHROPIC_API_KEY'],
             'base_url': policy.base_url}, max_tokens=4096)
         for history in (True, False):
-            payload = original if history else (remove_actor_text(original) if args.ablation == 'actor_text'
-                                                else {**original, 'working_context': []})
+            payload = original if history else (
+                original if args.ablation == 'assessment_basis' else
+                remove_actor_text(original) if args.ablation == 'actor_text' else
+                remove_runtime_advice(original) if args.ablation == 'runtime_advice' else
+                {**original, 'working_context': []})
             for repeat in range(2):
                 capture = FrameworkCapture(limit=1)
                 row = {'history': history, 'reasoning': profile.reasoning.value, 'repeat': repeat}
                 try:
                     async with asyncio.timeout(90):
                         row['assessment'] = await structured_call(model, name='assess_domain_outcome',
-                            schema=SCHEMA, system=system,
+                            schema=ASSESSMENT_BASIS_SCHEMA if not history and args.ablation == 'assessment_basis' else SCHEMA,
+                            system=system,
                             messages=[HumanMessage(content if history else json.dumps(payload, ensure_ascii=False))],
                             callbacks=(capture,))
                 except Exception as exc:
@@ -92,6 +116,6 @@ if __name__ == '__main__':
     for name in ('session', 'observation', 'start', 'end'):
         parser.add_argument('--' + name, required=True)
     parser.add_argument('--output', type=Path, required=True)
-    parser.add_argument('--ablation', choices=('working_context', 'actor_text'), default='working_context')
+    parser.add_argument('--ablation', choices=('working_context', 'actor_text', 'runtime_advice', 'assessment_basis'), default='working_context')
     parser.add_argument('--reasoning', nargs='+', choices=('none', 'high'), default=['none', 'high'])
     asyncio.run(run(parser.parse_args()))
