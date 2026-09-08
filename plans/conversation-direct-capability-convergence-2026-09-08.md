@@ -1686,3 +1686,26 @@ Original task30 public trajectory ends in a cancellation-success reply despite
 max_steps. Preserve the distinction: official final checks absent, and reply alone
 does not prove final DB correctness. Actual receipt/trajectory must be audited in
 the completed comparative report. Running outcome remains pending.
+
+Live evidence continuation (same session84372, no restart/source edits): task19
+finished user_stop, ENV=0 / ACTION=1 / ALL missing. Public turn26 promises return
+and exchanges can coexist; exchanges committed first, later return rejected after
+state became exchange requested. Repeated return confirmations and internal planning
+wording remain visible. ACTION=1 matches calls even though return failed; it is not
+business completion. The preceding feasible-order probes did not establish correct
+handling of this coupled, mutually exclusive real objective. Do not restore closed
+status or claim the semantic gap fixed from the shared prompt delivery.
+
+Two independently logged application failures precede this: citation_validation
+rejects supplied-evidence mismatch; domain outcome review fails before its provider
+call, needing30742 input tokens against28072. Runtime profile caps are32768 despite
+the harness64000 ceiling. Actor reserves1200+600 (30968 input); reviewer reserves
+4096+600 (28072 input) and serializes another envelope around working messages.
+Pure offline synthetic witness (zero provider calls): actor estimate28947 fits,
+review estimate29048 exceeds28072. Thus actor admission does not imply reviewer
+admission. Exact task19 payload contribution remains to be reconstructed; do not
+guess a threshold increase. The fixed run continues unchanged to retain all failures.
+
+Task20 also completed user_stop with ALL=1 / ENV=1 / ACTION=1. Two of ten rows now
+complete; do not turn this interim pair into an overall success rate. Remaining
+tasks continue under the same live handle; no restart or production edits.
