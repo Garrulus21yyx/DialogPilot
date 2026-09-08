@@ -1,0 +1,9 @@
+# WixQA真实入口首次范围诊断
+
+固定冻结开发前2问题（编辑已发布网站、Google Ads计费），完整6221文章/11167片段PG，.25当前权重，真实Conversation Agent，Flash NONE。只运行首臂2次调用；两次均OUT_OF_SCOPE，没有knowledge_search，运行时Completed但并未回答问题。回复均为“请补充完成该任务所需的信息”。不能写成RAG成功率或权重对照，第二臂未运行。
+
+已确认发生阶段是理解/计划范围判断，尚未检索、精排或生成知识答案。当前build_default_capability_registry仍是电商能力目录；general_qa文字允许policy/FAQ/general procedures，因此不能仅凭名称证明Wix问题必然应该拒绝，也不能断言具体哪个描述造成模型决策。需要检查实际planner payload和任务范围合同，不能强制写resolved plan绕过真实入口。
+
+新runner还发现未到达分支的评估装配问题：ResultReranker不能直接充当KnowledgeRetriever端口，已换为现有ToolManagerRerankerAdapter，与生产校准相同；本次未执行精排，未产生该错误或精排API开销。保留已运行脚本语义与此修正说明，不能声称修改已经过模型验证。
+
+下一项零API读取这两次实际planner输入/输出，明确知识目录可见性和范围适配；只有声明公共知识评估的支持范围后再调用模型，不增加同范围拒绝的付费样本。默认电商业务行为不因Wix benchmark被扩大；公共检索层分数继续有效，但公共Agent答案验收未完成。

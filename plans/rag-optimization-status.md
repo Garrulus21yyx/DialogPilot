@@ -367,3 +367,7 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 - compact扩验证完成：固定heldout20一次20成功、两路Top20顺序全与离线一致，开发20+扩20共40/40；默认750ms/3秒未改、API/新embedding0。此前失败均保留，不宣称上线可靠性/答案正确率/并发SLA。内部ordinal不外露且TopK按原candidate_id tie排序；见证原score/ID复核等价，真实PG7项通过。报告docs/rag-wixqa-bm25-compact-2026-09-08.zh-CN.md与compact两组产物。下一项恢复公共真实Agent/Flash小批准备，复用保留PG库，不重复导入或新增策略；性能代表性负载仍开放。本轮相干交付待commit/push。
 
 - 公共真实入口接线根因修复：api._retrieve_knowledge硬编码zh-CN，与WixQA en manifest不符；store.collection_scope(generation)从tenant/backend/gen不可变manifest读取locale/product并验证hash/public，统一API/Agent/预检索用该范围，不让模型猜。清单冲突typed拒绝；空product依原合同规范None。run_full_chain仅增加tenant_id/scope_label参数，旧默认不变，供wixqa-eval真实链复用。47测试通过含PG（初次fixture误期望空字符串，修正既有规范化预期），API0；报告docs/rag-collection-scope-2026-09-08.zh-CN.md，产物pytest。公共实际答案仍待运行，下一项固定少量官方问题/Flash预算，不重复导入、不替换模拟。f82ffb2已push，本次相干交付待提交。
+
+- 公共真实入口2题预注册：按冻结dev manifest顺序前2题，不按收益挑题，无历史原问题/不注入qrel或答案。复用wixqa-eval完整6221篇/11167库，真实Conversation Agent自行query，Flash NONE精排/生成/核验，.25/.5两臂各12 API硬上限合计24、SDK0重试。只初次终态，失败保留；不同conv ID隔离，collection_scope断言en，禁止导入或重新向量化文档。记录分路/来源/实际query/答案/引用与调用，query不同不做纯权重因果推断；2题仅接线和语义诊断，不作总体准确率。脚本run_wixqa_real_entry_pair.py，产物wixqa-real-entry-pair2-2026-09-08。
+
+- 公共真实入口首臂完成但未进RAG：冻结前2题Flash各1调用，共2，两题OUT_OF_SCOPE/0knowledge_search，运行时Completed回复补充信息，非正确回答；第二臂暂停，未花满24。实际阶段在planner范围判断，默认电商能力目录与公共Wix适配待核；general_qa含通用FAQ，不能断言业务描述就是唯一根因，下一项读取实际payload零API定界。runner未到达精排的装配缺口也修正：复用ToolManagerRerankerAdapter而非直接ResultReranker，未产生该分支调用/费用，不称模型已验。报告docs/rag-wixqa-real-entry-scope-2026-09-08.zh-CN.md与scope-audit；不以强制plan代替真实Agent，不扩电商生产范围刷benchmark，公共答案/权重对照仍未完成。

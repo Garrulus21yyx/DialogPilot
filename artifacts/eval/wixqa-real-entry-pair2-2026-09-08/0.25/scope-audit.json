@@ -1,0 +1,17 @@
+{
+  "api_calls": 2,
+  "knowledge_calls": 0,
+  "cases": [
+    {
+      "case_id": "wix-0.25-0",
+      "response": "请补充完成该任务所需的信息。",
+      "route_mode": "OUT_OF_SCOPE"
+    },
+    {
+      "case_id": "wix-0.25-1",
+      "response": "请补充完成该任务所需的信息。",
+      "route_mode": "OUT_OF_SCOPE"
+    }
+  ],
+  "classification": "Scope rejection before retrieval. Completed is runtime status, not answered correctly. No second arm run."
+}
