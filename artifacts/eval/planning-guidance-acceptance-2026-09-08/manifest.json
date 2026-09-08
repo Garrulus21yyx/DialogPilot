@@ -1,0 +1,348 @@
+{
+  "cases": [
+    {
+      "id": "acceptance-01",
+      "query": "不是定制的，就是普通印花款。",
+      "history": [
+        {
+          "role": "user",
+          "content": "买来送人的围巾不合适，吊牌剪了还能退吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "这条围巾是按你的要求定制的吗？"
+        }
+      ],
+      "expected_action": "knowledge",
+      "expected_semantic_criteria": [
+        "Retrieve return rules for a non-custom scarf bought as a gift with its tag removed.",
+        "Do not repeat the customization question or require an order number before searching general conditions.",
+        "Do not prepare or authorize a return."
+      ]
+    },
+    {
+      "id": "acceptance-02",
+      "query": "Only during charging. It is the MX-7 portable speaker.",
+      "history": [
+        {
+          "role": "user",
+          "content": "My portable speaker gets hot. Does the manual say that is expected?"
+        },
+        {
+          "role": "assistant",
+          "content": "Does it get hot while charging or while playing music?"
+        }
+      ],
+      "expected_action": "knowledge",
+      "expected_semantic_criteria": [
+        "Look up MX-7 documentation on heating during charging, retaining the supplied condition.",
+        "Do not require a photo merely to start a documentation search or invent a safe temperature threshold.",
+        "Do not claim that the particular device is safe based only on model memory."
+      ]
+    },
+    {
+      "id": "acceptance-03",
+      "query": "我还没下单。先看规则就行，不用给我找订单。",
+      "history": [
+        {
+          "role": "user",
+          "content": "商家优惠券和积分能同时用吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "你有已下单的订单号吗？"
+        }
+      ],
+      "expected_action": "knowledge",
+      "expected_semantic_criteria": [
+        "Search coupon and loyalty-point combination rules without requiring an existing order.",
+        "Preserve the user correction that this is a pre-purchase policy query.",
+        "Do not merely acknowledge or ask permission to search."
+      ]
+    },
+    {
+      "id": "acceptance-04",
+      "query": "Thanks. I still need to know whether the shipping charge is refunded too.",
+      "history": [
+        {
+          "role": "user",
+          "content": "I am checking the return conditions, not requesting a return yet."
+        },
+        {
+          "role": "assistant",
+          "content": "Understood; you have not asked me to submit a return."
+        }
+      ],
+      "expected_action": "knowledge",
+      "expected_semantic_criteria": [
+        "Retrieve the refund treatment of original shipping charges for a return.",
+        "Do not treat the opening thanks as closing the outstanding question.",
+        "Maintain the explicit no-submission restriction."
+      ]
+    },
+    {
+      "id": "acceptance-05",
+      "query": "先不聊退货了。我公司要电子发票，抬头写错后能改吗？",
+      "history": [
+        {
+          "role": "user",
+          "content": "退货要自己承担运费吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "你指的是无理由退货还是商品损坏？"
+        }
+      ],
+      "expected_action": "knowledge",
+      "expected_semantic_criteria": [
+        "Retrieve electronic-invoice title correction rules and procedures.",
+        "Do not fill the previous return-reason question with the new invoice topic.",
+        "Do not prepare an invoice modification or invent a persistent cancellation target."
+      ]
+    },
+    {
+      "id": "acceptance-06",
+      "query": "查下充电电池能不能寄到爱尔兰，再查一下积分会不会到期。只是问规定，不用下单。",
+      "history": [],
+      "expected_action": "knowledge",
+      "expected_semantic_criteria": [
+        "Preserve both independent information needs: rechargeable-battery shipping restrictions to Ireland and loyalty-point expiry.",
+        "Use separate knowledge objectives or an explicitly complete combined retrieval objective; do not drop either need.",
+        "Do not require a cart or authorize an order."
+      ]
+    },
+    {
+      "id": "acceptance-07",
+      "query": "谢谢，没有别的问题了。",
+      "history": [
+        {
+          "role": "user",
+          "content": "我今天先不买了。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，有需要时可以再来咨询。"
+        }
+      ],
+      "expected_action": "respond",
+      "expected_semantic_criteria": [
+        "Acknowledge naturally in Chinese without inventing a new question or retrieval task.",
+        "Do not claim any purchase, cancellation or other business operation occurred."
+      ]
+    },
+    {
+      "id": "acceptance-08",
+      "query": "Perfect, please keep using English with me.",
+      "history": [
+        {
+          "role": "user",
+          "content": "Can we talk in English?"
+        },
+        {
+          "role": "assistant",
+          "content": "Yes, we can continue in English."
+        }
+      ],
+      "expected_action": "respond",
+      "expected_semantic_criteria": [
+        "Acknowledge the conversation-language preference in English.",
+        "Do not search business knowledge or claim a permanent account preference was saved."
+      ]
+    },
+    {
+      "id": "acceptance-09",
+      "query": "那个还能这样弄吗？",
+      "history": [],
+      "expected_action": "clarify",
+      "expected_semantic_criteria": [
+        "Ask which object and action the user means because neither is identifiable.",
+        "Do not invent a product, order or policy topic to search.",
+        "Do not ask a detailed list of business parameters before identifying the objective."
+      ]
+    },
+    {
+      "id": "acceptance-10",
+      "query": "Can you check the second one?",
+      "history": [
+        {
+          "role": "user",
+          "content": "I may ask you about something later."
+        },
+        {
+          "role": "assistant",
+          "content": "Of course. What would you like help with?"
+        }
+      ],
+      "expected_action": "clarify",
+      "expected_semantic_criteria": [
+        "Ask what the second item refers to; the conversation contains no candidate list or domain.",
+        "Do not fabricate a second order or perform a generic policy search."
+      ]
+    },
+    {
+      "id": "acceptance-11",
+      "query": "I cannot find an order number. Can you look up my recent orders and tell me which ones are still waiting to ship? Do not change any of them.",
+      "history": [],
+      "expected_action": "delegate",
+      "expected_semantic_criteria": [
+        "Delegate a read-only order-record investigation using the authenticated user scope available to the domain.",
+        "Do not treat actual order progress as a policy question or invent order IDs.",
+        "Preserve no changes and disallow action proposals for this query."
+      ]
+    },
+    {
+      "id": "acceptance-12",
+      "query": "不是问一般要几天，我想知道我上周那笔退款现在实际到哪一步了。编号找不到了，你先帮我查下记录，别再申请一次。",
+      "history": [
+        {
+          "role": "user",
+          "content": "上周退的那笔钱有消息吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "你想了解通常的退款处理时限吗？"
+        }
+      ],
+      "expected_action": "delegate",
+      "expected_semantic_criteria": [
+        "Delegate read-only discovery of the user's existing recent refund and its current progress.",
+        "Preserve the distinction between live refund state and generic processing timelines.",
+        "Do not invent a refund ID, create a new refund, or assert live status from memory."
+      ]
+    }
+  ],
+  "arms": [
+    "baseline",
+    "fixed"
+  ],
+  "examples": [
+    {
+      "id": "condition_policy",
+      "input": "User: Can an opened speaker be returned?\nAssistant: Is it faulty, or have you changed your mind?\nUser: Just changed my mind.",
+      "output": {
+        "status": "resolved",
+        "goals": [
+          {
+            "kind": "refund_policy",
+            "resolved_query": "Return policy for an opened speaker with no defect when the customer changed their mind."
+          }
+        ]
+      },
+      "lesson": "The reply supplies a condition, not a new greeting. Query the policy before requesting details only needed for personal eligibility."
+    },
+    {
+      "id": "social_end",
+      "input": "User: Thanks, that answers everything. Goodbye.",
+      "output": {
+        "status": "respond",
+        "response": "You're welcome. Goodbye!"
+      },
+      "lesson": "No outstanding request remains; do not search or propose an action."
+    },
+    {
+      "id": "unknown_subject",
+      "input": "User: Does that qualify?\nContext: No prior conversation or identified subject.",
+      "output": {
+        "status": "insufficient_context",
+        "missing_fields": [
+          "customer_service_goal"
+        ]
+      },
+      "lesson": "The subject itself is missing; ask what the user wants to check rather than inventing it."
+    },
+    {
+      "id": "rules_not_action",
+      "input": "用户：问一下优惠券过期后能不能补领。只是问规则，先不要操作。",
+      "output": {
+        "status": "resolved",
+        "goals": [
+          {
+            "kind": "general_qa",
+            "resolved_query": "优惠券过期后能否补领以及适用规则；用户仅查询，不申请操作。"
+          }
+        ]
+      },
+      "lesson": "取证是只读行动，不需要用户再确认是否查询，也不授权补领。"
+    },
+    {
+      "id": "negated_condition",
+      "input": "用户：发票抬头写错怎么处理？\n助手：已经开出来了吗？\n用户：还没有。",
+      "output": {
+        "status": "resolved",
+        "goals": [
+          {
+            "kind": "invoice_qa",
+            "resolved_query": "尚未开具发票时，如何修改填写错误的发票抬头？"
+          }
+        ]
+      },
+      "lesson": "保留否定条件，查询一般流程，不把规则查询改成实际开票或修改。"
+    },
+    {
+      "id": "new_question_after_thanks",
+      "input": "User: Thanks. Also, what are the warranty exclusions for batteries?",
+      "output": {
+        "status": "resolved",
+        "goals": [
+          {
+            "kind": "product_qa",
+            "resolved_query": "Battery warranty exclusions and applicable conditions."
+          }
+        ]
+      },
+      "lesson": "A thank-you does not end the turn when a new information request follows."
+    },
+    {
+      "id": "policy_before_details",
+      "input": "User: What information is needed to claim shipping insurance? I don't have my tracking number here.",
+      "output": {
+        "status": "resolved",
+        "goals": [
+          {
+            "kind": "general_qa",
+            "resolved_query": "Required information and general procedure for a shipping insurance claim."
+          }
+        ]
+      },
+      "lesson": "A missing tracking number may block a particular claim, not retrieval of its general requirements."
+    },
+    {
+      "id": "clear_topic_switch",
+      "input": "用户：刚才的赠品问题不用了。我改问会员积分有效期。",
+      "output": {
+        "status": "resolved",
+        "goals": [
+          {
+            "kind": "general_qa",
+            "resolved_query": "会员积分有效期与过期规则。"
+          }
+        ]
+      },
+      "lesson": "用当前新问题取证；没有可恢复目标时，不编造取消指令。"
+    },
+    {
+      "id": "known_evidence_explanation",
+      "input": "User: What does earliest of the two dates mean?\nRuntime verified evidence: A deadline is the earlier of the voucher expiry date and the promotion closing date; source current.",
+      "output": {
+        "status": "respond",
+        "response": "Compare the two dates and use whichever comes first."
+      },
+      "lesson": "Explaining an already supported statement does not require another lookup or a made-up deadline."
+    }
+  ],
+  "model": "deepseek-v4-flash",
+  "reasoning": "none",
+  "max_output_tokens": 2048,
+  "sdk_retries": 0,
+  "calls_budget": 24,
+  "concurrency": 2,
+  "scope": "planning only; transcript-only inputs, not persistent turn E2E",
+  "sources": {
+    "/home/yang/DialogPilot/scripts/run_planning_guidance_selection.py": "a022f1cc5b2bfe1a2e1c487aecde9f0d92d016d962ce9e43eeb33c5c34bc5d86",
+    "evaluation/data/planning-demonstrations-v1.json": "e4e9383ae6eed758706d44655b69c8b6f3f6a4b38a913a5fd4ac3aff5f618e96",
+    "evaluation/planning_guidance.py": "a79aefc26c1eae26b97ce3e43b83cf1e105015cdc10db402e5943361ba906da9",
+    "infrastructure/target_conversation_provider.py": "a45c589eb75fea8df696645a6c46eebdb089c4c7ba7c6c49ce5f1e7027087327",
+    "application/conversation_agent.py": "2549f39ff63a3c480da0a7429e7cbd4c0e551ea5d7168940ca62b3bd441aeb73",
+    "infrastructure/target_model_context.py": "3fa0c78d2912c7703aa6ff7ad35a4f774171e123c4262bf0a5fe517c709e1ad4"
+  }
+}

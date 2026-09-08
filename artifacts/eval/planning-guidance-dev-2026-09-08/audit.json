@@ -1,0 +1,57 @@
+{
+  "audit": "passed",
+  "input_schema_history_pairs": 18,
+  "calls": 72,
+  "scope": "planning only; transcript-only inputs, not persistent turn E2E",
+  "manifest_sha256": "724f3f2dc635866b004959fb818e65ee03470d2fde11ec3e7a57c3411844a390",
+  "arms": {
+    "baseline": {
+      "cases": 18,
+      "actions": {
+        "respond": 11,
+        "error": 1,
+        "knowledge": 5,
+        "clarify": 1
+      },
+      "input_tokens": 97375,
+      "output_tokens": 2088,
+      "cache_read_tokens": 86656
+    },
+    "contract": {
+      "cases": 18,
+      "actions": {
+        "respond": 6,
+        "knowledge": 9,
+        "error": 2,
+        "clarify": 1
+      },
+      "input_tokens": 100183,
+      "output_tokens": 2054,
+      "cache_read_tokens": 75008
+    },
+    "fixed": {
+      "cases": 18,
+      "actions": {
+        "clarify": 4,
+        "knowledge": 12,
+        "respond": 2
+      },
+      "input_tokens": 105043,
+      "output_tokens": 1535,
+      "cache_read_tokens": 79232
+    },
+    "dynamic": {
+      "cases": 18,
+      "actions": {
+        "clarify": 3,
+        "knowledge": 13,
+        "error": 1,
+        "respond": 1
+      },
+      "input_tokens": 105751,
+      "output_tokens": 1592,
+      "cache_read_tokens": 2048
+    }
+  },
+  "note": "Action counts are not semantic correctness or business completion."
+}

@@ -1,0 +1,108 @@
+{
+  "dataset_id": "planning-contract-confirmation-v1",
+  "split": "final_synthetic_confirmation",
+  "authorship": "Original independent reviewer cases frozen on 2026-09-08 after the first acceptance review, before any outputs on these cases. The pre-existing contract-only candidate must remain unchanged.",
+  "scope": "Transcript-only synthetic confirmation under the existing knowledge-capable registry. Not a public benchmark or proof of persistent task recovery. No live record-discovery capability is assumed.",
+  "grading": "Check expected_action and every semantic criterion. A justified clarification can be expressed through insufficient_context or direct questioning. Policy claims in prior assistant transcript are not supplied as verified runtime evidence. One baseline and one unchanged contract run per case; retain failures and stop after this comparison.",
+  "cases": [
+    {
+      "id": "confirmation-01",
+      "query": "没有，连外包装也没拆。",
+      "history": [
+        {"role": "user", "content": "我买的密封咖啡豆想退，食品是不是一律不能退？先问规定。"},
+        {"role": "assistant", "content": "已经拆封了吗？"}
+      ],
+      "expected_action": "knowledge",
+      "expected_semantic_criteria": [
+        "Search the return policy for unopened sealed coffee beans or food, preserving that neither the inner nor outer packaging has been opened.",
+        "Do not reinterpret the negative answer as cancellation, require an order before policy search, or infer a reason for return.",
+        "Do not submit a return or assert the food exception without evidence."
+      ]
+    },
+    {
+      "id": "confirmation-02",
+      "query": "That was your answer last year. Please check the current overseas-delivery policy before I rely on it.",
+      "history": [
+        {"role": "user", "content": "Can I send an order to Malta?"},
+        {"role": "assistant", "content": "Orders can be delivered to Malta without any surcharge."}
+      ],
+      "expected_action": "knowledge",
+      "expected_semantic_criteria": [
+        "Retrieve current delivery availability and surcharge rules for Malta rather than trusting the old assistant claim.",
+        "Preserve the destination and current-policy request without inventing a calendar date.",
+        "Do not merely offer to check or repeat free-delivery claims."
+      ]
+    },
+    {
+      "id": "confirmation-03",
+      "query": "It's the ZR-14 humidifier. I only want the manufacturer's cleaning instructions, not a repair booking.",
+      "history": [
+        {"role": "user", "content": "May I use vinegar to clean the water tank?"},
+        {"role": "assistant", "content": "Which model are you asking about?"}
+      ],
+      "expected_action": "knowledge",
+      "expected_semantic_criteria": [
+        "Search ZR-14 humidifier manufacturer documentation about vinegar use and water-tank cleaning.",
+        "Do not require an image when the documentation topic and model are supplied.",
+        "Preserve the no-repair-booking restriction and do not invent cleaning concentrations or compatibility."
+      ]
+    },
+    {
+      "id": "confirmation-04",
+      "query": "买电子礼品卡能分两次用吗？我还没买，只想先知道余额和使用规则。",
+      "history": [],
+      "expected_action": "knowledge",
+      "expected_semantic_criteria": [
+        "Retrieve electronic gift-card partial-use and remaining-balance rules.",
+        "Do not request an existing gift-card number or confuse policy about remaining balance with a personal live-balance lookup.",
+        "Do not purchase or redeem a gift card."
+      ]
+    },
+    {
+      "id": "confirmation-05",
+      "query": "明白啦，我今天就咨询到这里，辛苦了。",
+      "history": [
+        {"role": "user", "content": "我先整理一下想问的问题。"},
+        {"role": "assistant", "content": "好的，你可以想好后再问。"}
+      ],
+      "expected_action": "respond",
+      "expected_semantic_criteria": [
+        "Close politely in Chinese without starting a search or asking the user to confirm closure.",
+        "Do not claim that a business task was completed or cancelled."
+      ]
+    },
+    {
+      "id": "confirmation-06",
+      "query": "Before I ask anything, could you keep your replies short?",
+      "history": [],
+      "expected_action": "respond",
+      "expected_semantic_criteria": [
+        "Briefly acknowledge the requested conversational style.",
+        "Do not retrieve a policy, invent a shopping objective or claim an account preference was saved."
+      ]
+    },
+    {
+      "id": "confirmation-07",
+      "query": "那边那个也一样吗？",
+      "history": [
+        {"role": "user", "content": "我等下想请教你点事。"},
+        {"role": "assistant", "content": "可以，请说。"}
+      ],
+      "expected_action": "clarify",
+      "expected_semantic_criteria": [
+        "Ask what object or comparison the user means because neither is identified.",
+        "Do not infer a delivery destination, product or policy from the vague reference."
+      ]
+    },
+    {
+      "id": "confirmation-08",
+      "query": "What happens after that?",
+      "history": [],
+      "expected_action": "clarify",
+      "expected_semantic_criteria": [
+        "Ask which event or process the user means before selecting a business domain.",
+        "Do not fabricate an order, refund or prior completed operation."
+      ]
+    }
+  ]
+}
