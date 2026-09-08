@@ -126,7 +126,6 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
                 if decision == "ask_twice" else []),
             AIMessage(content="", tool_calls=[{"name": "prepare_order_cancel",
                 "args": {"order_id": "DP1234"}, "id": "cancel-proposal"}]),
-            AIMessage(content="Order DP1234 has not been cancelled. Shall I cancel it?"),
             *([AIMessage(content="", tool_calls=[{"name": "request_user_input",
                 "args": {"question": "Which part would you like explained?"}, "id": "clarify"}]),
                AIMessage(content="The cancellation is still awaiting your decision.")]
@@ -198,8 +197,9 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
             pending = first.state_after.pending_approval
             assert pending is not None, first.board
             assert calls == ["read"]
-            assert model.calls == 2 + len(replies)
-            assert first.board.results[0].candidate_response == "Order DP1234 has not been cancelled. Shall I cancel it?"
+            assert model.calls == 1 + len(replies)
+            assert first.board.results[0].candidate_response is None
+            assert pending.suspended_work_items[0].objective == "Cancel order DP1234 then explain the result"
             restored = conversation_state_from_payload(conversation_state_to_payload(first.state_after))
             assert restored == first.state_after
             assert pending.suspended_work_items[0].allowed_actions == (action.ref,)
@@ -316,7 +316,7 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
                     assert not result.assembled.verified
                     assert result.managed.state_after.pending_interaction is not None
                 assert len([call for call in calls if isinstance(call, tuple)]) == 1
-                assert model.calls == 3  # Reply rejection never dispatches the domain again.
+                assert model.calls == 2  # Reply rejection never dispatches the domain again.
                 return
             from application.turn_runtime import TurnRuntime
             from application.response_assembly import ResponseAssembler
@@ -337,7 +337,7 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
             assert second.checkpoint_thread_id == first.checkpoint_thread_id
             if decision == "deny":
                 assert calls == ["read"]
-                assert model.calls == 2
+                assert model.calls == 1
                 return
             assert len([call for call in calls if isinstance(call, tuple)]) == 1, [
                 (result.status.value, result.reason_code) for result in second.board.results]
@@ -350,15 +350,15 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
             assert committed and committed[0]["operation_key"] == pending.operation_key
             assert "prepare_order_cancel" in model.bound_tool_names
             assert "order_cancel" not in model.bound_tool_names
-            assert model.calls == (5 if decision == "clarify_during_approval" else
-                                   3 + len(replies))
+            assert model.calls == (4 if decision == "clarify_during_approval" else
+                                   2 + len(replies))
             if decision == "simultaneous_approve_first":
                 assert second.state_after.pending_interaction == question
                 assert len(field_calls) == 1
                 second = await answer_separate_field(second)
                 assert second.state_after.pending_approval is None
                 assert len([call for call in calls if isinstance(call, tuple)]) == 1
-                assert model.calls == 3
+                assert model.calls == 2
         finally:
             pool.close()
     asyncio.run(run())

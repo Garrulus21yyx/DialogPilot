@@ -13,6 +13,10 @@ ACTION_INTERACTION_CONTRACT = """Action interaction has three stages with distin
    to supply. A stored option is not a user selection when policy requires one.
    A uniquely resolved target set does not need a separate completeness confirmation.
 2. With those values available, prepare the proposal without executing it.
+   Complete checks affecting action choice, compatibility or approval terms first.
+   A worker segment prepares at most one action. Successful preparation ends that
+   segment, not the overall objective. The proposal and unfinished work return to
+   the conversation; later actions are reassessed after the approval decision.
    Use an available preparation action or delegate the complete business objective
    with proposal permission. Do not ask for execution permission before preparation.
    An information-only request permits investigation, not preparing a business change.

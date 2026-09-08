@@ -8,6 +8,20 @@ from langchain_core.messages import AIMessage
 from tests.test_approval_conversation import domain, call
 
 
+@pytest.mark.parametrize('succeeded', [False, True])
+@pytest.mark.parametrize('historical', [False, True])
+@pytest.mark.parametrize('accepted', [False, True])
+def test_segment_terminal_follows_successful_preparation_not_review_or_history(succeeded, historical, accepted):
+    from types import SimpleNamespace
+    from infrastructure.target_agent_middleware import InteractionBoundaryMiddleware
+    context = SimpleNamespace(working_messages=({'type': 'tool', 'data': {'tool_call_id': 'p'}},) if historical else ())
+    state = {'messages': [], 'tool_observations': {'p': {'pending_action': {'id': 'proposal'} if succeeded else None}},
+             'accepted_outcome': {'kind': 'PREPARE_ACTION'} if accepted else {}}
+    middleware = InteractionBoundaryMiddleware(('action-A', 'action-B'), review=None)
+    update = asyncio.run(middleware.abefore_model(state, SimpleNamespace(context=context)))
+    assert update == ({'jump_to': 'end'} if succeeded and not historical else None)
+
+
 def terminal(tool, text, ident="terminal"):
     return AIMessage(content="", tool_calls=[{"name": tool, "id": ident,
         "args": {"question" if tool == "request_user_input" else "reason": text}}])
@@ -29,7 +43,7 @@ def test_all_terminal_routes_reconsider_within_sdk_before_durable_handback(candi
     assert result.pending_action is not None
     assert not result.missing_inputs and not result.action_receipts
     assert len(calls) == 1  # Preparation read, no business write or rejected input execution.
-    assert model.calls == 3 and model.review_calls == 2
+    assert model.calls == 2 and model.review_calls == 2
     assert [entry["accepted"] for entry in result.execution_feedback
             if entry["stage"] == "domain_outcome"] == [False, True]
     assert not any((message["data"].get("artifact") or {}).get("schema") == "agent-result-v1"
@@ -51,78 +65,105 @@ def test_valid_handback_stays_bound_to_assigned_work(kind, text, status):
         assert result.missing_inputs[0].target_work_item_id == result.work_item_id
 
 
-@pytest.mark.parametrize("kind,status", [
-    ("request_user_input", "NEEDS_USER_INPUT"), ("report_blocked", "BLOCKED"),
+@pytest.mark.parametrize("next_step", [
+    call("order_lookup", "after-prepare"),
+    call("prepare_order_cancel", "duplicate"),
+    terminal("request_user_input", "Repeat the choice"),
+    terminal("report_blocked", "New condition"),
+    AIMessage(content="Another final response"),
 ])
 @pytest.mark.parametrize("prior_commit", [False, True])
-@pytest.mark.parametrize("correct_preparation", [False, True])
-@pytest.mark.parametrize("correct_handback", [False, True])
-def test_new_evidence_can_withdraw_unsubmitted_proposal_via_reviewed_handback(
-        kind, status, prior_commit, correct_preparation, correct_handback):
+def test_preparation_is_segment_terminal_preserving_pending_goal_and_prior_receipts(next_step, prior_commit):
     from application.agent_result import AgentResult, AgentResultStatus, ReceiptRef
-    agent, context, model, executed = domain([
-        *([call("prepare_order_cancel", "rejected-proposal")] if correct_preparation else []),
-        call("prepare_order_cancel", "proposal"),
-        call("order_lookup", "check"),
-        *([terminal(kind, "Incorrect reason", "rejected-handback")] if correct_handback else []),
-        terminal(kind, "The proposed action prevents the other requested change."),
-    ])
-    model.outcome_reviews = [
-        *([{"accepted": False, "feedback": "Correct the selected target."}] if correct_preparation else []),
-        {"accepted": True, "feedback": ""},
-        *([{"accepted": False, "feedback": "Describe the actual newly discovered constraint."}] if correct_handback else []),
-        {"accepted": True, "feedback": ""},
-    ]
+    agent, context, model, executed = domain([call("prepare_order_cancel"), next_step])
     prior = AgentResult("independent", context.work_item.owner_agent, AgentResultStatus.SUCCEEDED,
         "COMMITTED", "test", action_receipts=(ReceiptRef("receipt", "v1", "earlier-operation",
                                                     "COMMITTED", "order.address_action"),))
     if prior_commit:
         context = replace(context, dependency_results=(prior,))
     result = asyncio.run(agent(context))
-    assert result.status.value == status
-    assert result.pending_action is None and not result.action_receipts
-    assert result.facts and len(executed) == 2
-    corrections = int(correct_preparation) + int(correct_handback)
-    assert model.review_calls == 2 + corrections and model.calls == 3 + corrections
+    assert result.status.value == "WAITING_APPROVAL"
+    assert result.pending_action.objective == context.work_item.objective
+    assert result.pending_action.arguments and result.facts
+    assert result.candidate_response is None and not result.action_receipts
+    assert len(executed) == model.calls == model.review_calls == 1
     assert context.dependency_results == ((prior,) if prior_commit else ())
-    assert any((entry["data"].get("artifact") or {}).get("result", {}).get("pending_action")
-               for entry in result.working_messages if entry["type"] == "tool")
+    assert not result.missing_inputs
 
 
-def test_withdrawn_proposal_remains_history_not_a_new_approval_on_continuation():
+def test_preparation_archive_failure_preserves_proposal_and_stops_without_retry():
+    from langgraph.store.memory import InMemoryStore
+    from infrastructure.target_result_archive import TargetResultArchive
+
+    class Unavailable(InMemoryStore):
+        async def aput(self, *args, **kwargs):
+            raise OSError("storage unavailable")
+
+    agent, context, model, executed = domain([
+        call("prepare_order_cancel"), call("prepare_order_cancel", "must-not-retry")])
+    agent._archive = TargetResultArchive(Unavailable())
+    result = asyncio.run(agent(context))
+    assert result.status.value == "WAITING_APPROVAL"
+    assert result.pending_action.objective == context.work_item.objective
+    assert result.pending_action.arguments and result.facts
+    assert result.candidate_response is None and not result.action_receipts
+    assert len(executed) == model.calls == model.review_calls == 1
+    assert any(entry.get("stage") == "agent_result_archive" for entry in result.execution_feedback)
+    tools = [entry["data"] for entry in result.working_messages if entry["type"] == "tool"]
+    assert any((entry.get("artifact") or {}).get("result", {}).get("pending_action") for entry in tools)
+
+
+def test_host_resumed_segment_does_not_republish_historical_preparation():
     from application.work_item import WorkControlBinding
     agent, context, model, executed = domain([
-        call("prepare_order_cancel"), terminal("request_user_input", "Which remaining option?"),
-        AIMessage(content="The selected option needs no further action."),
+        call("prepare_order_cancel"),
+        AIMessage(content="The revised objective needs no further action."),
     ])
     context = replace(context, work_item=replace(context.work_item, control=WorkControlBinding("goal", 1)))
     first = asyncio.run(agent(context))
-    assert first.status.value == "NEEDS_USER_INPUT" and first.pending_action is None
+    assert first.status.value == "WAITING_APPROVAL"
+    # Host has cancelled/revised the pending approval, then provided a new segment.
     resumed = replace(context, work_item=replace(context.work_item,
                       work_item_id="continued", continuation_of=context.work_item.work_item_id,
+                      objective="Keep the order unchanged", allowed_actions=(),
                       control=WorkControlBinding("goal", 2)),
                       working_messages=first.working_messages,
                       verified_facts=first.facts, current_message="Keep the order unchanged")
     second = asyncio.run(agent(resumed))
     assert second.status.value == "SUCCEEDED" and second.pending_action is None
     assert not second.missing_inputs and not second.action_receipts
-    assert len(executed) == 1 and model.calls == 3
+    assert len(executed) == 1 and model.calls == 2
 
 
-def test_rejected_post_preparation_handback_has_one_correction_not_an_unbounded_reset():
-    agent, context, model, executed = domain([
-        call("prepare_order_cancel"),
-        terminal("request_user_input", "Repeat the known target", "first"),
-        terminal("request_user_input", "Repeat it again", "second"),
-    ])
-    model.outcome_reviews = [{"accepted": True, "feedback": ""},
-        *[{"accepted": False, "feedback": "The target is already known."}] * 2]
+@pytest.mark.parametrize('read_first', [False, True])
+def test_terminal_preparation_waits_for_complete_parallel_batch(read_first):
+    reads = call('order_lookup', 'independent-read').tool_calls
+    proposal = call('prepare_order_cancel', 'proposal').tool_calls
+    agent, context, model, executed = domain([AIMessage(content='',
+        tool_calls=reads + proposal if read_first else proposal + reads)])
     result = asyncio.run(agent(context))
-    assert model.review_calls == 3 and model.calls == 3
-    assert not result.missing_inputs and not result.action_receipts
-    assert any(entry.get("detail", {}).get("code") == "DOMAIN_OUTCOME_REJECTED"
-               for entry in result.execution_feedback)
-    assert len(executed) == 1
+    assert result.status.value == 'WAITING_APPROVAL' and result.pending_action
+    assert len(executed) == 2 and model.calls == 1
+    assert any(fact.source_ref == 'independent-read' for fact in result.facts)
+    assert not result.action_receipts and result.candidate_response is None
+
+
+def test_failed_preparation_does_not_end_segment_or_turn_acceptance_into_success():
+    agent, context, model, executed = domain([call('prepare_order_cancel', 'first'),
+        call('prepare_order_cancel', 'corrected')])
+    tool = next(tool for tool in agent._tool_manager.registered_tools if tool.name == 'order_lookup')
+    original = tool.handler
+    attempts = []
+    async def initially_not_ready(params, ctx):
+        data = await original(params, ctx)
+        attempts.append(params)
+        return {**data, 'status': 'not_ready'} if len(attempts) == 1 else data
+    tool.handler = initially_not_ready
+    result = asyncio.run(agent(context))
+    assert result.status.value == 'WAITING_APPROVAL'
+    assert result.pending_action.work_item_id.endswith(':action:corrected')
+    assert len(executed) == model.calls == model.review_calls == 2
+    assert not result.action_receipts
 
 
 @pytest.mark.parametrize("batch", ["single", "read_first", "read_last"])
@@ -151,7 +192,7 @@ def test_rejected_action_selection_never_prepares_or_executes_its_batch(batch, r
     assert result.status.value == "WAITING_APPROVAL"
     assert result.pending_action.work_item_id.endswith(":action:corrected")
     assert executed == [("read", {"order_id": "DP1234"})]
-    assert model.review_calls == 2 and model.calls == 3
+    assert model.review_calls == 2 and model.calls == 2
     assert seen == [("PREPARE_ACTION", {"tool": "prepare_order_cancel", "arguments": {"order_id": "OTHER"}}),
                     ("PREPARE_ACTION", {"tool": "prepare_order_cancel", "arguments": {"order_id": "DP1234"}})]
     errors = {entry["data"]["tool_call_id"] for entry in result.working_messages

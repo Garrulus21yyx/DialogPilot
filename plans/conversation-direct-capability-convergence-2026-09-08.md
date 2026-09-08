@@ -1446,3 +1446,56 @@ Revalidate batch reads, zero post-prepare model calls, complete pending paramete
 existing resume/Receipt behavior and reply assembly without domain prose. Do not
 simply end the loop while retaining the old promise of post-prepare investigation.
 False either/or acceptance remains a separate open semantic issue.
+
+Preparation-terminal migration implemented (pending validation/delivery): removed
+the provisional model/reviewer filtering path because this segment now ends at
+successful persisted preparation. Removed its post-preparation review-budget reset
+and same-segment withdrawal branch. Failure still permits correction; host approval
+revision/cancellation remains unchanged. Shared actor/reviewer instructions move
+action-relevant checks before preparation and avoid promising later feasibility.
+TargetFrameworkAgent v3 / TurnRuntime v14 identify the changed execution contract.
+The framework completes the tool batch and persistence before the existing before-
+model hook returns END. ResultBoard/approval/response interfaces are unchanged.
+
+Migrated tests define the positive lifecycle: prepared parameters and full remaining
+objective survive; no domain candidate or subsequent actor call is required;
+historical preparation cannot create a new approval on a host-resumed segment;
+prior committed receipts remain unchanged. Old same-segment post-preparation read/
+withdraw tests no longer describe supported execution and are replaced, not relabeled
+as proof of that old behavior. Initial scoped run: 123 passed / 7 skipped. Additional
+batch and failed-preparation tests and PostgreSQL/response checks remain pending.
+
+Validation continuation: the PostgreSQL suite returned 256 passed / 10 failed;
+all ten stopped at the obsolete assertion requiring a post-preparation actor call.
+Migrated the scripted sequence itself (removed the now-unreachable approval prose),
+asserted the intact suspended objective and absent domain candidate, and reran the
+whole approval roundtrip module: 20 passed against PostgreSQL. This exercises actual
+approve/deny/revision, additional clarification, concurrent pending input and receipt
+continuation, not only call-count assertions. Boundary suite: 71 passed / 2 skipped,
+including successful complete batches, failed preparation correction and archive
+failure preserving the inline proposal with a typed archive diagnostic and no retry.
+The prior mixed PostgreSQL run is not relabeled green; consolidated recheck follows.
+
+Registered preparation-terminal diagnostic: reuse independent_shipments development
+fixture, same worker/reviewer profiles, 4096 tokens/call, max_steps=4 and 360-second
+timeout; no business tools enabled. Output: artifacts/eval/action-boundary-worker1-terminal-2026-09-09/.
+Hypothesis: successful preparation now returns WAITING_APPROVAL with full objective
+and proposal, without another actor call or budget failure. Inspect actual captured
+calls and result, not a judge score. This is a lifecycle regression check, not fresh
+held-out semantic validation or end-to-end delivery evidence. No adoption claim for
+the separate close_and_adjust semantic failure.
+
+Consolidated check: 396 passed against PostgreSQL (one existing multiprocessing
+fork deprecation warning), git diff --check clean. Independent reviewer found no
+blocking lifecycle/consumer issue; requested archive-failure case is now covered.
+Real terminal worker diagnostic returned WAITING_APPROVAL / ACTION_PROPOSED, one
+cancel(S1) proposal, complete S1+S2 objective, no candidate and no failure feedback.
+Three captured model calls: actor proposed two actions (rejected before execution),
+actor corrected to one, reviewer accepted; zero actor calls after successful prepare,
+zero external business calls. Compared with the preserved worker2/filtered runs,
+the post-preparation budget failure is absent. The initial multi-action proposal is
+still corrected, not described as flawless first-decision behavior. This supports
+the bounded lifecycle change only. False either/or reasoning, fresh semantic
+validation and fixed10 business/response closure remain open; Encoder stays disabled.
+Delivery: preparation-terminal changes and this evidence are staged separately from
+the user's archive/RAG/documentation work for a dedicated commit and push.

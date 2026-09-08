@@ -53,7 +53,7 @@ def call(name, ident="proposal"):
 
 
 @pytest.mark.parametrize("extra", ["read", "duplicate", "failure"])
-def test_preparation_retains_binding_and_allows_read_and_reply(extra):
+def test_preparation_retains_binding_and_ends_without_another_domain_call(extra):
     responses = [call("prepare_order_cancel")]
     if extra == "read":
         responses.append(call("order_lookup", "read-after-proposal"))
@@ -67,13 +67,8 @@ def test_preparation_retains_binding_and_allows_read_and_reply(extra):
     assert result.pending_action is not None
     assert result.pending_action.work_item_id.endswith(":action:proposal")
     assert result.action_receipts == ()
-    assert len(calls) == (2 if extra == "read" else 1)
-    if extra != "failure":
-        assert result.candidate_response == responses[-1].text
-        assert model.calls == len(responses)
-    else:
-        assert result.candidate_response is None
-        assert "execution_feedback" in json.dumps(result.working_messages)
+    assert len(calls) == model.calls == 1
+    assert result.candidate_response is None
 
 
 class ApprovalVerifier(Verifier):

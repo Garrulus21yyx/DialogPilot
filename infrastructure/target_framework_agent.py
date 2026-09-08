@@ -67,7 +67,7 @@ logger = logging.getLogger(__name__)
 class TargetFrameworkAgent:
     """Execute one delegated read goal through a governed framework Agent."""
 
-    version = "target-framework-agent-v2-registry-delegation"
+    version = "target-framework-agent-v3-preparation-terminal"
 
     def __init__(
         self,
@@ -363,7 +363,7 @@ class TargetFrameworkAgent:
 
         async def propose(runtime: ToolRuntime, **arguments):
             result = await preparation.prepare(runtime.context, action.ref, arguments, runtime.tool_call_id)
-            feedback = ("Action prepared, NOT executed. Continue read-only checks for any remaining questions, then return a brief result for the conversation layer. It explains the proposal and asks for approval, bound to these exact parameters. Do not ask for approval yourself, call request_user_input merely to confirm, or resubmit the action."
+            feedback = ("Action prepared, NOT executed. This worker segment ends here. The conversation layer explains this proposal and manages approval, bound to these exact parameters. The complete remaining objective is retained for continuation; other operations have not been performed."
                         if result.pending_action else result.reason_code)
             return feedback, framework_artifact(result)
 
@@ -555,7 +555,7 @@ class TargetFrameworkAgent:
             "Select from the provided read-only tools, reusable skills and registered action proposals as needed. "
             "Tools named prepare_* prepare proposals; the actual write APIs described in business policy are not exposed here. "
             "Business policy requiring confirmation before execution still applies: runtime enforces it after preparation. "
-            "Resolve missing choices before preparing an action. Once its arguments are known, use the action proposal directly rather than asking for a preliminary confirmation. Preparation does not end your turn: answer remaining questions using read-only evidence, explain limitations, and describe what approval would execute. Never claim that a proposal has already executed. "
+            "Resolve missing choices and checks affecting action selection, compatibility or approval terms before preparing an action. Once these are resolved, use the action proposal directly rather than asking for preliminary confirmation. Successful preparation ends this segment; the conversation layer explains the proposal and retains unresolved work. Independent unanswered questions remain pending, not completed. Never claim that a proposal has already executed. "
             "When pending_approval is supplied, the conversation already owns that exact decision. Answer the current question without preparing it again. A reminder that approval is still needed belongs in your normal answer, not request_user_input. Use request_user_input only for genuinely missing information or choices needed to answer the current question, never as a substitute for the existing approval. "
             "Return a concise task result to the conversation layer: findings, evidence limitations and what remains unresolved. The conversation layer writes the customer reply; you do not draft it or ask for action approval. Use existing evidence to resolve terminology where justified; ask the user only for information or choices they can actually supply, not to certify a technical fact. When such input is necessary, call request_user_input(question). When capabilities or evidence cannot complete the objective, call report_blocked(reason). These calls end this segment; do not also emit a final response or another action in the same batch. "
             "After a supplied receipt confirms an action, continue the remaining objective without submitting that action again. Tool and skill "
@@ -620,15 +620,7 @@ def _adapt_framework_result(
     tool_results = tuple(result for result in observed if isinstance(result, ToolResult))
     skill_results = tuple(result for result in observed if isinstance(result, AgentResult))
     pending = tuple(result.pending_action for result in skill_results if result.pending_action)
-    # Preparation is historical evidence, not an irrevocable selection. A later
-    # reviewed and executed interaction hands control back without this proposal.
-    # No receipt is reversed: preparation has not submitted a business write.
     handback = (accepted_outcome or {}).get("kind")
-    if handback in {"NEEDS_USER_INPUT", "BLOCKED"} and any(
-        result.producer_version == "domain-interaction-v1"
-        and result.status.value == handback for result in skill_results
-    ):
-        pending = ()
     facts = merge_facts(
         tuple(fact for fact in context.verified_facts
               if fact.requirement_id in allowed_authorities.values()
