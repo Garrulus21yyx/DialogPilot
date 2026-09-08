@@ -77,7 +77,7 @@ def test_turn_runtime_does_not_drop_persisted_approval_while_asking_for_input():
         'presentation_state': managed.state_before,
         'prepared': NS(context=TargetTurnContext())}))
     assert not composer.calls[0]['evidence']['pending_actions']
-    assert composer.calls[0]['conversation_context']['retained_approval']
+    assert composer.calls[0]['evidence']['user_context']['retained_approval']
     assert result['assembled'].verified
     assert result['assembled'].approval_operation_key == ''
 

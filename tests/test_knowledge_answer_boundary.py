@@ -177,7 +177,7 @@ def test_context_reaches_mixed_composition_and_verifier_separate_from_facts():
     verifier = Verifier(True)
     asyncio.run(ResponseAssembler(composer, knowledge_verifier=verifier).assemble(
         _board(_verified_order_result()), current_message='不是。查订单', conversation_context=context))
-    assert composer.calls[0]['conversation_context'] == context
+    assert composer.calls[0]['evidence']['user_context'] == context
     assert all('是质量问题吗' not in str(c) for c in composer.calls[0]['evidence']['facts'])
     support = json.loads(verifier.calls[0][1]['context'])
     assert support['user_context'] == context
@@ -195,7 +195,7 @@ def test_direct_knowledge_composition_and_support_receive_same_context():
         current_message='不是。', conversation_context=context))
     assert answer.verification_reason == 'KNOWLEDGE_SUPPORT_CHECKED'
     assert composer.calls[0]['current_message'] == '不是。'
-    assert composer.calls[0]['conversation_context'] == context
+    assert composer.calls[0]['evidence']['user_context'] == context
     assert evidence_id('child-1') in json.dumps(composer.calls[0]['evidence']['facts'])
     assert json.loads(verifier.calls[0][1]['context'])['user_context'] == context
 

@@ -75,7 +75,7 @@ class ConversationComposer(Protocol):
 class ResponseAssembler:
     """Choose the cheapest valid response path and verify the final candidate."""
 
-    version = "response-assembler-v9-reply-only"
+    version = "response-assembler-v10-single-context"
 
     def __init__(self, composer: ConversationComposer | None = None, *,
                  knowledge_verifier=None, knowledge_source_validator=None, knowledge_reuse_validator=None,
@@ -301,9 +301,10 @@ class ResponseAssembler:
                 "NOT_CHECKED", "DETERMINISTIC_ASSEMBLY",
             )
         payload = {
-            "schema_version": "conversation-compose-request-v5-text",
+            "schema_version": "conversation-compose-request-v6-single-context",
             "current_message": current_message,
-            "conversation_context": conversation_context,
+            # The author consumes the exact context snapshot later verified;
+            # do not serialize a second independent copy alongside evidence.
             "evidence": _response_context(board, pending_approval, requested_inputs, conversation_context),
             # Working text is context, never support for business claims.
             "domain_notes": [
@@ -311,7 +312,7 @@ class ResponseAssembler:
                 for result in board.results if _candidate_text(result)
             ],
             "response_requirements": [
-                *(["Ask for the missing information in conversation_context.clarification_fields while retaining completed results; the overall request is not complete."]
+                *(["Ask for the missing information in evidence.user_context.clarification_fields while retaining completed results; the overall request is not complete."]
                   if (conversation_context or {}).get("clarification_fields") else []),
                 *(["Cite policy claims with the supplied [E...] evidence IDs. Preserve conditions, exceptions and negation. Do not invent citation IDs."]
                   if any(f.requirement_id == "knowledge.active_source" for r in board.results for f in r.facts)

@@ -28,6 +28,36 @@ def observed_board():
     return replace(_board(result), work_items=(item,))
 
 
+@pytest.mark.parametrize('size', [1, 1000, 30000])
+@pytest.mark.parametrize('revision', [False, True])
+def test_reply_has_one_immutable_history_copy_across_author_and_verifier(size, revision):
+    import copy
+    marker = 'UNIQUE_HISTORICAL_DETAIL'
+    context = {'recent_messages': [], 'business_observations': [
+        {'status':'HISTORICAL', 'publication_id':'p1',
+         'observation':{'detail':marker + (' detail' * size)}}]}
+    original = copy.deepcopy(context)
+    requests = []
+    class Author:
+        async def compose(self, payload):
+            requests.append(payload)
+            return 'The previous lookup is available.'
+    class ReviewingVerifier(Verifier):
+        async def verify(self, *args, **kwargs):
+            self.passed = not revision or bool(self.calls)
+            return await super().verify(*args, **kwargs)
+    verifier = ReviewingVerifier(True)
+    result = asyncio.run(ResponseAssembler(Author(), knowledge_verifier=verifier).assemble(
+        observed_board(), current_message='Explain the previous lookup', conversation_context=context))
+    assert result.verified and context == original
+    assert len(requests) == len(verifier.calls) == (2 if revision else 1)
+    for request, (_, checked) in zip(requests, verifier.calls, strict=True):
+        assert json.dumps(request).count(marker) == 1
+        assert request['evidence']['user_context'] == original
+        assert request['evidence'] == json.loads(checked['context'])
+        assert json.loads(result.evidence_json) == request['evidence']
+
+
 def test_capture_uses_original_governed_facts_not_response_prose():
     board = observed_board()
     captured = capture_business_observations(board)
@@ -58,7 +88,8 @@ def test_historical_support_reaches_author_and_verifier_without_becoming_current
     assert tools.calls == []
     class Author:
         async def compose(self, request):
-            assert request['conversation_context']['business_observations'] == [historical]
+            assert 'conversation_context' not in request
+            assert request['evidence']['user_context']['business_observations'] == [historical]
             assert request['evidence']['facts'] == []
             return 'The previous lookup reported shipped.'
     verifier = Verifier(True)

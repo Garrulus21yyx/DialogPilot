@@ -89,7 +89,7 @@ def test_composer_gets_actual_labels_without_computing_hashes():
         knowledge_evidence=({**entry(), 'status': 'CURRENT'},)))
     class Author:
         async def compose(self, payload):
-            label = payload['conversation_context']['knowledge_evidence_labels']['child-1']
+            label = payload['evidence']['user_context']['knowledge_evidence_labels']['child-1']
             assert label == evidence_id('child-1')
             return '未拆封可以退货。[' + label + ']'
     response = asyncio.run(ResponseAssembler(Author(), knowledge_verifier=Verifier(True),

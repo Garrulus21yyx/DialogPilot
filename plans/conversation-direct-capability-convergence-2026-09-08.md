@@ -882,3 +882,33 @@ Independent review found no concrete new scope/authority escalation; its integer
 normalization and same-name replacement concerns are covered by the new tests.
 Ready to deliver this increment; overall context-budget and task19 closure remain
 unverified. No model calls or business benchmark retries in this increment.
+
+Budget consumer audit at 2915c55: response authoring serializes the identical
+conversation context twice, at top-level conversation_context and at
+evidence.user_context. The latter is the immutable snapshot used by verification
+and revision identity. Remove the redundant top-level copy at ResponseAssembler,
+update its schema/consumers and verify author/verifier equality. This eliminates
+duplication without dropping evidence, adding a summary model, or changing the
+verification snapshot. It does not by itself fit oversized single observations.
+Planning and delegated tasks each carry one historical copy; their remaining
+large-source projection requires budget-aware selection and readable references.
+
+Single-context delivery checks: 157 passed / 17 PG skips without a database;
+the six affected continuity/observation/reply/knowledge-reuse suites with actual
+PostgreSQL passed 171 tests in 28.51s. Parameterized short/long history and one
+revision verify that source contents occur once in the author request, that the
+author evidence equals the verifier snapshot exactly, and that inputs remain
+unchanged. No truncation, summarization, or model invocation was used. Historical
+frozen benchmark captures retain their old schema; live reply consumers migrated
+to evidence.user_context. Retrieval strategies and reranker work remain untouched.
+
+Remaining bounded projection contract: model-call budgets choose whether source
+contents can be inline; omitted contents must have executable publication/hash/
+pointer references, not a claim that the original was absent. Planning can read
+them through the existing native loop. Authoring and verification must share the
+same selected evidence snapshot, including selected current read outputs; neither
+may independently trim it. Metadata for coverage, original subject/time, receipt
+effect and unresolved recovery remains distinct from source content. If mandatory
+metadata alone exceeds a call budget, retain a typed budget failure rather than
+silently claiming sufficient evidence. This remaining contract is not implemented
+or closed by the single-copy change.

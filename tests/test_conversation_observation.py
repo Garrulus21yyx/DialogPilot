@@ -490,7 +490,7 @@ def test_publication_preserves_observed_work_when_final_plan_has_no_tools(clarif
 
         class Composer:
             async def compose(self, payload):
-                assert payload["conversation_context"]["clarification_fields"] == ["delivery address"]
+                assert payload["evidence"]["user_context"]["clarification_fields"] == ["delivery address"]
                 assert not payload["evidence"]["coverage"]["task_completed"]
                 return "The order has shipped. What is the delivery address?"
 
