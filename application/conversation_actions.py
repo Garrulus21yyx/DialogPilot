@@ -89,6 +89,7 @@ def planning_actions(payload):
     identity and per-field work-item bindings are injected, not model generated.
     """
     descriptions = planning_goal_descriptions()
+    observing = (payload.get("conversation_context") or {}).get("observed_execution") is not None
     supported = set(payload.get("supported_goals", ()))
     if supported - descriptions.keys():
         raise ValueError("unsupported_planning_capability")
@@ -141,7 +142,7 @@ def planning_actions(payload):
             "target_agent": _selector({item["agent_id"]: item for item in domains},
                                       "Select the domain for an open investigation, not a second planner for an already explicit tool query."),
             "objective": {**_TEXT, "description": "Desired outcome including user constraints, not a prescribed tool sequence."},
-            "allow_action_proposals": {"type": "boolean", "description": "True only if this objective requests a business change; never an approval."},
+            "allow_action_proposals": {"type": "boolean", "description": "True when the user's delegated outcome requests a business change, including a change conditional on eligibility. False for information-only requests. This permits preparing a proposal, never grants approval or bypasses its submission policy."},
             "new_address": {**_TEXT, "description": "Optional user's verbatim new shipping address when relevant to this objective."},
         }
         selections = {}
@@ -157,7 +158,7 @@ def planning_actions(payload):
         ("continue_active_work", payload.get("resumable_work", ())),
         ("cancel_active_work", payload.get("active_work_controls", ())),
     ):
-        if name not in supported or not candidates:
+        if name not in supported or not candidates or observing and name == "continue_active_work":
             continue
         choices = {f"task_{i}": {"revises_control_id": item["control_id"]} for i, item in enumerate(candidates, 1)}
         meaning = ("Resume the unchanged pending objective using its saved tools and arguments. "
@@ -174,7 +175,7 @@ def planning_actions(payload):
             action.properties["target"] = _selector(choices, desc)
             action.required = ("target",)
             action.selections["target"] = choices
-    if payload.get("pending_approval"):
+    if payload.get("pending_approval") and not observing:
         actions.append(PlanningAction("review_action",
             "Approve or decline the current prepared action. Approve only explicit assent to its exact unchanged "
             "arguments now. Questions/conditional assent are not approval. Corrections use a revised goal instead. "
@@ -182,7 +183,7 @@ def planning_actions(payload):
             "decline alone stops the old objective. Pure approval needs no duplicate task. Preserve independent questions.",
             {"decision": {"type": "string", "enum": ["approve", "decline"]}}, ("decision",),
             bound={"approval_id": payload["pending_approval"]["approval_id"]}))
-    pending = payload.get("pending_input")
+    pending = payload.get("pending_input") if not observing else None
     if pending and pending.get("requested_fields"):
         fields = {f"field_{i}": item for i, item in enumerate(pending["requested_fields"], 1)}
         actions.append(PlanningAction("supply_input",

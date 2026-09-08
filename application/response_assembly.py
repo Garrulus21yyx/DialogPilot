@@ -292,7 +292,7 @@ class ResponseAssembler:
         self, board, *, current_message: str, system_notice: str = "", conversation_context=None, repair_feedback=None, pending_approval=None, requested_inputs=(), response_candidate=None,
     ) -> AssembledResponse:
         claims = _allowed_claims(board, pending_approval, requested_inputs=requested_inputs)
-        mode = ResponseAssemblyMode.CONVERSATION_COMPOSE if response_candidate is not None or repair_feedback is not None or pending_approval or requested_inputs else self._select_mode(board)
+        mode = ResponseAssemblyMode.CONVERSATION_COMPOSE if response_candidate is not None or repair_feedback is not None or pending_approval or requested_inputs or (conversation_context or {}).get("clarification_fields") else self._select_mode(board)
         fallback = _render_board(board, locale=self.fallback_locale)
         if mode is ResponseAssemblyMode.TEMPLATE or self._composer is None and response_candidate is None:
             return AssembledResponse(
@@ -311,6 +311,8 @@ class ResponseAssembler:
                 for result in board.results if _candidate_text(result)
             ],
             "response_requirements": [
+                *(["Ask for the missing information in conversation_context.clarification_fields while retaining completed results; the overall request is not complete."]
+                  if (conversation_context or {}).get("clarification_fields") else []),
                 *(["Cite policy claims with the supplied [E...] evidence IDs. Preserve conditions, exceptions and negation. Do not invent citation IDs."]
                   if any(f.requirement_id == "knowledge.active_source" for r in board.results for f in r.facts)
                   or (conversation_context or {}).get("knowledge_evidence") else []),
@@ -479,7 +481,7 @@ def _response_context(board, pending_approval=None, requested_inputs=(), convers
                      "conflict_keys": list(board.conflict_keys),
                      "coverage_complete": board.coverage_complete,
                      "complete": board.complete,
-                     "task_completed": board.task_completed,
+                     "task_completed": board.task_completed and (conversation_context or {}).get("request_completed", True),
                      "partial_delivery_allowed": board.partial_delivery_allowed},
         "user_context": conversation_context,
     }

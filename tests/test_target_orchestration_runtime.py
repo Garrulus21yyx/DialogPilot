@@ -134,6 +134,40 @@ def test_new_execution_step_consumes_prior_outcomes_without_rescheduling_them(st
     asyncio.run(scenario())
 
 
+def test_resume_imports_completed_observation_from_another_execution_thread():
+    async def scenario():
+        saver, calls = InMemorySaver(), []
+        waiting = _item("waiting", "retail", ControlMode.DIRECT, "customer")
+        observed = _item("observed", "retail", ControlMode.DIRECT, "order")
+        next_read = _item("next", "retail", ControlMode.DIRECT, "shipment")
+
+        async def execute(context):
+            item = context.work_item
+            if item == waiting:
+                calls.append((item.work_item_id, "wait"))
+                return AgentResult(item.work_item_id, item.owner_agent, AgentResultStatus.NEEDS_USER_INPUT,
+                    "MISSING", "test", missing_inputs=(MissingInputSpec("reference", item.work_item_id,
+                        "MISSING", "string", "Which reference?"),))
+            if item == next_read:
+                assert any(fact.subject_ref == "subject:observed" for fact in context.verified_facts)
+            return await Executor(calls)(context)
+
+        runtime = OrchestrationRuntime(direct_executor=execute, domain_workers={}, checkpointer=saver)
+        await runtime.execute(WorkPlan((waiting,), waiting.work_item_id), current_message="Waiting", thread_id="A")
+        prior = await runtime.execute(WorkPlan((observed,), observed.work_item_id), current_message="Lookup", thread_id="B")
+        plan = WorkPlan((next_read,), next_read.work_item_id)
+        board = await runtime.resume(plan, current_message="Continue original request", thread_id="A",
+            retained_outcomes=prior.outcome_items, interrupt_after_completion=True)
+        assert {item.work_item_id for item, _ in board.outcome_items} == {"waiting", "observed", "next"}
+        assert prior.facts[0] in board.facts
+        before = list(calls)
+        restored = await runtime.resume(plan, current_message="Continue original request", thread_id="A",
+            retained_outcomes=prior.outcome_items, interrupt_after_completion=True)
+        assert restored == board
+        assert calls == before
+    asyncio.run(scenario())
+
+
 @pytest.mark.parametrize("expired", [False, True])
 def test_bound_continuation_restores_only_valid_progress_from_checkpoint(expired):
     from dataclasses import replace

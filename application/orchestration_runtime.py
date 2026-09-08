@@ -99,6 +99,7 @@ class ParentGraphState(TypedDict, total=False):
     continuation_messages: dict[str, tuple[dict, ...]]
     pending_approval: PendingApprovalState | None
     retained_outcomes: tuple[tuple[WorkItem, AgentResult | None], ...]
+    accepted_observed_outcomes: tuple[tuple[WorkItem, AgentResult | None], ...]
     imported_source_threads: tuple[str, ...]
     retain_wait: bool
 
@@ -360,6 +361,7 @@ class OrchestrationRuntime:
             "imported_source_threads": tuple(dict.fromkeys(
                 (*state.get("imported_source_threads", ()), *resumed.get("source_thread_ids", ())))),
             "retain_wait": False,
+            "accepted_observed_outcomes": tuple(resumed.get("observed_outcomes", ())),
         }
 
     async def _execute_work_item(self, state: WorkerState):
@@ -542,6 +544,7 @@ class OrchestrationRuntime:
             "interrupt_after_completion": bool(interrupt_after_completion),
             "pending_approval": pending_approval,
             "retained_outcomes": tuple(retained_outcomes),
+            "accepted_observed_outcomes": tuple(retained_outcomes),
         }
         if self._checkpointer is not None:
             snapshot = await self.graph.aget_state(config)
@@ -552,7 +555,7 @@ class OrchestrationRuntime:
                     raise OrchestrationRuntimeError(
                         "checkpoint thread is bound to another work plan"
                     )
-                saved_outcomes = tuple(tuple(pair) for pair in snapshot.values.get("retained_outcomes", ()))
+                saved_outcomes = tuple(tuple(pair) for pair in snapshot.values.get("accepted_observed_outcomes", ()))
                 if saved_outcomes != tuple(retained_outcomes):
                     raise OrchestrationRuntimeError("checkpoint thread is bound to different observed outcomes")
                 board = snapshot.values.get("board")
@@ -580,6 +583,7 @@ class OrchestrationRuntime:
         pending_approval: PendingApprovalState | None = None,
         closed_work_items: tuple[WorkItem, ...] = (),
         source_thread_ids: tuple[str, ...] = (),
+        retained_outcomes: tuple[tuple[WorkItem, AgentResult | None], ...] = (),
     ) -> ResultBoardSnapshot:
         if self._checkpointer is None:
             raise OrchestrationRuntimeError("resume requires a checkpointer")
@@ -597,10 +601,14 @@ class OrchestrationRuntime:
                 interrupt_after_completion=interrupt_after_completion,
                 recent_relevant_turns=recent_relevant_turns, evidence_refs=evidence_refs,
                 token_budget=token_budget, trusted_context=trusted_context,
-                pending_approval=pending_approval)
+                pending_approval=pending_approval, retained_outcomes=retained_outcomes)
         if not snapshot.tasks or not any(task.interrupts for task in snapshot.tasks):
             raise OrchestrationRuntimeError("checkpoint thread is not interrupted")
-        imported = ()
+        self._result_board.evaluate(work_plan, (), retained_outcomes=retained_outcomes)
+        if any(item.registry_fingerprint != work_plan.items[0].registry_fingerprint
+               for item, _ in retained_outcomes):
+            raise OrchestrationRuntimeError("observed outcome registry differs from plan")
+        imported = tuple(retained_outcomes)
         for source in source_thread_ids:
             if source in snapshot.values.get("imported_source_threads", ()):
                 continue
@@ -634,6 +642,7 @@ class OrchestrationRuntime:
             "pending_approval": pending_approval,
             "closed_work_items": closed_work_items,
             "imported_outcomes": imported,
+            "observed_outcomes": tuple(retained_outcomes),
             "source_thread_ids": source_thread_ids,
         }), config=config, durability="sync")
         return result["board"]

@@ -778,7 +778,11 @@ class TurnPlanCompiler:
             })
             for command, item in zip(executable, items)
         )
-        work = WorkPlan(items, items[0].work_item_id) if items else None
+        from application.work_item import WorkItemContractError
+        try:
+            work = WorkPlan(items, items[0].work_item_id) if items else None
+        except WorkItemContractError as exc:
+            raise TurnPlanningError(f"invalid command dependency plan: {exc}") from exc
         transitions = tuple(
             FlowMutation(
                 f"mutation:{item.proposal.command_id}",

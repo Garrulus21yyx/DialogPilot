@@ -4,7 +4,7 @@ Status: repair in progress; direct executor identity migration implemented, full
 capability exposure and goal-continuation repair not complete or verified closed.
 Scope: failures from the fixed ten-task run after the rejected encoder trial.
 Baseline evidence: `artifacts/eval/tau3-new10-after-encoder-trial-2026-09-08/`.
-Current inspection HEAD: ea8ae43, with existing user-owned business recovery changes.
+Current inspection HEAD: 32984bb, with existing user-owned business recovery changes.
 
 ## Established causal chain
 
@@ -214,3 +214,53 @@ or τ³ run. These prerequisites are implemented; TurnRuntime observation branch
 manager next-decision context, original-objective completion/failure projection and
 end-to-end checkpoint migration remain open. Do not enable a loop or claim closure
 from these component results.
+
+### Checkpointed main observation chain (implementation and component validation)
+
+TurnRuntime v9 now commits completed progress before a separate observation-planning
+node. The same ConversationAgent receives the original user observations/history
+and the paired execution board, bypassing state-signal resolution and the encoder.
+PreparedTurn carries monotone planning_step; the existing compiler and runtime
+scope execution identities, preserving earlier facts without scheduling their work.
+Final response candidates use the accumulated board. The manager derives request
+completion from both work outcomes and whether a main observation remains; reply
+verification and public delivery consume that value rather than equating a
+successful prerequisite with the whole request. Semantic delegation instructions
+now explicitly retain the full requested domain outcome and conditional changes;
+this prompt change still requires real-model verification.
+
+Planning failures and exhausted observation budgets retain the prior board and
+publishable partial results with distinct diagnostics. Invalid dependency algebra
+is converted to TurnPlanningError at compilation, not caught as an arbitrary
+runtime exception. CLARIFY retains missing fields alongside prior evidence in
+composition and the existing public missing-input projection. Trusted state conflicts
+and configuration invariant errors remain errors rather than candidate retries.
+
+The earlier blanket stop for any pending input/approval is superseded: independent
+completed reads can be observed while another goal waits, without presenting
+approval/slot-consumption tools to the observation phase. Further independent work
+uses the existing waiting checkpoint and explicit paired observed outcomes. The
+runtime distinguishes accepted observation inputs from its derived accumulated
+results when checking replay identity. No new user message is fabricated. The
+first-turn presentation state is checkpointed separately from step-local execution
+state so newly created waits remain visible even without a publication callback.
+Manager.handle is a facade over the same TurnRuntime graph, not another lifecycle.
+
+Validation: 336 passed, 10 skipped, 1 baseline contract mismatch in the wider
+targeted suite. The mismatch is test_turn_commit_boundaries' permanent provider
+failure case: it expects a failure TurnPlan, whereas HEAD already raises
+PlanningUnavailable before a plan exists. The production failure branch is
+unchanged; this is not reported as an entirely green suite. New observation tests
+cover read/read/respond, read/delegate with no third planner call, typed invalid
+dependency and provider failures, budget exhaustion, facts plus clarification,
+mixed waiting plus another read and next-user resume, public outcome retention,
+and injected interruption before observation, after child execution and before
+assembly. The A-waiting/B-completed/C-resume path also has an orchestration test.
+Independent reviewer ran atomic/observation tests: 48 passed, no model calls, and
+found no further deterministic blocker in the reviewed bounded implementation.
+
+Not closed: real PostgreSQL restart/write-approval boundary verification, richer
+queued/mixed-task observation coverage, fixed model replays demonstrating preserved
+business objectives, and remaining ten-task baseline failures. No fresh τ³ run,
+encoder activation, training rerun or reranker work occurred. User-owned business
+recovery and RAG edits remain outside this delivery.

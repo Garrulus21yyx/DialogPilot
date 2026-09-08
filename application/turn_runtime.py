@@ -18,6 +18,10 @@ from application.target_conversation_manager import (
     TargetConversationManager,
 )
 from core.identity import InvocationIdentity
+from application.chat_contracts import StageObservation, StageStatus
+from application.conversation_state import ConversationState
+from application.turn_planning import PlanningUnavailable, TurnPlanningError
+from core.framework_models import ModelInvocationError
 
 
 class TurnRuntimeError(ValueError):
@@ -37,6 +41,9 @@ class TurnGraphState(TypedDict, total=False):
     prepared: PreparedTurn
     managed: ManagedTurnResult
     assembled: AssembledResponse | None
+    observation_failed: bool
+    presentation_state: ConversationState
+    preparation_options: dict
 
 
 @dataclass(frozen=True)
@@ -48,7 +55,7 @@ class TurnRuntimeResult:
 class TurnRuntime:
     """Coordinate durable turn phases without owning their domain semantics."""
 
-    version = "turn-runtime-v8-response-or-work"
+    version = "turn-runtime-v9-read-observation"
 
     def __init__(
         self,
@@ -58,12 +65,16 @@ class TurnRuntime:
         *,
         checkpointer=None,
         interaction_published=None,
+        max_observation_steps: int = 4,
     ) -> None:
         self._manager = manager
         self._assembler = response_assembler
         self._callbacks = callbacks
         self._checkpointer = checkpointer
         self._interaction_published = interaction_published
+        if type(max_observation_steps) is not int or max_observation_steps < 1:
+            raise TurnRuntimeError("observation budget must be a positive integer")
+        self._max_observation_steps = max_observation_steps
         self.graph = self._build_graph()
 
     def _build_graph(self):
@@ -75,13 +86,20 @@ class TurnRuntime:
             ("commit_progress", self._commit_progress),
             ("resolve_followup", self._resolve_followup),
             ("assemble_response", self._assemble_response),
+            ("commit_observation", self._commit_turn_state),
+            ("plan_observation", self._plan_observation),
         ):
             builder.add_node(name, node)
         builder.add_edge(START, "prepare_turn")
         builder.add_edge("prepare_turn", "execute_work_plan")
         builder.add_edge("execute_work_plan", "commit_progress")
         builder.add_edge("commit_progress", "resolve_followup")
-        builder.add_edge("resolve_followup", "assemble_response")
+        builder.add_conditional_edges("resolve_followup", self._after_followup,
+                                      ["commit_observation", "assemble_response"])
+        builder.add_edge("commit_observation", "plan_observation")
+        builder.add_conditional_edges("plan_observation",
+            lambda state: "assemble_response" if state.get("observation_failed") else "execute_work_plan",
+            ["assemble_response", "execute_work_plan"])
         builder.add_edge("assemble_response", "commit_turn_state")
         builder.add_edge("commit_turn_state", END)
         return builder.compile(checkpointer=self._checkpointer)
@@ -90,8 +108,9 @@ class TurnRuntime:
         prepared = await self._manager.prepare(
             state["invocation"], state["observations"],
             execution_context=state.get("execution_context", {}),
+            **state.get("preparation_options", {}),
         )
-        return {"prepared": prepared}
+        return {"prepared": prepared, "presentation_state": prepared.state_before}
 
     async def _execute_work_plan(self, state: TurnGraphState):
         return {"managed": await self._manager.execute(state["prepared"])}
@@ -107,14 +126,41 @@ class TurnRuntime:
     async def _resolve_followup(self, state: TurnGraphState):
         return {"managed": await self._manager.resolve_followup(state["prepared"], state["managed"])}
 
+    @staticmethod
+    def _after_followup(state):
+        result = state["managed"]
+        return ("commit_observation" if result.plan.observation_work_item_ids
+                and result.board is not None and result.board.complete else "assemble_response")
+
+    async def _plan_observation(self, state: TurnGraphState):
+        prepared, managed = state["prepared"], state["managed"]
+        failure = None
+        if prepared.planning_step >= self._max_observation_steps:
+            failure = StageObservation("planning_observation", StageStatus.FAILED,
+                                       {"code": "OBSERVATION_BUDGET_EXHAUSTED"})
+        else:
+            try:
+                next_plan = await self._manager.prepare_observation(prepared, managed)
+                return {"prepared": next_plan, "observation_failed": False}
+            except (PlanningUnavailable, TurnPlanningError, ModelInvocationError) as exc:
+                from core.tracing import exception_chain
+                code = (exc.reason_code if isinstance(exc, PlanningUnavailable)
+                        else "OBSERVATION_CANDIDATE_REJECTED" if isinstance(exc, TurnPlanningError)
+                        else "OBSERVATION_PROVIDER_FAILURE")
+                failure = StageObservation("planning_observation", StageStatus.FAILED,
+                    {"code": code, "exception_chain": exception_chain(exc)})
+        return {"managed": replace(managed, diagnostics=(*managed.diagnostics, failure)),
+                "observation_failed": True}
+
     @property
     def supports_resume(self) -> bool:
         return self._checkpointer is not None
 
     async def _assemble_response(self, state: TurnGraphState):
         managed = state["managed"]
+        presentation_state = state["presentation_state"]
         board = managed.board
-        if managed.plan.response_text is not None:
+        if managed.plan.response_text is not None and board is None:
             # A conversational reply neither presents nor consumes an existing
             # wait. Verify the model's candidate through the same reply boundary.
             context = conversation_context_payload(state["prepared"].context) or {}
@@ -128,10 +174,10 @@ class TurnRuntime:
         pending_input = managed.state_after.pending_interaction
         questions = ()
         if (pending_input is not None and (
-                managed.state_before.pending_interaction is None
+                presentation_state.pending_interaction is None
                 or (pending_input.interaction_id, pending_input.version) != (
-                    managed.state_before.pending_interaction.interaction_id,
-                    managed.state_before.pending_interaction.version)
+                    presentation_state.pending_interaction.interaction_id,
+                    presentation_state.pending_interaction.version)
                 or self._interaction_published is not None and not self._interaction_published(
                     state["invocation"], signal_id=pending_input.interaction_id, signal_version=pending_input.version))):
             candidates = tuple(spec for item, result in (board.outcome_items if board else ())
@@ -156,7 +202,7 @@ class TurnRuntime:
             else ""
         )
         pending_approval = managed.state_after.pending_approval
-        previous_approval = managed.state_before.pending_approval
+        previous_approval = presentation_state.pending_approval
         present_approval = pending_approval is not None and (
             previous_approval is None or
             (pending_approval.approval_id, pending_approval.version) !=
@@ -167,6 +213,13 @@ class TurnRuntime:
         if board is None and not questions and not present_approval:
             return {"assembled": None}
         context = conversation_context_payload(state["prepared"].context)
+        context = {**(context or {}), "request_completed": managed.request_completed}
+        if managed.plan.route.missing_inputs:
+            context["clarification_fields"] = list(managed.plan.route.missing_inputs)
+        if state.get("observation_failed"):
+            notice += ("I could not finish the remaining steps. Completed results are preserved below.\n"
+                       if self._assembler.fallback_locale == "en" else
+                       "本轮未能完成剩余步骤；已经完成的结果仍保留如下。\n")
         if managed.diagnostics:
             # Reply generation needs the outcome, not internal exception bodies.
             context = {**(context or {}), "recovery_outcomes": [
@@ -189,6 +242,7 @@ class TurnRuntime:
             # The existing approval stays in ConversationState unchanged.
             pending_approval=pending_approval if present_approval else None,
             requested_inputs=questions,
+            response_candidate=managed.plan.response_text,
         )
         assembled = replace(assembled, diagnostics=managed.diagnostics + assembled.diagnostics)
         return {"assembled": assembled}
@@ -198,9 +252,13 @@ class TurnRuntime:
         invocation: InvocationIdentity,
         observations: TurnObservations,
         *, execution_context: dict | None = None,
+        recent_relevant_turns: tuple[str, ...] = (),
+        evidence_refs: tuple[str, ...] = (),
+        token_budget: int = 6000,
     ) -> TurnRuntimeResult:
         key = str(invocation.invocation_key)
         config = {"callbacks": list(self._callbacks), "run_name": "customer_service_turn",
+                  "recursion_limit": 10 + 6 * (self._max_observation_steps + 1),
                   "metadata": {"invocation_key": key, "langfuse_session_id": str(invocation.conversation_id)}}
         if self._checkpointer is not None:
             config["configurable"] = {"thread_id": f"turn:{key}"}
@@ -210,6 +268,8 @@ class TurnRuntime:
             "invocation_key": key,
             "observations": observations,
             "execution_context": dict(execution_context or {}),
+            "preparation_options": {"recent_relevant_turns": recent_relevant_turns,
+                                    "evidence_refs": evidence_refs, "token_budget": token_budget},
         }
         if self._checkpointer is not None:
             snapshot = await self.graph.aget_state(config)

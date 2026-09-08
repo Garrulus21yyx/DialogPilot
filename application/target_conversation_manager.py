@@ -107,6 +107,7 @@ class TargetTurnContext:
     entity_bindings: EntityBindingSet = EntityBindingSet()
     knowledge_filter_contract: dict = field(default_factory=dict)
     knowledge_evidence: tuple[dict, ...] = ()
+    observed_execution: ResultBoardSnapshot | None = None
 
     def __post_init__(self) -> None:
         if self.source_watermark < 0:
@@ -158,6 +159,13 @@ class ManagedTurnResult:
     diagnostics: tuple[StageObservation, ...] = ()
     followup_pending: bool = False
 
+    @property
+    def request_completed(self) -> bool:
+        """A successful prerequisite still awaits the main agent's next decision."""
+        return bool(self.board and self.board.task_completed
+                    and not self.plan.observation_work_item_ids
+                    and self.plan.route.mode.value not in {"CLARIFY", "OUT_OF_SCOPE"})
+
     def __post_init__(self) -> None:
         # The checkpoint codec restores sequences as lists. Normalize at the
         # result owner, so live execution and resumed consumers see one contract.
@@ -182,6 +190,7 @@ class PreparedTurn:
     execution_context: dict = field(default_factory=dict)
     state_transitions: tuple[ConversationState, ...] = ()
     source_thread_ids: tuple[str, ...] = ()
+    planning_step: int = 0
 
     @property
     def fingerprint(self) -> str:
@@ -192,6 +201,7 @@ class PreparedTurn:
             "state": self.state.fingerprint,
             "context_watermark": self.context.source_watermark,
             "source_threads": (self.resume_thread_id, *self.source_thread_ids),
+            "planning_step": self.planning_step,
         }, sort_keys=True, separators=(",", ":")).encode("utf-8")
         return "prepared-turn:v1:" + hashlib.sha256(raw).hexdigest()
 
@@ -233,18 +243,12 @@ class TargetConversationManager:
         evidence_refs: tuple[str, ...] = (),
         token_budget: int = 6000,
     ) -> ManagedTurnResult:
-        prepared = await self.prepare(
-            invocation,
-            observations,
-            recent_relevant_turns=recent_relevant_turns,
-            evidence_refs=evidence_refs,
-            token_budget=token_budget,
-        )
-        result = await self.execute(prepared)
-        await self.commit_progress(result)
-        result = await self.resolve_followup(prepared, result)
-        await self.commit(result)
-        return result
+        from application.turn_runtime import TurnRuntime
+        from application.response_assembly import ResponseAssembler
+        # Compatibility facade, not a second one-pass turn lifecycle.
+        result = await TurnRuntime(self, ResponseAssembler()).execute(invocation, observations,
+            recent_relevant_turns=recent_relevant_turns, evidence_refs=evidence_refs, token_budget=token_budget)
+        return result.managed
 
     async def prepare(
         self,
@@ -389,6 +393,48 @@ class TargetConversationManager:
             source_thread_ids=tuple(thread for thread in retired_threads if thread != resume_thread_id),
         )
 
+    async def prepare_observation(self, previous: PreparedTurn, result: ManagedTurnResult) -> PreparedTurn:
+        """Plan from completed native reads under the same original user request.
+
+        The turn graph commits the preceding phase before calling this method.
+        No input/approval signal is consumed again and no history is reloaded.
+        """
+        from application.turn_planning import PlanningInvariantError
+        board, state = result.board, result.state_after
+        if (result.followup_pending or board is None or not board.complete
+                or not result.plan.observation_work_item_ids):
+            raise PlanningInvariantError("observation requires settled native reads")
+        if result.plan.plan_id != previous.plan.plan_id:
+            raise PlanningInvariantError("observed result belongs to another prepared plan")
+        current = self._state_store.load(previous.invocation.tenant_id,
+            previous.invocation.user_id, previous.invocation.conversation_id)
+        if current.fingerprint != state.fingerprint:
+            raise ConversationStateConflict("observed execution state is not the committed conversation state")
+        deterministic = DeterministicResolution(ResolutionKind.UNRESOLVED, "OBSERVE_EXECUTION", state.fingerprint)
+        context = replace(previous.context, observed_execution=board)
+        proposal = await self._understanding(previous.observations, state, deterministic,
+                                             self._registry, context)
+        if proposal.input_values or proposal.approval_decision is not None:
+            raise TurnPlanningError("execution observation cannot consume a new user decision")
+        waiting_items = tuple(item for pending in (state.pending_interaction, state.pending_approval)
+                              if pending is not None for item in pending.suspended_work_items)
+        if any(command.continuation_of in {item.work_item_id for item in waiting_items}
+               for command in proposal.commands):
+            raise TurnPlanningError("execution observation cannot resume unanswered work")
+        validated = self._route_policy.accept(proposal, state, self._registry)
+        step = previous.planning_step + 1
+        plan = self._compiler.compile(validated, state, self._registry, previous.invocation,
+                                      planning_step=step)
+        planned = self._apply_plan_accepted(state, plan, previous.invocation)
+        # Independent reads can continue while another goal waits. Reuse that
+        # execution checkpoint's existing retained-outcome/wait machinery; the
+        # observation does not supply any answer or approval for the waiting goal.
+        waiting = state.pending_interaction or state.pending_approval
+        resume_thread = waiting.checkpoint_thread_id if waiting and plan.work is not None else None
+        return replace(previous, state_before=state, state=planned, deterministic=deterministic,
+            plan=plan, context=context, resume_thread_id=resume_thread, source_thread_ids=(),
+            planning_step=step, state_transitions=(planned,) if planned is not state else ())
+
     async def execute(self, prepared: PreparedTurn) -> ManagedTurnResult:
         # PreparedTurn is checkpointed before consuming input or accepting work.
         # A replay recognizes only an exact committed prefix of this plan.
@@ -402,9 +448,10 @@ class TargetConversationManager:
         turn_context = prepared.context
         resume_thread_id = prepared.resume_thread_id
         closed_work_items = self._closed_work_items(state_before, deterministic, plan)
-        thread_id = resume_thread_id or str(invocation.invocation_key)
+        thread_id = resume_thread_id or (str(invocation.invocation_key) if prepared.planning_step == 0
+            else f"{invocation.invocation_key}:step:{prepared.planning_step}")
         if plan.work is None:
-            board = None
+            board = turn_context.observed_execution
             if resume_thread_id is not None:
                 board = await self._orchestration.cancel_interrupt(thread_id=thread_id,
                     closed_work_items=self._closed_work_items(state_before, deterministic, plan, thread_id=thread_id),
@@ -468,6 +515,8 @@ class TargetConversationManager:
                 thread_id=thread_id,
                 closed_work_items=closed_work_items,
                 source_thread_ids=prepared.source_thread_ids,
+                retained_outcomes=(turn_context.observed_execution.outcome_items
+                    if turn_context.observed_execution is not None else ()),
                 interrupt_after_completion=await_decision,
                 **execution_context,
             )
@@ -475,6 +524,8 @@ class TargetConversationManager:
             await self._orchestration.execute(
                 plan.work,
                 thread_id=thread_id,
+                retained_outcomes=(turn_context.observed_execution.outcome_items
+                    if turn_context.observed_execution is not None else ()),
                 interrupt_after_completion=await_decision,
                 **execution_context,
             )

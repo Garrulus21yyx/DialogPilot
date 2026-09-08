@@ -398,7 +398,7 @@ class TargetChatApplication:
                 )
 
         handoff_receipt = None
-        if managed.plan.work is None:
+        if managed.plan.work is None and managed.board is None:
             disposition = managed.plan.route.mode.value
             response_text = (assembly.text if assembly is not None else
                 _terminal_response(managed.plan.route.reason_code, locale=self._response_locale))
@@ -426,7 +426,7 @@ class TargetChatApplication:
             response_text = assembly.text
             verifier_status = assembly.verification_status
             coverage_complete = board.coverage_complete
-            task_completed = board.task_completed
+            task_completed = managed.request_completed
             verified = assembly.verified
             outcomes = [
                 {
@@ -439,10 +439,10 @@ class TargetChatApplication:
                 for contract, item in board.outcome_items if item is not None
             ]
             facts = board.facts
-            missing = list(board.missing_requirement_ids)
+            missing = list(dict.fromkeys((*board.missing_requirement_ids, *managed.plan.route.missing_inputs)))
             handoff_receipt = next((
                 receipt
-                for result in board.results
+                for result in board.all_results
                 for receipt in result.action_receipts
                 if receipt.requirement_id == "support.handoff_action"
                 and receipt.effect_status == "COMMITTED"
@@ -457,10 +457,11 @@ class TargetChatApplication:
             separators=(",", ":"),
         ).encode("utf-8")).hexdigest())
         route = managed.plan.route
-        work_items = managed.plan.work.items if managed.plan.work else ()
+        work_items = (tuple(item for item, _ in managed.board.outcome_items) if managed.board
+                      else managed.plan.work.items if managed.plan.work else ())
         receipt_refs = tuple(
             receipt.receipt_id
-            for result in (managed.board.results if managed.board else ())
+            for result in (managed.board.all_results if managed.board else ())
             for receipt in result.action_receipts
             if receipt.effect_status == "COMMITTED"
         )
@@ -543,8 +544,7 @@ class TargetChatApplication:
             "task_plan": {
                 "plan_id": managed.plan.plan_id,
                 "work_item_ids": (
-                    [item.work_item_id for item in managed.plan.work.items]
-                    if managed.plan.work else []
+                    [item.work_item_id for item in work_items]
                 ),
             },
             "coverage": {

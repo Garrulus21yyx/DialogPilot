@@ -213,7 +213,7 @@ def test_dynamic_schema_uses_turn_filter_contract():
 def test_read_to_dependent_goal_compiles_and_delivers_facts(invalid):
     from application.agent_result import AgentResult, AgentResultStatus
     from application.orchestration_runtime import OrchestrationRuntime
-    from application.work_item import WorkItemContractError
+    from application.turn_planning import TurnPlanningError
     registry, tools, catalog, payload, observed = fixture()
     dependent_id = "identity" if invalid == "duplicate" else "finish"
     binding = {"atomic_call": 1, "goal_id": "identity"}
@@ -240,7 +240,7 @@ def test_read_to_dependent_goal_compiles_and_delivers_facts(invalid):
         assert not observed
         return
     if invalid == "cycle":
-        with pytest.raises(WorkItemContractError, match="dependency cycle"):
+        with pytest.raises(TurnPlanningError, match="dependency cycle"):
             accepted = RoutePolicy().accept(proposal, state, registry)
             TurnPlanCompiler().compile(accepted, state, registry, identity)
         assert not observed

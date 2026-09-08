@@ -322,6 +322,10 @@ class CascadedTargetUnderstanding:
     async def __call__(
         self, observations, state, deterministic, registry, turn_context=None,
     ):
+        if turn_context is not None and turn_context.observed_execution is not None:
+            # Tool observations are a new decision step, not another user turn
+            # for the text encoder or the pending-signal resolver to classify.
+            return await self._planner.plan(observations, state, deterministic, registry, turn_context)
         resolved = await self._state_bound(
             observations, state, deterministic, registry, turn_context,
         )
