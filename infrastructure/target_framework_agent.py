@@ -317,11 +317,11 @@ class TargetFrameworkAgent:
         if not tools:
             raise ValueError("delegated Agent has no executable capability")
         async def read_tool_result(reference: str, runtime: ToolRuntime[AgentContextView, dict],
-                                   offset: int = 0, limit: int = 2000):
-            return await self._archive.read(runtime.context, reference, offset, limit)
+                                   offset: int = 0, limit: int = 2000, evidence_id: str | None = None):
+            return await self._archive.read(runtime.context, reference, offset, limit, evidence_id)
         reader = StructuredTool.from_function(coroutine=read_tool_result,
             name="read_tool_result",
-            description="Read a bounded page of an archived result or working history in this task. This reads the original snapshot, never reruns a business tool. Continue with next_offset when needed.")
+            description="Read a bounded page of an archived result or working history in this task. This reads the original snapshot, never reruns a business tool. For knowledge evidence, pass evidence_id from evidence_directory to read that item with its source; offset then refers to evidence text. Continue with next_offset when needed.")
         exposed = [*tools, *self._interaction_tools(), reader]
         names = [tool.name for tool in exposed]
         if len(names) != len(set(names)):

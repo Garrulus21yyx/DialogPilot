@@ -81,20 +81,70 @@ class TargetResultArchive:
         await self._check_subject(context)
         return value
 
-    async def read(self, context, reference: str, offset: int = 0, limit: int = 2000) -> dict:
+    async def read(self, context, reference: str, offset: int = 0, limit: int = 2000, evidence_id: str | None = None) -> dict:
         if offset < 0 or not 1 <= limit <= 4000:
             raise ResultArchiveError("invalid result page")
         value = await self.load(context, reference)
         content = value["content"]
+        selected = None
+        if evidence_id is not None:
+            items = _evidence_view(content)
+            selected = next((item for item in items if item["evidence_id"] == evidence_id), None)
+            if selected is None:
+                raise ResultArchiveError("evidence reference is unavailable in this result")
+            content = selected["text"]
         end = min(len(content), offset + limit)
         return {"reference": reference, "offset": offset, "total_characters": len(content),
                 "text": content[offset:end], "next_offset": end if end < len(content) else None,
-                "historical": True}
+                "historical": True, **({"evidence_id": evidence_id,
+                    "title": selected.get("title", ""), "source": selected["source"],
+                    "offset_basis": "evidence_text"} if selected is not None else {})}
+
+
+def _evidence_view(content: str) -> list[dict]:
+    """Recognize the bounded model evidence view; this does not attest its truth."""
+    try:
+        value = json.loads(content)
+    except (ValueError, TypeError):
+        return []
+    if not isinstance(value, dict) or value.get("status") != "OK":
+        return []
+    if "evidence_pack" in value:
+        from application.knowledge_tool_contract import model_evidence
+        value = model_evidence(value)
+    items = value.get("evidence")
+    if not isinstance(items, list) or not 1 <= len(items) <= 20:
+        return []
+    seen = set()
+    for item in items:
+        if not isinstance(item, dict):
+            return []
+        identity = item.get("evidence_id")
+        if not isinstance(identity, str) or not identity or len(identity) > 128 or identity in seen:
+            return []
+        if not isinstance(item.get("text"), str) or not isinstance(item.get("source"), dict):
+            return []
+        if not isinstance(item.get("title", ""), str):
+            return []
+        seen.add(identity)
+    return items
 
 
 def result_pointer(reference: str, content: str) -> str:
+    try:
+        existing = json.loads(content)
+    except (ValueError, TypeError):
+        existing = None
+    if isinstance(existing, dict) and existing.get("result_ref") == reference and existing.get("complete") is False:
+        return content
+    items = _evidence_view(content)
+    navigation = ({"evidence_directory": [
+        {"evidence_id": item["evidence_id"], "title": item.get("title", "")[:80],
+         "preview": item["text"][:100], "total_characters": len(item["text"])}
+        for item in items],
+        "evidence_reading": "Use read_tool_result with reference and evidence_id to read a specific evidence text with its source. Directory previews are incomplete, not sufficient evidence."} if items else {})
     return json.dumps({"result_ref": reference, "total_characters": len(content),
-        "preview": content[:400], "complete": False,
+        "preview": content[:400], "complete": False, **navigation,
         "read_tool_result": {"reference": reference, "offset": 0},
         "note": "Preview only. Read required pages before concluding; absence from a page is not absence from the result."},
         ensure_ascii=False)

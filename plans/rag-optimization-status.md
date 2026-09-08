@@ -266,3 +266,5 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 - 领域读回首轮3次Flash：2次搜索同冻结证据，主动读第一页2000字符后判发布日志并再次搜索，未翻页；实际max_steps误写4（位置参数8为timeout），导致工具5/4被限。该轮保留为fixture配置失败，不能算8步结果。修正为具名max_steps8/timeout60，新目录剩余API上限9，合计不超原12；不改生产阈值或prompt。
 
 - R05领域读回完成诊断：首轮3次+修正5次Flash=8；修正8步下5search/2read执行，读0/2000两页均逐字进入模型请求，第二页Another language被模型识别；再申请read+search触发9/8工具上限无答案。1项请求审计通过。固定fixture不能证明真实重搜重复，InMemory非PG恢复验收。原文可恢复/自主读回/实际可见已在此例确认，任务完成未通过；未改生产预算。见domain-archive-probe报告。下一项零API知识证据导航/归档边界核查，再同预算验证，跨集验收仍开放。
+
+- R05导航实现：归档owner支持可选evidence_id，按单条text分页附source/title，明确offset_basis；pointer列最多20条短目录且二次压缩保留。原模型视图及raw Fact复用model_evidence身份，generic读法兼容、未知ID/跨用户失败；原read_tool_result schema接入，不增工具/Agent/预算。31项零API检查通过，1项PG未运行；96视图目录低于2840且按ID原文/来源一致。见evidence-navigation报告。仅实现验证，模型收益待同8步任务复测，不关R05/全链任务。
