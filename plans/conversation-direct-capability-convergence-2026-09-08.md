@@ -737,3 +737,14 @@ replay was launched. Next inspect the actual task19 turn4 planning input and the
 whole-goal preparation boundary before registering a fixed replay: preserved
 history must be distinguished from the model ignoring it. The shared prompt's
 previous failure remains failed evidence, not reset by this interface migration.
+
+Actual turn4 Langfuse inputs inspected at cadc675; evidence report:
+`docs/task19-turn4-input-audit-2026-09-08.md`. This changes the attribution: main
+planning saw all six previous messages and prices; the denial of available
+order/pricing data occurred only in compose after reply verification rejected
+the empty structured evidence. Both verification inputs retain history but have
+zero facts/outcomes/receipts/pending actions. Current cross-turn context loads
+knowledge evidence, not previous business observations; same-turn ResultBoard
+retention is not cross-turn support continuity. Independent review requested of
+existing durable business-result readers before designing the owner repair.
+No new task/model run, prompt edit, annotation score or completion claim.
