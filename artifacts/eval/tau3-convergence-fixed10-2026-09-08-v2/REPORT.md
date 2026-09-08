@@ -1,8 +1,10 @@
-# Fixed-ten convergence regression — in progress
+# Fixed-ten convergence regression — execution finished, convergence open
 
 Source candidate: `955af21`. Same ten development tasks and budgets declared in
-`plans/action-dialogue-convergence-2026-09-07.md`. The original run remains live;
-this is an incremental inspection, not a completed batch or held-out score.
+`plans/action-dialogue-convergence-2026-09-07.md`. Original process54813 exited0;
+all ten trajectories/results exist. Manifest INCOMPLETE retains evaluator
+unavailability; it does not mean that the execution process is still running.
+These are development tasks, not a held-out score.
 
 | Task | Official ALL | ENV | ACTION | Final internal completion | Inspection |
 |---|---:|---:|---:|---|---|
@@ -10,9 +12,19 @@ this is an incremental inspection, not a completed batch or held-out score.
 | 6 | 1 | 1 | 1 | true | Only lamp exchanged after user withdrew bottle; no post-write context failure in this run |
 | 7 | 1 | 1 | 1 | true | Lamp exchange completed; clarification wording still contains a potentially redundant resolved-lamp confirmation |
 | 8 | 0 | 0 | 0 | false | User repeatedly withdraws bottle exchange; system insists on both items, then ends DOMAIN_OUTCOME_REJECTED |
+| 10 | 1 | 1 | 1 | true | Handoff performed; initial clarification is generic, intermediate BLOCKED must not be mistaken for final failure |
+| 11 | 1 | 1 | 1 | true | Two returns committed; denial plus changed refund instructions loses the modification until another turn |
+| 13 | 0 | 0 | 0 | true | Four-item return commits, but hidden target excludes keyboard; simulated user explicitly accepted the wrong set; compound approval reply also stalls |
+| 14 | 1 | 1 | 1 | true | Both returns commit with correct operation scopes; initial generic question and redundant target selection remain |
+| 15 | 1 | 1 | 1 | true | Boot variant/payment choice and modification complete; availability tradeoff is a genuine user choice |
+| 16 | unavailable | 1 | 0 | true | Two cancellations plus watch return complete; initial wording requests bundled approval although only one operation is prepared |
 
-Remaining tasks not yet inspected. Do not interpret this table as three complete
-quality passes.
+Six official passes, two failures, two unavailable. Eight DB passes. Nine final
+execution-completion flags are true, but task13 proves that this does not mean
+the hidden business target was satisfied. Do not call this customer-service
+closure: generic questions, redundant confirmations and compound-input losses
+remain. Preserve the asyncio pending-store-task teardown warnings too; no
+evidence yet that they lost a business write, but resource cleanup is not clean.
 
 Task8 falsifies integrated closure: a once-per-order exchange restriction is
 repeatedly presented as a requirement to exchange both original items despite
@@ -21,6 +33,45 @@ eventually gives up. The trajectory establishes the symptom and ignored scope
 correction, not yet whether the stale objective originated in planning, resume,
 domain review or reply composition. Inspect linked producer/consumer inputs
 after collecting the batch; do not add a bottle/lamp policy exception.
+
+## Proven shared input/goal mechanism
+
+Task8 actor observation35ef7f6704523d5a correctly proposes lamp-only exchange.
+Reviewer8250810199cbf5cf rejects it because the assigned objective still requires
+both items; 5770b9b55f479743 repeats that interpretation after another explicit
+withdrawal. Finally099ec64099fea8bb and0ada49e846c27952 reject the user's decision
+to skip the exchange altogether. This is not lack of tool capability.
+
+Source chain: evaluation adapter attaches pending interaction identity to every
+free-text response → DeterministicResolver emits REPLY_PENDING_INPUT based on
+identity and text presence → Manager consumes the interaction before planning →
+StateBoundTargetUnderstanding resumes the original WorkItem objective without
+calling ConversationAgent. The reviewer is then asked to enforce a stale goal.
+Changing its prompt to treat user text as an implicit goal revision would move
+authority rather than repair goal ownership.
+
+Independent review found related compound-input losses: task11 denies an
+approval but discards the accompanying changed refund instructions; task13's
+pending FIELDS takes precedence over APPROVAL, so choosing Visa and requesting
+execution only completes the clarification side-task. It requires another turn
+to approve the old action. The two pending objects may have different checkpoint
+threads, while PreparedTurn currently selects one. Do not consume both signals
+without actually resuming or explicitly resolving both affected tasks.
+
+## Task13 benchmark attribution
+
+Reference return IDs: 4579334072,6117189161,4947717507. Actual return also includes
+1421289881 (Mechanical Keyboard). The original hidden user target excludes
+keyboard and mouse. Assistant message24 misclassifies the keyboard, but simulated
+user message25 explicitly accepts all four items. Actual write message44 and
+success response46 agree with that visible confirmation. Record both agent
+selection error and simulator goal inconsistency; do not call the final write
+unapproved, alter the official reward, or feed hidden target data to the Agent.
+
+Task13 also exhibits real response continuity failures independent of scoring:
+after the selected refund method is supplied with assent, one reply falsely
+claims processing, then revision asks again; verification ultimately falls back.
+The following user turn finally approves and commits the original action.
 
 ## Task4 evidence
 
