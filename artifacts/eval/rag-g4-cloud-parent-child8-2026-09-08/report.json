@@ -1,0 +1,712 @@
+{
+  "scope": "Dev8 candidate only; local branch reserves up to6 of20; no CE/pack/answer",
+  "api_calls": 0,
+  "summary": {
+    "baseline_recall20": 0.5520833333333334,
+    "candidate_recall20": 0.6145833333333334,
+    "better": 1,
+    "worse": 0
+  },
+  "parent_report_sha256": "25e009ea44a01a796f4da2328b6a517a90a8f6791c7742cc93fa23fff2ca3467",
+  "cases": [
+    {
+      "case_id": "20c2cbd18c16c12c9c2bbead6aef1a21<::>1",
+      "query": "|user|: Can you summarize the differences between good bots and bad bots?",
+      "gold": [
+        "mtrag:cloud:ibmcld_04105-1672-3877",
+        "mtrag:cloud:ibmcld_04105-3403-5572"
+      ],
+      "baseline": [
+        "mtrag:cloud:ibmcld_04105-1672-3877",
+        "mtrag:cloud:ibmcld_04105-3403-5572",
+        "mtrag:cloud:ibmcld_04105-7-2225",
+        "mtrag:cloud:ibmcld_04105-5067-6335",
+        "mtrag:cloud:ibmcld_02961-1432-3314",
+        "mtrag:cloud:ibmcld_03114-11593-13085",
+        "mtrag:cloud:ibmcld_03369-177225-178461",
+        "mtrag:cloud:ibmcld_04111-35313-36062",
+        "mtrag:cloud:ibmcld_16364-213826-215727",
+        "mtrag:cloud:ibmcld_16364-16785-18966",
+        "mtrag:cloud:ibmcld_02841-7-1807",
+        "mtrag:cloud:ibmcld_16364-199341-201521",
+        "mtrag:cloud:ibmcld_03403-26509-28185",
+        "mtrag:cloud:ibmcld_03369-123893-126006",
+        "mtrag:cloud:ibmcld_03369-162577-164737",
+        "mtrag:cloud:ibmcld_03040-24819-26674",
+        "mtrag:cloud:ibmcld_03126-3707-6008",
+        "mtrag:cloud:ibmcld_03369-175663-177618",
+        "mtrag:cloud:ibmcld_16364-59525-61717",
+        "mtrag:cloud:ibmcld_16364-196098-198052"
+      ],
+      "candidate": [
+        "mtrag:cloud:ibmcld_04105-1672-3877",
+        "mtrag:cloud:ibmcld_04105-3403-5572",
+        "mtrag:cloud:ibmcld_04146-1603-3385",
+        "mtrag:cloud:ibmcld_04146-2946-5057",
+        "mtrag:cloud:ibmcld_04107-4464-6614",
+        "mtrag:cloud:ibmcld_04107-6095-8145",
+        "mtrag:cloud:ibmcld_04105-7-2225",
+        "mtrag:cloud:ibmcld_04105-5067-6335",
+        "mtrag:cloud:ibmcld_02961-1432-3314",
+        "mtrag:cloud:ibmcld_03114-11593-13085",
+        "mtrag:cloud:ibmcld_03369-177225-178461",
+        "mtrag:cloud:ibmcld_04111-35313-36062",
+        "mtrag:cloud:ibmcld_16364-213826-215727",
+        "mtrag:cloud:ibmcld_16364-16785-18966",
+        "mtrag:cloud:ibmcld_02841-7-1807",
+        "mtrag:cloud:ibmcld_16364-199341-201521",
+        "mtrag:cloud:ibmcld_03403-26509-28185",
+        "mtrag:cloud:ibmcld_03369-123893-126006",
+        "mtrag:cloud:ibmcld_03369-162577-164737",
+        "mtrag:cloud:ibmcld_03040-24819-26674"
+      ],
+      "parent_trace": [
+        {
+          "parent": "mtrag:cloud:ibmcld_04105",
+          "pool_size": 4,
+          "chosen": [
+            "mtrag:cloud:ibmcld_04105-1672-3877",
+            "mtrag:cloud:ibmcld_04105-3403-5572"
+          ],
+          "gold_local_ranks": {
+            "mtrag:cloud:ibmcld_04105-1672-3877": 1,
+            "mtrag:cloud:ibmcld_04105-3403-5572": 2
+          }
+        },
+        {
+          "parent": "mtrag:cloud:ibmcld_04146",
+          "pool_size": 7,
+          "chosen": [
+            "mtrag:cloud:ibmcld_04146-1603-3385",
+            "mtrag:cloud:ibmcld_04146-2946-5057"
+          ],
+          "gold_local_ranks": {}
+        },
+        {
+          "parent": "mtrag:cloud:ibmcld_04107",
+          "pool_size": 8,
+          "chosen": [
+            "mtrag:cloud:ibmcld_04107-4464-6614",
+            "mtrag:cloud:ibmcld_04107-6095-8145"
+          ],
+          "gold_local_ranks": {}
+        }
+      ],
+      "baseline_recall": 1.0,
+      "candidate_recall": 1.0,
+      "rescued": [],
+      "lost": []
+    },
+    {
+      "case_id": "e1b602e47ded79a35d8df4eefe194e39<::>1",
+      "query": "|user|: Is it possible to build a dialog skill in a language other than English?",
+      "gold": [
+        "mtrag:cloud:ibmcld_03049-2703-4536",
+        "mtrag:cloud:ibmcld_03369-64600-66787",
+        "mtrag:cloud:ibmcld_16364-101992-104197"
+      ],
+      "baseline": [
+        "mtrag:cloud:ibmcld_03049-2703-4536",
+        "mtrag:cloud:ibmcld_03043-7-2031",
+        "mtrag:cloud:ibmcld_02841-1435-2454",
+        "mtrag:cloud:ibmcld_03373-1524-3338",
+        "mtrag:cloud:ibmcld_02839-3583-5403",
+        "mtrag:cloud:ibmcld_03313-4560-6553",
+        "mtrag:cloud:ibmcld_16364-103662-105841",
+        "mtrag:cloud:ibmcld_16364-101992-104197",
+        "mtrag:cloud:ibmcld_03049-7-1790",
+        "mtrag:cloud:ibmcld_03126-5596-6966",
+        "mtrag:cloud:ibmcld_03380-0-1070",
+        "mtrag:cloud:ibmcld_03120-3469-5331",
+        "mtrag:cloud:ibmcld_03120-1659-3917",
+        "mtrag:cloud:ibmcld_03139-3702-4938",
+        "mtrag:cloud:ibmcld_03329-4-1522",
+        "mtrag:cloud:ibmcld_03120-4813-6717",
+        "mtrag:cloud:ibmcld_03381-4-1869",
+        "mtrag:cloud:ibmcld_03126-3707-6008",
+        "mtrag:cloud:ibmcld_03353-1684-3127",
+        "mtrag:cloud:ibmcld_03369-109994-112063"
+      ],
+      "candidate": [
+        "mtrag:cloud:ibmcld_03369-50513-52512",
+        "mtrag:cloud:ibmcld_03369-160994-163080",
+        "mtrag:cloud:ibmcld_03329-1102-2607",
+        "mtrag:cloud:ibmcld_03329-4-1522",
+        "mtrag:cloud:ibmcld_03313-17920-19395",
+        "mtrag:cloud:ibmcld_03313-2949-4999",
+        "mtrag:cloud:ibmcld_03049-2703-4536",
+        "mtrag:cloud:ibmcld_03043-7-2031",
+        "mtrag:cloud:ibmcld_02841-1435-2454",
+        "mtrag:cloud:ibmcld_03373-1524-3338",
+        "mtrag:cloud:ibmcld_02839-3583-5403",
+        "mtrag:cloud:ibmcld_03313-4560-6553",
+        "mtrag:cloud:ibmcld_16364-103662-105841",
+        "mtrag:cloud:ibmcld_16364-101992-104197",
+        "mtrag:cloud:ibmcld_03049-7-1790",
+        "mtrag:cloud:ibmcld_03126-5596-6966",
+        "mtrag:cloud:ibmcld_03380-0-1070",
+        "mtrag:cloud:ibmcld_03120-3469-5331",
+        "mtrag:cloud:ibmcld_03120-1659-3917",
+        "mtrag:cloud:ibmcld_03139-3702-4938"
+      ],
+      "parent_trace": [
+        {
+          "parent": "mtrag:cloud:ibmcld_03369",
+          "pool_size": 114,
+          "chosen": [
+            "mtrag:cloud:ibmcld_03369-50513-52512",
+            "mtrag:cloud:ibmcld_03369-160994-163080"
+          ],
+          "gold_local_ranks": {
+            "mtrag:cloud:ibmcld_03369-64600-66787": 23
+          }
+        },
+        {
+          "parent": "mtrag:cloud:ibmcld_03329",
+          "pool_size": 10,
+          "chosen": [
+            "mtrag:cloud:ibmcld_03329-1102-2607",
+            "mtrag:cloud:ibmcld_03329-4-1522"
+          ],
+          "gold_local_ranks": {}
+        },
+        {
+          "parent": "mtrag:cloud:ibmcld_03313",
+          "pool_size": 13,
+          "chosen": [
+            "mtrag:cloud:ibmcld_03313-17920-19395",
+            "mtrag:cloud:ibmcld_03313-2949-4999"
+          ],
+          "gold_local_ranks": {}
+        }
+      ],
+      "baseline_recall": 0.6666666666666666,
+      "candidate_recall": 0.6666666666666666,
+      "rescued": [],
+      "lost": []
+    },
+    {
+      "case_id": "2f013337236ea4635ad106813275dab7<::>2",
+      "query": "|user|: What is the field of expertise of Cohasset Associates, Inc.?",
+      "gold": [
+        "mtrag:cloud:ibmcld_05032-6428-8442"
+      ],
+      "baseline": [
+        "mtrag:cloud:ibmcld_05032-6428-8442",
+        "mtrag:cloud:ibmcld_04866-6428-8391",
+        "mtrag:cloud:ibmcld_06849-8401-9262",
+        "mtrag:cloud:ibmcld_03114-11593-13085",
+        "mtrag:cloud:ibmcld_07157-1465-3167",
+        "mtrag:cloud:ibmcld_00460-40540-41748",
+        "mtrag:cloud:ibmcld_06849-15920-16826",
+        "mtrag:cloud:ibmcld_09904-1520-3201",
+        "mtrag:cloud:ibmcld_07158-1439-3143",
+        "mtrag:cloud:ibmcld_07098-20343-21554",
+        "mtrag:cloud:ibmcld_16344-7-2142",
+        "mtrag:cloud:ibmcld_16493-4774-6582",
+        "mtrag:cloud:ibmcld_04513-671430-671948",
+        "mtrag:cloud:ibmcld_11511-671458-671976",
+        "mtrag:cloud:ibmcld_10825-1553-3214",
+        "mtrag:cloud:ibmcld_09905-1490-3164",
+        "mtrag:cloud:ibmcld_09893-7-1818",
+        "mtrag:cloud:ibmcld_10916-18156-20101",
+        "mtrag:cloud:ibmcld_05724-15960-17489",
+        "mtrag:cloud:ibmcld_03369-123893-126006"
+      ],
+      "candidate": [
+        "mtrag:cloud:ibmcld_05032-6428-8442",
+        "mtrag:cloud:ibmcld_05032-4961-6763",
+        "mtrag:cloud:ibmcld_04866-6428-8391",
+        "mtrag:cloud:ibmcld_04866-4961-6763",
+        "mtrag:cloud:ibmcld_16324-1477-3681",
+        "mtrag:cloud:ibmcld_16324-3229-5312",
+        "mtrag:cloud:ibmcld_06849-8401-9262",
+        "mtrag:cloud:ibmcld_03114-11593-13085",
+        "mtrag:cloud:ibmcld_07157-1465-3167",
+        "mtrag:cloud:ibmcld_00460-40540-41748",
+        "mtrag:cloud:ibmcld_06849-15920-16826",
+        "mtrag:cloud:ibmcld_09904-1520-3201",
+        "mtrag:cloud:ibmcld_07158-1439-3143",
+        "mtrag:cloud:ibmcld_07098-20343-21554",
+        "mtrag:cloud:ibmcld_16344-7-2142",
+        "mtrag:cloud:ibmcld_16493-4774-6582",
+        "mtrag:cloud:ibmcld_04513-671430-671948",
+        "mtrag:cloud:ibmcld_11511-671458-671976",
+        "mtrag:cloud:ibmcld_10825-1553-3214",
+        "mtrag:cloud:ibmcld_09905-1490-3164"
+      ],
+      "parent_trace": [
+        {
+          "parent": "mtrag:cloud:ibmcld_05032",
+          "pool_size": 27,
+          "chosen": [
+            "mtrag:cloud:ibmcld_05032-6428-8442",
+            "mtrag:cloud:ibmcld_05032-4961-6763"
+          ],
+          "gold_local_ranks": {
+            "mtrag:cloud:ibmcld_05032-6428-8442": 1
+          }
+        },
+        {
+          "parent": "mtrag:cloud:ibmcld_04866",
+          "pool_size": 27,
+          "chosen": [
+            "mtrag:cloud:ibmcld_04866-6428-8391",
+            "mtrag:cloud:ibmcld_04866-4961-6763"
+          ],
+          "gold_local_ranks": {}
+        },
+        {
+          "parent": "mtrag:cloud:ibmcld_16324",
+          "pool_size": 4,
+          "chosen": [
+            "mtrag:cloud:ibmcld_16324-1477-3681",
+            "mtrag:cloud:ibmcld_16324-3229-5312"
+          ],
+          "gold_local_ranks": {}
+        }
+      ],
+      "baseline_recall": 1.0,
+      "candidate_recall": 1.0,
+      "rescued": [],
+      "lost": []
+    },
+    {
+      "case_id": "fdee20f7fd677e420742b09989623d68<::>6",
+      "query": "|user|: i am having hard time finding web chat whenever I was trying to use",
+      "gold": [
+        "mtrag:cloud:ibmcld_02855-8124-9934",
+        "mtrag:cloud:ibmcld_03166-14421-16009"
+      ],
+      "baseline": [
+        "mtrag:cloud:ibmcld_03418-4-2127",
+        "mtrag:cloud:ibmcld_03312-9049-11311",
+        "mtrag:cloud:ibmcld_16365-8408-10508",
+        "mtrag:cloud:ibmcld_16384-7-2422",
+        "mtrag:cloud:ibmcld_03418-10583-11538",
+        "mtrag:cloud:ibmcld_16365-14167-16117",
+        "mtrag:cloud:ibmcld_10595-0-1421",
+        "mtrag:cloud:ibmcld_16315-9405-10024",
+        "mtrag:cloud:ibmcld_03313-6149-8039",
+        "mtrag:cloud:ibmcld_00530-4955-6151",
+        "mtrag:cloud:ibmcld_16365-7-1700",
+        "mtrag:cloud:ibmcld_16727-74022-75952",
+        "mtrag:cloud:ibmcld_07578-74047-75977",
+        "mtrag:cloud:ibmcld_16365-10062-12114",
+        "mtrag:cloud:ibmcld_16342-4330-5240",
+        "mtrag:cloud:ibmcld_16334-25740-27617",
+        "mtrag:cloud:ibmcld_16364-147609-149563",
+        "mtrag:cloud:ibmcld_03313-7474-9676",
+        "mtrag:cloud:ibmcld_03166-4-2012",
+        "mtrag:cloud:ibmcld_16727-7341-9464"
+      ],
+      "candidate": [
+        "mtrag:cloud:ibmcld_03313-10911-12959",
+        "mtrag:cloud:ibmcld_03313-6149-8039",
+        "mtrag:cloud:ibmcld_16387-2916-4646",
+        "mtrag:cloud:ibmcld_16387-1493-3198",
+        "mtrag:cloud:ibmcld_03166-1557-3458",
+        "mtrag:cloud:ibmcld_03166-8640-10452",
+        "mtrag:cloud:ibmcld_03418-4-2127",
+        "mtrag:cloud:ibmcld_03312-9049-11311",
+        "mtrag:cloud:ibmcld_16365-8408-10508",
+        "mtrag:cloud:ibmcld_16384-7-2422",
+        "mtrag:cloud:ibmcld_03418-10583-11538",
+        "mtrag:cloud:ibmcld_16365-14167-16117",
+        "mtrag:cloud:ibmcld_10595-0-1421",
+        "mtrag:cloud:ibmcld_16315-9405-10024",
+        "mtrag:cloud:ibmcld_00530-4955-6151",
+        "mtrag:cloud:ibmcld_16365-7-1700",
+        "mtrag:cloud:ibmcld_16727-74022-75952",
+        "mtrag:cloud:ibmcld_07578-74047-75977",
+        "mtrag:cloud:ibmcld_16365-10062-12114",
+        "mtrag:cloud:ibmcld_16342-4330-5240"
+      ],
+      "parent_trace": [
+        {
+          "parent": "mtrag:cloud:ibmcld_03313",
+          "pool_size": 13,
+          "chosen": [
+            "mtrag:cloud:ibmcld_03313-10911-12959",
+            "mtrag:cloud:ibmcld_03313-6149-8039"
+          ],
+          "gold_local_ranks": {}
+        },
+        {
+          "parent": "mtrag:cloud:ibmcld_16387",
+          "pool_size": 5,
+          "chosen": [
+            "mtrag:cloud:ibmcld_16387-2916-4646",
+            "mtrag:cloud:ibmcld_16387-1493-3198"
+          ],
+          "gold_local_ranks": {}
+        },
+        {
+          "parent": "mtrag:cloud:ibmcld_03166",
+          "pool_size": 17,
+          "chosen": [
+            "mtrag:cloud:ibmcld_03166-1557-3458",
+            "mtrag:cloud:ibmcld_03166-8640-10452"
+          ],
+          "gold_local_ranks": {
+            "mtrag:cloud:ibmcld_03166-14421-16009": 14
+          }
+        }
+      ],
+      "baseline_recall": 0.0,
+      "candidate_recall": 0.0,
+      "rescued": [],
+      "lost": []
+    },
+    {
+      "case_id": "c6c3b02ca32795af64c903dd76700517<::>1",
+      "query": "|user|: Does Vulnerability Advisor scan encrypted imagery?",
+      "gold": [
+        "mtrag:cloud:ibmcld_01533-4546-6910",
+        "mtrag:cloud:ibmcld_01535-4585-6962"
+      ],
+      "baseline": [
+        "mtrag:cloud:ibmcld_01533-4546-6910",
+        "mtrag:cloud:ibmcld_01535-4585-6962",
+        "mtrag:cloud:ibmcld_01533-4-2366",
+        "mtrag:cloud:ibmcld_01535-4-2366",
+        "mtrag:cloud:ibmcld_01533-6329-8623",
+        "mtrag:cloud:ibmcld_01535-6381-8675",
+        "mtrag:cloud:ibmcld_01533-8109-9900",
+        "mtrag:cloud:ibmcld_01535-8161-9952",
+        "mtrag:cloud:ibmcld_01415-6473-8616",
+        "mtrag:cloud:ibmcld_01494-97628-98949",
+        "mtrag:cloud:ibmcld_16727-365807-367808",
+        "mtrag:cloud:ibmcld_07578-365833-367834",
+        "mtrag:cloud:ibmcld_01329-59746-61590",
+        "mtrag:cloud:ibmcld_01535-1902-3811",
+        "mtrag:cloud:ibmcld_06063-53153-55320",
+        "mtrag:cloud:ibmcld_01533-1902-3785",
+        "mtrag:cloud:ibmcld_07578-367408-369576",
+        "mtrag:cloud:ibmcld_16727-367382-369550",
+        "mtrag:cloud:ibmcld_01329-14955-16723",
+        "mtrag:cloud:ibmcld_07578-368912-370964"
+      ],
+      "candidate": [
+        "mtrag:cloud:ibmcld_01533-4546-6910",
+        "mtrag:cloud:ibmcld_01533-6329-8623",
+        "mtrag:cloud:ibmcld_01535-4585-6962",
+        "mtrag:cloud:ibmcld_01535-6381-8675",
+        "mtrag:cloud:ibmcld_00880-7-1963",
+        "mtrag:cloud:ibmcld_00880-2889-4128",
+        "mtrag:cloud:ibmcld_01533-4-2366",
+        "mtrag:cloud:ibmcld_01535-4-2366",
+        "mtrag:cloud:ibmcld_01533-8109-9900",
+        "mtrag:cloud:ibmcld_01535-8161-9952",
+        "mtrag:cloud:ibmcld_01415-6473-8616",
+        "mtrag:cloud:ibmcld_01494-97628-98949",
+        "mtrag:cloud:ibmcld_16727-365807-367808",
+        "mtrag:cloud:ibmcld_07578-365833-367834",
+        "mtrag:cloud:ibmcld_01329-59746-61590",
+        "mtrag:cloud:ibmcld_01535-1902-3811",
+        "mtrag:cloud:ibmcld_06063-53153-55320",
+        "mtrag:cloud:ibmcld_01533-1902-3785",
+        "mtrag:cloud:ibmcld_07578-367408-369576",
+        "mtrag:cloud:ibmcld_16727-367382-369550"
+      ],
+      "parent_trace": [
+        {
+          "parent": "mtrag:cloud:ibmcld_01533",
+          "pool_size": 15,
+          "chosen": [
+            "mtrag:cloud:ibmcld_01533-4546-6910",
+            "mtrag:cloud:ibmcld_01533-6329-8623"
+          ],
+          "gold_local_ranks": {
+            "mtrag:cloud:ibmcld_01533-4546-6910": 1
+          }
+        },
+        {
+          "parent": "mtrag:cloud:ibmcld_01535",
+          "pool_size": 15,
+          "chosen": [
+            "mtrag:cloud:ibmcld_01535-4585-6962",
+            "mtrag:cloud:ibmcld_01535-6381-8675"
+          ],
+          "gold_local_ranks": {
+            "mtrag:cloud:ibmcld_01535-4585-6962": 1
+          }
+        },
+        {
+          "parent": "mtrag:cloud:ibmcld_00880",
+          "pool_size": 3,
+          "chosen": [
+            "mtrag:cloud:ibmcld_00880-7-1963",
+            "mtrag:cloud:ibmcld_00880-2889-4128"
+          ],
+          "gold_local_ranks": {}
+        }
+      ],
+      "baseline_recall": 1.0,
+      "candidate_recall": 1.0,
+      "rescued": [],
+      "lost": []
+    },
+    {
+      "case_id": "1be66272113492407e814eaf21a761d4<::>3",
+      "query": "|user|: Can you clarify what you mean by 'weak understanding metrics'?",
+      "gold": [
+        "mtrag:cloud:ibmcld_03036-2789-4951",
+        "mtrag:cloud:ibmcld_09685-4-1903"
+      ],
+      "baseline": [
+        "mtrag:cloud:ibmcld_03363-4-2165",
+        "mtrag:cloud:ibmcld_13406-6795-8870",
+        "mtrag:cloud:ibmcld_13406-10567-12431",
+        "mtrag:cloud:ibmcld_05755-7-1910",
+        "mtrag:cloud:ibmcld_13406-7-2236",
+        "mtrag:cloud:ibmcld_05755-1471-2925",
+        "mtrag:cloud:ibmcld_03363-1671-3630",
+        "mtrag:cloud:ibmcld_13406-3429-5587",
+        "mtrag:cloud:ibmcld_03036-4322-6185",
+        "mtrag:cloud:ibmcld_09794-13485-14848",
+        "mtrag:cloud:ibmcld_16490-7-2216",
+        "mtrag:cloud:ibmcld_13406-1732-4088",
+        "mtrag:cloud:ibmcld_16425-22472-23627",
+        "mtrag:cloud:ibmcld_05882-10717-12364",
+        "mtrag:cloud:ibmcld_16490-20950-23106",
+        "mtrag:cloud:ibmcld_03269-4919-6270",
+        "mtrag:cloud:ibmcld_09679-4-2116",
+        "mtrag:cloud:ibmcld_16425-7-2236",
+        "mtrag:cloud:ibmcld_16490-1637-3834",
+        "mtrag:cloud:ibmcld_16425-20985-23039"
+      ],
+      "candidate": [
+        "mtrag:cloud:ibmcld_03363-4-2165",
+        "mtrag:cloud:ibmcld_03363-1671-3630",
+        "mtrag:cloud:ibmcld_03036-2789-4951",
+        "mtrag:cloud:ibmcld_03036-4322-6185",
+        "mtrag:cloud:ibmcld_16242-7-2224",
+        "mtrag:cloud:ibmcld_16242-1610-3614",
+        "mtrag:cloud:ibmcld_13406-6795-8870",
+        "mtrag:cloud:ibmcld_13406-10567-12431",
+        "mtrag:cloud:ibmcld_05755-7-1910",
+        "mtrag:cloud:ibmcld_13406-7-2236",
+        "mtrag:cloud:ibmcld_05755-1471-2925",
+        "mtrag:cloud:ibmcld_13406-3429-5587",
+        "mtrag:cloud:ibmcld_09794-13485-14848",
+        "mtrag:cloud:ibmcld_16490-7-2216",
+        "mtrag:cloud:ibmcld_13406-1732-4088",
+        "mtrag:cloud:ibmcld_16425-22472-23627",
+        "mtrag:cloud:ibmcld_05882-10717-12364",
+        "mtrag:cloud:ibmcld_16490-20950-23106",
+        "mtrag:cloud:ibmcld_03269-4919-6270",
+        "mtrag:cloud:ibmcld_09679-4-2116"
+      ],
+      "parent_trace": [
+        {
+          "parent": "mtrag:cloud:ibmcld_03363",
+          "pool_size": 6,
+          "chosen": [
+            "mtrag:cloud:ibmcld_03363-4-2165",
+            "mtrag:cloud:ibmcld_03363-1671-3630"
+          ],
+          "gold_local_ranks": {}
+        },
+        {
+          "parent": "mtrag:cloud:ibmcld_03036",
+          "pool_size": 6,
+          "chosen": [
+            "mtrag:cloud:ibmcld_03036-2789-4951",
+            "mtrag:cloud:ibmcld_03036-4322-6185"
+          ],
+          "gold_local_ranks": {
+            "mtrag:cloud:ibmcld_03036-2789-4951": 1
+          }
+        },
+        {
+          "parent": "mtrag:cloud:ibmcld_16242",
+          "pool_size": 3,
+          "chosen": [
+            "mtrag:cloud:ibmcld_16242-7-2224",
+            "mtrag:cloud:ibmcld_16242-1610-3614"
+          ],
+          "gold_local_ranks": {}
+        }
+      ],
+      "baseline_recall": 0.0,
+      "candidate_recall": 0.5,
+      "rescued": [
+        "mtrag:cloud:ibmcld_03036-2789-4951"
+      ],
+      "lost": []
+    },
+    {
+      "case_id": "47b2471404382af6e973013ab1cf96b9<::>8",
+      "query": "|user|: Is the Lite plan available with the Enterprise account type in IBM Cloud?",
+      "gold": [
+        "mtrag:cloud:ibmcld_12559-1521-3753",
+        "mtrag:cloud:ibmcld_12623-7-2328"
+      ],
+      "baseline": [
+        "mtrag:cloud:ibmcld_16729-112397-114109",
+        "mtrag:cloud:ibmcld_00608-7-1718",
+        "mtrag:cloud:ibmcld_11142-1400-2265",
+        "mtrag:cloud:ibmcld_01705-13208-15001",
+        "mtrag:cloud:ibmcld_00535-0-1738",
+        "mtrag:cloud:ibmcld_01183-7-2154",
+        "mtrag:cloud:ibmcld_01705-14609-15453",
+        "mtrag:cloud:ibmcld_07578-1131400-1133341",
+        "mtrag:cloud:ibmcld_12544-1669-3632",
+        "mtrag:cloud:ibmcld_03749-1776-3774",
+        "mtrag:cloud:ibmcld_16727-1133881-1135817",
+        "mtrag:cloud:ibmcld_00578-1239-2989",
+        "mtrag:cloud:ibmcld_07122-1149-3205",
+        "mtrag:cloud:ibmcld_07122-7-1672",
+        "mtrag:cloud:ibmcld_07152-7168-8788",
+        "mtrag:cloud:ibmcld_07578-1321912-1323728",
+        "mtrag:cloud:ibmcld_16727-1324577-1326393",
+        "mtrag:cloud:ibmcld_00558-1499-3456",
+        "mtrag:cloud:ibmcld_00609-0-1350",
+        "mtrag:cloud:ibmcld_01705-7-1620"
+      ],
+      "candidate": [
+        "mtrag:cloud:ibmcld_01705-11723-13541",
+        "mtrag:cloud:ibmcld_01705-7-1620",
+        "mtrag:cloud:ibmcld_07103-29564-31587",
+        "mtrag:cloud:ibmcld_07103-27797-30073",
+        "mtrag:cloud:ibmcld_01183-1670-3629",
+        "mtrag:cloud:ibmcld_01183-7-2154",
+        "mtrag:cloud:ibmcld_16729-112397-114109",
+        "mtrag:cloud:ibmcld_00608-7-1718",
+        "mtrag:cloud:ibmcld_11142-1400-2265",
+        "mtrag:cloud:ibmcld_01705-13208-15001",
+        "mtrag:cloud:ibmcld_00535-0-1738",
+        "mtrag:cloud:ibmcld_01705-14609-15453",
+        "mtrag:cloud:ibmcld_07578-1131400-1133341",
+        "mtrag:cloud:ibmcld_12544-1669-3632",
+        "mtrag:cloud:ibmcld_03749-1776-3774",
+        "mtrag:cloud:ibmcld_16727-1133881-1135817",
+        "mtrag:cloud:ibmcld_00578-1239-2989",
+        "mtrag:cloud:ibmcld_07122-1149-3205",
+        "mtrag:cloud:ibmcld_07122-7-1672",
+        "mtrag:cloud:ibmcld_07152-7168-8788"
+      ],
+      "parent_trace": [
+        {
+          "parent": "mtrag:cloud:ibmcld_01705",
+          "pool_size": 12,
+          "chosen": [
+            "mtrag:cloud:ibmcld_01705-11723-13541",
+            "mtrag:cloud:ibmcld_01705-7-1620"
+          ],
+          "gold_local_ranks": {}
+        },
+        {
+          "parent": "mtrag:cloud:ibmcld_07103",
+          "pool_size": 29,
+          "chosen": [
+            "mtrag:cloud:ibmcld_07103-29564-31587",
+            "mtrag:cloud:ibmcld_07103-27797-30073"
+          ],
+          "gold_local_ranks": {}
+        },
+        {
+          "parent": "mtrag:cloud:ibmcld_01183",
+          "pool_size": 5,
+          "chosen": [
+            "mtrag:cloud:ibmcld_01183-1670-3629",
+            "mtrag:cloud:ibmcld_01183-7-2154"
+          ],
+          "gold_local_ranks": {}
+        }
+      ],
+      "baseline_recall": 0.0,
+      "candidate_recall": 0.0,
+      "rescued": [],
+      "lost": []
+    },
+    {
+      "case_id": "ddbbbe7ea13560c5768639207e1ca604<::>6",
+      "query": "|user|: Can I use multiple types of pre-annotations at once, and are there different tools for conversational and technical documents?",
+      "gold": [
+        "mtrag:cloud:ibmcld_10916-57815-59652",
+        "mtrag:cloud:ibmcld_16444-3168-4952",
+        "mtrag:cloud:ibmcld_16444-7-2064",
+        "mtrag:cloud:ibmcld_16507-7-2044"
+      ],
+      "baseline": [
+        "mtrag:cloud:ibmcld_16507-3099-4772",
+        "mtrag:cloud:ibmcld_16444-3168-4952",
+        "mtrag:cloud:ibmcld_16444-1600-3658",
+        "mtrag:cloud:ibmcld_16444-7346-9136",
+        "mtrag:cloud:ibmcld_16421-12667-13618",
+        "mtrag:cloud:ibmcld_16507-10816-12778",
+        "mtrag:cloud:ibmcld_16464-3021-4769",
+        "mtrag:cloud:ibmcld_16507-7-2044",
+        "mtrag:cloud:ibmcld_16444-7-2064",
+        "mtrag:cloud:ibmcld_16507-1455-3632",
+        "mtrag:cloud:ibmcld_16421-9569-11455",
+        "mtrag:cloud:ibmcld_16444-8788-10719",
+        "mtrag:cloud:ibmcld_16563-3072-4738",
+        "mtrag:cloud:ibmcld_16507-9193-11335",
+        "mtrag:cloud:ibmcld_16563-4292-6145",
+        "mtrag:cloud:ibmcld_16442-1404-3155",
+        "mtrag:cloud:ibmcld_16505-1401-3102",
+        "mtrag:cloud:ibmcld_16464-4463-6317",
+        "mtrag:cloud:ibmcld_16485-9573-11619",
+        "mtrag:cloud:ibmcld_16507-5862-8152"
+      ],
+      "candidate": [
+        "mtrag:cloud:ibmcld_07082-7-2198",
+        "mtrag:cloud:ibmcld_07082-1735-3442",
+        "mtrag:cloud:ibmcld_03126-4-2343",
+        "mtrag:cloud:ibmcld_03126-5596-6966",
+        "mtrag:cloud:ibmcld_07035-1394-3153",
+        "mtrag:cloud:ibmcld_07035-2744-4721",
+        "mtrag:cloud:ibmcld_16507-3099-4772",
+        "mtrag:cloud:ibmcld_16444-3168-4952",
+        "mtrag:cloud:ibmcld_16444-1600-3658",
+        "mtrag:cloud:ibmcld_16444-7346-9136",
+        "mtrag:cloud:ibmcld_16421-12667-13618",
+        "mtrag:cloud:ibmcld_16507-10816-12778",
+        "mtrag:cloud:ibmcld_16464-3021-4769",
+        "mtrag:cloud:ibmcld_16507-7-2044",
+        "mtrag:cloud:ibmcld_16444-7-2064",
+        "mtrag:cloud:ibmcld_16507-1455-3632",
+        "mtrag:cloud:ibmcld_16421-9569-11455",
+        "mtrag:cloud:ibmcld_16444-8788-10719",
+        "mtrag:cloud:ibmcld_16563-3072-4738",
+        "mtrag:cloud:ibmcld_16507-9193-11335"
+      ],
+      "parent_trace": [
+        {
+          "parent": "mtrag:cloud:ibmcld_07082",
+          "pool_size": 8,
+          "chosen": [
+            "mtrag:cloud:ibmcld_07082-7-2198",
+            "mtrag:cloud:ibmcld_07082-1735-3442"
+          ],
+          "gold_local_ranks": {}
+        },
+        {
+          "parent": "mtrag:cloud:ibmcld_03126",
+          "pool_size": 4,
+          "chosen": [
+            "mtrag:cloud:ibmcld_03126-4-2343",
+            "mtrag:cloud:ibmcld_03126-5596-6966"
+          ],
+          "gold_local_ranks": {}
+        },
+        {
+          "parent": "mtrag:cloud:ibmcld_07035",
+          "pool_size": 7,
+          "chosen": [
+            "mtrag:cloud:ibmcld_07035-1394-3153",
+            "mtrag:cloud:ibmcld_07035-2744-4721"
+          ],
+          "gold_local_ranks": {}
+        }
+      ],
+      "baseline_recall": 0.75,
+      "candidate_recall": 0.75,
+      "rescued": [],
+      "lost": []
+    }
+  ]
+}

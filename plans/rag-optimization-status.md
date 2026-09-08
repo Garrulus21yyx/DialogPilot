@@ -242,3 +242,9 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 - R02官方映射预注册：下载同锁定revision的四域document_level，按官方document_id/_id匹配passage的末尾起止偏移，要求父ID实际存在且父正文[start:end]逐字等于passage正文；身份猜测不算成功。全非空语料审核成功/缺父/偏移不符，保存SHA与计数；ClapNQ官方document粒度不自动等同整篇Wikipedia。API0/模型0，先建立可靠映射再重算32开发题父级机会。
 
 - R02官方映射完成：365323/366438非空片段通过官方父ID+严格正文转换，1115未解释（Clap225/Govt890）不入映射。Cloud72439/FiQA60984全通过；连续空格规范化解释多数offset差异，不能当原始偏移。开发28个漏gold均有验证父，仍仅4个父进Top20、0个前三，未测父级策略收益。API0；原切片/加标题中间报告保留。一次null标题修正、一次重复规范化主动中断改缓存后完成；无模型任务遗留。见document-mapping报告。下一项Cloud可靠映射下独立父定位与child对照，非直接Top3扩父。
+
+- R02 Cloud父定位预注册：既有8个Cloud开发query、8578官方父文档全文，使用同tokenizer/BM25(k1=1.2,b=.75)，父级Top3/Top20；对照Dense和BM25 child Top20按验证父ID首次出现去重的父排名。报告父qrel宏Recall/MRR、逐题救回误伤和原遗漏passage对应父覆盖；gold只用于评分。API/embedding0。父Top3不能超过两种已有父投影中的最佳结果则不进入该方案child/生成实验；这不代表其他父检索方法无效。
+
+- R02 Cloud父BM25结果：父Recall3 Dense-child投影50.00→独立父BM25 54.17%，2改善/1下降；父Recall20 70.83→68.75，MRR下降。web chat漏gold父到3、语言支持漏gold父到1。仅开发8题，允许下一步定位验证不采用。续预注册：固定父Top3，每父局部BM25取2片段（最多6），保留其后用原Dense Top20补齐最终20；不扩预算、不改query。记录候选passage Recall和被挤掉gold；有候选净收益才进入CE，最终采用仍需可见证据收益。
+
+- R02 Cloud父/child完成：父Recall3 50→54.17%，父Recall20/MRR下降；局部固定每父2条+全局Dense补齐20，passage候选Recall20 55.21→61.46%，1提高/0下降。救回1be662一gold；语言支持/web chat gold父内仍23/14，目标失败未闭环。API/embedding0。见cloud-parent8报告；下一项固定候选本地CE/pack验证唯一救回及排序误伤，未采用、未运行heldout。
