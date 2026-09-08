@@ -1,6 +1,8 @@
 """Conversation-level decisions about stopped domain work, not tool retries."""
 from __future__ import annotations
 
+from dataclasses import asdict
+
 from application.agent_result import AgentResultStatus, MissingInputSpec
 from application.work_item import ControlMode
 
@@ -46,6 +48,48 @@ def recovery_schema():
 def failure_feedback(result):
     """Read the execution-owned diagnostic record, not a compressed chat view."""
     return list(result.execution_feedback)
+
+
+def recovery_payload(plan, board, candidates, *, current_message, conversation_context):
+    """Preserve decision evidence without copying the domain's working transcript."""
+    items = {item.work_item_id: item for item in plan.items}
+
+    def outcome(item, result):
+        identity = {"work_item_id": item.work_item_id, "owner_agent": item.owner_agent,
+            "control": asdict(item.control) if item.control else None,
+            "objective": item.objective}
+        if result is None:
+            return {**identity, "status": None}
+        return {
+            **identity, "status": result.status.value,
+            "reason_code": result.reason_code,
+            "retained_facts": [{**asdict(fact), "observed_at": fact.observed_at.isoformat(),
+                "valid_until": fact.valid_until.isoformat() if fact.valid_until else None,
+                "observation_started_at": fact.observation_started_at.isoformat()
+                    if fact.observation_started_at else None} for fact in result.facts],
+            "action_receipts": [asdict(receipt) for receipt in result.action_receipts],
+            "retained_evidence_refs": list(result.evidence_refs),
+            "pending_action": ({"action_ref": result.pending_action.action_ref,
+                "arguments": {arg.name: arg.value for arg in result.pending_action.arguments},
+                "status": "AWAITING_APPROVAL_NOT_EXECUTED"} if result.pending_action else None),
+        }
+
+    current = {(items[result.work_item_id].control, result.work_item_id) for result in candidates}
+    return {"current_message": current_message, "conversation_context": conversation_context,
+        "stopped_tasks": [{
+            **outcome(items[result.work_item_id], result),
+            "accepted_arguments": {arg.name: arg.value for arg in items[result.work_item_id].arguments},
+            "allowed_capabilities": {"tools": list(items[result.work_item_id].allowed_tools),
+                "skills": list(items[result.work_item_id].allowed_skills),
+                "actions": list(items[result.work_item_id].allowed_actions)},
+            "dependencies": list(items[result.work_item_id].dependencies),
+            "retryable": result.retryable,
+            "domain_explanation": result.candidate_response,
+            "execution_feedback": failure_feedback(result),
+            "unresolved_evidence": [asdict(request) for request in result.requested_evidence],
+        } for result in candidates],
+        "other_outcomes": [outcome(item, result) for item, result in board.outcome_items
+            if (item.control, item.work_item_id) not in current]}
 
 
 def recovery_questions(raw, candidates):

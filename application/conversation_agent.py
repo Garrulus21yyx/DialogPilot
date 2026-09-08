@@ -157,7 +157,7 @@ class ConversationPlanningProvider(Protocol):
 class ConversationAgent:
     """Plan one deferred turn, then compile only Registry-backed commands."""
 
-    version = "conversation-agent-plan-v7-resume-candidates"
+    version = "conversation-agent-v8-recovery-evidence"
 
     def __init__(
         self,
@@ -179,32 +179,12 @@ class ConversationAgent:
 
     async def recover(self, plan, board, *, current_message, conversation_context=None):
         """One bounded hand-back after domain exhaustion; never authorize/retry writes."""
-        from application.work_recovery import recovery_candidates, failure_feedback, recovery_questions
+        from application.work_recovery import recovery_candidates, recovery_payload, recovery_questions
         candidates = recovery_candidates(plan, board)
         if not candidates:
             return ()
-        items = {item.work_item_id: item for item in plan.items}
-        payload = {"current_message": current_message,
-            "conversation_context": conversation_context,
-            "stopped_tasks": [{
-                "work_item_id": result.work_item_id,
-                "objective": items[result.work_item_id].objective,
-                "owner_agent": result.owner_agent,
-                "status": result.status.value, "reason_code": result.reason_code,
-                "retryable": result.retryable,
-                "domain_explanation": result.candidate_response,
-                "execution_feedback": failure_feedback(result),
-                "unresolved_evidence": [{"requirement_id": request.requirement_id,
-                    "preferred_providers": list(request.preferred_providers)}
-                    for request in result.requested_evidence],
-                "retained_evidence_refs": list(result.evidence_refs),
-                "retained_facts": [{"requirement_id": fact.requirement_id,
-                    "value_json": fact.value_json, "source_ref": fact.source_ref}
-                    for fact in result.facts],
-                "completed_receipt_ids": [receipt.receipt_id for receipt in result.action_receipts],
-            } for result in candidates],
-            "other_outcomes": [{"work_item_id": result.work_item_id, "status": result.status.value}
-                for result in board.results if result not in candidates]}
+        payload = recovery_payload(plan, board, candidates, current_message=current_message,
+            conversation_context=conversation_context)
         try:
             fitted = self._context_budget.fit_payload(payload)
             raw = await self._provider.recover(fitted.payload)

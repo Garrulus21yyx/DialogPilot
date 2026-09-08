@@ -69,10 +69,73 @@ def test_recovery_uses_the_existing_provider_transport_with_its_own_bounded_sche
                       name="submit_work_recovery")
     provider = AnthropicConversationPlanningProvider(scripted,
         model_profile=ModelProfile("test"), synthesis_profile=ModelProfile("test"))
+    from infrastructure.target_domain_outcome import ACTION_INTERACTION_CONTRACT
+    observed_system = []
+    complete = provider._complete
+    async def capture(payload, role, system, **kwargs):
+        observed_system.append(system)
+        return await complete(payload, role, system, **kwargs)
+    provider._complete = capture
     raw = asyncio.run(provider.recover({"stopped_tasks": [{"work_item_id": "work"}]}))
     assert raw["decisions"][0]["action"] == "finish"
     assert scripted[ModelRole.INTENT].bound_tool_names == ["submit_work_recovery"]
     assert scripted[ModelRole.INTENT].calls == 1
+    assert ACTION_INTERACTION_CONTRACT in observed_system[0]
+
+
+@pytest.mark.parametrize("effect_status", ["SUCCEEDED", "FAILED", "OUTCOME_UNKNOWN"])
+def test_recovery_context_preserves_parameters_receipt_state_and_dependency_evidence(effect_status):
+    from dataclasses import replace
+    from datetime import datetime, timezone
+    from application.agent_result import FactRecord, FactSourceKind, ReceiptRef
+    from application.work_recovery import recovery_candidates, recovery_payload
+    from tests.test_parameter_acceptance import accepted_work
+
+    _, _, item, _ = accepted_work(CommandKind.DELEGATE_TASK)
+    item = replace(item, dependencies=("dependency",))
+    timestamp = datetime.now(timezone.utc)
+    fact = FactRecord("order:A", "order.current_state", '{"status":"pending"}',
+        FactSourceKind.VERIFIED_STATE, "receipt:read", "order_lookup", "v1", timestamp)
+    receipt = ReceiptRef("receipt:action", "v1", "op-1", effect_status, "order.change")
+    stopped = AgentResult(item.work_item_id, item.owner_agent, AgentResultStatus.BLOCKED,
+        "STOPPED", "test", facts=(fact,), action_receipts=(receipt,))
+    dependency = AgentResult("dependency", item.owner_agent, AgentResultStatus.SUCCEEDED,
+        "DONE", "test", facts=(fact,), action_receipts=(receipt,))
+    dependency_item = replace(item, work_item_id="dependency", dependencies=())
+    # A retained result may reuse a local ID from another invocation/control.
+    historical = replace(item, control=replace(item.control, control_id="historical-control"))
+    historical_result = replace(dependency, work_item_id=item.work_item_id)
+    from tests.test_write_workflow import _item as write_item
+    prepared = write_item()
+    approval_item = replace(item, work_item_id="approval", owner_agent=prepared.owner_agent,
+        control=replace(item.control, control_id="approval-control"))
+    waiting = AgentResult("approval", prepared.owner_agent, AgentResultStatus.WAITING_APPROVAL,
+        "PREPARED", "test", pending_action=prepared)
+    plan, board = SimpleNamespace(items=(item,)), SimpleNamespace(results=(stopped, dependency),
+        outcome_items=((item, stopped), (dependency_item, dependency), (historical, historical_result),
+                       (approval_item, waiting)))
+    candidates = recovery_candidates(plan, board)
+    if effect_status == "OUTCOME_UNKNOWN":
+        assert not candidates  # Reconciliation cannot be turned into user input.
+        return
+    payload = recovery_payload(plan, board, candidates, current_message="Help",
+        conversation_context={"recent_messages": ["Only inspect; do not change it"]})
+    projected = json.loads(json.dumps(payload))  # Actual provider transport must accept it.
+    task, = projected["stopped_tasks"]
+    assert task["accepted_arguments"] == {"order_id": "DP1111"}
+    assert task["allowed_capabilities"]["tools"] == list(item.allowed_tools)
+    assert task["dependencies"] == ["dependency"]
+    assert task["action_receipts"][0]["effect_status"] == effect_status
+    assert "completed_receipt_ids" not in task
+    assert task["retained_facts"][0]["subject_ref"] == "order:A"
+    assert task["retained_facts"][0]["observed_at"] == timestamp.isoformat()
+    assert task["retained_facts"][0]["source_kind"] == "VERIFIED_STATE"
+    assert projected["other_outcomes"][0]["action_receipts"] == task["action_receipts"]
+    assert projected["other_outcomes"][1]["control"]["control_id"] == "historical-control"
+    assert projected["other_outcomes"][1]["work_item_id"] == item.work_item_id
+    pending = projected["other_outcomes"][2]["pending_action"]
+    assert pending["action_ref"] == prepared.action_ref
+    assert pending["status"] == "AWAITING_APPROVAL_NOT_EXECUTED"
 
 
 def _setup(worker, *, provider=None, store=None, checkpointer=None):
