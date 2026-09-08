@@ -1,0 +1,126 @@
+{
+  "source_sha256": "92e224b45dbc7e6ae2d6411bba4122bc8f5b119264562b77f8fc96f6a15e6f8e",
+  "scope": "Synthetic role-alternating augmentation plus immutable v1 development data; not independent gold",
+  "splits": {
+    "zh/train": {
+      "count": 11536,
+      "base_sha256": "efb339cf8784b0375bcdba4b8150d13c2ac8aed2145d75a710c74d58f87401c7",
+      "sha256": "48e26b52c466df3779369eedb8ddbe65e72661a5e073936dacaa59a3378bc747",
+      "history_lengths": {
+        "0": 6276,
+        "1": 1777,
+        "2": 1179,
+        "4": 1152,
+        "6": 1152
+      },
+      "relations": {
+        "v1": 8053,
+        "continuation": 96,
+        "withdrawal": 72,
+        "replacement": 1656,
+        "addition": 1656,
+        "unresolved_reference": 3
+      }
+    },
+    "zh/calibration": {
+      "count": 1479,
+      "base_sha256": "1cea1ffa259f059283603dcc2f874efb605e6358507942c603f685f660a8b939",
+      "sha256": "ebdc2691520e04990a5facd16b44008373869dcb221a7167e4c63157af1d9b83",
+      "history_lengths": {
+        "0": 876,
+        "1": 301,
+        "2": 110,
+        "4": 96,
+        "6": 96
+      },
+      "relations": {
+        "v1": 1177,
+        "continuation": 24,
+        "withdrawal": 12,
+        "replacement": 132,
+        "addition": 132,
+        "unresolved_reference": 2
+      }
+    },
+    "zh/heldout": {
+      "count": 1196,
+      "base_sha256": "048217f1a4d22943e9d238fd53783931645ced2aaf48e5e7e3575782d06d1545",
+      "sha256": "c97cb066a1d83c771b21d6aac796e1e892eca83e7cf9d400d4b9c1013c02aa03",
+      "history_lengths": {
+        "0": 680,
+        "1": 214,
+        "2": 110,
+        "4": 96,
+        "6": 96
+      },
+      "relations": {
+        "v1": 894,
+        "continuation": 24,
+        "withdrawal": 12,
+        "replacement": 132,
+        "addition": 132,
+        "unresolved_reference": 2
+      }
+    },
+    "en/train": {
+      "count": 12571,
+      "base_sha256": "c5e815ca606e9897245ed36ca49943d3f9c9e45198297bbcac75f9ca907494f4",
+      "sha256": "30f308f52b0899f1e56fd7286a4e7381ca2bc92cb24d11e479421387cac8e85b",
+      "history_lengths": {
+        "0": 7466,
+        "1": 1622,
+        "2": 1179,
+        "4": 1152,
+        "6": 1152
+      },
+      "relations": {
+        "v1": 9088,
+        "continuation": 96,
+        "withdrawal": 72,
+        "replacement": 1656,
+        "addition": 1656,
+        "unresolved_reference": 3
+      }
+    },
+    "en/calibration": {
+      "count": 1991,
+      "base_sha256": "eb48302a448073b115315a478d3012b57b20807f2fe59b6f815005e4ba8cd5a1",
+      "sha256": "0b730fc48371073b2b1d672c397a23a2187529fe5fbb89456319371f4112f831",
+      "history_lengths": {
+        "0": 1283,
+        "1": 406,
+        "2": 110,
+        "4": 96,
+        "6": 96
+      },
+      "relations": {
+        "v1": 1689,
+        "continuation": 24,
+        "withdrawal": 12,
+        "replacement": 132,
+        "addition": 132,
+        "unresolved_reference": 2
+      }
+    },
+    "en/heldout": {
+      "count": 1563,
+      "base_sha256": "b7391a5cedef829a979802b6fc163d38d4f7e924ef6d73c32afa802a61745771",
+      "sha256": "4d1ce79252e8bc14de4950885b077271b0f53cde69895d93f53c536f7a9b0230",
+      "history_lengths": {
+        "0": 1057,
+        "1": 204,
+        "2": 110,
+        "4": 96,
+        "6": 96
+      },
+      "relations": {
+        "v1": 1261,
+        "continuation": 24,
+        "withdrawal": 12,
+        "replacement": 132,
+        "addition": 132,
+        "unresolved_reference": 2
+      }
+    }
+  }
+}

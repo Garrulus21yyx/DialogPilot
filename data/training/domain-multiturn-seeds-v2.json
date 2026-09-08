@@ -1,0 +1,349 @@
+{
+  "scope": "Authored synthetic conversations, not customer records. Splits own separate scenario and expression banks.",
+  "scenarios": {
+    "zh": {
+      "train": {
+        "general": [
+          "你好，想了解这里能提供哪些帮助。",
+          "你是客服助手吗，可以处理什么问题？",
+          "你能通过哪些方式协助我处理问题？",
+          "请介绍一下这个客服入口的用途。"
+        ],
+        "product_technical": [
+          "这款音箱支持同时连接两台设备吗？",
+          "洗衣机出现异常震动，该怎么排查？",
+          "这把椅子的靠背能调整角度吗？",
+          "不同版本的平板有哪些配置差别？"
+        ],
+        "order_logistics": [
+          "订单还没出库，可以修改收件地址吗？",
+          "快递一直停在分拣中心，请查下进度。",
+          "购买的三件商品会分几个包裹发出？",
+          "我下单时选错数量，想取消这笔订单。"
+        ],
+        "billing_refund": [
+          "付款被扣了两次，能核查一下吗？",
+          "这双鞋不合脚，想了解换货条件。",
+          "电子发票的抬头有误，能重新开吗？",
+          "寄回商品后，退款通常多久完成？"
+        ],
+        "account_security": [
+          "我收不到登录验证码，怎么处理？",
+          "账户出现陌生设备登录，请帮忙排查。",
+          "旧手机号已注销，如何恢复账号访问？",
+          "有人修改了我的密码，如何保护账户？"
+        ],
+        "human_service": [
+          "请把我转给人工客服。",
+          "我要投诉这次客服的处理方式。",
+          "之前提交的投诉工单现在由谁负责？",
+          "我希望让主管接手这个服务问题。"
+        ]
+      },
+      "calibration": {
+        "general": [
+          "第一次来，请讲讲你能帮我什么。",
+          "请说明这个助手有哪些服务限制。"
+        ],
+        "product_technical": [
+          "这台显示器能竖屏使用吗？",
+          "空气净化器滤芯多久换一次？"
+        ],
+        "order_logistics": [
+          "我的货到了哪里，预计哪天送到？",
+          "现在能将订单里的配送时间改到周末吗？"
+        ],
+        "billing_refund": [
+          "购买后想退回商品，需要哪些手续？",
+          "这笔账单的税额为什么与预期不同？"
+        ],
+        "account_security": [
+          "登录页面提示账号锁定，怎么办？",
+          "能查看最近是谁登录过我的账号吗？"
+        ],
+        "human_service": [
+          "能安排一位真人坐席和我交流吗？",
+          "查询一下我的服务申诉有没有回复。"
+        ]
+      },
+      "heldout": {
+        "general": [
+          "这里支持哪些类型的售前售后咨询？",
+          "先告诉我你可以协助哪些事情。"
+        ],
+        "product_technical": [
+          "这个相机电池可以单独充电吗？",
+          "吸尘器吸力下降，应该检查什么？"
+        ],
+        "order_logistics": [
+          "仓库是否已经把我的订单交给承运人？",
+          "配送能否改为自提？"
+        ],
+        "billing_refund": [
+          "已经退回的货，什么时候原路返款？",
+          "我需要把付款凭证改成公司发票。"
+        ],
+        "account_security": [
+          "重置密码的链接失效了，怎么重新获取？",
+          "请帮我确认这个安全提醒是否属于我的账号。"
+        ],
+        "human_service": [
+          "我不想继续自动服务，请接人工。",
+          "投诉已经受理了，能查处理进展吗？"
+        ]
+      }
+    },
+    "en": {
+      "train": {
+        "general": [
+          "Hi, what kind of assistance is available here?",
+          "Could you introduce what this support assistant can do?",
+          "What are the limits of the assistance you provide?",
+          "Hello there. Are you the customer support assistant?"
+        ],
+        "product_technical": [
+          "Can this keyboard pair with two computers?",
+          "How can I clean the coffee grinder safely?",
+          "Does the desk lamp have a replaceable bulb?",
+          "Which features differ between the two camera editions?"
+        ],
+        "order_logistics": [
+          "Can I correct the shipping street before dispatch?",
+          "Please trace my package; tracking has stopped updating.",
+          "Will the items in my purchase ship together?",
+          "I placed a duplicate order and want to cancel one."
+        ],
+        "billing_refund": [
+          "Why was my card billed twice for one purchase?",
+          "I need to exchange these gloves for a different size.",
+          "Can the invoice be issued in my company name?",
+          "How long does reimbursement take after a return?"
+        ],
+        "account_security": [
+          "I'm not receiving the sign-in verification code.",
+          "There is an unfamiliar device in my account history.",
+          "My old phone is gone; how can I regain account access?",
+          "Someone changed my password without permission."
+        ],
+        "human_service": [
+          "Please connect me with a human support representative.",
+          "I want to complain about how support handled my case.",
+          "Who is assigned to the complaint ticket I opened?",
+          "Could a service supervisor take over this discussion?"
+        ]
+      },
+      "calibration": {
+        "general": [
+          "Good afternoon, is there anything you can help me with?",
+          "Could you describe how to use this support chat?"
+        ],
+        "product_technical": [
+          "Is this router compatible with a fibre connection?",
+          "What is the recommended way to wash this jacket?"
+        ],
+        "order_logistics": [
+          "Has my purchase left the fulfilment centre yet?",
+          "Could the delivery be rescheduled for next week?"
+        ],
+        "billing_refund": [
+          "What are the conditions for returning a used item?",
+          "Why does the tax on this bill look incorrect?"
+        ],
+        "account_security": [
+          "My profile is locked and I cannot sign in.",
+          "Can I inspect the recent login sessions on my account?"
+        ],
+        "human_service": [
+          "I need to speak with a live adviser.",
+          "Has anyone responded to my service complaint?"
+        ]
+      },
+      "heldout": {
+        "general": [
+          "Morning! Could you explain the purpose of this chat?",
+          "Which kinds of customer requests can you handle here?"
+        ],
+        "product_technical": [
+          "Can I replace the battery in this wireless mouse?",
+          "The fan is unusually loud. What should I check?"
+        ],
+        "order_logistics": [
+          "Where is the shipment, and what is its arrival date?",
+          "Is collecting my package at a pickup point possible?"
+        ],
+        "billing_refund": [
+          "When will the money for my returned item reach my card?",
+          "I need a VAT invoice rather than a payment receipt."
+        ],
+        "account_security": [
+          "The password recovery email has an expired link.",
+          "Is this suspicious sign-in alert associated with my profile?"
+        ],
+        "human_service": [
+          "I'd prefer a person to handle this request.",
+          "What progress has been made on my escalation ticket?"
+        ]
+      }
+    }
+  },
+  "expressions": {
+    "zh": {
+      "train": {
+        "continue": [
+          "是，请继续说明。",
+          "对，就这个问题。",
+          "先解释规则，不要替我办理。",
+          "没错，我想知道具体情况。"
+        ],
+        "withdraw": [
+          "先不用了，这件事到此为止。",
+          "取消刚才的请求，暂时不办别的。",
+          "我不想继续这个问题了。"
+        ],
+        "replace": [
+          "前面的事不管了。{next}",
+          "不用处理刚才那个，改问：{next}",
+          "之前的问题已经解决，现在只需要：{next}"
+        ],
+        "add": [
+          "这个也要处理，另外：{next}",
+          "保留刚才的问题，同时{next}",
+          "还有一件要一起问：{next}"
+        ],
+        "question": [
+          "需要我继续解释这件事吗？",
+          "你是想进一步了解这个问题吗？",
+          "关于刚才的问题，要我接着说明吗？"
+        ],
+        "unknown": [
+          "就那个。",
+          "照以前说的办。",
+          "还是一样。"
+        ]
+      },
+      "calibration": {
+        "continue": [
+          "嗯，继续说这个。",
+          "正是这件事，先讲清楚。"
+        ],
+        "withdraw": [
+          "我改变主意了，刚才那件事不需要处理。"
+        ],
+        "replace": [
+          "先前说的已经没事了，接下来{next}"
+        ],
+        "add": [
+          "前一件仍然需要协助，另请{next}"
+        ],
+        "question": [
+          "要继续了解你提到的事情吗？"
+        ],
+        "unknown": [
+          "那一笔怎么样了？",
+          "按老办法来。"
+        ]
+      },
+      "heldout": {
+        "continue": [
+          "就是我刚提到的事，请往下讲。",
+          "是的，给我解释即可。"
+        ],
+        "withdraw": [
+          "刚刚提的事情作罢，没有其他要求。"
+        ],
+        "replace": [
+          "原来的问题不用跟进了，换个问题：{next}"
+        ],
+        "add": [
+          "别漏掉上一个问题，再帮我看：{next}"
+        ],
+        "question": [
+          "你希望详细了解这一项吗？"
+        ],
+        "unknown": [
+          "这个还行吗？",
+          "就上次选的那个。"
+        ]
+      }
+    },
+    "en": {
+      "train": {
+        "continue": [
+          "Yes, please explain that.",
+          "Exactly, that's what I mean.",
+          "Just explain it; don't submit anything.",
+          "Right, tell me more about this."
+        ],
+        "withdraw": [
+          "Never mind that request. I don't need anything else.",
+          "Drop what I just asked; I'm done for now.",
+          "I no longer want to pursue this."
+        ],
+        "replace": [
+          "Forget the earlier request. {next}",
+          "That issue is sorted; now I only need this: {next}",
+          "Don't work on the previous item. Instead, {next}"
+        ],
+        "add": [
+          "Keep the previous request, and also: {next}",
+          "I still need that handled. In addition, {next}",
+          "Please address both that issue and this: {next}"
+        ],
+        "question": [
+          "Would you like me to explain that further?",
+          "Should I go into more detail about your question?",
+          "Do you want to continue with that topic?"
+        ],
+        "unknown": [
+          "The same one.",
+          "Do what we discussed before.",
+          "What about it?"
+        ]
+      },
+      "calibration": {
+        "continue": [
+          "Correct, please elaborate.",
+          "Yes, go ahead with the explanation."
+        ],
+        "withdraw": [
+          "I've changed my mind; nothing needs doing now."
+        ],
+        "replace": [
+          "The previous matter no longer needs attention. My new question is: {next}"
+        ],
+        "add": [
+          "That earlier matter is still open. Could you also help with this? {next}"
+        ],
+        "question": [
+          "Shall I provide more information on that issue?"
+        ],
+        "unknown": [
+          "Use the usual one.",
+          "How is that going?"
+        ]
+      },
+      "heldout": {
+        "continue": [
+          "That's the issue I was referring to. Please continue.",
+          "Yes, information only, please."
+        ],
+        "withdraw": [
+          "Withdraw my last request; there is no replacement task."
+        ],
+        "replace": [
+          "Leave the old topic aside. Here's what I need instead: {next}"
+        ],
+        "add": [
+          "Please don't drop the earlier request. One more thing: {next}"
+        ],
+        "question": [
+          "Would further details about your request help?"
+        ],
+        "unknown": [
+          "That one again.",
+          "Is the earlier one all right?"
+        ]
+      }
+    }
+  }
+}

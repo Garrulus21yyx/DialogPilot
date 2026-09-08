@@ -50,7 +50,8 @@ async def evaluate(rows, artifacts, *, device="cuda"):
         details.append({"case_id": row["case_id"], "language": row["language"], "expected": row["label"],
             "accepted": decision.accepted, "owner": owner, "correct": owner == row["label"] and error is None,
             "reason": decision.reason_code, "contextual": bool(row.get("messages")), "encoder_ms": latency,
-            "planner_calls": planner.calls, "error": error})
+            "planner_calls": planner.calls, "error": error,
+            "relation": row.get("relation", "unlabelled"), "history_length": len(row.get("messages", ()))})
     summary = {}
     for language in encoders:
         values = [r for r in details if r["language"] == language]
@@ -63,6 +64,12 @@ async def evaluate(rows, artifacts, *, device="cuda"):
             "contextual_accepted": sum(r["contextual"] for r in accepted),
             "false_accepts": [r["case_id"] for r in accepted if not r["correct"]],
             "encoder_median_ms": statistics.median(times), "encoder_p95_ms": times[min(len(times)-1, int(len(times)*.95))]}
+        for field in ("relation", "history_length"):
+            summary[language]["by_" + field] = {
+                str(key): {"total": sum(r[field] == key for r in values),
+                           "accepted": sum(r[field] == key and r["accepted"] for r in values),
+                           "correct": sum(r[field] == key and r["accepted"] and r["correct"] for r in values)}
+                for key in sorted({r[field] for r in values})}
     return {"scope": "Actual domain encoder, cascade, Policy and WorkPlan compiler; no tool/LLM task execution. Empty task state; planner is counting stub.",
             "device": device, "summary": summary, "details": details}
 
