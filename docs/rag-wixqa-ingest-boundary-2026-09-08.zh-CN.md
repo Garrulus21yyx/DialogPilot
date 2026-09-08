@@ -1,0 +1,16 @@
+# WixQA 全库导入预检与预算边界
+
+零API、零模型、无数据库写入。复用生产SourceDocument、SourceRevision、PostgresKnowledgeStore._chunks和预算校验方法，完整6221篇拆成11167片段。显式fixed512/64时全部来源坐标和检索文本与已完成缓存一致，可以按完整检索文本身份复用向量；未使用hash向量，默认测试provider仅贡献不发布的结构generation ID。
+
+25个每批最多256文章的输入批次均通过来源字节和chunk预算，每批120～506片段。将完整11167个片段传入当前累计检查，抛OFFLINE_INGEST_BUDGET_EXHAUSTED，chunks=11167超过4096。
+
+机制：import_documents先把incoming合并进current，再_chunks(sources)重建全代，随后_validate_chunk_budget(chunks)使用max_chunks_per_batch。来源数/字节却按incoming校验。相同OfflineIngestBudget的维度在两个不同集合上使用，导致“分批导入”无法越过累计4096。此为代码方法预检，不宣称实际PG已导入或数据库失败轨迹。
+
+最小相干修复方向（未实施）：
+
+1. 导入owner定义批次资源作用于本次新增/受影响来源，独立说明完整generation构建的容量合同；不得直接把4096改成更大数字或在评估adapter绕过。
+2. 检查缓存命中后的实际新embedding工作量；既有max_embedding_tokens_per_batch目前仅配置定义，调用面搜索未见执行校验。预算失败应发生在发布前并保留原有效代。
+3. 迁移幂等重导、修订、撤回、缓存缺失重建路径的同一语义；全代manifest、projection与activation仍保持一致。当前全代重建成本不能因改校验而忽略。
+4. 验证累计超过单批限制仍支持合法小批增量、单批超限拒绝、重复导入不重复embedding、失败不切换有效代。使用参数化缩小限制的属性测试及真实PG多批集成验收，不能只验WixQA特例。
+
+下一项是导入owner合同和预算执行修复；完成后再接缓存provider和实际PG分路对照。全量语料保留、不恢复微调、不付费重跑答案。脚本scripts/audit_wixqa_ingest_preflight.py可复现本次全部检查。

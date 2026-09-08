@@ -1,0 +1,42 @@
+{
+  "articles": 6221,
+  "chunks": 11167,
+  "batch_chunks": [
+    439,
+    463,
+    476,
+    446,
+    497,
+    434,
+    434,
+    427,
+    457,
+    481,
+    481,
+    454,
+    473,
+    486,
+    429,
+    506,
+    422,
+    491,
+    486,
+    412,
+    502,
+    460,
+    472,
+    419,
+    120
+  ],
+  "all_incoming_batches_pass": true,
+  "same_production_retrieval_text": true,
+  "cumulative_generation_check": {
+    "code": "OFFLINE_INGEST_BUDGET_EXHAUSTED",
+    "dimension": "chunks",
+    "observed": 11167,
+    "limit": 4096
+  },
+  "api_calls": 0,
+  "model_calls": 0,
+  "scope": "Production chunk and budget methods, no database import; default hash provider only contributes an unused structural generation ID, no vectors created."
+}
