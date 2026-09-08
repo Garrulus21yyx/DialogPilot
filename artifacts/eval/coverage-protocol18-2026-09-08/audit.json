@@ -1,0 +1,61 @@
+{
+  "calls": 42,
+  "reports": {
+    "development.jsonl:baseline": {
+      "n": 6,
+      "protocol_errors": 0,
+      "incomplete_total": 3,
+      "semantic_omissions_detected": 0,
+      "incomplete_published": 3,
+      "valid_total": 3,
+      "valid_rejected_including_protocol": 0,
+      "unsupported_total": 0,
+      "unsupported_published": 0
+    },
+    "development.jsonl:candidate": {
+      "n": 6,
+      "protocol_errors": 1,
+      "incomplete_total": 3,
+      "semantic_omissions_detected": 0,
+      "incomplete_published": 2,
+      "valid_total": 3,
+      "valid_rejected_including_protocol": 0,
+      "unsupported_total": 0,
+      "unsupported_published": 0
+    },
+    "new_validation.jsonl:baseline": {
+      "n": 12,
+      "protocol_errors": 0,
+      "incomplete_total": 3,
+      "semantic_omissions_detected": 1,
+      "incomplete_published": 2,
+      "valid_total": 7,
+      "valid_rejected_including_protocol": 0,
+      "unsupported_total": 2,
+      "unsupported_published": 0
+    },
+    "new_validation.jsonl:candidate": {
+      "n": 12,
+      "protocol_errors": 5,
+      "incomplete_total": 3,
+      "semantic_omissions_detected": 0,
+      "incomplete_published": 2,
+      "valid_total": 7,
+      "valid_rejected_including_protocol": 3,
+      "unsupported_total": 2,
+      "unsupported_published": 0
+    },
+    "pro-development.jsonl:pro_candidate": {
+      "n": 6,
+      "protocol_errors": 0,
+      "incomplete_total": 3,
+      "semantic_omissions_detected": 1,
+      "incomplete_published": 2,
+      "valid_total": 3,
+      "valid_rejected_including_protocol": 0,
+      "unsupported_total": 0,
+      "unsupported_published": 0
+    }
+  },
+  "adopt": false
+}
