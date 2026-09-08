@@ -53,5 +53,18 @@ trips equal. No migration of old receipts or automatic re-execution is added.
   fail; current working-tree rerun passed after that external migration advanced.
   Clean snapshot verification must exclude it and other unrelated edits.
 
+## Clean-snapshot checks
+- Implementation commit: 83a7c3c. Isolated worktree at that exact commit:
+  311 tests passed, zero skips, including PostgreSQL publication and restart.
+- Additional HTTP/approval/Run/benchmark set: 41 passed, one HTTP fixture failed.
+  Reproduced the same HTTP failure on pre-change a34102c: its scripted planner
+  ignored typed approvals and emitted a second business goal, leaving the
+  unknown-outcome scenario WAITING_APPROVAL rather than RECONCILING.
+- Migrated that test double to emit the current approval decision contract.
+  Decline assertion now checks its scripted not-submitted reply AND absence of
+  the denied order's write, retaining final CANCELLED-state assertions. No
+  production approval behavior was changed for this fixture.
+- Updated HTTP test passed. Final combined snapshot run remains before push.
+
 No keyword classification, new loop, engine fallback, Encoder change or real
 model benchmark in this work item. Prior two tasks remain recorded failures.

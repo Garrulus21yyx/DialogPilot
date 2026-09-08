@@ -281,6 +281,14 @@ class _ScenarioConversationProvider:
     def _response(self, payload):
         self.calls.append(payload)
         message = str(payload["message"])
+        pending = payload.get("pending_approval")
+        if pending is not None and pending.get("typed_decision") is not None:
+            # This fixture's approval utterances agree with its typed controls.
+            # Emulate the current planner contract, not a second business goal.
+            return {"status": "resolved", "approval_decision": {
+                "approval_id": pending["approval_id"],
+                "decision": "approve" if pending["typed_decision"] else "decline",
+            }}
         if message == "确认 RF3100 的退回进展":
             return {"status": "resolved", "goals": [{"kind": "refund_status", "order_id": "RF3100"}]}
         if "异常登录" in message or "账号被盗" in message:
@@ -749,7 +757,9 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
         assert stale_approval["code"] == "APPROVAL_SIGNAL_CONFLICT"
         assert changed_approval_replay["code"] == "IDEMPOTENCY_CONFLICT"
         assert cross_conversation_approval["code"] == "APPROVAL_SIGNAL_CONFLICT"
-        assert "未执行任何业务写入" in refund_declined["response"]
+        assert "尚未提交" in refund_declined["response"]
+        assert not any(name == "refund_request_create" and params.get("order_id") == "DP5678"
+                       for name, params, *_ in tools.calls)
         assert refund_unknown["outcome"] == "reconciling"
         assert cancel_precheck["outcome"] == "needs_input"
         cancel_calls = [item for item in tools.calls if item[0] == "order_cancel"]
