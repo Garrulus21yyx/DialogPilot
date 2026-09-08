@@ -4,6 +4,9 @@ title: 客服 RAG 生产化审计
 permalink: /customer-service-rag-production-audit/
 ---
 
+> 历史专题入口：本页保留当时的实现与实验口径，当前代码请以[2026-09-08架构手册]({{ '/architecture.html' | relative_url }})、[RAG选型与评测]({{ '/rag-study.html' | relative_url }})和[80个追问]({{ '/interview-guide.html' | relative_url }})为准。
+
+
 # 客服 RAG 生产化审计：从来源事实到可发布回答
 
 > 审计对象是当前分支的单一 PostgreSQL RAG 主链。本文中的“生产化”指生产责任与合同审计，不代表已有生产流量、SLA、Shadow/Canary、人工签署平台或生产发布结论。

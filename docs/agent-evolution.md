@@ -4,6 +4,9 @@ title: Agent 进化闭环
 permalink: /agent-evolution/
 ---
 
+> 历史专题入口：本页保留当时的实现与实验口径，当前代码请以[2026-09-08架构手册]({{ '/architecture.html' | relative_url }})、[RAG选型与评测]({{ '/rag-study.html' | relative_url }})和[80个追问]({{ '/interview-guide.html' | relative_url }})为准。
+
+
 # Agent 进化闭环：从 Bad Case 到可复现候选
 
 > 当前项目没有生产流量，也不保留已删除的 Shadow/Canary/promotion/rollback 运行时。这里的“进化”是受控离线工程闭环：绑定真实 response 与 trace，完成归因，生成不可变候选，在 Dev 上比较并用 fresh evidence 复核；是否替换本地 Active binding 是显式工程决定。

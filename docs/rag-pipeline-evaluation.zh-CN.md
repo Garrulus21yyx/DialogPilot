@@ -4,6 +4,9 @@ title: 客服 RAG 全链路评测
 permalink: /rag-pipeline-evaluation/
 ---
 
+> 历史专题入口：本页保留当时的实现与实验口径，当前代码请以[2026-09-08架构手册]({{ '/architecture.html' | relative_url }})、[RAG选型与评测]({{ '/rag-study.html' | relative_url }})和[80个追问]({{ '/interview-guide.html' | relative_url }})为准。
+
+
 # 客服 RAG 全链路评测：选择默认值，也保留失败实验
 
 > 本页区分两类事实：Doc2Dial 历史实验回答“为什么选择当前默认”，当前分支的 PostgreSQL Owner 测试与本地 `/chat` 报告回答“重构后链路是否仍满足合同”。已删除的旧 ablation 模块不再作为可运行入口。

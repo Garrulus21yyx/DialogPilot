@@ -1,15 +1,11 @@
-# GitHub Pages/Jekyll 的站点元数据与导航入口。
-title: DialogPilot 完整架构教程
-description: Python 多 Agent 客服后端的架构、链路、内部实现、改造记录与项目追问
+title: DialogPilot 架构与面试手册
+description: 最新源码调用链、80个详细追问、RAG离线在线与真实评测证据
 lang: zh-CN
 theme: minima
 markdown: kramdown
 header_pages:
-  # 面经校准页与完整教程分开，便于面试前按问题检索。
-  - interview-guide.md
   - architecture.md
+  - interview-guide.md
+  - rag-study.md
   - project-pitch.md
-  - agent-evolution.md
-  - evaluation-500.zh-CN.md
-  - rag-pipeline-evaluation.zh-CN.md
-  - customer-service-rag-production-audit.zh-CN.md
+  - handbook-evidence.md

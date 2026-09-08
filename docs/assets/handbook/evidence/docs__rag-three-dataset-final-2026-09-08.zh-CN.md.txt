@@ -1,0 +1,51 @@
+历史报告原文快照（2026-09-08）；以下为原文件内容，Liquid标记保留为文本。
+
+# RAG 三套数据优化与有限真实入口验收
+
+本轮交付完成：三套同权重检索对照、采用决定、有限真实Agent入口执行和统一结果记录。验收暴露的质量失败仍然存在，不能宣称整体RAG已通过上线验收。默认均衡融合已在代码采用，显式部署环境不会被自动覆盖。
+
+## 量化检索收益
+
+各路20、候选20、最终5/2600正文预算，本地BGE精排；各数据原有语料及标注粒度分别保持。
+
+| 数据 | 规模/单位 | 最终覆盖 .25→.5 | MRR@5 | nDCG@5 | 改善/退步 |
+|---|---|---|---|---|---|
+| Doc2Dial | 300开发题，完整证据case比例 | 66.33%→69.33% | .5644→.5854 | .5895→.6128 | 11/2 |
+| MTRAG | 35已消费测试题，官方片段 | 33.19%→44.14% | .4619→.5500 | .3365→.4312 | 10/2 |
+| WixQA | 20已消费测试题，文章 | 55%→67.5% | .4958→.5142 | .4939→.5330 | 4/1 |
+
+均衡方案三套方向一致，采用0.5/0.5为实用代码默认，不宣称统计上全面最优。MTRAG .5补测在已消费集上，Doc为开发，Wix只有20；不是新的三套盲测。三种覆盖不能平均成端到端准确率。
+
+## 真实入口结果（最终权重0.5）
+
+| 数据 | 范围/调用 | 实际结果 |
+|---|---|---|
+| Doc2Dial | 现有100文档开发库，2多轮题，5次Flash | Yes省略正确消解，保留检验有效期取早条件；模糊投诉返回中文通用澄清，不通过英文需求 |
+| MTRAG | 完整Cloud collection 72,439片段，2多轮题，8次Flash | weak understanding被错误改成上一轮配置告警，最终未回答术语；Discovery query问题给出有来源的性能/相关性改进，但官方qrel未命中 |
+| WixQA | 全6,221文章/11,167片段，4题，16次Flash（复用已完成结果） | 编辑网站、计费、类别管理主体内容有据；区块高度主步骤正确，附加元素/条带操作的区块适用性缺证据 |
+
+最终臂合计8题29次调用，MTRAG接线失败另6次；Doc和Wix未因汇总重跑。上述是作者开发诊断，不是独立盲评，不将Completed/verified计为正确答案，也不根据这一规模报告代表性p95或线上准确率。各次代码身份已保存，不能称同一冻结release的完整认证。
+
+MTRAG两题qrel候选/可见Recall均0。第一题是实际query主题偏移：完整历史已提供，但术语被上一轮告警覆盖。第二题检索到了其他相关文档，主要建议可由可见来源支持，因此qrel 0不能直接判整段回答错误；Performance dashboard不适用Premium/Dedicated的限制未在答复中交代，且“primary way”强度没有明确来源，应保留支持性边界而非宣称全对。以上失败不通过更换query或强制gold文档抹掉。
+
+## 入口与后端边界
+
+Doc2Dial/Wix实际PostgreSQL检索；MTRAG将全部Cloud缓存精确向量与BM25作为候选source，接入相同API knowledge handler、KnowledgeRetriever、真实Agent历史、Flash精排、打包、compose/verifier/publication。MTRAG运行状态在隔离PG，但候选检索不是PG/ANN，不能计为其性能或生产存储一致性证明。Cloud是原benchmark允许的Collection边界，与之前各domain检索一致，不是按gold缩库。
+
+本地参考source校验所有原文及向量分片hash，保留FP16推理原向量，不重新归一化。旧适配器generation字段遗漏导致6次失败，补全typed身份、API策略构造与来源测试后才重新执行；前置范数假设失败0API。所有失败保留。
+
+## 已落地与未验证范围
+
+已落地：导入批次预算归属、知识locale/collection范围、BM25执行计划、均衡融合默认；检索和证据传递的历史修复有各自测试。切块/parent/微调等未胜出方案不采用；没有为了刷数字新增策略。
+
+未全面验证：PDF/复杂表格解析；metadata导入更新撤回到最终引用的代表性端到端覆盖；生产并发负载；真实多轮query泛化；生成及核验的语义可靠性。现有8题的执行完成不关闭这些缺口，也不把它们移出原始RAG目标。
+
+## 可复现交付
+
+- 检索汇总：scripts/summarize_rag_three_datasets.py；报告rag-three-dataset-decision-2026-09-08.zh-CN.md。
+- Doc入口：scripts/run_wixqa_real_entry_pair.py --dataset doc2dial --weight 0.5 --output <新目录>。
+- MTRAG入口：scripts/run_mtrag_final_entry.py --output <新目录>；本地模型/语料缓存需存在且hash匹配，新隔离DB拒绝覆盖。
+- 审计：scripts/audit_doc2dial_final_entry.py、scripts/audit_mtrag_final_entry.py。
+- 最终汇总：scripts/summarize_rag_final_entry.py，产物rag-three-dataset-final-entry-2026-09-08/report.json。
+
+下一轮若继续优化，应首先处理已证实的最新问题被历史主题覆盖，以及生成附加结论的适用范围；继续以同案例实际query与可见证据评分，不回到无边界的单例核验实验。微调保持暂停。

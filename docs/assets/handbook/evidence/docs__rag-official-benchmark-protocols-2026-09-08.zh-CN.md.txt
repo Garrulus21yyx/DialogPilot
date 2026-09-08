@@ -1,0 +1,23 @@
+历史报告原文快照（2026-09-08）；以下为原文件内容，Liquid标记保留为文本。
+
+# 三套官方 benchmark 与项目指标的对应关系
+
+核对日期：2026-09-08。benchmark 是数据、任务与评分协议；leaderboard 是在特定协议下提交系统结果的排行榜，不能把不同榜单/论文表中的百分比直接比较。
+
+| 数据 | 官方如何做 | 本项目差异 |
+|---|---|---|
+| Doc2Dial / DialDoc21 | 对话历史＋本轮用户＋**已知关联文档**，预测 grounding span；以 EM/F1 评分。生成子任务以 sacreBLEU/人工评估评分 | 我们搜索整个语料，计算所有必要 span 的完整覆盖，不是官方给定文档的 EM/F1 |
+| 原始 MTRAG | 对应领域语料，比较最后一句与上下文重写；相关 passage ID 为标注，计算 Recall/nDCG@1/3/5/10。只对有参考片段的可回答/部分可回答任务评检索 | 当前抽取100条已消费开发题，用BGE-M3＋BM25＋CE，并在5条/2600预算的工具可见结果评分；尚非官方全集复现 |
+| WixQA | FlashRAG，BM25或e5-large-v2取5文档，生成答案；F1/BLEU/ROUGE与模型评分的 Context Recall/Factuality | 当前计算文章ID Recall@5；5个chunk可能不足5篇文章，且不是模型判定答案信息覆盖 |
+
+来源：[DialDoc21任务及榜单入口](https://doc2dial.github.io/workshop2021/shared.html)、[MTRAG原论文v1 §5](https://arxiv.org/html/2501.03468v1)、[WixQA论文 §4](https://arxiv.org/html/2505.08643v1)。论文版本明确固定；不把历史基线称为当前SOTA。
+
+MTRAG原论文表3 Recall@5：BM25最后一句0.20、重写0.25；BGE-base1.5为0.30、0.37；ELSER为0.49、0.52。其做法是让模型依据历史消解后生成独立问题，直接把历史拼成搜索文本效果较差。原文也提示标注时使用ELSER可能引入偏向。我们的48.31%不能据此宣称超过或接近官方系统：样本、模型、预算、实现不同。上述数据只是难度参照。
+
+[MTRAGEval 2026任务说明](https://ibm.github.io/mt-rag-benchmark/MTRAGEval/)进一步分为A检索（返回10条，以nDCG排名），B给定证据生成，C检索后生成；B/C以RL_F、RB_llm、RB_alg调和平均排名。页面示例模型排名不是已核实的最终比赛排名。当前官方仓库说明原MTRAG作为训练数据，MTRAG-UN作为评测数据；与本项目原MTRAG100题不同。
+
+[官方评估脚本说明](https://github.com/IBM/mt-rag-benchmark/blob/main/scripts/evaluation/README.md)要求输出 task/conversation、Collection、contexts中的document_id及score；按collection报告并聚合Recall/nDCG。生成评分另需答案和评估模型。系统内部检索不能看到gold；gold只在评分阶段使用。
+
+WixQA的Context Recall判断参考答案信息在上下文中的覆盖；论文用GPT-4o作judge。它与文章ID召回是不同指标，即使数字相同也不是同一结果。本次没有调用该judge，也没有声称复现论文表。
+
+后续可比性门槛：固定官方数据版本/语料哈希、同一任务集合和qrel、相同检索单位与K、相同评分实现，再用官方格式导出；项目工具可见证据与最终答案指标另列。先免费复核检索协议；生成评测仅对选定配对案例执行。当前实验仍是项目开发对照，不是官方榜单提交。

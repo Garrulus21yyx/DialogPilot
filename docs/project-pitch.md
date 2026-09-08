@@ -1,103 +1,63 @@
 ---
 layout: default
-title: 项目讲述与技术取舍
+title: 项目讲述与完整简历
 permalink: /project-pitch.html
 ---
 
-# DialogPilot 项目讲述
+# DialogPilot 项目讲述与完整简历
 
-> 以下表述以重构后的当前实现为准。面试中把机器报告的 commit、环境和 `scope_limit` 一起展示，不把某次测试数量当作永久项目属性。
+> 本页与2026-09-08源码手册配套。先用事实版讲项目，再从80个追问中展开。末尾模拟简历为写作练习，不能与真实报告混用。入口：[架构]({{ '/architecture.html' | relative_url }}) · [追问]({{ '/interview-guide.html' | relative_url }}) · [RAG]({{ '/rag-study.html' | relative_url }}) · [证据]({{ '/handbook-evidence.html' | relative_url }})。
 
-## 30 秒版本
+## 30秒开场
 
-DialogPilot 是一个可恢复的多 Agent 客服后端。我把原本容易混在一次模型调用里的路由、任务规划、工具副作用、知识证据、回答校验和送达状态拆成明确 Owner。请求先在 PostgreSQL 持久准入，再运行 TaskGraph 和有界 ReAct；只有 Coverage 与 Verifier 通过的回答才能发布。PostgreSQL 是事实库，Redis 只做当前会话投影。本地 Docker Compose 可一键启动，并有真实鉴权 E2E、全量测试与恢复报告。
+DialogPilot是一个可恢复的客服多Agent后端。我重点解决复合诉求漏执行、长会话丢依据和业务操作中断后难以确认结果的问题。系统用主Agent选择动作、任务图协调领域Worker，工具结果可归档回读，退款等写操作通过审批和对账执行；答复依据知识和业务回执核验后持久交付。我还把检索、上下文和业务交互分别评测，保留失败实验来判断优化到底作用在哪个环节。
 
-## 简历表述
+## 三分钟展开
 
-可使用：
+第一分钟讲任务。用户可能同时问配送、退货政策和费用，还说先别提交退款。订单事实来自工具，政策来自知识，授权来自当前审批状态。把这些放在一个Prompt里很难明确知道漏了哪件事，因此我将请求编译成有依赖、权限和预算的任务，独立任务并行，失败只阻断相关下游。
 
-> 设计并实现 FastAPI 多 Agent 客服后端，以 PostgreSQL 持久化请求准入、会话事件、Knowledge/ServiceEpisode、Commitment/Handoff、附件和回答发布，以 Redis 提供可重建当前会话投影；通过 TaskGraph、受控 ReAct、工具幂等 receipt、Evidence/Coverage 和 fail-closed Verifier 实现可恢复、可追溯的客服服务链；实现 Agent 按需选择 Tesseract OCR 与 DeepSeek Vision 的 L0/L1/L2 多模态路径，并用状态机/集成测试、真实 JWT Docker E2E 与本地 dump/restore 报告验证。
+第二分钟讲两个关键机制。一是上下文原始结果先归档，清理旧观察并摘要时保护目标和最新工具批次，之后按引用分页读取，不重复执行业务工具。二是写操作绑定参数与目标版本，超时结果未知先对账，已提交重放回执。图能恢复执行位置，但业务是否发生由回执确认，不能混淆。
 
-不要使用：
+第三分钟讲评测与取舍。RAG先分阶段检查query、召回、精排、pack和模型实际可见证据，三套外部数据覆盖不同知识需求，再用中文模拟集测试政策和多条件。扩大候选池曾提高候选覆盖却降低最终pack覆盖，所以没有采用。均衡融合在已有开发对照中有收益，但扩库后仍有多证据和适用范围混淆。Encoder候选也没过独立复核，所以默认关闭；我不会把实现或内部PASS说成业务准确率。
 
-- “已支持生产 Shadow/Canary 和自动回滚”——相关模拟已删除。
-- “视觉观察可直接决定退款/故障根因”——VLM 只产带 provenance 的派生观察，业务事实仍由对应 Owner 决定。
-- “接入完整生产可观测平台”——当前有脱敏 PostgreSQL span、正确的 Agent/Generation/Tool 层级和可选 Langfuse v4 exporter，但没有 Collector fan-out/tail sampling。
-- “准确率达到生产标准”——项目数据仍含 provisional 标签，没有 human-reviewed Gold。
-- “所有数据都在 PostgreSQL”——核心 Ticket/Commitment 已在 PostgreSQL，BadCase、ReAct/Bundle metadata 仍有本地 store。
+## 个人贡献如何展开
 
-## 最值得讲的三个问题
+- 上下文：讲一次大工具结果如何影响后续判断，为什么选择归档与回读，如何验证没有重复调用。
+- 任务运行：讲主Agent、Policy、工作图、Worker分别控制什么，失败如何部分交付，为什么写审批串行。
+- RAG：讲两组权重、完整query、必要证据与实际ToolMessage，展示一个救回和一个误伤。
+- 业务可靠性：讲请求幂等和操作幂等的区别，超时后未知结果为什么必须对账。
+- 评测：讲冻结变量、gold隔离、split消费记录与不采用的候选，而不只报测试数量。
 
-### 1. 为什么回答发布会 503？
+个人分工、项目日期和业务背景按本人真实经历补充。本页不虚构团队规模、真实支付接入、线上客户或生产SLA。
 
-切换为 PostgreSQL ResponseDelivery 后，最终 publication 必须引用已经存在的 Invocation，但在线 `/chat` 仍默认绕过 durable admission。症状是 LLM 正常完成，发布阶段报 `invocation not found`。
+## 可以直接使用的事实版简历
 
-修复不是在 Delivery 中临时补一行 Invocation，而是让运行服务固定走 `admission → execution → publication` 单主链。这样请求身份、固定版本、outbox、执行和最终回答共享同一权威生命周期。
+**DialogPilot｜面向长程客服任务的可恢复多Agent平台**
 
-### 2. 为什么 Knowledge 正常检索却降级？
+Python · LangGraph · LangChain · FastAPI · PostgreSQL / pgvector · Redis · Langfuse · Docker
 
-Evidence 的 `source_type` 属于 `SourceReference`，校验器却从 `EvidenceItem` 顶层读取。直接检索测试覆盖了候选生成，但缓存 Evidence Pack 的再校验路径没有覆盖。
+面向多轮咨询、复合诉求与受控业务操作，构建“请求理解→任务规划→证据获取→审批执行→回答核验→持久交付”的客服后端。
 
-修复发生在 provenance 转换边界，并新增测试证明 validator 从 `source_ref` 读取。真实 E2E 随后得到 `knowledge_used=true / grounded=true / verified=true`。
+- **分层决策与协作：** 基于状态续接、主Agent原生动作选择与任务编译构建领域协作链，支持独立查询并行、审批任务串行、依赖失败隔离和部分结果交付；实现可选六域Encoder入口，候选未达门槛时保持关闭。
+- **上下文工程：** 构建原始工具结果归档、旧观察清理、语义摘要与分页回读链路，统一预算并保护当前目标与最新工具批次；已有16次合成开发运行通过结构与语义检查，业务泛化单独验证。
+- **RAG与证据核验：** 实现PG BM25/pgvector混合召回、RRF、精排、预算打包与来源追溯；在三套已有外部数据上完成融合对照，均衡方案的MTRAG片段Recall@5由33.19%到44.14%（35条已消费样本）；中文复杂扩库结果与未解决适用范围问题完整保留。
+- **受控执行与恢复：** 将动作绑定业务参数、目标版本和审批，以持久操作记录、CAS和回执区分已提交、未提交及未知结果，支持对账、checkpoint恢复和响应序号续取。
+- **评测闭环：** 接入实际应用的τ³交互适配与分层RAG/上下文评测，通过Trace定位失效阶段，开展固定预算对照、救回误伤分析与回归；独立任务质量与内部核验分别统计。
 
-### 3. 为什么 Redis Worker 会出现 closed transport？
+## 完整模拟简历 {#resume}
 
-PostgreSQL projection dispatcher 在工作线程中调用 `asyncio.run`，驱动同一个 lifespan-owned Redis async client。客户端被跨事件循环使用，连接 transport 随临时 loop 关闭。
+**本节为用户要求的模拟写作版本：实验规模、百分比与收益均为模拟设定，技术机制依据源码；不得引用为本项目已取得的实测成绩。** Encoder仅写可选能力，避免暗示当前默认启用。
 
-修复是增加异步 projection dispatcher：PostgreSQL claim/ack 放在线程，Redis effect 始终在应用主事件循环执行。这关闭了共享资源的事件循环所有权不变量。
+**DialogPilot｜面向长程客服任务的可恢复多 Agent 平台**
 
-## 核心取舍
+Python · LangGraph · LangChain · FastAPI · PostgreSQL / pgvector · Redis · Langfuse · Docker
 
-### 直接 Python TaskGraph，而不是先引入框架
+面向电商客服多轮咨询、复合诉求与退款等业务操作，构建可恢复多Agent后端，贯通“请求理解→任务规划→证据获取→审批执行→回答核验→持久交付”服务闭环。
 
-当前任务状态和失败代数已经闭合，直接实现更容易展示依赖、预算、Coverage 和恢复语义。只有当需要跨进程长图、动态节点和框架级持久调度时，才值得引入 LangGraph 一类依赖。
+- **分层决策与多Agent协作：** 针对多轮追问状态丢失、复合诉求漏执行，设计状态优先续接、主Agent原生动作规划与可选Encoder领域路由，将请求编译为包含依赖、工具权限与预算的任务图；基于LangGraph实现独立查询并行、写任务审批串行及断点恢复，通过ResultBoard支持依赖失败隔离和部分交付。
+- **上下文工程与长程执行：** 针对工具结果膨胀、压缩丢证据与重复查询，设计“原始结果归档→旧观察清理→历史语义压缩→按需分页回读”，联合计算系统提示、工具定义与消息预算，保护当前目标和最新工具批次；通过结构断言与语义评审验证约束、进度和授权信息保留，平均输入Token降低 **32%**，重复业务查询减少 **41%**。
+- **场景化RAG与证据核验：** 构建pgvector／PG BM25混合召回、加权RRF、精排与预算打包，结合会话形成完整问题，通过来源版本、原文定位、核验及反馈修订形成证据闭环；在Doc2Dial、MTRAG、WixQA上开展检索策略对照，另构建覆盖政策条件、多轮追问、产品指引与订单混合取证的中文电商模拟验收集，经真实Agent链路验证，完整必要证据覆盖率由 **66%提升至79%**，业务任务通过率由 **68%提升至84%**。
+- **受控业务执行与故障恢复：** 将动作提案转化为绑定业务参数、目标版本和操作标识的可审批任务，通过PostgreSQL操作记录、CAS迁移与回执防重；对结果未知先查询对账，结合持久Checkpoint恢复任务进度，并以响应序号与单调ACK支持断线续取。
+- **自动化评测与优化闭环：** 接入τ³实际应用链路，结合原生任务验证、状态/副作用断言与Trace定位任务遗漏、证据缺失、上下文丢失和回答失真；围绕依赖调度、检索排序、上下文压缩与核验修订开展对照，逐题统计救回误伤并沉淀回归。在同组 **100条客服场景**上，端到端成功率由 **68%提升至84%**，单次成功任务摊销Token降低 **26%**。
 
-### PostgreSQL + Redis，而不是两个事实库
-
-PostgreSQL 保存可审计事实；Redis 优化当前对话读取。投影可以重建，因此缓存丢失不会产生第二权威答案。
-
-### 轻量本地 embedding，而不是默认下载大模型
-
-Docker 本地展示优先确定性、体积和启动速度。384 维 feature hashing 保证 Knowledge/ServiceEpisode 路径完整跑通；它不冒充高质量语义模型，后续可以在同一 embedding port 替换。
-
-### 失败关闭，而不是流畅优先
-
-Coverage 不完整、Verifier `REJECT/UNKNOWN`、工具副作用未知都不能当成成功。系统返回安全结果或 Handoff，并保留 typed reason。
-
-## Demo 顺序
-
-```bash
-docker compose up -d --build --remove-orphans
-curl http://localhost:18000/health
-PYTHONPATH=. .venv/bin/python scripts/run_local_e2e.py \
-  --output evaluation/reports/local-e2e-v1.json
-VLM_ENABLED=true docker compose up -d --build dialogpilot nginx
-PYTHONPATH=. .venv/bin/python scripts/run_local_vlm_e2e.py \
-  --output evaluation/reports/local-vlm-e2e-v1.json
-```
-
-展示报告时重点指出：
-
-- Knowledge engine 是 `postgresql+pgvector+pg_fts`。
-- 请求经过真实 JWT，而不是测试内直接调用函数。
-- L1 E2E 识别截图 `E42` 且不调用 VLM；L2 E2E 调用 DeepSeek Vision 并由 Technical Worker 消费观察。
-- 报告不保存 JWT、API Key 或完整用户回答。
-
-## 当前边界
-
-这是本地作品集系统，不声称有生产流量、生产 RPO/RTO 或组织级发布治理。Commitment/Handoff 与基础持久可观测均已完成：默认 PostgreSQL Trace 可查询，配置凭据可发送到 OTel-native Langfuse v4；不模拟生产 Collector 治理。
-
-## 证据索引
-
-- 主链与 Owner：[完整架构教程]({{ '/' | relative_url }})、[架构边界]({{ '/architecture.html' | relative_url }})。
-- 评测：[500 条分层评测]({{ '/evaluation-500/' | relative_url }})、[RAG 全链路评测]({{ '/rag-pipeline-evaluation/' | relative_url }})。
-- 生产责任缺口：[RAG 生产化审计]({{ '/customer-service-rag-production-audit/' | relative_url }})。
-- 机器报告：[`local-e2e-v1.json`](https://github.com/garrulus21yyx/DialogPilot/blob/main/evaluation/reports/local-e2e-v1.json)、[`local-vlm-e2e-v1.json`](https://github.com/garrulus21yyx/DialogPilot/blob/main/evaluation/reports/local-vlm-e2e-v1.json)、[`local-postgres-restore-v1.json`](https://github.com/garrulus21yyx/DialogPilot/blob/main/evaluation/reports/local-postgres-restore-v1.json)。
-
----
-
-## 技术答辩底稿
-
-这一部分不是简历摘要，而是为了在追问时能从 FastAPI 入口一路讲到 RAG、Memory、多模态、并发、Reducer、发布与 LangGraph 取舍。
-
-{% include_relative _includes/current-runtime-deep-dive.md %}
+本节两处业务成功百分比为写作示例，不表示两个真实独立实验恰好有相同结果。真实投递版应选择实际可举证的一组整体指标并明确测试集，避免重复统计。

@@ -1341,3 +1341,14 @@ body.dp-viewer-open {
     animation-iteration-count: 1 !important;
   }
 }
+
+/* Handbook search enhances the existing question cards without changing content. */
+.handbook-search { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; align-items: center; }
+.handbook-search label { flex-basis: 100%; font-weight: 600; }
+.handbook-search input { flex: 1 1 290px; min-width: 0; padding: 12px; border: 1px solid var(--dp-line); border-radius: 8px; font: inherit; background: white; color: var(--dp-ink); }
+.handbook-search button { padding: 10px 14px; border-radius: 8px; border: 1px solid var(--dp-line); background: #edf3f7; color: #142231; font: inherit; cursor: pointer; }
+.handbook-search output { padding: 8px; font-size: 14px; }
+.qa-card[hidden], .dp-chapter[hidden] { display: none !important; }
+
+/* Source paths are readable links and may wrap on narrow screens. */
+.dp-chapter a { overflow-wrap: anywhere; }
