@@ -1,0 +1,82 @@
+{
+  "scope": "Consumed dev32; same query/source20/candidate20, shared pointwise CE; no pack or answers",
+  "api_calls": 0,
+  "new_model_scores": 0,
+  "summary": {
+    "0.25": {
+      "candidate_recall@20": 0.5026041666666666,
+      "recall@5": 0.4270833333333333,
+      "mrr@5": 0.4869791666666667,
+      "ndcg@5": 0.4118166302089963
+    },
+    "0.5": {
+      "candidate_recall@20": 0.6302083333333334,
+      "recall@5": 0.4765625,
+      "mrr@5": 0.5255208333333333,
+      "ndcg@5": 0.4484630091964966
+    },
+    "0.75": {
+      "candidate_recall@20": 0.6,
+      "recall@5": 0.5,
+      "mrr@5": 0.5255208333333333,
+      "ndcg@5": 0.458314607110328
+    },
+    "reserve5": {
+      "candidate_recall@20": 0.6223958333333334,
+      "recall@5": 0.4635416666666667,
+      "mrr@5": 0.5098958333333333,
+      "ndcg@5": 0.4363503898064256
+    }
+  },
+  "paired_reserve_vs_fixed": {
+    "0.25": {
+      "recall@5": {
+        "better": 9,
+        "worse": 4
+      },
+      "mrr@5": {
+        "better": 6,
+        "worse": 5
+      },
+      "ndcg@5": {
+        "better": 9,
+        "worse": 8
+      }
+    },
+    "0.5": {
+      "recall@5": {
+        "better": 1,
+        "worse": 2
+      },
+      "mrr@5": {
+        "better": 0,
+        "worse": 1
+      },
+      "ndcg@5": {
+        "better": 1,
+        "worse": 3
+      }
+    },
+    "0.75": {
+      "recall@5": {
+        "better": 0,
+        "worse": 3
+      },
+      "mrr@5": {
+        "better": 1,
+        "worse": 2
+      },
+      "ndcg@5": {
+        "better": 1,
+        "worse": 3
+      }
+    }
+  },
+  "hashes": {
+    "artifacts/eval/rag-g4-mtrag-dense-complete-2026-09-08/results.json.gz": "47770a69eb40dd895981e01da8fcb950a3f8e393d2f175f17478357ac22e3f37",
+    "artifacts/eval/rag-g4-mtrag-lexical32-2026-09-07/results.json.gz": "b756639afd17da53b83624225ba970e7f3897e810c2241786440177dc5cee895",
+    "artifacts/eval/rag-g4-mtrag-hybrid32-2026-09-08/cases.json.gz": "7e301d670b680964ceb9bec89238f5631bcf62c3f3486b80c5b1a5d6afd6cabf",
+    "artifacts/eval/rag-g4-mtrag-rerank32-2026-09-08/scores.json.gz": "a51fee15c08cc499ccaa88ee184d4fb946cf8ec137f2355a14a537a14ba8c121",
+    "artifacts/eval/rag-g4-mtrag-rerank32-2026-09-08/identity.json": "b79f7d30f409fb8438ec053a5d5573389ad750f1b7f167e67ac90aca9ed0863a"
+  }
+}
