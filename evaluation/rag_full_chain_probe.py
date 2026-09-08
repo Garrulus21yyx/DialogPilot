@@ -78,7 +78,11 @@ async def run_full_chain(*,database_url,platform,store,client,policy,provider_co
                         await components.coordinator.pump_once()
                         outcome=await components.coordinator.await_outcome(outcome,timeout_seconds=180)
                     row={'case_id':case['id'],'outcome_type':type(outcome).__name__,'outcome':asdict(outcome)}
-                except Exception as exc:row={'case_id':case['id'],'error_type':type(exc).__name__}
+                except Exception as exc:
+                    import traceback
+                    row={'case_id':case['id'],'error_type':type(exc).__name__,
+                         'error_frames': [{'file':f.filename,'line':f.lineno,'function':f.name} for f in traceback.extract_tb(exc.__traceback__)],
+                         'missing_key':str(exc.args[0]) if isinstance(exc,KeyError) and exc.args else None}
                 row.update(tools=clean(tools.captures[len_tools:]),api_calls=clean(client.calls[before:]))
                 rows.append(row)
                 with (output/'full-cases.jsonl').open('a') as f:f.write(json.dumps(row,ensure_ascii=False,default=str)+'\n')

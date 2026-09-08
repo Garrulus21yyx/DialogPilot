@@ -396,3 +396,7 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 - 三套同预算.25/.5筛选完成：Doc2Dial300完整pack199→208（11救回2误伤），MTRAG35片段Recall .3319→.4414（10好2差），Wix20文章Recall .55→.675（4好1差）；中文模拟20既有两臂全部完整。采用均衡作为代码bootstrap默认，显式环境/Bundle策略覆盖保留；不宣称部署生效或答案准确率提升。core/rag_policy唯一默认owner和.env.example同步，缓存策略指纹随值变化。测试与总报告进行中；真实三套小量最终验收仍后续唯一活动项，不恢复核验支线。
 
 - 本轮检索对照/采用决定已落地，59相关测试通过，新增API0/本地CE48pair；统一报告rag-three-dataset-decision-2026-09-08.zh-CN.md。当前唯一下一项三套有限真实链路答案验收及最终统一交付，不以本轮对照宣告整体结束。代码bootstrap默认已改，显式部署配置未改。准备相干commit/push。
+
+- a8045ac已push。最终有限验收预注册：先Doc2Dial现有100文档开发库（与300题检索范围相同，不冒充488全文库），顺序取前两个有>=2历史turn且不同group问题；原history角色交替注入统一turn store，Agent自行query，无参考答案注入。原query为含否定的模糊投诉问题/Yes省略检验问题；期望前者合理澄清，后者保留外州检验到期或注册后一年取早。真实PG隔离tenant/同runtime/.5/Flash NONE最多12调用，SDK0。复用现有PG评测库基础设施，Doc来源独立tenant导入，local embedding只对缺失文档，禁止缩gold-only库。先当前最终方案两题，不为所有题重复旧系统。随后MTRAG全库入口和Wix已有真实结果汇总，语义失败照录不另开核验实验。
+
+- Doc2Dial真实多轮2题完成，5 Flash：模糊投诉1规划后中文通用澄清失败（不把Completed算通过）；Yes题4调用自主query，gold两span实际可见，回答保留到期/注册一年取早。history在实际planner中逐条出现，source/checksum/引用ID审计通过。前两轮模型前KeyError均API0，v2栈定位旧库selected_failure迁移缺失；v3独立DB运行现有迁移成功，不下游兼容、不清旧任务。100文档开发范围显式，非488全库/非封存，原失败保留。主线下一唯一项MTRAG完整语料真实query入口与三套答案汇总，不修单例澄清或核验。报告rag-final-doc2dial2，准备相干commit/push。

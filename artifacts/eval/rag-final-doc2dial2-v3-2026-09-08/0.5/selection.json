@@ -1,0 +1,71 @@
+{
+  "selection": "consecutive frozen dev cases, no outcome-based selection",
+  "offset": 0,
+  "cases": [
+    {
+      "answerable": true,
+      "evidence": [
+        {
+          "document_id": "A Guide for Facilities:#3_0",
+          "end_char": 198,
+          "quote": "\n\nWhat to do if a complaint is filed against you \n",
+          "relevance": 3,
+          "start_char": 148
+        }
+      ],
+      "forbidden_claims": [],
+      "group_id": "doc2dial-ad94c0dc42f749c2b0e2349d830b4827",
+      "history": [
+        "we need help with a complaint",
+        "Do you need help protecting your facility license, registration or certification?"
+      ],
+      "id": "doc2dial-dev-ad94c0dc42f749c2b0e2349d830b4827-3",
+      "query": "no I think it's all good we just need some info",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "dmv"
+      ],
+      "required_claims": [
+        "Would you like to know what to do if a complaint is filed against you?"
+      ],
+      "split": "dev"
+    },
+    {
+      "answerable": true,
+      "evidence": [
+        {
+          "document_id": "About New York State Inspections#3_0",
+          "end_char": 2175,
+          "quote": "you do not need to have your vehicle inspected immediately. ",
+          "relevance": 3,
+          "start_char": 2115
+        },
+        {
+          "document_id": "About New York State Inspections#3_0",
+          "end_char": 2307,
+          "quote": "Your out - of - state inspection remains valid until it expires or for one year after the registration date, whichever comes first. ",
+          "relevance": 3,
+          "start_char": 2175
+        }
+      ],
+      "forbidden_claims": [],
+      "group_id": "doc2dial-09f69dbfbbb5ab0b90ce0faf73e5166b",
+      "history": [
+        "I just moved to New York and registered my car here. I need help with understanding vehicle inspection rules.",
+        "Was your vehicle previously registered in another state that issued an inspection sticker?"
+      ],
+      "id": "doc2dial-dev-09f69dbfbbb5ab0b90ce0faf73e5166b-3",
+      "query": "Yes, it was.",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "dmv"
+      ],
+      "required_claims": [
+        "Great. In your case, you will not need to have your vehicle inspected again until your out of state inspection sticker expires or for one year after the registration date, whichever comes first."
+      ],
+      "split": "dev"
+    }
+  ]
+}

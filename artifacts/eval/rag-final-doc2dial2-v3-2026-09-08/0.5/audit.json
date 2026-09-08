@@ -1,0 +1,25 @@
+{
+  "cases": [
+    {
+      "case_id": "doc2dial-dev-ad94c0dc42f749c2b0e2349d830b4827-3",
+      "history_present_in_actual_planner": true,
+      "tool_calls": 0,
+      "api_calls": 1,
+      "visible_gold_span_recall": 0.0,
+      "answer": "请补充完成该任务所需的信息。",
+      "outcome_type": "Completed"
+    },
+    {
+      "case_id": "doc2dial-dev-09f69dbfbbb5ab0b90ce0faf73e5166b-3",
+      "history_present_in_actual_planner": true,
+      "tool_calls": 1,
+      "api_calls": 4,
+      "visible_gold_span_recall": 1.0,
+      "answer": "Since your vehicle was previously registered in a state that issues inspection stickers, your out-of-state inspection remains valid until it expires or for one year after your New York registration date, whichever comes first [Eac8e676217c7]. Once that out-of-state inspection expires, you must get a New York State vehicle inspection [Eac8e676217c7].",
+      "outcome_type": "Completed"
+    }
+  ],
+  "source_checks": true,
+  "total_api_calls": 5,
+  "quality": "Author assessment: first response wrong language and unspecific clarification; second preserves required temporal condition. No independent blind grading."
+}
