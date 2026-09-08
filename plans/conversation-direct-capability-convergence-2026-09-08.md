@@ -370,3 +370,47 @@ independent reviewer found no remaining concrete conversion omission in the
 changed scope; internal evidence-only reads correctly retain observe_result=False.
 This repairs a persistence ownership omission, not an LLM prompt
 or a per-business special case. Original baseline model replays remain pending.
+
+### Fixed task 19 repair replay registration
+
+At fc25945, replay original retail train offset14/count1 (task19), once, using the
+existing run_tau3_full runner and pinned /tmp/tau3.asUlWc checkout. Output:
+artifacts/eval/tau3-task19-direct-observation-replay-2026-09-08/.
+Hypothesis: the formerly rejected native identity lookup executes and its results
+return to the main agent, which preserves the user's remaining business objective.
+Fixed controls: existing role profiles, Flash user, seed300, max80steps, user512
+tokens, no completion-budget override; encoder remains disabled. Budget one task,
+no task replacement or automatic rerun. Measure accepted tool names, observation
+continuation, actual actions, pending approvals, public replies, ALL/ENV/ACTION
+separately and typed application/provider/evaluator failures. Missing judge is not
+zero. Adoption requires no native-catalog rejection and faithful objective
+continuation; full business success additionally requires supported final state
+and consistent public completion. This is a development repair replay, not fresh
+held-out evaluation. Current user-owned dirty modifications remain in the captured
+source hashes, so end-to-end differences are not solely attributable to this patch.
+
+Replay finished without restarting/replacing the task. Session 80160 exited zero;
+task19 terminated max_steps (80). Official ALL/ENV/ACTION each assigned 0 for
+premature termination, with db/action checks null: this is not a measured final-DB
+mismatch. The model configurations matched baseline Worker and Verifier profiles.
+Native find_user_id_by_name_zip and subsequent order/product/item reads executed;
+there was no planning-invalid-provider-output/application exception in the local
+error log. Thus the original native-catalog rejection is no longer reproduced.
+
+The full task still failed. The trajectory records a committed water-bottle return,
+then exchange_delivered_order_items rejected with "Non-delivered order cannot be
+exchanged". Official policy requires delivered for both operations and changes the
+whole order to return requested / exchange requested; exchange must gather all
+items in one call. Yet earlier public replies promised both return and exchanges,
+and the attempted exchange contained only the pet bed. Repeated confirmations
+preceded the first prepared action. After rejection the public reply described
+manual review / submission rather than plainly explaining the business rejection;
+later reads repeated until the step limit. These observations require separating
+policy/goal consistency, prepared-action authorization, and post-rejection outcome
+presentation. No return/exchange-specific production condition has been added.
+
+Next: trace the original goal, policy and prepared proposal through review and
+approval, then trace ToolRejected through workflow recovery and reply evidence.
+The relevant user-owned business-recovery edits are part of the recorded worktree;
+inspect their contracts before modifying shared files. Do not run further tasks
+to replace this failure or claim full closure from the successful read path.
