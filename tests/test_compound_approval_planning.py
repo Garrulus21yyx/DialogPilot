@@ -16,11 +16,38 @@ from tests.test_target_persistence_and_manager import _identity
 from tests.test_task_result_lifecycle import _setup
 
 
+class NativeProvider(Provider):
+    """Run the same semantic state matrix through actual SDK action transport."""
+    async def plan(self, payload):
+        from application.conversation_actions import planning_actions
+        from core.model_policy import ModelProfile
+        from infrastructure.target_conversation_provider import AnthropicConversationPlanningProvider
+        from tests.framework_structured_stub import action_models
+        self.calls.append(payload)
+        actions = {a.name: a for a in planning_actions(payload)}
+        calls = []
+        if self.value.get('approval_decision'):
+            calls.append(('review_action', {'decision': self.value['approval_decision']['decision']}))
+        for goal in self.value.get('goals', ()):
+            args = {k: v for k, v in goal.items() if k not in {'kind', 'revises_control_id'}}
+            action = actions[goal['kind']]
+            if 'revises_control_id' in goal and not action.bound:
+                selector = 'revises' if goal['kind'] == 'delegate_task' else 'target'
+                args[selector] = next(key for key, bound in action.selections[selector].items()
+                                     if bound['revises_control_id'] == goal['revises_control_id'])
+            calls.append((goal['kind'], args))
+        profile = ModelProfile('test')
+        model = AnthropicConversationPlanningProvider(action_models(*calls, text='' if calls else 'Please clarify.'),
+            model_profile=profile, synthesis_profile=profile)
+        return await model.plan(payload)
+
+
+@pytest.mark.parametrize("provider_type", [Provider, NativeProvider])
 @pytest.mark.parametrize("decision", [None, "approve", "decline"])
 @pytest.mark.parametrize("goal", [None, "continue", "revise", "cancel", "fields", "independent"])
 @pytest.mark.parametrize("same_thread", [False, True])
 @pytest.mark.parametrize("typed", [False, True])
-def test_whole_turn_preserves_unaddressed_waits_and_exact_authorization(decision, goal, same_thread, typed):
+def test_whole_turn_preserves_unaddressed_waits_and_exact_authorization(decision, goal, same_thread, typed, provider_type):
     async def run():
         async def unexpected_execution(context):
             raise AssertionError("preparing a plan cannot execute a tool")
@@ -72,7 +99,7 @@ def test_whole_turn_preserves_unaddressed_waits_and_exact_authorization(decision
             value = {"status": "insufficient_context", "missing_fields": ["customer_service_goal"]}
         from jsonschema import validate
         validate(value, planning_output_schema())
-        provider = Provider(value)
+        provider = provider_type(value)
         manager._understanding = CascadedTargetUnderstanding(StateBoundTargetUnderstanding(), ConversationAgent(provider))
         observations = TurnObservations("Complete user reply", **({
             "approval_id": "approval", "approval_decision": decision == "approve"} if typed and decision else {}))

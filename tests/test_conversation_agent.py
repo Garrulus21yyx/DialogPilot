@@ -76,10 +76,10 @@ class Provider:
         return self.value
 
 
-def test_provider_uses_framework_structured_output():
-    from tests.framework_structured_stub import models
+def test_provider_uses_framework_native_action_output():
+    from tests.framework_structured_stub import action_models
     provider = AnthropicConversationPlanningProvider(
-        models({"status": "out_of_scope"}),
+        action_models(("unsupported_request", {})),
         model_profile=ModelProfile("model-a"), synthesis_profile=ModelProfile("model-a"),
     )
 
@@ -808,21 +808,22 @@ def test_cascade_uses_planner_when_no_state_or_encoder_path_resolves():
     assert len(provider.calls) == 2
 
 
-def test_production_planner_rejects_legacy_fenced_text():
-    import pytest
+def test_plain_text_never_becomes_a_legacy_executable_plan():
     from tests.framework_structured_stub import models
     provider = AnthropicConversationPlanningProvider(
         models(text='```json\n{"status":"out_of_scope"}\n```'), model_profile=ModelProfile("model-test"), synthesis_profile=ModelProfile("model-test"),
     )
-    from application.conversation_agent import ConversationProviderOutputError
-    with pytest.raises(ConversationProviderOutputError):
-        asyncio.run(provider.plan({"message": "hello"}))
+    result = asyncio.run(provider.plan({"message": "hello"}))
+    assert result['status'] == 'respond' and 'goals' not in result
+    # Final reply verification owns whether this is appropriate public text;
+    # the planning transport must not parse prose as an executable legacy plan.
 
 
 def test_malformed_provider_transport_is_not_reported_as_an_outage():
-    from tests.framework_structured_stub import models
+    from tests.framework_structured_stub import action_models
     provider = AnthropicConversationPlanningProvider(
-        models(text="not-json"), model_profile=ModelProfile("model-test"), synthesis_profile=ModelProfile("model-test"),
+        action_models(invalid=[{'name': 'knowledge_search', 'args': '{bad', 'id': 'call-bad', 'error': 'invalid JSON'}]),
+        model_profile=ModelProfile("model-test"), synthesis_profile=ModelProfile("model-test"),
     )
     proposal, _, _ = _invoke(ConversationAgent(provider), "帮我处理")
 

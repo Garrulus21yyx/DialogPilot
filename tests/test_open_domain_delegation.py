@@ -95,7 +95,7 @@ def test_injected_registry_owns_shortcuts_and_execution_budget():
     provider = Provider(_proposal("general"))
     proposal = asyncio.run(ConversationAgent(provider).plan(
         observations, state, DeterministicResolver().resolve(observations, state), registry))
-    assert provider.calls[0]["supported_goals"] == ["cancel_active_work", "delegate_task"]
+    assert provider.calls[0]["supported_goals"] == ["cancel_active_work", "continue_active_work", "delegate_task"]
     identity = IdentityFactory().create_invocation(
         tenant_id="tenant-a", user_id="user-a", conversation_id="conversation-a", request_id="budget")
     plan = TurnPlanCompiler().compile(RoutePolicy().accept(proposal, state, registry),

@@ -45,7 +45,8 @@ def test_sdk_transport_preserves_policy_and_parses_complete_result(monkeypatch, 
         assert body["tool_choice"] == {"type": "tool", "name": "submit_test"}
 
 
-def test_production_planner_sdk_wire_preserves_history_sections_and_cache_prefix(monkeypatch):
+@pytest.mark.parametrize('effort', list(ReasoningEffort))
+def test_production_planner_sdk_wire_preserves_history_sections_and_cache_prefix(monkeypatch, effort):
     from langchain_core.messages import AIMessage
     from core.model_policy import ModelRole
     from infrastructure.target_conversation_provider import AnthropicConversationPlanningProvider
@@ -58,8 +59,8 @@ def test_production_planner_sdk_wire_preserves_history_sections_and_cache_prefix
         body = json.loads(request.content); requests.append(body)
         return httpx.Response(200, json={
             'id': 'msg-test', 'type': 'message', 'role': 'assistant', 'model': body['model'],
-            'content': [{'type': 'tool_use', 'id': 'call-plan', 'name': 'submit_turn_plan',
-                         'input': {'result': {'status': 'out_of_scope'}}}],
+            'content': [{'type': 'tool_use', 'id': 'call-plan', 'name': 'unsupported_request',
+                         'input': {}}],
             'stop_reason': 'tool_use', 'stop_sequence': None,
             'usage': {'input_tokens': 12, 'output_tokens': 8, 'cache_read_input_tokens': 100},
         })
@@ -69,7 +70,7 @@ def test_production_planner_sdk_wire_preserves_history_sections_and_cache_prefix
     async def run():
         async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as transport:
             monkeypatch.setattr(integration, '_get_default_async_httpx_client', lambda **_: transport)
-            profile = ModelProfile('deepseek-v4-flash', ReasoningEffort.NONE, 'deepseek')
+            profile = ModelProfile('deepseek-v4-flash', effort, 'deepseek', min_completion_tokens=1024)
             model = framework_model(profile, {'api_key': 'test-key', 'base_url': 'https://example.invalid'})
             provider = AnthropicConversationPlanningProvider({ModelRole.INTENT: model},
                 model_profile=profile, synthesis_profile=profile, callbacks=(capture,))
@@ -93,6 +94,8 @@ def test_production_planner_sdk_wire_preserves_history_sections_and_cache_prefix
         tail = body['messages'][-1]['content']
         assert len(tail) == 2
         assert json.loads(tail[-1]['text']) == {'current_request': payload['message']}
-        assert planning_payload_from_request(captured['request']) == payload
+        assert planning_payload_from_request(captured['request']) == {k: v for k, v in payload.items() if k != 'supported_goals'}
+        assert body['tool_choice'] == {'type': 'auto'}
+        assert all(tool['name'] != 'submit_turn_plan' for tool in body['tools'])
         assert captured['usage']['input_token_details']['cache_read'] == 100
         assert 'cache_control' not in json.dumps(body)

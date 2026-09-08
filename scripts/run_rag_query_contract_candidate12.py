@@ -22,6 +22,8 @@ class Candidate(AnthropicConversationPlanningProvider):
         return await super()._complete(payload,role,CONTRACT+system,**kwargs)
 
 def main():
+    if AnthropicConversationPlanningProvider.version != 'anthropic-conversation-provider-v18-partial-input':
+        raise RuntimeError('Historical submit_turn_plan experiment; use its recorded revision, not the current native-action provider.')
     original=Path('artifacts/eval/rag-query-calibration12-2026-09-08')
     manifest=json.loads((original/'manifest.json').read_text())
     snapshot=json.loads(gzip.decompress(Path('artifacts/eval/rag-known-miss-g1-budget-diagnostic-2026-09-07/input-datasets.json.gz').read_bytes()))['doc2dial-rag-mini-dev-v1']

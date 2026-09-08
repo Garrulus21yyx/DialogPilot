@@ -69,6 +69,8 @@ def action(proposal):
 
 
 async def run(args):
+    if AnthropicConversationPlanningProvider.version != 'anthropic-conversation-provider-v18-partial-input':
+        raise RuntimeError('Frozen v18 experiment: audit retained artifacts, or check out d2287a2 to reproduce. Do not apply old structured examples to native actions.')
     output = Path(args.output)
     output.mkdir(parents=True, exist_ok=False)
     examples = json.loads(DATA.read_text())

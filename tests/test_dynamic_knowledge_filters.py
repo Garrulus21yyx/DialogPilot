@@ -144,16 +144,19 @@ def test_no_knowledge_capability_does_not_offer_knowledge_options():
 def test_provider_uses_the_context_directory_in_actual_model_schema(monkeypatch):
     import infrastructure.target_conversation_provider as module
     from core.model_policy import ModelProfile
-    from tests.framework_structured_stub import models
+    from tests.framework_structured_stub import StructuredStub
+    from langchain_core.messages import AIMessage
+    from core.model_policy import ModelRole
     captured=[]
-    async def call(model,**kwargs):
-        captured.append(kwargs['schema'])
-        return {'status':'out_of_scope'}
-    monkeypatch.setattr(module,'structured_call',call)
-    provider=module.AnthropicConversationPlanningProvider(models({'status':'out_of_scope'}),
+    class Model(StructuredStub):
+        def bind_tools(self, tools, **kwargs):
+            captured.extend(tools)
+            return self
+    model = Model(responses=[AIMessage(content='ok')])
+    provider=module.AnthropicConversationPlanningProvider({ModelRole.INTENT: model},
         model_profile=ModelProfile('model-a'),synthesis_profile=ModelProfile('model-a'))
-    asyncio.run(provider.plan({'message':'经销商购买退货条件','knowledge_filter_contract':B}))
-    channels=captured[0]['properties']['goals']['items']['properties']['knowledge_options']['properties']['sales_channel']
+    asyncio.run(provider.plan({'message':'经销商购买退货条件','supported_goals':['general_qa'], 'knowledge_filter_contract':B}))
+    channels=captured[0]['input_schema']['properties']['knowledge_options']['properties']['sales_channel']
     assert channels['enum']==['partner_shop']
 
 

@@ -63,23 +63,28 @@ def test_unsupported_history_fails_at_projection(role):
 
 def test_plan_transport_and_budget_receive_same_projection(monkeypatch):
     import infrastructure.target_conversation_provider as module
+    from langchain_core.messages import AIMessage
     payload = sample('不是')
     captured = {}
     class Budget:
         def validate(self, profile, role, request): captured['budget'] = request
-    async def call(model, **kwargs):
-        captured['call'] = kwargs
-        return {'status': 'insufficient_context', 'missing_fields': ['customer_service_goal']}
+    class Model:
+        def bind_tools(self, tools, **kwargs):
+            captured['tools'] = tools
+            return self
+        async def ainvoke(self, messages, **kwargs):
+            captured['call'] = {'system': messages[0].content, 'messages': messages[1:]}
+            return AIMessage(content='What would you like to know?')
     monkeypatch.setattr(module, 'DEFAULT_PROVIDER_CONTEXT_BUDGET', Budget())
-    monkeypatch.setattr(module, 'structured_call', call)
-    provider = AnthropicConversationPlanningProvider({ModelRole.INTENT: object()},
+    provider = AnthropicConversationPlanningProvider({ModelRole.INTENT: Model()},
         model_profile=ModelProfile('test'), synthesis_profile=ModelProfile('test'))
     asyncio.run(provider.plan(payload))
     assert captured['budget']['system'] == captured['call']['system']
     assert captured['budget']['messages'] == [
         {'role': 'assistant' if m.type == 'ai' else 'user', 'content': m.content}
         for m in captured['call']['messages']]
-    assert planning_payload_from_request(captured['budget']) == payload
+    assert captured['tools'] == captured['budget']['tools']
+    assert planning_payload_from_request(captured['budget']) == {k: v for k, v in payload.items() if k != 'supported_goals'}
 
 
 def test_legacy_capture_stays_readable():

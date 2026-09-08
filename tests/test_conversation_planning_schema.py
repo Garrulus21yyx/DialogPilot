@@ -4,7 +4,7 @@ from application.conversation_agent import ConversationAgent, ConversationProvid
 from core.model_policy import ModelProfile, ReasoningEffort
 from core.provider_context_budget import ProviderContextBudgetExceeded
 from infrastructure.target_conversation_provider import AnthropicConversationPlanningProvider
-from tests.framework_structured_stub import models
+from tests.framework_structured_stub import models, action_models
 from tests.test_conversation_agent import Provider, _invoke
 
 
@@ -26,14 +26,16 @@ def test_missing_fields_and_goal_meanings_have_one_owner():
     assert "invented" not in planning_goal_descriptions()
 
 
-@pytest.mark.parametrize("value", [
-    {"status": "out_of_scope"},
-    {"status": "insufficient_context", "missing_fields": ["order_id"]},
-    {"status": "resolved", "goals": [{"kind": "order_status", "order_id": "DP9303",
-        "order_id_source_ref": "turn-message:current:reference:1"}]},
+@pytest.mark.parametrize("calls,text,value", [
+    ([("unsupported_request", {})], "", {"status": "out_of_scope"}),
+    ([], "Which order?", {"status": "respond", "response": "Which order?"}),
+    ([("knowledge_search", {"query": "退货政策"})], "", {"status": "resolved", "goals": [
+        {"kind": "general_qa", "resolved_query": "退货政策"}]}),
 ])
-def test_supported_states(value):
-    assert asyncio.run(provider(value).plan({"message": "test"})) == value
+def test_supported_states(calls, text, value):
+    p = provider()
+    p._models = action_models(*calls, text=text)
+    assert asyncio.run(p.plan({"message": "test", "supported_goals": ["general_qa"]})) == value
 
 
 @pytest.mark.parametrize("value", [

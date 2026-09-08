@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from enum import Enum
 
 from application.conversation_state import ConversationState
+from application.entity_binding import EntityBinding
 from application.work_item import WorkItem
 
 

@@ -77,5 +77,6 @@ def test_bounded_queries_and_options_preserve_positive_boundaries():
     for size in (1, 128, 129, 4000, 4001):
         raw = {'status': 'resolved', 'goals': [{'kind': 'general_qa', 'resolved_query': '文' * size}]}
         assert check.is_valid(raw) == (size <= 4000)
-        raw['goals'][0] = {'kind': 'general_qa', 'knowledge_options': {'applicable_region': '文' * size}}
+        raw['goals'][0] = {'kind': 'general_qa', 'resolved_query': '政策',
+                          'knowledge_options': {'applicable_region': '文' * size}}
         assert check.is_valid(raw) == (size <= 128)

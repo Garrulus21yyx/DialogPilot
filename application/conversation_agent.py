@@ -73,12 +73,14 @@ _MISSING_FIELDS = {
 
 
 def planning_output_schema(supported_goals=None, knowledge_filter_contract=None) -> dict:
-    """Wire shape for the current whole-turn planning algebra.
+    """Internal interchange shape for the whole-turn planning algebra.
 
     The compiler still owns binding authorization, goal dependencies, capability
     lookup and contextual query requirements. This schema does not authorize a
     command or introduce partial execution for an insufficient-context turn.
     Optional goal IDs retain the compiler's deterministic generated-ID behavior.
+    It is not exposed as one model tool: conversation_actions projects the
+    currently available actions and translates their SDK arguments here.
     """
     from application.knowledge_tool_contract import knowledge_query_options_schema
     text = {"type": "string", "minLength": 1, "pattern": r"\S"}
