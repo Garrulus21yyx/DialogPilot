@@ -361,3 +361,7 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 - PG分路20核对完成：完整第二轮9成功11 POSTGRES_UNAVAILABLE，9成功两路Top20集合/顺序均与离线相同；不写20/20等价、不把后端错误作为query或召回语义失败。Docker日志SQL statement timeout，对应BM25 scoped/unnest CTE；默认pool750ms/source3s。首次缺policy字段/embedding identity装配在搜索前失败，修正；首轮2成功后断言终止保留-interrupted，第二轮记录typed失败并遍历20，API/embedding0。报告docs/rag-wixqa-pg-routes-2026-09-08.zh-CN.md。优先项变为BM25执行计划/性能诊断与原预算可用率，原query/权重/语料不改；尚不能归因具体耗时节点，下一步EXPLAIN，不直接放宽预算或付费生成。
 
 - BM25计划/相干SQL优化：诊断首个超时题原EXPLAIN1001ms/2149tempblocks；数组计数18031ms坏连接计划拒绝，局部聚合822/提前TopK783/窄scope+延后来源896ms，单次有波动不作稳定耗时提升。保留最终按片段聚合tf、原scope统计df/dl、TopK后按PK取来源；公式/过滤/排序语义不变，所有诊断变体ID/score一致。原750ms真实20题基线9成功→中间18→最终19，成功项两路排名全与离线同；仍1超时，不关闭性能/总体RAG。真实PG7测试通过（生成标量oracle/scope/顺序/重复词等），API0/新embedding0。报告docs/rag-wixqa-bm25-plan-2026-09-08.zh-CN.md及plan/两轮产物。下一项剩余执行成本诊断并扩验证，不刷重跑20/20、不改超时、不付费生成。
+
+- BM25剩余见证诊断：family setting题当前EXPLAIN929ms、77025词频行、2489临时写块。改为scoped查询内部ordinal整数聚合，最终恢复candidate_id排序/来源，外部身份不变；EXPLAIN811ms/980块。开发20原750ms预算一次20成功，两路均与离线顺序相同；同步7项PG公式/隔离测试通过（该轮存在测试并发，不用于严谨延迟估计）。当前实验先口头说明后补记此条，未事先文件预注册，明确流程不足，不包装成预注册结论。
+- 扩展验证预注册：已用于离线权重验收、尚未在PG本次SQL执行的heldout20，固定现有compact SQL/原query缓存/全库/750ms，不调权重或数据，API0/新embedding0。一次遍历，typed失败保留；全部成功且两路结果等价才进入公共真实入口准备，否则继续记录可用性缺口，不重跑凑分。
+- compact扩验证完成：固定heldout20一次20成功、两路Top20顺序全与离线一致，开发20+扩20共40/40；默认750ms/3秒未改、API/新embedding0。此前失败均保留，不宣称上线可靠性/答案正确率/并发SLA。内部ordinal不外露且TopK按原candidate_id tie排序；见证原score/ID复核等价，真实PG7项通过。报告docs/rag-wixqa-bm25-compact-2026-09-08.zh-CN.md与compact两组产物。下一项恢复公共真实Agent/Flash小批准备，复用保留PG库，不重复导入或新增策略；性能代表性负载仍开放。本轮相干交付待commit/push。

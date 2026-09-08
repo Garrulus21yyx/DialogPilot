@@ -214,8 +214,10 @@ class PostgresHybridBackend:
             WITH query_terms AS (
                 SELECT token FROM unnest(%s::text[]) AS token
             ),
+            -- The query-local ordinal keeps intermediate aggregation narrow.
+            -- It is never exposed or used for ties: restore candidate_id below.
             scoped AS MATERIALIZED (
-                SELECT candidate_id, lexical_terms,
+                SELECT candidate_id, row_number() OVER () AS ordinal, lexical_terms,
                        cardinality(lexical_terms)::double precision AS dl
                 FROM retrieval.{table}
                 WHERE tenant_id=%s AND generation_id=%s AND {filters}
@@ -229,7 +231,7 @@ class PostgresHybridBackend:
             -- Aggregate within each document: avoid a global grouping of every
             -- matched token occurrence with a wide candidate identity.
             term_frequency AS MATERIALIZED (
-                SELECT d.candidate_id, d.dl, matched.token, matched.tf
+                SELECT d.ordinal, d.dl, matched.token, matched.tf
                 FROM scoped d
                 CROSS JOIN LATERAL (
                     SELECT terms.value AS token, count(*)::double precision AS tf
@@ -244,7 +246,7 @@ class PostgresHybridBackend:
                 GROUP BY token
             ),
             scores AS (
-                SELECT tf.candidate_id,
+                SELECT tf.ordinal,
                        sum(
                            ln(1.0 + (stats.n - ts.df + 0.5) / (ts.df + 0.5))
                            * (tf.tf * 2.2)
@@ -254,12 +256,13 @@ class PostgresHybridBackend:
                 FROM term_frequency tf
                 JOIN term_stats ts USING (token)
                 CROSS JOIN stats
-                GROUP BY tf.candidate_id
+                GROUP BY tf.ordinal
             )
             SELECT tf.candidate_id, d.{source_column}, d.{revision_column},
                    d.provenance_sha256, tf.score, d.{freshness_column}
             FROM (
-                SELECT candidate_id, score FROM scores
+                SELECT scoped.candidate_id, scores.score
+                FROM scores JOIN scoped USING (ordinal)
                 ORDER BY score DESC, candidate_id
                 LIMIT %s
             ) tf

@@ -12,9 +12,9 @@ class Capture:
  def fetchall(self):return []
 
 def main():
- p=argparse.ArgumentParser();p.add_argument('--label',default='before');a=p.parse_args()
+ p=argparse.ArgumentParser();p.add_argument('--label',default='before');p.add_argument('--failures',type=Path,default=Path('artifacts/eval/wixqa-pg-routes-dev20-2026-09-08/failures.jsonl'));a=p.parse_args()
  root=Path('artifacts/eval/wixqa-bm25-plan-2026-09-08');root.mkdir(exist_ok=True)
- failed=json.loads(Path('artifacts/eval/wixqa-pg-routes-dev20-2026-09-08/failures.jsonl').read_text().splitlines()[0]);query=failed['case']['query']
+ failed=json.loads(a.failures.read_text().splitlines()[0]);query=failed['case']['query']
  g=json.loads(Path('artifacts/eval/wixqa-postgres-import-2026-09-08/report.json').read_text())['generation_id']
  req=HybridRetrievalRequest(tenant_id='wixqa-eval',corpus=RetrievalCorpus.KNOWLEDGE,backend_fingerprint='POSTGRES_PGVECTOR_PG_BM25_ZH_V1',generation_id=g,policy_fingerprint='diagnostic',query_text=query,query_embedding=None,scope=KnowledgeSearchScope(scope='public',locale='en',product=None,as_of=datetime(2026,9,8,tzinfo=timezone.utc)),dense_limit=0,lexical_limit=20)
  capture=Capture();PostgresHybridBackend(None)._bm25(capture,req)

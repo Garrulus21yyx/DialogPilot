@@ -9,9 +9,9 @@ from infrastructure.hybrid_retrieval_backend import PostgresHybridBackend
 from infrastructure.postgres_knowledge_retriever import PostgresKnowledgeCandidateSource
 
 async def main():
- parser=argparse.ArgumentParser();parser.add_argument('--output',type=Path,default=Path('artifacts/eval/wixqa-pg-routes-dev20-2026-09-08'));args=parser.parse_args()
+ parser=argparse.ArgumentParser();parser.add_argument('--split',choices=('dev','heldout'),default='dev');parser.add_argument('--output',type=Path,default=Path('artifacts/eval/wixqa-pg-routes-dev20-2026-09-08'));args=parser.parse_args()
  root=args.output;root.mkdir(exist_ok=False)
- old=Path('artifacts/eval/wixqa-fixed-dev20-2026-09-08')
+ old=Path(f'artifacts/eval/wixqa-fixed-{args.split}20-2026-09-08')
  cases=[json.loads(l) for l in (old/'cases.jsonl').read_text().splitlines()]
  vectors=np.load(old/'query-vectors.npy',allow_pickle=False);assert vectors.shape==(20,1024)
  queries={r['case']['query']:tuple(map(float,v)) for r,v in zip(cases,vectors,strict=True)}
