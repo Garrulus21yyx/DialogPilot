@@ -183,4 +183,4 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 
 - 用户改优先级：先查4条双路miss的query（暂停打包重放）。预注册bd571c9：读取reference.input用户/agent会话，不读取targets/contexts/gold正文；冻结4条手工query，Enterprise保留意图解释不唯一的不确定性。比较原官方query、仅去role标签控制、会话补全query；同原完整领域语料/本地模型、每路20/融合20/k10固定，复用文档向量，API0。先比较再读gold诊断，禁止依据结果反复改词。此为已暴露失败集诊断，不是总体提升或真实Agent表现。
 
-- 四miss复测完成：原会话冻结手工query、role去标签控制、原query共12表达；API0/新query向量12/文档向量0。手工仅Enterprise一条gold Dense79→3，当前.25仍删掉，.5/.75保留。web chat1220→277且Top1与gold同URL，但标注指向home screen/start messages，用户目标含糊。诗人/银行手工补背景反把前排拉回旧话题，不能宣称补全稳定成功。1项产物审计通过，基线重现，未在读gold后再改query。见[报告](../docs/rag-g4-query-miss4-2026-09-08.zh-CN.md)。下一项是实际Context→Agent验证最新信息需求与历史背景选择；打包核查仍保留。交付待commit/push。
+- 四miss复测完成：原会话冻结手工query、role去标签控制、原query共12表达；API0/新query向量12/文档向量0。手工仅Enterprise一条gold Dense79→3，当前.25仍删掉，.5/.75保留。web chat1220→277且Top1与gold同URL，但标注指向home screen/start messages，用户目标含糊。诗人/银行手工补背景反把前排拉回旧话题，不能宣称补全稳定成功。1项产物审计通过，基线重现，未在读gold后再改query。见[报告](../docs/rag-g4-query-miss4-2026-09-08.zh-CN.md)。下一项是实际Context→Agent验证最新信息需求与历史背景选择；打包核查仍保留。交付：`6c7bbe2` 已提交并推送到 origin/feat/customer-service-target-architecture。
