@@ -1020,3 +1020,21 @@ loop, define evidence provenance versus publication authorization at their owner
 and independently review that boundary. Separately inspect coupled-action policy
 consumption before any new live replay. Encoder remains disabled. No rerun or
 business-completion claim accompanies this evidence update.
+
+Actual trace narrows the first-turn trigger (read-only Langfuse inspection):
+generation `8ca3b89a8548e33c` invokes email lookup; next generation
+`9f9cfd665adf58ed` invokes `cancel_active_work` with empty native arguments, which
+the existing adapter binds to the active query. This is not an external concurrent
+user revision. Cancellation is accepted, then a clarification passes verification,
+but its retained lookup outcome contributes an ACTIVE-only publication binding.
+The application confuses evidence provenance with permission to keep executing.
+
+`test_observation_cancel_retains_evidence_without_active_execution_authority`
+reproduces this through real Manager prepare/execute/progress/followup/commit and
+observation cancellation, then the actual SQL publication guard with a state-backed
+reader. One read, preserved facts, cancelled authority, publication conflict. This
+is a diagnostic witness asserting the existing failure, not a repair acceptance
+test. Initial harness missed the normal followup step; corrected to mirror the
+runtime order, then 1 passed. Independent fresh-context boundary review requested
+before selecting a publication contract. Do not simply drop inactive bindings:
+that would remove protection against genuinely obsolete replies.

@@ -17,6 +17,65 @@ from infrastructure.langgraph_checkpoint import target_checkpoint_serializer
 from tests.test_turn_runtime import _Executor, _OrderUnderstanding, _identity
 
 
+def test_observation_cancel_retains_evidence_without_active_execution_authority():
+    """Witness the publication conflict; retained evidence is not permission."""
+    from types import SimpleNamespace
+    from application.turn_planning import CommandKind, CommandProposal
+    from infrastructure.postgres_publication import PostgresPublicationService, PublicationConflictError
+
+    async def scenario():
+        class Understanding:
+            async def __call__(self, observations, state, deterministic, registry, context):
+                if context.observed_execution is None:
+                    base = await _OrderUnderstanding()()
+                    return replace(base, commands=(replace(base.commands[0], observe_result=True),))
+                control = state.active_work_controls[0]
+                return TurnProposal(ProposalDisposition.RESOLVED, (CommandProposal(
+                    "stop-read", CommandKind.CANCEL_WORK, control.owner_agent,
+                    "Stop the completed lookup", revises_control_id=control.control_id,
+                ),), "STOP_READ")
+
+        store = InMemoryConversationStateStore()
+        executor = _Executor()
+        manager = TargetConversationManager(state_store=store,
+            registry=build_default_capability_registry("tenant-a"), understanding=Understanding(),
+            orchestration=OrchestrationRuntime(direct_executor=executor, domain_workers={}))
+        identity = _identity()
+        prepared = await manager.prepare(identity, TurnObservations("Check my order"))
+        read = await manager.execute(prepared)
+        await manager.commit_progress(read)
+        read = await manager.resolve_followup(prepared, read)
+        await manager.commit(read)
+        following = await manager.prepare_observation(prepared, read)
+        cancelled = await manager.execute(following)
+        await manager.commit_progress(cancelled)
+        cancelled = await manager.resolve_followup(following, cancelled)
+        await manager.commit(cancelled)
+        assert executor.calls == 1
+        assert cancelled.board.facts == read.board.facts
+        bindings = tuple(item.control for item, _ in cancelled.board.outcome_items)
+        assert bindings and all(not cancelled.state_after.accepts(item) for item in bindings)
+
+        # The existing publication consumer derives authorization from exactly
+        # these retained outcomes. Its SQL reader is supplied the actual state.
+        class Connection:
+            def execute(self, *_args):
+                return self
+
+            def fetchone(self):
+                return ({"work_controls": [{"control_id": item.control_id,
+                    "revision": item.revision, "status": item.status.value}
+                    for item in cancelled.state_after.work_controls]},)
+
+        command = SimpleNamespace(expected_work_controls=bindings,
+            tenant_id=identity.tenant_id, user_id=identity.user_id,
+            conversation_id=identity.conversation_id)
+        with pytest.raises(PublicationConflictError, match="work control is stale"):
+            PostgresPublicationService._assert_work_controls(Connection(), command)
+
+    asyncio.run(scenario())
+
+
 @pytest.mark.parametrize("recover", [False, True])
 def test_main_observation_progress_feedback_stop_and_replay(recover):
     from application.turn_runtime import TurnRuntime
