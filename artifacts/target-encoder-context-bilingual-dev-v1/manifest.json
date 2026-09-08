@@ -1,0 +1,158 @@
+{
+  "adoption_passed": false,
+  "artifact_version": "target-encoder-context-bilingual-dev-v1",
+  "bundle_version": "customer-service-v1",
+  "classes": [
+    {
+      "calibration_accepted": 0,
+      "calibration_correct": 0,
+      "calibration_precision_lower_bound": 0.0,
+      "capability_id": "knowledge_search",
+      "capability_kind": "tool",
+      "enabled": false,
+      "heldout_accepted": 0,
+      "heldout_correct": 0,
+      "heldout_precision_lower_bound": 0.0,
+      "label": "general_qa",
+      "owner_agent": "general",
+      "required_arguments": [
+        "query"
+      ],
+      "threshold": 1.0
+    },
+    {
+      "calibration_accepted": 0,
+      "calibration_correct": 0,
+      "calibration_precision_lower_bound": 0.0,
+      "capability_id": "product_identification",
+      "capability_kind": "skill",
+      "enabled": false,
+      "heldout_accepted": 0,
+      "heldout_correct": 0,
+      "heldout_precision_lower_bound": 0.0,
+      "label": "product_identification",
+      "owner_agent": "product_technical",
+      "required_arguments": [
+        "asset_id"
+      ],
+      "threshold": 1.0
+    },
+    {
+      "calibration_accepted": 54,
+      "calibration_correct": 54,
+      "calibration_precision_lower_bound": 0.9522878489598532,
+      "capability_id": "refund_status",
+      "capability_kind": "tool",
+      "enabled": false,
+      "heldout_accepted": 41,
+      "heldout_correct": 41,
+      "heldout_precision_lower_bound": 0.9380961031422229,
+      "label": "refund_status_summary",
+      "owner_agent": "billing_refund",
+      "required_arguments": [
+        "order_id"
+      ],
+      "threshold": 0.3844779133796692
+    }
+  ],
+  "datasets": [
+    {
+      "sha256": "7b492630a37574822bc875ebec2679a68d94da3e80ea31aa76968277f0609b1b",
+      "split": "train"
+    },
+    {
+      "sha256": "75e763e3095cfd829a18aef4eb93d46c5a8617afa9141be64f9fc8f629c1dfb4",
+      "split": "calibration"
+    },
+    {
+      "sha256": "7aae20d284fdce917660818f470e74c830a6d331929be8985389dbd63ea70a74",
+      "split": "heldout"
+    }
+  ],
+  "heldout_min_accepts": 10,
+  "heldout_summary": {
+    "accepted": 0,
+    "accepted_precision": 0.0,
+    "correct": 0,
+    "coverage": 0.0,
+    "total": 198
+  },
+  "heldout_target_precision": 0.98,
+  "language_reports": {
+    "general_qa": {
+      "en": {
+        "accepted": 0,
+        "correct": 0,
+        "enabled": false,
+        "precision_lower_bound": 0.0,
+        "threshold": 1.0
+      },
+      "mixed": {
+        "accepted": 0,
+        "correct": 0,
+        "enabled": false,
+        "precision_lower_bound": 0.0,
+        "threshold": 1.0
+      },
+      "zh": {
+        "accepted": 0,
+        "correct": 0,
+        "enabled": false,
+        "precision_lower_bound": 0.0,
+        "threshold": 1.0
+      }
+    },
+    "product_identification": {
+      "en": {
+        "accepted": 0,
+        "correct": 0,
+        "enabled": false,
+        "precision_lower_bound": 0.0,
+        "threshold": 1.0
+      },
+      "mixed": {
+        "accepted": 0,
+        "correct": 0,
+        "enabled": false,
+        "precision_lower_bound": 0.0,
+        "threshold": 1.0
+      },
+      "zh": {
+        "accepted": 0,
+        "correct": 0,
+        "enabled": false,
+        "precision_lower_bound": 0.0,
+        "threshold": 1.0
+      }
+    },
+    "refund_status_summary": {
+      "en": {
+        "accepted": 1,
+        "correct": 1,
+        "enabled": true,
+        "precision_lower_bound": 0.2698659487840541,
+        "threshold": 0.3844779133796692
+      },
+      "mixed": {
+        "accepted": 20,
+        "correct": 20,
+        "enabled": true,
+        "precision_lower_bound": 0.8808421626390356,
+        "threshold": 0.3844779133796692
+      },
+      "zh": {
+        "accepted": 20,
+        "correct": 20,
+        "enabled": true,
+        "precision_lower_bound": 0.8808421626390356,
+        "threshold": 0.3844779133796692
+      }
+    }
+  },
+  "model_filename": "model.json",
+  "model_sha256": "6a75937fcea83f9dc97a874be6b2558583188e46a4ed7320208437e471fd2970",
+  "schema_version": "dialogpilot-target-encoder-v2",
+  "status": "REJECTED",
+  "required_languages": ["zh", "en", "mixed"],
+  "target_precision": 0.88
+}

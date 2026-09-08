@@ -5,12 +5,13 @@ import hashlib
 import json
 import math
 import unicodedata
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Mapping
 
 from application.capability_registry import CapabilityEffect, CapabilityRegistryBundle
 from application.encoder_fast_path import RankedCandidate
+from application.encoder_input import CONTEXT_INPUT_SCHEMA, EncoderInput
 
 
 TARGET_ENCODER_SCHEMA = "dialogpilot-target-encoder-v2"
@@ -81,6 +82,8 @@ class TargetEncoderManifest:
     dataset_sha256: tuple[tuple[str, str], ...]
     schema_version: str = TARGET_ENCODER_SCHEMA
     status: str = "ACTIVE"
+    required_languages: tuple[str, ...] = ()
+    language_reports: Mapping[str, Mapping[str, Mapping[str, object]]] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if self.schema_version != TARGET_ENCODER_SCHEMA or self.status != "ACTIVE":
@@ -113,6 +116,18 @@ class TargetEncoderManifest:
             raise TargetEncoderArtifactError("encoder artifact requires three data splits")
         for split, value in splits.items():
             _digest(value, split)
+        if len(set(self.required_languages)) != len(self.required_languages):
+            raise TargetEncoderArtifactError("encoder languages must be unique")
+        for item in self.classes:
+            if not item.enabled:
+                continue
+            for language in self.required_languages:
+                report = self.language_reports.get(item.label, {}).get(language, {})
+                accepted, correct = report.get("accepted", 0), report.get("correct", 0)
+                if (not isinstance(accepted, int) or not isinstance(correct, int)
+                    or accepted < self.heldout_min_accepts or not 0 <= correct <= accepted
+                    or correct / accepted < self.heldout_target_precision):
+                    raise TargetEncoderArtifactError("enabled class failed its language gate")
 
     @property
     def threshold_by_capability(self) -> dict[str, float]:
@@ -153,6 +168,8 @@ class TargetEncoderManifest:
                 ),
                 schema_version=str(value["schema_version"]),
                 status=str(value["status"]),
+                required_languages=tuple(value.get("required_languages", ())),
+                language_reports=value.get("language_reports", {}),
             )
         except (KeyError, TypeError, ValueError) as exc:
             if isinstance(exc, TargetEncoderArtifactError):
@@ -165,6 +182,11 @@ class TargetTextEncoderArtifact:
 
     def __init__(self, manifest: TargetEncoderManifest, model: Mapping[str, object]) -> None:
         self.manifest = manifest
+        self.input_schema = model.get("input_schema", "text-v1")
+        if self.input_schema not in {"text-v1", CONTEXT_INPUT_SCHEMA}:
+            raise TargetEncoderArtifactError("unsupported encoder input schema")
+        if self.input_schema == CONTEXT_INPUT_SCHEMA and not manifest.required_languages:
+            raise TargetEncoderArtifactError("context encoder requires explicit language gates")
         try:
             self._feature_count = int(model["feature_count"])
             self._ngram_min = int(model["ngram_min"])
@@ -200,9 +222,12 @@ class TargetTextEncoderArtifact:
             if not valid_owner or capability.effect is not CapabilityEffect.READ:
                 raise TargetEncoderArtifactError("encoder class capability binding is invalid")
 
-    def predict(self, text: str) -> tuple[tuple[RankedCandidate, ...], float]:
-        vector = hashed_char_ngram_vector(
-            text,
+    def predict(self, text: str | EncoderInput) -> tuple[tuple[RankedCandidate, ...], float]:
+        value = EncoderInput(text) if isinstance(text, str) else text
+        if self.input_schema == "text-v1" and (value.messages or value.objectives):
+            raise TargetEncoderArtifactError("text-only artifact cannot classify conversation context")
+        vector = encoder_vector(
+            value, input_schema=self.input_schema,
             feature_count=self._feature_count,
             ngram_min=self._ngram_min,
             ngram_max=self._ngram_max,
@@ -249,6 +274,7 @@ def hashed_char_ngram_vector(
     feature_count: int,
     ngram_min: int,
     ngram_max: int,
+    namespace: str = "",
 ) -> dict[int, float]:
     normalized = "".join(
         unicodedata.normalize("NFKC", text).lower().split()
@@ -259,11 +285,28 @@ def hashed_char_ngram_vector(
     wrapped = f"^{normalized}$"
     for size in range(ngram_min, ngram_max + 1):
         for offset in range(max(0, len(wrapped) - size + 1)):
-            token = wrapped[offset:offset + size].encode("utf-8")
+            token = (namespace + wrapped[offset:offset + size]).encode("utf-8")
             index = int.from_bytes(hashlib.sha256(token).digest()[:8], "big") % feature_count
             counts[index] = counts.get(index, 0.0) + 1.0
     norm = math.sqrt(sum(value * value for value in counts.values())) or 1.0
     return {index: value / norm for index, value in counts.items()}
+
+
+def encoder_vector(value: EncoderInput, *, input_schema: str, feature_count: int,
+                   ngram_min: int, ngram_max: int) -> dict[int, float]:
+    if input_schema == "text-v1":
+        return hashed_char_ngram_vector(value.text, feature_count=feature_count,
+                                        ngram_min=ngram_min, ngram_max=ngram_max)
+    if input_schema != CONTEXT_INPUT_SCHEMA:
+        raise TargetEncoderArtifactError("unsupported encoder input schema")
+    vector: dict[int, float] = {}
+    for channel, text in value.channels():
+        for index, weight in hashed_char_ngram_vector(
+            text, namespace=channel + "\x00", feature_count=feature_count,
+            ngram_min=ngram_min, ngram_max=ngram_max,
+        ).items():
+            vector[index] = vector.get(index, 0.0) + weight
+    return vector
 
 
 def _digest(value: str, label: str) -> None:

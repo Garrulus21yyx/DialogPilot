@@ -15,8 +15,9 @@ from application.target_encoder_artifact import (
     DEFER_LABEL,
     TARGET_ENCODER_SCHEMA,
     TargetEncoderClass,
-    hashed_char_ngram_vector,
+    encoder_vector,
 )
+from application.encoder_input import CONTEXT_INPUT_SCHEMA, EncoderInput
 
 
 ONE_SIDED_95_Z = 1.6448536269514722
@@ -31,6 +32,14 @@ class TargetEncoderExample:
     case_id: str
     text: str
     label: str
+    messages: tuple[tuple[str, str], ...] = ()
+    objectives: tuple[str, ...] = ()
+    language: str = "zh"
+    group_id: str = ""
+
+    @property
+    def input(self):
+        return EncoderInput(self.text, self.messages, self.objectives)
 
 
 @dataclass(frozen=True)
@@ -44,6 +53,8 @@ class TargetEncoderTrainingConfig:
     ngram_min: int = 1
     ngram_max: int = 4
     classifier_c: float = 20.0
+    input_schema: str = "text-v1"
+    required_languages: tuple[str, ...] = ()
 
 
 TARGETS = {
@@ -73,17 +84,32 @@ def train_target_encoder(
         "heldout": _load(heldout_path),
     }
     expected = {DEFER_LABEL, *TARGETS}
+    if config.input_schema not in {"text-v1", CONTEXT_INPUT_SCHEMA}:
+        raise TargetEncoderTrainingError("unsupported encoder input schema")
+    if config.input_schema == CONTEXT_INPUT_SCHEMA and not config.required_languages:
+        raise TargetEncoderTrainingError("context training requires explicit language groups")
+    if config.input_schema == "text-v1" and any(
+        item.messages or item.objectives for examples in splits.values() for item in examples
+    ):
+        raise TargetEncoderTrainingError("context examples require context input schema")
     for split, examples in splits.items():
         labels = {item.label for item in examples}
         if labels != expected:
             raise TargetEncoderTrainingError(f"{split} must cover every frozen label")
     normalized = [
-        (split, item.text.strip().lower())
+        (split, item.input.identity())
         for split, examples in splits.items()
         for item in examples
     ]
     if len({text for _, text in normalized}) != len(normalized):
         raise TargetEncoderTrainingError("dataset text leaks across splits")
+    group_splits = {}
+    for split, examples in splits.items():
+        for item in examples:
+            if item.group_id and group_splits.setdefault(item.group_id, split) != split:
+                raise TargetEncoderTrainingError("conversation group leaks across splits")
+        if set(config.required_languages).difference(item.language for item in examples):
+            raise TargetEncoderTrainingError(f"{split} missing required language")
 
     classifier = LogisticRegression(
         C=config.classifier_c,
@@ -113,6 +139,7 @@ def train_target_encoder(
     )
     heldout_expected = tuple(item.label for item in splits["heldout"])
     class_records = []
+    language_reports = {}
     for label, (
         owner, capability_kind, capability_id, required_arguments,
     ) in TARGETS.items():
@@ -127,6 +154,15 @@ def train_target_encoder(
             and heldout["correct"] / heldout["accepted"]
             >= config.heldout_target_precision
         )
+        groups = {}
+        for language in config.required_languages:
+            mask = [i for i, item in enumerate(splits["heldout"]) if item.language == language]
+            group = _evaluate_threshold(label, classes, heldout_probabilities[mask],
+                                        tuple(heldout_expected[i] for i in mask), calibration["threshold"])
+            groups[language] = group
+            enabled = enabled and group["accepted"] >= config.heldout_min_accepts and (
+                group["correct"] / max(1, group["accepted"]) >= config.heldout_target_precision)
+        language_reports[label] = groups
         class_records.append(TargetEncoderClass(
             label=label,
             owner_agent=owner,
@@ -144,9 +180,6 @@ def train_target_encoder(
             heldout_correct=int(heldout["correct"]),
             heldout_precision_lower_bound=float(heldout["precision_lower_bound"]),
         ))
-    if not any(item.enabled for item in class_records):
-        raise TargetEncoderTrainingError("no target class passed heldout gating")
-
     output_dir.mkdir(parents=True, exist_ok=True)
     model_path = output_dir / "model.json"
     manifest_path = output_dir / "manifest.json"
@@ -154,6 +187,7 @@ def train_target_encoder(
         raise TargetEncoderTrainingError("output artifact already exists")
     model = {
         "model_type": "hashed-char-ngram-logistic-regression-v1",
+        "input_schema": config.input_schema,
         "feature_count": config.feature_count,
         "ngram_min": config.ngram_min,
         "ngram_max": config.ngram_max,
@@ -170,7 +204,7 @@ def train_target_encoder(
     correct_total = sum(item.heldout_correct for item in class_records if item.enabled)
     manifest = {
         "schema_version": TARGET_ENCODER_SCHEMA,
-        "status": "ACTIVE",
+        "status": "ACTIVE" if any(item.enabled for item in class_records) else "REJECTED",
         "artifact_version": config.artifact_version,
         "bundle_version": config.bundle_version,
         "model_filename": model_path.name,
@@ -194,6 +228,9 @@ def train_target_encoder(
             "accepted_precision": correct_total / accepted_total if accepted_total else 0.0,
             "coverage": accepted_total / total_heldout,
         },
+        "language_reports": language_reports,
+        "required_languages": list(config.required_languages),
+        "adoption_passed": any(item.enabled for item in class_records),
     }
     manifest_path.write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
@@ -214,8 +251,11 @@ def _load(path: Path) -> tuple[TargetEncoderExample, ...]:
             continue
         try:
             value = json.loads(line)
+            contextual = EncoderInput.from_record(value)
             item = TargetEncoderExample(
                 str(value["case_id"]), str(value["text"]), str(value["label"]),
+                contextual.messages, contextual.objectives,
+                str(value.get("language", "zh")), str(value.get("group_id", "")),
             )
         except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
             raise TargetEncoderTrainingError(
@@ -236,8 +276,8 @@ def _matrix(
 ) -> np.ndarray:
     matrix = np.zeros((len(examples), config.feature_count), dtype=np.float32)
     for row, example in enumerate(examples):
-        for index, value in hashed_char_ngram_vector(
-            example.text,
+        for index, value in encoder_vector(
+            example.input, input_schema=config.input_schema,
             feature_count=config.feature_count,
             ngram_min=config.ngram_min,
             ngram_max=config.ngram_max,

@@ -4,8 +4,10 @@ from __future__ import annotations
 from application.encoder_fast_path import (
     EncoderFastPathPolicy,
     IntentEncoderOutput,
+    FastPathDecision,
 )
 from application.target_encoder_artifact import DEFER_LABEL, TargetTextEncoderArtifact
+from application.encoder_input import EncoderInput
 
 
 class TargetEncoderUnderstanding:
@@ -22,12 +24,21 @@ class TargetEncoderUnderstanding:
 
     async def __call__(self, observations, state, registry, turn_context=None):
         self._artifact.validate_registry(registry)
-        candidates, defer_score = self._artifact.predict(observations.raw_text)
+        if turn_context is not None and turn_context.summary is not None:
+            return FastPathDecision(False, "ENCODER_SUMMARY_UNCALIBRATED")
+        value = EncoderInput.from_turn(observations, state, turn_context)
+        if self._artifact.input_schema == "text-v1" and (value.messages or value.objectives):
+            return FastPathDecision(False, "ENCODER_CONTEXT_UNCALIBRATED")
+        candidates, defer_score = self._artifact.predict(value)
         top = candidates[0]
         class_by_label = {
             item.label: item for item in self._artifact.manifest.classes
         }
         target = class_by_label[top.candidate_id]
+        # A category prediction cannot resolve an elliptical search query. The
+        # existing planner owns query authorship; never send bare "yes" to RAG.
+        if value.messages and {"query", "question"}.intersection(target.required_arguments):
+            return FastPathDecision(False, "ENCODER_QUERY_AUTHORING_REQUIRED")
         fields = dict(observations.structured_fields)
         bindings = turn_context.entity_bindings
         for name in target.required_arguments:
