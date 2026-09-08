@@ -188,3 +188,7 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 - G2最新诉求诊断预注册（1d26f9f）：四条中文电商模拟，两条保留必要前文、两条明确切换目标；输入及期望先冻结在rag-g2-query-focus4-2026-09-08/cases.json。通过现有PG历史/context loader/manager.prepare，不手工构造Context；Flash最多6次，仅规划，不检索或生成。记录实际模型消息、查询和来源可见性，人工按意图而非词项齐全评分；公共MTRAG四例不强行通过电商范围。工作区其他任务runtime修改以源hash留痕，不混入提交。此轮不修改生产prompt，成功不代表Recall提升。
 
 - G2最新诉求四例完成：4次Flash，实际历史4/4完整、READ知识计划4/4，明确话题切换2/2未携带旧主题。保留两项不确定性：no-reason扩成unconditional、选择企业会员后仍查双会员范围；未测其召回影响，不误称失败或全部正确。冷投影DEGRADED但消息完整，长记忆未测。1项输入/计划产物审计通过。见[报告](../docs/rag-g2-query-focus4-2026-09-08.zh-CN.md)。原manifest synthetic标记错误已注明，脚本元数据owner修正；未重跑API。下一项恢复冻结MTRAG精排→打包/可见重放，不再以四例猜词改prompt。交付：`a8a97d6` 已提交并推送到 origin/feat/customer-service-target-architecture。
+
+- G4打包预注册（0c63de4）：固定MTRAG32题三组CE完整排名，官方passage为来源单位，max_tokens2600/final_k5；复用ContextPacker→EvidencePack→MCPToolManager知识序列化。API0/新模型评分0，校验完整原文与来源ID保真、pack/serialized Recall@5、MRR/nDCG、预算跳过与配对变化。此边界不包含工具安全guard、Agent上下文压缩和最终生成，不称实际模型已看到。采用仍须后续全链/heldout，不切生产权重。
+
+- G4打包完成：32题×3臂，API0/新模型评分0。当前.25/.5/.75打包及知识序列化Recall@5为42.19/47.14/50.00%，MRR .4870/.5255/.5255；.75对当前提高10题/降低2题、净+7.81pp。唯一pack额外损失为govt一题在.25/.5各少一个相关passage；未调预算。96视图与源正文逐字一致，最大序列化估算3277token高于2600正文预算。1项产物审计通过。见[报告](../docs/rag-g4-mtrag-pack32-2026-09-08.zh-CN.md)。尚未覆盖guard/Agent context/答案，下一项沿该边界核查；生产不采用、heldout未运行。交付待提交推送。
