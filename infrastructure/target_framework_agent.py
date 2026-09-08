@@ -22,13 +22,14 @@ from langchain.agents.middleware.model_call_limit import ModelCallLimitExceededE
 from langchain.agents.middleware.tool_call_limit import ToolCallLimitExceededError
 from infrastructure.target_model_context import delegated_task_content
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage, messages_to_dict
-from langchain_core.tools import StructuredTool
+from langchain_core.tools import StructuredTool, ToolException
 from langchain.tools import ToolRuntime
 from langgraph.errors import GraphRecursionError
 from langfuse import propagate_attributes
 from langgraph.store.base import BaseStore
 from langchain_core.messages.utils import count_tokens_approximately
 from infrastructure.target_result_archive import TargetResultArchive, ResultArchiveError, result_pointer
+from infrastructure.target_result_archive import ResultReferenceNotFound
 from infrastructure.target_context_compaction import ToolResultPersistence, ContextCompaction
 
 from application.knowledge_tool_contract import tool_domain_outcome
@@ -312,9 +313,18 @@ class TargetFrameworkAgent:
             raise ValueError("delegated Agent has no executable capability")
         async def read_tool_result(reference: str, runtime: ToolRuntime[AgentContextView, dict],
                                    offset: int = 0, limit: int = 2000, evidence_id: str | None = None):
-            return await self._archive.read(runtime.context, reference, offset, limit, evidence_id)
+            try:
+                return await self._archive.read(runtime.context, reference, offset, limit, evidence_id)
+            except ResultReferenceNotFound as exc:
+                raise ToolException(
+                    "ARCHIVE_REFERENCE_NOT_FOUND: No matching result or evidence in this task. "
+                    "Use an archive reference supplied by a tool result or working-history pointer, "
+                    "and an evidence_id from its directory. A fact source_ref is not an archive address. "
+                    "If no archive pointer was supplied, use the available evidence or another authorized capability."
+                ) from exc
         reader = StructuredTool.from_function(coroutine=read_tool_result,
             name="read_tool_result",
+            handle_tool_error=True,
             description="Read a bounded page of an archived result or working history in this task. This reads the original snapshot, never reruns a business tool. For knowledge evidence, pass evidence_id from evidence_directory to read that item with its source; offset then refers to evidence text. Continue with next_offset when needed.")
         exposed = [*tools, *self._interaction_tools(), reader]
         names = [tool.name for tool in exposed]

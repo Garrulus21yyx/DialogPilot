@@ -14,6 +14,10 @@ class ResultArchiveError(ValueError):
         self.retryable = retryable
 
 
+class ResultReferenceNotFound(ResultArchiveError):
+    """The scoped lookup has no matching result or evidence item."""
+
+
 class TargetResultArchive:
     def __init__(self, store: BaseStore, *, subject_fence=None):
         self.store = store
@@ -72,7 +76,7 @@ class TargetResultArchive:
         except Exception as exc:
             raise ResultArchiveError("result archive read unavailable", retryable=True) from exc
         if item is None:
-            raise ResultArchiveError("result reference is unavailable in this task")
+            raise ResultReferenceNotFound("result reference is unavailable in this task")
         value = item.value
         encoded = json.dumps(value, ensure_ascii=False, sort_keys=True,
                              separators=(",", ":"), allow_nan=False)
@@ -91,7 +95,7 @@ class TargetResultArchive:
             items = _evidence_view(content)
             selected = next((item for item in items if item["evidence_id"] == evidence_id), None)
             if selected is None:
-                raise ResultArchiveError("evidence reference is unavailable in this result")
+                raise ResultReferenceNotFound("evidence reference is unavailable in this result")
             content = selected["text"]
         end = min(len(content), offset + limit)
         return {"reference": reference, "offset": offset, "total_characters": len(content),

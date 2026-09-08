@@ -1610,3 +1610,38 @@ rejected review and zero external calls. This reproduces the bounded candidate
 behavior through the shared source, without diagnostic injection. The instruction
 repair is ready for its own commit; whole-goal closure remains unverified and the
 archive-error boundary is the next concrete owner repair.
+
+Archive repair contract: scoped result/evidence absence has a ResultArchiveError
+subtype. Only the optional model read_tool_result adapter converts that subtype to
+SDK ToolException with handle_tool_error=True; SDK preserves the call ID/error status
+and existing loop budgets bound correction. Internal restore/load still raises.
+Store exceptions, digest mismatch, missing subject and deletion fences remain fatal;
+no cross-task search or automatic retry is added. User archive pagination changes
+remain separate and must not be staged with this repair.
+
+Independent review: no scope/restore/fatal-error weakening found. A missing scoped
+record is not automatically model error (it could have been lost); only this captured
+fixture source_ref misuse is positively attributable to model input. Added complete
+SDK cases for invalid/foreign/evidence pointers, independent successful batch result,
+bounded repeated mistakes, store/digest/deletion failures and required resume failure.
+The first resume test fixture lacked a legal revision; corrected to revision 2, not
+by weakening WorkItem validation. Preserve that test setup failure separately.
+Register one repaired development worker check: unapproved_enabling_purchase from
+frozen boundary-six, production prompts, unchanged profile/4096/max_steps=4/360s,
+zero business tools. Expect accurate limitation without a purchase proposal or false
+archive-outage attribution; a different model choice is not proof of exercising the
+error path (SDK deterministic tests supply that evidence). Output:
+artifacts/eval/action-boundary-archive-repair1-2026-09-09/.
+
+Archive validation: 124 passed / 3 skipped across boundary/compaction/navigation/domain
+tests; independent staged-tree check (excluding user pagination hunks) 102 passed /
+6 skipped. Required resume with missing original fails at agent_context before any
+model call. Mixed batch retains successful facts and associates SDK error only with
+its own call ID; repeated bad reads cannot exceed the existing model-call budget.
+Real worker returned accurate BLOCKED for the no-paid-change constraint, 2 calls,
+zero proposals/writes. It chose report_blocked directly, so this is not evidence of
+exercising the repaired lookup path; scripted SDK cases supply that path coverage.
+Dedicated delivery excludes unrelated archive/RAG work. Next: reconcile the original
+fixed10 failure matrix with the delivered owner repairs and their acceptance evidence,
+then perform the appropriate end-to-end verification rather than expand this archive
+work beyond its observed causal scope. Encoder remains disabled; goal not closed.
