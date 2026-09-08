@@ -1,0 +1,16 @@
+{
+  "successful_cases": 18,
+  "requested_cases": 20,
+  "api_calls": 0,
+  "new_embeddings": 0,
+  "routes": {
+    "raw:vector": {
+      "identical_order": 18,
+      "mean_overlap_at20": 20.0
+    },
+    "raw:bm25": {
+      "identical_order": 18,
+      "mean_overlap_at20": 20.0
+    }
+  }
+}

@@ -1,5 +1,5 @@
 """Read-only PG vs offline frozen WixQA dev routes; cached query vectors."""
-import asyncio,gzip,json,subprocess
+import argparse,asyncio,gzip,json,subprocess
 from pathlib import Path
 from urllib.parse import quote
 import numpy as np
@@ -9,7 +9,8 @@ from infrastructure.hybrid_retrieval_backend import PostgresHybridBackend
 from infrastructure.postgres_knowledge_retriever import PostgresKnowledgeCandidateSource
 
 async def main():
- root=Path('artifacts/eval/wixqa-pg-routes-dev20-2026-09-08');root.mkdir(exist_ok=False)
+ parser=argparse.ArgumentParser();parser.add_argument('--output',type=Path,default=Path('artifacts/eval/wixqa-pg-routes-dev20-2026-09-08'));args=parser.parse_args()
+ root=args.output;root.mkdir(exist_ok=False)
  old=Path('artifacts/eval/wixqa-fixed-dev20-2026-09-08')
  cases=[json.loads(l) for l in (old/'cases.jsonl').read_text().splitlines()]
  vectors=np.load(old/'query-vectors.npy',allow_pickle=False);assert vectors.shape==(20,1024)

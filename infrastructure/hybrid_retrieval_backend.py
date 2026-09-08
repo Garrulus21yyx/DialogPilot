@@ -215,8 +215,7 @@ class PostgresHybridBackend:
                 SELECT token FROM unnest(%s::text[]) AS token
             ),
             scoped AS MATERIALIZED (
-                SELECT candidate_id, {source_column}, {revision_column},
-                       provenance_sha256, {freshness_column}, lexical_terms,
+                SELECT candidate_id, lexical_terms,
                        cardinality(lexical_terms)::double precision AS dl
                 FROM retrieval.{table}
                 WHERE tenant_id=%s AND generation_id=%s AND {filters}
@@ -227,13 +226,17 @@ class PostgresHybridBackend:
                        GREATEST(avg(dl), 1.0) AS avgdl
                 FROM scoped
             ),
+            -- Aggregate within each document: avoid a global grouping of every
+            -- matched token occurrence with a wide candidate identity.
             term_frequency AS MATERIALIZED (
-                SELECT d.candidate_id, d.dl, terms.value AS token,
-                       count(*)::double precision AS tf
+                SELECT d.candidate_id, d.dl, matched.token, matched.tf
                 FROM scoped d
-                CROSS JOIN LATERAL unnest(d.lexical_terms) AS terms(value)
-                JOIN query_terms q ON q.token = terms.value
-                GROUP BY d.candidate_id, d.dl, terms.value
+                CROSS JOIN LATERAL (
+                    SELECT terms.value AS token, count(*)::double precision AS tf
+                    FROM unnest(d.lexical_terms) AS terms(value)
+                    JOIN query_terms q ON q.token = terms.value
+                    GROUP BY terms.value
+                ) matched
             ),
             term_stats AS MATERIALIZED (
                 SELECT token, count(*)::double precision AS df
@@ -255,10 +258,15 @@ class PostgresHybridBackend:
             )
             SELECT tf.candidate_id, d.{source_column}, d.{revision_column},
                    d.provenance_sha256, tf.score, d.{freshness_column}
-            FROM scores tf
-            JOIN scoped d USING (candidate_id)
+            FROM (
+                SELECT candidate_id, score FROM scores
+                ORDER BY score DESC, candidate_id
+                LIMIT %s
+            ) tf
+            -- candidate_id is the projection primary key. Only already-scoped
+            -- winners are hydrated; this does not expand authorization scope.
+            JOIN retrieval.{table} d USING (candidate_id)
             ORDER BY score DESC, tf.candidate_id
-            LIMIT %s
         """).format(
             table=sql.Identifier(table),
             source_column=sql.Identifier(source_column),

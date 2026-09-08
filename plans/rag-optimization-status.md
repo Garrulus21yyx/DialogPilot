@@ -359,3 +359,5 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 - PG分路核对预注册：复用完整保留WixQA评测库与开发20原问题/已缓存query vectors；真实PostgresKnowledgeCandidateSource.capture_source_rankings_async每路20，统一en/public与既有generation，无metadata缩库、无模型/API。逐来源ID+原文区间映射离线chunk ID，比较两路Top20集合及顺序；排名差异先归因，不根据PG结果改变权重。产物wixqa-pg-routes-dev20-2026-09-08，脚本compare_wixqa_postgres_routes.py。后续使用实际PG候选分析遗漏与精排，不把离线结果直接当线上结果。
 
 - PG分路20核对完成：完整第二轮9成功11 POSTGRES_UNAVAILABLE，9成功两路Top20集合/顺序均与离线相同；不写20/20等价、不把后端错误作为query或召回语义失败。Docker日志SQL statement timeout，对应BM25 scoped/unnest CTE；默认pool750ms/source3s。首次缺policy字段/embedding identity装配在搜索前失败，修正；首轮2成功后断言终止保留-interrupted，第二轮记录typed失败并遍历20，API/embedding0。报告docs/rag-wixqa-pg-routes-2026-09-08.zh-CN.md。优先项变为BM25执行计划/性能诊断与原预算可用率，原query/权重/语料不改；尚不能归因具体耗时节点，下一步EXPLAIN，不直接放宽预算或付费生成。
+
+- BM25计划/相干SQL优化：诊断首个超时题原EXPLAIN1001ms/2149tempblocks；数组计数18031ms坏连接计划拒绝，局部聚合822/提前TopK783/窄scope+延后来源896ms，单次有波动不作稳定耗时提升。保留最终按片段聚合tf、原scope统计df/dl、TopK后按PK取来源；公式/过滤/排序语义不变，所有诊断变体ID/score一致。原750ms真实20题基线9成功→中间18→最终19，成功项两路排名全与离线同；仍1超时，不关闭性能/总体RAG。真实PG7测试通过（生成标量oracle/scope/顺序/重复词等），API0/新embedding0。报告docs/rag-wixqa-bm25-plan-2026-09-08.zh-CN.md及plan/两轮产物。下一项剩余执行成本诊断并扩验证，不刷重跑20/20、不改超时、不付费生成。
