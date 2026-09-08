@@ -82,6 +82,7 @@ class InteractionRequestCommand:
     policy: PublicationPolicy
     projection_disposition: ProjectionDisposition = ProjectionDisposition.APPROVAL
     expected_work_controls: tuple[WorkControlBinding, ...] = ()
+    related_signals: tuple[tuple[str, int], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -146,6 +147,8 @@ def command_fingerprint(command: PublicationCommand) -> str:
     raw = dict(command.__dict__)
     # Retry timing is transport metadata, not part of the selected publication fact.
     raw.pop("created_at", None)
+    if not raw.get("related_signals"):
+        raw.pop("related_signals", None)
     raw["policy"] = dict(command.policy.__dict__)
     raw["invocation_key"] = str(raw.get("invocation_key") or "")
     raw["expected_work_controls"] = [

@@ -102,6 +102,7 @@ class _Publication:
         resume_schema,
         expires_at,
         expected_work_controls=(),
+        related_signals=(),
     ):
         key = str(identity.invocation_key)
         published = PublishedTargetResponse(f"interaction:{key}", 1, "selected")
@@ -112,11 +113,14 @@ class _Publication:
             expires_at,
             published.response_id,
         )
+        self.related_signals = (*getattr(self, "related_signals", ()), *related_signals)
+        self.interaction_payloads = (*getattr(self, "interaction_payloads", ()), resume_schema)
         return published
 
     def has_interaction(self, identity, *, signal_id, signal_version):
-        return any(isinstance(response, NeedsInput) and response.signal_id == signal_id
-                   for response in self.responses.values())
+        return (signal_id, signal_version) in getattr(self, "related_signals", ()) or any(
+            isinstance(response, NeedsInput) and response.signal_id == signal_id
+            for response in self.responses.values())
 
 
 class _MissingThenReadExecutor:
@@ -232,6 +236,57 @@ def test_public_outcomes_preserve_control_when_local_ids_repeat(monkeypatch, ret
     assert len({item["control"]["control_id"] for item in results}) == retained_count + 1
     assert {item["control"]["control_id"] for item in results[:-1]} == {
         f"prior-{index}" for index in range(retained_count)}
+
+
+def test_one_publication_exposes_both_approval_and_field_bindings():
+    from application.agent_result import RequestedField
+    from application.conversation_state import PendingInteractionState
+    from tests.test_approval_revision_lifecycle import pending_state
+    from jsonschema import validate
+    from application.response_assembly import ResponseAssembler
+    from application.agent_result import MissingInputSpec
+    from tests.test_response_assembly import _board, _result
+    from tests.test_knowledge_answer_boundary import Verifier
+    state, origin, other = pending_state(False)
+    state = replace(state, pending_approval=replace(state.pending_approval, checkpoint_thread_id="thread"))
+    state = state.wait_for_interaction(PendingInteractionState("fields", 1,
+        (RequestedField("reply", other.work_item_id, "string"),), (), (other,), "thread"))
+    application, _ = _application()
+    class Composer:
+        async def compose(self, payload):
+            assert payload["evidence"]["pending_actions"]
+            assert payload["evidence"]["requested_inputs"]
+            assert any("approval" in requirement.lower() for requirement in payload["response_requirements"])
+            return "Approve the operation? Also, which option?"
+    assembler = ResponseAssembler(Composer(), knowledge_verifier=Verifier(True), fallback_locale="en")
+    async def execute(*args, **kwargs):
+        assembly = await assembler.assemble(_board(_result(origin.work_item_id, origin.owner_agent)),
+            current_message="Proceed", pending_approval=state.pending_approval,
+            requested_inputs=(MissingInputSpec("reply", other.work_item_id, "INPUT", "string", "Which option?"),))
+        return SimpleNamespace(managed=SimpleNamespace(state_before=replace(state,
+            pending_interaction=None, pending_approval=None), state_after=state),
+            assembled=assembly)
+    application._turn_runtime.execute = execute
+    command = ChatCommand("Proceed", "user-a", "tenant-a", "conversation-a", "request-a")
+    response = asyncio.run(application.handle(command))
+    assert isinstance(response, NeedsInput) and response.kind == "COMPOUND"
+    assert len(application._publication.responses) == 1
+    schema, = application._publication.interaction_payloads
+    assert application._publication.has_interaction(None, signal_id="fields", signal_version=1)
+    assert application._publication.has_interaction(None, signal_id="approval", signal_version=1)
+    validate({"approval_id": "approval", "approved": True}, schema)
+    values = {"interaction_id": "fields", "interaction_version": 1, "interaction_values": [{
+        "target_work_item_id": other.work_item_id, "field_name": "reply", "value": "blue"}]}
+    validate(values, schema)
+    validate({**values, "approval_id": "approval", "approved": False}, schema)
+
+
+def test_chat_request_accepts_typed_decision_without_fabricated_user_text():
+    from api.main import ChatRequest
+    from pydantic import ValidationError
+    assert ChatRequest(approval_id="approval", approved=True).message == ""
+    with pytest.raises(ValidationError):
+        ChatRequest()
 
 
 class _FailingSemanticProvider:

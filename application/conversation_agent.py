@@ -25,6 +25,7 @@ from application.turn_planning import (
     CommandProposal,
     ProposalDisposition,
     TurnProposal,
+    ApprovalDecisionProposal,
 )
 from application.work_item import ArgumentValue
 
@@ -115,6 +116,10 @@ def planning_output_schema(supported_goals=None, knowledge_filter_contract=None)
                 "resolved", "insufficient_context", "out_of_scope",
             ]},
             "goals": {"type": "array", "minItems": 1, "maxItems": 4, "items": goal},
+            "approval_decision": {"type": "object", "additionalProperties": False,
+                "required": ["approval_id", "decision"], "properties": {
+                    "approval_id": dict(text),
+                    "decision": {"type": "string", "enum": ["approve", "decline"]}}},
             "missing_fields": {
                 "type": "array", "minItems": 1, "uniqueItems": True,
                 "items": {"type": "string", "enum": sorted(_MISSING_FIELDS)},
@@ -122,11 +127,12 @@ def planning_output_schema(supported_goals=None, knowledge_filter_contract=None)
         },
         "oneOf": [
             {"properties": {"status": {"const": "resolved"}},
-             "required": ["goals"], "not": {"required": ["missing_fields"]}},
+             "anyOf": [{"required": ["goals"]}, {"required": ["approval_decision"]}],
+             "not": {"required": ["missing_fields"]}},
             {"properties": {"status": {"const": "insufficient_context"}},
-             "required": ["missing_fields"], "not": {"required": ["goals"]}},
+             "required": ["missing_fields"], "not": {"anyOf": [{"required": ["goals"]}, {"required": ["approval_decision"]}]}},
             {"properties": {"status": {"const": "out_of_scope"}},
-             "not": {"anyOf": [{"required": ["goals"]}, {"required": ["missing_fields"]}]}},
+             "not": {"anyOf": [{"required": ["goals"]}, {"required": ["missing_fields"]}, {"required": ["approval_decision"]}]}},
         ],
     }
 
@@ -237,6 +243,17 @@ class ConversationAgent:
                 ),
             },
             "observed_entities": dict(observations.structured_fields),
+            "supplied_interaction_values": [
+                {"target_work_item_id": target, "field_name": name, "value": value}
+                for target, name, value in observations.interaction_values],
+            "pending_approval": ({
+                "approval_id": state.pending_approval.approval_id,
+                "version": state.pending_approval.version,
+                "action_ref": state.pending_approval.action_ref,
+                "arguments": {arg.name: arg.value for arg in state.pending_approval.arguments},
+                "control_id": state.pending_approval.origin_control.control_id if state.pending_approval.origin_control else None,
+                "typed_decision": observations.approval_decision,
+            } if state.pending_approval else None),
             "pending_input": ({
                 "interaction_id": state.pending_interaction.interaction_id,
                 "version": state.pending_interaction.version,
@@ -358,6 +375,16 @@ class ConversationAgent:
         if not isinstance(raw, Mapping):
             raise TypeError("semantic result must be an object")
         status = str(raw["status"])
+        decision = None
+        if "approval_decision" in raw:
+            value = raw["approval_decision"]
+            if (status != "resolved" or not isinstance(value, Mapping)
+                    or set(value) != {"approval_id", "decision"}
+                    or value["decision"] not in {"approve", "decline"}
+                    or state.pending_approval is None
+                    or value["approval_id"] != state.pending_approval.approval_id):
+                raise ValueError("approval decision must reference the current pending action")
+            decision = ApprovalDecisionProposal(value["approval_id"], value["decision"] == "approve")
         if status == "out_of_scope":
             return TurnProposal(
                 ProposalDisposition.OUT_OF_SCOPE, (), "SEMANTIC_OUT_OF_SCOPE",
@@ -371,8 +398,8 @@ class ConversationAgent:
             )
         if status != "resolved":
             raise ValueError("unsupported semantic status")
-        goals = raw.get("goals")
-        if not isinstance(goals, list) or not 1 <= len(goals) <= 4:
+        goals = raw.get("goals", [])
+        if not isinstance(goals, list) or not (1 <= len(goals) <= 4 or decision and not goals and "goals" not in raw):
             raise ValueError("semantic goals are invalid")
         goal_ids = tuple(
             str(value.get("goal_id") or f"semantic-{index}")
@@ -456,7 +483,15 @@ class ConversationAgent:
             elif kind == "continue_active_work":
                 from application.target_understanding import StateBoundTargetUnderstanding
                 pending = state.pending_interaction
-                original = next((item for item in (pending.suspended_work_items if pending else ())
+                candidates = (*(pending.suspended_work_items if pending else ()),
+                              *(state.pending_approval.suspended_work_items if state.pending_approval else ()))
+                if pending and observations.interaction_values:
+                    from application.deterministic_resolution import DeterministicResolver
+                    filled = DeterministicResolver().resolve(replace(observations, raw_text="",
+                        approval_id=None, approval_decision=None), state)
+                    candidates = (*filled.resumed_work_items,
+                                  *(state.pending_approval.suspended_work_items if state.pending_approval else ()))
+                original = next((item for item in candidates
                                  if item.control and item.control.control_id == revises_control_id), None)
                 if original is None:
                     raise ValueError("continuation requires a pending objective reference")
@@ -498,6 +533,7 @@ class ConversationAgent:
             commands.append(replace(command, dependencies=dependencies))
         return TurnProposal(
             ProposalDisposition.RESOLVED, tuple(commands), "CONVERSATION_AGENT_PLAN",
+            approval_decision=decision,
         )
 
     @staticmethod

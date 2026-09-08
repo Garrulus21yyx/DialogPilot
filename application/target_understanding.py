@@ -51,7 +51,10 @@ class StateBoundTargetUnderstanding:
                 excluded = {work.work_item_id for work in deterministic.closed_work_items}
                 independent = tuple(work for work in suspended
                                     if work.work_item_id not in excluded)
-                commands = self._continuations(independent, state)
+                commands = (*self._continuations(self._without_field_waits(independent, state), state), *(
+                    CommandProposal("decline-goal:" + work.control.control_id, CommandKind.CANCEL_WORK,
+                        work.owner_agent, work.objective, revises_control_id=work.control.control_id)
+                    for work in deterministic.closed_work_items if work.control and state.accepts(work.control)))
                 return TurnProposal(
                     ProposalDisposition.RESOLVED if commands else ProposalDisposition.CLARIFY,
                     commands,
@@ -72,7 +75,7 @@ class StateBoundTargetUnderstanding:
             continuation = ()
             if grant.suspended_work_items:
                 continuation = self._continuations(
-                    grant.suspended_work_items, state,
+                    self._without_field_waits(grant.suspended_work_items, state), state,
                     after="continue-approved-workflow",
                 )
             return TurnProposal(
@@ -116,6 +119,60 @@ class StateBoundTargetUnderstanding:
             )
         return None
 
+    @staticmethod
+    def _without_field_waits(items, state):
+        waiting = state.pending_interaction
+        bindings = {item.control for item in (waiting.suspended_work_items if waiting else ()) if item.control}
+        excluded = {item.work_item_id for item in items if item.control in bindings}
+        while True:
+            expanded = excluded | {item.work_item_id for item in items if excluded.intersection(item.dependencies)}
+            if expanded == excluded:
+                break
+            excluded = expanded
+        return tuple(item for item in items if item.work_item_id not in excluded)
+
+    @classmethod
+    def merge_approval_plan(cls, semantic, bound, original_state, resolution):
+        """One whole-turn plan: explicit goals override bound default continuations."""
+        pending = original_state.pending_approval
+        explicit = {command.revises_control_id: command for command in semantic.commands
+                    if command.revises_control_id}
+        origin = pending.origin_control if pending else None
+        if resolution.approved and origin and origin.control_id in explicit:
+            command = explicit[origin.control_id]
+            if command.kind is CommandKind.CANCEL_WORK or command.continuation_of is None:
+                raise TurnPlanningError("approval cannot authorize an action whose goal is changed in the same plan")
+        waiting = {work.control.control_id for work in (
+            original_state.pending_interaction.suspended_work_items if original_state.pending_interaction else ())
+            if work.control}
+        bound_commands = bound.commands
+        if not resolution.approved and origin and origin.control_id in explicit and explicit[origin.control_id].continuation_of:
+            # Continuing the same goal overrides the default stop for its whole
+            # dependency chain, not just the root cancellation command.
+            closed_controls = {command.revises_control_id for command in bound_commands
+                               if command.kind is CommandKind.CANCEL_WORK}
+            restored = tuple(work for work in resolution.resumed_work_items
+                             if work.control and work.control.control_id in closed_controls
+                             and work.control.control_id not in waiting)
+            bound_commands = (*tuple(command for command in bound_commands if command.kind is not CommandKind.CANCEL_WORK),
+                              *cls._continuations(restored, original_state))
+        defaults = tuple(command for command in bound_commands
+            if command.revises_control_id not in explicit
+            and (command.revises_control_id not in waiting or command.kind is CommandKind.CANCEL_WORK))
+        replacements = {command.command_id: explicit[command.revises_control_id].command_id
+            for command in bound_commands if command.revises_control_id in explicit}
+        commands = (*semantic.commands, *defaults)
+        inherited = {command.revises_control_id: command.dependencies for command in bound_commands
+                     if command.continuation_of}
+        action_ids = tuple(command.command_id for command in defaults if command.kind is CommandKind.CONTINUE_ACTION)
+        commands = tuple(replace(command, dependencies=tuple(dict.fromkeys((
+            *(replacements.get(dep, dep) for dep in (*command.dependencies,
+                *(inherited.get(command.revises_control_id, ()) if command.continuation_of else ()))),
+            *(action_ids if resolution.approved and command.continuation_of else ()),
+        )))) for command in commands)
+        return TurnProposal(ProposalDisposition.RESOLVED if commands else ProposalDisposition.CLARIFY,
+            commands, bound.reason_code)
+
     @classmethod
     def preserve_approval_continuations(cls, proposal, state):
         """Carry independent queued goals into a revised approval plan.
@@ -125,6 +182,11 @@ class StateBoundTargetUnderstanding:
         them; their previous dependency is never silently discarded.
         """
         from application.action_approval import partition_approval_revision
+        pending = state.pending_approval
+        origin = pending.origin_control if pending else None
+        if origin and any(command.continuation_of and command.revises_control_id == origin.control_id
+                          for command in proposal.commands):
+            raise TurnPlanningError("pending action continuation requires an approval decision")
         affected = {command.revises_control_id for command in proposal.commands
                     if command.revises_control_id and command.continuation_of is None}
         represented = {command.revises_control_id for command in proposal.commands
@@ -133,7 +195,7 @@ class StateBoundTargetUnderstanding:
         if not closed and not independent:
             return proposal
         cancellations = tuple(CommandProposal(
-            command_id="retire-dependent:" + item.work_item_id,
+            command_id="retire-dependent:" + item.control.control_id,
             kind=CommandKind.CANCEL_WORK, target_agent=item.owner_agent,
             objective=item.objective, revises_control_id=item.control.control_id,
         ) for item in closed if item.control and item.control.control_id not in represented
@@ -174,7 +236,7 @@ class StateBoundTargetUnderstanding:
                for key, command in represented.items()):
             raise TurnPlanningError("cannot resume a dependency of cancelled work")
         cancellations = tuple(CommandProposal(
-            "cancel-dependent:" + item.work_item_id, CommandKind.CANCEL_WORK,
+            "cancel-dependent:" + item.control.control_id, CommandKind.CANCEL_WORK,
             item.owner_agent, item.objective, revises_control_id=key,
         ) for key, item in originals.items() if item.work_item_id in closed and key not in represented)
         ids = {originals[key].work_item_id: command.command_id for key, command in represented.items()
@@ -197,7 +259,7 @@ class StateBoundTargetUnderstanding:
             and control.revision == work.control.revision
             for control in state.active_work_controls))
         ids = {**(dependency_commands or {}), **{
-            work.work_item_id: f"continue-domain-objective:{work.work_item_id}"
+            work.work_item_id: f"continue-domain-objective:{work.control.control_id if work.control else work.work_item_id}"
             for index, work in enumerate(active, start=1)}}
         return tuple(replace(
             cls._resume_command(index, work), command_id=ids[work.work_item_id],
@@ -262,7 +324,7 @@ class CascadedTargetUnderstanding:
         )
         if resolved is not None:
             return resolved
-        if self._encoder is not None and deterministic.kind is not ResolutionKind.REPLY_PENDING_INPUT:
+        if self._encoder is not None and deterministic.kind is not ResolutionKind.REPLY_PENDING_INPUT and state.pending_approval is None:
             decision = await self._encoder(
                 observations, state, registry, turn_context,
             )

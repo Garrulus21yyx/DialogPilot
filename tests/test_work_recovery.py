@@ -233,9 +233,11 @@ def test_approval_and_clarification_have_distinct_checkpoints_and_signals():
         assert first.state_after.pending_approval == state_with_approval.pending_approval
         assert pending.checkpoint_thread_id != first.state_after.pending_approval.checkpoint_thread_id
         assert conversation_state_from_payload(conversation_state_to_payload(first.state_after)) == first.state_after
-        with pytest.raises(DeterministicResolutionError, match="clarification"):
-            await manager.handle(_identity("premature-approval"), TurnObservations("Yes",
-                approval_decision=True, approval_id="approval"))
+        # Independent waits may coexist; only an incorrect signal binding is
+        # rejected before planning, not the mere presence of a clarification.
+        with pytest.raises(DeterministicResolutionError, match="approval"):
+            await manager.handle(_identity("stale-approval"), TurnObservations("",
+                approval_decision=True, approval_id="stale-approval"))
         second = await manager.handle(_identity("clarification-answer"), TurnObservations("Option B",
             interaction_id=pending.interaction_id, interaction_version=pending.version))
         assert second.state_after.pending_interaction is None

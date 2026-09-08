@@ -105,6 +105,13 @@ class ResponseAssembler:
     async def assemble(self, board, *, current_message: str, system_notice: str = "", conversation_context=None,
                        pending_approval=None, requested_inputs=()) -> AssembledResponse:
         from dataclasses import replace
+        if board is None:
+            if pending_approval is None and not requested_inputs:
+                raise ValueError("response requires execution evidence or a pending interaction")
+            from application.result_board import ResultBoardSnapshot
+            # There was no execution this turn. Pending interaction contracts
+            # remain evidence, without inventing a successful task or receipt.
+            board = ResultBoardSnapshot((), (), (), (), (), (), False, False)
         response = await self._assemble(board, current_message=current_message,
             system_notice=system_notice, conversation_context=conversation_context, pending_approval=pending_approval,
             requested_inputs=requested_inputs)
@@ -121,7 +128,7 @@ class ResponseAssembler:
                 evidence_sha256=response.evidence_sha256, evidence_json=response.evidence_json)
         pending = [r.pending_action for r in board.results if r.pending_action]
         operation_key = pending_approval.operation_key if pending_approval else pending[0].operation_key if len(pending) == 1 else ""
-        if not requested_inputs and operation_key and response.verified_text_sha256:
+        if operation_key and response.verified_text_sha256:
             response = replace(response, approval_operation_key=operation_key)
         return response
 
@@ -322,7 +329,7 @@ class ResponseAssembler:
                 "COMMITTED receipts establish execution of their recorded actions. Use accompanying write-result facts for returned business state; earlier read observations or assistant messages do not establish non-execution after that action. Do not infer downstream settlement or delivery beyond the returned result.",
                 "Scope each completed or pending action to its own operation and target. You may report a completed operation and ask approval for a different operation in one reply. A new pending proposal does not invalidate an earlier committed result, including when both concern the same target.",
                 *([_APPROVAL_DESCRIPTION_REQUIREMENT]
-                  if not requested_inputs and any(c.kind == "PENDING_ACTION" for c in claims) else []),
+                  if any(c.kind == "PENDING_ACTION" for c in claims) else []),
             ],
         }
         if repair_feedback is not None:

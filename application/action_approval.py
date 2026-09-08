@@ -36,23 +36,34 @@ def bind_action_approval(state, plan, board, registry, checkpoint_thread_id):
         raise ConversationStateConflict("action-capable workers must be serialized before approval")
     finished = {result.work_item_id for result in board.results
                 if result.status.value in {"SUCCEEDED", "CANCELLED", "SUPERSEDED"}}
+    waiting = {result.work_item_id for result in board.results if result.status.value == "NEEDS_USER_INPUT"}
+    if state.pending_interaction:
+        waiting.update(work.work_item_id for work in plan.work.items if any(
+            work == original or work.control is not None and work.control == original.control
+            for original in state.pending_interaction.suspended_work_items))
+    while True:
+        expanded = waiting | {work.work_item_id for work in plan.work.items if waiting.intersection(work.dependencies)}
+        if expanded == waiting:
+            break
+        waiting = expanded
     if state.pending_approval:
         # A prepared explicit action already owns this turn's decision. Queue
         # unfinished domain objectives behind it, without replacing its grant.
         pending = state.pending_approval
-        if pending.checkpoint_thread_id != checkpoint_thread_id:
+        if pending.checkpoint_thread_id != checkpoint_thread_id or not any(
+            work.control is not None and work.control == pending.origin_control for work in plan.work.items
+        ):
             return state
-        existing = {work.work_item_id for work in pending.suspended_work_items}
         additions = tuple(work for work in plan.work.items
-                          if work.work_item_id not in finished and work.work_item_id not in existing)
+                          if work.work_item_id not in finished | waiting and not any(
+                              work == original or work.control is not None and work.control == original.control
+                              for original in pending.suspended_work_items))
         if not additions:
             return state
         return replace(state, version=state.version + 1, pending_approval=replace(
             pending, suspended_work_items=(*pending.suspended_work_items, *additions)))
     if not proposed:
         return state
-    if state.pending_interaction:
-        raise ConversationStateConflict("one pending action decision is supported per conversation")
     result = proposed[0]
     parent = next(item for item in plan.work.items if item.work_item_id == result.work_item_id)
     action = result.pending_action
@@ -82,7 +93,7 @@ def bind_action_approval(state, plan, board, registry, checkpoint_thread_id):
         action.arguments, checkpoint_thread_id, action.argument_bindings,
         suspended_work_items=(parent, *(
             work for work in plan.work.items if work.work_item_id != parent.work_item_id
-            and work.work_item_id not in finished
+            and work.work_item_id not in finished | waiting
         )),
         origin_work_item_id=parent.work_item_id,
         control=parent.control,

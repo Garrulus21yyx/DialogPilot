@@ -29,7 +29,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Response, UploadFil
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from application.sales_channels import validate_sales_channel, filter_contract_fingerprint
 
 from services.ticket_service import (
@@ -802,7 +802,7 @@ class InteractionValueInput(BaseModel):
 
 class ChatRequest(BaseModel):
     """聊天入口的外部请求合同。"""
-    message:     str = Field(min_length=1, max_length=10000)
+    message:     str = Field(default="", max_length=10000)
     user_id:     Optional[str] = Field(default=None, min_length=1, max_length=200)
     conv_id:     Optional[str] = None
     request_id:  Optional[str] = Field(default=None, max_length=128)
@@ -815,6 +815,15 @@ class ChatRequest(BaseModel):
         default_factory=list,
         max_length=20,
     )
+
+    @model_validator(mode="after")
+    def require_text_or_bound_signal(self):
+        if not self.message.strip() and not (
+            self.approval_id and self.approved is not None
+            or self.interaction_id and self.interaction_version is not None and self.interaction_values
+        ):
+            raise ValueError("chat requires text or a bound interaction answer")
+        return self
 
 
 class ChatResponse(BaseModel):

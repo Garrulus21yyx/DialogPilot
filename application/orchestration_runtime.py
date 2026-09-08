@@ -97,6 +97,7 @@ class ParentGraphState(TypedDict, total=False):
     pending_approval: PendingApprovalState | None
     retained_outcomes: tuple[tuple[WorkItem, AgentResult | None], ...]
     imported_source_threads: tuple[str, ...]
+    retain_wait: bool
 
 
 class WorkerState(TypedDict):
@@ -173,7 +174,8 @@ class OrchestrationRuntime:
         )
         builder.add_node("await_resume", self._await_resume)
         builder.add_conditional_edges(
-            "await_resume", self._dispatch, ["execute_work_item", "finish"],
+            "await_resume", lambda state: "await_resume" if state.get("retain_wait") else self._dispatch(state),
+            ["execute_work_item", "finish", "await_resume"],
         )
         builder.add_edge("finish", END)
         return builder.compile(checkpointer=self._checkpointer)
@@ -281,13 +283,19 @@ class OrchestrationRuntime:
             # a remote action. Give only unstarted work a terminal outcome so
             # queued items cannot leave the graph in an unfinished state.
             returned = {result.work_item_id: result for result in state.get("agent_results", ())}
+            retain = bool(resumed.get("retain_wait"))
+            results = [_closed_outcome(item, returned.get(item.work_item_id))
+                if item in closed or not retain and item.work_item_id not in returned else returned.get(item.work_item_id)
+                for item in state["work_plan"].items]
+            results = [result for result in results if result is not None]
+            retained = tuple((item, _closed_outcome(item, result) if item in closed else result)
+                             for item, result in state.get("retained_outcomes", ()))
             return {
-                "agent_results": Overwrite([_closed_outcome(item, returned.get(item.work_item_id))
-                    if item in closed or item.work_item_id not in returned else returned[item.work_item_id]
-                    for item in state["work_plan"].items]),
-                "retained_outcomes": tuple((item, _closed_outcome(item, result) if item in closed else result)
-                                           for item, result in state.get("retained_outcomes", ())),
-                "interrupt_after_completion": False,
+                "agent_results": Overwrite(results),
+                "retained_outcomes": retained,
+                "board": self._evaluate({**state, "agent_results": results, "retained_outcomes": retained}),
+                "interrupt_after_completion": retain,
+                "retain_wait": retain,
                 "ready_items": (),
             }
         plan = resumed.get("work_plan")
@@ -347,6 +355,7 @@ class OrchestrationRuntime:
             "retained_outcomes": retained,
             "imported_source_threads": tuple(dict.fromkeys(
                 (*state.get("imported_source_threads", ()), *resumed.get("source_thread_ids", ())))),
+            "retain_wait": False,
         }
 
     async def _execute_work_item(self, state: WorkerState):
@@ -620,15 +629,18 @@ class OrchestrationRuntime:
         }), config=config, durability="sync")
         return result["board"]
 
-    async def cancel_interrupt(self, *, thread_id: str, closed_work_items: tuple[WorkItem, ...] = ()) -> None:
+    async def cancel_interrupt(self, *, thread_id: str, closed_work_items: tuple[WorkItem, ...] = (), retain_wait: bool = False):
         if self._checkpointer is None:
             return
         config = {"configurable": {"thread_id": thread_id}}
         snapshot = await self.graph.aget_state(config)
         if snapshot.tasks and any(task.interrupts for task in snapshot.tasks):
-            await self.graph.ainvoke(
-                Command(resume={"cancel": True, "closed_work_items": closed_work_items}), config=config,
+            result = await self.graph.ainvoke(
+                Command(resume={"cancel": True, "closed_work_items": closed_work_items,
+                                "retain_wait": retain_wait}), config=config, durability="sync",
             )
+            return result["board"]
+        return snapshot.values.get("board")
 
 
 def _work_plan_fingerprint(plan: WorkPlan) -> str:

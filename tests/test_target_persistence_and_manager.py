@@ -655,7 +655,7 @@ def test_order_cancellation_approval_resumes_its_registered_owner_and_action(flo
     completed = asyncio.run(manager.handle(
         _identity("request-cancel-confirm"),
         TurnObservations(
-            "确认取消",
+            "",
             approval_decision=True,
             approval_id=pending.approval_id,
         ),
@@ -716,7 +716,7 @@ def test_shipping_address_approval_resumes_registered_action_with_exact_address(
     completed = asyncio.run(manager.handle(
         _identity("request-address-confirm"),
         TurnObservations(
-            "确认修改",
+            "",
             approval_decision=True,
             approval_id=pending.approval_id,
         ),
@@ -774,7 +774,7 @@ def test_account_freeze_approval_resumes_registered_action_for_current_principal
     completed = asyncio.run(manager.handle(
         _identity("request-freeze-confirm"),
         TurnObservations(
-            "确认冻结",
+            "",
             approval_decision=True,
             approval_id=pending.approval_id,
         ),

@@ -138,18 +138,29 @@ class CommandProposal:
 
 
 @dataclass(frozen=True)
+class ApprovalDecisionProposal:
+    approval_id: str
+    approved: bool
+
+    def __post_init__(self):
+        if not self.approval_id.strip() or type(self.approved) is not bool:
+            raise TurnPlanningError("approval decision requires a bound identity and Boolean decision")
+
+
+@dataclass(frozen=True)
 class TurnProposal:
     disposition: ProposalDisposition
     commands: tuple[CommandProposal, ...]
     reason_code: str
     missing_inputs: tuple[str, ...] = ()
+    approval_decision: ApprovalDecisionProposal | None = None
 
     def __post_init__(self) -> None:
         if not self.reason_code.strip():
             raise TurnPlanningError("proposal reason code is required")
-        if self.disposition is ProposalDisposition.RESOLVED and not self.commands:
-            raise TurnPlanningError("resolved proposal requires commands")
-        if self.disposition is not ProposalDisposition.RESOLVED and self.commands:
+        if self.disposition is ProposalDisposition.RESOLVED and not (self.commands or self.approval_decision):
+            raise TurnPlanningError("resolved proposal requires commands or an approval decision")
+        if self.disposition is not ProposalDisposition.RESOLVED and (self.commands or self.approval_decision):
             raise TurnPlanningError("terminal proposal cannot carry commands")
 
 
@@ -185,6 +196,8 @@ class RoutePolicy:
         state: ConversationState,
         registry: CapabilityRegistryBundle,
     ) -> ValidatedCommandPlan:
+        if proposal.approval_decision is not None:
+            raise TurnPlanningError("approval decision must be bound before command validation")
         if str(state.tenant_id) != registry.tenant_id:
             raise TurnPlanningError("state and registry tenants differ")
         if proposal.disposition is not ProposalDisposition.RESOLVED:

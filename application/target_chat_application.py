@@ -27,6 +27,20 @@ from application.work_item import WorkControlBinding
 logger = logging.getLogger(__name__)
 
 
+def _input_properties(pending):
+    """The public resume shape uses the same field names as ChatRequest."""
+    return {
+        "interaction_id": {"const": pending.interaction_id},
+        "interaction_version": {"const": pending.version},
+        "interaction_values": {"type": "array", "minItems": 1, "items": {
+            "oneOf": [{"type": "object", "additionalProperties": False,
+                "required": ["target_work_item_id", "field_name", "value"], "properties": {
+                    "target_work_item_id": {"const": field.target_work_item_id},
+                    "field_name": {"const": field.field_name}, "value": {},
+                }} for field in pending.requested_fields]}},
+    }
+
+
 class TargetAdmissionStatus(str, Enum):
     CREATED = "CREATED"
     EXISTING = "EXISTING"
@@ -87,6 +101,7 @@ class TargetPublicationPort(Protocol):
         resume_schema: Mapping[str, object],
         expires_at: str,
         expected_work_controls: tuple[WorkControlBinding, ...] = (),
+        related_signals: tuple[tuple[str, int], ...] = (),
     ) -> PublishedTargetResponse: ...
 
 
@@ -225,6 +240,9 @@ class TargetChatApplication:
             )
 
         pending = managed.state_after.pending_approval
+        pending_input = managed.state_after.pending_interaction
+        present_input = pending_input is not None and not self._publication.has_interaction(
+            identity, signal_id=pending_input.interaction_id, signal_version=pending_input.version)
         assembly = turn_result.assembled
         if pending is not None and assembly is not None and (
             assembly.approval_operation_key == pending.operation_key
@@ -242,31 +260,32 @@ class TargetChatApplication:
                 signal_version=pending.version,
                 challenge=assembly.text,
                 resume_schema={
+                    "interaction_kind": "COMPOUND" if present_input else "APPROVAL",
                     "type": "object",
-                    "required": ["approval_id", "approved"],
+                    "anyOf": ([{"required": ["approval_id", "approved"]},
+                               {"required": ["interaction_id", "interaction_version", "interaction_values"]}]
+                              if present_input else [{"required": ["approval_id", "approved"]}]),
                     "properties": {
                         "approval_id": {"const": pending.approval_id},
                         "approved": {"type": "boolean"},
+                        **(_input_properties(pending_input) if present_input else {}),
                     },
                 },
                 expires_at=expires_at,
                 expected_work_controls=tuple(
-                    item.control for item in pending.suspended_work_items if item.control),
+                    item.control for item in (*pending.suspended_work_items,
+                        *(pending_input.suspended_work_items if present_input else ())) if item.control),
+                **({"related_signals": ((pending_input.interaction_id, pending_input.version),)} if present_input else {}),
             )
             return NeedsInput(
                 str(identity.workflow_run_id),
                 pending.approval_id,
-                "APPROVAL",
+                "COMPOUND" if present_input else "APPROVAL",
                 expires_at,
                 published.response_id,
             )
 
-        pending_input = managed.state_after.pending_interaction
-        if pending_input is not None and (
-            managed.state_before.pending_interaction is None
-            or managed.state_before.pending_interaction.interaction_id
-            != pending_input.interaction_id
-        ):
+        if present_input:
             if assembly is None:
                 return Failed("target_interaction_not_assembled", True,
                     str(identity.invocation_key), "The follow-up question could not be prepared.")
@@ -286,23 +305,9 @@ class TargetChatApplication:
                     "interaction_kind": "FIELDS",
                     "type": "object",
                     "required": [
-                        "interaction_id", "interaction_version", "values",
+                        "interaction_id", "interaction_version", "interaction_values",
                     ],
-                    "properties": {
-                        "interaction_id": {"const": pending_input.interaction_id},
-                        "interaction_version": {"const": pending_input.version},
-                        "values": {
-                            "type": "array",
-                            "items": [
-                                {
-                                    "target_work_item_id": field.target_work_item_id,
-                                    "field_name": field.field_name,
-                                    "value_schema": field.value_schema,
-                                }
-                                for field in pending_input.requested_fields
-                            ],
-                        },
-                    },
+                    "properties": _input_properties(pending_input),
                 },
                 expires_at=expires_at,
             )

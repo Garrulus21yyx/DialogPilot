@@ -9,7 +9,7 @@ from typing import TypedDict
 from langgraph.graph import END, START, StateGraph
 
 from application.conversation_context import conversation_context_payload
-from application.agent_result import AgentResultStatus
+from application.agent_result import AgentResultStatus, MissingInputSpec
 from application.deterministic_resolution import TurnObservations
 from application.response_assembly import AssembledResponse, ResponseAssembler
 from application.target_conversation_manager import (
@@ -59,7 +59,7 @@ class TurnRuntimeResult:
 class TurnRuntime:
     """Coordinate durable turn phases without owning their domain semantics."""
 
-    version = "turn-runtime-v3"
+    version = "turn-runtime-v4"
 
     def __init__(
         self,
@@ -131,17 +131,23 @@ class TurnRuntime:
         questions = ()
         if (pending_input is not None and (
                 managed.state_before.pending_interaction is None
-                or pending_input.interaction_id != managed.state_before.pending_interaction.interaction_id)):
-            candidates = managed.interaction_questions or tuple(
-                spec for result in (board.results if board else ())
-                for spec in result.missing_inputs if spec.required)
+                or pending_input.interaction_id != managed.state_before.pending_interaction.interaction_id
+                or self._interaction_published is not None and not self._interaction_published(
+                    state["invocation"], signal_id=pending_input.interaction_id, signal_version=pending_input.version))):
+            candidates = tuple(spec for item, result in (board.outcome_items if board else ())
+                if result is not None and any(item == original for original in pending_input.suspended_work_items)
+                for spec in result.missing_inputs if spec.required) or managed.interaction_questions
+            if all(field.question_hint for field in pending_input.requested_fields):
+                candidates = tuple(MissingInputSpec(field.field_name, field.target_work_item_id,
+                    "PENDING_INPUT", field.value_schema, field.question_hint)
+                    for field in pending_input.requested_fields)
             bindings = {(field.target_work_item_id, field.field_name)
                         for field in pending_input.requested_fields}
             questions = tuple(spec for spec in candidates
                               if (spec.target_work_item_id, spec.field_name) in bindings)
             if {(spec.target_work_item_id, spec.field_name) for spec in questions} != bindings:
                 raise TurnRuntimeError("Pending input lacks its bound question specification")
-        if board is None or any(
+        if board is not None and any(
             result.status in {
                 AgentResultStatus.RECONCILING,
             }
@@ -165,6 +171,8 @@ class TurnRuntime:
             (self._interaction_published is not None and not self._interaction_published(
                 state["invocation"], signal_id=pending_approval.approval_id,
                 signal_version=pending_approval.version)))
+        if board is None and not questions and not present_approval:
+            return {"assembled": None}
         context = conversation_context_payload(state["prepared"].context)
         if pending_approval is not None and not present_approval:
             context = {**(context or {}), "retained_approval": {
@@ -219,12 +227,13 @@ class TurnRuntime:
                 if snapshot.values.get("invocation_key") != key:
                     raise TurnRuntimeError("turn checkpoint belongs to another invocation")
                 prepared = snapshot.values.get("prepared")
-                if snapshot.next and (
+                completed = snapshot.values.get("managed") is not None and not snapshot.next
+                if not completed and (
                     snapshot.values.get("runtime_version") != self.version
                     or (prepared is not None and prepared.artifact_version != "prepared-turn-v2")
                 ):
                     raise TurnCheckpointVersionError("in-flight checkpoint predates durable state decisions")
-                if snapshot.values.get("managed") is not None and not snapshot.next:
+                if completed:
                     return TurnRuntimeResult(
                         snapshot.values["managed"],
                         snapshot.values.get("assembled"),

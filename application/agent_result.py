@@ -232,9 +232,12 @@ class RequestedField:
     field_name: str
     target_work_item_id: str
     value_schema: str
+    question_hint: str | None = None
 
     def __post_init__(self) -> None:
         _required(self.field_name, self.target_work_item_id, self.value_schema)
+        if self.question_hint is not None:
+            _required(self.question_hint)
 
 
 @dataclass(frozen=True)

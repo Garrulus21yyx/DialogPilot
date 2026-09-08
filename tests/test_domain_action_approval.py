@@ -83,18 +83,12 @@ def test_existing_explicit_approval_retains_only_same_checkpoint_work(waiting_st
         pending_action=None, status=AgentResultStatus(waiting_status)),))
     next_state = bind_action_approval(state, SimpleNamespace(work=SimpleNamespace(items=(item,))),
                                       board, None, "thread" if same_thread else "other-thread")
-    if not same_thread:
-        assert next_state is state
-        return
-    assert next_state.pending_approval.suspended_work_items == (item,)
-    assert next_state.pending_approval.origin_work_item_id is None
-    assert next_state.pending_approval.operation_key == "operation"
-    assert next_state.version == state.version + 1
-    assert bind_action_approval(next_state, SimpleNamespace(work=SimpleNamespace(items=(item,))),
-                                board, None, "thread") is next_state
+    # Sharing an execution thread does not make unrelated work part of this
+    # previously prepared action's continuation contract.
+    assert next_state is state
 
 
-@pytest.mark.parametrize("decision", ["approve", "deny", "supersede", "ask_first", "ask_twice", "clarify_during_approval", "cancel_both", "invalid_followup"])
+@pytest.mark.parametrize("decision", ["approve", "deny", "supersede", "ask_first", "ask_twice", "clarify_during_approval", "cancel_both", "invalid_followup", "simultaneous_approve_first", "simultaneous_fields_first"])
 def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url, decision):
     async def run():
         base = build_default_capability_registry("tenant-target")
@@ -154,6 +148,20 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
 
         domain = ObservedDomain(model, tools, review_model=model, review_available_tokens=14200,
                                 result_store=InMemoryStore(), registry=registry, system_prompt=owner.description)
+        simultaneous = decision.startswith("simultaneous_")
+        field_calls = []
+        async def worker(context):
+            if context.work_item.objective != "Choose a separate option":
+                return await domain(context)
+            from application.agent_result import AgentResult, AgentResultStatus, MissingInputSpec
+            item = context.work_item
+            field_calls.append(item)
+            if not item.continuation_of:
+                return AgentResult(item.work_item_id, item.owner_agent, AgentResultStatus.NEEDS_USER_INPUT,
+                    "INPUT", "test", missing_inputs=(MissingInputSpec("reply", item.work_item_id,
+                        "INPUT", "string", "Which option?"),))
+            return AgentResult(item.work_item_id, item.owner_agent, AgentResultStatus.SUCCEEDED,
+                "DONE", "test", candidate_response="Option recorded.")
         PostgresMigrationRunner(postgres_database_url).upgrade()
         pool = PostgresPool(PostgresPoolConfig(postgres_database_url, min_size=1, max_size=4))
         pool.open()
@@ -164,9 +172,11 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
                 understanding=_ResumeAwareUnderstanding(TurnProposal(
                     ProposalDisposition.RESOLVED, (CommandProposal("open-order", CommandKind.DELEGATE_TASK,
                         owner.agent_id, "Cancel order DP1234 then explain the result",
-                        allow_action_proposals=True),), "OPEN")),
+                        allow_action_proposals=True), *(
+                            (CommandProposal("option", CommandKind.DELEGATE_TASK, owner.agent_id,
+                                "Choose a separate option"),) if simultaneous else ())), "OPEN")),
                 orchestration=OrchestrationRuntime(
-                    direct_executor=domain, domain_workers={owner.agent_id: domain},
+                    direct_executor=domain, domain_workers={owner.agent_id: worker},
                     workflow_executor=TargetWorkflowExecutor(pool, tools, registry=registry),
                     checkpointer=InMemorySaver(serde=target_checkpoint_serializer()),
                 ),
@@ -195,6 +205,27 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
             assert pending.suspended_work_items[0].allowed_actions == (action.ref,)
             assert dict((arg.name, arg.value) for arg in pending.arguments) == {
                 "order_id": "DP1234", "expected_order_version": 4}
+            async def answer_separate_field(current):
+                from application.conversation_agent import ConversationAgent
+                from application.target_understanding import CascadedTargetUnderstanding, StateBoundTargetUnderstanding
+                from tests.test_conversation_agent import Provider
+                question = current.state_after.pending_interaction
+                provider = Provider({"status": "resolved", "goals": [{"kind": "continue_active_work",
+                    "revises_control_id": question.suspended_work_items[0].control.control_id}]})
+                manager._understanding = CascadedTargetUnderstanding(StateBoundTargetUnderstanding(), ConversationAgent(provider))
+                result = await manager.handle(_identity("separate-field-answer"), TurnObservations(
+                    "Blue", interaction_id=question.interaction_id, interaction_version=question.version))
+                assert result.state_after.pending_interaction is None
+                assert len(field_calls) == 2
+                return result
+            if simultaneous:
+                question = first.state_after.pending_interaction
+                assert question.checkpoint_thread_id == pending.checkpoint_thread_id
+                assert len(field_calls) == 1
+                if decision == "simultaneous_fields_first":
+                    answered = await answer_separate_field(first)
+                    assert answered.state_after.pending_approval == pending
+                    assert calls == ["read"]
             if decision in {"clarify_during_approval", "cancel_both"}:
                 question = await manager.handle(_identity("ask-about-approval"), TurnObservations(
                     "Before confirming, can you explain?"))
@@ -282,18 +313,26 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
                     runtime = TurnRuntime(manager, RejectInput(), checkpointer=checkpoints)
                     with pytest.raises(InteractionAssemblyUnavailable):
                         await runtime.execute(_identity("approve"), TurnObservations(
-                            "Yes", approval_decision=True, approval_id=pending.approval_id))
+                            "", approval_decision=True, approval_id=pending.approval_id))
                 assert len([call for call in calls if isinstance(call, tuple)]) == 1
                 assert model.calls == 4  # Two invalid questions, no endless repair on restart.
                 return
             from application.turn_runtime import TurnRuntime
             from application.response_assembly import ResponseAssembler
+            from application.conversation_agent import ConversationAgent
+            from application.target_understanding import CascadedTargetUnderstanding, StateBoundTargetUnderstanding
+            from tests.test_conversation_agent import Provider
+            provider = Provider({"status": "resolved", "approval_decision": {
+                "approval_id": pending.approval_id,
+                "decision": "decline" if decision == "deny" else "approve"}})
+            manager._understanding = CascadedTargetUnderstanding(StateBoundTargetUnderstanding(), ConversationAgent(provider))
             runtime = TurnRuntime(manager, ResponseAssembler(),
                 checkpointer=InMemorySaver(serde=target_checkpoint_serializer()))
             second = (await runtime.execute(_identity("approve"), TurnObservations(
                 "No" if decision == "deny" else "Yes", approval_decision=decision != "deny",
                 approval_id=pending.approval_id))).managed
             assert second.state_after.pending_approval is None
+            assert len(provider.calls) == 1
             assert second.checkpoint_thread_id == first.checkpoint_thread_id
             if decision == "deny":
                 assert calls == ["read"]
@@ -312,6 +351,13 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
             assert "order_cancel" not in model.bound_tool_names
             assert model.calls == (5 if decision == "clarify_during_approval" else
                                    3 + len(replies))
+            if decision == "simultaneous_approve_first":
+                assert second.state_after.pending_interaction == question
+                assert len(field_calls) == 1
+                second = await answer_separate_field(second)
+                assert second.state_after.pending_approval is None
+                assert len([call for call in calls if isinstance(call, tuple)]) == 1
+                assert model.calls == 3
         finally:
             pool.close()
     asyncio.run(run())

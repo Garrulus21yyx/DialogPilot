@@ -277,6 +277,8 @@ class PostgresPublicationService:
                     "signal_id": command.signal_id,
                     "signal_version": command.signal_version,
                     "resume_schema": dict(command.resume_schema),
+                    "related_signals": [{"signal_id": key, "signal_version": version}
+                                        for key, version in command.related_signals],
                 },
                 "INTERACTION_REQUEST_PUBLISHED",
             )

@@ -103,9 +103,10 @@ class PostgresTargetPublication:
                 SELECT 1 FROM dialogpilot_app.response_deliveries
                 WHERE tenant_id=%s AND user_id=%s AND conversation_id=%s
                   AND publication_kind='interaction_request'
-                  AND signal_id=%s AND signal_version=%s
+                  AND ((signal_id=%s AND signal_version=%s)
+                       OR payload->'related_signals' @> %s::jsonb)
             """, (str(identity.tenant_id), str(identity.user_id), str(identity.conversation_id),
-                  signal_id, signal_version)).fetchone() is not None
+                  signal_id, signal_version, json.dumps([{"signal_id": signal_id, "signal_version": signal_version}]))).fetchone() is not None
 
     def completed(self, identity):
         completed = self._delivery.completed_for_invocation(
@@ -145,6 +146,7 @@ class PostgresTargetPublication:
         resume_schema,
         expires_at,
         expected_work_controls=(),
+        related_signals=(),
     ):
         now = datetime.now(timezone.utc).isoformat()
         result = self._delivery.publication.publish_interaction_request(
@@ -170,6 +172,7 @@ class PostgresTargetPublication:
                     else ProjectionDisposition.APPROVAL
                 ),
                 expected_work_controls=tuple(expected_work_controls),
+                related_signals=tuple(related_signals),
             )
         )
         return PublishedTargetResponse(

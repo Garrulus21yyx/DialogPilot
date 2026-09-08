@@ -121,3 +121,31 @@ def test_takeover_rejects_unowned_source_before_dispatch(mismatch):
                                  thread_id="primary", source_thread_ids=("source",), current_message="")
         assert seen == [1, 1]
     asyncio.run(run())
+
+
+def test_closing_one_goal_keeps_the_shared_wait_and_its_progress():
+    async def run():
+        calls = []
+        async def worker(context):
+            item = context.work_item
+            calls.append(item.control)
+            if item.control.revision == 2:
+                return AgentResult(item.work_item_id, item.owner_agent, AgentResultStatus.SUCCEEDED, "DONE", "test")
+            return AgentResult(item.work_item_id, item.owner_agent, AgentResultStatus.NEEDS_USER_INPUT,
+                "INPUT", "test", missing_inputs=(MissingInputSpec("reply", item.work_item_id, "INPUT", "string", "Choose"),))
+        saver = InMemorySaver(serde=target_checkpoint_serializer())
+        runtime = OrchestrationRuntime(direct_executor=worker, domain_workers={"product_technical": worker}, checkpointer=saver)
+        a = replace(_item("a", 1, work_item_id="a"), requirement_ids=())
+        b = replace(_item("b", 1, work_item_id="b"), requirement_ids=())
+        await runtime.execute(WorkPlan((a, b), "a"), thread_id="shared", current_message="initial")
+        for _ in range(2):
+            board = await runtime.cancel_interrupt(thread_id="shared", closed_work_items=(a,), retain_wait=True)
+            assert [result.status for result in board.results] == [AgentResultStatus.CANCELLED, AgentResultStatus.NEEDS_USER_INPUT]
+            snapshot = await runtime.graph.aget_state({"configurable": {"thread_id": "shared"}})
+            assert any(task.interrupts for task in snapshot.tasks)
+        continued = replace(b, work_item_id="new-b", continuation_of="b", control=WorkControlBinding("b", 2))
+        board = await runtime.resume(WorkPlan((continued,), continued.work_item_id), thread_id="shared", current_message="blue")
+        assert calls == [a.control, b.control, continued.control]
+        assert board.retained_outcomes[0][1].status is AgentResultStatus.CANCELLED
+        assert board.results[0].status is AgentResultStatus.SUCCEEDED
+    asyncio.run(run())

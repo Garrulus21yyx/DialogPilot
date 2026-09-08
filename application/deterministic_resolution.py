@@ -132,9 +132,15 @@ class DeterministicResolver:
         pending = state.pending_interaction
         if observations.interaction_id is not None and pending is None:
             raise DeterministicResolutionError("interaction reply targets a retired interaction")
-        if pending is not None and observations.approval_decision is not None:
-            raise DeterministicResolutionError("resolve the pending clarification before deciding approval")
-        if pending is not None:
+        if observations.approval_decision is not None and (observations.raw_text.strip() or observations.interaction_values) and state.pending_approval:
+            if observations.approval_id != state.pending_approval.approval_id:
+                raise DeterministicResolutionError("approval reply targets another interaction")
+            if observations.interaction_id is not None and (pending is None or
+                    (observations.interaction_id, observations.interaction_version) != (pending.interaction_id, pending.version)):
+                raise DeterministicResolutionError("interaction reply targets another interaction")
+            return DeterministicResolution(ResolutionKind.UNRESOLVED,
+                "APPROVAL_WITH_TEXT_REQUIRES_PLANNING", state.fingerprint)
+        if pending is not None and observations.approval_decision is None:
             if observations.interaction_id is not None and (
                 observations.interaction_id != pending.interaction_id
                 or observations.interaction_version != pending.version

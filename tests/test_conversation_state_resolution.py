@@ -168,7 +168,7 @@ def test_approval_is_bound_to_identity_and_transitions_only_its_workstream():
         ), state)
 
     resolution = resolver.resolve(TurnObservations(
-        "approve",
+        "",
         approval_decision=True,
         approval_id="approval-1",
     ), state)
@@ -195,7 +195,7 @@ def test_pending_approval_requires_explicit_id_and_rejects_stale_signal():
         TurnObservations("确认", approval_decision=True)
 
     bound = resolver.resolve(TurnObservations(
-        "确认", approval_decision=True, approval_id="approval-1",
+        "", approval_decision=True, approval_id="approval-1",
     ), state)
     assert bound.signal_id == "approval-1"
     assert bound.operation_key == "operation-refund-1"
@@ -251,7 +251,7 @@ def test_expired_approval_fails_before_state_consumption():
     )
 
     resolution = resolver.resolve(TurnObservations(
-        "确认", approval_decision=True, approval_id="approval-1",
+        "", approval_decision=True, approval_id="approval-1",
     ), state)
     assert resolution.kind is ResolutionKind.APPROVAL_EXPIRED
     expired = state.consume_approval(

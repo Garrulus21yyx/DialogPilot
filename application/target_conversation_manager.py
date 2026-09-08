@@ -274,6 +274,23 @@ class TargetConversationManager:
             observations, state, deterministic, self._registry, turn_context,
         )
         from application.target_understanding import StateBoundTargetUnderstanding
+        if proposal.approval_decision is not None:
+            semantic = proposal
+            decision = proposal.approval_decision
+            # The decision references this loaded snapshot; the existing owner
+            # supplies action parameters/version and the final CAS rejects races.
+            approval_state = state
+            deterministic = self._resolver.resolve(replace(observations,
+                raw_text="", interaction_id=None, interaction_version=None,
+                interaction_values=(), structured_fields=(),
+                approval_id=decision.approval_id, approval_decision=decision.approved), state)
+            state = self._apply_deterministic(state, deterministic)
+            if state is not approval_state:
+                transitions.append(state)
+            bound = await StateBoundTargetUnderstanding()(observations, state, deterministic, self._registry)
+            proposal = StateBoundTargetUnderstanding.merge_approval_plan(
+                semantic, bound, approval_state, deterministic)
+            resume_thread_id = approval_state.pending_approval.checkpoint_thread_id
         proposal = StateBoundTargetUnderstanding.preserve_input_continuations(proposal, state)
         proposal = StateBoundTargetUnderstanding.preserve_approval_continuations(proposal, state)
         validated = self._route_policy.accept(proposal, state, self._registry)
@@ -326,15 +343,21 @@ class TargetConversationManager:
         closed_work_items = self._closed_work_items(state_before, deterministic, plan)
         thread_id = resume_thread_id or str(invocation.invocation_key)
         if plan.work is None:
+            board = None
+            if resume_thread_id is not None:
+                board = await self._orchestration.cancel_interrupt(thread_id=thread_id,
+                    closed_work_items=self._closed_work_items(state_before, deterministic, plan, thread_id=thread_id),
+                    retain_wait=any(pending is not None and pending.checkpoint_thread_id == thread_id
+                                    for pending in (state.pending_interaction, state.pending_approval)))
             return ManagedTurnResult(
                 state_before,
                 state,
                 deterministic,
                 plan,
-                None,
+                board,
                 thread_id,
                 state_transitions=prepared.state_transitions,
-                close_checkpoint=resume_thread_id is not None,
+                close_checkpoint=False,
                 progress_transition_count=len(prepared.state_transitions),
                 source_thread_ids=prepared.source_thread_ids,
             )
@@ -376,7 +399,9 @@ class TargetConversationManager:
         # whether stopped domain work needs a user continuation.
         await_decision = self._awaits_workflow_approval(plan) or (
             self._conversation_agent is not None
-            and any(item.control_mode.value == "DELEGATED" for item in plan.work.items))
+            and any(item.control_mode.value == "DELEGATED" for item in plan.work.items)) or any(
+                pending is not None and pending.checkpoint_thread_id == thread_id
+                for pending in (state.pending_interaction, state.pending_approval))
         board = (
             await self._orchestration.resume(
                 plan.work,
@@ -500,7 +525,7 @@ class TargetConversationManager:
         input_closed = tuple(item for item in (state.pending_interaction.suspended_work_items
                             if state.pending_interaction else ())
                             if item.control and item.control.control_id in cancelled)
-        candidates = (*resolution.closed_work_items, *approval_closed, *input_closed)
+        candidates = (*approval_closed, *input_closed)
         if thread_id is not None:
             originals = tuple(item for pending in (state.pending_interaction, state.pending_approval)
                               if pending is not None and pending.checkpoint_thread_id == thread_id
@@ -521,11 +546,6 @@ class TargetConversationManager:
             result for result in board.results
             if result.status is AgentResultStatus.NEEDS_USER_INPUT
         )
-        # Work already suspended in this approval checkpoint resumes after the
-        # decision. A question from another execution has its own continuation.
-        if (state.pending_approval is not None
-                and state.pending_approval.checkpoint_thread_id == checkpoint_thread_id):
-            return state
         if not missing_results and not recovery_inputs:
             return state
         if state.pending_interaction is not None:
@@ -555,6 +575,7 @@ class TargetConversationManager:
                     spec.field_name,
                     spec.target_work_item_id,
                     spec.value_schema,
+                    spec.question_hint,
                 )
                 for spec in all_specs
                 if spec.required and spec.target_work_item_id == work_item_id
@@ -618,7 +639,9 @@ class TargetConversationManager:
             deterministic.kind is ResolutionKind.APPROVAL_DECISION
             or deterministic.kind is ResolutionKind.RECONCILE_WORKFLOW
         ) and deterministic.approved:
-            result = next(iter(board.results), None)
+            result = next((result for item, result in board.outcome_items
+                           if item.operation_key == deterministic.operation_key
+                           and item.approval_binding == deterministic.signal_id), None)
             stream = next(
                 item for item in state.workstreams
                 if item.workstream_id == deterministic.workstream_id

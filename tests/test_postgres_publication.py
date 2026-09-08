@@ -130,6 +130,23 @@ def test_interaction_uses_the_same_transactional_control_check(publication_compo
         assert connection.execute("SELECT count(*) FROM dialogpilot_app.response_deliveries").fetchone()[0] == 0
 
 
+def test_compound_interaction_records_both_signals_in_one_publication(publication_components):
+    from types import SimpleNamespace
+    from infrastructure.target_chat_adapters import PostgresTargetPublication
+    pool, identity, service, _ = publication_components
+    command = replace(_interaction(identity), related_signals=(("fields-signal", 3),))
+    first = service.publish_interaction_request(command)
+    replay = service.publish_interaction_request(command)
+    assert replay.record.publication_id == first.record.publication_id
+    adapter = PostgresTargetPublication(SimpleNamespace(pool=pool))
+    assert adapter.has_interaction(identity, signal_id="approval-signal", signal_version=2)
+    assert adapter.has_interaction(identity, signal_id="fields-signal", signal_version=3)
+    assert not adapter.has_interaction(identity, signal_id="fields-signal", signal_version=2)
+    assert not adapter.has_interaction(replace(identity, user_id="other"), signal_id="fields-signal", signal_version=3)
+    with pool.transaction() as connection:
+        assert connection.execute("SELECT count(*) FROM dialogpilot_app.response_deliveries").fetchone()[0] == 1
+
+
 def _human(identity):
     return HumanReplyCommand(
         tenant_id=str(identity.tenant_id),

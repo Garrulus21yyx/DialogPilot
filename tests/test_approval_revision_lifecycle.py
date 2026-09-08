@@ -127,6 +127,44 @@ def test_turn_distinguishes_retained_approval_from_unpublished_presentation(publ
         assert captured[0]["conversation_context"]["retained_approval"]["status"] == "AWAITING_DECISION_NOT_EXECUTED"
 
 
+@pytest.mark.parametrize("kind", ["fields", "approval", "both"])
+@pytest.mark.parametrize("published", [False, True])
+def test_durable_interaction_can_be_presented_without_new_execution(kind, published):
+    from application.agent_result import RequestedField
+    from application.conversation_state import PendingInteractionState
+    from application.response_assembly import ResponseAssembler
+    from infrastructure.postgres_target_runtime import conversation_state_from_payload, conversation_state_to_payload
+    from tests.test_knowledge_answer_boundary import Verifier
+    state, _, other = pending_state(False)
+    if kind == "fields":
+        state = replace(state, pending_approval=None)
+    if kind != "approval":
+        state = state.wait_for_interaction(PendingInteractionState("question", 1,
+            (RequestedField("reply", other.work_item_id, "string", question_hint="Which option?"),),
+            (), (other,), "field-thread"))
+    state = conversation_state_from_payload(json.loads(json.dumps(conversation_state_to_payload(state))))
+    captured = []
+    class Composer:
+        async def compose(self, payload):
+            captured.append(payload)
+            return "Please confirm the operation and/or choose your option."
+    runtime = TurnRuntime(None, ResponseAssembler(Composer(), knowledge_verifier=Verifier(True)),
+        interaction_published=lambda *a, **k: published)
+    managed = SimpleNamespace(board=None, state_after=state, state_before=state, interaction_questions=(),
+        plan=SimpleNamespace(route=SimpleNamespace(reason_code="CLARIFY")))
+    result = asyncio.run(runtime._assemble_response({"managed": managed, "invocation": object(),
+        "prepared": SimpleNamespace(context=None), "observations": SimpleNamespace(raw_text="What next?")}))
+    if published:
+        assert result["assembled"] is None and captured == []
+    else:
+        assert result["assembled"].verified
+        evidence = captured[0]["evidence"]
+        assert bool(evidence["pending_actions"]) == (kind != "fields")
+        assert bool(evidence["requested_inputs"]) == (kind != "approval")
+        assert result["assembled"].approval_operation_key == ("operation" if kind != "fields" else "")
+    assert managed.board is None and managed.state_after == state
+
+
 @pytest.mark.parametrize("cancel", [False, True])
 @pytest.mark.parametrize("independent_count", [0, 1, 3])
 def test_revised_wait_preserves_checkpoint_progress_and_dependency_closure(cancel, independent_count):

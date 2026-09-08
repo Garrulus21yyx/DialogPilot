@@ -208,6 +208,7 @@ def conversation_state_to_payload(state: ConversationState) -> dict[str, object]
                         "field_name": item.field_name,
                         "target_work_item_id": item.target_work_item_id,
                         "value_schema": item.value_schema,
+                        **({"question_hint": item.question_hint} if item.question_hint is not None else {}),
                     }
                     for item in state.pending_interaction.requested_fields
                 ],
@@ -318,6 +319,7 @@ def conversation_state_from_payload(raw: Mapping[str, object]) -> ConversationSt
                         str(item["field_name"]),
                         str(item["target_work_item_id"]),
                         str(item["value_schema"]),
+                        item.get("question_hint"),
                     )
                     for item in pending_raw.get("requested_fields", ())
                 ),

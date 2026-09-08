@@ -201,7 +201,7 @@ def test_approval_decision_survives_all_turn_boundaries(decision, boundary):
             assert store.compare_and_set(before, expired)
             before = expired
         pending = before.pending_approval
-        observation = TurnObservations("确认" if decision != "declined" else "不要办理",
+        observation = TurnObservations("",
             approval_decision=decision != "declined", approval_id=pending.approval_id)
         wrapper = CrashBoundary(manager, boundary)
         runtime = TurnRuntime(wrapper, ResponseAssembler(), checkpointer=saver)

@@ -178,9 +178,7 @@ async def run(args):
                         manifest["context_protocol_reserve_tokens"] = int(os.getenv(
                             "CONTEXT_PROTOCOL_RESERVE_TOKENS", "600"))
                         write(args.output / "manifest.json", manifest)
-                        agent.configure(components, pool, framework_model(profile,
-                            {"api_key": values["ANTHROPIC_API_KEY"], "base_url": policy.base_url},
-                            max_tokens=200), callbacks=(langfuse_sink.callback(),) if langfuse_sink else ())
+                        agent.configure(components, pool)
                         row["langfuse_session_id"] = agent.conversation_id if langfuse_sink else None
                         user_parameters = simulator_parameters(args.user_max_tokens)
                         user = UserSimulator(llm=args.user_model, instructions=str(task.user_scenario),
