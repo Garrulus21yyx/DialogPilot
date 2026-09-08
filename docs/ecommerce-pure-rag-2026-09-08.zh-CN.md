@@ -1,0 +1,56 @@
+# 自建电商纯RAG回归集与分层结果
+
+按用户最新要求，本轮只执行知识检索，不执行Conversation Agent选工具、订单状态、领域Flow、最终答案生成或核验。此前完整客服链路的85%→90%不是本轮基线。
+
+## 数据与入口
+
+从已有120条模拟数据中排除20条混合业务问题，得到100条知识问题/50规则族：政策30、多轮24、产品指引26、边界20。原开发34、原留存66；全部已消费，因此均称回归，不再称新鲜封存。60份短资料全部保留，包括混合类政策作为干扰文档。输入与labels分文件；labels只用于选集合及离线评分，不传给改写器或检索器。
+
+链路：问题与角色标记历史→已有QueryTransformer（或历史直接拼接）→已有KnowledgeRetriever→PG Dense/FTS→RRF→本地BGE精排→ContextPacker→实际模型可见序列化。使用隔离数据库。历史直接供给QueryTransformer，不是测统一Conversation Agent或Memory的上下文召回。
+
+固定：BGE-M3、bge-reranker-v2-m3、Dense/lexical各0.5、候选20、最终5、上下文2600tokens、扩展关闭。HISTORY入口中raw/standalone归一化为0.25/0.75；无历史且查询相同时去重为一路。raw/standalone权重不是Dense/lexical权重。
+
+## 结果（100条）
+
+| 阶段/指标 | 历史直接拼接 | 完整查询＋原句 |
+|---|---:|---:|
+| 融合候选来源Recall@5 | 100% | 100% |
+| 融合候选来源Recall@20 | 100% | 100% |
+| 融合候选MRR@5 | 0.9950 | 0.9725 |
+| 融合候选nDCG@5 | 0.9963 | 0.9795 |
+| 精排后来源Recall@5 | 100% | 100% |
+| 精排后MRR@5 | 1.0000 | 0.9933 |
+| 精排后nDCG@5 | 1.0000 | 0.9950 |
+| 模型可见来源Recall@5 | 100% | 100% |
+
+两组打包均未丢目标来源，来源召回救回0/误伤0；排序误伤1条。原开发34题两臂最终nDCG均1；原留存66题为1→0.9924。200次检索全部完成，本地精排无fallback；1000次wire证据原文/偏移/checksum通过。7项数据、指标及冻结改写身份测试通过。
+
+误伤ec-057-2：历史问题“我没拆封，你就能确定我一定能七天退吗？”，改写为“七天无理由退货的条件和不能确定的地方是什么？”。丢失未拆封条件及确定性追问，正确来源精排第1→第3；Top5仍成功。记录说明该改写与排序下降同时发生，不构成通用因果证明。此次不采用强制改写为优于拼接的生产策略。
+
+## 成本和诊断保留
+
+v1先以工具RESOLVED入口执行100×2：发现original_user_message只作审计，实际为“拼接历史”对“完整query单路”，不能称raw+standalone。这批保留为入口诊断，产生50次Flash改写调用，输入6604、输出1216tokens。
+
+v2改用既有HISTORY检索入口，按原问题＋逐字历史键复用v1改写结果；实际分路捕获确认raw+standalone。新增API0，仍跑了200次本地检索/精排，没有重新生成query或答案。原v1的arm名字standalone_raw是计划名，实际含义以该诊断说明和route记录为准。
+
+v2记录耗时p50约68ms/77ms，p95约77ms/82ms，含审计投影和冷启动、排除query生成；两臂固定先后运行，不能作为生产性能对照或宣传并行收益。
+
+## 复现
+
+```bash
+PYTHONPATH=. .venv/bin/python scripts/run_ecommerce_pure_rag.py \
+  --output artifacts/eval/ecommerce-pure-rag-new \
+  --rewrite-cache artifacts/eval/ecommerce-pure-rag-v1/runtime/pure-cases.jsonl.gz
+PYTHONPATH=. .venv/bin/python scripts/report_ecommerce_pure_rag.py \
+  --root artifacts/eval/ecommerce-pure-rag-new
+```
+
+需要本地模型缓存、CUDA、隔离测试PG容器。复用改写时不调用API；凭据仍由既有测试初始化读取，不写产物。源码/data/cache哈希见lock.json；源码包含共享工作区当时内容，不将HEAD冒称完整源快照。运行后补充了纯RAG顶层manifest case计数/模式校验，此元数据修正不影响已存检索结果；旧runtime/manifest的cases=0指原公共fixture空集合，实际执行数以pure-completion/200行逐例记录为准。
+
+离线汇总仅需gzip记录与labels，不收费。分层表与逐例分数在artifacts/eval/ecommerce-pure-rag-v2/report.json和scored-cases.json。
+
+## 指标边界与后续
+
+这批是50个模型编写的短规则族、每题单个来源，文档与问题词面接近。满分说明当前简单自建集检索通过，不证明复杂电商RAG达到100%，也不是答案准确率、最小必要证据覆盖或最优chunk策略证明。没有为了得到提升而撤掉历史作为低基线。
+
+当前交付是纯RAG基准及比较完成。若继续提升区分度，应另建有审定标注的长章节、相似规则干扰、跨片段条件/例外场景，在新集合上冻结比较；本轮不再扩展业务核验或微调，不用本集强行宣称改写增益。

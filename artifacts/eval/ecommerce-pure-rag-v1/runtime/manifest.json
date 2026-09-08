@@ -1,0 +1,671 @@
+{
+  "scope": "Fixed-query development calibration through the real knowledge handler.\n\nUses a newly created PostgreSQL database, production BGE/PG retrieval, reranker,\nmodel-visible evidence serialization and GroundedAnswerGenerator. It does not\nexercise HTTP authentication, conversation planning or business-tool execution.\n",
+  "scenario": "basic",
+  "documents": 60,
+  "cases": 0,
+  "knowledge_filter_contract": {
+    "catalog_id": "unconfigured",
+    "sales_channels": {}
+  },
+  "query_options": {},
+  "forbidden_sources": {},
+  "withdrawn_sources": [],
+  "source_documents": [
+    {
+      "document_id": "eval-shop:ec-001",
+      "title": "折叠桌退货",
+      "content": "模拟店铺的折叠桌签收七日内未组装可申请无理由退货；已组装且非质量原因不适用。质量异常需提供照片审核。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-002",
+      "title": "咖啡豆退货",
+      "content": "模拟店铺的咖啡豆未拆封可在签收七日内申请退货；拆封后口味不喜欢不适用，包装漏气可提交照片申请质量审核。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-003",
+      "title": "会员运费",
+      "content": "模拟店铺会员普通退货每单可报销一次标准寄回运费，上限十元；加急费和保价费不报销。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-004",
+      "title": "组合装退款",
+      "content": "模拟店铺的洗护组合装允许部分退货，退款按订单中该商品分摊实付金额计算，不能按单独购买标价计算。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-005",
+      "title": "赠送安装",
+      "content": "模拟店铺购置壁柜赠送一次基础安装，仅含普通墙面固定；玻璃墙和墙体加固需另行评估，不在赠送范围。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-006",
+      "title": "预售订金",
+      "content": "模拟店铺预售台灯在生产排期确认前可申请退订，排期确认后需审核；提交退订申请不等于已经退款。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-007",
+      "title": "试用座椅",
+      "content": "模拟店铺人体工学椅试用期为签收后十四日；应保留原包装且无明显污损，寄回前先取得退货单号。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-008",
+      "title": "延保起算",
+      "content": "模拟店铺投影仪延保从原厂保修结束次日起算，不从购买延保当天起算；人为进水不在延保范围。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-009",
+      "title": "定制窗帘",
+      "content": "模拟店铺按测量尺寸制作的窗帘不适用非质量原因退货；尺寸制作与确认图不一致时可提交确认图和测量照片审核。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-010",
+      "title": "礼品卡退款",
+      "content": "模拟店铺未使用礼品卡可由原购买账号申请退款；已部分消费的礼品卡余额不支持直接提现。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-011",
+      "title": "发票拆分",
+      "content": "模拟店铺一张订单可按实际商品项目开票；不能将一件商品金额拆成虚构的多件商品项目。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-012",
+      "title": "上门取件",
+      "content": "模拟店铺大件上门取件需要确认楼层、电梯和包装状况；预约成功不代表搬运附加费已获减免。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-013",
+      "title": "差价保护",
+      "content": "模拟店铺显示器七日价保只比较同店同型号同配置公开售价；限量秒杀和赠品价值不计入差价。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-014",
+      "title": "跨区保修",
+      "content": "模拟店铺便携音箱国内订单可在国内服务点保修；海外服务点是否受理需单独确认，不能承诺全球联保。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-015",
+      "title": "包装押金",
+      "content": "模拟店铺租赁摄影灯包装箱押金在退回检查合格后原路退还；快递签收仅代表收到，尚不代表检查完成。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-016",
+      "title": "路由器频段",
+      "content": "模拟店铺R28路由器支持2.4GHz和5GHz，不支持6GHz；Wi-Fi 6名称不代表支持6GHz频段。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-017",
+      "title": "门锁应急电源",
+      "content": "模拟店铺L16门锁外部USB口只用于临时应急供电，不为内部电池充电；应急开门后应更换电池。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-018",
+      "title": "洗碗机安装",
+      "content": "模拟店铺D24洗碗机安装需要接地插座与独立进排水口；缺少排水口时先改造，不能直接接入使用。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-019",
+      "title": "电子书退货",
+      "content": "模拟店铺电子书阅读器登录账号不影响未下载付费内容时的试用退货；付费内容费用不随硬件退货自动退款。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-020",
+      "title": "加湿器水质",
+      "content": "模拟店铺H32加湿器建议使用纯净水；不能向水箱加入香精或消毒液，独立香薰盒另按说明使用。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-021",
+      "title": "耳麦转接",
+      "content": "模拟店铺G17耳麦的四段式3.5毫米插头适配合一接口；分离耳机麦克风接口需另配一分二转接线。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-022",
+      "title": "台式风扇定时",
+      "content": "模拟店铺F09风扇定时只支持关机，不支持预约开机；断电后定时设置不保留。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-023",
+      "title": "墨盒兼容",
+      "content": "模拟店铺I42墨盒适配P42打印机，不适配P24；外观相同不能作为兼容依据。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-024",
+      "title": "净水滤芯复位",
+      "content": "模拟店铺W33净水器更换滤芯后需长按复位键五秒；复位只重置计时，不能恢复旧滤芯过滤能力。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-025",
+      "title": "相机防水",
+      "content": "模拟店铺C21相机支持防泼溅，不支持裸机潜水；潜水需使用对应防水壳。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-026",
+      "title": "手环离线记录",
+      "content": "模拟店铺B18手环可离线保存七天运动记录；超过七天未同步时最早记录会被覆盖。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-027",
+      "title": "吸尘器湿吸",
+      "content": "模拟店铺V14吸尘器只吸干燥灰尘；不支持吸液体或湿泥，滤网清洗后应完全晾干再安装。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-028",
+      "title": "扫描仪校准",
+      "content": "模拟店铺S31扫描仪校准步骤：清洁扫描玻璃，放入校准卡，在设置中选择校准；完成前不要取出卡片。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-029",
+      "title": "键盘配对",
+      "content": "模拟店铺K26键盘蓝牙配对：拨到蓝牙模式，长按配对键三秒，在设备列表选择K26；已连接旧设备时先断开旧连接。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-030",
+      "title": "显示器输入源",
+      "content": "模拟店铺M27显示器黑屏时先确认电源与信号线，再在菜单选择对应输入源；切换输入源不会修复损坏的线缆。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-031",
+      "title": "咖啡机除垢",
+      "content": "模拟店铺E11咖啡机除垢前取出滤芯，按说明稀释专用除垢剂，启动除垢程序，再用清水完成两次冲洗。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-032",
+      "title": "摄像头共享",
+      "content": "模拟店铺N12摄像头共享通过主账号生成邀请；被邀请人只能获得授权功能，不能获取主账号密码或自动成为管理员。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-033",
+      "title": "电饭煲预约",
+      "content": "模拟店铺Q19电饭煲预约时间表示预计完成时间；含易腐乳制品的食材不建议长时间常温预约。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-034",
+      "title": "机械秤归零",
+      "content": "模拟店铺T08机械秤应放在坚硬水平地面，空载调至零点再称量；厚地毯会影响读数。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-035",
+      "title": "投影仪对焦",
+      "content": "模拟店铺J23投影仪先调整摆放距离与角度，再执行对焦；梯形校正会改变画面形状，不能代替对焦。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-036",
+      "title": "温控杯清洁",
+      "content": "模拟店铺U15温控杯清洁前断开底座电源，杯体擦洗后晾干；底座不得浸水。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-037",
+      "title": "运动相机升级",
+      "content": "模拟店铺A29运动相机升级前电量需高于百分之五十，复制对应型号固件后启动升级，过程中不得断电或拔卡。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-038",
+      "title": "热敏打印机装纸",
+      "content": "模拟店铺P13热敏打印机将热敏面朝打印头装入，拉出少量纸后合盖；普通复印纸不能用于热敏打印。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-039",
+      "title": "智能插座重置",
+      "content": "模拟店铺Z22插座长按按键十秒恢复出厂设置，会清除网络与定时配置；重置前应记录需要保留的设置。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-040",
+      "title": "无人机螺旋桨",
+      "content": "模拟店铺D07无人机更换螺旋桨前关闭电源，按A/B标记匹配机臂并锁紧；不能混装相反标记。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-041",
+      "title": "订单状态与改址",
+      "content": "模拟店铺已发货订单改址需承运方确认；提出请求不等于修改成功。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-042",
+      "title": "订单状态与开票",
+      "content": "模拟店铺付款后可提交开票申请，开票结果以发票记录为准；付款状态不证明已经开票。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-043",
+      "title": "订单状态与自提",
+      "content": "模拟店铺自提准备完成后另发取货通知；订单已付款不代表现在可以到店领取。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-044",
+      "title": "订单状态与换货",
+      "content": "模拟店铺换货需审核后确认替换品库存；原订单签收不能证明换货申请获批。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-045",
+      "title": "订单状态与质保",
+      "content": "模拟店铺保修需确认购买凭证与故障类型；订单已完成不代表所有故障都免费维修。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-046",
+      "title": "订单状态与补发",
+      "content": "模拟店铺漏件补发需核对包装照片和配件清单；订单显示发货不证明补发包裹已寄出。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-047",
+      "title": "订单状态与退款",
+      "content": "模拟店铺取消订单与退款到账是不同记录；取消状态不能单独确认钱已到账。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-048",
+      "title": "订单状态与延迟补偿",
+      "content": "模拟店铺配送延迟补偿需核对承诺窗口和实际发出时间；已发货状态不自动满足补偿条件。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-049",
+      "title": "订单状态与安装预约",
+      "content": "模拟店铺安装预约以服务预约记录为准；签收商品不会自动生成安装预约。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-050",
+      "title": "订单状态与积分",
+      "content": "模拟店铺积分在订单完成且结算确认后入账；签收状态不证明积分已入账。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-051",
+      "title": "未公布税费",
+      "content": "模拟店铺海外税费说明仅列明运费不含进口税；税额由目的地海关按实际申报认定，店铺未公布固定税额。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-052",
+      "title": "未提供兼容型号",
+      "content": "模拟店铺扩展坞X38只确认支持电脑C38；其他型号尚未完成兼容验证。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-053",
+      "title": "未给收货时间",
+      "content": "模拟店铺普通靠垫签收七日内无明显污损可申请无理由退货；是否在期需确认签收日期。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-054",
+      "title": "来源版本边界",
+      "content": "模拟店铺礼盒补寄规则2026年5月1日前每单一次免费，2026年5月1日起仅质量缺陷补寄免费；购买日期决定适用版本。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-055",
+      "title": "用户猜测不作事实",
+      "content": "模拟店铺电水壶非质量退货需未使用；漏水质量问题需照片审核。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-056",
+      "title": "旧助手无权承诺",
+      "content": "模拟店铺平板屏幕意外破裂不在标准免费保修内，是否有额外保障需查保障记录。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-057",
+      "title": "缺少商品类别",
+      "content": "模拟店铺未拆封普通商品可按七日规则申请；定制商品另适用定制规则，不能只凭未拆封判断。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-058",
+      "title": "无法保证日期",
+      "content": "模拟店铺普通包裹预计三到五个工作日送达；恶劣天气可能延误，该范围不是指定日期承诺。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-059",
+      "title": "撤回式规则说明",
+      "content": "模拟店铺旧以旧换新加赠活动已经结束，当前只按页面现行抵扣金额处理，不再加赠清洁套装。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    },
+    {
+      "document_id": "eval-shop:ec-060",
+      "title": "不授权执行",
+      "content": "模拟店铺取消订单须用户明确确认具体订单与操作；询问取消条件不构成取消授权。",
+      "metadata": {
+        "synthetic": true,
+        "source_type": "text",
+        "effective_from": "2020-01-01T00:00:00+00:00"
+      }
+    }
+  ],
+  "case_definitions": [],
+  "filter_catalog": {
+    "catalog_id": "unconfigured",
+    "sales_channels": {}
+  },
+  "generation": {
+    "generation_id": "knowledge-generation-47312b70089e3ae8e80580b6370120a5",
+    "corpus": "KNOWLEDGE",
+    "backend_id": "POSTGRES_PG_BM25_ZH_V1",
+    "backend_fingerprint": "POSTGRES_PGVECTOR_PG_BM25_ZH_V1",
+    "schema_version": "retrieval-v1",
+    "source_watermark": "92bde41a22ad43061a69f19bb2b09ce8a601bd94300c2542fc0ae7fcf89ab92d",
+    "embedding_model": "BAAI/bge-m3",
+    "embedding_dimension": 1024,
+    "embedding_model_digest": "b5e0ce3470abf5ef3831aa1bd5553b486803e83251590ab7ff35a117cf6aad38",
+    "distance_metric": "COSINE",
+    "vector_extension_version": "0.8.6",
+    "index_method": "HNSW",
+    "index_params_json": "{\"ef_construction\":64,\"m\":16}",
+    "chinese_tokenizer": "ascii-cjk-unigram-bigram-v1",
+    "lexical_ranker": "PG_BM25_ZH_V1",
+    "manifest_hash": "270b343af4af808a814f795024b5e575b49a1e836b0d2241f0c676142ecadc31",
+    "state": "ACTIVE",
+    "embedding_provider": "dialogpilot-sentence-transformers-5.7.0-local-bge-m3-v1",
+    "embedding_provider_kind": "MODEL",
+    "embedding_model_version": "5617a9f61b028005a4858fdac845db406aefb181",
+    "embedding_document_preprocessing": "raw-text-unmodified+model-tokenizer+no-prompt+l2-normalized-v1",
+    "embedding_query_preprocessing": "raw-text-unmodified+model-tokenizer+no-prompt+l2-normalized-v1"
+  },
+  "embedding_profile": {
+    "provider": "dialogpilot-sentence-transformers-5.7.0-local-bge-m3-v1",
+    "provider_kind": "MODEL",
+    "model": "BAAI/bge-m3",
+    "model_version": "5617a9f61b028005a4858fdac845db406aefb181",
+    "dimension": 1024,
+    "model_digest": "b5e0ce3470abf5ef3831aa1bd5553b486803e83251590ab7ff35a117cf6aad38",
+    "document_preprocessing": "raw-text-unmodified+model-tokenizer+no-prompt+l2-normalized-v1",
+    "query_preprocessing": "raw-text-unmodified+model-tokenizer+no-prompt+l2-normalized-v1"
+  },
+  "reranker_profile": {
+    "model": "deepseek-v4-flash",
+    "reasoning": "none",
+    "min_completion_tokens": 0,
+    "max_context_tokens": 32768
+  },
+  "generation_profile": {
+    "model": "deepseek-v4-flash",
+    "reasoning": "none",
+    "min_completion_tokens": 0,
+    "max_context_tokens": 32768
+  },
+  "max_api_calls": 50,
+  "sdk_retries": 0,
+  "fixed_query_override": {
+    "synthetic:elliptic": "耳机已拆封，非质量原因可以退货吗？"
+  }
+}

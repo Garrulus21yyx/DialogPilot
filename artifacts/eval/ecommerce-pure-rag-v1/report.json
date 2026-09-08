@@ -1,0 +1,165 @@
+{
+  "scope": "100 consumed synthetic knowledge cases / 50 groups; source-level, no final answers or business execution",
+  "summaries": {
+    "history_concat": {
+      "all": {
+        "n": 100,
+        "candidate": {
+          "recall5": 1.0,
+          "recall20": 1.0,
+          "mrr5": 0.995,
+          "ndcg5": 0.9963092975357145
+        },
+        "rerank": {
+          "recall5": 1.0,
+          "recall20": 1.0,
+          "mrr5": 1.0,
+          "ndcg5": 1.0
+        },
+        "wire": {
+          "recall5": 1.0,
+          "recall20": 1.0,
+          "mrr5": 1.0,
+          "ndcg5": 1.0
+        },
+        "p50_ms": 73.72085005044937,
+        "p95_ms": 82.35291754826903
+      },
+      "consumed_dev": {
+        "n": 34,
+        "candidate": {
+          "recall5": 1.0,
+          "recall20": 1.0,
+          "mrr5": 1.0,
+          "ndcg5": 1.0
+        },
+        "rerank": {
+          "recall5": 1.0,
+          "recall20": 1.0,
+          "mrr5": 1.0,
+          "ndcg5": 1.0
+        },
+        "wire": {
+          "recall5": 1.0,
+          "recall20": 1.0,
+          "mrr5": 1.0,
+          "ndcg5": 1.0
+        },
+        "p50_ms": 74.61467105895281,
+        "p95_ms": 139.32380685582723
+      },
+      "consumed_heldout": {
+        "n": 66,
+        "candidate": {
+          "recall5": 1.0,
+          "recall20": 1.0,
+          "mrr5": 0.9924242424242424,
+          "ndcg5": 0.9944080265692644
+        },
+        "rerank": {
+          "recall5": 1.0,
+          "recall20": 1.0,
+          "mrr5": 1.0,
+          "ndcg5": 1.0
+        },
+        "wire": {
+          "recall5": 1.0,
+          "recall20": 1.0,
+          "mrr5": 1.0,
+          "ndcg5": 1.0
+        },
+        "p50_ms": 73.36528040468693,
+        "p95_ms": 77.49449415132403
+      }
+    },
+    "standalone_raw": {
+      "all": {
+        "n": 100,
+        "candidate": {
+          "recall5": 1.0,
+          "recall20": 1.0,
+          "mrr5": 0.992,
+          "ndcg5": 0.9938685280723455
+        },
+        "rerank": {
+          "recall5": 1.0,
+          "recall20": 1.0,
+          "mrr5": 0.9933333333333333,
+          "ndcg5": 0.995
+        },
+        "wire": {
+          "recall5": 1.0,
+          "recall20": 1.0,
+          "mrr5": 0.9933333333333333,
+          "ndcg5": 0.995
+        },
+        "p50_ms": 71.67724799364805,
+        "p95_ms": 77.90900468826294
+      },
+      "consumed_dev": {
+        "n": 34,
+        "candidate": {
+          "recall5": 1.0,
+          "recall20": 1.0,
+          "mrr5": 1.0,
+          "ndcg5": 1.0
+        },
+        "rerank": {
+          "recall5": 1.0,
+          "recall20": 1.0,
+          "mrr5": 1.0,
+          "ndcg5": 1.0
+        },
+        "wire": {
+          "recall5": 1.0,
+          "recall20": 1.0,
+          "mrr5": 1.0,
+          "ndcg5": 1.0
+        },
+        "p50_ms": 71.39203604310751,
+        "p95_ms": 78.90263190492986
+      },
+      "consumed_heldout": {
+        "n": 66,
+        "candidate": {
+          "recall5": 1.0,
+          "recall20": 1.0,
+          "mrr5": 0.9878787878787879,
+          "ndcg5": 0.9907098910187052
+        },
+        "rerank": {
+          "recall5": 1.0,
+          "recall20": 1.0,
+          "mrr5": 0.9898989898989898,
+          "ndcg5": 0.9924242424242424
+        },
+        "wire": {
+          "recall5": 1.0,
+          "recall20": 1.0,
+          "mrr5": 0.9898989898989898,
+          "ndcg5": 0.9924242424242424
+        },
+        "p50_ms": 71.67724799364805,
+        "p95_ms": 77.7913611382246
+      }
+    }
+  },
+  "usage": {
+    "calls": 50,
+    "output_tokens": 1216,
+    "input_tokens": 6604,
+    "cache_read_input_tokens": 0
+  },
+  "source_audit_occurrences": 1000,
+  "rewrite_failures": 0,
+  "paired": {
+    "wire_rescue": 0,
+    "wire_hurt": 0
+  },
+  "limitations": [
+    "Short authored documents, not minimum necessary spans or long-document chunking evaluation",
+    "Historical inputs supplied directly to QueryTransformer; no Conversation Agent, memory or tool selection evaluated",
+    "Latency includes projection/capture and cold start, excludes query rewriting; fixed arm order is not a performance comparison",
+    "Consumed splits, not fresh heldout; no production strategy adoption based on this run"
+  ]
+}

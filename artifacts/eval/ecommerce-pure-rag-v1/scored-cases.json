@@ -1,0 +1,5802 @@
+[
+  {
+    "id": "ec-001-1",
+    "arm": "history_concat",
+    "split": "consumed_dev",
+    "category": "policy",
+    "group": "ec-001",
+    "query": "折叠桌刚收到三天但已经组装，没质量问题，能无理由退吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 1011.8498653173447
+  },
+  {
+    "id": "ec-001-1",
+    "arm": "standalone_raw",
+    "split": "consumed_dev",
+    "category": "policy",
+    "group": "ec-001",
+    "query": "折叠桌刚收到三天但已经组装，没质量问题，能无理由退吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 75.44203847646713
+  },
+  {
+    "id": "ec-001-2",
+    "arm": "history_concat",
+    "split": "consumed_dev",
+    "category": "policy",
+    "group": "ec-001",
+    "query": "user: 折叠桌刚收到三天但已经组装，没质量问题，能无理由退吗？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 83.62020552158356
+  },
+  {
+    "id": "ec-001-2",
+    "arm": "standalone_raw",
+    "split": "consumed_dev",
+    "category": "policy",
+    "group": "ec-001",
+    "query": "折叠桌刚收到三天但已经组装，没质量问题，能无理由退吗？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 74.76690039038658
+  },
+  {
+    "id": "ec-002-1",
+    "arm": "history_concat",
+    "split": "consumed_dev",
+    "category": "policy",
+    "group": "ec-002",
+    "query": "咖啡豆开袋后不喜欢口味，有没有退货办法？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 76.06418803334236
+  },
+  {
+    "id": "ec-002-1",
+    "arm": "standalone_raw",
+    "split": "consumed_dev",
+    "category": "policy",
+    "group": "ec-002",
+    "query": "咖啡豆开袋后不喜欢口味，有没有退货办法？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 73.39255139231682
+  },
+  {
+    "id": "ec-002-2",
+    "arm": "history_concat",
+    "split": "consumed_dev",
+    "category": "policy",
+    "group": "ec-002",
+    "query": "user: 咖啡豆开袋后不喜欢口味，有没有退货办法？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 74.65817779302597
+  },
+  {
+    "id": "ec-002-2",
+    "arm": "standalone_raw",
+    "split": "consumed_dev",
+    "category": "policy",
+    "group": "ec-002",
+    "query": "咖啡豆开袋后不喜欢口味，有没有退货办法？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 69.98814828693867
+  },
+  {
+    "id": "ec-003-1",
+    "arm": "history_concat",
+    "split": "consumed_dev",
+    "category": "policy",
+    "group": "ec-003",
+    "query": "会员退货运费全包吗，保价费也算吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 70.89115492999554
+  },
+  {
+    "id": "ec-003-1",
+    "arm": "standalone_raw",
+    "split": "consumed_dev",
+    "category": "policy",
+    "group": "ec-003",
+    "query": "会员退货运费全包吗，保价费也算吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 72.7624986320734
+  },
+  {
+    "id": "ec-003-2",
+    "arm": "history_concat",
+    "split": "consumed_dev",
+    "category": "policy",
+    "group": "ec-003",
+    "query": "user: 会员退货运费全包吗，保价费也算吗？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 75.638048350811
+  },
+  {
+    "id": "ec-003-2",
+    "arm": "standalone_raw",
+    "split": "consumed_dev",
+    "category": "policy",
+    "group": "ec-003",
+    "query": "会员退货运费全包吗，保价费也算吗？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 71.06266915798187
+  },
+  {
+    "id": "ec-004-1",
+    "arm": "history_concat",
+    "split": "consumed_dev",
+    "category": "policy",
+    "group": "ec-004",
+    "query": "洗护组合里只退一瓶，是按单卖标价退钱吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 71.69152796268463
+  },
+  {
+    "id": "ec-004-1",
+    "arm": "standalone_raw",
+    "split": "consumed_dev",
+    "category": "policy",
+    "group": "ec-004",
+    "query": "洗护组合里只退一瓶，是按单卖标价退钱吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 77.64576002955437
+  },
+  {
+    "id": "ec-004-2",
+    "arm": "history_concat",
+    "split": "consumed_dev",
+    "category": "policy",
+    "group": "ec-004",
+    "query": "user: 洗护组合里只退一瓶，是按单卖标价退钱吗？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 80.07959090173244
+  },
+  {
+    "id": "ec-004-2",
+    "arm": "standalone_raw",
+    "split": "consumed_dev",
+    "category": "policy",
+    "group": "ec-004",
+    "query": "洗护组合里只退一瓶，是按单卖标价退钱吗？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 73.25034774839878
+  },
+  {
+    "id": "ec-005-1",
+    "arm": "history_concat",
+    "split": "consumed_dev",
+    "category": "policy",
+    "group": "ec-005",
+    "query": "壁柜送安装，玻璃墙固定也免费吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 72.46410101652145
+  },
+  {
+    "id": "ec-005-1",
+    "arm": "standalone_raw",
+    "split": "consumed_dev",
+    "category": "policy",
+    "group": "ec-005",
+    "query": "壁柜送安装，玻璃墙固定也免费吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 71.69417105615139
+  },
+  {
+    "id": "ec-005-2",
+    "arm": "history_concat",
+    "split": "consumed_dev",
+    "category": "policy",
+    "group": "ec-005",
+    "query": "user: 壁柜送安装，玻璃墙固定也免费吗？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 74.97011683881283
+  },
+  {
+    "id": "ec-005-2",
+    "arm": "standalone_raw",
+    "split": "consumed_dev",
+    "category": "policy",
+    "group": "ec-005",
+    "query": "壁柜送安装，玻璃墙固定也免费吗？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 70.71172446012497
+  },
+  {
+    "id": "ec-016-1",
+    "arm": "history_concat",
+    "split": "consumed_dev",
+    "category": "multiturn",
+    "group": "ec-016",
+    "query": "R28写着Wi-Fi 6，所以也能连6GHz吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 77.0640280097723
+  },
+  {
+    "id": "ec-016-1",
+    "arm": "standalone_raw",
+    "split": "consumed_dev",
+    "category": "multiturn",
+    "group": "ec-016",
+    "query": "R28写着Wi-Fi 6，所以也能连6GHz吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 76.53592713177204
+  },
+  {
+    "id": "ec-016-2",
+    "arm": "history_concat",
+    "split": "consumed_dev",
+    "category": "multiturn",
+    "group": "ec-016",
+    "query": "user: R28写着Wi-Fi 6，所以也能连6GHz吗？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 242.77335219085217
+  },
+  {
+    "id": "ec-016-2",
+    "arm": "standalone_raw",
+    "split": "consumed_dev",
+    "category": "multiturn",
+    "group": "ec-016",
+    "query": "R28 Wi-Fi 6 能否连接6GHz？条件和不能确定的地方",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 68.19696724414825
+  },
+  {
+    "id": "ec-017-1",
+    "arm": "history_concat",
+    "split": "consumed_dev",
+    "category": "multiturn",
+    "group": "ec-017",
+    "query": "L16门锁插USB就会给里面的电池充电吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 67.0311413705349
+  },
+  {
+    "id": "ec-017-1",
+    "arm": "standalone_raw",
+    "split": "consumed_dev",
+    "category": "multiturn",
+    "group": "ec-017",
+    "query": "L16门锁插USB就会给里面的电池充电吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 70.96484676003456
+  },
+  {
+    "id": "ec-017-2",
+    "arm": "history_concat",
+    "split": "consumed_dev",
+    "category": "multiturn",
+    "group": "ec-017",
+    "query": "user: L16门锁插USB就会给里面的电池充电吗？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 75.74780657887459
+  },
+  {
+    "id": "ec-017-2",
+    "arm": "standalone_raw",
+    "split": "consumed_dev",
+    "category": "multiturn",
+    "group": "ec-017",
+    "query": "L16门锁插USB就会给里面的电池充电吗？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 68.875877186656
+  },
+  {
+    "id": "ec-018-1",
+    "arm": "history_concat",
+    "split": "consumed_dev",
+    "category": "multiturn",
+    "group": "ec-018",
+    "query": "D24有电源但是没有排水口，先用起来可以吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 68.6693824827671
+  },
+  {
+    "id": "ec-018-1",
+    "arm": "standalone_raw",
+    "split": "consumed_dev",
+    "category": "multiturn",
+    "group": "ec-018",
+    "query": "D24有电源但是没有排水口，先用起来可以吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 69.18533518910408
+  },
+  {
+    "id": "ec-018-2",
+    "arm": "history_concat",
+    "split": "consumed_dev",
+    "category": "multiturn",
+    "group": "ec-018",
+    "query": "user: D24有电源但是没有排水口，先用起来可以吗？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 74.57116432487965
+  },
+  {
+    "id": "ec-018-2",
+    "arm": "standalone_raw",
+    "split": "consumed_dev",
+    "category": "multiturn",
+    "group": "ec-018",
+    "query": "D24有电源但是没有排水口，先用起来可以吗？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 72.71191850304604
+  },
+  {
+    "id": "ec-019-1",
+    "arm": "history_concat",
+    "split": "consumed_dev",
+    "category": "multiturn",
+    "group": "ec-019",
+    "query": "阅读器登录过但没买内容，可以试用退货吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 69.6563683450222
+  },
+  {
+    "id": "ec-019-1",
+    "arm": "standalone_raw",
+    "split": "consumed_dev",
+    "category": "multiturn",
+    "group": "ec-019",
+    "query": "阅读器登录过但没买内容，可以试用退货吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 75.58288052678108
+  },
+  {
+    "id": "ec-019-2",
+    "arm": "history_concat",
+    "split": "consumed_dev",
+    "category": "multiturn",
+    "group": "ec-019",
+    "query": "user: 阅读器登录过但没买内容，可以试用退货吗？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 81.5854799002409
+  },
+  {
+    "id": "ec-019-2",
+    "arm": "standalone_raw",
+    "split": "consumed_dev",
+    "category": "multiturn",
+    "group": "ec-019",
+    "query": "阅读器登录过但没买内容，可以试用退货吗？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 81.23682253062725
+  },
+  {
+    "id": "ec-028-1",
+    "arm": "history_concat",
+    "split": "consumed_dev",
+    "category": "product",
+    "group": "ec-028",
+    "query": "S31怎么校准，有什么需要注意？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 81.05670101940632
+  },
+  {
+    "id": "ec-028-1",
+    "arm": "standalone_raw",
+    "split": "consumed_dev",
+    "category": "product",
+    "group": "ec-028",
+    "query": "S31怎么校准，有什么需要注意？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 85.37662774324417
+  },
+  {
+    "id": "ec-028-2",
+    "arm": "history_concat",
+    "split": "consumed_dev",
+    "category": "product",
+    "group": "ec-028",
+    "query": "user: S31怎么校准，有什么需要注意？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 72.73855619132519
+  },
+  {
+    "id": "ec-028-2",
+    "arm": "standalone_raw",
+    "split": "consumed_dev",
+    "category": "product",
+    "group": "ec-028",
+    "query": "S31怎么校准，有什么需要注意？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 70.8247646689415
+  },
+  {
+    "id": "ec-029-1",
+    "arm": "history_concat",
+    "split": "consumed_dev",
+    "category": "product",
+    "group": "ec-029",
+    "query": "K26还连着旧平板，怎么配对新电脑？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 71.39339670538902
+  },
+  {
+    "id": "ec-029-1",
+    "arm": "standalone_raw",
+    "split": "consumed_dev",
+    "category": "product",
+    "group": "ec-029",
+    "query": "K26还连着旧平板，怎么配对新电脑？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 72.29984924197197
+  },
+  {
+    "id": "ec-029-2",
+    "arm": "history_concat",
+    "split": "consumed_dev",
+    "category": "product",
+    "group": "ec-029",
+    "query": "user: K26还连着旧平板，怎么配对新电脑？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 76.07927359640598
+  },
+  {
+    "id": "ec-029-2",
+    "arm": "standalone_raw",
+    "split": "consumed_dev",
+    "category": "product",
+    "group": "ec-029",
+    "query": "K26还连着旧平板，怎么配对新电脑？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 71.08990103006363
+  },
+  {
+    "id": "ec-030-1",
+    "arm": "history_concat",
+    "split": "consumed_dev",
+    "category": "product",
+    "group": "ec-030",
+    "query": "M27插HDMI却黑屏，要怎么排查？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 71.46915979683399
+  },
+  {
+    "id": "ec-030-1",
+    "arm": "standalone_raw",
+    "split": "consumed_dev",
+    "category": "product",
+    "group": "ec-030",
+    "query": "M27插HDMI却黑屏，要怎么排查？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 69.4884117692709
+  },
+  {
+    "id": "ec-030-2",
+    "arm": "history_concat",
+    "split": "consumed_dev",
+    "category": "product",
+    "group": "ec-030",
+    "query": "user: M27插HDMI却黑屏，要怎么排查？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 82.28621818125248
+  },
+  {
+    "id": "ec-030-2",
+    "arm": "standalone_raw",
+    "split": "consumed_dev",
+    "category": "product",
+    "group": "ec-030",
+    "query": "M27插HDMI却黑屏，要怎么排查？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 73.36054369807243
+  },
+  {
+    "id": "ec-031-1",
+    "arm": "history_concat",
+    "split": "consumed_dev",
+    "category": "product",
+    "group": "ec-031",
+    "query": "E11除垢具体顺序是什么？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 70.8768405020237
+  },
+  {
+    "id": "ec-031-1",
+    "arm": "standalone_raw",
+    "split": "consumed_dev",
+    "category": "product",
+    "group": "ec-031",
+    "query": "E11除垢具体顺序是什么？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 70.64205966889858
+  },
+  {
+    "id": "ec-031-2",
+    "arm": "history_concat",
+    "split": "consumed_dev",
+    "category": "product",
+    "group": "ec-031",
+    "query": "user: E11除垢具体顺序是什么？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 73.77412356436253
+  },
+  {
+    "id": "ec-031-2",
+    "arm": "standalone_raw",
+    "split": "consumed_dev",
+    "category": "product",
+    "group": "ec-031",
+    "query": "E11除垢具体顺序是什么？条件和不能确定的地方也请说清楚",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 67.55146570503712
+  },
+  {
+    "id": "ec-032-1",
+    "arm": "history_concat",
+    "split": "consumed_dev",
+    "category": "product",
+    "group": "ec-032",
+    "query": "N12给家人共享，是直接给主账号密码吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 72.07144238054752
+  },
+  {
+    "id": "ec-032-1",
+    "arm": "standalone_raw",
+    "split": "consumed_dev",
+    "category": "product",
+    "group": "ec-032",
+    "query": "N12给家人共享，是直接给主账号密码吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 70.47597505152225
+  },
+  {
+    "id": "ec-032-2",
+    "arm": "history_concat",
+    "split": "consumed_dev",
+    "category": "product",
+    "group": "ec-032",
+    "query": "user: N12给家人共享，是直接给主账号密码吗？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 75.18386654555798
+  },
+  {
+    "id": "ec-032-2",
+    "arm": "standalone_raw",
+    "split": "consumed_dev",
+    "category": "product",
+    "group": "ec-032",
+    "query": "N12给家人共享，是直接给主账号密码吗？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 68.70860233902931
+  },
+  {
+    "id": "ec-051-1",
+    "arm": "history_concat",
+    "split": "consumed_dev",
+    "category": "boundary",
+    "group": "ec-051",
+    "query": "海外买这件肯定只收十元税吧？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 70.9092766046524
+  },
+  {
+    "id": "ec-051-1",
+    "arm": "standalone_raw",
+    "split": "consumed_dev",
+    "category": "boundary",
+    "group": "ec-051",
+    "query": "海外买这件肯定只收十元税吧？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 73.88527691364288
+  },
+  {
+    "id": "ec-051-2",
+    "arm": "history_concat",
+    "split": "consumed_dev",
+    "category": "boundary",
+    "group": "ec-051",
+    "query": "user: 海外买这件肯定只收十元税吧？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 73.49478639662266
+  },
+  {
+    "id": "ec-051-2",
+    "arm": "standalone_raw",
+    "split": "consumed_dev",
+    "category": "boundary",
+    "group": "ec-051",
+    "query": "海外购买这件商品是否只收十元税？条件和不能确定的地方是什么？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 67.72507168352604
+  },
+  {
+    "id": "ec-052-1",
+    "arm": "history_concat",
+    "split": "consumed_dev",
+    "category": "boundary",
+    "group": "ec-052",
+    "query": "扩展坞X38接电脑C99肯定没问题吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 68.66460852324963
+  },
+  {
+    "id": "ec-052-1",
+    "arm": "standalone_raw",
+    "split": "consumed_dev",
+    "category": "boundary",
+    "group": "ec-052",
+    "query": "扩展坞X38接电脑C99肯定没问题吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 69.28014941513538
+  },
+  {
+    "id": "ec-052-2",
+    "arm": "history_concat",
+    "split": "consumed_dev",
+    "category": "boundary",
+    "group": "ec-052",
+    "query": "user: 扩展坞X38接电脑C99肯定没问题吗？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 76.00939646363258
+  },
+  {
+    "id": "ec-052-2",
+    "arm": "standalone_raw",
+    "split": "consumed_dev",
+    "category": "boundary",
+    "group": "ec-052",
+    "query": "扩展坞X38接电脑C99肯定没问题吗？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 70.98107039928436
+  },
+  {
+    "id": "ec-053-1",
+    "arm": "history_concat",
+    "split": "consumed_dev",
+    "category": "boundary",
+    "group": "ec-053",
+    "query": "靠垫没污损，我能退吗？我没说签收日期。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 72.93779775500298
+  },
+  {
+    "id": "ec-053-1",
+    "arm": "standalone_raw",
+    "split": "consumed_dev",
+    "category": "boundary",
+    "group": "ec-053",
+    "query": "靠垫没污损，我能退吗？我没说签收日期。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 75.56432113051414
+  },
+  {
+    "id": "ec-053-2",
+    "arm": "history_concat",
+    "split": "consumed_dev",
+    "category": "boundary",
+    "group": "ec-053",
+    "query": "user: 靠垫没污损，我能退吗？我没说签收日期。\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 79.19710129499435
+  },
+  {
+    "id": "ec-053-2",
+    "arm": "standalone_raw",
+    "split": "consumed_dev",
+    "category": "boundary",
+    "group": "ec-053",
+    "query": "靠垫没污损，能退吗？条件和不能确定的地方也请说清楚",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 73.53635877370834
+  },
+  {
+    "id": "ec-006-1",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-006",
+    "query": "台灯已经确认排期，我点退订就能立刻退款吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 71.03369198739529
+  },
+  {
+    "id": "ec-006-1",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-006",
+    "query": "台灯已经确认排期，我点退订就能立刻退款吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 69.4230031222105
+  },
+  {
+    "id": "ec-006-2",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-006",
+    "query": "user: 台灯已经确认排期，我点退订就能立刻退款吗？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 77.497323974967
+  },
+  {
+    "id": "ec-006-2",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-006",
+    "query": "台灯退订是否能立刻退款？条件和不能确定的地方是什么？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 75.6479911506176
+  },
+  {
+    "id": "ec-007-1",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-007",
+    "query": "椅子试用了十天，退货要满足哪些条件，能直接寄吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 75.12096874415874
+  },
+  {
+    "id": "ec-007-1",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-007",
+    "query": "椅子试用了十天，退货要满足哪些条件，能直接寄吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 72.19175063073635
+  },
+  {
+    "id": "ec-007-2",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-007",
+    "query": "user: 椅子试用了十天，退货要满足哪些条件，能直接寄吗？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 74.91501607000828
+  },
+  {
+    "id": "ec-007-2",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-007",
+    "query": "椅子试用十天退货的条件，能否直接寄，以及不能确定的地方",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 73.64409230649471
+  },
+  {
+    "id": "ec-008-1",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-008",
+    "query": "今天买投影仪延保是不是今天开始，多年前进水也能保？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 71.50012440979481
+  },
+  {
+    "id": "ec-008-1",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-008",
+    "query": "今天买投影仪延保是不是今天开始，多年前进水也能保？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 67.5120148807764
+  },
+  {
+    "id": "ec-008-2",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-008",
+    "query": "user: 今天买投影仪延保是不是今天开始，多年前进水也能保？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 75.02108439803123
+  },
+  {
+    "id": "ec-008-2",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-008",
+    "query": "投影仪延保 今天购买 今天开始 多年前进水 是否保修 条件 不确定",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 67.57165119051933
+  },
+  {
+    "id": "ec-009-1",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-009",
+    "query": "按我尺寸做的窗帘颜色不喜欢，能退吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 70.72492688894272
+  },
+  {
+    "id": "ec-009-1",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-009",
+    "query": "按我尺寸做的窗帘颜色不喜欢，能退吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 71.51904702186584
+  },
+  {
+    "id": "ec-009-2",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-009",
+    "query": "user: 按我尺寸做的窗帘颜色不喜欢，能退吗？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 74.84566420316696
+  },
+  {
+    "id": "ec-009-2",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-009",
+    "query": "按我尺寸做的窗帘颜色不喜欢，能退吗？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 78.326765447855
+  },
+  {
+    "id": "ec-010-1",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-010",
+    "query": "礼品卡花了一部分，余额能退到银行卡吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 73.18796589970589
+  },
+  {
+    "id": "ec-010-1",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-010",
+    "query": "礼品卡花了一部分，余额能退到银行卡吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 78.87483574450016
+  },
+  {
+    "id": "ec-010-2",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-010",
+    "query": "user: 礼品卡花了一部分，余额能退到银行卡吗？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 70.94725593924522
+  },
+  {
+    "id": "ec-010-2",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-010",
+    "query": "礼品卡花了一部分，余额能退到银行卡吗？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 71.36604562401772
+  },
+  {
+    "id": "ec-011-1",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-011",
+    "query": "只有一件商品，能拆成几件不同商品开票吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 67.97810085117817
+  },
+  {
+    "id": "ec-011-1",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-011",
+    "query": "只有一件商品，能拆成几件不同商品开票吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 70.8360094577074
+  },
+  {
+    "id": "ec-011-2",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-011",
+    "query": "user: 只有一件商品，能拆成几件不同商品开票吗？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 72.01450318098068
+  },
+  {
+    "id": "ec-011-2",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-011",
+    "query": "只有一件商品，能拆成几件不同商品开票吗？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 70.2640600502491
+  },
+  {
+    "id": "ec-012-1",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-012",
+    "query": "大件取件预约好了，是不是搬运费就不用付了？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 73.20943288505077
+  },
+  {
+    "id": "ec-012-1",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-012",
+    "query": "大件取件预约好了，是不是搬运费就不用付了？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 82.27250352501869
+  },
+  {
+    "id": "ec-012-2",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-012",
+    "query": "user: 大件取件预约好了，是不是搬运费就不用付了？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 73.4406653791666
+  },
+  {
+    "id": "ec-012-2",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-012",
+    "query": "大件取件预约好了，是不是搬运费就不用付了？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 73.37678037583828
+  },
+  {
+    "id": "ec-013-1",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-013",
+    "query": "别的店秒杀更便宜，还多送赠品，显示器能申请价保吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 69.84966062009335
+  },
+  {
+    "id": "ec-013-1",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-013",
+    "query": "别的店秒杀更便宜，还多送赠品，显示器能申请价保吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 68.29947046935558
+  },
+  {
+    "id": "ec-013-2",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-013",
+    "query": "user: 别的店秒杀更便宜，还多送赠品，显示器能申请价保吗？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 83.7125163525343
+  },
+  {
+    "id": "ec-013-2",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-013",
+    "query": "显示器能申请价保吗？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 72.46068678796291
+  },
+  {
+    "id": "ec-014-1",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-014",
+    "query": "国内买的便携音箱在海外一定能免费保修吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 72.32276722788811
+  },
+  {
+    "id": "ec-014-1",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-014",
+    "query": "国内买的便携音箱在海外一定能免费保修吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 77.50439271330833
+  },
+  {
+    "id": "ec-014-2",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-014",
+    "query": "user: 国内买的便携音箱在海外一定能免费保修吗？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 76.67290233075619
+  },
+  {
+    "id": "ec-014-2",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-014",
+    "query": "国内买的便携音箱在海外一定能免费保修吗？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 69.7492714971304
+  },
+  {
+    "id": "ec-015-1",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-015",
+    "query": "包装箱物流签收了，押金就已经退了吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 71.4461412280798
+  },
+  {
+    "id": "ec-015-1",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-015",
+    "query": "包装箱物流签收了，押金就已经退了吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 68.42084415256977
+  },
+  {
+    "id": "ec-015-2",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-015",
+    "query": "user: 包装箱物流签收了，押金就已经退了吗？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 76.13410614430904
+  },
+  {
+    "id": "ec-015-2",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "policy",
+    "group": "ec-015",
+    "query": "包装箱物流签收了，押金就已经退了吗？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 70.85383497178555
+  },
+  {
+    "id": "ec-020-1",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "multiturn",
+    "group": "ec-020",
+    "query": "H32想有香味，把香精倒进水箱行吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 74.92378912866116
+  },
+  {
+    "id": "ec-020-1",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "multiturn",
+    "group": "ec-020",
+    "query": "H32想有香味，把香精倒进水箱行吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 72.18071818351746
+  },
+  {
+    "id": "ec-020-2",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "multiturn",
+    "group": "ec-020",
+    "query": "user: H32想有香味，把香精倒进水箱行吗？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 74.0842092782259
+  },
+  {
+    "id": "ec-020-2",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "multiturn",
+    "group": "ec-020",
+    "query": "H32想有香味，把香精倒进水箱行吗？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 69.96358744800091
+  },
+  {
+    "id": "ec-021-1",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "multiturn",
+    "group": "ec-021",
+    "query": "G17接电脑的两个分离插孔，直接插一个就都有声音和麦克风吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 72.9156918823719
+  },
+  {
+    "id": "ec-021-1",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "multiturn",
+    "group": "ec-021",
+    "query": "G17接电脑的两个分离插孔，直接插一个就都有声音和麦克风吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 73.42411763966084
+  },
+  {
+    "id": "ec-021-2",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "multiturn",
+    "group": "ec-021",
+    "query": "user: G17接电脑的两个分离插孔，直接插一个就都有声音和麦克风吗？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 84.42748337984085
+  },
+  {
+    "id": "ec-021-2",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "multiturn",
+    "group": "ec-021",
+    "query": "G17接电脑的两个分离插孔，直接插一个就都有声音和麦克风吗？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 69.81888972222805
+  },
+  {
+    "id": "ec-022-1",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "multiturn",
+    "group": "ec-022",
+    "query": "F09能预约明早自己开机吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 67.64269806444645
+  },
+  {
+    "id": "ec-022-1",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "multiturn",
+    "group": "ec-022",
+    "query": "F09能预约明早自己开机吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 69.13646124303341
+  },
+  {
+    "id": "ec-022-2",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "multiturn",
+    "group": "ec-022",
+    "query": "user: F09能预约明早自己开机吗？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 74.80938546359539
+  },
+  {
+    "id": "ec-022-2",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "multiturn",
+    "group": "ec-022",
+    "query": "F09能预约明早自己开机吗？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 70.204371586442
+  },
+  {
+    "id": "ec-023-1",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "multiturn",
+    "group": "ec-023",
+    "query": "I42和旧墨盒长得一样，能给P24用吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 76.53725892305374
+  },
+  {
+    "id": "ec-023-1",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "multiturn",
+    "group": "ec-023",
+    "query": "I42和旧墨盒长得一样，能给P24用吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 74.79458674788475
+  },
+  {
+    "id": "ec-023-2",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "multiturn",
+    "group": "ec-023",
+    "query": "user: I42和旧墨盒长得一样，能给P24用吗？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 76.41933485865593
+  },
+  {
+    "id": "ec-023-2",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "multiturn",
+    "group": "ec-023",
+    "query": "I42和旧墨盒长得一样，能给P24用吗？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 74.7232474386692
+  },
+  {
+    "id": "ec-024-1",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "multiturn",
+    "group": "ec-024",
+    "query": "W33不换滤芯只复位，过滤能力能恢复吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 73.1154065579176
+  },
+  {
+    "id": "ec-024-1",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "multiturn",
+    "group": "ec-024",
+    "query": "W33不换滤芯只复位，过滤能力能恢复吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 67.418048158288
+  },
+  {
+    "id": "ec-024-2",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "multiturn",
+    "group": "ec-024",
+    "query": "user: W33不换滤芯只复位，过滤能力能恢复吗？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 78.18373665213585
+  },
+  {
+    "id": "ec-024-2",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "multiturn",
+    "group": "ec-024",
+    "query": "W33不换滤芯只复位，过滤能力能恢复吗？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 70.8131194114685
+  },
+  {
+    "id": "ec-025-1",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "multiturn",
+    "group": "ec-025",
+    "query": "C21能防水，下水拍摄不带壳可以吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 71.37268595397472
+  },
+  {
+    "id": "ec-025-1",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "multiturn",
+    "group": "ec-025",
+    "query": "C21能防水，下水拍摄不带壳可以吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 72.89964891970158
+  },
+  {
+    "id": "ec-025-2",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "multiturn",
+    "group": "ec-025",
+    "query": "user: C21能防水，下水拍摄不带壳可以吗？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 72.66325131058693
+  },
+  {
+    "id": "ec-025-2",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "multiturn",
+    "group": "ec-025",
+    "query": "C21能防水，下水拍摄不带壳可以吗？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 71.6620720922947
+  },
+  {
+    "id": "ec-026-1",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "multiturn",
+    "group": "ec-026",
+    "query": "B18十天没同步，前几天运动都还在吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 70.09495981037617
+  },
+  {
+    "id": "ec-026-1",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "multiturn",
+    "group": "ec-026",
+    "query": "B18十天没同步，前几天运动都还在吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 68.30723211169243
+  },
+  {
+    "id": "ec-026-2",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "multiturn",
+    "group": "ec-026",
+    "query": "user: B18十天没同步，前几天运动都还在吗？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 73.20087775588036
+  },
+  {
+    "id": "ec-026-2",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "multiturn",
+    "group": "ec-026",
+    "query": "B18十天没同步，前几天运动都还在吗？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 76.02031715214252
+  },
+  {
+    "id": "ec-027-1",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "multiturn",
+    "group": "ec-027",
+    "query": "V14滤网能洗，所以地上积水也能吸吧？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 77.48600468039513
+  },
+  {
+    "id": "ec-027-1",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "multiturn",
+    "group": "ec-027",
+    "query": "V14滤网能洗，所以地上积水也能吸吧？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 70.789385586977
+  },
+  {
+    "id": "ec-027-2",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "multiturn",
+    "group": "ec-027",
+    "query": "user: V14滤网能洗，所以地上积水也能吸吧？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 75.76013170182705
+  },
+  {
+    "id": "ec-027-2",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "multiturn",
+    "group": "ec-027",
+    "query": "V14滤网能洗，所以地上积水也能吸吧？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 77.88701727986336
+  },
+  {
+    "id": "ec-033-1",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "product",
+    "group": "ec-033",
+    "query": "Q19预约六小时是六小时后开始煮吗，牛奶粥能放一夜吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 74.46346245706081
+  },
+  {
+    "id": "ec-033-1",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "product",
+    "group": "ec-033",
+    "query": "Q19预约六小时是六小时后开始煮吗，牛奶粥能放一夜吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 75.05866326391697
+  },
+  {
+    "id": "ec-033-2",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "product",
+    "group": "ec-033",
+    "query": "user: Q19预约六小时是六小时后开始煮吗，牛奶粥能放一夜吗？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 75.98325423896313
+  },
+  {
+    "id": "ec-033-2",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "product",
+    "group": "ec-033",
+    "query": "Q19预约六小时是六小时后开始煮吗，牛奶粥能放一夜吗？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 77.31962017714977
+  },
+  {
+    "id": "ec-034-1",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "product",
+    "group": "ec-034",
+    "query": "T08在地毯上称不准，怎么设置？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 70.40567323565483
+  },
+  {
+    "id": "ec-034-1",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "product",
+    "group": "ec-034",
+    "query": "T08在地毯上称不准，怎么设置？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 71.22636400163174
+  },
+  {
+    "id": "ec-034-2",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "product",
+    "group": "ec-034",
+    "query": "user: T08在地毯上称不准，怎么设置？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 73.28989543020725
+  },
+  {
+    "id": "ec-034-2",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "product",
+    "group": "ec-034",
+    "query": "T08在地毯上称不准，怎么设置？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 71.47623226046562
+  },
+  {
+    "id": "ec-035-1",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "product",
+    "group": "ec-035",
+    "query": "J23画面模糊，只调梯形校正够吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 69.86887753009796
+  },
+  {
+    "id": "ec-035-1",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "product",
+    "group": "ec-035",
+    "query": "J23画面模糊，只调梯形校正够吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 76.23682357370853
+  },
+  {
+    "id": "ec-035-2",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "product",
+    "group": "ec-035",
+    "query": "user: J23画面模糊，只调梯形校正够吗？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 74.30398091673851
+  },
+  {
+    "id": "ec-035-2",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "product",
+    "group": "ec-035",
+    "query": "J23画面模糊，只调梯形校正够吗？条件和不能确定的地方也请说清楚",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 73.44108633697033
+  },
+  {
+    "id": "ec-036-1",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "product",
+    "group": "ec-036",
+    "query": "U15杯子和底座都能泡水清洗吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 72.62340001761913
+  },
+  {
+    "id": "ec-036-1",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "product",
+    "group": "ec-036",
+    "query": "U15杯子和底座都能泡水清洗吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 70.31821459531784
+  },
+  {
+    "id": "ec-036-2",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "product",
+    "group": "ec-036",
+    "query": "user: U15杯子和底座都能泡水清洗吗？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 75.29344223439693
+  },
+  {
+    "id": "ec-036-2",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "product",
+    "group": "ec-036",
+    "query": "U15杯子和底座都能泡水清洗吗？条件和不能确定的地方也请说清楚",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 72.24180735647678
+  },
+  {
+    "id": "ec-037-1",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "product",
+    "group": "ec-037",
+    "query": "A29怎么升级固件，要注意什么？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 74.87453334033489
+  },
+  {
+    "id": "ec-037-1",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "product",
+    "group": "ec-037",
+    "query": "A29怎么升级固件，要注意什么？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 70.86671888828278
+  },
+  {
+    "id": "ec-037-2",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "product",
+    "group": "ec-037",
+    "query": "user: A29怎么升级固件，要注意什么？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 71.28679566085339
+  },
+  {
+    "id": "ec-037-2",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "product",
+    "group": "ec-037",
+    "query": "A29怎么升级固件，要注意什么？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 69.55535896122456
+  },
+  {
+    "id": "ec-038-1",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "product",
+    "group": "ec-038",
+    "query": "P13装普通纸不出字，怎么正确装纸？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 67.11055338382721
+  },
+  {
+    "id": "ec-038-1",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "product",
+    "group": "ec-038",
+    "query": "P13装普通纸不出字，怎么正确装纸？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 74.46584291756153
+  },
+  {
+    "id": "ec-038-2",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "product",
+    "group": "ec-038",
+    "query": "user: P13装普通纸不出字，怎么正确装纸？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 74.30017739534378
+  },
+  {
+    "id": "ec-038-2",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "product",
+    "group": "ec-038",
+    "query": "P13装普通纸不出字，怎么正确装纸？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 71.51145301759243
+  },
+  {
+    "id": "ec-039-1",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "product",
+    "group": "ec-039",
+    "query": "Z22重置会保留定时吗，怎么重置？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 74.01909120380878
+  },
+  {
+    "id": "ec-039-1",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "product",
+    "group": "ec-039",
+    "query": "Z22重置会保留定时吗，怎么重置？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 71.86236791312695
+  },
+  {
+    "id": "ec-039-2",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "product",
+    "group": "ec-039",
+    "query": "user: Z22重置会保留定时吗，怎么重置？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 73.66757653653622
+  },
+  {
+    "id": "ec-039-2",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "product",
+    "group": "ec-039",
+    "query": "Z22重置会保留定时吗，怎么重置？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 72.6393572986126
+  },
+  {
+    "id": "ec-040-1",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "product",
+    "group": "ec-040",
+    "query": "D07换桨需要按标记吗，顺序是什么？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 72.75383360683918
+  },
+  {
+    "id": "ec-040-1",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "product",
+    "group": "ec-040",
+    "query": "D07换桨需要按标记吗，顺序是什么？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 71.93450257182121
+  },
+  {
+    "id": "ec-040-2",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "product",
+    "group": "ec-040",
+    "query": "user: D07换桨需要按标记吗，顺序是什么？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 72.12074287235737
+  },
+  {
+    "id": "ec-040-2",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "product",
+    "group": "ec-040",
+    "query": "D07换桨需要按标记吗，顺序是什么？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 69.0923873335123
+  },
+  {
+    "id": "ec-054-1",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "boundary",
+    "group": "ec-054",
+    "query": "2026年4月30日买的礼盒，按当时规则补寄收费吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 72.72562198340893
+  },
+  {
+    "id": "ec-054-1",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "boundary",
+    "group": "ec-054",
+    "query": "2026年4月30日买的礼盒，按当时规则补寄收费吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 72.22858257591724
+  },
+  {
+    "id": "ec-054-2",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "boundary",
+    "group": "ec-054",
+    "query": "user: 2026年4月30日买的礼盒，按当时规则补寄收费吗？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 76.04815624654293
+  },
+  {
+    "id": "ec-054-2",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "boundary",
+    "group": "ec-054",
+    "query": "2026年4月30日买的礼盒，按当时规则补寄收费吗？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 71.30857557058334
+  },
+  {
+    "id": "ec-055-1",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "boundary",
+    "group": "ec-055",
+    "query": "假如水壶漏水会怎么处理？我没说我的真的漏水。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 74.63768124580383
+  },
+  {
+    "id": "ec-055-1",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "boundary",
+    "group": "ec-055",
+    "query": "假如水壶漏水会怎么处理？我没说我的真的漏水。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 75.51486417651176
+  },
+  {
+    "id": "ec-055-2",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "boundary",
+    "group": "ec-055",
+    "query": "user: 假如水壶漏水会怎么处理？我没说我的真的漏水。\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 77.21195369958878
+  },
+  {
+    "id": "ec-055-2",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "boundary",
+    "group": "ec-055",
+    "query": "假如水壶漏水会怎么处理？条件和不能确定的地方也请说清楚",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 70.85473649203777
+  },
+  {
+    "id": "ec-056-1",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "boundary",
+    "group": "ec-056",
+    "query": "以前客服聊天说碎屏都免费，你就照这个确认免费换吧。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 74.75604116916656
+  },
+  {
+    "id": "ec-056-1",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "boundary",
+    "group": "ec-056",
+    "query": "以前客服聊天说碎屏都免费，你就照这个确认免费换吧。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 70.22838667035103
+  },
+  {
+    "id": "ec-056-2",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "boundary",
+    "group": "ec-056",
+    "query": "user: 以前客服聊天说碎屏都免费，你就照这个确认免费换吧。\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 0.5,
+      "ndcg5": 0.6309297535714575
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 77.09720358252525
+  },
+  {
+    "id": "ec-056-2",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "boundary",
+    "group": "ec-056",
+    "query": "碎屏维修是否免费的条件和不能确定的地方",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 67.564582452178
+  },
+  {
+    "id": "ec-057-1",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "boundary",
+    "group": "ec-057",
+    "query": "我没拆封，你就能确定我一定能七天退吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 67.344656214118
+  },
+  {
+    "id": "ec-057-1",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "boundary",
+    "group": "ec-057",
+    "query": "我没拆封，你就能确定我一定能七天退吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 72.87889532744884
+  },
+  {
+    "id": "ec-057-2",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "boundary",
+    "group": "ec-057",
+    "query": "user: 我没拆封，你就能确定我一定能七天退吗？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 75.305150821805
+  },
+  {
+    "id": "ec-057-2",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "boundary",
+    "group": "ec-057",
+    "query": "七天无理由退货的条件和不能确定的地方是什么？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 0.2,
+      "ndcg5": 0.38685280723454163
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.5
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 0.3333333333333333,
+      "ndcg5": 0.5
+    },
+    "status": "OK",
+    "ms": 71.64740189909935
+  },
+  {
+    "id": "ec-058-1",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "boundary",
+    "group": "ec-058",
+    "query": "你保证我的包裹第五天一定到可以吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 69.37073357403278
+  },
+  {
+    "id": "ec-058-1",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "boundary",
+    "group": "ec-058",
+    "query": "你保证我的包裹第五天一定到可以吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 71.98603264987469
+  },
+  {
+    "id": "ec-058-2",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "boundary",
+    "group": "ec-058",
+    "query": "user: 你保证我的包裹第五天一定到可以吗？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 72.96222262084484
+  },
+  {
+    "id": "ec-058-2",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "boundary",
+    "group": "ec-058",
+    "query": "包裹第五天一定到吗？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 71.52373529970646
+  },
+  {
+    "id": "ec-059-1",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "boundary",
+    "group": "ec-059",
+    "query": "还按旧活动再送我清洁套装，对吧？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 72.68576696515083
+  },
+  {
+    "id": "ec-059-1",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "boundary",
+    "group": "ec-059",
+    "query": "还按旧活动再送我清洁套装，对吧？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 72.13377766311169
+  },
+  {
+    "id": "ec-059-2",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "boundary",
+    "group": "ec-059",
+    "query": "user: 还按旧活动再送我清洁套装，对吧？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 73.23363795876503
+  },
+  {
+    "id": "ec-059-2",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "boundary",
+    "group": "ec-059",
+    "query": "旧活动 清洁套装 赠送 条件 不能确定的地方",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 71.69242389500141
+  },
+  {
+    "id": "ec-060-1",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "boundary",
+    "group": "ec-060",
+    "query": "我只是了解取消订单的条件，不要帮我取消，问一下会自动取消吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 72.89459742605686
+  },
+  {
+    "id": "ec-060-1",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "boundary",
+    "group": "ec-060",
+    "query": "我只是了解取消订单的条件，不要帮我取消，问一下会自动取消吗？",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 74.31681826710701
+  },
+  {
+    "id": "ec-060-2",
+    "arm": "history_concat",
+    "split": "consumed_heldout",
+    "category": "boundary",
+    "group": "ec-060",
+    "query": "user: 我只是了解取消订单的条件，不要帮我取消，问一下会自动取消吗？\nassistant: 我会根据可查到的资料核对，暂时还没有确认结论。\nuser: 那就查一下，回答我刚才的问题。条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 73.86560551822186
+  },
+  {
+    "id": "ec-060-2",
+    "arm": "standalone_raw",
+    "split": "consumed_heldout",
+    "category": "boundary",
+    "group": "ec-060",
+    "query": "取消订单的条件是什么？会自动取消吗？条件和不能确定的地方也请说清楚。",
+    "rewrite_error": null,
+    "candidate": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "rerank": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "wire": {
+      "recall5": 1.0,
+      "recall20": 1.0,
+      "mrr5": 1.0,
+      "ndcg5": 1.0
+    },
+    "status": "OK",
+    "ms": 75.88574849069118
+  }
+]

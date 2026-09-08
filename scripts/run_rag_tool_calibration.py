@@ -166,11 +166,17 @@ async def evaluate(args, database_url):
         async with AsyncAnthropic(**options) as transport:
             client = CaptureClient(transport, limit=0 if args.candidate_scope_probe else args.max_api_calls)
             reranker = configured_knowledge_reranker(SimpleNamespace(_result_reranker=ResultReranker(client, policy.profile(ModelRole.RERANK))), values)
+            if getattr(args, 'pure_rag_inputs', None):
+                from evaluation.ecommerce_pure_rag import RerankCapture
+                reranker = RerankCapture(reranker)
             api._knowledge_store, api._postgres_pool = store, platform
             api._knowledge_retriever = KnowledgeRetriever(
                 candidate_source=source, transformer=QueryTransformer(client, policy.profile(ModelRole.REWRITE)),
                 reranker=reranker, evidence_validator=PostgresKnowledgeEvidenceValidator(source),
             )
+            if getattr(args, 'pure_rewrite_cache', None):
+                from evaluation.ecommerce_pure_rag import ReplayTransformer
+                api._knowledge_retriever._transformer = ReplayTransformer(args.pure_rewrite_cache)
             if args.candidate_scope_probe:
                 api._knowledge_retriever = CandidateScopeProbe(source)
             generator = GroundedAnswerGenerator(client, policy.profile(ModelRole.SYNTHESIS))
@@ -192,7 +198,17 @@ async def evaluate(args, database_url):
             if args.mixed_business:
                 manifest.update(scope='Mixed application evaluation; see mixed-manifest.json for executed cases and scope',
                                 cases=len(args.mixed_definitions) if args.mixed_definitions else 5, case_definitions=args.mixed_definitions or [], fixed_query_override={})
+            if getattr(args, 'pure_rag_inputs', None):
+                manifest.update(scope='Pure RAG: no planning, business, generation or publication',
+                                cases=len(json.loads(args.pure_rag_inputs.read_text())),
+                                case_definitions=[], fixed_query_override={})
             (args.output/'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2, default=str)+'\n')
+            if getattr(args, 'pure_rag_inputs', None):
+                from evaluation.ecommerce_pure_rag import run
+                await run(inputs=args.pure_rag_inputs, output=args.output, retrieve=api._retrieve_knowledge,
+                          client=client, policy=policy, source=source, reranker=reranker,
+                          transformer=api._knowledge_retriever._transformer)
+                return
             if getattr(args, 'full_chain', False):
                 from evaluation.rag_full_chain_probe import run_full_chain
                 from core.rag_policy import rag_retrieval_policy_from_env
@@ -260,9 +276,11 @@ def main():
     p.add_argument('--output', required=True, type=Path)
     p.add_argument('--distractors', type=Path)
     mode = p.add_mutually_exclusive_group()
+    mode.add_argument('--pure-rag-inputs', type=Path)
     mode.add_argument('--mixed-business', action='store_true')
     mode.add_argument('--full-chain', action='store_true')
     mode.add_argument('--candidate-scope-probe', action='store_true', help='No inference: paired candidate retrieval with/without request applicability')
+    p.add_argument('--pure-rewrite-cache',type=Path)
     p.add_argument('--corpus-file',type=Path)
     p.add_argument('--business-fixtures',type=Path)
     p.add_argument('--full-case-file',type=Path)
@@ -273,6 +291,10 @@ def main():
     args = p.parse_args()
     if not 0 <= args.max_api_calls <= 400 or (args.max_api_calls == 0 and not args.candidate_scope_probe):
         raise ValueError('zero API budget requires candidate-scope-probe; otherwise use 1..400')
+    if args.pure_rewrite_cache and not args.pure_rag_inputs:
+        raise ValueError('rewrite replay cache requires pure RAG mode')
+    if args.pure_rag_inputs and not args.corpus_file:
+        raise ValueError('pure RAG requires explicit corpus')
     args.full_definitions = None
     if args.full_case_file:
         if not args.full_chain:
