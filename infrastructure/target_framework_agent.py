@@ -485,7 +485,7 @@ class TargetFrameworkAgent:
         remaining = sorted(range(len(values)), key=lambda i: len(context.verified_facts[i].value_json), reverse=True)
         while True:
             try:
-                prompt = self._build_prompt(context, fact_values=values)
+                prompt = self._build_prompt(context, fact_values=values, overhead_tokens=overhead_tokens)
                 required = count_tokens_approximately([HumanMessage(content=prompt)]) + overhead_tokens
                 if required > self._context_budget.available_tokens:
                     raise ModelContextBudgetExceeded(required, self._context_budget.available_tokens)
@@ -498,7 +498,7 @@ class TargetFrameworkAgent:
                 reference = await self._archive.save(context, {"content": original})
                 values[index] = json.loads(result_pointer(reference, original))
 
-    def _build_prompt(self, context: AgentContextView, *, fact_values=None) -> str:
+    def _build_prompt(self, context: AgentContextView, *, fact_values=None, overhead_tokens=0) -> str:
         from application.business_observation import business_observation_context
         item = context.work_item
         payload = {
@@ -531,8 +531,12 @@ class TargetFrameworkAgent:
                 "status": "AWAITING_DECISION_NOT_EXECUTED",
             } if context.pending_approval else None),
         }
-        fitted = self._context_budget.fit_payload(
-            payload,
+        from application.historical_context_budget import fit_historical_payload
+        fitted = fit_historical_payload(
+            self._context_budget, payload,
+            observation_path=('business_observations',)
+                if 'read_conversation_observation' in item.allowed_tools else (),
+            overhead_tokens=overhead_tokens,
             trim_oldest_paths=("recent_relevant_turns",),
         )
         return delegated_task_content(fitted.payload)

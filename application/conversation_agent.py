@@ -334,8 +334,11 @@ class ConversationAgent:
             "registry_fingerprint": registry.fingerprint,
         }
         try:
-            budgeted = self._context_budget.fit_payload(
-                payload,
+            from application.historical_context_budget import fit_historical_payload
+            budgeted = fit_historical_payload(
+                self._context_budget, payload,
+                observation_path=('conversation_context', 'business_observations')
+                    if any(read['tool_id'] == 'read_conversation_observation' for read in atomic_reads) else (),
                 trim_oldest_paths=("conversation_context.recent_messages",),
             )
             raw = await self._provider.plan(budgeted.payload)

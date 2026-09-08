@@ -912,3 +912,34 @@ effect and unresolved recovery remains distinct from source content. If mandator
 metadata alone exceeds a call budget, retain a typed budget failure rather than
 silently claiming sufficient evidence. This remaining contract is not implemented
 or closed by the single-copy change.
+
+Budget projection implementation in progress at 1dcc07f: shared
+fit_historical_payload replaces only oversized source bodies (fact JSON, historical
+receipt arguments, recovery detail) with executable publication/hash/JSON Pointer
+references when the model-call budget requires it. Small bodies remain inline;
+source metadata, coverage, receipt effect, recovery state and current facts remain
+unchanged. Main and domain planning require the reader in their capability set.
+Domain call overhead is deducted before fitting historical bodies.
+
+Independent review rejected an attempted response-stage use: compose/verifier
+cannot execute reads, so externalizing there can remove the very support needed
+for the final claim. That wiring was removed before delivery; response preserves
+the exact full snapshot and existing typed budget failure. This reveals the
+remaining cross-stage handoff explicitly: execution must select visible evidence
+before authoring, not leave unreadable references for the verifier. A larger
+planning budget must not be mistaken for a smaller reply budget. Revision feedback
+also remains subject to its actual provider budget, not silently trimmed.
+
+Initial no-model checks after this correction: 70 passed / 18 PG skips across
+budget, planning, framework-agent and business continuity tests. Generated 360k
+source bodies fit main/domain inputs, main selects the native read, pointers
+resolve exact originals, and a moderate history with 8k tool/system overhead is
+externalized at the domain boundary. Real PG regression is running. No business
+closure or bounded final-response delivery claim; no tau replay or encoder change.
+
+Actual PostgreSQL regression: 102 passed in 28.97s, including process-exit
+subgraph recovery; one existing multiprocessing fork warning retained. Added
+receipt-arguments/recovery-detail identity and effect-preservation checks; focused
+projection suite now 10 passed. This increment covers executable planning views,
+not the unresolved selected-evidence handoff to reply authoring. Reply externalizing
+attempt was removed; original author/verifier snapshot remains unmodified.

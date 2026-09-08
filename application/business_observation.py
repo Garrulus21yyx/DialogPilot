@@ -54,7 +54,11 @@ def business_observation_context(observations):
                 "conflict-affected or incomplete outcome is not an established conclusion merely because "
                 "its worker returned SUCCEEDED. Recovery observations describe the recorded operation "
                 "only: NOT_COMMITTED is not UNCONFIRMED, and neither grants retry or action approval. "
-                "INVALID entries provide no factual support."
+                "INVALID entries provide no factual support. NOT_EXPANDED references mean the original "
+                "exists but its body is not visible in this input. Read the reference when the current "
+                "question needs its contents; never infer contents from the reference or treat it as "
+                "missing historical data. Final wording may rely only on visible source content, "
+                "including any selected historical read outputs supplied in current evidence."
             )}
 
 
