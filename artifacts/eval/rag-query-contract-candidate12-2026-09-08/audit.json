@@ -1,0 +1,442 @@
+{
+  "scope": "12 exposed dev multi-turn cases, source-order selection concentrated in DMV; 100 document corpus; real planner and local retrieval/CE/production pack-wire replay, not PG or final answer accuracy",
+  "n": 12,
+  "api_calls": 12,
+  "arms": {
+    "raw": {
+      "searched": 12,
+      "candidate_complete": 4,
+      "visible_complete": 4,
+      "mrr": 0.225,
+      "ndcg": 0.2514818800671666
+    },
+    "resolved": {
+      "searched": 6,
+      "candidate_complete": 6,
+      "visible_complete": 6,
+      "mrr": 0.4583333333333333,
+      "ndcg": 0.46924414613095483
+    }
+  },
+  "paired": {
+    "candidate_complete": {
+      "rescued": 3,
+      "lost": 1
+    },
+    "visible_complete": {
+      "rescued": 3,
+      "lost": 1
+    }
+  },
+  "rows": [
+    {
+      "case_id": "doc2dial-dev-ad94c0dc42f749c2b0e2349d830b4827-3",
+      "raw_query": "no I think it's all good we just need some info",
+      "planning_disposition": "RESPOND",
+      "resolved_queries": [],
+      "response_text": "Of course! What information are you looking for? Let me know the topic and I'll be glad to help.",
+      "arms": {
+        "raw": {
+          "searched": true,
+          "candidate_complete": false,
+          "visible_complete": false,
+          "mrr": 0.0,
+          "ndcg": 0.0,
+          "metrics": {
+            "evidence_recall": 0.0,
+            "document_recall": 0.0,
+            "mrr": 0.0,
+            "ndcg": 0.0
+          }
+        },
+        "resolved": {
+          "searched": false,
+          "candidate_complete": false,
+          "visible_complete": false,
+          "mrr": 0.0,
+          "ndcg": 0.0
+        }
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-09f69dbfbbb5ab0b90ce0faf73e5166b-3",
+      "raw_query": "Yes, it was.",
+      "planning_disposition": "RESOLVED",
+      "resolved_queries": [
+        "What are New York State vehicle inspection requirements for a car that was previously registered in another state and has an out-of-state inspection sticker? Does New York require a new inspection when registering a vehicle from out of state, and what are the rules and timeframes?"
+      ],
+      "response_text": null,
+      "arms": {
+        "raw": {
+          "searched": true,
+          "candidate_complete": false,
+          "visible_complete": false,
+          "mrr": 0.0,
+          "ndcg": 0.0,
+          "metrics": {
+            "evidence_recall": 0.0,
+            "document_recall": 0.0,
+            "mrr": 0.0,
+            "ndcg": 0.0
+          }
+        },
+        "resolved": {
+          "searched": true,
+          "candidate_complete": true,
+          "visible_complete": true,
+          "mrr": 1.0,
+          "ndcg": 1.0,
+          "metrics": {
+            "evidence_recall": 1.0,
+            "document_recall": 1.0,
+            "mrr": 1.0,
+            "ndcg": 1.0
+          }
+        }
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-2e9623b209161de6e9448f0c0d2b113b-3",
+      "raw_query": "yes",
+      "planning_disposition": "RESPOND",
+      "resolved_queries": [],
+      "response_text": "Thanks for confirming. To help you get the right extension so you don't run into problems while you're away, could you tell me a bit more about what needs the extension? For example, is this about a driver's license or vehicle registration/inspection, or something else? Knowing the specific item will let me point you to the correct process and requirements.",
+      "arms": {
+        "raw": {
+          "searched": true,
+          "candidate_complete": false,
+          "visible_complete": false,
+          "mrr": 0.0,
+          "ndcg": 0.0,
+          "metrics": {
+            "evidence_recall": 0.0,
+            "document_recall": 0.0,
+            "mrr": 0.0,
+            "ndcg": 0.0
+          }
+        },
+        "resolved": {
+          "searched": false,
+          "candidate_complete": false,
+          "visible_complete": false,
+          "mrr": 0.0,
+          "ndcg": 0.0
+        }
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-46c0f3dbe110f020aaf0358ae35d4283-3",
+      "raw_query": "Yes",
+      "planning_disposition": "RESOLVED",
+      "resolved_queries": [
+        "If a vehicle was previously registered and inspected in another state and is now registered in New York, is a new vehicle safety inspection required in New York?"
+      ],
+      "response_text": null,
+      "arms": {
+        "raw": {
+          "searched": true,
+          "candidate_complete": false,
+          "visible_complete": false,
+          "mrr": 0.0,
+          "ndcg": 0.0,
+          "metrics": {
+            "evidence_recall": 0.0,
+            "document_recall": 0.0,
+            "mrr": 0.0,
+            "ndcg": 0.0
+          }
+        },
+        "resolved": {
+          "searched": true,
+          "candidate_complete": true,
+          "visible_complete": true,
+          "mrr": 1.0,
+          "ndcg": 1.0,
+          "metrics": {
+            "evidence_recall": 1.0,
+            "document_recall": 1.0,
+            "mrr": 1.0,
+            "ndcg": 1.0
+          }
+        }
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-5d87b04944b11a9a535998c5c0e1b075-4",
+      "raw_query": "What is checked during an inspection?",
+      "planning_disposition": "RESOLVED",
+      "resolved_queries": [
+        "What is checked during a New York State vehicle safety inspection for a car purchased from a private seller who is not a registered DMV dealer?"
+      ],
+      "response_text": null,
+      "arms": {
+        "raw": {
+          "searched": true,
+          "candidate_complete": true,
+          "visible_complete": true,
+          "mrr": 1.0,
+          "ndcg": 1.0,
+          "metrics": {
+            "evidence_recall": 1.0,
+            "document_recall": 1.0,
+            "mrr": 1.0,
+            "ndcg": 1.0
+          }
+        },
+        "resolved": {
+          "searched": true,
+          "candidate_complete": true,
+          "visible_complete": true,
+          "mrr": 1.0,
+          "ndcg": 1.0,
+          "metrics": {
+            "evidence_recall": 1.0,
+            "document_recall": 1.0,
+            "mrr": 1.0,
+            "ndcg": 1.0
+          }
+        }
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-6977cbb3bed8f0e8480018cb3cac6716-3",
+      "raw_query": "Yes",
+      "planning_disposition": "RESPOND",
+      "resolved_queries": [],
+      "response_text": "I'd be happy to help you understand the inspection process when buying a vehicle from a private seller. To give you the most accurate guidance, could you let me know a bit more about your situation? For example:\n\n- Which state or country are you in? (Vehicle inspection rules vary by location.)\n- Are you asking about a pre-purchase mechanical inspection, a safety/emissions inspection required for registration, or something else?\n\nOnce I know these details, I can point you to the right procedures and requirements.",
+      "arms": {
+        "raw": {
+          "searched": true,
+          "candidate_complete": false,
+          "visible_complete": false,
+          "mrr": 0.0,
+          "ndcg": 0.0,
+          "metrics": {
+            "evidence_recall": 0.0,
+            "document_recall": 0.0,
+            "mrr": 0.0,
+            "ndcg": 0.0
+          }
+        },
+        "resolved": {
+          "searched": false,
+          "candidate_complete": false,
+          "visible_complete": false,
+          "mrr": 0.0,
+          "ndcg": 0.0
+        }
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-6f9180a71a8195073fd4fe17e708cee9-4",
+      "raw_query": "and all vehicles need inspection?",
+      "planning_disposition": "RESPOND",
+      "resolved_queries": [],
+      "response_text": "I want to make sure I understand your situation correctly before giving you the right information.\n\nCould you clarify what kind of extension you're asking about? For example, are you looking for an extension on a vehicle inspection, a registration, a driver's license, or something else?\n\nAlso, when you ask whether \"all vehicles need inspection,\" are you asking about New York State inspection requirements, or the rules for wherever you currently are? Knowing the state and the specific document or requirement involved will help me give you accurate guidance.",
+      "arms": {
+        "raw": {
+          "searched": true,
+          "candidate_complete": true,
+          "visible_complete": true,
+          "mrr": 1.0,
+          "ndcg": 1.0,
+          "metrics": {
+            "evidence_recall": 1.0,
+            "document_recall": 1.0,
+            "mrr": 1.0,
+            "ndcg": 1.0
+          }
+        },
+        "resolved": {
+          "searched": false,
+          "candidate_complete": false,
+          "visible_complete": false,
+          "mrr": 0.0,
+          "ndcg": 0.0
+        }
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-9d4920bea87d4f4cb977483d943c1ef3-3",
+      "raw_query": "Yes",
+      "planning_disposition": "INVALID_PROVIDER_OUTPUT",
+      "resolved_queries": [],
+      "response_text": null,
+      "arms": {
+        "raw": {
+          "searched": true,
+          "candidate_complete": false,
+          "visible_complete": false,
+          "mrr": 0.0,
+          "ndcg": 0.0,
+          "metrics": {
+            "evidence_recall": 0.0,
+            "document_recall": 0.0,
+            "mrr": 0.0,
+            "ndcg": 0.0
+          }
+        },
+        "resolved": {
+          "searched": false,
+          "candidate_complete": false,
+          "visible_complete": false,
+          "mrr": 0.0,
+          "ndcg": 0.0
+        }
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-b55dafba91b47f076435e58d02a0659b-3",
+      "raw_query": "do not",
+      "planning_disposition": "RESPOND",
+      "resolved_queries": [],
+      "response_text": "Understood — I won't pursue that. Is there anything else I can help you with regarding your vehicle inspection tag or registration in New York?",
+      "arms": {
+        "raw": {
+          "searched": true,
+          "candidate_complete": false,
+          "visible_complete": false,
+          "mrr": 0.0,
+          "ndcg": 0.0,
+          "metrics": {
+            "evidence_recall": 0.0,
+            "document_recall": 0.0,
+            "mrr": 0.0,
+            "ndcg": 0.0
+          }
+        },
+        "resolved": {
+          "searched": false,
+          "candidate_complete": false,
+          "visible_complete": false,
+          "mrr": 0.0,
+          "ndcg": 0.0
+        }
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-caa2d4ca2a98cc6f57a5628d9e128db9-3",
+      "raw_query": "If my vehicle's inspection tag has expired, will I be fined?",
+      "planning_disposition": "RESOLVED",
+      "resolved_queries": [
+        "If a vehicle's inspection tag has expired, will the owner be fined?"
+      ],
+      "response_text": null,
+      "arms": {
+        "raw": {
+          "searched": true,
+          "candidate_complete": true,
+          "visible_complete": true,
+          "mrr": 0.5,
+          "ndcg": 0.6309297535714575,
+          "metrics": {
+            "evidence_recall": 1.0,
+            "document_recall": 1.0,
+            "mrr": 0.5,
+            "ndcg": 0.6309297535714575
+          }
+        },
+        "resolved": {
+          "searched": true,
+          "candidate_complete": true,
+          "visible_complete": true,
+          "mrr": 0.5,
+          "ndcg": 0.6309297535714575,
+          "metrics": {
+            "evidence_recall": 1.0,
+            "document_recall": 1.0,
+            "mrr": 0.5,
+            "ndcg": 0.6309297535714575
+          }
+        }
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-dfe69859eb7ea18e177951165518bee0-4",
+      "raw_query": "No, it has not expired.",
+      "planning_disposition": "RESOLVED",
+      "resolved_queries": [
+        "How to replace an inspection sticker that has not expired, including the Request for Replacement Inspection Sticker form VS-118 and mailing instructions."
+      ],
+      "response_text": null,
+      "arms": {
+        "raw": {
+          "searched": true,
+          "candidate_complete": true,
+          "visible_complete": true,
+          "mrr": 0.2,
+          "ndcg": 0.38685280723454163,
+          "metrics": {
+            "evidence_recall": 1.0,
+            "document_recall": 1.0,
+            "mrr": 0.2,
+            "ndcg": 0.38685280723454163
+          }
+        },
+        "resolved": {
+          "searched": true,
+          "candidate_complete": true,
+          "visible_complete": true,
+          "mrr": 1.0,
+          "ndcg": 1.0,
+          "metrics": {
+            "evidence_recall": 1.0,
+            "document_recall": 1.0,
+            "mrr": 1.0,
+            "ndcg": 1.0
+          }
+        }
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-ddce2ae456060c8c50cb8717afeaaec5-3",
+      "raw_query": "Yes, it was cancelled.",
+      "planning_disposition": "RESOLVED",
+      "resolved_queries": [
+        "What is the refund policy for an I-PIRP course when the course is cancelled because the sponsor is unable to conduct it?"
+      ],
+      "response_text": null,
+      "arms": {
+        "raw": {
+          "searched": true,
+          "candidate_complete": false,
+          "visible_complete": false,
+          "mrr": 0.0,
+          "ndcg": 0.0,
+          "metrics": {
+            "evidence_recall": 0.0,
+            "document_recall": 0.0,
+            "mrr": 0.0,
+            "ndcg": 0.0
+          }
+        },
+        "resolved": {
+          "searched": true,
+          "candidate_complete": true,
+          "visible_complete": true,
+          "mrr": 1.0,
+          "ndcg": 1.0,
+          "metrics": {
+            "evidence_recall": 1.0,
+            "document_recall": 1.0,
+            "mrr": 1.0,
+            "ndcg": 1.0
+          }
+        }
+      }
+    }
+  ],
+  "current_source_hashes_match": {
+    "scripts/run_rag_query_calibration12.py": true,
+    "application/conversation_agent.py": true,
+    "infrastructure/target_conversation_provider.py": true,
+    "infrastructure/target_model_context.py": true,
+    "core/structured_model.py": true
+  },
+  "limits": [
+    "No retrieval is zero evidence delivery here, not automatically wrong answer or wrong clarification.",
+    "Raw short-query backend replay is a diagnostic comparator, not an old Agent system baseline.",
+    "Respond may be appropriate; author semantic review required, not model PASS or field matching.",
+    "No adoption or recall-gain claim from this run."
+  ]
+}

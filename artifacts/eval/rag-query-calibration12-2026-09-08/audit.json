@@ -1,0 +1,402 @@
+{
+  "scope": "12 exposed dev multi-turn cases, source-order selection concentrated in DMV; 100 document corpus; real planner and local retrieval/CE/production pack-wire replay, not PG or final answer accuracy",
+  "n": 12,
+  "api_calls": 12,
+  "arms": {
+    "raw": {
+      "searched": 12,
+      "candidate_complete": 4,
+      "visible_complete": 4,
+      "mrr": 0.225,
+      "ndcg": 0.2514818800671666
+    },
+    "resolved": {
+      "searched": 1,
+      "candidate_complete": 1,
+      "visible_complete": 1,
+      "mrr": 0.08333333333333333,
+      "ndcg": 0.08333333333333333
+    }
+  },
+  "paired": {
+    "candidate_complete": {
+      "rescued": 1,
+      "lost": 4
+    },
+    "visible_complete": {
+      "rescued": 1,
+      "lost": 4
+    }
+  },
+  "rows": [
+    {
+      "case_id": "doc2dial-dev-ad94c0dc42f749c2b0e2349d830b4827-3",
+      "raw_query": "no I think it's all good we just need some info",
+      "planning_disposition": "RESPOND",
+      "resolved_queries": [],
+      "response_text": "Of course! I'd be happy to help with whatever information you need. What would you like to know?",
+      "arms": {
+        "raw": {
+          "searched": true,
+          "candidate_complete": false,
+          "visible_complete": false,
+          "mrr": 0.0,
+          "ndcg": 0.0,
+          "metrics": {
+            "evidence_recall": 0.0,
+            "document_recall": 0.0,
+            "mrr": 0.0,
+            "ndcg": 0.0
+          }
+        },
+        "resolved": {
+          "searched": false,
+          "candidate_complete": false,
+          "visible_complete": false,
+          "mrr": 0.0,
+          "ndcg": 0.0
+        }
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-09f69dbfbbb5ab0b90ce0faf73e5166b-3",
+      "raw_query": "Yes, it was.",
+      "planning_disposition": "RESPOND",
+      "resolved_queries": [],
+      "response_text": "Since your vehicle was previously registered in another state that issued an inspection sticker, you'll need to understand how New York handles out-of-state inspections when you register your car here. Let me look up the specific rules for you.\n\nCould you tell me a bit more about your situation so I can give you accurate guidance? For example:\n\n- What state was your vehicle previously registered in?\n- How recently did you move to New York?\n- Is your vehicle a passenger car, or is it a commercial vehicle, motorcycle, or another type?\n\nThis will help me find the right information about New York's vehicle inspection requirements for newly registered out-of-state vehicles.",
+      "arms": {
+        "raw": {
+          "searched": true,
+          "candidate_complete": false,
+          "visible_complete": false,
+          "mrr": 0.0,
+          "ndcg": 0.0,
+          "metrics": {
+            "evidence_recall": 0.0,
+            "document_recall": 0.0,
+            "mrr": 0.0,
+            "ndcg": 0.0
+          }
+        },
+        "resolved": {
+          "searched": false,
+          "candidate_complete": false,
+          "visible_complete": false,
+          "mrr": 0.0,
+          "ndcg": 0.0
+        }
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-2e9623b209161de6e9448f0c0d2b113b-3",
+      "raw_query": "yes",
+      "planning_disposition": "RESPOND",
+      "resolved_queries": [],
+      "response_text": "Thanks for confirming. To help you get the right extension so you don't run into problems while you're away, could you tell me a bit more about what this is for? For example, is this a vehicle inspection/registration, a driver's license, or something else? That way I can point you to the correct process and requirements.",
+      "arms": {
+        "raw": {
+          "searched": true,
+          "candidate_complete": false,
+          "visible_complete": false,
+          "mrr": 0.0,
+          "ndcg": 0.0,
+          "metrics": {
+            "evidence_recall": 0.0,
+            "document_recall": 0.0,
+            "mrr": 0.0,
+            "ndcg": 0.0
+          }
+        },
+        "resolved": {
+          "searched": false,
+          "candidate_complete": false,
+          "visible_complete": false,
+          "mrr": 0.0,
+          "ndcg": 0.0
+        }
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-46c0f3dbe110f020aaf0358ae35d4283-3",
+      "raw_query": "Yes",
+      "planning_disposition": "RESPOND",
+      "resolved_queries": [],
+      "response_text": "Yes, if your vehicle was previously registered in another state that issues an inspection tag, you will generally need to have your vehicle inspected again after registering it in New York. New York requires a safety inspection for most vehicles, and an out-of-state inspection tag does not satisfy New York's inspection requirement.\n\nWould you like me to look up the specific New York inspection rules and requirements for you?",
+      "arms": {
+        "raw": {
+          "searched": true,
+          "candidate_complete": false,
+          "visible_complete": false,
+          "mrr": 0.0,
+          "ndcg": 0.0,
+          "metrics": {
+            "evidence_recall": 0.0,
+            "document_recall": 0.0,
+            "mrr": 0.0,
+            "ndcg": 0.0
+          }
+        },
+        "resolved": {
+          "searched": false,
+          "candidate_complete": false,
+          "visible_complete": false,
+          "mrr": 0.0,
+          "ndcg": 0.0
+        }
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-5d87b04944b11a9a535998c5c0e1b075-4",
+      "raw_query": "What is checked during an inspection?",
+      "planning_disposition": "RESPOND",
+      "resolved_queries": [],
+      "response_text": "I'd be happy to help explain what's checked during a vehicle inspection. To give you the most accurate information, could you clarify which type of inspection you're asking about? For example, are you referring to a New York State safety inspection, an emissions inspection, or a vehicle condition inspection related to your recent private-sale purchase?",
+      "arms": {
+        "raw": {
+          "searched": true,
+          "candidate_complete": true,
+          "visible_complete": true,
+          "mrr": 1.0,
+          "ndcg": 1.0,
+          "metrics": {
+            "evidence_recall": 1.0,
+            "document_recall": 1.0,
+            "mrr": 1.0,
+            "ndcg": 1.0
+          }
+        },
+        "resolved": {
+          "searched": false,
+          "candidate_complete": false,
+          "visible_complete": false,
+          "mrr": 0.0,
+          "ndcg": 0.0
+        }
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-6977cbb3bed8f0e8480018cb3cac6716-3",
+      "raw_query": "Yes",
+      "planning_disposition": "RESPOND",
+      "resolved_queries": [],
+      "response_text": "I'd be happy to help you understand how to handle vehicle inspection when buying from a private seller. However, I want to make sure I point you to the right information.\n\nCould you clarify what kind of vehicle you're referring to? For example, are you asking about:\n\n- A car or truck purchased from a private individual?\n- A government-surplus or auction vehicle?\n\nAlso, could you tell me which government service you're interested in (e.g., DMV, Social Security, Veterans Affairs, or Student Aid)? My knowledge covers public government service documentation, so I want to make sure I direct you to the correct agency and procedures for your situation.\n\nPlease share a bit more detail so I can give you accurate guidance.",
+      "arms": {
+        "raw": {
+          "searched": true,
+          "candidate_complete": false,
+          "visible_complete": false,
+          "mrr": 0.0,
+          "ndcg": 0.0,
+          "metrics": {
+            "evidence_recall": 0.0,
+            "document_recall": 0.0,
+            "mrr": 0.0,
+            "ndcg": 0.0
+          }
+        },
+        "resolved": {
+          "searched": false,
+          "candidate_complete": false,
+          "visible_complete": false,
+          "mrr": 0.0,
+          "ndcg": 0.0
+        }
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-6f9180a71a8195073fd4fe17e708cee9-4",
+      "raw_query": "and all vehicles need inspection?",
+      "planning_disposition": "RESPOND",
+      "resolved_queries": [],
+      "response_text": "I want to make sure I understand your situation correctly before giving you information.\n\nYou mentioned you're not currently in New York City and asked about getting an extension, and then said \"do not\" — could you clarify what you mean? Are you asking about a vehicle inspection extension, or something else?\n\nAlso, regarding your question \"and all vehicles need inspection?\" — could you tell me what type of vehicle you're referring to and in which state or city you're currently located? That will help me give you accurate information about inspection requirements and any extension options.",
+      "arms": {
+        "raw": {
+          "searched": true,
+          "candidate_complete": true,
+          "visible_complete": true,
+          "mrr": 1.0,
+          "ndcg": 1.0,
+          "metrics": {
+            "evidence_recall": 1.0,
+            "document_recall": 1.0,
+            "mrr": 1.0,
+            "ndcg": 1.0
+          }
+        },
+        "resolved": {
+          "searched": false,
+          "candidate_complete": false,
+          "visible_complete": false,
+          "mrr": 0.0,
+          "ndcg": 0.0
+        }
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-9d4920bea87d4f4cb977483d943c1ef3-3",
+      "raw_query": "Yes",
+      "planning_disposition": "RESPOND",
+      "resolved_queries": [],
+      "response_text": "I'd be happy to help with that. Could you clarify what kind of vehicle inspection you're asking about? For example, are you asking about:\n\n- A pre-purchase inspection (having a mechanic check the vehicle before you buy it)\n- A state-required safety or emissions inspection you need to pass after buying\n- A title/registration inspection\n\nAlso, which state or country are you in? Inspection requirements vary by location, so that will help me give you accurate guidance.",
+      "arms": {
+        "raw": {
+          "searched": true,
+          "candidate_complete": false,
+          "visible_complete": false,
+          "mrr": 0.0,
+          "ndcg": 0.0,
+          "metrics": {
+            "evidence_recall": 0.0,
+            "document_recall": 0.0,
+            "mrr": 0.0,
+            "ndcg": 0.0
+          }
+        },
+        "resolved": {
+          "searched": false,
+          "candidate_complete": false,
+          "visible_complete": false,
+          "mrr": 0.0,
+          "ndcg": 0.0
+        }
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-b55dafba91b47f076435e58d02a0659b-3",
+      "raw_query": "do not",
+      "planning_disposition": "RESPOND",
+      "resolved_queries": [],
+      "response_text": "I understand — you'd rather not answer that. No problem.\n\nTo help with your question about your inspection tag after registering your vehicle in New York, could you share a bit more about your situation? For example:\n\n- Did you previously register the vehicle in another state that issued an inspection tag?\n- Are you asking about New York's vehicle inspection requirements for newly registered vehicles?\n\nLet me know what you're looking for and I'll do my best to help.",
+      "arms": {
+        "raw": {
+          "searched": true,
+          "candidate_complete": false,
+          "visible_complete": false,
+          "mrr": 0.0,
+          "ndcg": 0.0,
+          "metrics": {
+            "evidence_recall": 0.0,
+            "document_recall": 0.0,
+            "mrr": 0.0,
+            "ndcg": 0.0
+          }
+        },
+        "resolved": {
+          "searched": false,
+          "candidate_complete": false,
+          "visible_complete": false,
+          "mrr": 0.0,
+          "ndcg": 0.0
+        }
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-caa2d4ca2a98cc6f57a5628d9e128db9-3",
+      "raw_query": "If my vehicle's inspection tag has expired, will I be fined?",
+      "planning_disposition": "RESPOND",
+      "resolved_queries": [],
+      "response_text": "Yes, if your vehicle's inspection tag has expired, you may be fined. Driving with an expired inspection sticker is a violation, and law enforcement can issue a citation for it. To avoid this, you should have your vehicle re-inspected or request a replacement sticker as soon as possible using the VS-118 Replacement Inspection Sticker Request Form.",
+      "arms": {
+        "raw": {
+          "searched": true,
+          "candidate_complete": true,
+          "visible_complete": true,
+          "mrr": 0.5,
+          "ndcg": 0.6309297535714575,
+          "metrics": {
+            "evidence_recall": 1.0,
+            "document_recall": 1.0,
+            "mrr": 0.5,
+            "ndcg": 0.6309297535714575
+          }
+        },
+        "resolved": {
+          "searched": false,
+          "candidate_complete": false,
+          "visible_complete": false,
+          "mrr": 0.0,
+          "ndcg": 0.0
+        }
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-dfe69859eb7ea18e177951165518bee0-4",
+      "raw_query": "No, it has not expired.",
+      "planning_disposition": "RESPOND",
+      "resolved_queries": [],
+      "response_text": "If your inspection sticker has not expired, you generally do not need to replace it. The replacement process (using the VS-118 form) is intended for stickers that are lost, stolen, or damaged, or for vehicles whose inspection has expired within the last 60 days. Since yours hasn't expired, no replacement is needed at this time. Is there anything else I can help you with?",
+      "arms": {
+        "raw": {
+          "searched": true,
+          "candidate_complete": true,
+          "visible_complete": true,
+          "mrr": 0.2,
+          "ndcg": 0.38685280723454163,
+          "metrics": {
+            "evidence_recall": 1.0,
+            "document_recall": 1.0,
+            "mrr": 0.2,
+            "ndcg": 0.38685280723454163
+          }
+        },
+        "resolved": {
+          "searched": false,
+          "candidate_complete": false,
+          "visible_complete": false,
+          "mrr": 0.0,
+          "ndcg": 0.0
+        }
+      }
+    },
+    {
+      "case_id": "doc2dial-dev-ddce2ae456060c8c50cb8717afeaaec5-3",
+      "raw_query": "Yes, it was cancelled.",
+      "planning_disposition": "RESOLVED",
+      "resolved_queries": [
+        "What is the refund policy for an I-PIRP course when the course is cancelled because the sponsor was unable to conduct it?"
+      ],
+      "response_text": null,
+      "arms": {
+        "raw": {
+          "searched": true,
+          "candidate_complete": false,
+          "visible_complete": false,
+          "mrr": 0.0,
+          "ndcg": 0.0,
+          "metrics": {
+            "evidence_recall": 0.0,
+            "document_recall": 0.0,
+            "mrr": 0.0,
+            "ndcg": 0.0
+          }
+        },
+        "resolved": {
+          "searched": true,
+          "candidate_complete": true,
+          "visible_complete": true,
+          "mrr": 1.0,
+          "ndcg": 1.0,
+          "metrics": {
+            "evidence_recall": 1.0,
+            "document_recall": 1.0,
+            "mrr": 1.0,
+            "ndcg": 1.0
+          }
+        }
+      }
+    }
+  ],
+  "current_source_hashes_match": {
+    "scripts/run_rag_query_calibration12.py": true,
+    "application/conversation_agent.py": true,
+    "infrastructure/target_conversation_provider.py": true,
+    "infrastructure/target_model_context.py": true,
+    "core/structured_model.py": true
+  },
+  "limits": [
+    "No retrieval is zero evidence delivery here, not automatically wrong answer or wrong clarification.",
+    "Raw short-query backend replay is a diagnostic comparator, not an old Agent system baseline.",
+    "Respond may be appropriate; author semantic review required, not model PASS or field matching.",
+    "No adoption or recall-gain claim from this run."
+  ]
+}

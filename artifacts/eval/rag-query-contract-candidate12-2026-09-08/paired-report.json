@@ -1,0 +1,330 @@
+{
+  "n": 12,
+  "api_calls": 24,
+  "source_payloads_and_schemas_identical": true,
+  "raw_retrieval_identical": true,
+  "baseline": {
+    "searched": 1,
+    "candidate_complete": 1,
+    "visible_complete": 1,
+    "mrr": 0.08333333333333333,
+    "ndcg": 0.08333333333333333
+  },
+  "candidate": {
+    "searched": 6,
+    "candidate_complete": 6,
+    "visible_complete": 6,
+    "mrr": 0.4583333333333333,
+    "ndcg": 0.46924414613095483
+  },
+  "rescued": 5,
+  "lost": 0,
+  "rows": [
+    {
+      "case_id": "doc2dial-dev-ad94c0dc42f749c2b0e2349d830b4827-3",
+      "current_query": "no I think it's all good we just need some info",
+      "baseline": {
+        "searched": false,
+        "candidate_complete": false,
+        "visible_complete": false,
+        "mrr": 0.0,
+        "ndcg": 0.0
+      },
+      "candidate": {
+        "searched": false,
+        "candidate_complete": false,
+        "visible_complete": false,
+        "mrr": 0.0,
+        "ndcg": 0.0
+      },
+      "baseline_disposition": "RESPOND",
+      "candidate_disposition": "RESPOND",
+      "author_review": "Both clarify unidentified complaint information; no retrieval is not automatically wrong."
+    },
+    {
+      "case_id": "doc2dial-dev-09f69dbfbbb5ab0b90ce0faf73e5166b-3",
+      "current_query": "Yes, it was.",
+      "baseline": {
+        "searched": false,
+        "candidate_complete": false,
+        "visible_complete": false,
+        "mrr": 0.0,
+        "ndcg": 0.0
+      },
+      "candidate": {
+        "searched": true,
+        "candidate_complete": true,
+        "visible_complete": true,
+        "mrr": 1.0,
+        "ndcg": 1.0,
+        "metrics": {
+          "evidence_recall": 1.0,
+          "document_recall": 1.0,
+          "mrr": 1.0,
+          "ndcg": 1.0
+        }
+      },
+      "baseline_disposition": "RESPOND",
+      "candidate_disposition": "RESOLVED",
+      "author_review": "Candidate preserves NY/out-of-state inspection; baseline offers lookup but only asks more questions."
+    },
+    {
+      "case_id": "doc2dial-dev-2e9623b209161de6e9448f0c0d2b113b-3",
+      "current_query": "yes",
+      "baseline": {
+        "searched": false,
+        "candidate_complete": false,
+        "visible_complete": false,
+        "mrr": 0.0,
+        "ndcg": 0.0
+      },
+      "candidate": {
+        "searched": false,
+        "candidate_complete": false,
+        "visible_complete": false,
+        "mrr": 0.0,
+        "ndcg": 0.0
+      },
+      "baseline_disposition": "RESPOND",
+      "candidate_disposition": "RESPOND",
+      "author_review": "Both ask what extension is needed despite inspection expiry in history; no evidence delivered."
+    },
+    {
+      "case_id": "doc2dial-dev-46c0f3dbe110f020aaf0358ae35d4283-3",
+      "current_query": "Yes",
+      "baseline": {
+        "searched": false,
+        "candidate_complete": false,
+        "visible_complete": false,
+        "mrr": 0.0,
+        "ndcg": 0.0
+      },
+      "candidate": {
+        "searched": true,
+        "candidate_complete": true,
+        "visible_complete": true,
+        "mrr": 1.0,
+        "ndcg": 1.0,
+        "metrics": {
+          "evidence_recall": 1.0,
+          "document_recall": 1.0,
+          "mrr": 1.0,
+          "ndcg": 1.0
+        }
+      },
+      "baseline_disposition": "RESPOND",
+      "candidate_disposition": "RESOLVED",
+      "author_review": "Candidate retrieves; baseline states inspection policy without evidence and asks whether to look it up."
+    },
+    {
+      "case_id": "doc2dial-dev-5d87b04944b11a9a535998c5c0e1b075-4",
+      "current_query": "What is checked during an inspection?",
+      "baseline": {
+        "searched": false,
+        "candidate_complete": false,
+        "visible_complete": false,
+        "mrr": 0.0,
+        "ndcg": 0.0
+      },
+      "candidate": {
+        "searched": true,
+        "candidate_complete": true,
+        "visible_complete": true,
+        "mrr": 1.0,
+        "ndcg": 1.0,
+        "metrics": {
+          "evidence_recall": 1.0,
+          "document_recall": 1.0,
+          "mrr": 1.0,
+          "ndcg": 1.0
+        }
+      },
+      "baseline_disposition": "RESPOND",
+      "candidate_disposition": "RESOLVED",
+      "author_review": "Candidate retrieves inspection contents with NY/private seller context; baseline asks inspection type."
+    },
+    {
+      "case_id": "doc2dial-dev-6977cbb3bed8f0e8480018cb3cac6716-3",
+      "current_query": "Yes",
+      "baseline": {
+        "searched": false,
+        "candidate_complete": false,
+        "visible_complete": false,
+        "mrr": 0.0,
+        "ndcg": 0.0
+      },
+      "candidate": {
+        "searched": false,
+        "candidate_complete": false,
+        "visible_complete": false,
+        "mrr": 0.0,
+        "ndcg": 0.0
+      },
+      "baseline_disposition": "RESPOND",
+      "candidate_disposition": "RESPOND",
+      "author_review": "Both ask jurisdiction/type; applicability may need clarification, zero delivery is not enough to label answer wrong."
+    },
+    {
+      "case_id": "doc2dial-dev-6f9180a71a8195073fd4fe17e708cee9-4",
+      "current_query": "and all vehicles need inspection?",
+      "baseline": {
+        "searched": false,
+        "candidate_complete": false,
+        "visible_complete": false,
+        "mrr": 0.0,
+        "ndcg": 0.0
+      },
+      "candidate": {
+        "searched": false,
+        "candidate_complete": false,
+        "visible_complete": false,
+        "mrr": 0.0,
+        "ndcg": 0.0
+      },
+      "baseline_disposition": "RESPOND",
+      "candidate_disposition": "RESPOND",
+      "author_review": "Current inspection question is entangled with old extension topic; clarification appropriateness needs independent review."
+    },
+    {
+      "case_id": "doc2dial-dev-9d4920bea87d4f4cb977483d943c1ef3-3",
+      "current_query": "Yes",
+      "baseline": {
+        "searched": false,
+        "candidate_complete": false,
+        "visible_complete": false,
+        "mrr": 0.0,
+        "ndcg": 0.0
+      },
+      "candidate": {
+        "searched": false,
+        "candidate_complete": false,
+        "visible_complete": false,
+        "mrr": 0.0,
+        "ndcg": 0.0
+      },
+      "baseline_disposition": "RESPOND",
+      "candidate_disposition": "INVALID_PROVIDER_OUTPUT",
+      "author_review": "Candidate returns empty structured arguments, INVALID_PROVIDER_OUTPUT; no retry."
+    },
+    {
+      "case_id": "doc2dial-dev-b55dafba91b47f076435e58d02a0659b-3",
+      "current_query": "do not",
+      "baseline": {
+        "searched": false,
+        "candidate_complete": false,
+        "visible_complete": false,
+        "mrr": 0.0,
+        "ndcg": 0.0
+      },
+      "candidate": {
+        "searched": false,
+        "candidate_complete": false,
+        "visible_complete": false,
+        "mrr": 0.0,
+        "ndcg": 0.0
+      },
+      "baseline_disposition": "RESPOND",
+      "candidate_disposition": "RESPOND",
+      "author_review": "Both interpret do not as refusal rather than negative answer; ambiguous source phrasing remains a witness."
+    },
+    {
+      "case_id": "doc2dial-dev-caa2d4ca2a98cc6f57a5628d9e128db9-3",
+      "current_query": "If my vehicle's inspection tag has expired, will I be fined?",
+      "baseline": {
+        "searched": false,
+        "candidate_complete": false,
+        "visible_complete": false,
+        "mrr": 0.0,
+        "ndcg": 0.0
+      },
+      "candidate": {
+        "searched": true,
+        "candidate_complete": true,
+        "visible_complete": true,
+        "mrr": 0.5,
+        "ndcg": 0.6309297535714575,
+        "metrics": {
+          "evidence_recall": 1.0,
+          "document_recall": 1.0,
+          "mrr": 0.5,
+          "ndcg": 0.6309297535714575
+        }
+      },
+      "baseline_disposition": "RESPOND",
+      "candidate_disposition": "RESOLVED",
+      "author_review": "Candidate retrieves expired inspection penalty; baseline answers without retrieved evidence."
+    },
+    {
+      "case_id": "doc2dial-dev-dfe69859eb7ea18e177951165518bee0-4",
+      "current_query": "No, it has not expired.",
+      "baseline": {
+        "searched": false,
+        "candidate_complete": false,
+        "visible_complete": false,
+        "mrr": 0.0,
+        "ndcg": 0.0
+      },
+      "candidate": {
+        "searched": true,
+        "candidate_complete": true,
+        "visible_complete": true,
+        "mrr": 1.0,
+        "ndcg": 1.0,
+        "metrics": {
+          "evidence_recall": 1.0,
+          "document_recall": 1.0,
+          "mrr": 1.0,
+          "ndcg": 1.0
+        }
+      },
+      "baseline_disposition": "RESPOND",
+      "candidate_disposition": "RESOLVED",
+      "author_review": "Candidate retrieves unexpired sticker replacement; baseline asserts no replacement needed without supporting retrieval."
+    },
+    {
+      "case_id": "doc2dial-dev-ddce2ae456060c8c50cb8717afeaaec5-3",
+      "current_query": "Yes, it was cancelled.",
+      "baseline": {
+        "searched": true,
+        "candidate_complete": true,
+        "visible_complete": true,
+        "mrr": 1.0,
+        "ndcg": 1.0,
+        "metrics": {
+          "evidence_recall": 1.0,
+          "document_recall": 1.0,
+          "mrr": 1.0,
+          "ndcg": 1.0
+        }
+      },
+      "candidate": {
+        "searched": true,
+        "candidate_complete": true,
+        "visible_complete": true,
+        "mrr": 1.0,
+        "ndcg": 1.0,
+        "metrics": {
+          "evidence_recall": 1.0,
+          "document_recall": 1.0,
+          "mrr": 1.0,
+          "ndcg": 1.0
+        }
+      },
+      "baseline_disposition": "RESOLVED",
+      "candidate_disposition": "RESOLVED",
+      "author_review": "Both preserve I-PIRP sponsor cancellation and retrieve complete evidence."
+    }
+  ],
+  "adopted": false,
+  "reason": "Development improvement but semantic/protocol/generalization gates not satisfied; no production prompt change.",
+  "usage": {
+    "baseline": {
+      "input_tokens": 65604,
+      "output_tokens": 1630
+    },
+    "candidate": {
+      "input_tokens": 67320,
+      "output_tokens": 1407
+    }
+  }
+}

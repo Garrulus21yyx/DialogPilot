@@ -1,0 +1,455 @@
+{
+  "gap": "R01",
+  "selection": "first 12 dev cases with history, distinct conversations, original frozen dataset order",
+  "cases": [
+    {
+      "case_id": "doc2dial-dev-ad94c0dc42f749c2b0e2349d830b4827-3",
+      "group_id": "doc2dial-ad94c0dc42f749c2b0e2349d830b4827",
+      "split": "dev",
+      "query": "no I think it's all good we just need some info",
+      "history": [
+        "we need help with a complaint",
+        "Do you need help protecting your facility license, registration or certification?"
+      ],
+      "evidence": [
+        {
+          "document_id": "A Guide for Facilities:#3_0",
+          "start_char": 148,
+          "end_char": 198,
+          "quote": "\n\nWhat to do if a complaint is filed against you \n",
+          "relevance": 3,
+          "granularity": "span"
+        }
+      ],
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "dmv"
+      ],
+      "required_claims": [
+        "Would you like to know what to do if a complaint is filed against you?"
+      ],
+      "forbidden_claims": [],
+      "answerable": true
+    },
+    {
+      "case_id": "doc2dial-dev-09f69dbfbbb5ab0b90ce0faf73e5166b-3",
+      "group_id": "doc2dial-09f69dbfbbb5ab0b90ce0faf73e5166b",
+      "split": "dev",
+      "query": "Yes, it was.",
+      "history": [
+        "I just moved to New York and registered my car here. I need help with understanding vehicle inspection rules.",
+        "Was your vehicle previously registered in another state that issued an inspection sticker?"
+      ],
+      "evidence": [
+        {
+          "document_id": "About New York State Inspections#3_0",
+          "start_char": 2115,
+          "end_char": 2175,
+          "quote": "you do not need to have your vehicle inspected immediately. ",
+          "relevance": 3,
+          "granularity": "span"
+        },
+        {
+          "document_id": "About New York State Inspections#3_0",
+          "start_char": 2175,
+          "end_char": 2307,
+          "quote": "Your out - of - state inspection remains valid until it expires or for one year after the registration date, whichever comes first. ",
+          "relevance": 3,
+          "granularity": "span"
+        }
+      ],
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "dmv"
+      ],
+      "required_claims": [
+        "Great. In your case, you will not need to have your vehicle inspected again until your out of state inspection sticker expires or for one year after the registration date, whichever comes first."
+      ],
+      "forbidden_claims": [],
+      "answerable": true
+    },
+    {
+      "case_id": "doc2dial-dev-2e9623b209161de6e9448f0c0d2b113b-3",
+      "group_id": "doc2dial-2e9623b209161de6e9448f0c0d2b113b",
+      "split": "dev",
+      "query": "yes",
+      "history": [
+        "I need to get an extension so I don't get into problems when I'm away",
+        "Will you be out of state when your inspection expires?"
+      ],
+      "evidence": [
+        {
+          "document_id": "About New York State Inspections#3_0",
+          "start_char": 2673,
+          "end_char": 2705,
+          "quote": "you can apply for an extension. ",
+          "relevance": 3,
+          "granularity": "span"
+        },
+        {
+          "document_id": "About New York State Inspections#3_0",
+          "start_char": 2705,
+          "end_char": 2713,
+          "quote": "First , ",
+          "relevance": 3,
+          "granularity": "span"
+        },
+        {
+          "document_id": "About New York State Inspections#3_0",
+          "start_char": 2713,
+          "end_char": 2802,
+          "quote": "determine if an expired out - of - state inspection is a violation of law in that state. ",
+          "relevance": 3,
+          "granularity": "span"
+        }
+      ],
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "dmv"
+      ],
+      "required_claims": [
+        "You can apply for an extension. You should also find out if an expired out-of-state inspection is a violation of law in the state you will be in. "
+      ],
+      "forbidden_claims": [],
+      "answerable": true
+    },
+    {
+      "case_id": "doc2dial-dev-46c0f3dbe110f020aaf0358ae35d4283-3",
+      "group_id": "doc2dial-46c0f3dbe110f020aaf0358ae35d4283",
+      "split": "dev",
+      "query": "Yes",
+      "history": [
+        "I moved to New York and registered my vehicle here. Do I need to do an inspection again?",
+        "Was your vehicle registered in another state that issues an inspection tag?"
+      ],
+      "evidence": [
+        {
+          "document_id": "About New York State Inspections#3_0",
+          "start_char": 2115,
+          "end_char": 2175,
+          "quote": "you do not need to have your vehicle inspected immediately. ",
+          "relevance": 3,
+          "granularity": "span"
+        },
+        {
+          "document_id": "About New York State Inspections#3_0",
+          "start_char": 2175,
+          "end_char": 2307,
+          "quote": "Your out - of - state inspection remains valid until it expires or for one year after the registration date, whichever comes first. ",
+          "relevance": 3,
+          "granularity": "span"
+        }
+      ],
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "dmv"
+      ],
+      "required_claims": [
+        "In that case you don't need to be inspected immediately. Your out-of-state inspection remains valid until it expires or for one year after the registration date, whichever comes first."
+      ],
+      "forbidden_claims": [],
+      "answerable": true
+    },
+    {
+      "case_id": "doc2dial-dev-5d87b04944b11a9a535998c5c0e1b075-4",
+      "group_id": "doc2dial-5d87b04944b11a9a535998c5c0e1b075",
+      "split": "dev",
+      "query": "What is checked during an inspection?",
+      "history": [
+        "I bought my new car from a private seller.",
+        "Was the private seller registered with the New York State DMV?",
+        "No, not that I know of."
+      ],
+      "evidence": [
+        {
+          "document_id": "About New York State Inspections#3_0",
+          "start_char": 1292,
+          "end_char": 1512,
+          "quote": "The DMV brochure, New York State Vehicle Safety / Emissions Inspection Program for Cars and Light Trucks [3] C-50 lists the equipment items checked during a safety inspection, and a description of the safety inspection. ",
+          "relevance": 3,
+          "granularity": "span"
+        }
+      ],
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "dmv"
+      ],
+      "required_claims": [
+        "We have a brochure \"New York State Vehicle Safety / Emissions Inspection Program for Cars and Light Trucks [ 3 ] C-50\" and it lists all the equipment we check."
+      ],
+      "forbidden_claims": [],
+      "answerable": true
+    },
+    {
+      "case_id": "doc2dial-dev-6977cbb3bed8f0e8480018cb3cac6716-3",
+      "group_id": "doc2dial-6977cbb3bed8f0e8480018cb3cac6716",
+      "split": "dev",
+      "query": "Yes",
+      "history": [
+        "Hello, I would like to know how to do the inspection if I bought a vehicle from a private seller",
+        "buy a vehicle from someone other than a registered dealer?"
+      ],
+      "evidence": [
+        {
+          "document_id": "About New York State Inspections#3_0",
+          "start_char": 1810,
+          "end_char": 1909,
+          "quote": "you will receive an inspection extension that will last 10 days from the date of the registration. ",
+          "relevance": 3,
+          "granularity": "span"
+        }
+      ],
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "dmv"
+      ],
+      "required_claims": [
+        "You will receive an inspection extension that will last 10 days from the date of registration."
+      ],
+      "forbidden_claims": [],
+      "answerable": true
+    },
+    {
+      "case_id": "doc2dial-dev-6f9180a71a8195073fd4fe17e708cee9-4",
+      "group_id": "doc2dial-6f9180a71a8195073fd4fe17e708cee9",
+      "split": "dev",
+      "query": "and all vehicles need inspection?",
+      "history": [
+        "Hi, I'm not currently in New York City. How do I get an extension, I need it",
+        "currently out of state?",
+        "do not"
+      ],
+      "evidence": [
+        {
+          "document_id": "About New York State Inspections#3_0",
+          "start_char": 37,
+          "end_char": 147,
+          "quote": "All vehicles registered in New York State must get a safety inspection at a DMV - licensed inspection station ",
+          "relevance": 3,
+          "granularity": "span"
+        },
+        {
+          "document_id": "About New York State Inspections#3_0",
+          "start_char": 147,
+          "end_char": 163,
+          "quote": "every 12 months ",
+          "relevance": 3,
+          "granularity": "span"
+        },
+        {
+          "document_id": "About New York State Inspections#3_0",
+          "start_char": 163,
+          "end_char": 212,
+          "quote": "when the ownership of the vehicle is transferred ",
+          "relevance": 3,
+          "granularity": "span"
+        }
+      ],
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "dmv"
+      ],
+      "required_claims": [
+        "Yes, all vehicles registered in New York State must obtain a safety inspection at a DMV - licensed from the inspection station every 12 months, when vehicle ownership is transferred."
+      ],
+      "forbidden_claims": [],
+      "answerable": true
+    },
+    {
+      "case_id": "doc2dial-dev-9d4920bea87d4f4cb977483d943c1ef3-3",
+      "group_id": "doc2dial-9d4920bea87d4f4cb977483d943c1ef3",
+      "split": "dev",
+      "query": "Yes",
+      "history": [
+        "Hello, I would like to know how I do the inspections if I bought a vehicle from a private seller",
+        "buy a vehicle from someone other than a dealer?"
+      ],
+      "evidence": [
+        {
+          "document_id": "About New York State Inspections#3_0",
+          "start_char": 1810,
+          "end_char": 1909,
+          "quote": "you will receive an inspection extension that will last 10 days from the date of the registration. ",
+          "relevance": 3,
+          "granularity": "span"
+        }
+      ],
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "dmv"
+      ],
+      "required_claims": [
+        "You will receive an inspection extension that will last 10 days from the date of registration."
+      ],
+      "forbidden_claims": [],
+      "answerable": true
+    },
+    {
+      "case_id": "doc2dial-dev-b55dafba91b47f076435e58d02a0659b-3",
+      "group_id": "doc2dial-b55dafba91b47f076435e58d02a0659b",
+      "split": "dev",
+      "query": "do not",
+      "history": [
+        "Hi, recently I moved to New York and registered my vehicle here, what about my inspection tag?",
+        "Was your vehicle registered in another state that issues an inspection tag?"
+      ],
+      "evidence": [
+        {
+          "document_id": "About New York State Inspections#3_0",
+          "start_char": 2307,
+          "end_char": 2355,
+          "quote": "When your out - of - state inspection expires , ",
+          "relevance": 3,
+          "granularity": "span"
+        }
+      ],
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "dmv"
+      ],
+      "required_claims": [
+        "When does your out-of-state inspection expire?"
+      ],
+      "forbidden_claims": [],
+      "answerable": true
+    },
+    {
+      "case_id": "doc2dial-dev-caa2d4ca2a98cc6f57a5628d9e128db9-3",
+      "group_id": "doc2dial-caa2d4ca2a98cc6f57a5628d9e128db9",
+      "split": "dev",
+      "query": "If my vehicle's inspection tag has expired, will I be fined?",
+      "history": [
+        "hi I need to replace the inspection tag",
+        "You can have your vehicle re-inspected or you can request a replacement sticker using the PDF VS-118 Replacement Inspection Sticker Request Form. Complete the form and mail it to the address on the form."
+      ],
+      "evidence": [
+        {
+          "document_id": "About New York State Inspections#3_0",
+          "start_char": 5352,
+          "end_char": 5390,
+          "quote": "you can receive a fine of $25 to $50. ",
+          "relevance": 3,
+          "granularity": "span"
+        }
+      ],
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "dmv"
+      ],
+      "required_claims": [
+        "If your vehicle's inspection tag has expired in the past 60 days, you may be fined $ 25 to $ 50."
+      ],
+      "forbidden_claims": [],
+      "answerable": true
+    },
+    {
+      "case_id": "doc2dial-dev-dfe69859eb7ea18e177951165518bee0-4",
+      "group_id": "doc2dial-dfe69859eb7ea18e177951165518bee0",
+      "split": "dev",
+      "query": "No, it has not expired.",
+      "history": [
+        "Give me some info about how to replace the inspection sticker",
+        "Sure. You need to order a replacement sticker using the form Request for Replacement Inspection Sticker PDF VS-118. Fill out the form and mail it to the address on the form. Inspection stations electronically send a record of all emissions inspections to the DMV",
+        "Is your vehicle's inspection sticker expired in the last 60 days?"
+      ],
+      "evidence": [
+        {
+          "document_id": "About New York State Inspections#3_0",
+          "start_char": 5390,
+          "end_char": 5447,
+          "quote": "If the inspection sticker is expired more than 60 days , ",
+          "relevance": 3,
+          "granularity": "span"
+        }
+      ],
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "dmv"
+      ],
+      "required_claims": [
+        "Does the inspection sticker expire in more than 60 days?"
+      ],
+      "forbidden_claims": [],
+      "answerable": true
+    },
+    {
+      "case_id": "doc2dial-dev-ddce2ae456060c8c50cb8717afeaaec5-3",
+      "group_id": "doc2dial-ddce2ae456060c8c50cb8717afeaaec5",
+      "split": "dev",
+      "query": "Yes, it was cancelled.",
+      "history": [
+        "I need refund information about cancelling an I-PIRP course.",
+        "Was the cancellation due to the sponsor being unable to conduct the course?"
+      ],
+      "evidence": [
+        {
+          "document_id": "About online and alternative delivery method courses (I-PIRP/ADM)#3_0",
+          "start_char": 4501,
+          "end_char": 4576,
+          "quote": "they must give you the option to receive a full refund of all course fees. ",
+          "relevance": 3,
+          "granularity": "span"
+        },
+        {
+          "document_id": "About online and alternative delivery method courses (I-PIRP/ADM)#3_0",
+          "start_char": 4576,
+          "end_char": 4681,
+          "quote": "The sponsor can also offer you the option to reschedule the course, if and when the course is available. ",
+          "relevance": 3,
+          "granularity": "span"
+        }
+      ],
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "dmv"
+      ],
+      "required_claims": [
+        "In that case, they must give you the option of a full refund of all course fees. If the course is available later on, the sponsor can also give you the option of rescheduling."
+      ],
+      "forbidden_claims": [],
+      "answerable": true
+    }
+  ],
+  "dataset": {
+    "case_count": 300,
+    "cases_sha256": "f0e282d4e6b0594dfc98267322bd865e846b4cc00dbbe8d534d2e6ebc6ec6363",
+    "corpus_sha256": "89a8828b798c97946e6d150851fe046692f1c8c58e1795648223345a5d526281",
+    "dataset_id": "doc2dial-rag-mini-dev-v1",
+    "document_count": 100,
+    "schema_version": 1,
+    "source": {
+      "dataset": "Doc2Dial v1.0.1",
+      "license": "CC-BY-3.0",
+      "selection": "deterministic domain-balanced prefix plus distractors",
+      "url": "https://doc2dial.github.io/file/doc2dial_v1.0.1.zip"
+    }
+  },
+  "api_budget": 12,
+  "calibration_budget_ceiling": 24,
+  "model": "deepseek-v4-flash",
+  "source_k": 20,
+  "candidate_k": 20,
+  "final_k": 5,
+  "context_tokens": 2600,
+  "corpus_documents": 100,
+  "source_hashes": {
+    "scripts/run_rag_query_calibration12.py": "975dce0aeea99844e38cacc8f63a9e6ec367c875530793d11fdc50f901e48b41",
+    "application/conversation_agent.py": "2549f39ff63a3c480da0a7429e7cbd4c0e551ea5d7168940ca62b3bd441aeb73",
+    "infrastructure/target_conversation_provider.py": "a45c589eb75fea8df696645a6c46eebdb089c4c7ba7c6c49ce5f1e7027087327",
+    "infrastructure/target_model_context.py": "3fa0c78d2912c7703aa6ff7ad35a4f774171e123c4262bf0a5fe517c709e1ad4",
+    "core/structured_model.py": "a5d55e7ddf4221d8d5fed7aed3682372ac320b2e91e013de42a5c1d0a6640c1d"
+  },
+  "scope": "Real ConversationAgent.plan, restored source history, local retrieval and production pack/wire; not whole runtime or answers; no-query rows retained in denominator. No model retries or automatic reruns."
+}

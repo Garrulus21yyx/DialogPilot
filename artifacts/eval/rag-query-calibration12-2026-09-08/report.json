@@ -1,0 +1,26 @@
+{
+  "cases": 12,
+  "api_calls": 12,
+  "resolved_query_count": 1,
+  "scope": "production planner; local retrieval replay; no answer generation",
+  "source_k": 20,
+  "candidate_k": 20,
+  "dense_weight": 0.5,
+  "rrf_k": 10,
+  "arms": {
+    "raw": {
+      "evaluated": 12,
+      "complete20": 4,
+      "complete5": 4,
+      "visible_complete": 4,
+      "mrr5_all12_missing_zero": 0.225
+    },
+    "resolved": {
+      "evaluated": 1,
+      "complete20": 1,
+      "complete5": 1,
+      "visible_complete": 1,
+      "mrr5_all12_missing_zero": 0.08333333333333333
+    }
+  }
+}
