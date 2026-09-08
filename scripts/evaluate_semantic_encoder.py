@@ -4,6 +4,7 @@ import asyncio
 import hashlib
 import json
 from pathlib import Path
+from functools import partial
 
 import torch
 
@@ -13,7 +14,7 @@ from evaluation.semantic_encoder_experiment import SemanticCandidate
 
 
 async def main(zh: Path, en: Path, output: Path, data: Path, challenge: Path, regression=(),
-               comparison_zh=None, comparison_en=None):
+               comparison_zh=None, comparison_en=None, device="cpu"):
     if output.exists():
         raise ValueError("evaluation output exists")
     torch.set_num_threads(2)
@@ -43,12 +44,13 @@ async def main(zh: Path, en: Path, output: Path, data: Path, challenge: Path, re
         rows = [json.loads(line) for path in paths for line in path.read_text().splitlines()]
         records[scope] = {}
         arms = [("baseline", dict(artifacts=baseline)),
-                ("semantic", dict(artifacts=artifacts, load_artifact=SemanticCandidate))]
+                ("semantic", dict(artifacts=artifacts, load_artifact=partial(SemanticCandidate, device=device)))]
         if comparison_zh:
             arms.append(("category", dict(artifacts={"zh": comparison_zh, "en": comparison_en},
-                                           load_artifact=SemanticCandidate)))
+                                           load_artifact=partial(SemanticCandidate, device=device))))
         for name, kwargs in arms:
             result = await evaluate(rows, warmup=True, **kwargs)
+            result["inference_device"] = "cpu" if name == "baseline" else device
             result["sources"] = {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}
             result["artifacts"] = {lang: hashlib.sha256((path / "manifest.json").read_bytes()).hexdigest()
                                    for lang, path in kwargs["artifacts"].items()}
@@ -71,7 +73,7 @@ async def main(zh: Path, en: Path, output: Path, data: Path, challenge: Path, re
                 for s in records for r in records[s]["semantic"]["details"] if r["language"] == lang),
             contextual_improvement=new["contextual_positive_correct_accepts"] > base["contextual_positive_correct_accepts"],
             overall_coverage_not_lower=new["correct"] >= base["correct"],
-            cpu_p95_under_100ms=new["encoder_p95_ms"] <= 100,
+            **{f"{device}_p95_under_100ms": new["encoder_p95_ms"] <= 100},
         )
         adoption[lang] = dict(passed=all(checks.values()), checks=checks,
             artifact_sha256=hashlib.sha256((artifacts[lang] / "manifest.json").read_bytes()).hexdigest())
@@ -89,4 +91,5 @@ if __name__ == "__main__":
     parser.add_argument("--regression", type=Path, action="append", default=[])
     parser.add_argument("--comparison-zh", type=Path)
     parser.add_argument("--comparison-en", type=Path)
+    parser.add_argument("--device", choices=("cpu", "cuda"), default="cpu")
     asyncio.run(main(**vars(parser.parse_args())))

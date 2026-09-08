@@ -1,0 +1,44 @@
+{
+  "_name_or_path": "BAAI/bge-small-zh-v1.5",
+  "architectures": [
+    "BertForSequenceClassification"
+  ],
+  "attention_probs_dropout_prob": 0.1,
+  "classifier_dropout": null,
+  "gradient_checkpointing": false,
+  "hidden_act": "gelu",
+  "hidden_dropout_prob": 0.1,
+  "hidden_size": 512,
+  "id2label": {
+    "0": "requested:general_qa",
+    "1": "requested:product_identification",
+    "2": "requested:refund_status_summary",
+    "3": "denied:general_qa",
+    "4": "denied:product_identification",
+    "5": "denied:refund_status_summary",
+    "6": "needs_planning"
+  },
+  "initializer_range": 0.02,
+  "intermediate_size": 2048,
+  "label2id": {
+    "denied:general_qa": 3,
+    "denied:product_identification": 4,
+    "denied:refund_status_summary": 5,
+    "needs_planning": 6,
+    "requested:general_qa": 0,
+    "requested:product_identification": 1,
+    "requested:refund_status_summary": 2
+  },
+  "layer_norm_eps": 1e-12,
+  "max_position_embeddings": 512,
+  "model_type": "bert",
+  "num_attention_heads": 8,
+  "num_hidden_layers": 4,
+  "pad_token_id": 0,
+  "position_embedding_type": "absolute",
+  "torch_dtype": "float16",
+  "transformers_version": "4.46.3",
+  "type_vocab_size": 2,
+  "use_cache": true,
+  "vocab_size": 21128
+}

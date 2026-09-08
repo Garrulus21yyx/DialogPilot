@@ -1,0 +1,116 @@
+{
+  "source": "data/training/semantic-encoder-v2-final",
+  "source_hashes": {
+    "data/training/semantic-encoder-v2-final/zh/train.jsonl": "26d45cdeac7f43e1bfdc2cc4b7da979ce80204a42772f5f6808d635b43de7010",
+    "data/training/semantic-encoder-v2-final/zh/calibration.jsonl": "1feb8f745119ee78f216ca5a31c2a59828a6e0791c605098227f0c5812550d10",
+    "data/training/semantic-encoder-v2-final/zh/heldout.jsonl": "cd7b6da0b943368b87b674e2761f61702c971e29da0c927035aee73a0e78421c",
+    "data/training/semantic-encoder-v2-final/en/train.jsonl": "5f2e28120f3348fec805a93ad5e0975b2618fce485edb8b089dab9d07b7624b5",
+    "data/training/semantic-encoder-v2-final/en/calibration.jsonl": "1a0001818ad9c757ea1f5382a5e0989f0101c3e747f4671890eb295b8bb3f7d6",
+    "data/training/semantic-encoder-v2-final/en/heldout.jsonl": "2abd33bd99eb3fcd1d8c00bd21a72e446ca59414f17d8afe2151d9c67295bce1"
+  },
+  "splits": {
+    "zh/train": {
+      "count": 8374,
+      "sha256": "82e4093d8edfe360762a98f372b4cfbe22acf5d45298ecdf473060f7ee1e2faf",
+      "excluded_broad_source_rows": 0,
+      "annotation_basis": {
+        "reviewed-authored-request": 2765,
+        "legacy-components-unknown": 1792,
+        "explicit-withdrawal": 320,
+        "object-correction": 40,
+        "affirmed-plus-other": 80,
+        "recorded-primary-plus-other": 1817,
+        "explicit-source-withdrawal": 948,
+        "two-affirmed-capabilities": 612
+      },
+      "context_groups": 192
+    },
+    "zh/calibration": {
+      "count": 1586,
+      "sha256": "16525d14360dc76904c9bd4deaacb55ef9323474b0f40bc22b196c3c79e48633",
+      "excluded_broad_source_rows": 0,
+      "annotation_basis": {
+        "reviewed-authored-request": 534,
+        "legacy-components-unknown": 336,
+        "explicit-withdrawal": 48,
+        "object-correction": 6,
+        "affirmed-plus-other": 12,
+        "recorded-primary-plus-other": 334,
+        "explicit-source-withdrawal": 200,
+        "two-affirmed-capabilities": 116
+      },
+      "context_groups": 40
+    },
+    "zh/heldout": {
+      "count": 1034,
+      "sha256": "1c1ff505fb915c6a3f36cf098580ea3db127fc73e68907faa41c3c95a6e33596",
+      "excluded_broad_source_rows": 0,
+      "annotation_basis": {
+        "reviewed-authored-request": 329,
+        "legacy-components-unknown": 235,
+        "explicit-withdrawal": 16,
+        "object-correction": 2,
+        "affirmed-plus-other": 4,
+        "recorded-primary-plus-other": 202,
+        "explicit-source-withdrawal": 127,
+        "two-affirmed-capabilities": 119
+      },
+      "context_groups": 32
+    },
+    "en/train": {
+      "count": 4657,
+      "sha256": "3567144765ee56b4b01c483e7610059e9ac5c02d7c0f4775b9481c8cbec3c80e",
+      "excluded_broad_source_rows": 6860,
+      "annotation_basis": {
+        "reviewed-authored-request": 1261,
+        "legacy-components-unknown": 1507,
+        "explicit-withdrawal": 320,
+        "object-correction": 40,
+        "affirmed-plus-other": 80,
+        "recorded-primary-plus-other": 1033,
+        "explicit-source-withdrawal": 228,
+        "two-affirmed-capabilities": 188
+      },
+      "context_groups": 142
+    },
+    "en/calibration": {
+      "count": 1001,
+      "sha256": "e4e7d2ea8d8548d2c64365d3a6bf7edd4d95707733381ea4844589d5c6870f74",
+      "excluded_broad_source_rows": 1491,
+      "annotation_basis": {
+        "reviewed-authored-request": 270,
+        "legacy-components-unknown": 367,
+        "explicit-withdrawal": 48,
+        "object-correction": 6,
+        "affirmed-plus-other": 12,
+        "recorded-primary-plus-other": 214,
+        "explicit-source-withdrawal": 56,
+        "two-affirmed-capabilities": 28
+      },
+      "context_groups": 40
+    },
+    "en/heldout": {
+      "count": 514,
+      "sha256": "540865fa89b3eddcf35e2fc9e59010b140d5a6bfee6a79a8b832c44c6a603385",
+      "excluded_broad_source_rows": 1381,
+      "annotation_basis": {
+        "reviewed-authored-request": 137,
+        "legacy-components-unknown": 186,
+        "explicit-withdrawal": 16,
+        "object-correction": 2,
+        "affirmed-plus-other": 4,
+        "recorded-primary-plus-other": 101,
+        "explicit-source-withdrawal": 36,
+        "two-affirmed-capabilities": 32
+      },
+      "context_groups": 22
+    }
+  },
+  "families_sha256": "9ed37087c0dece8e0e3265248e2c9d1cd5cc925baf6a2532c06b50d6c05e91ba",
+  "heldout_known_pair": [
+    "general_qa",
+    "product_identification"
+  ],
+  "scope": "Synthetic/legacy development; original heldout already consumed",
+  "exclusion": "Bitext broad intents and all inherited derivatives lack action-level gold"
+}

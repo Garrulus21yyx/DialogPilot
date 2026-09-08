@@ -23,6 +23,8 @@ from evaluation.target_encoder_training import (TARGETS, _load, _select_threshol
                                                _evaluate_threshold)
 from evaluation.encoder_coverage import (COVERAGE_OBJECTIVE, hypotheses,
                                          pair_targets, routing_scores)
+from evaluation.encoder_components import (COMPONENT_OBJECTIVE, COMPONENTS,
+    encode_targets, masked_component_loss, component_routing_scores)
 
 
 BACKBONES = {
@@ -96,7 +98,8 @@ def train(data: Path, output: Path, language: str, epochs: int = 4, objective="c
             seen.add(item.input.identity())
     classes = tuple(sorted({DEFER_LABEL, *TARGETS}))
     contracts = hypotheses(language) if objective == COVERAGE_OBJECTIVE else None
-    model_classes = ("NOT_COMPLETE", "COMPLETE") if contracts else classes
+    components = objective == COMPONENT_OBJECTIVE
+    model_classes = COMPONENTS if components else (("NOT_COMPLETE", "COMPLETE") if contracts else classes)
     max_tokens = 384 if contracts else MAX_TOKENS
     name, revision = BACKBONES[language]
     tokenizer = AutoTokenizer.from_pretrained(name, revision=revision, local_files_only=True)
@@ -106,13 +109,15 @@ def train(data: Path, output: Path, language: str, epochs: int = 4, objective="c
     datasets = {}
     for split, items in splits.items():
         rows = []
+        annotations = {r["case_id"]: r["semantic_targets"] for r in map(json.loads,
+            (data / f"{split}.jsonl").read_text().splitlines())} if components else {}
         for item in items:
             pairs = list(zip(contracts.values(), pair_targets(item.label, contracts))) if contracts else [(None, classes.index(item.label))]
             for hypothesis, target in pairs:
                 encoded = tokenizer(render(item.input), text_pair=hypothesis, truncation=False)
                 if len(encoded["input_ids"]) > max_tokens:
                     raise ValueError(f"training input exceeds declared budget: {item.case_id}")
-                rows.append({**encoded, "labels": target})
+                rows.append({**encoded, "labels": encode_targets(annotations[item.case_id]) if components else target})
         datasets[split] = Dataset.from_list(rows)
     output.mkdir(parents=True)
     args = TrainingArguments(output_dir=str(output / "trainer"), num_train_epochs=epochs,
@@ -121,13 +126,17 @@ def train(data: Path, output: Path, language: str, epochs: int = 4, objective="c
         report_to=[], seed=17, data_seed=17, fp16=torch.cuda.is_available(),
         dataloader_num_workers=0, disable_tqdm=True)
     trainer = Trainer(model=model, args=args, train_dataset=datasets["train"],
-                      data_collator=DataCollatorWithPadding(tokenizer))
+                      data_collator=DataCollatorWithPadding(tokenizer),
+                      compute_loss_func=masked_component_loss if components else None)
     started = time.perf_counter()
     result = trainer.train()
     probabilities = {}
     for split in ("calibration", "heldout"):
         logits = trainer.predict(datasets[split]).predictions
-        probabilities[split] = torch.softmax(torch.tensor(logits), dim=1).numpy()
+        if components:
+            probabilities[split] = component_routing_scores(torch.tensor(logits).sigmoid().numpy(), COMPONENTS, classes)
+        else:
+            probabilities[split] = torch.softmax(torch.tensor(logits), dim=1).numpy()
         if contracts:
             probabilities[split] = routing_scores(probabilities[split][:, 1].reshape(-1, len(contracts)),
                                                   tuple(contracts), classes)
@@ -168,10 +177,16 @@ class SemanticScorer:
             return tuple(RankedCandidate(c.label, 0.) for c in self.targets), 1.
         encoded = {name: tensor.to(self.device) for name, tensor in encoded.items()}
         with torch.inference_mode():
-            probabilities = self.model(**encoded).logits.softmax(-1)
+            logits = self.model(**encoded).logits
+            probabilities = logits.sigmoid() if getattr(self, "objective", None) == COMPONENT_OBJECTIVE else logits.softmax(-1)
         if self.contracts:
             classes = tuple(sorted({DEFER_LABEL, *self.contracts}))
             values = routing_scores(probabilities[:, 1].cpu().numpy().reshape(1, -1), tuple(self.contracts), classes)[0]
+            scores = dict(zip(classes, values))
+        elif self.objective == COMPONENT_OBJECTIVE:
+            classes = tuple(sorted({DEFER_LABEL, *TARGETS}))
+            labels = tuple(self.model.config.id2label[i] for i in range(self.model.config.num_labels))
+            values = component_routing_scores(probabilities.cpu().numpy(), labels, classes)[0]
             scores = dict(zip(classes, values))
         else:
             scores = {self.model.config.id2label[i]: p for i,p in enumerate(probabilities[0].tolist())}
@@ -198,8 +213,9 @@ def finalize_candidate(data: Path, trained: Path, output: Path, language: str, d
     if output.exists():
         raise ValueError("candidate output already exists")
     candidate = SemanticScorer(trained, device=device)
-    classes = tuple(sorted({DEFER_LABEL, *candidate.contracts})) if candidate.contracts else tuple(
-        candidate.model.config.id2label[i] for i in range(candidate.model.config.num_labels))
+    classes = tuple(sorted({DEFER_LABEL, *TARGETS})) if candidate.objective == COMPONENT_OBJECTIVE else (
+        tuple(sorted({DEFER_LABEL, *candidate.contracts})) if candidate.contracts else tuple(
+        candidate.model.config.id2label[i] for i in range(candidate.model.config.num_labels)))
     splits = {s: _load(data / f"{s}.jsonl") for s in ("train", "calibration", "heldout")}
     probabilities = {}
     for split in ("calibration", "heldout"):
@@ -225,7 +241,7 @@ if __name__ == "__main__":
     parser.add_argument("--language", choices=BACKBONES, required=True)
     parser.add_argument("--epochs", type=int, default=4, choices=range(1, 5))
     parser.add_argument("--finalize-from", type=Path)
-    parser.add_argument("--objective", choices=("category-v1", COVERAGE_OBJECTIVE), default="category-v1")
+    parser.add_argument("--objective", choices=("category-v1", COVERAGE_OBJECTIVE, COMPONENT_OBJECTIVE), default="category-v1")
     parser.add_argument("--device", choices=("cpu", "cuda"), default="cpu",
                         help="Inference device for --finalize-from; training uses available GPU")
     args = vars(parser.parse_args())

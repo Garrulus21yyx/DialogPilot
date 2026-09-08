@@ -1,0 +1,126 @@
+{
+  "schema_version": "dialogpilot-target-encoder-v2",
+  "status": "ACTIVE",
+  "artifact_version": "dialogpilot-components-zh-v2-calibrated",
+  "bundle_version": "customer-service-v1",
+  "model_filename": "model.safetensors",
+  "model_sha256": "d8b7ef0b25a0073ea30b32b7c7606bf345bd5b30660193e892f5179fa008cf8d",
+  "target_precision": 0.88,
+  "heldout_target_precision": 0.98,
+  "heldout_min_accepts": 10,
+  "classes": [
+    {
+      "label": "general_qa",
+      "owner_agent": "general",
+      "capability_kind": "tool",
+      "capability_id": "knowledge_search",
+      "required_arguments": [
+        "query"
+      ],
+      "threshold": 0.9406234622001648,
+      "enabled": true,
+      "calibration_accepted": 95,
+      "calibration_correct": 94,
+      "calibration_precision_lower_bound": 0.9541913976058353,
+      "heldout_accepted": 71,
+      "heldout_correct": 71,
+      "heldout_precision_lower_bound": 0.9632925377481212
+    },
+    {
+      "label": "product_identification",
+      "owner_agent": "product_technical",
+      "capability_kind": "skill",
+      "capability_id": "product_identification",
+      "required_arguments": [
+        "asset_id"
+      ],
+      "threshold": 0.9676873683929443,
+      "enabled": false,
+      "calibration_accepted": 173,
+      "calibration_correct": 173,
+      "calibration_precision_lower_bound": 0.9846018321282943,
+      "heldout_accepted": 127,
+      "heldout_correct": 111,
+      "heldout_precision_lower_bound": 0.8176578573306754
+    },
+    {
+      "label": "refund_status_summary",
+      "owner_agent": "billing_refund",
+      "capability_kind": "tool",
+      "capability_id": "refund_status",
+      "required_arguments": [
+        "order_id"
+      ],
+      "threshold": 1.0,
+      "enabled": false,
+      "calibration_accepted": 0,
+      "calibration_correct": 0,
+      "calibration_precision_lower_bound": 0.0,
+      "heldout_accepted": 0,
+      "heldout_correct": 0,
+      "heldout_precision_lower_bound": 0.0
+    }
+  ],
+  "required_languages": [
+    "zh"
+  ],
+  "language_reports": {
+    "general_qa": {
+      "zh": {
+        "threshold": 0.9406234622001648,
+        "enabled": true,
+        "accepted": 71,
+        "correct": 71,
+        "precision_lower_bound": 0.9632925377481212
+      }
+    },
+    "product_identification": {
+      "zh": {
+        "threshold": 0.9676873683929443,
+        "enabled": true,
+        "accepted": 127,
+        "correct": 111,
+        "precision_lower_bound": 0.8176578573306754
+      }
+    },
+    "refund_status_summary": {
+      "zh": {
+        "threshold": 1.0,
+        "enabled": false,
+        "accepted": 0,
+        "correct": 0,
+        "precision_lower_bound": 0.0
+      }
+    }
+  },
+  "datasets": [
+    {
+      "split": "train",
+      "sha256": "3bb1c4ae5af267b1521597c484f0cf6020dbc32ee5e6af5cbbf24eaf474e2f69"
+    },
+    {
+      "split": "calibration",
+      "sha256": "99b3ff832e815c86453da17412696448ab43f096b58e828e083e5de4f0217310"
+    },
+    {
+      "split": "heldout",
+      "sha256": "85df60b13975eddd574aea05763e71c439a34a1ba7908f0ad4717dfda7d30c95"
+    }
+  ],
+  "model_type": "transformers-sequence-classification",
+  "input_schema": "dialogpilot-encoder-context-v1",
+  "max_tokens": 256,
+  "objective": "component-multilabel-v1",
+  "coverage_hypotheses": null,
+  "calibration_minimum_empirical_precision": 0.98,
+  "development_unsafe_accepts": {
+    "general_qa": 0,
+    "product_identification": 16,
+    "refund_status_summary": 0
+  },
+  "backbone": {
+    "name": "BAAI/bge-small-zh-v1.5",
+    "revision": "7999e1d3359715c523056ef9478215996d62a620"
+  },
+  "calibration_device": "cuda"
+}

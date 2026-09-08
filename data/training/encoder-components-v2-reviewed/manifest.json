@@ -1,0 +1,218 @@
+{
+  "source": "data/training/semantic-encoder-v2-final",
+  "source_hashes": {
+    "data/training/semantic-encoder-v2-final/zh/train.jsonl": "26d45cdeac7f43e1bfdc2cc4b7da979ce80204a42772f5f6808d635b43de7010",
+    "data/training/semantic-encoder-v2-final/zh/calibration.jsonl": "1feb8f745119ee78f216ca5a31c2a59828a6e0791c605098227f0c5812550d10",
+    "data/training/semantic-encoder-v2-final/zh/heldout.jsonl": "cd7b6da0b943368b87b674e2761f61702c971e29da0c927035aee73a0e78421c",
+    "data/training/semantic-encoder-v2-final/en/train.jsonl": "5f2e28120f3348fec805a93ad5e0975b2618fce485edb8b089dab9d07b7624b5",
+    "data/training/semantic-encoder-v2-final/en/calibration.jsonl": "1a0001818ad9c757ea1f5382a5e0989f0101c3e747f4671890eb295b8bb3f7d6",
+    "data/training/semantic-encoder-v2-final/en/heldout.jsonl": "2abd33bd99eb3fcd1d8c00bd21a72e446ca59414f17d8afe2151d9c67295bce1"
+  },
+  "splits": {
+    "zh/train": {
+      "count": 8374,
+      "sha256": "3bb1c4ae5af267b1521597c484f0cf6020dbc32ee5e6af5cbbf24eaf474e2f69",
+      "excluded_broad_source_rows": 0,
+      "annotation_basis": {
+        "reviewed-authored-request": 2765,
+        "legacy-components-unknown": 1792,
+        "explicit-withdrawal": 320,
+        "object-correction": 40,
+        "affirmed-plus-other": 80,
+        "recorded-primary-plus-other": 1817,
+        "explicit-source-withdrawal": 948,
+        "two-affirmed-capabilities": 612
+      },
+      "context_groups": 192,
+      "polarity_support": {
+        "general_qa": {
+          "None": 0,
+          "0": 1314,
+          "1": 0
+        },
+        "product_identification": {
+          "None": 0,
+          "0": 1940,
+          "1": 0
+        },
+        "refund_status_summary": {
+          "None": 0,
+          "0": 2672,
+          "1": 0
+        }
+      }
+    },
+    "zh/calibration": {
+      "count": 1586,
+      "sha256": "99b3ff832e815c86453da17412696448ab43f096b58e828e083e5de4f0217310",
+      "excluded_broad_source_rows": 0,
+      "annotation_basis": {
+        "reviewed-authored-request": 534,
+        "legacy-components-unknown": 336,
+        "explicit-withdrawal": 48,
+        "object-correction": 6,
+        "affirmed-plus-other": 12,
+        "recorded-primary-plus-other": 334,
+        "explicit-source-withdrawal": 200,
+        "two-affirmed-capabilities": 116
+      },
+      "context_groups": 40,
+      "polarity_support": {
+        "general_qa": {
+          "None": 0,
+          "0": 232,
+          "1": 0
+        },
+        "product_identification": {
+          "None": 0,
+          "0": 352,
+          "1": 0
+        },
+        "refund_status_summary": {
+          "None": 0,
+          "0": 534,
+          "1": 0
+        }
+      }
+    },
+    "zh/heldout": {
+      "count": 1034,
+      "sha256": "85df60b13975eddd574aea05763e71c439a34a1ba7908f0ad4717dfda7d30c95",
+      "excluded_broad_source_rows": 0,
+      "annotation_basis": {
+        "reviewed-authored-request": 329,
+        "legacy-components-unknown": 235,
+        "explicit-withdrawal": 16,
+        "object-correction": 2,
+        "affirmed-plus-other": 4,
+        "recorded-primary-plus-other": 202,
+        "explicit-source-withdrawal": 127,
+        "two-affirmed-capabilities": 119
+      },
+      "context_groups": 32,
+      "polarity_support": {
+        "general_qa": {
+          "None": 0,
+          "0": 191,
+          "1": 0
+        },
+        "product_identification": {
+          "None": 0,
+          "0": 261,
+          "1": 0
+        },
+        "refund_status_summary": {
+          "None": 0,
+          "0": 323,
+          "1": 0
+        }
+      }
+    },
+    "en/train": {
+      "count": 4657,
+      "sha256": "50193836f77844607e7f3b2d375c3912d8ed5a10a129ddd0800928971ce0d67d",
+      "excluded_broad_source_rows": 6860,
+      "annotation_basis": {
+        "reviewed-authored-request": 1261,
+        "legacy-components-unknown": 1507,
+        "explicit-withdrawal": 320,
+        "object-correction": 40,
+        "affirmed-plus-other": 80,
+        "recorded-primary-plus-other": 1033,
+        "explicit-source-withdrawal": 228,
+        "two-affirmed-capabilities": 188
+      },
+      "context_groups": 142,
+      "polarity_support": {
+        "general_qa": {
+          "None": 0,
+          "0": 288,
+          "1": 0
+        },
+        "product_identification": {
+          "None": 0,
+          "0": 1238,
+          "1": 0
+        },
+        "refund_status_summary": {
+          "None": 0,
+          "0": 1264,
+          "1": 0
+        }
+      }
+    },
+    "en/calibration": {
+      "count": 1001,
+      "sha256": "b7087bb8d530f813a103a8f18f6ab18d7de0a8d14866a0fd28b75fabfc5a4cee",
+      "excluded_broad_source_rows": 1491,
+      "annotation_basis": {
+        "reviewed-authored-request": 270,
+        "legacy-components-unknown": 367,
+        "explicit-withdrawal": 48,
+        "object-correction": 6,
+        "affirmed-plus-other": 12,
+        "recorded-primary-plus-other": 214,
+        "explicit-source-withdrawal": 56,
+        "two-affirmed-capabilities": 28
+      },
+      "context_groups": 40,
+      "polarity_support": {
+        "general_qa": {
+          "None": 0,
+          "0": 36,
+          "1": 0
+        },
+        "product_identification": {
+          "None": 0,
+          "0": 192,
+          "1": 0
+        },
+        "refund_status_summary": {
+          "None": 0,
+          "0": 330,
+          "1": 0
+        }
+      }
+    },
+    "en/heldout": {
+      "count": 514,
+      "sha256": "549d9f374e5e723652f7d895d939f2622a746b8bbfe3e993125e8ba60f09127e",
+      "excluded_broad_source_rows": 1381,
+      "annotation_basis": {
+        "reviewed-authored-request": 137,
+        "legacy-components-unknown": 186,
+        "explicit-withdrawal": 16,
+        "object-correction": 2,
+        "affirmed-plus-other": 4,
+        "recorded-primary-plus-other": 101,
+        "explicit-source-withdrawal": 36,
+        "two-affirmed-capabilities": 32
+      },
+      "context_groups": 22,
+      "polarity_support": {
+        "general_qa": {
+          "None": 0,
+          "0": 44,
+          "1": 0
+        },
+        "product_identification": {
+          "None": 0,
+          "0": 114,
+          "1": 0
+        },
+        "refund_status_summary": {
+          "None": 0,
+          "0": 150,
+          "1": 0
+        }
+      }
+    }
+  },
+  "families_sha256": "9ed37087c0dece8e0e3265248e2c9d1cd5cc925baf6a2532c06b50d6c05e91ba",
+  "heldout_known_pair": [
+    "general_qa",
+    "product_identification"
+  ],
+  "scope": "Synthetic/legacy development; original heldout already consumed",
+  "exclusion": "Bitext broad intents and all inherited derivatives lack action-level gold"
+}
