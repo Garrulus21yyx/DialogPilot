@@ -1,0 +1,198 @@
+{
+  "scope": "Codex nonblind diagnostic of 2 consumed cases; not independent accuracy labels; official qrels unchanged",
+  "api_calls": 0,
+  "input_sha256": "b3dde4076f9f692a99513e424a0a39f57591dbe45600a4c1017aaa7a7edcfaac",
+  "ranking_sha256": "aea13b9064ca4ec47fd0ce9df4e3c48c284c43ed1658cfb46865c7477b9f2c2c",
+  "corpus_sha256": "a0c5427013c65556aeddfdc246dd6068f3a7fad08ce6ae7adddaa9e87aae246d",
+  "conversations": {
+    "fdee20f7fd677e420742b09989623d68<::>6": [
+      {
+        "speaker": "user",
+        "text": "Is it worth having a web chat widget on my website?",
+        "metadata": {
+          "author_type": "human",
+          "author_id": "e9255f72-ebe6-4594-9710-44e51f04c3fc",
+          "created_at": 1723252684
+        }
+      },
+      {
+        "speaker": "agent",
+        "text": "Yes, it is worth having a web chat widget on your website. The web chat integration can help your customers with common questions and tasks; it can understand customer messages in any of the languages that are supported by the service, and it engages your users when they need help, answering their questions quickly and efficiently, and providing fallback options so there is always a path to a solution. It is also customizable, secure, and supports a wide range of desktop and mobile browsers. Building a custom user interface for these functionalities would require significant time and effort, which could be better spent on building a high-quality assistant. Additionally, the web chat widget is easy for you to deploy and easy for customers to use.",
+        "metadata": {
+          "author_type": "model",
+          "author_id": "mixtral-8x7b-instruct-v01",
+          "created_at": 1723252689
+        }
+      },
+      {
+        "speaker": "user",
+        "text": "how to add web chat widget?",
+        "metadata": {
+          "author_type": "human",
+          "author_id": "e9255f72-ebe6-4594-9710-44e51f04c3fc",
+          "created_at": 1723254983
+        }
+      },
+      {
+        "speaker": "agent",
+        "text": "From the Assistants page, click to open the assistant tile that you want to deploy to your site. From the Integrations section, click the Web chat tile and click Open. The Open web chat window opens. In the Environment field, select the environment you want the web chat widget to connect to. Click Confirm. All you need to do is embed a generated script element in your HTML source.",
+        "metadata": {
+          "author_type": "model",
+          "author_id": "mixtral-8x7b-instruct-v01",
+          "created_at": 1723254991
+        }
+      },
+      {
+        "speaker": "user",
+        "text": "Can I extend the web chat? if so, how can I do that?",
+        "metadata": {
+          "author_type": "human",
+          "author_id": "e9255f72-ebe6-4594-9710-44e51f04c3fc",
+          "created_at": 1723255640
+        }
+      },
+      {
+        "speaker": "agent",
+        "text": "Yes, extend the web chat. If you are a developer, you can extend the capabilities of the web chat by using the Watson Assistant web chat toolkit on GitHub. You can also you can further customize and extend the web chat by writing code and using the web chat API.",
+        "metadata": {
+          "author_type": "model",
+          "author_id": "mixtral-8x7b-instruct-v01",
+          "created_at": 1723255644
+        }
+      },
+      {
+        "speaker": "user",
+        "text": "Is web chat secure enough for me to pass some sesitive data?",
+        "metadata": {
+          "author_type": "human",
+          "author_id": "e9255f72-ebe6-4594-9710-44e51f04c3fc",
+          "created_at": 1723256153
+        }
+      },
+      {
+        "speaker": "agent",
+        "text": "When you enable web chat security, all messages received by the web chat integration that are not accompanied by a properly signed JSON Web Token (JWT) will be rejected. JWTs are digitally signed using a private encryption key that only you have, ensuring that each message originates with your website. You can also use the public key provided by IBM to add an additional level of encryption for passing sensitive data from the web chat. This private context variable will be available for use by the dialog but not by anything else.",
+        "metadata": {
+          "author_type": "model",
+          "author_id": "mixtral-8x7b-instruct-v01",
+          "created_at": 1723256157
+        }
+      },
+      {
+        "speaker": "user",
+        "text": "I do not like the look of my web chat and how it opens and closes...",
+        "metadata": {
+          "author_type": "human",
+          "author_id": "e9255f72-ebe6-4594-9710-44e51f04c3fc",
+          "created_at": 1723256657
+        }
+      },
+      {
+        "speaker": "agent",
+        "text": "You can customize the look and behavior of your web chat. From the Style tab of the web chat configuration page, you can change the color of the launcher icon and the text font. You can choose to use a different base Carbon Design theme as well. If you want to make more advanced customizations, you can change the launcher icon used to open the web chat widget and how it opens and closes. For example, you can launch the web chat from a different button or process on your website, open it in a different location or size, hide the launcher icon entirely, or hide the close button. ",
+        "metadata": {
+          "author_type": "model",
+          "author_id": "mixtral-8x7b-instruct-v01",
+          "created_at": 1723256663
+        }
+      },
+      {
+        "speaker": "user",
+        "text": "i am having hard time finding web chat whenever I was trying to use",
+        "metadata": {
+          "author_type": "human",
+          "author_id": "e9255f72-ebe6-4594-9710-44e51f04c3fc",
+          "created_at": 1723257188
+        }
+      }
+    ],
+    "e1b602e47ded79a35d8df4eefe194e39<::>1": [
+      {
+        "speaker": "user",
+        "text": "Is it possible to build a dialog skill in a language other than English?",
+        "metadata": {
+          "author_type": "human",
+          "author_id": "42d17c67-ece3-461d-be45-ac59f3912c73",
+          "created_at": 1723836707
+        }
+      }
+    ]
+  },
+  "observations": [
+    {
+      "case_id": "e1b602e47ded79a35d8df4eefe194e39<::>1",
+      "passage_id": "mtrag:cloud:ibmcld_03329-1102-2607",
+      "label": "DIRECT_SUPPORT",
+      "reason": "Directly describes creating a dialog skill in a non-English language; not in this query official qrels.",
+      "quote": "If the dialog you plan to build will use a language other than English, then choose the appropriate language from the list.",
+      "start": 636,
+      "end": 759,
+      "text_sha256": "340ae8155974165cfa589a1d4b5ae84d521eb4c15b48ba53762c70cc24c20e9b",
+      "official_gold": false,
+      "rank": {
+        "dense": null,
+        "parent_local": 1
+      }
+    },
+    {
+      "case_id": "e1b602e47ded79a35d8df4eefe194e39<::>1",
+      "passage_id": "mtrag:cloud:ibmcld_03120-3469-5331",
+      "label": "DIRECT_SUPPORT",
+      "reason": "Explains dialog/actions skill universal language setup, with instruction to prefer a listed built-in language when available.",
+      "quote": "From the Language field, choose Another language.",
+      "start": 634,
+      "end": 683,
+      "text_sha256": "2f63c12f33bdd7c729560648951104457b276428c1cc66ea043bdcb63f8611fe",
+      "official_gold": false,
+      "rank": {
+        "dense": 2,
+        "parent_local": 4
+      }
+    },
+    {
+      "case_id": "e1b602e47ded79a35d8df4eefe194e39<::>1",
+      "passage_id": "mtrag:cloud:ibmcld_03369-64600-66787",
+      "label": "RELATED_NOT_SUFFICIENT_ALONE",
+      "reason": "Gold speaks about analysis notebook languages, a different capability from creation of a dialog skill.",
+      "quote": "The Dialog skill analysis notebook was updated with language support",
+      "start": 1422,
+      "end": 1490,
+      "text_sha256": "586eab8eb4ff549e77d824a38068230df6c4e50c5edc7ce09c6b8b0bd23906b4",
+      "official_gold": true,
+      "rank": {
+        "dense": null,
+        "parent_local": null
+      }
+    },
+    {
+      "case_id": "fdee20f7fd677e420742b09989623d68<::>6",
+      "passage_id": "mtrag:cloud:ibmcld_16365-7-1700",
+      "label": "CONDITIONAL_SUPPORT",
+      "reason": "Direct support for finding a default launcher, but does not establish the user website actual configuration/version.",
+      "quote": "By default, the web chat launcher appears in a small initial state as a circle in the bottom right corner:",
+      "start": 1585,
+      "end": 1691,
+      "text_sha256": "976165d621d4faf3c412767166ab2840101ee8f24940ec1e87f900d643da7cee",
+      "official_gold": false,
+      "rank": {
+        "dense": 1,
+        "parent_local": 1
+      }
+    },
+    {
+      "case_id": "fdee20f7fd677e420742b09989623d68<::>6",
+      "passage_id": "mtrag:cloud:ibmcld_02855-8124-9934",
+      "label": "ALTERNATE_INTENT",
+      "reason": "Gold helps configure home screen/conversation starters; latest user finding web chat can instead mean locating the launcher.",
+      "quote": "Add three conversation starter messages.",
+      "start": 419,
+      "end": 459,
+      "text_sha256": "aeba881ab780771eacde128227fc3f62861672580287c485da9da7ba4075cfa1",
+      "official_gold": true,
+      "rank": {
+        "dense": null,
+        "parent_local": null
+      }
+    }
+  ]
+}

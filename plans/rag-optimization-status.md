@@ -252,3 +252,7 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 - R02 Cloud CE/pack预注册：固定前轮8题baseline Dense候选与parent_local候选，每臂20；同预训练BGE全片段/无截断/FP16 batch4、pack5/2600。新CE评分最多320对、API0、文档embedding0，不微调；报告候选/精排/序列化Recall、MRR/nDCG及救回误伤。只有pack净收益且解释误伤才作为开发候选，独立验证与生产接线另议。扩展实验脚本按显式首臂比较，不能把Dense baseline误标成.25权重。
 
 - R02 Cloud CE/pack完成：193本地CE pair/最大564token，API0；pack Recall5 52.08→54.17%，1提高/1下降，MRR .5417→.5208/nDCG .5022→.4960。1be救回保留，e1b正确证据被新项挤出前5；web/语言重点miss仍在。不采用，不扩quota/付费生成/消耗heldout。5项检查通过，16视图原文一致；未覆盖Agent/答案。见cloud-parent-validation8报告。下一项回到剩余query目标与父内语义匹配归因，领域读回及跨集验收继续保留队列，微调暂停。
+
+- R02语义来源审计预注册：仅复核语言支持/web chat两条已消费见证，固定原reference.input、两臂CE Top5与官方gold；Codex非盲来源核对，保留官方指标，不修改qrels、不由待测模型自评分。记录直接支持、仅相关、适用版本差异、用户意图歧义，来源引用绑定原文SHA。API0。目的判断指标损失是否代表语义质量损失，不生成新的整体准确率。
+
+- R02语义复核完成：语言题为明确首轮，无query上下文缺失；parent_local第1未标注片段直接支持非英语创建dialog，第4讲Another language，目标漏gold反而讲分析笔记本语言。web两臂第1已有默认launcher入口信息，gold偏主页/建议，实际意图和经典/新版适用仍不定。纠正“官方Recall误伤=语义误伤”的过度解释；原指标/qrels全部保留。五处引文/源SHA核验、API0，Codex非盲诊断不作准确率。见miss-semantics2报告。停止针对两gold调配额/query；下一项固定证据的小规模答案支持/版本验证，领域读回及跨集验收仍开放。
