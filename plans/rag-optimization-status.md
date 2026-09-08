@@ -219,4 +219,4 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 
 - G4模型对照预注册（6828dba）：项目已有deepseek-v4-pro，NONE，与上一轮焦点Flash保持相同四个完整输入、system/schema、4096输出预算。4调用上限，不用单句替代，不改生产默认。报告两原错误/两修订的supported、publishable、错误、tokens和延迟；价格未核验不编费用。胜出也只构成开发候选，需新控制；不认为Pro必然更好。
 
-- G4 Pro对照完成：4次Pro NONE，与焦点Flash完全同system/messages/schema，两者均错放1/2、修订误拒0/2；输入均27015、输出594/485，四调用中位1.802/1.841秒仅小样本观测。1项输入身份审计通过，无错误。不切模型/不采用焦点，核验未修复。见[报告](../docs/rag-g4-verifier-pro4-2026-09-08.zh-CN.md)。主线收敛：暂停两见证反复调prompt，回到锁定MTRAG heldout消耗核对与冻结候选独立检索验收；领域读回/答案风险/其他集保持开放。交付待确认本轮。
+- G4 Pro对照完成：4次Pro NONE，与焦点Flash完全同system/messages/schema，两者均错放1/2、修订误拒0/2；输入均27015、输出594/485，四调用中位1.802/1.841秒仅小样本观测。1项输入身份审计通过，无错误。不切模型/不采用焦点，核验未修复。见[报告](../docs/rag-g4-verifier-pro4-2026-09-08.zh-CN.md)。主线收敛：暂停两见证反复调prompt，回到锁定MTRAG heldout消耗核对与冻结候选独立检索验收；领域读回/答案风险/其他集保持开放。交付：`8bc64e4` 已提交并推送到 origin/feat/customer-service-target-architecture。
