@@ -63,6 +63,9 @@ class AgentContextView:
     pending_approval: PendingApprovalState | None = None
 
     def __post_init__(self):
+        # Origin is supplied by the runtime, never by a model tool argument.
+        object.__setattr__(self, "trusted_context", {**self.trusted_context,
+            "original_user_message": self.current_message})
         for name in ("verified_facts", "recent_relevant_turns", "evidence_refs", "dependency_results", "working_messages"):
             object.__setattr__(self, name, tuple(getattr(self, name)))
 

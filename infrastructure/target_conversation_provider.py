@@ -9,6 +9,7 @@ from core.model_policy import ModelProfile, ModelRole
 from core.provider_context_budget import DEFAULT_PROVIDER_CONTEXT_BUDGET
 
 from application.conversation_agent import ConversationProviderOutputError
+from application.evidence_query_contract import EVIDENCE_ACQUISITION
 from application.conversation_actions import planning_actions, action_proposal
 from infrastructure.target_model_context import planning_context
 from core.framework_models import invoke_model
@@ -17,7 +18,7 @@ from langchain_core.runnables.config import ensure_config, merge_configs
 
 
 class AnthropicConversationPlanningProvider:
-    version = "anthropic-conversation-provider-v19-native-actions"
+    version = "anthropic-conversation-provider-v20-evidence-query-contract"
 
     def __init__(self, models, *, model_profile: ModelProfile, synthesis_profile: ModelProfile, max_tokens: int = 800, callbacks=()) -> None:
         self._models = models
@@ -30,7 +31,7 @@ class AnthropicConversationPlanningProvider:
         return await self._complete(
             payload, ModelRole.INTENT,
             (
-                "You are the conversation agent. Select the available actions needed to answer the user's ongoing request. "
+                EVIDENCE_ACQUISITION + "You are the conversation agent. Select the available actions needed to answer the user's ongoing request. "
                 "Action calls are proposals: the application validates the whole batch, executes it, and returns results for the reply. "
                 "Do not describe a lookup instead of calling it. Tool-call preamble is not sent to the user. "
                 "The final current_request section is the current user's verbatim request. "

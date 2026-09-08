@@ -147,6 +147,7 @@ class KnowledgeRetrievalRequest:
     region_hints: tuple[str, ...] = ()
     force_recompute: bool = False
     query_mode: str = "HISTORY"
+    original_user_message: str | None = None
     as_of: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     as_of_end: datetime | None = None
     applicable_region: str | None = None
@@ -169,6 +170,8 @@ class KnowledgeRetrievalRequest:
             validate_sales_channel(self.applicable_channel) if self.applicable_channel is not None else None
         except ValueError as exc:
             raise KnowledgeRetrievalContractError(str(exc)) from exc
+        if self.original_user_message is not None and not isinstance(self.original_user_message, str):
+            raise KnowledgeRetrievalContractError("original user message must be text")
         if self.query_mode not in {"RESOLVED", "HISTORY"}:
             raise KnowledgeRetrievalContractError("unsupported query mode")
         if self.query_mode == "RESOLVED" and self.history:
@@ -216,6 +219,8 @@ class KnowledgeRetrievalTrace:
     expansion_fallback: bool
     rerank_fallback: bool
     cache_hits: tuple[str, ...] = ()
+    original_user_message: str | None = None
+    query_mode: str = "HISTORY"
 
 
 @dataclass(frozen=True)
@@ -658,7 +663,7 @@ class KnowledgeRetriever:
                     policy.fingerprint, policy.backend_fingerprint,
                     request.generation_id, request.manifest_fingerprint,
                     rewrite_fallback, expansion_fallback, rerank_fallback,
-                    tuple(cache_hits),
+                    tuple(cache_hits), request.original_user_message, request.query_mode,
                 )
                 return EvidencePackResult(RetrievalStatus.OK, pack, trace)
         packed = self._packer.pack(
@@ -677,7 +682,7 @@ class KnowledgeRetriever:
             policy.backend_fingerprint, request.generation_id,
             request.manifest_fingerprint, rewrite_fallback,
             expansion_fallback, rerank_fallback,
-            tuple(cache_hits),
+            tuple(cache_hits), request.original_user_message, request.query_mode,
         )
         pack = EvidencePack.from_packed(
             resolved_query, packed,

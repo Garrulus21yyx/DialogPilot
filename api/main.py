@@ -2576,6 +2576,7 @@ async def _retrieve_knowledge(
     source_type_hints: tuple[str, ...] = (),
     region_hints: tuple[str, ...] = (),
     query_mode: str = "HISTORY",
+    original_user_message: str | None = None,
     as_of: datetime | None = None,
     as_of_end: datetime | None = None,
     applicable_region: str | None = None,
@@ -2641,6 +2642,7 @@ async def _retrieve_knowledge(
         acl_policy_fingerprint="knowledge-public-acl-v1",
         deletion_epoch=epoch, requirement_signature=requirement_signature,
         query=query, history=history, query_mode=query_mode,
+        original_user_message=original_user_message,
         conversation_range_hash=_fingerprint({"history": list(history)}),
         locale=collection_locale, product=collection_product, manifest_fingerprint=manifest,
         generation_id=generation_id,
@@ -2674,6 +2676,7 @@ async def _knowledge_tool_handler(
     result = await _retrieve_knowledge(
         str(params.get("query") or ""),
         history=(), query_mode="RESOLVED", as_of=as_of, as_of_end=as_of_end,
+        original_user_message=context.get("original_user_message"),
         applicable_region=options.get("applicable_region"),
         applicable_channel=options.get("sales_channel"),
         applicable_product=options.get("applicable_product"),

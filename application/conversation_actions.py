@@ -12,6 +12,7 @@ import json
 from jsonschema import Draft202012Validator
 
 from application.conversation_agent import planning_goal_descriptions, planning_output_schema
+from application.evidence_query_contract import QUERY_DESCRIPTION
 from application.knowledge_tool_contract import knowledge_query_options_schema
 
 
@@ -104,7 +105,7 @@ def planning_actions(payload):
         if knowledge not in supported:
             continue
         goal("knowledge_search" if knowledge == "general_qa" else knowledge, knowledge,
-             {"query": {**_TEXT, "maxLength": 4000},
+             {"query": {**_TEXT, "maxLength": 4000, "description": QUERY_DESCRIPTION},
               "knowledge_options": knowledge_query_options_schema(payload.get("knowledge_filter_contract"))},
              ("query",), descriptions[knowledge] + " "
              "Include known subject, conditions and negation in query. Missing personal eligibility details do not "

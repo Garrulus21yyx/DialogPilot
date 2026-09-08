@@ -168,9 +168,10 @@ def knowledge_query_options(values, contract=None):
 
 def knowledge_query_schema(contract=None):
     """The shared Agent/direct tool input contract; runtime owns budgets and ACL."""
+    from application.evidence_query_contract import QUERY_DESCRIPTION
     options = knowledge_query_options_schema(contract)
     return {**options, 'required': ['query'], 'properties': {
-        'query': {'type': 'string', 'minLength': 1, 'maxLength': 4000, 'pattern': r'\S'},
+        'query': {'type': 'string', 'minLength': 1, 'maxLength': 4000, 'pattern': r'\S', 'description': QUERY_DESCRIPTION},
         **options['properties'],
         'source_types': {'type': 'array', 'maxItems': 4, 'items': {'type': 'string'}},
         'regions': {'type': 'array', 'maxItems': 4, 'items': {'type': 'string'}},

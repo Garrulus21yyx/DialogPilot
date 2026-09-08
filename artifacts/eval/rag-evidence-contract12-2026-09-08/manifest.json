@@ -1,0 +1,109 @@
+{
+  "cases": [
+    {
+      "id": "negative",
+      "query": "哪些国家不支持发货？",
+      "history": [],
+      "expected": "knowledge; preserve unsupported shipping"
+    },
+    {
+      "id": "hypothesis",
+      "query": "如果耳机已拆封但不是质量问题，能退吗？",
+      "history": [],
+      "expected": "knowledge; hypothetical non-quality opened"
+    },
+    {
+      "id": "short",
+      "query": "不是。",
+      "history": [
+        {
+          "role": "user",
+          "content": "穿过的鞋还能退吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "是质量问题吗？"
+        }
+      ],
+      "expected": "knowledge; worn non-quality shoes"
+    },
+    {
+      "id": "compound",
+      "query": "假设相机已拆封且没有故障，退货条件是什么，运费谁出？",
+      "history": [],
+      "expected": "knowledge; both aspects preserve conditions"
+    },
+    {
+      "id": "thanks",
+      "query": "谢谢，已经明白了。",
+      "history": [],
+      "expected": "respond"
+    },
+    {
+      "id": "missing",
+      "query": "价格多少？",
+      "history": [],
+      "expected": "clarify; no invented product"
+    },
+    {
+      "id": "old_assertion",
+      "query": "所以现在还是这样吗？",
+      "history": [
+        {
+          "role": "user",
+          "content": "礼品卡有效期多久？"
+        },
+        {
+          "role": "assistant",
+          "content": "所有礼品卡都永不过期。"
+        }
+      ],
+      "expected": "knowledge; old assertion is not proof"
+    },
+    {
+      "id": "switch",
+      "query": "先不说保修，我只问电子发票怎么申请。",
+      "history": [
+        {
+          "role": "user",
+          "content": "耳机保修多久？"
+        }
+      ],
+      "expected": "knowledge; invoice only"
+    },
+    {
+      "id": "acronym",
+      "query": "说明书里的ANC和ENC有什么区别？",
+      "history": [],
+      "expected": "knowledge; preserve both acronyms"
+    },
+    {
+      "id": "generic",
+      "query": "你好。",
+      "history": [],
+      "expected": "respond"
+    },
+    {
+      "id": "lookup",
+      "query": "请查订单DP9302的退款进度，不用解释一般规则。",
+      "history": [],
+      "expected": "business lookup; not policy"
+    },
+    {
+      "id": "mixed",
+      "query": "查订单DP9302退款进度，再说明退款处理时限。",
+      "history": [],
+      "expected": "business plus knowledge"
+    }
+  ],
+  "budget": 12,
+  "model": "deepseek-v4-flash",
+  "max_tokens": 2048,
+  "scope": "real ConversationAgent/native tools; supplied transcript fixture, no Memory loader, retrieval or writes",
+  "source_hashes": {
+    "application/evidence_query_contract.py": "71bbbaf452a262a2a60991555cc64e34d223380aafc5e237cd5714026a6ba350",
+    "application/conversation_actions.py": "b2bbc2e372e4c756b3316d06318cfbe602500088b151a81126c1cacbe1ed1dd2",
+    "infrastructure/target_conversation_provider.py": "8390b3b2ddf92d5852273edcebe2f80a5f45ca7c1f457fb6035c0c8cf2e13548",
+    "/home/yang/DialogPilot/scripts/evaluate_rag_evidence_contract12.py": "a690ec7582781f327323f6b3e406a45e780be797bbf60b27e3ca16e9a72596a0"
+  }
+}
