@@ -1,0 +1,37 @@
+{
+  "n": 100,
+  "single_query": 100,
+  "calls": 100,
+  "new_ce_pairs": 2000,
+  "stages": {
+    "dense20": 0.91,
+    "bm25_20": 0.95,
+    "union40": 0.96,
+    "fusion20": 0.96,
+    "ce5": 0.92,
+    "wire5": 0.92
+  },
+  "summary": {
+    "raw": {
+      "recall": 0.58,
+      "mrr": 0.43133333333333335,
+      "ndcg": 0.471108511415139
+    },
+    "manual": {
+      "recall": 0.96,
+      "mrr": 0.7696666666666667,
+      "ndcg": 0.8205107843079993
+    },
+    "agent": {
+      "recall": 0.92,
+      "mrr": 0.7186666666666666,
+      "ndcg": 0.7698229648781841
+    }
+  },
+  "union_recall": 0.96,
+  "candidate_recall": 0.96,
+  "memory_triggered": 0,
+  "summary_envelopes_present": 0,
+  "nonempty_summary_chunks": 0,
+  "error_types": []
+}
