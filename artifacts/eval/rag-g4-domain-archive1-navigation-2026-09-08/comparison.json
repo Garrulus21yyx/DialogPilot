@@ -1,0 +1,23 @@
+{
+  "scope": "One consumed development case; fixed search fixture; not population success rate",
+  "summary": {
+    "baseline": {
+      "status": "TERMINAL_FAILURE",
+      "model_calls": 5,
+      "search_calls": 5,
+      "executed_reads": 2,
+      "read_characters": 4000,
+      "input_tokens": 13564,
+      "output_tokens": 673
+    },
+    "navigation": {
+      "status": "SUCCEEDED",
+      "model_calls": 5,
+      "search_calls": 3,
+      "executed_reads": 5,
+      "read_characters": 8934,
+      "input_tokens": 26743,
+      "output_tokens": 1294
+    }
+  }
+}

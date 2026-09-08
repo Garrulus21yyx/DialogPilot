@@ -268,3 +268,7 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 - R05领域读回完成诊断：首轮3次+修正5次Flash=8；修正8步下5search/2read执行，读0/2000两页均逐字进入模型请求，第二页Another language被模型识别；再申请read+search触发9/8工具上限无答案。1项请求审计通过。固定fixture不能证明真实重搜重复，InMemory非PG恢复验收。原文可恢复/自主读回/实际可见已在此例确认，任务完成未通过；未改生产预算。见domain-archive-probe报告。下一项零API知识证据导航/归档边界核查，再同预算验证，跨集验收仍开放。
 
 - R05导航实现：归档owner支持可选evidence_id，按单条text分页附source/title，明确offset_basis；pointer列最多20条短目录且二次压缩保留。原模型视图及raw Fact复用model_evidence身份，generic读法兼容、未知ID/跨用户失败；原read_tool_result schema接入，不增工具/Agent/预算。31项零API检查通过，1项PG未运行；96视图目录低于2840且按ID原文/来源一致。见evidence-navigation报告。仅实现验证，模型收益待同8步任务复测，不关R05/全链任务。
+
+- R05导航Flash复测预注册：复用steps8同fixture/query/system/model，max_steps8、Flash NONE1200输出、总API上限9；仅已提交导航schema/归档pointer变化，source hash对照留痕。记录search/read的evidence_id与页、实际输入、终态、答案支持/引用；旧5次失败为开发基线，单例成功不作泛化。生产步数/工具阈值不变。
+
+- R05导航Flash复测完成：同8步领域任务由TERMINAL_FAILURE→SUCCEEDED，模型5→5/search5→3/read2→5，正文4000→8934字、输入token13564→26743、输出673→1294；不称降本或全链准确率。五条证据页均实际进入模型请求，核心非英语答案有来源；部分日志只读首段，未要求全包。11项检查通过，新API5。只有导航两文件源hash变化；固定fixture/已消费单例，泛化未验。见evidence-navigation-flash报告。下一项不同任务导航/预算泛化，其他公共集与RAG缺口保持开放。

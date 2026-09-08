@@ -26,3 +26,23 @@ def test_flash_received_exact_archive_pages_before_budget_stop():
         assert page['text']==source[page['offset']:page['next_offset']]
         assert any(page['text'] in set(strings(c['request'])) for c in calls)
     assert 'Another language' in pages[1]['text']
+
+def test_navigation_probe_delivers_selected_evidence_and_completes_same_budget():
+    base=Path('artifacts/eval')
+    old=base/'rag-g4-domain-archive1-steps8-2026-09-08'
+    path=base/'rag-g4-domain-archive1-navigation-2026-09-08'
+    original=json.loads((old/'fixture.json').read_text());fixture=json.loads((path/'fixture.json').read_text())
+    assert original['data']==fixture['data'] and original['query']==fixture['query']
+    assert {k for k in original['source_files'] if original['source_files'][k]!=fixture['source_files'][k]}=={'infrastructure/target_framework_agent.py','infrastructure/target_result_archive.py'}
+    result=json.loads((path/'result.json').read_text());calls=json.loads(gzip.decompress((path/'calls.json.gz').read_bytes()))
+    from application.knowledge_tool_contract import model_evidence
+    evidence={e['evidence_id']:e for e in model_evidence(fixture['data'])['evidence']}
+    pages=[json.loads(m['data']['content']) for m in result['result']['working_messages'] if m['type']=='tool' and m['data'].get('name')=='read_tool_result']
+    assert result['max_steps']==8 and result['api_calls']==len(calls)==5
+    assert result['result']['status']=='SUCCEEDED' and len(pages)==5
+    for page in pages:
+        e=evidence[page['evidence_id']]
+        assert page['source']==e['source'] and page['offset_basis']=='evidence_text'
+        assert page['text']==e['text'][page['offset']:page['next_offset']]
+        assert any(page['text'] in set(strings(c['request'])) for c in calls)
+    assert result['result']['candidate_response']
