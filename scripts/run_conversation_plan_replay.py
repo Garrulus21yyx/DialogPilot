@@ -103,6 +103,9 @@ async def run(args):
         'unclassify_legacy_references':args.unclassify_legacy_references,
         'profile':profile.to_dict(),'max_tokens':args.max_tokens,
         'provider_version':AnthropicConversationPlanningProvider.version,
+        'sources': {name: hashlib.sha256(Path(name).read_bytes()).hexdigest() for name in (
+            __file__, 'infrastructure/target_conversation_provider.py', 'application/conversation_actions.py',
+            'application/conversation_agent.py', 'infrastructure/target_model_context.py', 'core/framework_models.py')},
         'max_api_calls':len(inputs), 'inputs': [{'case_id': key, 'payload': payload,
           'actions': [a.tool() for a in planning_actions(payload)]} for key, payload in inputs]},indent=2)+'\n')
     options=dict(api_key=values['ANTHROPIC_API_KEY'],max_retries=0,timeout=60)

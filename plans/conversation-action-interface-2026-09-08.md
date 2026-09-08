@@ -65,3 +65,32 @@ test_planning_output_contract, test_planning_action_flag_contract (all under tes
 Status: action-interface migration implemented/reviewed; R01 semantic closure and shared
 knowledge-filter provenance remain open. Next valid quality gate is pre-registered fresh
 model behavior, not more schema tests or an unbounded prompt/few-shot experiment.
+
+## User-authorized real-model regression (2026-09-08)
+
+Base e9fff7a. Frozen12: previous confirmation01–08 (all eight), plus development
+09f69/46c0f/dfe698/control_condition. Original message/history/bindings/capabilities
+copied byte-for-value from baseline captures, stored in native-actions-regression12
+input. These are consumed regression cases, not fresh held-out data.
+Hypothesis: native action selection retains social/clarification behavior and selects
+evidence for ongoing questions without adding conditions. Same Flash/NONE,2048 output,
+SDK retries0,12 calls total,one per input,sequential; no prompt edits/retries/paid judge,
+no business tool execution. Existing current replay/provider/compiler only.
+Acceptance: protocol and compiled commands valid; no writes/approval; confirmation01–04
+and09f69/46c0f/control_condition need policy evidence with supplied conditions preserved;
+confirmation05–06 need short conversational replies;07–08 clarify actual ambiguous subject.
+dfe698 permits needed jurisdiction clarification or evidence search, but not claiming the
+old assistant's procedure as verified or converting not-expired to a60-day claim.
+Full query/options assessed, particularly invented dates and hard product filters.
+Report each failure, raw inputs/outputs, tokens/latency; old/new pairing is diagnostic
+only (historical baseline, not contemporaneous). Stop at12 regardless of outcome.
+
+Result: completed12 calls, protocol/compiler12 valid; manual + independent review10 pass,
+1 coverage uncertain(Malta surcharge omitted),1 fail(dfe698 unverified old-assistant procedure).
+Initial primary11-pass count corrected after independent full-argument review. Seven required
+knowledge actions selected, but only six queries clearly preserve full requirements.
+Input/history/action/sourcehash audit passed.52 replay/action tests passed. No RAG execution,
+business action, extra retry or fresh-heldout claim. Evidence/report:
+docs/native-actions-regression12-2026-09-08.zh-CN.md and artifacts/eval/native-actions-regression12-2026-09-08/.
+R01 remains open; next scope is evidence-vs-transcript authority and full query coverage,
+not another prompt experiment. This delivery records testing only, no runtime repair.

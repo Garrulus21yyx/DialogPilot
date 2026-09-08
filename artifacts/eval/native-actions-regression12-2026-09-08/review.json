@@ -1,0 +1,87 @@
+{
+  "scope": "consumed regression, planning/provider/compiler only; no RAG or business execution",
+  "base_commit": "e9fff7a",
+  "cases": 12,
+  "api_calls": 12,
+  "protocol_and_compile_valid": 12,
+  "semantic_pass": 10,
+  "semantic_partial_or_uncertain": 1,
+  "semantic_fail": 1,
+  "required_knowledge_selected": "7/7",
+  "social": "2/2",
+  "ambiguity_clarification": "2/2",
+  "dfe_evidence_or_clarification": "0/1",
+  "input_and_source_audit": "passed: exact captured history/current input, advertised actions, source hashes, one call per case, retries zero",
+  "usage": {
+    "input_tokens": 65552,
+    "output_tokens": 626,
+    "total_tokens": 66178
+  },
+  "model_call_latency_ms": {
+    "median": 1325.0368544831872,
+    "max": 1869.9583038687706
+  },
+  "grading": "manual primary plus independent fresh-context review; primary initial 11-pass count corrected for surcharge coverage; not official benchmark score",
+  "results": [
+    {
+      "case_id": "confirmation-01",
+      "pass": true,
+      "reason": "未拆封食品规则检索，保留条件"
+    },
+    {
+      "case_id": "confirmation-02",
+      "pass": null,
+      "reason": "当前马耳他配送政策，未编造日期；遗漏待核实附加费，需求覆盖存疑。未执行检索，不能声称实际召回失败或完整成功。"
+    },
+    {
+      "case_id": "confirmation-03",
+      "pass": true,
+      "reason": "ZR-14厂家醋清洁说明，未硬过滤商品ID"
+    },
+    {
+      "case_id": "confirmation-04",
+      "pass": true,
+      "reason": "礼品卡分次使用和余额规则"
+    },
+    {
+      "case_id": "confirmation-05",
+      "pass": true,
+      "reason": "社交结束"
+    },
+    {
+      "case_id": "confirmation-06",
+      "pass": true,
+      "reason": "简短回复偏好"
+    },
+    {
+      "case_id": "confirmation-07",
+      "pass": true,
+      "reason": "真实指代缺失，合理追问"
+    },
+    {
+      "case_id": "confirmation-08",
+      "pass": true,
+      "reason": "真实指代缺失，合理追问"
+    },
+    {
+      "case_id": "doc2dial-dev-09f69dbfbbb5ab0b90ce0faf73e5166b-3",
+      "pass": true,
+      "reason": "纽约外州检验贴纸规则检索"
+    },
+    {
+      "case_id": "doc2dial-dev-46c0f3dbe110f020aaf0358ae35d4283-3",
+      "pass": true,
+      "reason": "纽约外州检验标签规则检索"
+    },
+    {
+      "case_id": "doc2dial-dev-dfe69859eb7ea18e177951165518bee0-4",
+      "pass": false,
+      "reason": "无证据复述历史助手的VS-118流程"
+    },
+    {
+      "case_id": "control_condition",
+      "pass": true,
+      "reason": "穿过一次非质量问题，未增加退货原因"
+    }
+  ]
+}
