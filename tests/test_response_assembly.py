@@ -28,6 +28,44 @@ def _board(*results, missing=(), conflicts=(), partial=False):
     )
 
 
+@pytest.mark.parametrize("same_target", [False, True])
+@pytest.mark.parametrize("repeated_local_id", [False, True])
+@pytest.mark.parametrize("copied_receipt", [False, True])
+def test_committed_and_pending_operations_keep_their_own_contracts(same_target, repeated_local_id, copied_receipt):
+    from dataclasses import replace
+    from application.response_assembly import _response_context, _allowed_claims
+    from application.work_item import ArgumentValue
+    from tests.test_write_workflow import _item as write_item
+    from tests.test_work_control import _item as read_item
+    committed = write_item("executed-operation")
+    pending = replace(write_item("proposed-operation"),
+        aggregate_ref=committed.aggregate_ref if same_target else "order:DP9876",
+        arguments=(ArgumentValue.create("order_id", "DP1234" if same_target else "DP9876"),))
+    receipt = ReceiptRef("committed-receipt", "v1", committed.operation_key,
+                         "COMMITTED", "refund.request_action")
+    completed = _result(committed.work_item_id, committed.owner_agent, receipts=(receipt,))
+    current = replace(read_item("current", 1, work_item_id=committed.work_item_id if repeated_local_id else "current"),
+                      owner_agent=committed.owner_agent)
+    waiting = replace(_result(current.work_item_id, current.owner_agent,
+        status=AgentResultStatus.WAITING_APPROVAL, receipts=(receipt,) if copied_receipt else ()), pending_action=pending)
+    board = replace(_board(waiting), work_items=(current,), retained_outcomes=((committed, completed),))
+    context = _response_context(board)
+    assert context["receipts"][0]["operation_key"] == committed.operation_key
+    assert context["receipts"][0]["action"]["target_entity_ref"] == committed.aggregate_ref
+    assert context["receipts"][0]["action"]["arguments"] == {arg.name: arg.value for arg in committed.arguments}
+    assert context["pending_actions"][0]["operation_key"] == pending.operation_key
+    assert context["pending_actions"][0]["target_entity_ref"] == pending.aggregate_ref
+    assert context["receipts"][0]["effect_status"] == "COMMITTED"
+    assert context["pending_actions"][0]["effect_status"] == "NOT_EXECUTED"
+    assert all(claim.value["operation_key"] == receipt.operation_key
+               for claim in _allowed_claims(board) if claim.kind == "RECEIPT")
+    if copied_receipt:
+        # A continuation may carry a receipt, but its own work contract is not
+        # the executed action. Never join it to the new proposal by local ID.
+        assert context["receipts"][1]["action"] is None
+    assert board.retained_outcomes[0] == (committed, completed)
+
+
 def _verified_order_result(work_item_id='o', order_id='DP1234', response=None):
     import json
     from dataclasses import replace

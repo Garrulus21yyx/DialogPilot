@@ -320,6 +320,7 @@ class ResponseAssembler:
                 "Address the customer directly in the language they use or request. Do not include drafting notes, self-instructions or commentary about how to answer.",
                 "Internal tool names, operation keys and raw parameter JSON are not customer explanations. Use supplied facts to explain item references; do not invent names, prices, fees or return instructions.",
                 "COMMITTED receipts establish execution of their recorded actions. Use accompanying write-result facts for returned business state; earlier read observations or assistant messages do not establish non-execution after that action. Do not infer downstream settlement or delivery beyond the returned result.",
+                "Scope each completed or pending action to its own operation and target. You may report a completed operation and ask approval for a different operation in one reply. A new pending proposal does not invalidate an earlier committed result, including when both concern the same target.",
                 *([_APPROVAL_DESCRIPTION_REQUIREMENT]
                   if not requested_inputs and any(c.kind == "PENDING_ACTION" for c in claims) else []),
             ],
@@ -393,6 +394,8 @@ def _allowed_claims(board, pending_approval=None, *, requested_inputs=()) -> tup
     if pending_approval:
         claims.append(AllowedClaim("proposal:" + pending_approval.work_item_id, "PENDING_ACTION",
             {"action_ref": pending_approval.action_ref,
+             "operation_key": pending_approval.operation_key,
+             "target_entity_ref": pending_approval.target_entity_ref,
              "arguments": {arg.name: arg.value for arg in pending_approval.arguments},
              "effect_status": "NOT_EXECUTED"}, ()))
     for result in getattr(board, "all_results", board.results):
@@ -401,6 +404,8 @@ def _allowed_claims(board, pending_approval=None, *, requested_inputs=()) -> tup
             claims.append(AllowedClaim(
                 f"proposal:{result.work_item_id}", "PENDING_ACTION",
                 {"action_ref": action.action_ref, "objective": action.objective,
+                 "operation_key": action.operation_key,
+                 "target_entity_ref": action.aggregate_ref,
                  "arguments": {arg.name: arg.value for arg in action.arguments},
                  "effect_status": "NOT_EXECUTED"}, (),
             ))
@@ -423,6 +428,7 @@ def _allowed_claims(board, pending_approval=None, *, requested_inputs=()) -> tup
                 "RECEIPT",
                 {
                     "receipt_id": receipt.receipt_id,
+                    "operation_key": receipt.operation_key,
                     "effect_status": receipt.effect_status,
                     "requirement_id": receipt.requirement_id,
                 },
@@ -438,7 +444,6 @@ def _response_context(board, pending_approval=None, requested_inputs=(), convers
     # Retained work IDs may recur in a later turn: keep each result paired with
     # its original contract instead of joining historical goals on the local ID.
     pairs = getattr(board, "outcome_items", ()) or tuple((None, result) for result in board.results)
-    outcomes = getattr(board, "all_results", board.results)
     return {
         "facts": [{"subject_ref": fact.subject_ref, "requirement_id": fact.requirement_id,
                    "source_kind": fact.source_kind.value, "source_ref": fact.source_ref,
@@ -447,7 +452,15 @@ def _response_context(board, pending_approval=None, requested_inputs=(), convers
                    "observation_started_at": fact.observation_started_at.isoformat() if fact.observation_started_at else None,
                    "valid_until": fact.valid_until.isoformat() if fact.valid_until else None,
                    "value": _fact_view(fact)} for fact in _current_board_facts(board)],
-        "receipts": [asdict(receipt) for result in outcomes for receipt in result.action_receipts],
+        "receipts": [{**asdict(receipt),
+                      "action": {
+                          "work_item_id": item.work_item_id,
+                          "action_ref": item.action_ref,
+                          "target_entity_ref": item.aggregate_ref,
+                          "arguments": {arg.name: arg.value for arg in item.arguments},
+                      } if item is not None and item.operation_key == receipt.operation_key else None}
+                     for item, result in pairs if result is not None
+                     for receipt in result.action_receipts],
         "pending_actions": [c.value for c in claims if c.kind == "PENDING_ACTION"],
         "requested_inputs": _input_context(requested_inputs),
         "outcomes": [{"work_item_id": item.work_item_id if item else r.work_item_id,

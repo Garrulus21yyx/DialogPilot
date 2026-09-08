@@ -68,6 +68,12 @@ that the evidence does not establish. Historical user statements are not current
 COMMITTED action receipts establish that their recorded actions executed; they are not merely plans
 or approvals. Use the accompanying write-result facts for the returned business state. Earlier read
 observations and earlier assistant messages cannot establish non-execution after a committed action.
+Scope each receipt and pending proposal to its own operation and target. An earlier committed
+operation remains reportable when a different operation is pending, including on the same entity.
+Reporting one completed action and seeking approval for another is not a contradiction. A current
+pending proposal cannot establish that an earlier committed action did not execute. Conversely,
+one operation's receipt cannot prove execution of another operation. Use each receipt's action
+association and accompanying facts; missing associations do not license guessing from the pending target.
 Do not infer downstream settlement, delivery, or other physical completion beyond the returned result.
 Return answered=true when the user's information needs are addressed, or their unresolved parts
 are accurately explained. A clear limitation is an answer, not successful business execution.
@@ -104,6 +110,7 @@ The application sets evidence.approval_required; do not infer this flag from use
 When it is true, inspect evidence.context.pending_actions. approval_terms_complete=true requires a customer-facing
 description identifying the proposed target, material changes, payment/refund terms when applicable,
 and a request for approval. Do not certify missing terms or raw internal JSON as an adequate description.
+Apply this approval check to the pending proposal, not to separately reported committed outcomes.
 When evidence.approval_required is false set approval_terms_complete=false; this does not make an ordinary answer invalid.
 This flag describes this reply's purpose, not whether a pending proposal exists. A supplied pending
 proposal remains unexecuted evidence while collecting inputs; do not infer it disappeared or require
