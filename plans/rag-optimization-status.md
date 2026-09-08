@@ -376,3 +376,5 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 - scoped首轮在模型前失败：中文电商encoder artifact只绑定customer-service-v1，新Wix bundle触发stale version，API0，轨迹保留。公共评测显式使用现有TARGET_ENCODER_ENABLED=false配置跳过不适用的中文分类器，由同Conversation Agent规划，两臂一致；不修改encoder artifact或生产默认，不把此适配当模型优化。新v2输出/conv隔离，仍各12调用预算，原2次范围拒绝另计。
 
 - WixQA真实入口scoped v2两臂完成：各2/2进入knowledge_search并回答，各8 Flash共16（另原范围拒绝2、encoder前失败0）。两臂候选article Recall均100%、pack均75%、all-articles均1/2，无本次提升。计费gold退款政策候选.25第3/.5第8和13，却均未进pack；损失位于候选之后，不能归因query或继续扩池。原文偏移/checksum与实际引用ID全通过，不等于语义正确；计费query两臂不同，不作权重纯因果结论。报告docs/rag-wixqa-real-entry-pair-2026-09-08.zh-CN.md、v2轨迹/audit；默认.25、微调暂停。下一活动项R02/R10：零API查看现有精排/打包及参考答案的必要信息，先确定丢失机制；未预设新策略。准备相干commit/push，整体未关闭。
+
+- 94e17eb已push。后续零API因果复核完成：退款政策Flash排6与7/8，pack严格前5，完整20ID/正文一致，无预算/去重丢弃；audit_wixqa_rerank_loss.py及rerank-loss-audit.json可复现。但参考答案不含退款规则，所需内容可由已保留FAQ支持；自动续订条件实际ToolMessage可见，两臂答案均未提，属于相对参考的信息遗漏，不直接断言宽泛问题必须覆盖所有细节。修正诊断：article qrel损失不能替代答案支持/完整性判断，暂不采用强制文档多样性或扩大K。下一项R10评估口径：对已消费开发题区分明确需求、参考要点、可选扩展及来源支持，再做小量答案比较；本次新API0。诊断脚本/报告相干交付，整体仍开放。

@@ -1,0 +1,48 @@
+{
+  "arms": {
+    "0.25": {
+      "gold_article_rerank_positions": {
+        "01e329b27ef95b8d6da00ab4ef5edde1b08837190925fefaaa23a1cbbc5bf855": [
+          6
+        ],
+        "7e10270b7ecd05d2573050a9ca7541e71edcb7b2b82220e5079404417d10d7dd": [
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "pack_equals_first_five": true,
+      "skipped_budget": [],
+      "skipped_redundant": [],
+      "visible_auto_renew_evidence_ids": [
+        "E975060ac5af1",
+        "E48d21d94cf4d"
+      ]
+    },
+    "0.5": {
+      "gold_article_rerank_positions": {
+        "01e329b27ef95b8d6da00ab4ef5edde1b08837190925fefaaa23a1cbbc5bf855": [
+          7,
+          8
+        ],
+        "7e10270b7ecd05d2573050a9ca7541e71edcb7b2b82220e5079404417d10d7dd": [
+          2,
+          4,
+          1,
+          9,
+          5
+        ]
+      },
+      "pack_equals_first_five": true,
+      "skipped_budget": [],
+      "skipped_redundant": [],
+      "visible_auto_renew_evidence_ids": [
+        "E975060ac5af1",
+        "E48d21d94cf4d"
+      ]
+    }
+  },
+  "new_api_calls": 0,
+  "interpretation": "Article qrel omission is caused by rank beyond final_k; auto-renew condition remains model-visible. Answer completeness requires separate semantic assessment."
+}
