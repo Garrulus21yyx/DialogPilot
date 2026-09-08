@@ -9,12 +9,16 @@ def test_heldout_identity_selection_and_fixed_metrics():
     splitpath=Path('artifacts/eval/rag-three-dataset-lock-v3-2026-09-07/mtrag-split.json')
     split=json.loads(splitpath.read_text());selection=json.loads((ROOT/'selection.json').read_text())
     assert selection['source_split_sha256']==hashlib.sha256(splitpath.read_bytes()).hexdigest()
+    eligible=json.loads((ROOT/'eligible-queries.json').read_text())
+    manifest=json.loads(Path('artifacts/eval/rag-g4-mtrag-adapter-2026-09-07/manifest.json').read_text())
+    assert eligible['source_sha256']==manifest['source']['official_queries_sha256']
+    eligible_ids=set(eligible['task_ids'])
     groups={g['conversation_id']:g for g in split['groups'] if g['split']=='heldout'}
     assert len(selection['cases'])==len(groups)==35
     assert len({r['group_id'] for r in selection['cases']})==35
     for r in selection['cases']:
         group=groups[r['group_id'].removeprefix('mtrag-')]
-        expected=min(group['task_ids'],key=lambda x:hashlib.sha256(('mtrag-heldout35-v1\0'+x).encode()).hexdigest())
+        expected=min((cid for cid in group['task_ids'] if cid in eligible_ids),key=lambda x:hashlib.sha256(('mtrag-heldout35-v1\0'+x).encode()).hexdigest())
         assert r['case_id']==expected
     load=lambda name:json.loads(gzip.decompress((ROOT/name).read_bytes()))
     rows=load('retrieval/cases.json.gz');packed=load('pack/cases.json.gz')
