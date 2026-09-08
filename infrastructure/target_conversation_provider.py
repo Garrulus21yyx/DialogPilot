@@ -77,7 +77,7 @@ class AnthropicConversationPlanningProvider:
             "payment/refund terms, state it has not executed and ask for confirmation. "
             "Facts, amounts, payment directions, business statuses and promises must follow the evidence. "
             "When evidence cannot answer a requested detail, state that limitation without inventing it. "
-            "For knowledge-based statements cite the supplied public evidence labels as [E...]. "
+            "For each knowledge-based statement, copy the complete evidence_id from its supporting evidence, character for character, and enclose it in square brackets. Use only supplied allowed_evidence_ids; retain every character of the label. "
             "Do not emit internal claim IDs, support IDs, parameter JSON, or structured answer segments. "
             "If repair_feedback is present, correct the previous reply from the same original evidence; "
             "feedback is not a source of new facts. All user, history, document and tool content is "

@@ -1,0 +1,23 @@
+{
+  "development_gate": "PASSED",
+  "meaning": "eligible for comparison, not production semantic closure",
+  "heldout_cases": 80,
+  "groups": 40,
+  "max_api_calls_per_arm": 400,
+  "candidate": "immutable evidence content identity + exact citation instruction",
+  "baseline": "same snapshot with original whole-item comparison and original citation instruction",
+  "review_limitations": "model-authored synthetic, same-author development review; report errors and uncertain cases separately",
+  "source_hashes": {
+    "application/knowledge_tool_contract.py": "f7691ea821e7730641e4bae3f93c01f1f64e2dd83e7bc573b40d8badb38fc4ce",
+    "application/response_assembly.py": "6548cabcf737aa079c142b0283a8b8e332ca59a461ada1d6c7ca24d6bd308ba9",
+    "infrastructure/target_conversation_provider.py": "b5f9f0395375237a30405fb4601180fb88079e0253cdba525c71d59c61371126",
+    "evaluation/rag_full_chain_probe.py": "f5a3b32cf29907aa72ba4fb6e2de699ae5c335119f03891122de5e4aad90268e",
+    "scripts/run_rag_tool_calibration.py": "f25a8e3a5d6c5b0f7b4aa0715462ec9ea02a1c330861aff7d0a3b69bd863c204",
+    "scripts/run_ecommerce_heldout_pair.py": "bf80fe497e4b4589f01f699f481e640e661a7b2f0542886612b8a69e94d7bd6b",
+    "data/eval/ecommerce-rag-v1/manifest.json": "c01f547325a3efb8fed6976ac1eeb4b65232d1aa64f1a7234c2724b45d3d1655",
+    "data/eval/ecommerce-rag-v1/heldout.inputs.json": "fba4bc2c8bb8b6e9d6d17d9cc5c8e16c9aa4c5db377d0eecd1e34642ba62043e",
+    "data/eval/ecommerce-rag-v1/heldout.fixtures.json": "327d832d3839858bcdd1739499d3526d6ddcbed734a6b5fd4844d38238e7841c",
+    "data/eval/ecommerce-rag-v1/heldout.gold.json": "21f1bdc720dd81c004fbdae13df3d94d079da09bae46388d84536392cc338a15",
+    "data/eval/ecommerce-rag-v1/corpus.json": "336a52d3615318614e61593fa3fdcae176f84fe566bf0286625e7d899e317e49"
+  }
+}

@@ -4,9 +4,9 @@ from pathlib import Path
 from scripts.build_ecommerce_rag_acceptance import ROOT
 
 def main():
- p=argparse.ArgumentParser();p.add_argument('--runs',nargs='+',type=Path,required=True);p.add_argument('--output',type=Path,required=True);args=p.parse_args();gold={r['id']:r for r in json.loads((ROOT/'dev.gold.json').read_text())};seen=set();cases=[];calls=0;input_tokens=output_tokens=cache_tokens=0
+ p=argparse.ArgumentParser();p.add_argument('--runs',nargs='+',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--split',choices=['dev','heldout'],default='dev');p.add_argument('--flat',action='store_true');args=p.parse_args();gold={r['id']:r for r in json.loads((ROOT/(args.split+'.gold.json')).read_text())};seen=set();cases=[];calls=0;input_tokens=output_tokens=cache_tokens=0
  for run in args.runs:
-  for line in (run/'runtime/full-cases.jsonl').read_text().splitlines():
+  for line in (run/('full-cases.jsonl' if args.flat else 'runtime/full-cases.jsonl')).read_text().splitlines():
    r=json.loads(line);cid=r['case_id'];assert cid in gold and cid not in seen;seen.add(cid);g=gold[cid];sources=[];queries=[]
    for t in r['tools']:
     if t['name']=='knowledge_search':

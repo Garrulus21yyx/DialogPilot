@@ -1,0 +1,195 @@
+{
+  "scope": "Post-run targeted author audit: all pair changes, candidate non-PASS and missing source, plus mixed answers. Not independent human gold. Raw judge outputs unchanged. These are confirmed counterexamples, not exhaustive semantic regrading.",
+  "findings": [
+    {
+      "arm": "candidate",
+      "id": "ec-050-2",
+      "auto_verdict": "PASS",
+      "answer_sha256": "d06ef610cf130bc3f45e679c217146f6b159abe1cc4f70637cdc3389109b6519",
+      "audit_findings": [
+        "INTERNAL_REFERENCE_EXPOSED",
+        "GOLD_REQUIRED_POLICY_DETAIL_OMITTED"
+      ]
+    },
+    {
+      "arm": "candidate",
+      "id": "ec-046-1",
+      "auto_verdict": "PASS",
+      "answer_sha256": "2b14658312ded0b8afc57467268208a4648baedda533955ff8eebc9bff2d1ef1",
+      "audit_findings": [
+        "INTERNAL_REFERENCE_EXPOSED",
+        "GOLD_REQUIRED_POLICY_DETAIL_OMITTED"
+      ]
+    },
+    {
+      "arm": "candidate",
+      "id": "ec-044-2",
+      "auto_verdict": "PASS",
+      "answer_sha256": "bb4730e9ca248adb5826df973e8027e38ce5c8f9d1e1caec0a7fe762620038a1",
+      "audit_findings": [
+        "INTERNAL_REFERENCE_EXPOSED"
+      ]
+    },
+    {
+      "arm": "baseline",
+      "id": "ec-045-2",
+      "auto_verdict": "REVIEW_REQUIRED",
+      "answer_sha256": "5165a1a3279d1177cfa65429531e3abd038006f374c67164b0815005ef0189c9",
+      "audit_findings": [
+        "POLICY_CITATION_ATTACHED_TO_ORDER_STATE"
+      ]
+    },
+    {
+      "arm": "candidate",
+      "id": "ec-049-1",
+      "auto_verdict": "PASS",
+      "answer_sha256": "27af4eb09f231a49e5c62e04d2a99de36b19cdfc6b07af6d1dd10f023bae88e2",
+      "audit_findings": [
+        "POLICY_CITATION_ATTACHED_TO_ORDER_STATE"
+      ]
+    },
+    {
+      "arm": "candidate",
+      "id": "ec-045-1",
+      "auto_verdict": "PASS",
+      "answer_sha256": "1c53aafdd697dcdc40fd7ddc184957f0794a6143a15b1338e259a01ce8c00014",
+      "audit_findings": [
+        "POLICY_CITATION_ATTACHED_TO_ORDER_STATE"
+      ]
+    },
+    {
+      "arm": "candidate",
+      "id": "ec-047-2",
+      "auto_verdict": "PASS",
+      "answer_sha256": "4c1a4877bbab7c5d11f3eceda396406983c236dfc54ed6169b7d97586bca9a26",
+      "audit_findings": [
+        "INTERNAL_REFERENCE_EXPOSED"
+      ]
+    },
+    {
+      "arm": "baseline",
+      "id": "ec-046-1",
+      "auto_verdict": "PASS",
+      "answer_sha256": "ad3db42b3e91d91a8cd8fc4d838dc31fefbff0cbdaf7da588729d3ffecb70e56",
+      "audit_findings": [
+        "GOLD_REQUIRED_POLICY_DETAIL_OMITTED"
+      ]
+    },
+    {
+      "arm": "candidate",
+      "id": "ec-044-1",
+      "auto_verdict": "PASS",
+      "answer_sha256": "9eda8ec376826fd9260ddd829ed468aef1273ea34725dbe805591e7a3a8ca8dd",
+      "audit_findings": [
+        "INTERNAL_REFERENCE_EXPOSED"
+      ]
+    },
+    {
+      "arm": "candidate",
+      "id": "ec-048-2",
+      "auto_verdict": "PASS",
+      "answer_sha256": "a3cac7c21d76975eeaf84d3d4dc2f4ab3bab499d48b9396db2588857b79c4765",
+      "audit_findings": [
+        "POLICY_CITATION_ATTACHED_TO_ORDER_STATE"
+      ]
+    },
+    {
+      "arm": "baseline",
+      "id": "ec-050-2",
+      "auto_verdict": "PASS",
+      "answer_sha256": "3ac96d9c9d9b59a01b82ff7b9350f3da412b8276670ca8d4b24485786758a9a6",
+      "audit_findings": [
+        "GOLD_REQUIRED_POLICY_DETAIL_OMITTED"
+      ]
+    },
+    {
+      "arm": "candidate",
+      "id": "ec-050-1",
+      "auto_verdict": "PASS",
+      "answer_sha256": "49edc78d33df1488574c7c7d3faa99268c34120d126af3bdc7fea8a3e1b8a393",
+      "audit_findings": [
+        "POLICY_CITATION_ATTACHED_TO_ORDER_STATE"
+      ]
+    },
+    {
+      "arm": "candidate",
+      "id": "ec-048-1",
+      "auto_verdict": "PASS",
+      "answer_sha256": "0c096c353730cacb424734300f0a61280675d6731a29facd5d1c0ef75e23c696",
+      "audit_findings": [
+        "POLICY_CITATION_ATTACHED_TO_ORDER_STATE"
+      ]
+    },
+    {
+      "arm": "candidate",
+      "id": "ec-047-1",
+      "auto_verdict": "PASS",
+      "answer_sha256": "916c0b3934f199daffa749bd4b72c11792c9c815a4201a75e44958e96f9ae7c9",
+      "audit_findings": [
+        "POLICY_CITATION_ATTACHED_TO_ORDER_STATE"
+      ]
+    },
+    {
+      "arm": "candidate",
+      "id": "ec-045-2",
+      "auto_verdict": "PASS",
+      "answer_sha256": "8e53fec364f0d82e84ed1553d1e59406df07278e88d5db4ade245775b66e54c3",
+      "audit_findings": [
+        "POLICY_CITATION_ATTACHED_TO_ORDER_STATE"
+      ]
+    },
+    {
+      "arm": "candidate",
+      "id": "ec-046-2",
+      "auto_verdict": "REVIEW_REQUIRED",
+      "answer_sha256": "67e75838cc86014059228651c427e353332b5e0bc23627584e36064594bf0d6d",
+      "audit_findings": [
+        "INTERNAL_REFERENCE_EXPOSED",
+        "GOLD_REQUIRED_POLICY_DETAIL_OMITTED"
+      ]
+    },
+    {
+      "arm": "baseline",
+      "id": "ec-046-2",
+      "auto_verdict": "PASS",
+      "answer_sha256": "66cc2dd5607b9fad09987511a388b0d7083cdb8133da238b744f8ed330b47e84",
+      "audit_findings": [
+        "GOLD_REQUIRED_POLICY_DETAIL_OMITTED"
+      ]
+    },
+    {
+      "arm": "baseline",
+      "id": "ec-045-1",
+      "auto_verdict": "PASS",
+      "answer_sha256": "e3d5e49b1bd19a6062e3fffbc52abde3ab1e392f6439112e94bef54ee3d769d4",
+      "audit_findings": [
+        "POLICY_CITATION_ATTACHED_TO_ORDER_STATE"
+      ]
+    },
+    {
+      "arm": "baseline",
+      "id": "ec-050-1",
+      "auto_verdict": "PASS",
+      "answer_sha256": "871be98f534788ed273804918baaafde28aa8d0c9657fe9fd5262f528adb5bfd",
+      "audit_findings": [
+        "GOLD_REQUIRED_POLICY_DETAIL_OMITTED"
+      ]
+    },
+    {
+      "arm": "baseline",
+      "id": "ec-049-1",
+      "auto_verdict": "PASS",
+      "answer_sha256": "7bdac29dd0d9309928c084b78fb36b6cc265d5075ddcc218ba31fae83140fe0c",
+      "audit_findings": [
+        "POLICY_CITATION_ATTACHED_TO_ORDER_STATE"
+      ]
+    }
+  ],
+  "auto_pass_with_confirmed_findings": {
+    "baseline": 6,
+    "candidate": 12
+  },
+  "decision": "AUTOMATIC_PASS_RATE_NOT_VALIDATED_AS_BUSINESS_ACCURACY",
+  "scoring_input_gap": "Judge had order fixture and tool names but not actual non-knowledge tool results. This weakens judgments of refund/lookup record absence.",
+  "additional_review": "Both variants of chair infer signed-date window from ten-day trial; policy condition generalization in ec-057; non-entailment vs definite delay in ec-006 need adjudication. Do not claim unflagged PASS answers all correct."
+}

@@ -64,6 +64,18 @@ def evidence_items(data):
     return tuple(items)
 
 
+def evidence_content_identity(item):
+    """Immutable content represented by a chunk's public citation.
+
+    Query-dependent scores, ranks and routing diagnostics belong to the retrieval
+    observation. Source revision, location, applicability and text belong to the
+    evidence and must agree whenever a citation ID is reused across observations.
+    Callers first validate each pack with evidence_items.
+    """
+    return {"chunk_id": item["chunk_id"], "title": item.get("title", ""),
+            "text": item["text"], "source_ref": dict(item["source_ref"])}
+
+
 def tool_domain_outcome(result):
     if result.authority == "knowledge.active_source" and result.success:
         return knowledge_outcome(result.data)

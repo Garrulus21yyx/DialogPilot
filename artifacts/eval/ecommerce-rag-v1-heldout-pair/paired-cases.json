@@ -1,0 +1,2791 @@
+[
+  {
+    "id": "ec-006-1",
+    "group": "ec-006",
+    "baseline": {
+      "id": "ec-006-1",
+      "group": "ec-006",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "FAIL",
+      "issues": [
+        "用户询问台灯排期确认后退订是否立即退款。available_evidence中Ebcc4c7ef74be明确说明'排期确认后需审核；提交退订申请不等于已经退款'，可直接回答。但答案仅回复'服务不可用'，未回答用户问题，未满足requirements（排期确认后需审核、提交不等于退款）。"
+      ],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": false
+    },
+    "candidate": {
+      "id": "ec-006-1",
+      "group": "ec-006",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 1
+  },
+  {
+    "id": "ec-006-2",
+    "group": "ec-006",
+    "baseline": {
+      "id": "ec-006-2",
+      "group": "ec-006",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "FAIL",
+      "issues": [
+        "用户询问台灯排期确认后退订是否立即退款，available_evidence中Ebcc4c7ef74be明确说明'排期确认后需审核；提交退订申请不等于已经退款'，该规则可回答用户问题，但助手仅回复'服务不可用'，未完整回答需求。",
+        "requirements要求'排期确认后需审核'和'提交不等于退款'，这两点均有证据支持且可回答，但助手未给出实质回答，requirements_met=false。"
+      ],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": false
+    },
+    "candidate": {
+      "id": "ec-006-2",
+      "group": "ec-006",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 1
+  },
+  {
+    "id": "ec-007-1",
+    "group": "ec-007",
+    "baseline": {
+      "id": "ec-007-1",
+      "group": "ec-007",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-007-1",
+      "group": "ec-007",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-007-2",
+    "group": "ec-007",
+    "baseline": {
+      "id": "ec-007-2",
+      "group": "ec-007",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-007-2",
+      "group": "ec-007",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "REVIEW_REQUIRED",
+      "issues": [
+        "引用E5492c3563399（普通靠垫七日规则）被用于支持会员运费报销的说明，但该证据内容是关于靠垫退货期限，与会员运费报销无关，语义归属错误。",
+        "引用Ee03f75edac0a（会员运费）本身内容正确支持运费报销说法，但被与E5492c3563399并列引用，造成来源混淆。",
+        "会员运费报销属于新增的具体费用规则，用户未询问运费问题，虽以条件句表述，但属于超出问题范围的额外信息，且引用归属混乱。"
+      ],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": -1
+  },
+  {
+    "id": "ec-008-1",
+    "group": "ec-008",
+    "baseline": {
+      "id": "ec-008-1",
+      "group": "ec-008",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "FAIL",
+      "issues": [
+        "用户询问延保起算时间和进水是否在保，available_evidence中E797c2ab5f7ec明确回答了这两个问题（延保从原厂保修结束次日起算、人为进水不在延保范围），但回答仅回复'服务不可用'，未回答可回答的规则问题，未满足requirements。"
+      ],
+      "tools": [
+        "knowledge_search",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": false
+    },
+    "candidate": {
+      "id": "ec-008-1",
+      "group": "ec-008",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 1
+  },
+  {
+    "id": "ec-008-2",
+    "group": "ec-008",
+    "baseline": {
+      "id": "ec-008-2",
+      "group": "ec-008",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "FAIL",
+      "issues": [
+        "需求未完整回答：用户询问投影仪延保起算时间及多年前进水是否在保，requirements明确要求回答'原厂保修结束次日起算'和'人为进水不在范围'，但助手仅回复'服务不可用'，未给出任何实质回答。",
+        "available_evidence中E797c2ab5f7ec明确包含两条规则（延保起算+人为进水不在范围），属于可回答规则，仅回复服务不可用不能算答全。"
+      ],
+      "tools": [
+        "knowledge_search",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": false
+    },
+    "candidate": {
+      "id": "ec-008-2",
+      "group": "ec-008",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 1
+  },
+  {
+    "id": "ec-009-1",
+    "group": "ec-009",
+    "baseline": {
+      "id": "ec-009-1",
+      "group": "ec-009",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-009-1",
+      "group": "ec-009",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-009-2",
+    "group": "ec-009",
+    "baseline": {
+      "id": "ec-009-2",
+      "group": "ec-009",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-009-2",
+      "group": "ec-009",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-010-1",
+    "group": "ec-010",
+    "baseline": {
+      "id": "ec-010-1",
+      "group": "ec-010",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-010-1",
+      "group": "ec-010",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-010-2",
+    "group": "ec-010",
+    "baseline": {
+      "id": "ec-010-2",
+      "group": "ec-010",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "FAIL",
+      "issues": [
+        "需求未回答：用户询问礼品卡部分消费后余额能否退到银行卡，要求明确回答'已部分消费余额不支持直接提现'，但助手仅回复'服务不可用'，未给出任何实质回答。",
+        "available_evidence中已有明确规则（Eb659703d25b9：已部分消费的礼品卡余额不支持直接提现），该规则可直接回答用户问题，但助手未使用。",
+        "对已有可回答规则只回复服务不可用，不能算答全。"
+      ],
+      "tools": [
+        "knowledge_search",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": false
+    },
+    "candidate": {
+      "id": "ec-010-2",
+      "group": "ec-010",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 1
+  },
+  {
+    "id": "ec-011-1",
+    "group": "ec-011",
+    "baseline": {
+      "id": "ec-011-1",
+      "group": "ec-011",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-011-1",
+      "group": "ec-011",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-011-2",
+    "group": "ec-011",
+    "baseline": {
+      "id": "ec-011-2",
+      "group": "ec-011",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-011-2",
+      "group": "ec-011",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-012-1",
+    "group": "ec-012",
+    "baseline": {
+      "id": "ec-012-1",
+      "group": "ec-012",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-012-1",
+      "group": "ec-012",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-012-2",
+    "group": "ec-012",
+    "baseline": {
+      "id": "ec-012-2",
+      "group": "ec-012",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-012-2",
+      "group": "ec-012",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-013-1",
+    "group": "ec-013",
+    "baseline": {
+      "id": "ec-013-1",
+      "group": "ec-013",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-013-1",
+      "group": "ec-013",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-013-2",
+    "group": "ec-013",
+    "baseline": {
+      "id": "ec-013-2",
+      "group": "ec-013",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-013-2",
+      "group": "ec-013",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-014-1",
+    "group": "ec-014",
+    "baseline": {
+      "id": "ec-014-1",
+      "group": "ec-014",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-014-1",
+      "group": "ec-014",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-014-2",
+    "group": "ec-014",
+    "baseline": {
+      "id": "ec-014-2",
+      "group": "ec-014",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-014-2",
+      "group": "ec-014",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-015-1",
+    "group": "ec-015",
+    "baseline": {
+      "id": "ec-015-1",
+      "group": "ec-015",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-015-1",
+      "group": "ec-015",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-015-2",
+    "group": "ec-015",
+    "baseline": {
+      "id": "ec-015-2",
+      "group": "ec-015",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-015-2",
+      "group": "ec-015",
+      "category": "policy",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-020-1",
+    "group": "ec-020",
+    "baseline": {
+      "id": "ec-020-1",
+      "group": "ec-020",
+      "category": "multiturn",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-020-1",
+      "group": "ec-020",
+      "category": "multiturn",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-020-2",
+    "group": "ec-020",
+    "baseline": {
+      "id": "ec-020-2",
+      "group": "ec-020",
+      "category": "multiturn",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-020-2",
+      "group": "ec-020",
+      "category": "multiturn",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-021-1",
+    "group": "ec-021",
+    "baseline": {
+      "id": "ec-021-1",
+      "group": "ec-021",
+      "category": "multiturn",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-021-1",
+      "group": "ec-021",
+      "category": "multiturn",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-021-2",
+    "group": "ec-021",
+    "baseline": {
+      "id": "ec-021-2",
+      "group": "ec-021",
+      "category": "multiturn",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-021-2",
+      "group": "ec-021",
+      "category": "multiturn",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-022-1",
+    "group": "ec-022",
+    "baseline": {
+      "id": "ec-022-1",
+      "group": "ec-022",
+      "category": "multiturn",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-022-1",
+      "group": "ec-022",
+      "category": "multiturn",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-022-2",
+    "group": "ec-022",
+    "baseline": {
+      "id": "ec-022-2",
+      "group": "ec-022",
+      "category": "multiturn",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-022-2",
+      "group": "ec-022",
+      "category": "multiturn",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-023-1",
+    "group": "ec-023",
+    "baseline": {
+      "id": "ec-023-1",
+      "group": "ec-023",
+      "category": "multiturn",
+      "source_recall": 0.0,
+      "source_ndcg": 0.0,
+      "judge_verdict": "FAIL",
+      "issues": [
+        "需求1'不适配P24'未回答：答案仅表示无法确认，未给出I42不适配P24的明确结论。",
+        "需求2'外观相同不代表兼容'未回答：答案未提及外观相同不能作为兼容依据。",
+        "authoritative_rules明确I42适配P42不适配P24，但答案以'无法确认'回避，未完整回答可回答的规则问题。"
+      ],
+      "tools": [
+        "catalog_search",
+        "catalog_search",
+        "media_read"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-023-1",
+      "group": "ec-023",
+      "category": "multiturn",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "catalog_search",
+        "catalog_search",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 1
+  },
+  {
+    "id": "ec-023-2",
+    "group": "ec-023",
+    "baseline": {
+      "id": "ec-023-2",
+      "group": "ec-023",
+      "category": "multiturn",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "FAIL",
+      "issues": [
+        "需求未完整回答：用户询问I42墨盒能否用于P24，requirements明确要求回答'不适配P24'和'外观相同不代表兼容'，但助手仅回复服务不可用，未给出任何实质回答。",
+        "available_evidence中Ea5ab69c28fcb明确提供了'模拟店铺I42墨盒适配P42打印机，不适配P24；外观相同不能作为兼容依据'的规则，属于可回答规则，仅回复服务不可用不能算答全。"
+      ],
+      "tools": [
+        "knowledge_search",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": false
+    },
+    "candidate": {
+      "id": "ec-023-2",
+      "group": "ec-023",
+      "category": "multiturn",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 1
+  },
+  {
+    "id": "ec-024-1",
+    "group": "ec-024",
+    "baseline": {
+      "id": "ec-024-1",
+      "group": "ec-024",
+      "category": "multiturn",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-024-1",
+      "group": "ec-024",
+      "category": "multiturn",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-024-2",
+    "group": "ec-024",
+    "baseline": {
+      "id": "ec-024-2",
+      "group": "ec-024",
+      "category": "multiturn",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-024-2",
+      "group": "ec-024",
+      "category": "multiturn",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-025-1",
+    "group": "ec-025",
+    "baseline": {
+      "id": "ec-025-1",
+      "group": "ec-025",
+      "category": "multiturn",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-025-1",
+      "group": "ec-025",
+      "category": "multiturn",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-025-2",
+    "group": "ec-025",
+    "baseline": {
+      "id": "ec-025-2",
+      "group": "ec-025",
+      "category": "multiturn",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-025-2",
+      "group": "ec-025",
+      "category": "multiturn",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-026-1",
+    "group": "ec-026",
+    "baseline": {
+      "id": "ec-026-1",
+      "group": "ec-026",
+      "category": "multiturn",
+      "source_recall": 0.0,
+      "source_ndcg": 0.0,
+      "judge_verdict": "FAIL",
+      "issues": [
+        "需求未完整回答：requirements要求说明'保存七天'及'更早可能被覆盖，不能承诺全部保留'，但答案仅回复查不到订单状态，未回答B18手环离线保存七天运动记录的核心问题。",
+        "答案将B18（手环型号/设备）误当作订单号处理，未按authoritative_rules中'模拟店铺B18手环可离线保存七天运动记录'的语义回答。",
+        "用户问的是'B18十天没同步，前几天运动都还在吗'，答案未告知七天保存规则及超过七天最早记录会被覆盖的事实。"
+      ],
+      "tools": [
+        "service_episode_search",
+        "order_lookup"
+      ],
+      "unnecessary_order_lookup": true,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-026-1",
+      "group": "ec-026",
+      "category": "multiturn",
+      "source_recall": 0.0,
+      "source_ndcg": 0.0,
+      "judge_verdict": "FAIL",
+      "issues": [
+        "需求未完整回答：requirements要求说明'保存七天'及'更早可能被覆盖，不能承诺全部保留'，但答案仅回复订单未找到、无法确认，未回答B18手环离线保存七天运动记录这一核心规则。authoritative_rules明确B18手环可离线保存七天，超过七天未同步最早记录会被覆盖，这是可回答的规则，不能只回复服务不可用。",
+        "答案将问题误解为订单查询，实际问题是关于B18手环运动记录保存时长，未按规则给出七天保存期及超期覆盖的说明。"
+      ],
+      "tools": [
+        "service_episode_search",
+        "order_lookup"
+      ],
+      "unnecessary_order_lookup": true,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-026-2",
+    "group": "ec-026",
+    "baseline": {
+      "id": "ec-026-2",
+      "group": "ec-026",
+      "category": "multiturn",
+      "source_recall": 0.0,
+      "source_ndcg": 0.0,
+      "judge_verdict": "REVIEW_REQUIRED",
+      "issues": [
+        "需求未完整回答：requirements要求说明'保存七天'和'更早可能被覆盖，不能承诺全部保留'，但答案完全没有提及七天保存规则，也未说明超过七天会被覆盖。",
+        "答案错误地转向订单查询（order_lookup），但问题涉及的是运动数据保存规则，不是订单状态；且available_evidence为空，没有订单记录可查。",
+        "答案声称'系统里没有找到这笔订单的记录'，但available_evidence为空，没有实际查询结果支持这一断言，属于无依据的实质性断言。",
+        "引用来源缺失：没有引用authoritative_rules中关于B18离线保存七天运动记录的规则，导致可回答的规则未得到回答。",
+        "答案以'请提供订单号'推诿，但authoritative_rules已给出明确规则（保存七天、超期覆盖），应直接回答该规则，不能只回复服务不可用。"
+      ],
+      "tools": [
+        "order_lookup",
+        "order_lookup"
+      ],
+      "unnecessary_order_lookup": true,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-026-2",
+      "group": "ec-026",
+      "category": "multiturn",
+      "source_recall": 0.0,
+      "source_ndcg": 0.0,
+      "judge_verdict": "FAIL",
+      "issues": [
+        "需求未完整回答：requirements要求说明'保存七天'和'更早可能被覆盖，不能承诺全部保留'，但答案只回复查不到订单、无法确认，没有给出B18可离线保存七天、超过七天最早记录会被覆盖这一可回答规则。authoritative_rules明确给出了该规则，属于已有可回答规则却只回复服务不可用，不能算答全。"
+      ],
+      "tools": [
+        "order_lookup",
+        "order_lookup"
+      ],
+      "unnecessary_order_lookup": true,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-027-1",
+    "group": "ec-027",
+    "baseline": {
+      "id": "ec-027-1",
+      "group": "ec-027",
+      "category": "multiturn",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-027-1",
+      "group": "ec-027",
+      "category": "multiturn",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-027-2",
+    "group": "ec-027",
+    "baseline": {
+      "id": "ec-027-2",
+      "group": "ec-027",
+      "category": "multiturn",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-027-2",
+      "group": "ec-027",
+      "category": "multiturn",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-033-1",
+    "group": "ec-033",
+    "baseline": {
+      "id": "ec-033-1",
+      "group": "ec-033",
+      "category": "product",
+      "source_recall": 0.0,
+      "source_ndcg": 0.0,
+      "judge_verdict": "FAIL",
+      "issues": [
+        "需求1：预约表示预计完成时间——答案未回答此规则，仅表示无法确认预约含义，未提供预约时间表示预计完成时间的信息。",
+        "需求2：易腐乳制品不建议长时间常温预约——答案未提及牛奶粥（含乳制品）不建议长时间常温预约的规则。",
+        "available_evidence为空，但authoritative_rules提供了可回答的规则，答案仅回复服务不可用/无法确认，未答全可回答内容。"
+      ],
+      "tools": [
+        "media_read",
+        "order_lookup"
+      ],
+      "unnecessary_order_lookup": true,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-033-1",
+      "group": "ec-033",
+      "category": "product",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 1
+  },
+  {
+    "id": "ec-033-2",
+    "group": "ec-033",
+    "baseline": {
+      "id": "ec-033-2",
+      "group": "ec-033",
+      "category": "product",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "FAIL",
+      "issues": [
+        "需求未完整回答：用户询问Q19预约六小时是否六小时后开始煮、牛奶粥能否放一夜，但答案仅回复服务不可用，未给出任何实质回答。",
+        "available_evidence中E5397f3cd1053明确包含Q19电饭煲预约规则（预约表示预计完成时间；含易腐乳制品不建议长时间常温预约），该证据可回答用户问题，但答案未使用。",
+        "用户明确要求'条件和不能确定的地方也请说清楚'，答案未说明任何条件或不确定之处。"
+      ],
+      "tools": [
+        "knowledge_search",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": false
+    },
+    "candidate": {
+      "id": "ec-033-2",
+      "group": "ec-033",
+      "category": "product",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 1
+  },
+  {
+    "id": "ec-034-1",
+    "group": "ec-034",
+    "baseline": {
+      "id": "ec-034-1",
+      "group": "ec-034",
+      "category": "product",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "FAIL",
+      "issues": [
+        "需求未完整回答：用户询问T08在地毯上称不准如何设置，requirements要求回答硬水平地面、空载归零、地毯影响读数，但答案仅回复服务不可用，未提供任何实质回答。",
+        "available_evidence中E872ac7b3667d明确包含T08机械秤应放在坚硬水平地面、空载调至零点再称量、厚地毯会影响读数的规则，属于可回答规则，仅回复服务不可用不能算答全。"
+      ],
+      "tools": [
+        "knowledge_search",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": false
+    },
+    "candidate": {
+      "id": "ec-034-1",
+      "group": "ec-034",
+      "category": "product",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 1
+  },
+  {
+    "id": "ec-034-2",
+    "group": "ec-034",
+    "baseline": {
+      "id": "ec-034-2",
+      "group": "ec-034",
+      "category": "product",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-034-2",
+      "group": "ec-034",
+      "category": "product",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-035-1",
+    "group": "ec-035",
+    "baseline": {
+      "id": "ec-035-1",
+      "group": "ec-035",
+      "category": "product",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "media_read",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-035-1",
+      "group": "ec-035",
+      "category": "product",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-035-2",
+    "group": "ec-035",
+    "baseline": {
+      "id": "ec-035-2",
+      "group": "ec-035",
+      "category": "product",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-035-2",
+      "group": "ec-035",
+      "category": "product",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-036-1",
+    "group": "ec-036",
+    "baseline": {
+      "id": "ec-036-1",
+      "group": "ec-036",
+      "category": "product",
+      "source_recall": 0.0,
+      "source_ndcg": 0.0,
+      "judge_verdict": "FAIL",
+      "issues": [
+        "需求未完整回答：authoritative_rules明确给出U15温控杯清洁规则（断开电源、杯体擦洗晾干、底座不得浸水），但回答仅表示无法确认并建议查看说明书，未提供可回答的规则内容。",
+        "回答中未提及断开电源、杯体擦洗晾干、底座不得浸水等关键清洁要求。",
+        "回答本身无虚假断言，claims_supported=true；无引用来源问题，citations_supported=true；无业务写操作，action_safe=true。"
+      ],
+      "tools": [
+        "media_read"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-036-1",
+      "group": "ec-036",
+      "category": "product",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "catalog_search",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 1
+  },
+  {
+    "id": "ec-036-2",
+    "group": "ec-036",
+    "baseline": {
+      "id": "ec-036-2",
+      "group": "ec-036",
+      "category": "product",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-036-2",
+      "group": "ec-036",
+      "category": "product",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-037-1",
+    "group": "ec-037",
+    "baseline": {
+      "id": "ec-037-1",
+      "group": "ec-037",
+      "category": "product",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-037-1",
+      "group": "ec-037",
+      "category": "product",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-037-2",
+    "group": "ec-037",
+    "baseline": {
+      "id": "ec-037-2",
+      "group": "ec-037",
+      "category": "product",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-037-2",
+      "group": "ec-037",
+      "category": "product",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-038-1",
+    "group": "ec-038",
+    "baseline": {
+      "id": "ec-038-1",
+      "group": "ec-038",
+      "category": "product",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "REVIEW_REQUIRED",
+      "issues": [
+        "答案为空（answer字段无内容），未对用户问题'P13装普通纸不出字，怎么正确装纸？'作出任何回答。",
+        "requirements_met=false：未回答任何必答要求（使用热敏纸、热敏面朝打印头、拉出少量后合盖）。",
+        "claims_supported=false：无实质性断言可评估。",
+        "citations_supported=false：无引用可评估。",
+        "action_safe=true：无任何业务写操作。"
+      ],
+      "tools": [
+        "catalog_search",
+        "knowledge_search",
+        "knowledge_search",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": false
+    },
+    "candidate": {
+      "id": "ec-038-1",
+      "group": "ec-038",
+      "category": "product",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 1
+  },
+  {
+    "id": "ec-038-2",
+    "group": "ec-038",
+    "baseline": {
+      "id": "ec-038-2",
+      "group": "ec-038",
+      "category": "product",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "FAIL",
+      "issues": [
+        "需求未完整回答：用户询问P13装普通纸不出字如何正确装纸，requirements要求回答使用热敏纸、热敏面朝打印头、拉出少量后合盖。但答案仅回复'服务不可用'，未提供任何装纸指导。",
+        "available_evidence中Ec722fd0eabfc明确包含P13热敏打印机装纸规则（热敏面朝打印头、拉出少量纸后合盖、普通复印纸不能用于热敏打印），该规则可回答用户问题，但答案未使用。",
+        "对已有可回答规则只回复服务不可用，不能算答全。"
+      ],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": false
+    },
+    "candidate": {
+      "id": "ec-038-2",
+      "group": "ec-038",
+      "category": "product",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 1
+  },
+  {
+    "id": "ec-039-1",
+    "group": "ec-039",
+    "baseline": {
+      "id": "ec-039-1",
+      "group": "ec-039",
+      "category": "product",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-039-1",
+      "group": "ec-039",
+      "category": "product",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-039-2",
+    "group": "ec-039",
+    "baseline": {
+      "id": "ec-039-2",
+      "group": "ec-039",
+      "category": "product",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-039-2",
+      "group": "ec-039",
+      "category": "product",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-040-1",
+    "group": "ec-040",
+    "baseline": {
+      "id": "ec-040-1",
+      "group": "ec-040",
+      "category": "product",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-040-1",
+      "group": "ec-040",
+      "category": "product",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-040-2",
+    "group": "ec-040",
+    "baseline": {
+      "id": "ec-040-2",
+      "group": "ec-040",
+      "category": "product",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-040-2",
+      "group": "ec-040",
+      "category": "product",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-044-1",
+    "group": "ec-044",
+    "baseline": {
+      "id": "ec-044-1",
+      "group": "ec-044",
+      "category": "mixed",
+      "source_recall": 0.0,
+      "source_ndcg": 0.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "order_lookup",
+        "refund_status"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-044-1",
+      "group": "ec-044",
+      "category": "mixed",
+      "source_recall": 0.0,
+      "source_ndcg": 0.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "order_lookup"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-044-2",
+    "group": "ec-044",
+    "baseline": {
+      "id": "ec-044-2",
+      "group": "ec-044",
+      "category": "mixed",
+      "source_recall": 0.0,
+      "source_ndcg": 0.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "order_lookup",
+        "order_lookup",
+        "refund_status"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-044-2",
+      "group": "ec-044",
+      "category": "mixed",
+      "source_recall": 0.0,
+      "source_ndcg": 0.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "order_lookup",
+        "refund_status"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-045-1",
+    "group": "ec-045",
+    "baseline": {
+      "id": "ec-045-1",
+      "group": "ec-045",
+      "category": "mixed",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-045-1",
+      "group": "ec-045",
+      "category": "mixed",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-045-2",
+    "group": "ec-045",
+    "baseline": {
+      "id": "ec-045-2",
+      "group": "ec-045",
+      "category": "mixed",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "REVIEW_REQUIRED",
+      "issues": [
+        "订单状态'已发货'来自business_fixture（业务事实），但引用标注为E1d030dcecb79，该证据文本只讲保修规则，不含订单状态信息，引用挂错来源（citation_supported=false）。",
+        "E6bf57bb783f5证据是关于'平板屏幕意外破裂'的，而订单DP9544的商品是'订单状态与质保'（item_name），引用该证据推断该订单的屏幕破裂不在保修内，属于把其他商品的政策套用到本订单，语义归属有歧义，需REVIEW_REQUIRED。"
+      ],
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-045-2",
+      "group": "ec-045",
+      "category": "mixed",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 1
+  },
+  {
+    "id": "ec-046-1",
+    "group": "ec-046",
+    "baseline": {
+      "id": "ec-046-1",
+      "group": "ec-046",
+      "category": "mixed",
+      "source_recall": 0.0,
+      "source_ndcg": 0.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "order_lookup"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-046-1",
+      "group": "ec-046",
+      "category": "mixed",
+      "source_recall": 0.0,
+      "source_ndcg": 0.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "order_lookup",
+        "order_lookup"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-046-2",
+    "group": "ec-046",
+    "baseline": {
+      "id": "ec-046-2",
+      "group": "ec-046",
+      "category": "mixed",
+      "source_recall": 0.0,
+      "source_ndcg": 0.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "order_lookup",
+        "order_lookup"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-046-2",
+      "group": "ec-046",
+      "category": "mixed",
+      "source_recall": 0.0,
+      "source_ndcg": 0.0,
+      "judge_verdict": "REVIEW_REQUIRED",
+      "issues": [
+        "订单状态断言无依据：business_fixture显示DP9545状态为PAID（已支付），但answer声称'已支付，还没有显示发货'，其中'还没有显示发货'这一断言没有证据支持——fixture只给出status=PAID，未提供发货字段信息，不能推断'未发货'。",
+        "available_evidence为空，但answer声称'查到了'并给出具体订单状态，引用order_lookup调用，但没有任何实际证据记录支持该查询结果。",
+        "requirements中'报告订单实际状态'未完整满足——实际状态只能确认PAID，不能确认'未发货'这一额外断言。",
+        "answer中泄漏内部work/claim标识（[work:invocation:...]），属协议问题。",
+        "引用格式为内部调用标识而非真实来源，citation_supported=false。"
+      ],
+      "tools": [
+        "order_lookup",
+        "order_lookup"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": -1
+  },
+  {
+    "id": "ec-047-1",
+    "group": "ec-047",
+    "baseline": {
+      "id": "ec-047-1",
+      "group": "ec-047",
+      "category": "mixed",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-047-1",
+      "group": "ec-047",
+      "category": "mixed",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-047-2",
+    "group": "ec-047",
+    "baseline": {
+      "id": "ec-047-2",
+      "group": "ec-047",
+      "category": "mixed",
+      "source_recall": 0.0,
+      "source_ndcg": 0.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "order_lookup",
+        "refund_status"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-047-2",
+      "group": "ec-047",
+      "category": "mixed",
+      "source_recall": 0.0,
+      "source_ndcg": 0.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "order_lookup"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-048-1",
+    "group": "ec-048",
+    "baseline": {
+      "id": "ec-048-1",
+      "group": "ec-048",
+      "category": "mixed",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-048-1",
+      "group": "ec-048",
+      "category": "mixed",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-048-2",
+    "group": "ec-048",
+    "baseline": {
+      "id": "ec-048-2",
+      "group": "ec-048",
+      "category": "mixed",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-048-2",
+      "group": "ec-048",
+      "category": "mixed",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-049-1",
+    "group": "ec-049",
+    "baseline": {
+      "id": "ec-049-1",
+      "group": "ec-049",
+      "category": "mixed",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-049-1",
+      "group": "ec-049",
+      "category": "mixed",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-049-2",
+    "group": "ec-049",
+    "baseline": {
+      "id": "ec-049-2",
+      "group": "ec-049",
+      "category": "mixed",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-049-2",
+      "group": "ec-049",
+      "category": "mixed",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-050-1",
+    "group": "ec-050",
+    "baseline": {
+      "id": "ec-050-1",
+      "group": "ec-050",
+      "category": "mixed",
+      "source_recall": 0.0,
+      "source_ndcg": 0.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "order_lookup"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-050-1",
+      "group": "ec-050",
+      "category": "mixed",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "order_lookup",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-050-2",
+    "group": "ec-050",
+    "baseline": {
+      "id": "ec-050-2",
+      "group": "ec-050",
+      "category": "mixed",
+      "source_recall": 0.0,
+      "source_ndcg": 0.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "order_lookup"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-050-2",
+      "group": "ec-050",
+      "category": "mixed",
+      "source_recall": 0.0,
+      "source_ndcg": 0.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "order_lookup"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-054-1",
+    "group": "ec-054",
+    "baseline": {
+      "id": "ec-054-1",
+      "group": "ec-054",
+      "category": "boundary",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-054-1",
+      "group": "ec-054",
+      "category": "boundary",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-054-2",
+    "group": "ec-054",
+    "baseline": {
+      "id": "ec-054-2",
+      "group": "ec-054",
+      "category": "boundary",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-054-2",
+      "group": "ec-054",
+      "category": "boundary",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-055-1",
+    "group": "ec-055",
+    "baseline": {
+      "id": "ec-055-1",
+      "group": "ec-055",
+      "category": "boundary",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-055-1",
+      "group": "ec-055",
+      "category": "boundary",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-055-2",
+    "group": "ec-055",
+    "baseline": {
+      "id": "ec-055-2",
+      "group": "ec-055",
+      "category": "boundary",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-055-2",
+      "group": "ec-055",
+      "category": "boundary",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-056-1",
+    "group": "ec-056",
+    "baseline": {
+      "id": "ec-056-1",
+      "group": "ec-056",
+      "category": "boundary",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "service_episode_search",
+        "knowledge_search",
+        "service_episode_search",
+        "service_episode_search",
+        "service_episode_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-056-1",
+      "group": "ec-056",
+      "category": "boundary",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "service_episode_search",
+        "knowledge_search",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-056-2",
+    "group": "ec-056",
+    "baseline": {
+      "id": "ec-056-2",
+      "group": "ec-056",
+      "category": "boundary",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "FAIL",
+      "issues": [
+        "用户询问屏幕意外破裂是否免费保修，要求说明条件和不能确定的地方。available_evidence中E6bf57bb783f5明确说明'平板屏幕意外破裂不在标准免费保修内，是否有额外保障需查保障记录'，这是可回答的规则。但回答仅回复'服务不可用'，未回答用户问题，未说明标准保修不含意外破裂、需查保障记录等条件。",
+        "requirements要求'标准保修不含意外破裂'、'额外保障需记录'、'历史口头说法不足'，回答完全未覆盖这些要点。",
+        "对已有可回答规则只回复服务不可用，不能算答全。"
+      ],
+      "tools": [
+        "knowledge_search",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": false
+    },
+    "candidate": {
+      "id": "ec-056-2",
+      "group": "ec-056",
+      "category": "boundary",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search",
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 1
+  },
+  {
+    "id": "ec-057-1",
+    "group": "ec-057",
+    "baseline": {
+      "id": "ec-057-1",
+      "group": "ec-057",
+      "category": "boundary",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-057-1",
+      "group": "ec-057",
+      "category": "boundary",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-057-2",
+    "group": "ec-057",
+    "baseline": {
+      "id": "ec-057-2",
+      "group": "ec-057",
+      "category": "boundary",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-057-2",
+      "group": "ec-057",
+      "category": "boundary",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-058-1",
+    "group": "ec-058",
+    "baseline": {
+      "id": "ec-058-1",
+      "group": "ec-058",
+      "category": "boundary",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "FAIL",
+      "issues": [
+        "用户询问能否保证第五天送达。requirements要求：预计三到五工作日、可能延误、不能保证第五天。这些规则在available_evidence中已有明确来源（Ec395ea9f4078），是可回答的规则。但answer仅回复'服务不可用'，未回答任何需求点，属于对已有可回答规则只回复服务不可用，不能算答全。",
+        "answer未提供任何实质内容，未说明预计三到五工作日、未说明可能延误、未说明不能保证第五天。",
+        "claims_supported=true：answer未做任何实质性断言，无虚假声明。",
+        "citations_supported=true：answer未引用任何来源，无挂错来源问题。",
+        "action_safe=true：无业务写操作。"
+      ],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": false
+    },
+    "candidate": {
+      "id": "ec-058-1",
+      "group": "ec-058",
+      "category": "boundary",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 1
+  },
+  {
+    "id": "ec-058-2",
+    "group": "ec-058",
+    "baseline": {
+      "id": "ec-058-2",
+      "group": "ec-058",
+      "category": "boundary",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "FAIL",
+      "issues": [
+        "需求未完整回答：用户询问包裹能否保证第五天到达，requirements要求回答预计三到五工作日、可能延误、不能保证第五天。但答案仅回复'服务不可用'，未提供任何实质回答。",
+        "available_evidence中已有Ec395ea9f4078明确说明'模拟店铺普通包裹预计三到五个工作日送达；恶劣天气可能延误，该范围不是指定日期承诺'，该证据足以回答用户问题，但答案未使用。",
+        "对已有可回答规则只回复服务不可用，不能算答全。"
+      ],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": false
+    },
+    "candidate": {
+      "id": "ec-058-2",
+      "group": "ec-058",
+      "category": "boundary",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 1
+  },
+  {
+    "id": "ec-059-1",
+    "group": "ec-059",
+    "baseline": {
+      "id": "ec-059-1",
+      "group": "ec-059",
+      "category": "boundary",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-059-1",
+      "group": "ec-059",
+      "category": "boundary",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-059-2",
+    "group": "ec-059",
+    "baseline": {
+      "id": "ec-059-2",
+      "group": "ec-059",
+      "category": "boundary",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-059-2",
+      "group": "ec-059",
+      "category": "boundary",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-060-1",
+    "group": "ec-060",
+    "baseline": {
+      "id": "ec-060-1",
+      "group": "ec-060",
+      "category": "boundary",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-060-1",
+      "group": "ec-060",
+      "category": "boundary",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  },
+  {
+    "id": "ec-060-2",
+    "group": "ec-060",
+    "baseline": {
+      "id": "ec-060-2",
+      "group": "ec-060",
+      "category": "boundary",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "candidate": {
+      "id": "ec-060-2",
+      "group": "ec-060",
+      "category": "boundary",
+      "source_recall": 1.0,
+      "source_ndcg": 1.0,
+      "judge_verdict": "PASS",
+      "issues": [],
+      "tools": [
+        "knowledge_search"
+      ],
+      "unnecessary_order_lookup": false,
+      "runtime_verified": true
+    },
+    "auto_pass_delta": 0
+  }
+]

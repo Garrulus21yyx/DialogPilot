@@ -121,7 +121,7 @@ class ResponseAssembler:
     async def _assemble(self, board, *, current_message: str, system_notice: str = "", conversation_context=None,
                         pending_approval=None, requested_inputs=(), response_candidate=None) -> AssembledResponse:
         from dataclasses import replace
-        from application.knowledge_tool_contract import evidence_items, evidence_id, model_evidence
+        from application.knowledge_tool_contract import evidence_items, evidence_id, model_evidence, evidence_content_identity
 
         knowledge_facts = tuple(fact for result in getattr(board, "all_results", board.results) for fact in result.facts
                                 if fact.requirement_id == "knowledge.active_source")
@@ -144,7 +144,7 @@ class ResponseAssembler:
                 packs.append(pack)
                 for item in evidence_items(pack):
                     prior = items.setdefault(item["chunk_id"], item)
-                    if prior != item:
+                    if evidence_content_identity(prior) != evidence_content_identity(item):
                         raise ValueError("conflicting evidence identity")
             allowed = {evidence_id(cid) for cid in items}
             evidence = ({"packs": [model_evidence(pack) for pack in packs],
