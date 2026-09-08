@@ -128,13 +128,28 @@ def test_real_composition_wires_every_domain_to_sdk_and_diagnostics(postgres_dat
     pool = PostgresPool(PostgresPoolConfig(postgres_database_url))
     pool.open()
     async def run():
+        from mcp.tool_manager import Tool
+        registry = build_default_capability_registry("tenant-a")
+        tool_manager = _manager([])
+        async def unused_write(params, context):
+            pytest.fail("composition must not execute business operations")
+        for action in registry.actions:
+            owner = registry.agent(action.owner_agent)
+            for tool_id in action.allowed_tool_ids:
+                definition = registry.tool(tool_id)
+                tool_manager.register(Tool(tool_id, f"Business contract for {tool_id}",
+                    unused_write, {"type": "object", "properties": {}},
+                    allowed_agents=(owner.execution_principal,),
+                    authority=definition.authority, read_only=False))
         runtime = await build_target_runtime(database_url=postgres_database_url, postgres_pool=pool,
-            tool_manager=_manager([]), memory=SimpleNamespace(), response_delivery=SimpleNamespace(),
+            tool_manager=tool_manager, memory=SimpleNamespace(), response_delivery=SimpleNamespace(),
             model_policy=policy, provider_config={}, project_root=Path(__file__).parents[1],
-            registry=build_default_capability_registry("tenant-a"), enable_encoder=False, langfuse_sink=sink)
+            registry=registry, enable_encoder=False, langfuse_sink=sink)
         try:
             assert runtime.orchestration._domain_workers
             assert runtime.application._turn_runtime._assembler._registry is runtime.registry
+            assert {entry['tool_id'] for entry in runtime.application._turn_runtime._assembler._action_semantics} == {
+                tool_id for action in registry.actions for tool_id in action.allowed_tool_ids}
             for worker in runtime.orchestration._domain_workers.values():
                 assert worker._callbacks and worker._trace_sink is sink
                 assert worker._model is next(model for profile, _, model in built if profile.model == "actor-test")

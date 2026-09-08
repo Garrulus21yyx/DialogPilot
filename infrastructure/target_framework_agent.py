@@ -373,7 +373,9 @@ class TargetFrameworkAgent:
                 "Call once all required choices are known, before requesting approval. "
                 "The conversation layer presents this exact proposal and collects approval; the runtime then executes it. "
                 "Operation: " + definition.name + ". Use the supplied argument schema and business evidence. "
-                "Do not ask permission to prepare. Execution confirmation belongs to the runtime after this proposal, not to missing-input collection."),
+                "Do not ask permission to prepare. Execution confirmation belongs to the runtime after this proposal, not to missing-input collection.\n"
+                "Original business operation description (prerequisites and effects apply to execution after approval, not to this preparation call):\n"
+                + definition.description),
             args_schema=schema, infer_schema=False, response_format="content_and_artifact",
         )
 

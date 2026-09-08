@@ -284,7 +284,7 @@ def test_question_failure_survives_postgres_checkpoint_reopen(postgres_database_
     assert composer.calls == 1
 
 
-@pytest.mark.parametrize("old_version", ["turn-runtime-v7-result-owned-delivery", "turn-runtime-v11-observation-progress"])
+@pytest.mark.parametrize("old_version", ["turn-runtime-v7-result-owned-delivery", "turn-runtime-v11-observation-progress", "turn-runtime-v12-policy-evidence"])
 def test_unpublished_prior_lifecycle_checkpoint_is_not_reinterpreted_as_new_execution(old_version):
     from application.turn_runtime import TurnCheckpointVersionError
     executor = _Executor()

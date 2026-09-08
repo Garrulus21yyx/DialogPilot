@@ -182,6 +182,8 @@ async def build_target_runtime(
         encoder = _target_encoder(project_root, language=os.getenv(
             "TARGET_ENCODER_LANGUAGE", response_locale or os.getenv("TARGET_RESPONSE_LOCALE", "zh-CN")
         )) if enable_encoder else None
+        tool_catalog = ConversationToolCatalog(tool_manager)
+        action_semantics = tool_catalog.action_semantics(registry)
         conversation_agent = ConversationAgent(
             AnthropicConversationPlanningProvider(
                 {role: framework_model(model_policy.profile(role), provider_config,
@@ -194,7 +196,7 @@ async def build_target_runtime(
             ),
             context_budget=conversation_context_budget,
             synthesis_context_budget=synthesis_context_budget,
-            tool_catalog=ConversationToolCatalog(tool_manager),
+            tool_catalog=tool_catalog, action_semantics=action_semantics,
         )
         understanding = CascadedTargetUnderstanding(
             StateBoundTargetUnderstanding(), conversation_agent, encoder=encoder,
@@ -223,7 +225,7 @@ async def build_target_runtime(
                 callbacks=(langfuse_sink.callback(),) if langfuse_sink else (),
             )
         assembler = ResponseAssembler(conversation_agent,
-                                      registry=registry,
+                                      registry=registry, action_semantics=action_semantics,
                                       fallback_locale=(response_locale if response_locale is not None
                                                        else os.getenv("TARGET_RESPONSE_LOCALE", "zh-CN")),
                                       internal_tool_names=tool_manager.registered_tool_names,

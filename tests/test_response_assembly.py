@@ -31,7 +31,12 @@ def test_policy_snapshot_reaches_author_and_verifier_without_extra_calls(direct,
             self.passed = not repair or bool(self.calls)
             return await super().verify(*args, **kwargs)
     verifier = Review(True)
-    result = asyncio.run(ResponseAssembler(Author(), registry=registry, knowledge_verifier=verifier).assemble(
+    from infrastructure.conversation_tool_catalog import ConversationToolCatalog
+    from tests.test_approval_conversation import domain
+    worker, _, _, _ = domain([])
+    semantics = ConversationToolCatalog(worker._tool_manager).action_semantics(worker._registry)
+    result = asyncio.run(ResponseAssembler(Author(), registry=registry, action_semantics=semantics,
+        knowledge_verifier=verifier).assemble(
         None if direct else _board(_verified_order_result()), current_message="Can I do both?",
         response_candidate="Both operations are possible." if direct else None,
         conversation_context={"historical_assistant": "Everything is permitted."}))
@@ -40,6 +45,7 @@ def test_policy_snapshot_reaches_author_and_verifier_without_extra_calls(direct,
     policy = evidence["capability_policy"]
     assert policy["registry_fingerprint"] == registry.fingerprint
     assert policy["bundle_version"] == registry.bundle_version
+    assert policy["business_actions"] == list(semantics)
     assert policy["agents"] == [{"agent_id": agent.agent_id, "description": agent.description}
                                 for agent in registry.agents]
     assert all(json.loads(kwargs["context"]) == evidence for _, kwargs in verifier.calls)

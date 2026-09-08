@@ -75,11 +75,11 @@ class ConversationComposer(Protocol):
 class ResponseAssembler:
     """Choose the cheapest valid response path and verify the final candidate."""
 
-    version = "response-assembler-v11-policy-context"
+    version = "response-assembler-v12-action-semantics"
 
     def __init__(self, composer: ConversationComposer | None = None, *,
                  knowledge_verifier=None, knowledge_source_validator=None, knowledge_reuse_validator=None,
-                 fallback_locale="zh-CN", internal_tool_names=(), trace_sink=None, registry=None) -> None:
+                 fallback_locale="zh-CN", internal_tool_names=(), trace_sink=None, registry=None, action_semantics=()) -> None:
         if fallback_locale not in {"zh-CN", "en"}:
             raise ValueError("unsupported customer fallback locale")
         self.fallback_locale = fallback_locale
@@ -90,6 +90,7 @@ class ResponseAssembler:
         self._knowledge_reuse_validator = knowledge_reuse_validator
         self._trace_sink = trace_sink
         self._registry = registry
+        self._action_semantics = tuple(action_semantics)
 
     async def assemble(self, board, *, current_message: str, system_notice: str = "", conversation_context=None,
                        pending_approval=None, requested_inputs=(), response_candidate: str | None = None) -> AssembledResponse:
@@ -264,7 +265,7 @@ class ResponseAssembler:
         inputs = dict(question=message, answer=text,
             context=json.dumps(evidence_context if evidence_context is not None else
                 _response_context(board, pending_approval, requested_inputs, conversation_context,
-                                  registry=self._registry), ensure_ascii=False),
+                                  registry=self._registry, action_semantics=self._action_semantics), ensure_ascii=False),
             knowledge_evidence=knowledge_evidence,
             agent_outcomes=[{"status": result.status.value, "reason": result.reason_code,
                              "execution_feedback": _failure_feedback(result)}
@@ -308,7 +309,7 @@ class ResponseAssembler:
             # The author consumes the exact context snapshot later verified;
             # do not serialize a second independent copy alongside evidence.
             "evidence": _response_context(board, pending_approval, requested_inputs, conversation_context,
-                                          registry=self._registry),
+                                          registry=self._registry, action_semantics=self._action_semantics),
             # Working text is context, never support for business claims.
             "domain_notes": [
                 {"work_item_id": result.work_item_id, "text": _candidate_text(result)}
@@ -441,7 +442,7 @@ def _allowed_claims(board, pending_approval=None, *, requested_inputs=()) -> tup
     return tuple(claims)
 
 
-def _response_context(board, pending_approval=None, requested_inputs=(), conversation_context=None, *, registry=None):
+def _response_context(board, pending_approval=None, requested_inputs=(), conversation_context=None, *, registry=None, action_semantics=()):
     """One authoritative snapshot for authoring, verification and publication."""
     from dataclasses import asdict
     from application.business_observation import receipt_context
@@ -456,6 +457,7 @@ def _response_context(board, pending_approval=None, requested_inputs=(), convers
         # response can discuss an operation without having dispatched a work item.
         "capability_policy": ({"bundle_version": registry.bundle_version,
             "registry_fingerprint": registry.fingerprint,
+            "business_actions": list(action_semantics),
             "agents": [{"agent_id": agent.agent_id, "description": agent.description}
                        for agent in registry.agents]} if registry is not None else None),
         "facts": [{"subject_ref": fact.subject_ref, "requirement_id": fact.requirement_id,

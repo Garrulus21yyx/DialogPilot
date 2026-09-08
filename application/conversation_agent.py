@@ -184,7 +184,7 @@ class ConversationPlanningProvider(Protocol):
 class ConversationAgent:
     """Plan one deferred turn, then compile only Registry-backed commands."""
 
-    version = "conversation-agent-v13-context-view"
+    version = "conversation-agent-v14-action-semantics"
 
     def __init__(
         self,
@@ -193,9 +193,11 @@ class ConversationAgent:
         context_budget: ContextBudgetManager | None = None,
         synthesis_context_budget: ContextBudgetManager | None = None,
         tool_catalog=None,
+        action_semantics=(),
     ) -> None:
         self._provider = provider
         self._tool_catalog = tool_catalog
+        self._action_semantics = tuple(action_semantics)
         self._context_budget = context_budget or ContextBudgetManager()
         self._synthesis_context_budget = synthesis_context_budget or self._context_budget
 
@@ -312,6 +314,7 @@ class ConversationAgent:
             ),
             "supported_goals": sorted(_available_goals(registry)),
             "atomic_reads": atomic_reads,
+            "business_action_semantics": self._action_semantics,
             "goal_descriptions": {key: _GOAL_DESCRIPTIONS[key] for key in _available_goals(registry)},
             "domain_capabilities": [
                 {

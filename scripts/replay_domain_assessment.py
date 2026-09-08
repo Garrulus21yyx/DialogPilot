@@ -71,7 +71,7 @@ async def run(args):
         raise ValueError('this diagnostic covers action selection only')
     policy = ModelPolicy.from_env(values)
     base = policy.profile(ModelRole.VERIFIER)
-    profiles = [replace(base, reasoning=ReasoningEffort(effort), min_completion_tokens=4096)
+    profiles = [replace(base, reasoning=ReasoningEffort(effort), min_completion_tokens=args.max_tokens)
                 for effort in args.reasoning]
     args.output.mkdir(parents=True, exist_ok=False)
     (args.output / 'source.json').write_text(json.dumps(source, ensure_ascii=False) + '\n')
@@ -80,13 +80,13 @@ async def run(args):
         'source_input_sha256': hashlib.sha256(content.encode()).hexdigest(),
         'system_sha256': hashlib.sha256(system.encode()).hexdigest(),
         'profiles': [p.to_dict() for p in profiles], 'repeats': 2,
-        'max_api_calls': 4 * len(profiles), 'max_tokens': 4096, 'business_tools_enabled': False,
+        'max_api_calls': 4 * len(profiles), 'max_tokens': args.max_tokens, 'timeout_seconds': args.timeout, 'business_tools_enabled': False,
         'ablation': args.ablation,
         'expected_accepted': False, 'interpretation': 'development diagnostic, not held-out closure',
     }, indent=2) + '\n')
     for profile in profiles:
         model = framework_model(profile, {'api_key': values['ANTHROPIC_API_KEY'],
-            'base_url': policy.base_url}, max_tokens=4096)
+            'base_url': policy.base_url}, max_tokens=args.max_tokens)
         for history in (True, False):
             payload = original if history else (
                 original if args.ablation == 'assessment_basis' else
@@ -97,7 +97,7 @@ async def run(args):
                 capture = FrameworkCapture(limit=1)
                 row = {'history': history, 'reasoning': profile.reasoning.value, 'repeat': repeat}
                 try:
-                    async with asyncio.timeout(90):
+                    async with asyncio.timeout(args.timeout):
                         row['assessment'] = await structured_call(model, name='assess_domain_outcome',
                             schema=ASSESSMENT_BASIS_SCHEMA if not history and args.ablation == 'assessment_basis' else SCHEMA,
                             system=system,
@@ -118,4 +118,6 @@ if __name__ == '__main__':
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--ablation', choices=('working_context', 'actor_text', 'runtime_advice', 'assessment_basis'), default='working_context')
     parser.add_argument('--reasoning', nargs='+', choices=('none', 'high'), default=['none', 'high'])
+    parser.add_argument('--max-tokens', type=int, choices=(4096, 8192), default=4096)
+    parser.add_argument('--timeout', type=int, choices=(90, 180), default=90)
     asyncio.run(run(parser.parse_args()))

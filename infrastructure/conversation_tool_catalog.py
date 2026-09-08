@@ -1,5 +1,6 @@
-"""Project existing governed read tools into conversation planning inputs."""
+"""Expose governed reads and describe approved business operations."""
 from copy import deepcopy
+import hashlib
 from collections.abc import Mapping
 from jsonschema import Draft202012Validator
 
@@ -10,6 +11,28 @@ from application.authority_policy import RequirementEffect, AuthoritySupport
 class ConversationToolCatalog:
     def __init__(self, tool_manager):
         self._tools = tool_manager
+
+    def action_semantics(self, registry):
+        """Snapshot business descriptions for a fixed runtime capability bundle.
+
+        Capability changes require rebuilding the runtime, including its workers;
+        mutating registered tool definitions during a run is not supported.
+        Descriptions grant no execution authority.
+        """
+        descriptions = []
+        for action in registry.actions:
+            owner = registry.agent(action.owner_agent)
+            tools = self._tools.tools_for_agent(owner.execution_principal,
+                                                allowed_tool_ids=action.allowed_tool_ids)
+            for tool in tools:
+                definition = registry.tool(tool.name)
+                if tool.read_only or definition.effect is not CapabilityEffect.WRITE or tool.authority != definition.authority:
+                    raise ValueError("action_semantics_registry_mismatch")
+                descriptions.append({"action_ref": action.ref, "owner_agent": action.owner_agent,
+                    "tool_id": tool.name, "tool_version": definition.version,
+                    "description": tool.description,
+                    "description_sha256": hashlib.sha256(tool.description.encode()).hexdigest()})
+        return tuple(descriptions)
 
     def __call__(self, registry, state, turn_context=None):
         context = {"tenant_id": str(state.tenant_id), "user_id": str(state.user_id),

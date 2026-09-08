@@ -1251,3 +1251,66 @@ and the future business effect being approved. The current contract mixes
 PREPARE_ACTION and whole-goal feasibility; phase/effect ambiguity is a hypothesis
 for owner-level review, not yet a proven repair. Three runner tests pass. No
 production change, no new tool calls, no claims of completed business closure.
+
+Owner inventory: ActionDefinition has WRITE/approval/receipt and optional current
+readiness/version binding; it has no business post-state algebra. Tau adapter
+receives tool schema/description and policy prose, not structured pre/postconditions.
+Do not fabricate an authoritative transition model from a second LLM or tool names.
+Before another design change, validate the already repaired reply-policy boundary:
+frozen d611b218f309037b false compatibility answer, unchanged verify_claims, original
+evidence twice vs identical evidence plus policy from c27f46378bd94a40 twice.
+Four calls, configured verifier, 4096 tokens, no business calls. This is a policy
+visibility counterfactual; Registry transport/hash already has integration evidence.
+Policy metadata cites its captured origin, not a fabricated Registry fingerprint.
+Acceptance requires rejection identifying the incompatible shared state transition,
+not rejection over irrelevant wording. No prompt or production configuration change.
+
+Reply-policy counterfactual completed (`artifacts/eval/policy-support4-2026-09-09`):
+both original and policy-present arms passed 2/2 incorrectly. Therefore transport
+implementation is necessary but insufficient; no semantic closure claimed.
+One remaining testable failure is HIGH output exhaustion (four actual 4096-token
+completions, no judgment), unlike NONE semantic false positives. Register bounded
+8192-token HIGH repeat on the original/working-context-removed inputs (two each),
+same system/schema/model, max four calls, 180s each, no production change. Evidence
+justifies testing the output cap, not presuming more tokens improve correctness.
+This is not another prompt/schema tuning attempt; preserve failures and stop at
+the fixed budget. Do not enable HIGH without complete judgments and fresh cases.
+
+### Original action description repair (in progress)
+
+Confirmed conversion loss: `_action_tool` replaced original Tool.description with
+generic preparation instructions. The full agent policy was visible, but original
+business tool preconditions and effects were not. Main planning and reply context
+also omitted these descriptions. This is a demonstrated information-loss boundary,
+not proof that restoring it alone resolves model judgment errors.
+
+Positive contract: preserve original descriptions verbatim in preparation tools;
+project the same registered action/tool/version/description/hash into planning and
+reply evidence. Descriptions do not expose executable writes. ToolManager remains
+the source, Registry binds owner and authority, and its existing envelope validation
+rejects unavailable tools. No tool-name-specific transition model or extra reviewer.
+Author, verifier and repair consume the existing shared response snapshot. Bump
+runtime contract so old unpublished checkpoints cannot silently use old evidence.
+
+Checks cover multilingual/long text preservation, changed-description hashes,
+cross-consumer identity, write exclusion and invalid registrations, plus actual
+PostgreSQL composition. Initial new assertions incorrectly compared tuple to list
+(3 failures); corrected the test representation, not production semantics. Full
+business closure remains unproven; Encoder stays disabled and no live tasks rerun.
+
+Validation: 174 passed / 3 skipped across description projection, response, planning,
+approval, domain outcome, replay and TurnRuntime; PostgreSQL-backed attribution and
+TurnRuntime: 22 passed / 2 skipped (optional tau2 tests unavailable). Expanded
+author/verifier/repair snapshot checks: 50 passed including projection tests.
+Independent implementation review found no blocking normal-assembly defect.
+Supported lifecycle is a fixed capability bundle: changing tool definitions requires
+rebuilding the runtime and workers. Hot mutation of ToolManager is not supported;
+do not imply that a startup snapshot follows arbitrary in-place tool edits.
+
+Bounded HIGH/8192 probe also completed: original two decisions both accepted
+incorrectly; history-free one output exhausted 8192 tokens with ModelInvocationError,
+one accepted incorrectly at 8058 output tokens. No production reasoning change.
+Together with the policy-only counterfactual this rejects budget escalation as a
+demonstrated solution. Next evidence must exercise the repaired original-description
+boundary, including fresh non-conflicting and conflicting goals; prior captured
+examples remain development diagnostics, not a new held-out score.
