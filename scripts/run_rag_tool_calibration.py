@@ -153,7 +153,8 @@ async def evaluate(args, database_url):
                 store.withdraw_revision(revision.source_id, revision.revision_id, reason='synthetic evaluation withdrawal')
         with platform.transaction() as conn:
             conn.execute('INSERT INTO dialogpilot_app.conversations (tenant_id,user_id,conversation_id) VALUES (%s,%s,%s)', ('rag-tool-dev','eval-user','eval-conversation'))
-        source = PostgresKnowledgeCandidateSource(
+        from evaluation.recorded_knowledge_source import RecordedKnowledgeSource
+        source = RecordedKnowledgeSource(
             backend=PostgresHybridBackend(retrieval), generations=PostgresRetrievalGenerationRegistry(platform),
             pool=retrieval, embed_query=store.embed_query,
         )
@@ -239,6 +240,10 @@ async def evaluate(args, database_url):
             (args.output/'completion.json').write_text(json.dumps({'cases':len(cases),'api_calls':len(client.calls),'answer_semantics':'unreviewed'})+'\n')
     finally:
         if source is not None:
+            if hasattr(source, 'records'):
+                import gzip
+                (args.output/'source-route-captures.json.gz').write_bytes(gzip.compress(
+                    json.dumps(source.records, ensure_ascii=False, default=str).encode(), mtime=0))
             source.close()
         retrieval.close()
         platform.close()
@@ -259,8 +264,8 @@ def main():
     p.add_argument('--max-api-calls',type=int,default=80)
     p.add_argument('--scenario', choices=('basic','applicability','ecommerce-full'), default='basic')
     args = p.parse_args()
-    if not 0 < args.max_api_calls <= 400:
-        raise ValueError('max API calls must be between 1 and 400')
+    if not 0 <= args.max_api_calls <= 400 or (args.max_api_calls == 0 and not args.candidate_scope_probe):
+        raise ValueError('zero API budget requires candidate-scope-probe; otherwise use 1..400')
     args.full_definitions = None
     if args.full_case_file:
         if not args.full_chain:

@@ -313,3 +313,7 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 - 长手册续验完成：4次Flash，Completed，实际DIRECT知识问答，一次knowledge_search取到所需四主题；不证明领域归档路径收益。5条来源区间核对通过，存在引用E38用“不被拒绝”支持“不通过”的不匹配，虽别的手册片段可支持部分结论也不能替换该引用。当前6个不同开发问题首轮5完成/1规划失败；加一次续验共7执行6完成，完整链25调用+独立传输诊断1，不写6/6首轮成功。汇总docs/rag-current-entry-status-2026-09-08.zh-CN.md。停止这六题追加付费单例调试；活动下一项统一每层候选/证据/qrel可计算性审计，补齐缺失评估捕获后回到固定候选方案同预算配对。引用语义误判保留R06，不靠重跑刷分。
 
 - R10阶段可重放性审计完成（0API）：7次完整入口执行中6次完成，均可从listwise输入短ID顺序+trace source_ranks恢复20候选、完整精排排列和5条pack；逐项核对30条pack文本与精排输入相同且都出现在无tools的生成请求，特意排除“只在verifier输入出现”假阳性。1次规划失败无检索记录。新脚本audit_rag_stage_replay.py及rag-stage-replay-audit产物保留映射/hash。缺口是融合前两路完整池、被pack丢弃候选的完整来源定位、合成完整入口独立qrels；不能直接离线重放实际Agent查询的其他融合权重。生产source已有capture_source_rankings_async，不需要新生产框架；下一步在隔离评估入口复用该能力保存实际请求的分路全集，或在评估子类记录本次_collect_sources，优先避免重复模型调用。补齐捕获前不增加付费完整链路样本。已有MTRAG分路产物仍可直接复用，保持其官方指标定义。
+
+- R10分路捕获实现/预注册：评估专用RecordedKnowledgeSource继承现有source，在同一次_collect_sources保存完整ranks/weights，返回原_search结果不变；额外来源投影读单列projection_ms，不能当生产延迟。thread-local隔离并发请求，失败保存typed结果，无第二次embedding/search。接入校准脚本finally持久化压缩captures。3项零API测试通过（并发隔离、重建融合、typed失败）。下一步隔离PG basic candidate-scope-probe，API预算0/不生成、不精排，检验每个成功捕获的两路全集能精确重放当前候选ID顺序及来源一致性，不据此报质量提升。
+
+- R10捕获PG验证完成：basic40、applicability24、combined40次搜索均来源核对及融合ID顺序精确重放。前两套独立小语料没有被截候选，不能证明全集捕获；补用ecommerce-full组合语料后40/40有额外候选，共182次被截候选出现，全部保留。三轮API0；是搜索次数（含scoped/omitted），不是104个不同问题。3项并发/类型失败测试再次通过。校准CLI此前拒绝显式0预算，首次两次启动在网络前终止（第一次文本替换未命中已纠正），现在仅candidate-scope-probe允许0，其客户端原已硬限制0。新增来源投影读开销单列，不报生产延迟；生产检索策略不变。代码/三个隔离库产物待本次相干提交。下一步复用已有分路全集与开发标注做固定权重重放，按已选策略验证最终可见证据；不再次盲跑完整生成链。
