@@ -1,0 +1,495 @@
+{
+  "scope": "Post-evaluation diagnosis of consumed 35 groups; union up to 40 is an oracle diagnostic, not same-budget deployed performance",
+  "api_calls": 0,
+  "summary": {
+    "dense_recall": 0.61578231292517,
+    "bm25_recall": 0.41333333333333333,
+    "union_recall": 0.6619727891156462,
+    "ideal_five_from_union_recall": 0.6619727891156462,
+    "cases": 35,
+    "both_routes_no_gold": 5,
+    "some_gold_missing_from_union": 20,
+    "current_equals_bm25": 35,
+    "candidate_equals_dense": 35,
+    "more_than_five_gold": 1
+  },
+  "cases": [
+    {
+      "case_id": "1c0e5e78f1a16ea2eb2165b6aa31dc61<::>1",
+      "domain": "clapnq",
+      "gold_count": 2,
+      "dense_recall": 0.5,
+      "bm25_recall": 1.0,
+      "union_recall": 1.0,
+      "union_missed_gold": [],
+      "current_equals_bm25": true,
+      "candidate_equals_dense": true,
+      "ideal_five_from_union_recall": 1.0
+    },
+    {
+      "case_id": "694e275f1a01ad0e8ac448ad809f7930<::>1",
+      "domain": "clapnq",
+      "gold_count": 2,
+      "dense_recall": 1.0,
+      "bm25_recall": 1.0,
+      "union_recall": 1.0,
+      "union_missed_gold": [],
+      "current_equals_bm25": true,
+      "candidate_equals_dense": true,
+      "ideal_five_from_union_recall": 1.0
+    },
+    {
+      "case_id": "6528deeee4180c1b2b770a2929482e82<::>3",
+      "domain": "clapnq",
+      "gold_count": 3,
+      "dense_recall": 0.6666666666666666,
+      "bm25_recall": 0.0,
+      "union_recall": 0.6666666666666666,
+      "union_missed_gold": [
+        "mtrag:clapnq:808202938_12129-13039-0-910"
+      ],
+      "current_equals_bm25": true,
+      "candidate_equals_dense": true,
+      "ideal_five_from_union_recall": 0.6666666666666666
+    },
+    {
+      "case_id": "a277cf5022616282aa819ee76c9343de<::>1",
+      "domain": "clapnq",
+      "gold_count": 3,
+      "dense_recall": 1.0,
+      "bm25_recall": 0.0,
+      "union_recall": 1.0,
+      "union_missed_gold": [],
+      "current_equals_bm25": true,
+      "candidate_equals_dense": true,
+      "ideal_five_from_union_recall": 1.0
+    },
+    {
+      "case_id": "a2698b2973ea7db1ee5adb5e70ec02e4<::>6",
+      "domain": "clapnq",
+      "gold_count": 3,
+      "dense_recall": 0.6666666666666666,
+      "bm25_recall": 1.0,
+      "union_recall": 1.0,
+      "union_missed_gold": [],
+      "current_equals_bm25": true,
+      "candidate_equals_dense": true,
+      "ideal_five_from_union_recall": 1.0
+    },
+    {
+      "case_id": "cfbcfa3e382f12aed450b10f87a72aeb<::>2",
+      "domain": "clapnq",
+      "gold_count": 2,
+      "dense_recall": 1.0,
+      "bm25_recall": 1.0,
+      "union_recall": 1.0,
+      "union_missed_gold": [],
+      "current_equals_bm25": true,
+      "candidate_equals_dense": true,
+      "ideal_five_from_union_recall": 1.0
+    },
+    {
+      "case_id": "717ca9138f07b4621887812f47499d74<::>2",
+      "domain": "clapnq",
+      "gold_count": 3,
+      "dense_recall": 0.6666666666666666,
+      "bm25_recall": 0.6666666666666666,
+      "union_recall": 0.6666666666666666,
+      "union_missed_gold": [
+        "mtrag:clapnq:826231264_3925-4979-0-1053"
+      ],
+      "current_equals_bm25": true,
+      "candidate_equals_dense": true,
+      "ideal_five_from_union_recall": 0.6666666666666666
+    },
+    {
+      "case_id": "91204c45fc829e328f9a3643d9dd4c2b<::>1",
+      "domain": "clapnq",
+      "gold_count": 3,
+      "dense_recall": 1.0,
+      "bm25_recall": 0.3333333333333333,
+      "union_recall": 1.0,
+      "union_missed_gold": [],
+      "current_equals_bm25": true,
+      "candidate_equals_dense": true,
+      "ideal_five_from_union_recall": 1.0
+    },
+    {
+      "case_id": "fd99b316e5e64f19ff938598aea9b285<::>2",
+      "domain": "clapnq",
+      "gold_count": 2,
+      "dense_recall": 0.0,
+      "bm25_recall": 0.0,
+      "union_recall": 0.0,
+      "union_missed_gold": [
+        "mtrag:clapnq:822349642_58247-58657-0-410",
+        "mtrag:clapnq:864952571_491-1122-0-631"
+      ],
+      "current_equals_bm25": true,
+      "candidate_equals_dense": true,
+      "ideal_five_from_union_recall": 0.0
+    },
+    {
+      "case_id": "f5a8ca2f2bc12180940167fb920bb018<::>5",
+      "domain": "cloud",
+      "gold_count": 3,
+      "dense_recall": 0.6666666666666666,
+      "bm25_recall": 0.0,
+      "union_recall": 0.6666666666666666,
+      "union_missed_gold": [
+        "mtrag:cloud:ibmcld_03049-7-1790"
+      ],
+      "current_equals_bm25": true,
+      "candidate_equals_dense": true,
+      "ideal_five_from_union_recall": 0.6666666666666666
+    },
+    {
+      "case_id": "f3a917e029970190be5ee508ba770d7f<::>3",
+      "domain": "cloud",
+      "gold_count": 2,
+      "dense_recall": 0.5,
+      "bm25_recall": 0.0,
+      "union_recall": 0.5,
+      "union_missed_gold": [
+        "mtrag:cloud:ibmcld_05980-10127-11813"
+      ],
+      "current_equals_bm25": true,
+      "candidate_equals_dense": true,
+      "ideal_five_from_union_recall": 0.5
+    },
+    {
+      "case_id": "be461bfeda2d4826cdb663dcaa7d1ced<::>3",
+      "domain": "cloud",
+      "gold_count": 3,
+      "dense_recall": 0.6666666666666666,
+      "bm25_recall": 0.6666666666666666,
+      "union_recall": 0.6666666666666666,
+      "union_missed_gold": [
+        "mtrag:cloud:ibmcld_11770-14487-16386"
+      ],
+      "current_equals_bm25": true,
+      "candidate_equals_dense": true,
+      "ideal_five_from_union_recall": 0.6666666666666666
+    },
+    {
+      "case_id": "34ac6bedd4b35167cc59e289893e206a<::>5",
+      "domain": "cloud",
+      "gold_count": 3,
+      "dense_recall": 0.3333333333333333,
+      "bm25_recall": 0.0,
+      "union_recall": 0.3333333333333333,
+      "union_missed_gold": [
+        "mtrag:cloud:ibmcld_14293-3-1284",
+        "mtrag:cloud:ibmcld_14497-7-1724"
+      ],
+      "current_equals_bm25": true,
+      "candidate_equals_dense": true,
+      "ideal_five_from_union_recall": 0.3333333333333333
+    },
+    {
+      "case_id": "4175fcce99c56af0e02be5b8990fc16a<::>1",
+      "domain": "cloud",
+      "gold_count": 4,
+      "dense_recall": 0.25,
+      "bm25_recall": 0.5,
+      "union_recall": 0.5,
+      "union_missed_gold": [
+        "mtrag:cloud:ibmcld_15007-13930-15825",
+        "mtrag:cloud:ibmcld_15926-1517-3367"
+      ],
+      "current_equals_bm25": true,
+      "candidate_equals_dense": true,
+      "ideal_five_from_union_recall": 0.5
+    },
+    {
+      "case_id": "81afaf82a0d9a5fad6eaa196f8d9641c<::>9",
+      "domain": "cloud",
+      "gold_count": 3,
+      "dense_recall": 0.0,
+      "bm25_recall": 0.0,
+      "union_recall": 0.0,
+      "union_missed_gold": [
+        "mtrag:cloud:ibmcld_07502-5502-7788",
+        "mtrag:cloud:ibmcld_10898-7-2339",
+        "mtrag:cloud:ibmcld_12523-0-1829"
+      ],
+      "current_equals_bm25": true,
+      "candidate_equals_dense": true,
+      "ideal_five_from_union_recall": 0.0
+    },
+    {
+      "case_id": "c01c8cf11437e6bb3bc93efac26528c2<::>4",
+      "domain": "cloud",
+      "gold_count": 3,
+      "dense_recall": 0.6666666666666666,
+      "bm25_recall": 1.0,
+      "union_recall": 1.0,
+      "union_missed_gold": [],
+      "current_equals_bm25": true,
+      "candidate_equals_dense": true,
+      "ideal_five_from_union_recall": 1.0
+    },
+    {
+      "case_id": "1065ea5ad1ae2b90e6fce67d851a7a66<::>5",
+      "domain": "cloud",
+      "gold_count": 4,
+      "dense_recall": 1.0,
+      "bm25_recall": 0.25,
+      "union_recall": 1.0,
+      "union_missed_gold": [],
+      "current_equals_bm25": true,
+      "candidate_equals_dense": true,
+      "ideal_five_from_union_recall": 1.0
+    },
+    {
+      "case_id": "9c52934a9aea1c3647d4b558d8afdf1c<::>9",
+      "domain": "fiqa",
+      "gold_count": 7,
+      "dense_recall": 0.2857142857142857,
+      "bm25_recall": 0.0,
+      "union_recall": 0.2857142857142857,
+      "union_missed_gold": [
+        "mtrag:fiqa:106817-0-1205",
+        "mtrag:fiqa:404295-0-1628",
+        "mtrag:fiqa:409150-0-251",
+        "mtrag:fiqa:448718-0-1162",
+        "mtrag:fiqa:474402-0-543"
+      ],
+      "current_equals_bm25": true,
+      "candidate_equals_dense": true,
+      "ideal_five_from_union_recall": 0.2857142857142857
+    },
+    {
+      "case_id": "4a8369b7403e54df94d7fa495a4eff27<::>2",
+      "domain": "fiqa",
+      "gold_count": 4,
+      "dense_recall": 0.75,
+      "bm25_recall": 0.75,
+      "union_recall": 0.75,
+      "union_missed_gold": [
+        "mtrag:fiqa:434596-0-1187"
+      ],
+      "current_equals_bm25": true,
+      "candidate_equals_dense": true,
+      "ideal_five_from_union_recall": 0.75
+    },
+    {
+      "case_id": "f0d30863222ebd30fc68c43ac3ae94bb<::>6",
+      "domain": "fiqa",
+      "gold_count": 1,
+      "dense_recall": 1.0,
+      "bm25_recall": 1.0,
+      "union_recall": 1.0,
+      "union_missed_gold": [],
+      "current_equals_bm25": true,
+      "candidate_equals_dense": true,
+      "ideal_five_from_union_recall": 1.0
+    },
+    {
+      "case_id": "258193fc88e0e73322e288aa03719260<::>3",
+      "domain": "fiqa",
+      "gold_count": 3,
+      "dense_recall": 0.3333333333333333,
+      "bm25_recall": 0.3333333333333333,
+      "union_recall": 0.3333333333333333,
+      "union_missed_gold": [
+        "mtrag:fiqa:132881-0-550",
+        "mtrag:fiqa:158968-0-1416"
+      ],
+      "current_equals_bm25": true,
+      "candidate_equals_dense": true,
+      "ideal_five_from_union_recall": 0.3333333333333333
+    },
+    {
+      "case_id": "61374b240d5742f957706d00f9ed0dd6<::>7",
+      "domain": "fiqa",
+      "gold_count": 3,
+      "dense_recall": 1.0,
+      "bm25_recall": 0.3333333333333333,
+      "union_recall": 1.0,
+      "union_missed_gold": [],
+      "current_equals_bm25": true,
+      "candidate_equals_dense": true,
+      "ideal_five_from_union_recall": 1.0
+    },
+    {
+      "case_id": "1c74814752c3f9d4ed0b99c16e1ed192<::>4",
+      "domain": "fiqa",
+      "gold_count": 4,
+      "dense_recall": 0.25,
+      "bm25_recall": 0.0,
+      "union_recall": 0.25,
+      "union_missed_gold": [
+        "mtrag:fiqa:478388-0-530",
+        "mtrag:fiqa:555102-0-912",
+        "mtrag:fiqa:599015-0-504"
+      ],
+      "current_equals_bm25": true,
+      "candidate_equals_dense": true,
+      "ideal_five_from_union_recall": 0.25
+    },
+    {
+      "case_id": "8040ccdfc0a0ffb8e3f82d94f92ddb5c<::>2",
+      "domain": "fiqa",
+      "gold_count": 4,
+      "dense_recall": 0.75,
+      "bm25_recall": 0.0,
+      "union_recall": 0.75,
+      "union_missed_gold": [
+        "mtrag:fiqa:539007-0-594"
+      ],
+      "current_equals_bm25": true,
+      "candidate_equals_dense": true,
+      "ideal_five_from_union_recall": 0.75
+    },
+    {
+      "case_id": "e9dd465e8dd63a80dda8f3ce9cba6848<::>7",
+      "domain": "fiqa",
+      "gold_count": 2,
+      "dense_recall": 0.0,
+      "bm25_recall": 0.0,
+      "union_recall": 0.0,
+      "union_missed_gold": [
+        "mtrag:fiqa:241308-0-414",
+        "mtrag:fiqa:558617-0-616"
+      ],
+      "current_equals_bm25": true,
+      "candidate_equals_dense": true,
+      "ideal_five_from_union_recall": 0.0
+    },
+    {
+      "case_id": "94d04f2cd47fee9a0aaa13fa3ae1de53<::>6",
+      "domain": "fiqa",
+      "gold_count": 2,
+      "dense_recall": 0.0,
+      "bm25_recall": 0.0,
+      "union_recall": 0.0,
+      "union_missed_gold": [
+        "mtrag:fiqa:229054-0-440",
+        "mtrag:fiqa:36366-1678-3648"
+      ],
+      "current_equals_bm25": true,
+      "candidate_equals_dense": true,
+      "ideal_five_from_union_recall": 0.0
+    },
+    {
+      "case_id": "72ba19c38518da1fc894fc638a2802f7<::>3",
+      "domain": "govt",
+      "gold_count": 3,
+      "dense_recall": 1.0,
+      "bm25_recall": 1.0,
+      "union_recall": 1.0,
+      "union_missed_gold": [],
+      "current_equals_bm25": true,
+      "candidate_equals_dense": true,
+      "ideal_five_from_union_recall": 1.0
+    },
+    {
+      "case_id": "04f83f1199c7ce4d7bef50be70f2db73<::>3",
+      "domain": "govt",
+      "gold_count": 2,
+      "dense_recall": 1.0,
+      "bm25_recall": 1.0,
+      "union_recall": 1.0,
+      "union_missed_gold": [],
+      "current_equals_bm25": true,
+      "candidate_equals_dense": true,
+      "ideal_five_from_union_recall": 1.0
+    },
+    {
+      "case_id": "2f484ad8f3baf91136f040855892c82e<::>6",
+      "domain": "govt",
+      "gold_count": 2,
+      "dense_recall": 0.5,
+      "bm25_recall": 0.0,
+      "union_recall": 0.5,
+      "union_missed_gold": [
+        "mtrag:govt:6e52d5b809f037b2-2126-4106"
+      ],
+      "current_equals_bm25": true,
+      "candidate_equals_dense": true,
+      "ideal_five_from_union_recall": 0.5
+    },
+    {
+      "case_id": "e52ab8d5f61ccdfc3712a2608d8c2aba<::>7",
+      "domain": "govt",
+      "gold_count": 3,
+      "dense_recall": 1.0,
+      "bm25_recall": 0.6666666666666666,
+      "union_recall": 1.0,
+      "union_missed_gold": [],
+      "current_equals_bm25": true,
+      "candidate_equals_dense": true,
+      "ideal_five_from_union_recall": 1.0
+    },
+    {
+      "case_id": "af57ff6995d958858fc451e606fdb54d<::>8",
+      "domain": "govt",
+      "gold_count": 4,
+      "dense_recall": 0.0,
+      "bm25_recall": 0.0,
+      "union_recall": 0.0,
+      "union_missed_gold": [
+        "mtrag:govt:2ac77ebdc937d7df-7543-9456",
+        "mtrag:govt:50a18d4423f7a219-263-2449",
+        "mtrag:govt:927e8c4b785ff2b4-2535-4782",
+        "mtrag:govt:927e8c4b785ff2b4-733-3007"
+      ],
+      "current_equals_bm25": true,
+      "candidate_equals_dense": true,
+      "ideal_five_from_union_recall": 0.0
+    },
+    {
+      "case_id": "5f9ccf0a4ff691fc482432af64cc3c9d<::>2",
+      "domain": "govt",
+      "gold_count": 5,
+      "dense_recall": 0.6,
+      "bm25_recall": 0.8,
+      "union_recall": 0.8,
+      "union_missed_gold": [
+        "mtrag:govt:37b460a856376278-7120-9267"
+      ],
+      "current_equals_bm25": true,
+      "candidate_equals_dense": true,
+      "ideal_five_from_union_recall": 0.8
+    },
+    {
+      "case_id": "2cc753bcef23767c18aedad06c4405c4<::>3",
+      "domain": "govt",
+      "gold_count": 2,
+      "dense_recall": 0.5,
+      "bm25_recall": 0.5,
+      "union_recall": 0.5,
+      "union_missed_gold": [
+        "mtrag:govt:97a1e0156fea0a8a-0-2188"
+      ],
+      "current_equals_bm25": true,
+      "candidate_equals_dense": true,
+      "ideal_five_from_union_recall": 0.5
+    },
+    {
+      "case_id": "766728e82e315ca65d97b6b162faea0c<::>1",
+      "domain": "govt",
+      "gold_count": 3,
+      "dense_recall": 1.0,
+      "bm25_recall": 0.6666666666666666,
+      "union_recall": 1.0,
+      "union_missed_gold": [],
+      "current_equals_bm25": true,
+      "candidate_equals_dense": true,
+      "ideal_five_from_union_recall": 1.0
+    },
+    {
+      "case_id": "124e27c3861eff7dadd17993719a0beb<::>1",
+      "domain": "govt",
+      "gold_count": 3,
+      "dense_recall": 1.0,
+      "bm25_recall": 0.0,
+      "union_recall": 1.0,
+      "union_missed_gold": [],
+      "current_equals_bm25": true,
+      "candidate_equals_dense": true,
+      "ideal_five_from_union_recall": 1.0
+    }
+  ]
+}
