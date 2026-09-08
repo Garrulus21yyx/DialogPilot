@@ -325,3 +325,7 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 - 公共证据→上下文准入预注册：复用MTRAG32三权重96份pack及官方input历史；通过当前TargetFrameworkAgent任务构造、实际工具Schema开销、持久化和ContextCompaction进行零LLM重放，14200可用预算不变。query/pack冻结，不让模型重新规划，空响应本地fake不允许假造summary成功。报告完整inline数及原qrel下可见Recall/MRR/nDCG；预算/summary失败单列，不能当答案错误。目的确认原pack收益在新上下文边界是否保留，不跑新策略/训练/API。
 
 - MTRAG上下文重放完成：32题×3配置96份pack全部完整inline、0准入错误；含官方input历史、实际任务/工具schema开销，14200预算不变。原qrel可见Recall@5 .421875/.471354/.5，MRR .486979/.525521/.525521，nDCG .407716/.444363/.458315，和原pack结果完全一致。这是已有检索/精排收益穿过当前上下文边界的验证，不是新模型答案收益，也不是模型实际回答。初次at5需要set而传list的评分脚本错误已修正；无API/新模型评分。产物rag-mtrag-context-admission-2026-09-08。下一项固定均衡.5作为跨数据候选，在中文20开发集补同本地CE与pack重放，与已有MTRAG结果并列；生产默认保持.25，微调/动态权重/新chunk策略不启动，未通过本地筛选不增加Flash费用。
+
+- 中文均衡权重CE/pack预注册：20个scoped开发query，已保存两路各20，最终20，比较.25与.5，k10不变。本地预训练bge-reranker-v2-m3当前LocalKnowledgeReranker输入格式（title+content、不截断、FP16 batch4），每题两臂候选并集仅打分一次，最多800pair，无微调/API。按同一分数表恢复各臂tie输入顺序；pack5/2600固定，报告CE与pack span完整覆盖、源文档MRR/nDCG及救回误伤，sourcehash/modelidentity保存。中文结果为开发跨数据回归，不与MTRAG分数直接混算，不代表Flash精排或最终答案收益。
+
+- 中文均衡融合本地验证完成：20题，两臂各20候选位置上限800，实际唯一pair441；同分数恢复.25/.5精排，CE Top5及pack5/2600完整span均20/20，docMRR/nDCG均1，救回0误伤0。441分数有限、pack/CE/scored ID集合关系核对通过。无API/embedding/微调。不能外推Flash或答案；MTRAG旧输入是passage原text，本轮当前本地端口是title+content，跨数据绝对分数不混算。生产默认保持.25。报告docs/rag-balanced-local20-2026-09-08.zh-CN.md。下一项第三类WixQA本地快照/已消费分组审计，固定.25/.5与一致精排格式做公共补验；先核对可用标注再运行，不将旧数据包装fresh。

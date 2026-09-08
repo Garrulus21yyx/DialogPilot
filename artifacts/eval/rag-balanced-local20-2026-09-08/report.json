@@ -1,0 +1,46 @@
+{
+  "cases": 20,
+  "api_calls": 0,
+  "unique_pairs": 441,
+  "summary": {
+    "0.25": {
+      "ce5": {
+        "span_recall": 1,
+        "all_spans": 1,
+        "document_mrr": 1.0,
+        "document_ndcg": 1.0
+      },
+      "pack5": {
+        "span_recall": 1,
+        "all_spans": 1,
+        "document_mrr": 1.0,
+        "document_ndcg": 1.0
+      }
+    },
+    "0.5": {
+      "ce5": {
+        "span_recall": 1,
+        "all_spans": 1,
+        "document_mrr": 1.0,
+        "document_ndcg": 1.0
+      },
+      "pack5": {
+        "span_recall": 1,
+        "all_spans": 1,
+        "document_mrr": 1.0,
+        "document_ndcg": 1.0
+      }
+    }
+  },
+  "paired": {
+    "ce5": {
+      "better": 0,
+      "worse": 0
+    },
+    "pack5": {
+      "better": 0,
+      "worse": 0
+    }
+  },
+  "limits": "Synthetic development, local reranker; not Flash or final answer quality."
+}
