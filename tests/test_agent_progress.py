@@ -28,7 +28,7 @@ def test_stagnation_gets_feedback_then_a_bounded_recovery_chance(recover):
     calls = []
     model = Model(responses=[read("r1"), read("r2"), read("r3"),
         AIMessage(content="The catalog identifies PX-200.") if recover else read("r4")])
-    agent = TargetFrameworkAgent(model, _manager(calls), result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"), system_prompt="Assist.")
+    agent = TargetFrameworkAgent(model, _manager(calls), review_model=model, review_available_tokens=14200, result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"), system_prompt="Assist.")
     result = asyncio.run(agent(_context(replace(_item(), max_steps=10))))
     assert model.calls == 4
     assert len(calls) == (3 if recover else 4)
@@ -47,7 +47,7 @@ def test_changing_evidence_is_progress_even_for_identical_calls():
         return {"canonical_model": f"P-{len(calls)}"}
     manager.registered_tools[0].handler = changing
     model = ScriptedToolModel(responses=[*[read(f"r{i}") for i in range(6)], AIMessage(content="Latest result recorded.")])
-    result = asyncio.run(TargetFrameworkAgent(model, manager, result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"), system_prompt="Assist.")(
+    result = asyncio.run(TargetFrameworkAgent(model, manager, review_model=model, review_available_tokens=14200, result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"), system_prompt="Assist.")(
             _context(replace(_item(), max_steps=10))))
     assert result.status is AgentResultStatus.SUCCEEDED
     assert len(calls) == 6
@@ -61,7 +61,7 @@ def test_later_model_failure_retains_tool_evidence_and_actionable_continuation(e
                 raise error
             return super()._generate(messages, stop=stop, run_manager=run_manager, **kwargs)
     calls = []
-    result = asyncio.run(TargetFrameworkAgent(Model(responses=[read("completed")]), _manager(calls), result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"), system_prompt="Assist.")(_context()))
+    result = asyncio.run(TargetFrameworkAgent(Model(responses=[read("completed")]), _manager(calls), review_model=Model(responses=[read("completed")]), review_available_tokens=14200, result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"), system_prompt="Assist.")(_context()))
     assert result.retryable is retryable
     assert result.facts[0].source_ref == "completed"
     assert result.candidate_response is None
@@ -78,7 +78,7 @@ def test_later_model_failure_retains_tool_evidence_and_actionable_continuation(e
             return super()._generate(messages, stop=stop, run_manager=run_manager, **kwargs)
     context = replace(_context(), working_messages=result.working_messages, verified_facts=result.facts)
     completed = asyncio.run(TargetFrameworkAgent(Resumed(responses=[AIMessage(content="PX-200 is identified.")]),
-        _manager(calls), result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"), system_prompt="Assist.")(context))
+        _manager(calls), review_model=Resumed(responses=[AIMessage(content="PX-200 is identified.")]), review_available_tokens=14200, result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"), system_prompt="Assist.")(context))
     assert completed.status is AgentResultStatus.SUCCEEDED
     assert len(calls) == 1
     assert any(isinstance(m, ToolMessage) and m.tool_call_id == "completed" for m in seen)

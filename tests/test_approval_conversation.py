@@ -44,7 +44,7 @@ def domain(responses):
                    allowed_tools=("order_lookup",), allowed_actions=(action.ref,), arguments=(),
                    requirement_ids=(), registry_fingerprint=registry.fingerprint, max_steps=8)
     model = ScriptedToolModel(responses=responses)
-    return TargetFrameworkAgent(model, tools, result_store=InMemoryStore(), registry=registry, system_prompt="Assist."), _context(item), model, calls
+    return TargetFrameworkAgent(model, tools, review_model=model, review_available_tokens=14200, result_store=InMemoryStore(), registry=registry, system_prompt="Assist."), _context(item), model, calls
 
 
 def call(name, ident="proposal"):

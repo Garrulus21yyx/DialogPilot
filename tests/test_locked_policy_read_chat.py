@@ -66,9 +66,10 @@ def test_locked_refund_eligibility_uses_two_authoritative_reads(
                 if self.calls < 2:
                     return super()._generate(messages, stop, run_manager, **kwargs)
                 self.calls += 1
-                # Render observed artifacts, never expected_outcome or seeded eligibility.
+                # Consume model-visible results. Artifacts are archive references,
+                # not a second copy of the business payload.
                 payload = {
-                    message.name: message.artifact["result"]["data"]
+                    message.name: json.loads(message.content)
                     for message in messages if isinstance(message, ToolMessage)
                 }
                 return ChatResult(generations=[ChatGeneration(message=AIMessage(
@@ -80,7 +81,14 @@ def test_locked_refund_eligibility_uses_two_authoritative_reads(
             "id": f"read-{index}",
         }]) for index, name in enumerate(("order_lookup", "refund_eligibility_check"))])
         registry = build_default_capability_registry(tenant)
-        worker = TargetFrameworkAgent(model, tools, result_store=InMemoryStore(), registry=registry, system_prompt="核验退款资格。")
+        worker = TargetFrameworkAgent(model, tools, review_model=model, review_available_tokens=14200, result_store=InMemoryStore(), registry=registry, system_prompt="核验退款资格。")
+        results = []
+
+        async def observed_worker(context):
+            result = await worker(context)
+            results.append(result)
+            return result
+
         planning_calls = []
 
         async def understanding(observations, state, deterministic, registry, turn_context):
@@ -100,7 +108,7 @@ def test_locked_refund_eligibility_uses_two_authoritative_reads(
             manager=TargetConversationManager(
                 state_store=state_store, registry=registry, understanding=understanding,
                 orchestration=OrchestrationRuntime(
-                    direct_executor=forbidden, domain_workers={"billing_refund": worker},
+                    direct_executor=forbidden, domain_workers={"billing_refund": observed_worker},
                 ),
             ),
             admission=PostgresTargetAdmission(pool),
@@ -117,18 +125,22 @@ def test_locked_refund_eligibility_uses_two_authoritative_reads(
         assert first.score_eligible is False
         assert replay.outcome.response_id == first.outcome.response_id
         response = first.outcome.response
-        payload = json.loads(response["response"])
+        # This is a read/provenance fixture, not a composed-answer evaluation.
+        # Worker notes are no longer passed through as the public response.
+        result, = results
+        payload = {fact.requirement_id: json.loads(fact.value_json) for fact in result.facts}
         expected = case["expected_outcome"]["expected_business_state"]
-        assert payload["order_lookup"]["order_id"] == expected["order_id"]
-        assert payload["order_lookup"]["status"] == expected["status"]
-        assert payload["refund_eligibility_check"]["order_id"] == expected["order_id"]
-        assert payload["refund_eligibility_check"]["reason_code"] == expected["refund_eligibility"]
+        assert payload["order.current_state"]["order_id"] == expected["order_id"]
+        assert payload["order.current_state"]["status"] == expected["status"]
+        assert payload["refund.eligibility"]["order_id"] == expected["order_id"]
+        assert payload["refund.eligibility"]["reason_code"] == expected["refund_eligibility"]
+        assert response["response"] and response["response"] != result.candidate_response
         assert [record.tool_name for record in tools.audit_records()] == [
             "order_lookup", "refund_eligibility_check",
         ]
         assert all(record.read_only for record in tools.audit_records())
         assert response["coverage"]["complete"] is True
-        assert response["verification_status"] == "pass"
+        assert response["verification_status"] == "not_checked"  # No reply verifier in this fixture.
         assert len(response["task_plan"]["work_item_ids"]) == 1
         assert len(planning_calls) == 1
         assert model.calls == 3

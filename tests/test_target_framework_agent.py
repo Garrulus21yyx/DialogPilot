@@ -101,7 +101,7 @@ def test_memory_tool_receives_runtime_identity_and_returns_episode_provenance():
         objective="查找此前的登录故障处理记录",
     )
     agent = TargetFrameworkAgent(
-        model, manager, result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"),
+        model, manager, review_model=model, review_available_tokens=14200, result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"),
         system_prompt="Use historical service evidence for this objective.",
     )
     result = asyncio.run(agent(_context(item)))
@@ -147,7 +147,7 @@ def test_domain_input_resume_reuses_progress_after_postgres_checkpoint_reopen(po
     async def run():
         owner = AsyncPostgresCheckpointOwner(postgres_database_url, setup=True)
         async with owner as saver:
-            agent = TargetFrameworkAgent(model, _manager(calls), result_store=owner.store,
+            agent = TargetFrameworkAgent(model, _manager(calls), review_model=model, review_available_tokens=14200, result_store=owner.store,
                 registry=build_default_capability_registry("tenant-a"), system_prompt="Assist with this objective.")
             runtime = OrchestrationRuntime(direct_executor=agent,
                 domain_workers={original.owner_agent: agent}, checkpointer=saver)
@@ -157,7 +157,7 @@ def test_domain_input_resume_reuses_progress_after_postgres_checkpoint_reopen(po
             assert board.results[0].status is AgentResultStatus.NEEDS_USER_INPUT
         owner = AsyncPostgresCheckpointOwner(postgres_database_url, setup=True)
         async with owner as saver:
-            agent = TargetFrameworkAgent(model, _manager(calls), result_store=owner.store,
+            agent = TargetFrameworkAgent(model, _manager(calls), review_model=model, review_available_tokens=14200, result_store=owner.store,
                 registry=build_default_capability_registry("tenant-a"), system_prompt="Assist with this objective.")
             runtime = OrchestrationRuntime(direct_executor=agent,
                 domain_workers={original.owner_agent: agent}, checkpointer=saver)
@@ -282,7 +282,7 @@ def test_framework_keeps_user_input_out_of_system_policy(attack):
     calls = []
     model = InspectingModel(responses=[AIMessage(content="需要查询商品依据。")])
     agent = TargetFrameworkAgent(
-        model, _manager(calls), result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"),
+        model, _manager(calls), review_model=model, review_available_tokens=14200, result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"),
         system_prompt="You are an ecommerce specialist.",
     )
     asyncio.run(agent(replace(_context(), current_message=attack)))
@@ -310,7 +310,7 @@ def test_framework_agent_uses_only_governed_tools_and_returns_provenance():
     ])
     agent = TargetFrameworkAgent(
         model,
-        manager, result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"),
+        manager, review_model=model, review_available_tokens=14200, result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"),
         system_prompt="You are a general ecommerce product specialist.",
     )
 
@@ -331,7 +331,7 @@ def test_framework_agent_rejects_invalid_envelope_before_model_or_tool():
     model = ScriptedToolModel(responses=[AIMessage(content="不应调用")])
     agent = TargetFrameworkAgent(
         model,
-        _manager(calls), result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"),
+        _manager(calls), review_model=model, review_available_tokens=14200, result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"),
         system_prompt="product",
     )
 
@@ -348,7 +348,7 @@ def test_framework_agent_enforces_context_budget_before_model_or_tool():
     model = ScriptedToolModel(responses=[AIMessage(content="不应调用")])
     agent = TargetFrameworkAgent(
         model,
-        _manager(calls), result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"),
+        _manager(calls), review_model=model, review_available_tokens=14200, result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"),
         system_prompt="product",
         context_budget=ContextBudgetManager(
             context_window_tokens=300,
@@ -380,7 +380,7 @@ def test_pinned_skill_bypasses_framework_replanning():
     model = ScriptedToolModel(responses=[AIMessage(content="不应调用")])
     agent = TargetFrameworkAgent(
         model,
-        _manager([]), result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"),
+        _manager([]), review_model=model, review_available_tokens=14200, result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"),
         system_prompt="product",
         skill_executors={"product_identification": skill},
     )
@@ -423,7 +423,7 @@ def test_open_goal_can_choose_optional_composite_skill():
     ])
     agent = TargetFrameworkAgent(
         model,
-        _manager([]), result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"),
+        _manager([]), review_model=model, review_available_tokens=14200, result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"),
         system_prompt="product",
         skill_executors={"product_identification": skill},
     )
@@ -456,7 +456,7 @@ def test_all_domains_use_the_same_governed_loop(owner, runtime_agent):
         }]),
         AIMessage(content="PX-200"),
     ])
-    agent = TargetFrameworkAgent(model, manager, result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"), system_prompt=owner)
+    agent = TargetFrameworkAgent(model, manager, review_model=model, review_available_tokens=14200, result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"), system_prompt=owner)
     result = asyncio.run(agent(_context(replace(_item(), owner_agent=owner))))
     assert result.status is AgentResultStatus.SUCCEEDED
     assert result.owner_agent == owner
@@ -482,7 +482,7 @@ def test_revision_during_model_call_blocks_its_tool_calls(monkeypatch):
     model = ScriptedToolModel(responses=[AIMessage(content="", tool_calls=[{
         "name": "catalog_search", "args": {"query": "old"}, "id": "old-call",
     }])])
-    agent = TargetFrameworkAgent(model, _manager(calls), result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"), system_prompt="product",
+    agent = TargetFrameworkAgent(model, _manager(calls), review_model=model, review_available_tokens=14200, result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"), system_prompt="product",
         control_guard=WorkControlGuard(store))
     result = asyncio.run(agent(_context(item)))
     assert result.status is AgentResultStatus.SUPERSEDED
@@ -495,7 +495,7 @@ def test_model_loop_budget_counts_calls_not_graph_nodes():
     model = ScriptedToolModel(responses=[AIMessage(content="", tool_calls=[{
         "name": "catalog_search", "args": {"query": "current"}, "id": "call-1",
     }])])
-    agent = TargetFrameworkAgent(model, _manager(calls), result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"), system_prompt="product")
+    agent = TargetFrameworkAgent(model, _manager(calls), review_model=model, review_available_tokens=14200, result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"), system_prompt="product")
     result = asyncio.run(agent(_context(replace(_item(), max_steps=1))))
     assert result.reason_code == "AGENT_STEP_BUDGET_EXCEEDED"
     assert model.calls == 1
@@ -504,7 +504,7 @@ def test_model_loop_budget_counts_calls_not_graph_nodes():
 
 def test_agent_text_does_not_satisfy_business_fact_requirements():
     model = ScriptedToolModel(responses=[AIMessage(content="我猜型号是 PX-200")])
-    agent = TargetFrameworkAgent(model, _manager([]), result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"), system_prompt="product")
+    agent = TargetFrameworkAgent(model, _manager([]), review_model=model, review_available_tokens=14200, result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"), system_prompt="product")
     result = asyncio.run(agent(_context()))
     assert result.status is not AgentResultStatus.SUCCEEDED
     assert result.facts == ()
@@ -578,7 +578,7 @@ def test_postgres_subgraph_survives_process_exit_after_tool(postgres_database_ur
 
         owner = AsyncPostgresCheckpointOwner(postgres_database_url, setup=True)
         async with owner as saver:
-            agent = TargetFrameworkAgent(RecoveryModel(responses=[], crash=crash), manager,
+            agent = TargetFrameworkAgent(RecoveryModel(responses=[], crash=crash), manager, review_model=RecoveryModel(responses=[], crash=crash), review_available_tokens=14200,
                 result_store=owner.store, registry=build_default_capability_registry("tenant-a"), system_prompt="product")
             builder = StateGraph(dict)
             builder.add_node("worker", worker)

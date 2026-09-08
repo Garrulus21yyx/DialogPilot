@@ -184,7 +184,7 @@ def test_parallel_archive_failures_preserve_both_results_and_stop_segment():
     model = ScriptedToolModel(responses=[AIMessage(content="", tool_calls=[
         {"name": "catalog_search", "id": f"lookup-{i}", "args": {"query": str(i)}}
         for i in range(2)])])
-    agent = TargetFrameworkAgent(model, _manager(calls), result_store=Unavailable(),
+    agent = TargetFrameworkAgent(model, _manager(calls), review_model=model, review_available_tokens=14200, result_store=Unavailable(),
         registry=build_default_capability_registry("tenant-a"), system_prompt="Inspect only.")
     result = asyncio.run(agent(_context()))
     assert result.reason_code == "RESULT_ARCHIVE_UNAVAILABLE"
@@ -222,7 +222,7 @@ def test_long_result_can_be_read_without_reexecuting_tool_and_fact_is_complete()
                 result = AIMessage(content="Catalog lookup completed.")
             from langchain_core.outputs import ChatResult, ChatGeneration
             return ChatResult(generations=[ChatGeneration(message=result)])
-    agent = TargetFrameworkAgent(Model(responses=[]), manager, result_store=InMemoryStore(),
+    agent = TargetFrameworkAgent(Model(responses=[]), manager, review_model=Model(responses=[]), review_available_tokens=14200, result_store=InMemoryStore(),
         registry=build_default_capability_registry("tenant-a"), system_prompt="Inspect catalog.")
     result = asyncio.run(agent(_context()))
     assert result.status is AgentResultStatus.SUCCEEDED

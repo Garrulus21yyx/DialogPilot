@@ -136,10 +136,21 @@ async def build_target_runtime(
             tool_manager, control_guard=control_guard,
         )
         model = framework_model(worker_profile, provider_config)
+        review_profile = model_policy.profile(ModelRole.VERIFIER)
+        review_output_tokens = review_profile.request(max_tokens=4096)["max_tokens"]
+        review_budget = ContextBudgetManager(
+            context_window_tokens=min(review_profile.max_context_tokens,
+                int(os.getenv("MODEL_CONTEXT_WINDOW_TOKENS", "16000"))),
+            reserved_output_tokens=review_output_tokens,
+            protocol_reserve_tokens=int(os.getenv("CONTEXT_PROTOCOL_RESERVE_TOKENS", "600")),
+        )
+        review_model = framework_model(review_profile, provider_config, max_tokens=review_output_tokens)
         domain_workers = {
             agent.agent_id: TargetFrameworkAgent(
                 model,
                 tool_manager,
+                review_model=review_model,
+                review_available_tokens=review_budget.available_tokens,
                 result_store=checkpoint_owner.store,
                 result_subject_fence=PostgresConversationDeletionRepository(postgres_pool).fence,
                 registry=registry,
@@ -192,8 +203,8 @@ async def build_target_runtime(
         # tool-only environments. Callers may inject a verifier, not omit it.
         if knowledge_verifier is None:
             knowledge_verifier = AnswerVerifier(
-                model_client=framework_model(model_policy.profile(ModelRole.VERIFIER), provider_config, max_tokens=4096),
-                model_profile=model_policy.profile(ModelRole.VERIFIER),
+                model_client=review_model,
+                model_profile=review_profile,
                 callbacks=(langfuse_sink.callback(),) if langfuse_sink else (),
             )
         assembler = ResponseAssembler(conversation_agent,

@@ -152,7 +152,8 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
                 self.results.append(result)
                 return result
 
-        domain = ObservedDomain(model, tools, result_store=InMemoryStore(), registry=registry, system_prompt=owner.description)
+        domain = ObservedDomain(model, tools, review_model=model, review_available_tokens=14200,
+                                result_store=InMemoryStore(), registry=registry, system_prompt=owner.description)
         PostgresMigrationRunner(postgres_database_url).upgrade()
         pool = PostgresPool(PostgresPoolConfig(postgres_database_url, min_size=1, max_size=4))
         pool.open()

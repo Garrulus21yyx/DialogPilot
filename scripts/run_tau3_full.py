@@ -104,6 +104,9 @@ async def run(args):
                 "configuration": "Target production application, one registered retail domain, encoder disabled",
                 "max_steps": args.max_steps, "max_model_calls_per_work_item": 20,
                 "max_domain_outcome_reviews_per_segment": InteractionBoundaryMiddleware.max_review_calls,
+                "domain_outcome_review_profile": policy.profile(ModelRole.VERIFIER).to_dict(),
+                "domain_outcome_review_max_tokens": policy.profile(ModelRole.VERIFIER).request(max_tokens=4096)["max_tokens"],
+                "domain_outcome_review_scope": ["COMPLETE", "NEEDS_USER_INPUT", "BLOCKED", "PREPARE_ACTION"],
                 "model_context_budget": 64000, "worker_profile": profile.to_dict(),
                 "user_model": args.user_model, "seed": 300,
                 "user_thinking": "disabled",
@@ -168,6 +171,13 @@ async def run(args):
                                     policy.profile(ModelRole.VERIFIER), {"api_key": values["ANTHROPIC_API_KEY"], "base_url": policy.base_url}, max_tokens=4096),
                                 model_profile=policy.profile(ModelRole.VERIFIER),
                                 callbacks=(langfuse_sink.callback(),) if langfuse_sink else ()), agent.trace))
+                        manifest["domain_outcome_review_available_tokens"] = {
+                            owner: worker._review_available_tokens
+                            for owner, worker in components.orchestration._domain_workers.items()
+                        }
+                        manifest["context_protocol_reserve_tokens"] = int(os.getenv(
+                            "CONTEXT_PROTOCOL_RESERVE_TOKENS", "600"))
+                        write(args.output / "manifest.json", manifest)
                         agent.configure(components, pool, framework_model(profile,
                             {"api_key": values["ANTHROPIC_API_KEY"], "base_url": policy.base_url},
                             max_tokens=200), callbacks=(langfuse_sink.callback(),) if langfuse_sink else ())

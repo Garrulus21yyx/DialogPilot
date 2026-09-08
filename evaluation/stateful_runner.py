@@ -732,7 +732,7 @@ async def _react_max_steps(case: FixtureRequest) -> FixtureEvidence:
     registry = replace(registry, tools=(*registry.tools, replace(registry.tool("order_lookup"), tool_id="lookup")),
         agents=tuple(replace(agent, allowed_tool_ids=(*agent.allowed_tool_ids, "lookup"))
                      if agent.agent_id == "general" else agent for agent in registry.agents))
-    agent = TargetFrameworkAgent(model, manager, result_store=InMemoryStore(), registry=registry, system_prompt="fixture")
+    agent = TargetFrameworkAgent(model, manager, review_model=model, review_available_tokens=14200, result_store=InMemoryStore(), registry=registry, system_prompt="fixture")
     item = WorkItem(
         work_item_id="bounded-loop", owner_agent="general", objective="lookup",
         control_mode=ControlMode.DELEGATED, allowed_tools=("lookup",), allowed_skills=(),

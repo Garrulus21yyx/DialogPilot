@@ -73,6 +73,8 @@ class TargetFrameworkAgent:
         model: Any,
         tool_manager: MCPToolManager,
         *,
+        review_model: Any,
+        review_available_tokens: int,
         result_store: BaseStore,
         result_subject_fence=None,
         registry: CapabilityRegistryBundle,
@@ -84,6 +86,8 @@ class TargetFrameworkAgent:
         trace_sink=None,
     ) -> None:
         self._model = model
+        self._review_model = review_model
+        self._review_available_tokens = review_available_tokens
         self._tool_manager = tool_manager
         self._registry = registry
         self._system_prompt = str(system_prompt).strip()
@@ -147,8 +151,8 @@ class TargetFrameworkAgent:
                 ToolResultPersistence(self._archive, max(256, self._context_budget.available_tokens // 5)),
                 InteractionBoundaryMiddleware(("prepare_" + tool_id for ref in item.allowed_actions
                     for tool_id in self._registry.action(ref).allowed_tool_ids),
-                    review=DomainOutcomeReview(self._model, callbacks=self._callbacks,
-                        available_tokens=self._context_budget.available_tokens,
+                    review=DomainOutcomeReview(self._review_model, callbacks=self._callbacks,
+                        available_tokens=self._review_available_tokens,
                         business_policy=self._system_prompt, tools=tools)),
                 AgentProgressMiddleware(),
                 ContextCompaction(self._model, self._archive,
@@ -481,7 +485,7 @@ class TargetFrameworkAgent:
         item = context.work_item
         payload = {
             "objective": item.objective,
-            "action_proposals_allowed": bool(item.allowed_actions),
+            "action_proposals_allowed": bool(item.allowed_actions) and context.pending_approval is None,
             "source_conversation": {"current_message": context.current_message},
             "arguments": {
                 argument.name: argument.value for argument in item.arguments

@@ -37,14 +37,16 @@ def test_official_handler_exports_model_tool_hierarchy_and_masked_content(struct
     ])
     calls = []
     try:
-        agent = TargetFrameworkAgent(model, _manager(calls), result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"),
+        agent = TargetFrameworkAgent(model, _manager(calls), review_model=model, review_available_tokens=14200, result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"),
             system_prompt="Use tools. password=private-password", callbacks=(CallbackHandler(public_key=key),))
         result = asyncio.run(agent(_context()))
         client.flush()
         spans = exporter.get_finished_spans()
         assert spans
         generations = [span for span in spans if span.attributes.get("langfuse.observation.type") == "generation"]
-        assert len(generations) == 2
+        assert len(generations) == 3  # Two actor calls and one goal assessment.
+        assert sum("proposed_outcome" in str(span.attributes.get("langfuse.observation.input", ""))
+                   for span in generations) == 1
         assert any(span.attributes.get("langfuse.observation.type") == "tool" for span in spans)
         assert any(span.name == "product_technical_agent" and span.attributes.get("langfuse.observation.type") == "agent"
                    for span in spans)

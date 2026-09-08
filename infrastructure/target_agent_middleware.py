@@ -112,16 +112,18 @@ class InteractionBoundaryMiddleware(AgentMiddleware):
                 content="No tools in this batch were executed. Make one interaction call, or perform evidence calls first and ask afterwards.",
                 tool_call_id=call["id"], name=call["name"], status="error") for call in calls],
                 "jump_to": "model"}
-        if calls and not (len(calls) == 1 and calls[0]["name"] in {"request_user_input", "report_blocked"}):
+        if calls and not proposals and not (len(calls) == 1 and calls[0]["name"] in {"request_user_input", "report_blocked"}):
             return None
         if prepared and not calls:
             # Preparation and approval are deterministic business authorities.
             # The conversation's existing answer check owns approval wording;
             # a second semantic gate here would duplicate that decision.
             return None
-        kind = ({"request_user_input": "NEEDS_USER_INPUT", "report_blocked": "BLOCKED"}[calls[0]["name"]]
+        kind = ("PREPARE_ACTION" if proposals else
+                {"request_user_input": "NEEDS_USER_INPUT", "report_blocked": "BLOCKED"}[calls[0]["name"]]
                 if calls else "COMPLETE")
-        candidate = calls[0]["args"] if calls else message.text
+        candidate = ({"tool": proposals[0]["name"], "arguments": proposals[0]["args"]}
+                     if proposals else calls[0]["args"] if calls else message.text)
         review_calls = state.get("outcome_review_calls", 0)
         if review_calls >= self.max_review_calls:
             raise DomainOutcomeRejected("domain_outcome_correction_budget_exhausted")
@@ -132,14 +134,14 @@ class InteractionBoundaryMiddleware(AgentMiddleware):
                   "accepted_outcome": {}}
         if assessment["accepted"]:
             return {**update, "accepted_outcome": {"kind": kind, "message_id": message.id,
-                "tool_call_id": calls[0]["id"] if calls else None}}
+                "tool_call_id": proposals[0]["id"] if proposals else calls[0]["id"] if calls else None}}
         if review_calls:
             # A typed failure is retained by the adapter; nothing is relabelled
             # complete and no rejected input tool gets a durable observation.
             raise DomainOutcomeRejected(assessment["feedback"])
         correction = "Internal task review (not a user reply or approval): " + assessment["feedback"]
         return {**update, "jump_to": "model", "messages": ([ToolMessage(
-            content=correction, tool_call_id=calls[0]["id"], name=calls[0]["name"], status="error")]
+            content=correction, tool_call_id=call["id"], name=call["name"], status="error") for call in calls]
             if calls else [HumanMessage(content=correction)])}
 
     @hook_config(can_jump_to=["end"])

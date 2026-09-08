@@ -83,7 +83,7 @@ def test_domain_failure_keeps_cause_completed_evidence_and_checkpoint(tracing, e
     calls = []
     model = Model(responses=[AIMessage(content="", tool_calls=[{
         "name": "catalog_search", "args": {"query": "product"}, "id": "lookup-completed"}])])
-    agent = TargetFrameworkAgent(model, _manager(calls), result_store=InMemoryStore(),
+    agent = TargetFrameworkAgent(model, _manager(calls), review_model=model, review_available_tokens=14200, result_store=InMemoryStore(),
         registry=build_default_capability_registry("tenant-a"), system_prompt="Assist.",
         callbacks=(sink.callback(),), trace_sink=sink)
     with sink.client.start_as_current_observation(name="attribution-turn"):
@@ -112,19 +112,35 @@ def test_real_composition_wires_every_domain_to_sdk_and_diagnostics(postgres_dat
     from infrastructure.target_runtime_composition import build_target_runtime
     import infrastructure.target_runtime_composition as composition
     sink, _ = tracing
-    monkeypatch.setattr(composition, "framework_model", lambda *a, **k: ScriptedToolModel(responses=[]))
+    built = []
+    def model_factory(profile, *args, **kwargs):
+        model = ScriptedToolModel(responses=[])
+        built.append((profile, kwargs, model))
+        return model
+    monkeypatch.setattr(composition, "framework_model", model_factory)
+    monkeypatch.setenv("MODEL_CONTEXT_WINDOW_TOKENS", "20000")
+    monkeypatch.setenv("CONTEXT_PROTOCOL_RESERVE_TOKENS", "600")
+    policy = ModelPolicy.from_env({})
+    policy = replace(policy, profiles={**policy.profiles,
+        ModelRole.WORKER: replace(policy.profile(ModelRole.WORKER), model="actor-test"),
+        ModelRole.VERIFIER: replace(policy.profile(ModelRole.VERIFIER), model="review-test", max_context_tokens=12000)})
     PostgresMigrationRunner(postgres_database_url).upgrade()
     pool = PostgresPool(PostgresPoolConfig(postgres_database_url))
     pool.open()
     async def run():
         runtime = await build_target_runtime(database_url=postgres_database_url, postgres_pool=pool,
             tool_manager=_manager([]), memory=SimpleNamespace(), response_delivery=SimpleNamespace(),
-            model_policy=ModelPolicy.from_env({}), provider_config={}, project_root=Path(__file__).parents[1],
+            model_policy=policy, provider_config={}, project_root=Path(__file__).parents[1],
             registry=build_default_capability_registry("tenant-a"), enable_encoder=False, langfuse_sink=sink)
         try:
             assert runtime.orchestration._domain_workers
             for worker in runtime.orchestration._domain_workers.values():
                 assert worker._callbacks and worker._trace_sink is sink
+                assert worker._model is next(model for profile, _, model in built if profile.model == "actor-test")
+                assert worker._review_model is next(model for profile, _, model in built if profile.model == "review-test")
+                assert worker._review_model is not worker._model
+                assert worker._review_available_tokens == 12000 - 4096 - 600
+            assert sum(profile.model == "review-test" for profile, _, _ in built) == 1
         finally:
             await runtime.checkpoint_owner.__aexit__(None, None, None)
     try:
@@ -144,7 +160,7 @@ def test_parallel_archive_failures_keep_both_call_causes_and_original_facts():
     calls = []
     model = ScriptedToolModel(responses=[AIMessage(content="", tool_calls=[{
         "name": "catalog_search", "args": {"query": str(i)}, "id": f"lookup-{i}"} for i in range(2)])])
-    result = asyncio.run(TargetFrameworkAgent(model, _manager(calls), result_store=UnavailableStore(),
+    result = asyncio.run(TargetFrameworkAgent(model, _manager(calls), review_model=model, review_available_tokens=14200, result_store=UnavailableStore(),
         registry=build_default_capability_registry("tenant-a"), system_prompt="Assist.")(_context()))
     diagnostic = next(row for row in result.execution_feedback if row.get("stage") == "agent_result_archive")
     errors = diagnostic["detail"]["related_errors"]
@@ -165,7 +181,7 @@ def test_nested_parallel_workers_export_each_model_and_tool_once(tracing):
                 "name": "catalog_search", "args": {"query": "model"}, "id": "lookup"}]),
             AIMessage(content="Found PX-200."),
         ])
-        return await TargetFrameworkAgent(model, _manager(calls),
+        return await TargetFrameworkAgent(model, _manager(calls), review_model=model, review_available_tokens=14200,
             result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"),
             system_prompt="Assist.", callbacks=(sink.callback(),))(_context())
 
@@ -179,7 +195,9 @@ def test_nested_parallel_workers_export_each_model_and_tool_once(tracing):
     assert all(result.status.value == "SUCCEEDED" for result in results)
     generations = [s for s in spans if s.attributes.get("langfuse.observation.type") == "generation"]
     tool_spans = [s for s in spans if s.name == "catalog_search"]
-    assert len(generations) == 4
+    assert len(generations) == 6  # Two actor calls and one assessment per worker.
+    assert sum("proposed_outcome" in str(span.attributes.get("langfuse.observation.input", ""))
+               for span in generations) == 2
     assert len(tool_spans) == 2
     ids = {span.context.span_id for span in spans}
     assert all(span.parent and span.parent.span_id in ids for span in generations + tool_spans)

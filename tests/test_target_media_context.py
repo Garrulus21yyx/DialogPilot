@@ -117,7 +117,7 @@ def test_ocr_evidence_reaches_framework_as_tool_data_with_provenance():
         requirement_ids=("media.visible_text",),
     )
     agent = TargetFrameworkAgent(
-        model, _manager(OCR(text)), result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"),
+        model, _manager(OCR(text)), review_model=model, review_available_tokens=14200, result_store=InMemoryStore(), registry=build_default_capability_registry("tenant-a"),
         system_prompt="Read the supplied screenshot as evidence.",
     )
     result = asyncio.run(agent(_context(item)))
