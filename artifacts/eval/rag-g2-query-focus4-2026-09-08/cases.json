@@ -1,0 +1,66 @@
+[
+  {
+    "case_id": "synthetic-focus-retain-negation",
+    "history": [
+      {
+        "role": "user",
+        "text": "我买的耳机拆封了，想了解退货规则。"
+      },
+      {
+        "role": "assistant",
+        "text": "是因为质量问题想退吗？"
+      }
+    ],
+    "query": "不是，想问无理由退货。",
+    "expected_intent": "保留耳机、拆封、非质量原因；查询无理由退货，不查订单。",
+    "synthetic": true
+  },
+  {
+    "case_id": "synthetic-focus-retain-referent",
+    "history": [
+      {
+        "role": "user",
+        "text": "我想了解企业会员和普通会员的区别。"
+      },
+      {
+        "role": "assistant",
+        "text": "你想先了解哪一种会员的权益？"
+      }
+    ],
+    "query": "企业会员。",
+    "expected_intent": "查询企业会员权益；不补入未提到的订单或退款。",
+    "synthetic": true
+  },
+  {
+    "case_id": "synthetic-focus-switch-product",
+    "history": [
+      {
+        "role": "user",
+        "text": "我想了解A款耳机的保修期限。"
+      },
+      {
+        "role": "assistant",
+        "text": "还需要了解这款耳机的其他规则吗？"
+      }
+    ],
+    "query": "先不问这个了。你们所有商品通用的退货流程是什么？",
+    "expected_intent": "查询通用退货流程；不把A款耳机或保修作为限制。",
+    "synthetic": true
+  },
+  {
+    "case_id": "synthetic-focus-switch-stage",
+    "history": [
+      {
+        "role": "user",
+        "text": "我想知道退款申请需要哪些条件。"
+      },
+      {
+        "role": "assistant",
+        "text": "你想了解一般退款申请条件，对吗？"
+      }
+    ],
+    "query": "条件先不问了，我只想知道审核通过是不是就代表到账，不查我的订单。",
+    "expected_intent": "查询审核通过与到账的关系；不是资格条件查询，不计划订单工具。",
+    "synthetic": true
+  }
+]

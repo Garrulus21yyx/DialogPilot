@@ -1,0 +1,17 @@
+{
+  "scope": "build_target_runtime + PostgreSQL history + production memory projection/context loader + manager.prepare; excludes HTTP admission, execution, answer and publication",
+  "database": "rag_context_e873360f39",
+  "case_count": 4,
+  "api_calls": 4,
+  "profile": {
+    "model": "deepseek-v4-flash",
+    "reasoning": "none",
+    "min_completion_tokens": 0,
+    "max_context_tokens": 32768
+  },
+  "context_not_handbuilt": true,
+  "cases_sha256": "06de604edea1ddd79edece1f745ea0156bb63a5b5fa12958244327b09fe150a7",
+  "history_origin": "explicit_fixture",
+  "cold_projection": true,
+  "synthetic_ecommerce": false
+}

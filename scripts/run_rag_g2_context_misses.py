@@ -2,6 +2,7 @@
 import argparse
 import asyncio
 import gzip
+import hashlib
 import json
 import os
 import subprocess
@@ -36,23 +37,47 @@ from scripts.run_rag_selected_composition_pair import clean
 
 
 
-async def run(*, ecommerce=False):
-    root=Path('artifacts/eval');out=root/('rag-g2-context-ecommerce2-2026-09-07' if ecommerce else 'rag-g2-context-miss2-2026-09-07');out.mkdir(exist_ok=False)
-    snapshot=json.loads(gzip.decompress((root/'rag-known-miss-g1-budget-diagnostic-2026-09-07/input-datasets.json.gz').read_bytes()))['doc2dial-rag-mini-dev-v1']
-    with tempfile.TemporaryDirectory() as folder:
-        for name,content in snapshot.items():Path(folder,name).write_text(content)
-        ds=RagDataset.load(Path(folder),verify_checksum=True)
-    lookup={c.case_id:c for c in ds.select_cases('dev')}
-    saved=[json.loads(line) for line in gzip.decompress((root/'rag-g3-flash-pair12-2026-09-07/cases.jsonl.gz').read_bytes()).splitlines()]
-    selected=[r['case_id'] for r in saved if r['arm']=='baseline' and not r['candidate_complete']]
-    assert len(selected)==2
-    cases=[lookup[cid] for cid in selected];roles=history_roles('/tmp/doc2dial_v1.0.1.zip',cases)
-    if ecommerce:
+def load_context_cases(path):
+    rows = json.loads(Path(path).read_text())
+    ids = set()
+    cases, roles = [], {}
+    for row in rows:
+        cid = row['case_id']
+        if cid in ids or not row['query'].strip():
+            raise ValueError('duplicate ID or empty query')
+        ids.add(cid)
+        history = row['history']
+        if any(m['role'] not in ('user', 'assistant') or not m['text'].strip() for m in history):
+            raise ValueError('invalid history')
+        cases.append(SimpleNamespace(case_id=cid, history=tuple(m['text'] for m in history), query=row['query']))
+        roles[cid] = [m['role'] for m in history]
+    if not cases:
+        raise ValueError('empty cases')
+    return cases, roles
+
+
+async def run(*, ecommerce=False, cases_path=None, output=None, call_limit=6):
+    root=Path('artifacts/eval')
+    out=Path(output) if output else root/('rag-g2-context-ecommerce2-2026-09-07' if ecommerce else 'rag-g2-context-miss2-2026-09-07')
+    out.mkdir(exist_ok=False)
+    if cases_path:
+        cases, roles = load_context_cases(cases_path)
+    elif ecommerce:
         cases=[
             SimpleNamespace(case_id='synthetic-g2-opened-nonquality',history=('我买的耳机已经拆封了，想了解能不能无理由退货。','你是因为质量问题想退货吗？'),query='不是。'),
             SimpleNamespace(case_id='synthetic-g2-hypothetical-arrival',history=('我只是想了解一般退款流程，不要查询我的订单。','好的，你想了解哪个环节？'),query='如果退款申请审核通过了，就代表已经到账了吗？'),
         ]
         roles={c.case_id:['user','assistant'] for c in cases}
+    else:
+        snapshot=json.loads(gzip.decompress((root/'rag-known-miss-g1-budget-diagnostic-2026-09-07/input-datasets.json.gz').read_bytes()))['doc2dial-rag-mini-dev-v1']
+        with tempfile.TemporaryDirectory() as folder:
+            for name,content in snapshot.items():Path(folder,name).write_text(content)
+            ds=RagDataset.load(Path(folder),verify_checksum=True)
+        lookup={c.case_id:c for c in ds.select_cases('dev')}
+        saved=[json.loads(line) for line in gzip.decompress((root/'rag-g3-flash-pair12-2026-09-07/cases.jsonl.gz').read_bytes()).splitlines()]
+        selected=[r['case_id'] for r in saved if r['arm']=='baseline' and not r['candidate_complete']]
+        assert len(selected)==2
+        cases=[lookup[cid] for cid in selected];roles=history_roles('/tmp/doc2dial_v1.0.1.zip',cases)
     values={**dotenv_values('.env'),**os.environ};policy=ModelPolicy.from_env(values)
     flash=ModelProfile('deepseek-v4-flash',ReasoningEffort.NONE,'deepseek')
     policy=replace(policy,profiles={role:flash for role in ModelRole})
@@ -73,7 +98,7 @@ async def run(*, ecommerce=False):
             memory=MemoryManager(redis_url='unix://'+str(socket),fact_store=PostgresMemoryFactStore(pool),api_key=values['ANTHROPIC_API_KEY'],base_url=policy.base_url,model_profile=flash)
             tools=MCPToolManager(api_key=values['ANTHROPIC_API_KEY'],base_url=policy.base_url,model=flash.model)
             components=await build_target_runtime(database_url=url,postgres_pool=pool,tool_manager=tools,memory=memory,response_delivery=PostgresResponseDeliveryService(pool,resume_binding_secret=uuid.uuid4().hex),model_policy=policy,provider_config={'api_key':values['ANTHROPIC_API_KEY'],'base_url':policy.base_url},project_root=Path.cwd(),registry=build_default_capability_registry('rag-context-eval'))
-            capture=FrameworkCapture(limit=2 if ecommerce else 4)
+            capture=FrameworkCapture(limit=call_limit)
             components.understanding._planner._provider._callbacks=(capture,)
             manager=components.application._turn_runtime._manager
             store=PostgresConversationTurnStore(pool)
@@ -94,7 +119,7 @@ async def run(*, ecommerce=False):
                 with (out/'queries.jsonl').open('a') as f:f.write(json.dumps(row,ensure_ascii=False,default=lambda v:v.value)+'\n')
                 print(c.case_id,prepared.context.projection_status.value,'visible',len(prepared.context.recent_messages),'/',len(c.history),'queries',queries,flush=True)
                 if calls and calls[-1].get('error_type'):raise RuntimeError('provider failure: stop batch')
-            (out/'manifest.json').write_text(json.dumps({'scope':'build_target_runtime + PostgreSQL history + production memory projection/context loader + manager.prepare; excludes HTTP admission, execution, answer and publication','database':database,'case_count':len(rows),'api_calls':len(capture.calls),'profile':flash.to_dict(),'context_not_handbuilt':True,'history_origin':'authored_synthetic' if ecommerce else 'official_doc2dial_speaker_roles','cold_projection':True,'synthetic_ecommerce':ecommerce},indent=2)+'\n')
+            (out/'manifest.json').write_text(json.dumps({'scope':'build_target_runtime + PostgreSQL history + production memory projection/context loader + manager.prepare; excludes HTTP admission, execution, answer and publication','database':database,'case_count':len(rows),'api_calls':len(capture.calls),'profile':flash.to_dict(),'context_not_handbuilt':True,'cases_sha256':hashlib.sha256(Path(cases_path).read_bytes()).hexdigest() if cases_path else None,'history_origin':'explicit_fixture' if cases_path else ('authored_synthetic' if ecommerce else 'official_doc2dial_speaker_roles'),'cold_projection':True,'synthetic_ecommerce':all(row.get('synthetic',False) for row in json.loads(Path(cases_path).read_text())) if cases_path else ecommerce},indent=2)+'\n')
         finally:
             if components:await components.checkpoint_owner.__aexit__(None,None,None)
             if memory:await memory.close()
@@ -108,4 +133,6 @@ async def run(*, ecommerce=False):
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser();parser.add_argument('--ecommerce',action='store_true')
-    asyncio.run(run(ecommerce=parser.parse_args().ecommerce))
+    parser.add_argument('--cases');parser.add_argument('--output');parser.add_argument('--call-limit',type=int,default=6)
+    args=parser.parse_args()
+    asyncio.run(run(ecommerce=args.ecommerce,cases_path=args.cases,output=args.output,call_limit=args.call_limit))
