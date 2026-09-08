@@ -177,6 +177,9 @@ async def evaluate(args, database_url):
             if getattr(args, 'pure_rag_inputs', None):
                 from evaluation.ecommerce_pure_rag import MemoTransformer
                 api._knowledge_retriever._transformer = MemoTransformer(api._knowledge_retriever._transformer)
+            if args.pure_rewrite_seed:
+                from evaluation.ecommerce_pure_rag import ReplayTransformer
+                api._knowledge_retriever._transformer.cache.update(ReplayTransformer(args.pure_rewrite_seed).queries)
             if getattr(args, 'pure_rewrite_cache', None):
                 from evaluation.ecommerce_pure_rag import ReplayTransformer
                 api._knowledge_retriever._transformer = ReplayTransformer(args.pure_rewrite_cache)
@@ -284,6 +287,7 @@ def main():
     mode.add_argument('--full-chain', action='store_true')
     mode.add_argument('--candidate-scope-probe', action='store_true', help='No inference: paired candidate retrieval with/without request applicability')
     p.add_argument('--pure-scope-pair',action='store_true')
+    p.add_argument('--pure-rewrite-seed',type=Path)
     p.add_argument('--pure-rewrite-cache',type=Path)
     p.add_argument('--corpus-file',type=Path)
     p.add_argument('--business-fixtures',type=Path)
@@ -330,6 +334,9 @@ def main():
                        or any(not isinstance(t,str) for t in c['history']) for c in rows)
                 or len({c['case_id'] for c in rows}) != len(rows)):
             raise ValueError('invalid mixed case definitions')
+    if args.pure_scope_pair:
+        from evaluation.ecommerce_pure_rag import scope_fixture_options
+        for case in json.loads(args.pure_rag_inputs.read_text()):scope_fixture_options(case)
     if args.output.exists():
         raise ValueError('output must be new')
     base = os.environ['TEST_DATABASE_URL']  # No production .env database fallback.

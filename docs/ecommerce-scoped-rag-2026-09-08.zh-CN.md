@@ -24,7 +24,9 @@ PYTHONPATH=. .venv/bin/python scripts/build_ecommerce_scoped_corpus.py \
  --output /tmp/ecommerce-scoped
 PYTHONPATH=. .venv/bin/python scripts/run_ecommerce_complex_dev.py \
  --corpus /tmp/ecommerce-scoped/corpus.json --catalog /tmp/ecommerce-scoped/catalog.json \
- --scope-pair --all-splits --output /tmp/ecommerce-scope-pair
+ --scope-pair --all-splits \
+ --rewrite-seed artifacts/eval/ecommerce-complex-v2-dev/runtime/pure-cases.jsonl.gz \
+ --output /tmp/ecommerce-scope-pair
 PYTHONPATH=. .venv/bin/python scripts/report_ecommerce_complex.py \
  --root /tmp/ecommerce-scope-pair --corpus /tmp/ecommerce-scoped/corpus.json --scope-pair --split dev
 PYTHONPATH=. .venv/bin/python scripts/report_ecommerce_complex.py \
@@ -35,4 +37,6 @@ PYTHONPATH=. .venv/bin/python scripts/report_ecommerce_complex.py \
 
 ## 失败保留
 
-scope-pair120：导入前发现旧版缺effective_from，零检索/零API。scope-pair120-v2：第二批导入发现时区指纹冲突，零检索/零API。修复后运行scope-pair120-v3，未更换问题/模型/候选预算。失败记录与最终执行分目录保留。
+scope-pair120：导入前发现旧版缺effective_from，零检索/零API。scope-pair120-v2：第二批导入发现时区指纹冲突，零检索/零API。scope-pair120-v3全库导入完成，在第二开发题因范围预检只看当前句而中止，首题两臂已执行；该范围实际上在用户历史中。补充整批上下文预检后运行v4，复用开发30条改写缓存。v3在断言前已尝试改写，API记录不完整，不记零；未更换问题/模型/候选预算，未进入留存调参。失败记录与最终执行分目录保留。
+
+范围选择的边界：当前三份有效手册各覆盖多个商品，未给它们臆造单一SKU，也未把问题型号硬过滤成商品字段。商品型号仍由query匹配；本轮只提供题目明确的CN/web。未知或通用来源保留global，不把“没有Metadata”解释成“不适用”。本轮不包含增量撤回、PDF/OCR或真实业务状态验收。

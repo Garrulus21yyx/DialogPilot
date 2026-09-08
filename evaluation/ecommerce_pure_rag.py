@@ -44,6 +44,15 @@ class ReplayTransformer:
         return self.queries[(query,tuple(history))]
 
 
+def scope_fixture_options(case):
+    """This fixed benchmark explicitly states scope in a user turn, including history."""
+    user_turns=[text for role,text in case['history'] if role=='user']+[case['message']]
+    declaration='我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道'
+    if not any(declaration in text for text in user_turns):
+        raise ValueError('scope fixture must explicitly declare CN/web in user context')
+    return {'applicable_region':'CN','applicable_channel':'web'}
+
+
 async def run(*, inputs, output, retrieve, client, policy, source, reranker, transformer, scope_pair=False):
     cases = json.loads(Path(inputs).read_text())
     from datetime import datetime, timezone
@@ -56,11 +65,10 @@ async def run(*, inputs, output, retrieve, client, policy, source, reranker, tra
         rewrite_calls = client.calls[before:]
         concat = '\n'.join([*history, 'user: '+case['message']]) if history else case['message']
         arms=[('scope_unfiltered',rewritten),('scope_filtered',rewritten)] if scope_pair else [('history_concat', concat), ('standalone_raw', rewritten)]
-        if scope_pair:
-            assert '中国大陆官网' in case['message'], 'fixture must explicitly state CN/web; never infer from gold'
+        known_scope=scope_fixture_options(case) if scope_pair else {}
         for arm, query in arms:
             scope={'as_of':evaluation_time} if scope_pair else {}
-            if arm=='scope_filtered':scope.update(applicable_region='CN',applicable_channel='web')
+            if arm=='scope_filtered':scope.update(known_scope)
             start = time.perf_counter()
             rs, rk = len(source.records), len(reranker.records)
             result_object = await retrieve(query if arm=='history_concat' else case['message'],

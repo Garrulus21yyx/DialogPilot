@@ -1,0 +1,8 @@
+{
+  "stage": "input_precondition_after_first_pair",
+  "error": "scope declaration was in user history, but evaluator checked latest message only",
+  "completed_retrieval_runs": 2,
+  "api_calls": "second case rewrite attempted before assertion; incomplete accounting, not reported as zero",
+  "repair": "preflight every input using user context before ingestion; replay development query cache",
+  "quality_scores": "incomplete run; not mixed into final paired table"
+}

@@ -6,7 +6,7 @@ from core.model_policy import ModelRole
 
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True);p.add_argument('--corpus',type=Path);p.add_argument('--rewrite-cache',type=Path);p.add_argument('--scope-pair',action='store_true');p.add_argument('--all-splits',action='store_true');p.add_argument('--catalog',type=Path);args=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True);p.add_argument('--corpus',type=Path);p.add_argument('--rewrite-cache',type=Path);p.add_argument('--scope-pair',action='store_true');p.add_argument('--all-splits',action='store_true');p.add_argument('--catalog',type=Path);p.add_argument('--rewrite-seed',type=Path);args=p.parse_args()
     if args.output.exists():raise ValueError('output must be new')
     data=Path('data/eval/ecommerce-complex-v2');args.output.mkdir(parents=True)
     (args.output/'inputs.json').write_bytes((data/'dev.inputs.json').read_bytes())
@@ -15,6 +15,10 @@ def main():
     if args.all_splits:
         cases=json.loads((data/'dev.inputs.json').read_text())+json.loads((data/'heldout.inputs.json').read_text())
         (args.output/'inputs.json').write_text(json.dumps(cases,ensure_ascii=False,indent=2)+'\n')
+    if args.scope_pair:
+        from evaluation.ecommerce_pure_rag import scope_fixture_options
+        for case in json.loads((args.output/'inputs.json').read_text()):scope_fixture_options(case)
+    if args.rewrite_seed:pinned['rewrite_seed']=args.rewrite_seed
     if args.catalog:pinned['catalog']=args.catalog
     (args.output/'execution-inputs.json').write_text(json.dumps({k:{'path':str(v),'sha256':hashlib.sha256(v.read_bytes()).hexdigest()} for k,v in pinned.items()},indent=2)+'\n')
     cfg=json.loads(subprocess.check_output(['docker','inspect','dialogpilot-target-v1-test']))[0]
@@ -25,5 +29,5 @@ def main():
         runenv['MODEL_'+role.value.upper()]='deepseek-v4-flash';runenv['MODEL_'+role.value.upper()+'_REASONING']='none';runenv['MODEL_'+role.value.upper()+'_MIN_COMPLETION_TOKENS']='0'
     paths=subprocess.check_output(['git','ls-files','core','application','infrastructure','mcp','api'],text=True).splitlines()+['scripts/run_rag_tool_calibration.py','evaluation/ecommerce_pure_rag.py','scripts/run_ecommerce_complex_dev.py']
     (args.output/'lock.json').write_text(json.dumps({'head':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'source_hashes':{f:hashlib.sha256(Path(f).read_bytes()).hexdigest() for f in paths if Path(f).is_file()},'data_manifest_sha256':hashlib.sha256((data/'manifest.json').read_bytes()).hexdigest(),'scope':'120 questions / 30 rule families; fixed scope comparison' if args.all_splits else '40 development questions; heldout not loaded','budget':{'api_max':90 if args.all_splits else 40,'reranker':'local BGE','candidate_k':20,'final_k':5,'context_tokens':2600}},indent=2)+'\n')
-    subprocess.run([sys.executable,'scripts/run_rag_tool_calibration.py','--model','/home/yang/.cache/huggingface/hub/models--BAAI--bge-m3/snapshots/5617a9f61b028005a4858fdac845db406aefb181','--output',str(args.output/'runtime'),'--pure-rag-inputs',str(args.output/'inputs.json'),'--corpus-file',str(args.corpus or data/'corpus.json'),'--max-api-calls','90' if args.all_splits else '40']+(['--pure-scope-pair'] if args.scope_pair else [])+(['--pure-rewrite-cache',str(args.rewrite_cache)] if args.rewrite_cache else []),env=runenv,check=True)
+    subprocess.run([sys.executable,'scripts/run_rag_tool_calibration.py','--model','/home/yang/.cache/huggingface/hub/models--BAAI--bge-m3/snapshots/5617a9f61b028005a4858fdac845db406aefb181','--output',str(args.output/'runtime'),'--pure-rag-inputs',str(args.output/'inputs.json'),'--corpus-file',str(args.corpus or data/'corpus.json'),'--max-api-calls','90' if args.all_splits else '40']+(['--pure-scope-pair'] if args.scope_pair else [])+(['--pure-rewrite-seed',str(args.rewrite_seed)] if args.rewrite_seed else [])+(['--pure-rewrite-cache',str(args.rewrite_cache)] if args.rewrite_cache else []),env=runenv,check=True)
 if __name__=='__main__':main()

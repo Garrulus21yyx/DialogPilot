@@ -1,4 +1,4 @@
-"""Evidence-unit coverage and binary relevant-chunk nDCG; dev split only."""
+"""Evidence-unit coverage and binary relevant-chunk nDCG, scored by frozen split."""
 import argparse,gzip,json,math
 from pathlib import Path
 from mcp.document_chunker import DocumentChunker
@@ -54,6 +54,13 @@ def main():
         changes.append({'id':cid,'wire_delta':c['wire']['complete_r5']-b['wire']['complete_r5'],'both_available':b['status']=='OK' and c['status']=='OK','baseline_complete':b['wire']['complete_r5'],'candidate_complete':c['wire']['complete_r5']})
     unique={e['unit_id']:e for row in labels.values() for e in row['evidence_units']}
     result={'n':len(labels),'groups':len({r['group_id'] for r in labels.values()}),'split':a.split,'documents':len(docs),'chunks':len(chunks),'gold_units':len(unique),'chunk_containment':sum(any(covers(c,e) for c in chunks) for e in unique.values())/len(unique),'summary':summary,'rescue':sum(x['wire_delta']>0 for x in changes),'hurt':sum(x['wire_delta']<0 for x in changes),'definition':'Complete = all 3 annotated source clauses covered; unit recall averages 3 binary coverage labels. nDCG uses binary relevance of whole chunks containing any gold unit, ideal from complete corpus chunks. Not answer correctness. Scores are split-specific; no answer generation assessed.'}
+    import random
+    group_delta={}
+    for change in changes:group_delta.setdefault(labels[change['id']]['group_id'],[]).append(change['wire_delta'])
+    means=[sum(v)/len(v) for v in group_delta.values()]
+    rng=random.Random(20260908)
+    sampled=sorted(sum(rng.choice(means) for _ in means)/len(means) for _ in range(5000))
+    result['paired_group_bootstrap']={'unit':'rule family','resamples':5000,'seed':20260908,'delta':sum(means)/len(means),'percentile_95':[sampled[124],sampled[4874]],'note':'Descriptive uncertainty under resampling these synthetic families, not real-world representativeness.'}
     available=[x for x in changes if x['both_available']]
     result['availability_failures']=[{'id':r['id'],'arm':r['arm'],'status':r['status']} for r in scored if r['status']!='OK']
     result['both_available_sensitivity']={'n':len(available),'baseline_complete':sum(x['baseline_complete'] for x in available),'candidate_complete':sum(x['candidate_complete'] for x in available),'rescue':sum(x['wire_delta']>0 for x in available),'hurt':sum(x['wire_delta']<0 for x in available),'note':'Diagnostic only; primary table keeps all requests including failures.'}

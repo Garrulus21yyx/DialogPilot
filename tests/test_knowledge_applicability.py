@@ -301,3 +301,20 @@ def test_non_utc_source_survives_later_batch_and_reimport(store):
     knowledge.import_documents((SourceDocument.create(source_id='later',title='later',content='另一个来源'),))
     again=knowledge.import_documents((replace(doc,effective_from=start.astimezone(timezone.utc)),))
     assert again.revisions==first.revisions
+
+
+def test_scoped_retrieval_retains_universal_sources(store, postgres_database_url):
+    knowledge, _, _=store
+    docs=(SourceDocument.create(source_id='universal-scope',title='退款说明',content='退款说明通用条款',effective_from=instant(2020)),
+          SourceDocument.create(source_id='cn-scope',title='退款说明',content='退款说明中国条款',region='CN',effective_from=instant(2020)),
+          SourceDocument.create(source_id='eu-scope',title='退款说明',content='退款说明欧洲条款',region='EU',effective_from=instant(2020)))
+    knowledge.import_documents(docs)
+    g=knowledge.active_generation()
+    pool=RetrievalPostgresPool(RetrievalPoolConfig(postgres_database_url,min_size=1,max_size=3));pool.open()
+    source=PostgresKnowledgeCandidateSource(backend=PostgresHybridBackend(pool),generations=knowledge._generations,pool=pool,embed_query=knowledge.embed_query)
+    try:
+        request=replace(_request(),generation_id=g.generation_id,manifest_fingerprint=g.manifest_hash,as_of=instant(2026),applicable_region='CN',policy=replace(_request().policy,backend_fingerprint=g.backend_fingerprint,lexical_provider=g.lexical_ranker,embedding_version=g.embedding_profile.fingerprint))
+        result=asyncio.run(source.search_variants_async(request,[('raw','退款说明',1.0)],top_k=20))
+        ids={r['source_id'] for r in result.candidates}
+        assert ids=={'universal-scope','cn-scope'}
+    finally:source.close();pool.close()

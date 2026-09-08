@@ -33,8 +33,7 @@ def audit(root,corpus):
             checked+=1;universal+=int(m.get('origin')=='WixQA')
         for row in (a,b):
             if row['result']['status']!='OK':failures.append({'id':cid,'arm':row['arm'],'status':row['result']['status'],'detail_code':row['result'].get('detail_code')})
-    assert universal>0,'Universal background must remain eligible and reachable; this is not a gold-only corpus'
-    result={'pairs':len(groups),'checked_filtered_candidates':checked,'universal_external_candidates':universal,'failures':failures,'status_counts':dict(Counter(r['result']['status'] for r in rows)),'reranker_fallbacks':sum(bool(c.get('fallback')) for r in rows for c in r['rerank']),'trace_sha256':hashlib.sha256((root/'runtime/pure-cases.jsonl.gz').read_bytes()).hexdigest(),'scope':'Actual request, shared query/snapshot, candidate applicability and provenance; no gold read'}
+    result={'pairs':len(groups),'checked_filtered_candidates':checked,'universal_external_candidates':universal,'eligible_universal_external_documents':sum(d['metadata'].get('origin')=='WixQA' and d['metadata'].get('region','global')=='global' and d['metadata'].get('channel','global')=='global' for d in docs.values()),'failures':failures,'status_counts':dict(Counter(r['result']['status'] for r in rows)),'reranker_fallbacks':sum(bool(c.get('fallback')) for r in rows for c in r['rerank']),'trace_sha256':hashlib.sha256((root/'runtime/pure-cases.jsonl.gz').read_bytes()).hexdigest(),'scope':'Actual request, shared query/snapshot, candidate applicability and provenance; no gold read'}
     (root/'scope-audit.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
     print(json.dumps(result,ensure_ascii=False,indent=2))
 

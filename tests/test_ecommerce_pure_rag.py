@@ -66,7 +66,7 @@ def test_scope_pair_preserves_query_budget_and_snapshot(tmp_path):
     class Transformer:
         async def standalone(self,query,history):return query,None
     path=tmp_path/'inputs.json'
-    path.write_text(json.dumps([{'id':'x','message':'我只问中国大陆官网的规则','history':[]}]))
+    path.write_text(json.dumps([{'id':'x','message':'我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道','history':[]}]))
     asyncio.run(run(inputs=path,output=tmp_path,retrieve=retrieve,client=SimpleNamespace(calls=[]),policy=None,
         source=SimpleNamespace(records=[]),reranker=SimpleNamespace(records=[],version='test'),transformer=Transformer(),scope_pair=True))
     a,b=calls
@@ -77,3 +77,15 @@ def test_scope_pair_preserves_query_budget_and_snapshot(tmp_path):
     assert 'applicable_channel' not in a[1]
     assert b[1]['applicable_channel']=='web' and b[1]['applicable_region']=='CN'
     assert 'applicable_product' not in b[1]
+
+
+def test_scope_fixture_uses_user_history_but_not_assistant_assertions():
+    from evaluation.ecommerce_pure_rag import scope_fixture_options
+    text='我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道'
+    assert scope_fixture_options({'message':'按刚才的条件呢？','history':[['user',text]]})=={'applicable_region':'CN','applicable_channel':'web'}
+    with pytest.raises(ValueError):
+        scope_fixture_options({'message':'按刚才的条件呢？','history':[['assistant',text]]})
+    from pathlib import Path
+    for split in ('dev','heldout'):
+        for case in json.loads(Path(f'data/eval/ecommerce-complex-v2/{split}.inputs.json').read_text()):
+            assert scope_fixture_options(case)=={'applicable_region':'CN','applicable_channel':'web'}
