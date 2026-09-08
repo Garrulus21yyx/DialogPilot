@@ -1575,3 +1575,38 @@ or benchmark improvement percentage claimed. Fixtures/wrapper tests: 15 passed.
 Current production remains unchanged; next is coherent shared-contract adoption
 review covering all actor/reviewer consumers, and separate attribution of the bad
 archive reference (do not add a business-specific bypass). No full goal closure.
+
+Shared-contract adoption in progress: copy the tested transition guidance verbatim
+into ACTION_INTERACTION_CONTRACT, already consumed by conversation planning/composition,
+domain actor and domain review. No new classifier, evaluator, business branch or
+alternate runtime. No checkpoint-format/version change: legal runtime transitions,
+serialized data and approval ownership are unchanged (unlike preparation-terminal).
+The invariant is one feasible, authorized first step with the full goal retained;
+intermediate effects do not add user constraints, and explicit ordering/ongoing
+constraints/final effects remain binding. This is an instruction repair supported
+by bounded probes, not a deterministic guarantee of semantic correctness.
+
+Adoption review: no direct consumer conflict found; explicit ordering, authorization,
+information-only limits and retained full objective remain. Continuous constraints
+remain required by existing user constraints and covered by the new diagnostic but
+not a formal model guarantee. Shared-text wiring tests now cover worker as well as
+planning/compose/review. Scoped tests: 155 passed / 2 skipped.
+Register final production-wiring check on frozen feasible2, same profiles/budget,
+no process-local guidance injection, no business writes. Output:
+artifacts/eval/action-boundary-feasible2-adopted-2026-09-09/.
+
+Archive failure attribution: actual call was read_tool_result(reference=
+"fixture:unapproved_enabling_purchase"), a FactRecord source_ref rather than an
+archive address. Store lookup returned missing; ResultArchiveError was mapped to
+RESULT_ARCHIVE_UNAVAILABLE and terminated the segment. This is invalid-model-input
+versus infrastructure-error conflation. Do not claim archive outage or business
+capability rejection. Next owner-level review must distinguish optional model reads
+from required checkpoint restoration, preserving fatal corruption/subject-fence
+failures; no fixture-prefix special case or unrestricted reference lookup.
+
+Production-wiring check completed: rename(D8, Annual Report) and label(R5, Stable)
+both returned WAITING_APPROVAL, two calls each, complete objectives retained, no
+rejected review and zero external calls. This reproduces the bounded candidate
+behavior through the shared source, without diagnostic injection. The instruction
+repair is ready for its own commit; whole-goal closure remains unverified and the
+archive-error boundary is the next concrete owner repair.

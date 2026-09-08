@@ -36,6 +36,7 @@ def test_main_planning_and_composition_share_preparation_approval_contract(monke
     from application.action_approval import ACTION_INTERACTION_CONTRACT
     from infrastructure.target_domain_outcome import SYSTEM
     from tests.test_target_framework_agent import ScriptedToolModel
+    from tests.test_approval_conversation import domain
 
     prompts = []
     generate = ScriptedToolModel._generate
@@ -57,6 +58,8 @@ def test_main_planning_and_composition_share_preparation_approval_contract(monke
     assert len(prompts) == 2
     assert all(ACTION_INTERACTION_CONTRACT in prompt for prompt in prompts)
     assert ACTION_INTERACTION_CONTRACT in SYSTEM
+    worker, context, _, _ = domain([])
+    assert ACTION_INTERACTION_CONTRACT in worker._system(context)
     assert "delegate only open investigations" not in prompts[0]
     assert "business-change preparation" in prompts[0]
     assert models[ModelRole.INTENT].calls == models[ModelRole.SYNTHESIS].calls == 1

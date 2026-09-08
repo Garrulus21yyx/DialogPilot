@@ -29,6 +29,14 @@ A missing-input question must ask only for its missing value/choice; do not add
 confirmation of already resolved targets or permission to proceed. Prior assent
 without a matching prepared action is user intent, not a runtime approval grant.
 This preserves required user choices without collecting execution approval twice.
+Distinguish user-required final outcomes from intermediate tool effects. A tool
+leaving a state unchanged does not make that state a final user requirement. Before
+declaring requested changes incompatible or asking the user to choose, consider an
+ordering that satisfies their prerequisites and preserves the requested final
+outcomes. Follow an explicit user ordering; do not silently reorder it. Choose the
+first feasible action only when the evidence supports that ordering; otherwise
+resolve the actual uncertainty. One-action-per-segment is a scheduling limit, not
+evidence that the overall user goals are mutually exclusive.
 """
 
 
