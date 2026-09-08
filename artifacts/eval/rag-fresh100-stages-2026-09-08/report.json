@@ -1,0 +1,101 @@
+{
+  "api_calls": 0,
+  "new_model_inferences": 0,
+  "datasets": {
+    "Doc2Dial": {
+      "n": 100,
+      "query_mode": "raw latest turn; history not used",
+      "whole_corpus_complete_containment": 1.0,
+      "mean_recall": {
+        "dense20": 0.49,
+        "bm25_20": 0.61,
+        "union40": 0.66,
+        "fusion20": 0.65,
+        "ce5": 0.58,
+        "wire5": 0.58
+      },
+      "mean_loss": {
+        "outside_route_union": 0.34,
+        "fusion_cut": 0.01,
+        "top5_selection": 0.07,
+        "pack_net": 0.0
+      },
+      "pack_changed_cases": 0,
+      "input_sha256": {
+        "cases.json.gz": "b5be6c8ecd0ff04340dba831c5794188c06e5b93f0bd320d063ccdc4ee1c53ee",
+        "scores.json.gz": "b60c48ea778a8d98c945d812ce2544df14bb991bf2f34562f69627a128eb3fa4"
+      },
+      "all_baseline_scores_and_wire_reproduced": true,
+      "cases_with_history": 100,
+      "union_incomplete_cases": 34,
+      "union_incomplete_with_all_gold_documents_present": 5
+    },
+    "MTRAG": {
+      "n": 100,
+      "query_mode": "official rewritten query",
+      "whole_corpus_complete_containment": null,
+      "mean_recall": {
+        "dense20": 0.6047380952380952,
+        "bm25_20": 0.34585714285714286,
+        "union40": 0.6649047619047619,
+        "fusion20": 0.5859047619047619,
+        "ce5": 0.4533571428571428,
+        "wire5": 0.45002380952380955
+      },
+      "mean_loss": {
+        "outside_route_union": 0.3350952380952381,
+        "fusion_cut": 0.079,
+        "top5_selection": 0.13254761904761905,
+        "pack_net": 0.003333333333333333
+      },
+      "pack_changed_cases": 10,
+      "input_sha256": {
+        "cases.json.gz": "87784862893ac839fdc588ac1bea4a54f1af4d80ae740b3e368a116a5c31f842",
+        "scores.json.gz": "109c63596c47ac0d1040b637ba919517315ec7e51aa5524737fa4e2861a86e4f"
+      },
+      "all_baseline_scores_and_wire_reproduced": true,
+      "gold_count_distribution": {
+        "1": 19,
+        "4": 8,
+        "3": 30,
+        "2": 32,
+        "6": 2,
+        "5": 7,
+        "7": 2
+      },
+      "mean_ideal_five_unit_recall_cap": 0.990952380952381
+    },
+    "WixQA": {
+      "n": 100,
+      "query_mode": "original question",
+      "whole_corpus_complete_containment": null,
+      "mean_recall": {
+        "dense20": 0.825,
+        "bm25_20": 0.575,
+        "union40": 0.9,
+        "fusion20": 0.7966666666666667,
+        "ce5": 0.7083333333333333,
+        "wire5": 0.7083333333333333
+      },
+      "mean_loss": {
+        "outside_route_union": 0.1,
+        "fusion_cut": 0.10333333333333333,
+        "top5_selection": 0.08833333333333333,
+        "pack_net": 0.0
+      },
+      "pack_changed_cases": 0,
+      "input_sha256": {
+        "cases.json.gz": "8ba843cd42a05362b466ab4414777695261a0ceb9cc0dc0dfea9175bf4e24e61",
+        "scores.json.gz": "3529ff4cfccbc6d556a593335646c7a82feeb155c8d0f4aa4c4aa4f4b846ffe1"
+      },
+      "all_baseline_scores_and_wire_reproduced": true,
+      "gold_count_distribution": {
+        "1": 82,
+        "2": 15,
+        "3": 3
+      },
+      "mean_ideal_five_unit_recall_cap": 1.0
+    }
+  },
+  "scope": "Operational loss attribution, not causal proof of semantic failure. Top5 loss includes finite output budget. Pack loss is signed net change. Consumed data; no policy adopted."
+}
