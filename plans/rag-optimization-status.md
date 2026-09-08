@@ -209,4 +209,4 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 
 - G4核验预注册（e92a288）：冻结候选0.75税表/零息两条完整答案及本次已接收证据；每题原答案与来源支持修订一条，共4次Flash上限，调用当前AnswerVerifier，不改prompt，不重新检索/生成。区分语义UNSUPPORTED、需求未覆盖、协议失败、实际publishable；修订前后共享证据。不根据四题结果宣布核验泛化完成。
 
-- G4核验完成：4次Flash，两个原始错误均PASS(supported/answered true,issues空)，两个支持修订均PASS；错误放行2/2、修订误拒0/2，仅已选诊断集。无API/协议失败，1项绑定/完整配对审计通过。当前claim_verification已是整体布尔+issues合同，与历史逐claim报告不同，源码身份留痕。见[报告](../docs/rag-g4-verifier4-2026-09-08.zh-CN.md)。未修复、不关单；下一项仅实验通用对象/条件强度检查对照及新控制，禁止关键词特判/直接恢复旧协议；其他RAG缺口保留。交付待确认。
+- G4核验完成：4次Flash，两个原始错误均PASS(supported/answered true,issues空)，两个支持修订均PASS；错误放行2/2、修订误拒0/2，仅已选诊断集。无API/协议失败，1项绑定/完整配对审计通过。当前claim_verification已是整体布尔+issues合同，与历史逐claim报告不同，源码身份留痕。见[报告](../docs/rag-g4-verifier4-2026-09-08.zh-CN.md)。未修复、不关单；下一项仅实验通用对象/条件强度检查对照及新控制，禁止关键词特判/直接恢复旧协议；其他RAG缺口保留。交付：`0bd7695` 已提交并推送到 origin/feat/customer-service-target-architecture。
