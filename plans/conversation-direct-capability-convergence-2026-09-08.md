@@ -630,3 +630,49 @@ arguments/new user input or relevant state changes, and not prohibit legitimate
 fresh reads or treat an arbitrary conversation CAS increment as progress. Audit
 the existing execution owner before choosing a typed no-progress transition;
 do not add a broad caller-side exception or a permanent tool-result cache.
+
+## Progress owner review at 3275d7c
+
+Repository evidence: `AgentProgressMiddleware.abefore_model` already implements
+two stagnant rounds, feedback, and one recovery round in the domain graph. Its
+identity combines tool name and result digest but not native call arguments.
+`TurnRuntime._plan_observation` has only a total observation budget. Thus there
+are two different gaps: the main loop has no recovery feedback before budget
+exhaustion; the domain identity cannot distinguish new parameters returning the
+same error. Neither is an executor auto-retry. A Manager-level duplicate-command
+exception would reject independent work in the same batch and is not the chosen
+repair. An unconditional same-call ban would also reject genuine changed results.
+
+Independent architecture review supports this bounded target:
+
+- Share a pure progress transition (state + eligible new read observations ->
+  state + continue/warn/stop), not a new scheduler or database. Retain current
+  bounded recovery semantics; thresholds are budget policy, not correctness proof.
+- Request identity uses tool, scoped owner and canonical arguments; outcome
+  identity uses meaningful data/typed error. Exclude random call/work IDs and
+  incidental CAS/observation timestamps. Changed arguments count as a new attempt;
+  changed outcomes for the same request count as progress. Total budgets remain.
+- Domain adapter pairs native AI tool calls and ToolMessages by call ID. Preserve
+  existing per-evidence knowledge identity: recombining old sources is not new
+  evidence. Main adapter consumes only the new DIRECT observations from the current
+  execution batch, not cumulative retained outcomes or a delegated allowlist.
+- Do not charge a non-read interaction/write batch as a stagnant read round.
+  Mixed batches retain eligible independent read observations. Approval, pending
+  input, writes and reconciliation retain their existing lifecycle owners.
+- Existing graph state persists counters and consumed observations. A new user
+  segment resets them; restoring the same checkpoint does not reset them or count
+  the historical tail a second time.
+- Domain stop retains results through AGENT_NO_PROGRESS. Main stop uses its
+  existing partial-delivery path and a distinct diagnostic, preserving the board
+  and pending interactions rather than declaring successful work failed.
+
+Acceptance: generated sequences with changed/same parameters and outcomes,
+reordered batches, mixed interactions, knowledge recombination, replay and fresh
+user boundaries must produce consistent decisions in both graph adapters. Verify
+retained successful results and unchanged write authority separately. Existing
+progress + conversation-observation suites currently pass 62 tests in 5.84s;
+those tests do not cover the full target above, so they are baseline evidence only.
+No production progress change or live task replay has been made in this review.
+Next action is implementation of this shared transition and both adapters, not
+another prompt modification or a new benchmark trial. Selector and interaction
+semantic failures remain separate open items.
