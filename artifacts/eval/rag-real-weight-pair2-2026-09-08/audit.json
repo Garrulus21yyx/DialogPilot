@@ -1,0 +1,230 @@
+{
+  "api_calls": 16,
+  "source_identity_equal": true,
+  "queries_identical": false,
+  "arms": {
+    "base": [
+      {
+        "case_id": "boundary-express",
+        "query": {
+          "query": "2026年4月1日当天适用的运费报销上限是多少？加急寄回的运费是否也报销？只问规则，不执行操作。",
+          "policy_date": "2026-04-01"
+        },
+        "answer": "按2026年4月1日起适用的规则，普通质量退货的标准寄回运费报销上限为十八元 [E917c0a401e95]。加急运费不在报销范围内，只报销标准运费 [E0584df3c2a04]。",
+        "cited_evidence": {
+          "E917c0a401e95": {
+            "evidence_id": "E917c0a401e95",
+            "title": "退货运费报销",
+            "text": "普通质量退货的标准寄回运费报销上限为十八元。",
+            "source": {
+              "source_id": "return-shipping",
+              "source_revision": "revision-v2-6623547fd06a1a1df9cafdbe2289b665",
+              "start_char": 0,
+              "end_char": 22,
+              "source_type": "text",
+              "checksum": "5f55157513b7b1b36c6145d11a1f66ffbb3647b6e4caf788169f9bf8c40c1b47",
+              "scope": "public",
+              "applicability": {
+                "channel": "global",
+                "effective_from": "2026-04-01T00:00:00+00:00",
+                "effective_to": "",
+                "product": "",
+                "region": "global"
+              }
+            }
+          },
+          "E0584df3c2a04": {
+            "evidence_id": "E0584df3c2a04",
+            "title": "退货运费",
+            "text": "非质量原因退货的寄回运费由买家承担。确认属于商品质量问题的，按平台指定方式寄回可报销标准运费；加急运费不在报销范围内。",
+            "source": {
+              "source_id": "synthetic-shop:return-shipping",
+              "source_revision": "revision-v2-98d7062e9993d81d5397628e3aa5c418",
+              "start_char": 0,
+              "end_char": 59,
+              "source_type": "text",
+              "checksum": "a1fe73bc50a7e9214ea25402c54834cebb9d09e572c2e0497e9e6ac3dfb9914b",
+              "scope": "public",
+              "applicability": {
+                "channel": "global",
+                "effective_from": "2020-01-01T00:00:00+00:00",
+                "effective_to": "",
+                "product": "",
+                "region": "global"
+              }
+            }
+          }
+        },
+        "source_intervals_exact": true,
+        "runtime_completed": true,
+        "api_calls": 4
+      },
+      {
+        "case_id": "custom-not-quality",
+        "query": {
+          "query": "刻了名字的定制商品，未拆封，收到三天，因不喜欢而非质量问题，能否按七日无理由退货？定制商品是否适用七日无理由退货规则？"
+        },
+        "answer": "很抱歉，这款商品是刻了名字的定制商品，不适用七日无理由退货，即使未拆封且签收不足七日也无法按此办理[Efe8c8b2e5b7a][E6f880093d750]。如果商品存在质量问题，仍可申请专项售后审核。",
+        "cited_evidence": {
+          "Efe8c8b2e5b7a": {
+            "evidence_id": "Efe8c8b2e5b7a",
+            "title": "综合售后手册",
+            "text": "料。不同客服接手时应查看工单状态，避免把历史处理建议当成本次已执行结果。\n\n时间说明：预计处理时间用于说明通常流程，不构成指定日期完成的保证。节假日或额外核实时应说明影响因素，并以实际业务进展更新用户。\n\n通用退货条件：未拆封普通商品在签收后七日内可申请无理由退货，配件与赠品应保持齐全。\n\n重要例外：刻字定制商品不适用上述无理由退货，即使未拆封且签收不足七日也不适用；质量问题仍可申请专项审核。",
+            "source": {
+              "source_id": "long-after-sales",
+              "source_revision": "revision-v2-f0a807beb4973d2f34408144f8868a69",
+              "start_char": 683,
+              "end_char": 881,
+              "source_type": "text",
+              "checksum": "749fc31d842355f990aabb60b12ff9b2ea1a956bc42ad2d1ff147953264e51e5",
+              "scope": "public",
+              "applicability": {
+                "channel": "global",
+                "effective_from": "2020-01-01T00:00:00+00:00",
+                "effective_to": "",
+                "product": "",
+                "region": "CN"
+              }
+            }
+          },
+          "E6f880093d750": {
+            "evidence_id": "E6f880093d750",
+            "title": "定制商品售后",
+            "text": "按消费者指定尺寸制作的定制商品不适用无理由退货。商品存在质量问题仍可申请售后，需提交问题照片及订单信息。",
+            "source": {
+              "source_id": "synthetic-shop:custom-goods",
+              "source_revision": "revision-v2-6129979bd40eeeaefef76beb91056a8e",
+              "start_char": 0,
+              "end_char": 52,
+              "source_type": "text",
+              "checksum": "d2f2fb5a56114bd2ec9d236af37614f0c6459e47b1b2a3676d7b7bf56acf9f16",
+              "scope": "public",
+              "applicability": {
+                "channel": "global",
+                "effective_from": "2020-01-01T00:00:00+00:00",
+                "effective_to": "",
+                "product": "",
+                "region": "global"
+              }
+            }
+          }
+        },
+        "source_intervals_exact": true,
+        "runtime_completed": true,
+        "api_calls": 4
+      }
+    ],
+    "balanced": [
+      {
+        "case_id": "boundary-express",
+        "query": {
+          "query": "2026年4月1日当天适用的运费报销上限是多少？加急寄回（expedited return shipping）的运费是否也报销？只询问规则，不执行任何操作。",
+          "policy_date": "2026-04-01"
+        },
+        "answer": "2026年4月1日当天适用的普通质量退货标准寄回运费报销上限为十八元[E917c0a401e95]。加急运费不在报销范围内，仅按平台指定方式寄回的标准运费可报销[E0584df3c2a04]。",
+        "cited_evidence": {
+          "E917c0a401e95": {
+            "evidence_id": "E917c0a401e95",
+            "title": "退货运费报销",
+            "text": "普通质量退货的标准寄回运费报销上限为十八元。",
+            "source": {
+              "source_id": "return-shipping",
+              "source_revision": "revision-v2-6623547fd06a1a1df9cafdbe2289b665",
+              "start_char": 0,
+              "end_char": 22,
+              "source_type": "text",
+              "checksum": "5f55157513b7b1b36c6145d11a1f66ffbb3647b6e4caf788169f9bf8c40c1b47",
+              "scope": "public",
+              "applicability": {
+                "channel": "global",
+                "effective_from": "2026-04-01T00:00:00+00:00",
+                "effective_to": "",
+                "product": "",
+                "region": "global"
+              }
+            }
+          },
+          "E0584df3c2a04": {
+            "evidence_id": "E0584df3c2a04",
+            "title": "退货运费",
+            "text": "非质量原因退货的寄回运费由买家承担。确认属于商品质量问题的，按平台指定方式寄回可报销标准运费；加急运费不在报销范围内。",
+            "source": {
+              "source_id": "synthetic-shop:return-shipping",
+              "source_revision": "revision-v2-98d7062e9993d81d5397628e3aa5c418",
+              "start_char": 0,
+              "end_char": 59,
+              "source_type": "text",
+              "checksum": "a1fe73bc50a7e9214ea25402c54834cebb9d09e572c2e0497e9e6ac3dfb9914b",
+              "scope": "public",
+              "applicability": {
+                "channel": "global",
+                "effective_from": "2020-01-01T00:00:00+00:00",
+                "effective_to": "",
+                "product": "",
+                "region": "global"
+              }
+            }
+          }
+        },
+        "source_intervals_exact": true,
+        "runtime_completed": true,
+        "api_calls": 4
+      },
+      {
+        "case_id": "custom-not-quality",
+        "query": {
+          "query": "刻了名字的定制商品（customized/engraved product），未拆封，收到三天，因不喜欢而非质量问题，是否适用七日无理由退货？定制商品是否属于不适用无理由退货的例外商品？"
+        },
+        "answer": "很抱歉，刻字定制商品不适用七日无理由退货，即使未拆封且签收不足七日也不可以，因为这类商品属于无理由退货的例外情形[Efe8c8b2e5b7a]。不过，如果商品存在质量问题，您仍可以申请售后审核，需要提交问题照片及订单信息[E6f880093d750]。",
+        "cited_evidence": {
+          "Efe8c8b2e5b7a": {
+            "evidence_id": "Efe8c8b2e5b7a",
+            "title": "综合售后手册",
+            "text": "料。不同客服接手时应查看工单状态，避免把历史处理建议当成本次已执行结果。\n\n时间说明：预计处理时间用于说明通常流程，不构成指定日期完成的保证。节假日或额外核实时应说明影响因素，并以实际业务进展更新用户。\n\n通用退货条件：未拆封普通商品在签收后七日内可申请无理由退货，配件与赠品应保持齐全。\n\n重要例外：刻字定制商品不适用上述无理由退货，即使未拆封且签收不足七日也不适用；质量问题仍可申请专项审核。",
+            "source": {
+              "source_id": "long-after-sales",
+              "source_revision": "revision-v2-f0a807beb4973d2f34408144f8868a69",
+              "start_char": 683,
+              "end_char": 881,
+              "source_type": "text",
+              "checksum": "749fc31d842355f990aabb60b12ff9b2ea1a956bc42ad2d1ff147953264e51e5",
+              "scope": "public",
+              "applicability": {
+                "channel": "global",
+                "effective_from": "2020-01-01T00:00:00+00:00",
+                "effective_to": "",
+                "product": "",
+                "region": "CN"
+              }
+            }
+          },
+          "E6f880093d750": {
+            "evidence_id": "E6f880093d750",
+            "title": "定制商品售后",
+            "text": "按消费者指定尺寸制作的定制商品不适用无理由退货。商品存在质量问题仍可申请售后，需提交问题照片及订单信息。",
+            "source": {
+              "source_id": "synthetic-shop:custom-goods",
+              "source_revision": "revision-v2-6129979bd40eeeaefef76beb91056a8e",
+              "start_char": 0,
+              "end_char": 52,
+              "source_type": "text",
+              "checksum": "d2f2fb5a56114bd2ec9d236af37614f0c6459e47b1b2a3676d7b7bf56acf9f16",
+              "scope": "public",
+              "applicability": {
+                "channel": "global",
+                "effective_from": "2020-01-01T00:00:00+00:00",
+                "effective_to": "",
+                "product": "",
+                "region": "global"
+              }
+            }
+          }
+        },
+        "source_intervals_exact": true,
+        "runtime_completed": true,
+        "api_calls": 4
+      }
+    ]
+  },
+  "semantic_review": "Codex nonblind: required core conclusions supported by cited policies; conditional quality-aftercare addition is sourced but unnecessary for known non-quality request. This is not a blinded accuracy metric."
+}

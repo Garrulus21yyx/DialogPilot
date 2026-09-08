@@ -6,14 +6,16 @@ parser=argparse.ArgumentParser()
 parser.add_argument('--output',type=Path,default=Path('artifacts/eval/rag-current-entry2-2026-09-08'))
 parser.add_argument('--cases',type=Path,default=Path('artifacts/eval/rag-g4-ecommerce-pair2-2026-09-08/cases.json'))
 parser.add_argument('--max-api-calls',type=int,default=12)
+parser.add_argument('--dense-weight',type=float,choices=(0.25,0.5),default=0.25)
 args=parser.parse_args()
 if not 1 <= args.max_api_calls <= 40: parser.error('API budget must be 1..40')
 root=args.output;root.mkdir(exist_ok=False)
+(root/'comparison-settings.json').write_text(json.dumps({'dense_weight':args.dense_weight,'lexical_weight':1-args.dense_weight,'max_api_calls':args.max_api_calls,'reranker':'listwise','model':'deepseek-v4-flash','reasoning':'none'},indent=2)+'\n')
 cases=args.cases
 (root/'cases.json').write_bytes(cases.read_bytes())
 config=json.loads(subprocess.check_output(['docker','inspect','dialogpilot-target-v1-test']))[0]
 env=dict(x.split('=',1) for x in config['Config']['Env'] if '=' in x)
-runenv={**os.environ,'TEST_DATABASE_URL':'postgresql://'+quote(env.get('POSTGRES_USER','postgres'),safe='')+':'+quote(env['POSTGRES_PASSWORD'],safe='')+'@127.0.0.1:55432/postgres','MODEL_PROVIDER':'deepseek','RAG_RERANKER':'listwise','RAG_VECTOR_WEIGHT':'0.25','RAG_LEXICAL_WEIGHT':'0.75','HF_HUB_OFFLINE':'1'}
+runenv={**os.environ,'TEST_DATABASE_URL':'postgresql://'+quote(env.get('POSTGRES_USER','postgres'),safe='')+':'+quote(env['POSTGRES_PASSWORD'],safe='')+'@127.0.0.1:55432/postgres','MODEL_PROVIDER':'deepseek','RAG_RERANKER':'listwise','RAG_VECTOR_WEIGHT':str(args.dense_weight),'RAG_LEXICAL_WEIGHT':str(1-args.dense_weight),'HF_HUB_OFFLINE':'1'}
 for role in ModelRole:
  runenv['MODEL_'+role.value.upper()]='deepseek-v4-flash'
  runenv['MODEL_'+role.value.upper()+'_REASONING']='none'

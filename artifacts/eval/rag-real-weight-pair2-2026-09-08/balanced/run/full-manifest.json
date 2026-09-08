@@ -1,0 +1,69 @@
+{
+  "scope": "synthetic ecommerce; production runtime/admission/coordinator/context/knowledge handler/PostgreSQL retrieval/LLM rerank/compose/verifier/publication; excludes HTTP authentication, external delivery, business writes",
+  "cases": [
+    {
+      "id": "boundary-express",
+      "history": [
+        [
+          "user",
+          "我确认是普通商品质量问题，需要寄回。"
+        ],
+        [
+          "assistant",
+          "要查哪个日期的运费政策？"
+        ]
+      ],
+      "message": "2026年4月1日当天适用的上限是多少？加急寄回的运费也报销吗？只问规则。",
+      "required": [
+        "十八元",
+        "加急运费不在报销范围"
+      ]
+    },
+    {
+      "id": "custom-not-quality",
+      "history": [
+        [
+          "user",
+          "刻了名字的定制商品，未拆封，收到三天。"
+        ],
+        [
+          "assistant",
+          "是有质量问题吗？"
+        ]
+      ],
+      "message": "不是，只是不喜欢。能按七日无理由退吗？",
+      "required": [
+        "定制商品",
+        "不适用无理由退货"
+      ]
+    }
+  ],
+  "retrieval_policy": {
+    "top_k": 5,
+    "candidate_k": 20,
+    "context_max_tokens": 2600,
+    "rrf_k": 10,
+    "vector_weight": 0.5,
+    "lexical_weight": 0.5,
+    "raw_query_weight": 0.2,
+    "standalone_query_weight": 0.6,
+    "expansion_query_weight": 0.0,
+    "query_expansion_count": 0,
+    "metadata_hint_weight": 0.5
+  },
+  "reranker_version": "customer-support-listwise-v4-complete-evidence:7fddc3b741d5e6c9aa91b210f319ed3ec824ebc6ba4879dea2444fb2f3e6f544",
+  "source_sha256": {
+    "application/conversation_agent.py": "e18e8f7e3105185cd2b039e2a40ee3462300dbb34851cb872a0669cba38c0fde",
+    "application/knowledge_tool_contract.py": "b5e4b3e26dad5a4d76772397d9394271f8ebf5a47644fda3e2dab88013428eba",
+    "application/knowledge_retriever.py": "54002b73df474dc8ab138681a18ea36998d085ed8f92d5484eaf6c6ef010f887",
+    "application/response_assembly.py": "875264f12333c289cc74270b16d49e80ee8d1a621c53cddca19d9fb7dc80a1bd",
+    "infrastructure/target_conversation_provider.py": "8010216b69457cb5fd7c32ec150a014e3f13edb44382f50bcc65e465ece14e9b",
+    "api/main.py": "1db0236d9b25aed9d883b22e9d623a2f98ca167349294355a73092708183b625",
+    "infrastructure/postgres_knowledge_retriever.py": "4a1e200fbbd7b42a69f74fe30072bdbb4c5c268f1e7abd3caceec8303e6d4fb9",
+    "infrastructure/knowledge_applicability.py": "1793f9210000be135cc8b6025841cacc743dc89259f90532c51c8c8137124354",
+    "services/answer_verifier.py": "5df5ab1eb4e2232581c44581fab153c1afaf09322085f2e2cf1cfa651909231d",
+    "services/claim_verification.py": "79443acd30471ecc76dfc46bbfebe943ac15ffc0d18f5419a96e477ddba8b444",
+    "evaluation/rag_full_chain_probe.py": "02b22341ed61a1a2b179d90aa380709b5ed1fc15abfd7deab23b291a147bd8ba"
+  },
+  "max_api_calls": 12
+}
