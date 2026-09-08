@@ -36,14 +36,15 @@ CASES = [
 ]
 
 
-async def run_full_chain(*,database_url,platform,store,client,policy,provider_config,output,handler,retrieval_policy=None,case_limit=None,reranker_version=None,case_definitions=None,tenant_id="rag-tool-dev",scope_label="synthetic ecommerce"):
+async def run_full_chain(*,database_url,platform,store,client,policy,provider_config,output,handler,retrieval_policy=None,case_limit=None,reranker_version=None,case_definitions=None,tenant_id="rag-tool-dev",scope_label="synthetic ecommerce",registry=None):
     definitions=CASES if case_definitions is None else case_definitions
     if case_limit is not None and not 1 <= case_limit <= len(definitions):
         raise ValueError('full-chain case limit outside supported cases')
     if (output/'full-cases.jsonl').exists() or (output/'full-cases.jsonl.gz').exists():
         raise ValueError('full-chain evaluation requires a fresh output directory')
     cases=definitions[:case_limit] if case_limit is not None else definitions
-    registry=build_default_capability_registry(tenant_id)
+    registry=registry or build_default_capability_registry(tenant_id)
+    if registry.tenant_id != tenant_id:raise ValueError("evaluation registry tenant mismatch")
     tools=RecordedTools(api_key=provider_config['api_key'],base_url=policy.base_url,model=policy.profile(ModelRole.INTENT).model)
     from application.knowledge_tool_contract import knowledge_query_schema, knowledge_tool_schema_for_context
     tools.captures=[];tools.register(Tool(name='knowledge_search',description='检索有效知识原文；query须为完整问题，保留否定、日期及已知条件。',handler=handler,schema=knowledge_query_schema(),schema_factory=knowledge_tool_schema_for_context,schema_factory_version="knowledge-filter-contract-v1",authority='knowledge.active_source',read_only=True))

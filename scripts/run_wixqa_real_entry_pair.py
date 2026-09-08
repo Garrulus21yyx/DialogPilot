@@ -2,6 +2,8 @@
 import argparse,asyncio,gzip,hashlib,json,os,subprocess
 from pathlib import Path
 from types import SimpleNamespace
+from dataclasses import replace
+from application.default_capability_registry import build_default_capability_registry
 from urllib.parse import quote
 from dotenv import dotenv_values
 from anthropic import AsyncAnthropic
@@ -22,10 +24,11 @@ from mcp.query_transformer import QueryTransformer
 from infrastructure.knowledge_retriever_adapters import ToolManagerRerankerAdapter
 
 async def main():
+ os.environ['TARGET_ENCODER_ENABLED']='false'  # Chinese ecommerce classifier has no Wix bundle calibration.
  parser=argparse.ArgumentParser();parser.add_argument('--weight',type=float,choices=(.25,.5),required=True);args=parser.parse_args()
- root=Path('artifacts/eval/wixqa-real-entry-pair2-2026-09-08')/str(args.weight);root.mkdir(parents=True,exist_ok=False)
+ root=Path('artifacts/eval/wixqa-real-entry-scoped-pair2-v2-2026-09-08')/str(args.weight);root.mkdir(parents=True,exist_ok=False)
  rows=[json.loads(l) for l in Path('artifacts/eval/wixqa-fixed-dev20-2026-09-08/cases.jsonl').read_text().splitlines()][:2]
- cases=[{'id':f"wix-{args.weight}-{i}",'history':[],'message':r['case']['query'],'required':[]} for i,r in enumerate(rows)]
+ cases=[{'id':f"wix-scoped-v2-{args.weight}-{i}",'history':[],'message':r['case']['query'],'required':[]} for i,r in enumerate(rows)]
  (root/'selection.json').write_text(json.dumps({'selection':'first two frozen dev cases, no outcome-based selection','cases':[r['case'] for r in rows]},indent=2)+'\n')
  values={k:str(v) for k,v in dotenv_values('.env').items() if v is not None};values.update(os.environ)
  values.update(MODEL_PROVIDER='deepseek',RAG_VECTOR_WEIGHT=str(args.weight),RAG_LEXICAL_WEIGHT=str(1-args.weight))
@@ -47,7 +50,10 @@ async def main():
    import api.main as api
    api._knowledge_store=store;api._postgres_pool=platform
    api._knowledge_retriever=KnowledgeRetriever(candidate_source=source,transformer=QueryTransformer(client,policy.profile(ModelRole.REWRITE)),reranker=reranker,evidence_validator=PostgresKnowledgeEvidenceValidator(source))
-   await run_full_chain(database_url=url,platform=platform,store=store,client=client,policy=policy,provider_config=options,output=root,handler=api._knowledge_tool_handler,retrieval_policy=rag_retrieval_policy_from_env(values),reranker_version=reranker.version,case_definitions=cases,tenant_id='wixqa-eval',scope_label='WixQA public frozen dev questions, full 6221-article corpus')
+   default_registry=build_default_capability_registry('wixqa-eval')
+   registry=replace(default_registry,bundle_version='wixqa-public-eval-v1',agents=tuple(replace(agent,description='Resolve Wix customer-support knowledge questions using the available Wix Help Center corpus, including site editing, product setup, billing explanations and general procedures. Provide evidence-based guidance; this knowledge capability does not operate user accounts or execute website changes.') if agent.agent_id=='general' else agent for agent in default_registry.agents))
+   (root/'evaluation-domain.json').write_text(json.dumps({'encoder_enabled':False,'bundle_version':registry.bundle_version,'general_description':registry.agents[0].description,'scope':'Evaluation tenant only; no question-specific instructions or answer injection'},indent=2)+'\n')
+   await run_full_chain(database_url=url,platform=platform,store=store,client=client,policy=policy,provider_config=options,output=root,handler=api._knowledge_tool_handler,retrieval_policy=rag_retrieval_policy_from_env(values),reranker_version=reranker.version,case_definitions=cases,tenant_id='wixqa-eval',scope_label='WixQA public frozen dev questions, full 6221-article corpus',registry=registry)
  finally:
   if source:(root/'source-route-captures.json.gz').write_bytes(gzip.compress(json.dumps(source.records,ensure_ascii=False,default=str).encode(),mtime=0))
   retrieval.close();platform.close()
