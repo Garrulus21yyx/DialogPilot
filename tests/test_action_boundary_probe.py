@@ -8,9 +8,13 @@ from scripts.evaluate_action_boundary import fixture
 
 CASES = json.loads((Path(__file__).parents[1] /
     'data/eval/action-boundary-fresh6-2026-09-09.json').read_text())
+TRANSITION_CASES = json.loads((Path(__file__).parents[1] /
+    'data/eval/action-boundary-transition-holdout6-2026-09-09.json').read_text())
+FEASIBLE_CASES = json.loads((Path(__file__).parents[1] /
+    'data/eval/action-boundary-feasible2-2026-09-09.json').read_text())
 
 
-@pytest.mark.parametrize('case', CASES, ids=lambda c: c['id'])
+@pytest.mark.parametrize('case', CASES + TRANSITION_CASES + FEASIBLE_CASES, ids=lambda c: c['id'])
 def test_fresh_probe_uses_production_wrappers_and_explicit_target(case):
     worker, context, tools, policy, external_calls = fixture(case, None, None)
     by_name = {tool.name: tool for tool in tools}

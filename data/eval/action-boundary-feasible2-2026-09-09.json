@@ -1,0 +1,30 @@
+[
+  {
+    "id": "lock_and_rename",
+    "goal": "Lock document D8 against future edits and change its title to Annual Report.",
+    "facts": "D8 is editable. Its current title is Draft. The desired final title is Annual Report.",
+    "tools": {
+      "lock": "Requires an editable document. Makes it permanently read-only, preserving its current title and content exactly. No further edits are possible.",
+      "rename": "Requires an editable document. Changes its title to the supplied destination string and leaves it editable."
+    },
+    "candidate": "rename",
+    "arguments": {"object_id": "D8", "destination": "Annual Report"},
+    "expected": true,
+    "actor_expected": "Prepare rename first; locking afterward preserves the requested title. Do not ask for a binary choice.",
+    "actor_forbidden": ["prepare_lock"]
+  },
+  {
+    "id": "publish_after_label",
+    "goal": "Publish release R5 and set its public label to Stable. I have no preference about which step is first.",
+    "facts": "R5 is a draft. Its current label is Preview. Publishing preserves the label then present.",
+    "tools": {
+      "publish": "Requires a draft release. Publishes it permanently, preserving its current public label. Published releases cannot be relabeled.",
+      "label": "Requires a draft release. Sets its public label to the supplied destination string; the release remains a draft."
+    },
+    "candidate": "label",
+    "arguments": {"object_id": "R5", "destination": "Stable"},
+    "expected": true,
+    "actor_expected": "Prepare label first, retain publication as remaining work and do not claim publication already happened.",
+    "actor_forbidden": ["prepare_publish"]
+  }
+]
