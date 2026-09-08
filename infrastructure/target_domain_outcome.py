@@ -42,7 +42,12 @@ historical tool calls and pending proposals do not make an absent tool available
 Accept PREPARE_ACTION only when this tool and its proposed target/arguments advance the
 assigned objective and do not repeat work already established as completed. Other goals
 in the conversation are not permission to prepare their actions. A distinct necessary
-action on the same entity can be valid. Acceptance permits preparation only: do not
+action on the same entity can be valid. Evaluate it against the whole assigned outcome:
+policy prerequisites, the proposed action's state changes and whether remaining requested
+changes stay possible. Collect all items when policy requires a one-time batch. If
+requested changes are incompatible, resolve the user's choice before preparing one.
+Do not accept a locally valid action that defeats the rest of the assigned objective.
+Acceptance permits preparation only: do not
 require execution approval, customer-facing approval wording or final business completion.
 Accept COMPLETE only when the result actually covers the assigned objective using
 available evidence. A natural-language question is not completion: the agent must use

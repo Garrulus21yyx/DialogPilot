@@ -414,3 +414,41 @@ approval, then trace ToolRejected through workflow recovery and reply evidence.
 The relevant user-owned business-recovery edits are part of the recorded worktree;
 inspect their contracts before modifying shared files. Do not run further tasks
 to replace this failure or claim full closure from the successful read path.
+
+### Task19 causal inspection: goal coupling and effect knowledge
+
+Langfuse GENERATION inputs establish the first irreversible decision's scope:
+a73c3a10b05110f5 accepted PREPARE_ACTION with an objective containing only the
+water-bottle return. 7bafb86598e8d3b4 later accepted its completion and explicitly
+treated exchanges as outside that objective. 97c7bbc05ac05f58 accepted a separate
+pet-bed-only exchange. The domain review did receive business policy, but global
+planning had split operations sharing the order's mutable state. Therefore simply
+strengthening the local review would not restore the missing related objectives.
+
+Implemented a small general instruction repair at the existing planning and
+PREPARE_ACTION owners: keep changes sharing mutable object state or one-time
+capabilities in one delegated objective; assess remaining-action feasibility and
+policy-required batching before the first proposal; resolve incompatible choices
+before committing to either. No tool names, case IDs, new model layer or new
+workflow enumerations were introduced. Unit/contract regression does not prove
+real-model uptake; semantic validation remains pending.
+
+Independent review and code agree on a separate deterministic information loss:
+ToolRejected preserves the explicit business error and NOT_COMMITTED call effect;
+_ToolPort discards the error detail into TOOL_REJECTED; WriteToolOutcome and
+OperationRecord retain no non-success observation; the intended MANUAL_REVIEW
+handling policy then publishes UNCONFIRMED regardless of known effect. Task19's
+turn6 public manual_review_actions confirms exactly this projection, with a real
+ticket ID and zero recovery attempts. Manual escalation itself is intentional in
+the user-owned recovery contract and should remain; removing it would change scope.
+
+Next owner-level repair must separate handling status from effect knowledge in the
+existing operation record, carry the error detail/source into the ticket, model
+feedback and fallback, and preserve it on restart. Distinguish a rejected first
+attempt from rejection of a retry after an unknown earlier attempt: the latter
+does not establish that the entire operation never committed. Authoritative
+operation reconciliation can settle prior uncertainty; a later attempt-local
+error cannot. Legacy records cannot recover lost details and must not invent them.
+Acceptance covers first rejection, unknown-then-rejection, authoritative operation
+results, exhausted recovery, late responses/CAS, restart and ticket replay. This
+remains open; no production recovery fields were changed in this inspection stage.
