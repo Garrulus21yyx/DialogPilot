@@ -1,0 +1,178 @@
+{
+  "reviewer": "Codex source-based non-blind review; post-generation rubric; not independent human gold",
+  "scope": "support under supplied evidence, separate coverage; no current factual/legal validity",
+  "records": [
+    {
+      "case_id": "b2805ee4c478194c234e2384ffb0a6bf<::>3",
+      "arm": "0.25",
+      "support": "SUPPORTED",
+      "coverage": "ANSWERED",
+      "reason": "50倍去籽生产率和1830/1850产量分别有直接来源，未混为同一个倍率。",
+      "answer_sha256": "e3a9819ab038aa5ec594865db0d5d2fbbccc719e4e588dc30e937980a6d22f74",
+      "citation_ids_valid": true,
+      "cited_count": 2
+    },
+    {
+      "case_id": "b2805ee4c478194c234e2384ffb0a6bf<::>3",
+      "arm": "0.75",
+      "support": "SUPPORTED",
+      "coverage": "ANSWERED",
+      "reason": "给出产量与手工/机器劳动量对比；未提供50倍但当前问法不强制唯一数字，不能因未复述该数字判错。",
+      "answer_sha256": "48c260ebb685d822f4b38075b13597d5e6c3d123db13f194eb9aa1c1696abcad",
+      "citation_ids_valid": true,
+      "cited_count": 1
+    },
+    {
+      "case_id": "1534a095279f2cb888fb0bea17bd70da<::>4",
+      "arm": "0.25",
+      "support": "SUPPORTED",
+      "coverage": "ANSWERED",
+      "reason": "飞行平台/高速高G和光照背景有原文，比较为有解释依据的概括，不作为形式证明。",
+      "answer_sha256": "18fc14b4fca5352519e4b97c8ad66dd305a93d1e7f8ddcacdc7fe45070493188",
+      "citation_ids_valid": true,
+      "cited_count": 2
+    },
+    {
+      "case_id": "1534a095279f2cb888fb0bea17bd70da<::>4",
+      "arm": "0.75",
+      "support": "SUPPORTED",
+      "coverage": "ANSWERED",
+      "reason": "同前，军事场景明确，未把所有航空摄影都说成超音速。",
+      "answer_sha256": "cbc4f4e8c159da77ee3a3ca669d151cbc3be5ed598d097f1235693f9e1e78fd5",
+      "citation_ids_valid": true,
+      "cited_count": 2
+    },
+    {
+      "case_id": "e1b602e47ded79a35d8df4eefe194e39<::>1",
+      "arm": "0.25",
+      "support": "SUPPORTED",
+      "coverage": "ANSWERED",
+      "reason": "语言选择、默认英语、universal模型训练均有来源；beta阶段未说明，真实时效未验。",
+      "answer_sha256": "f2c7afd2db279d088f9e85f2b4dd435ecfc1824551e03e6104b574641274430f",
+      "citation_ids_valid": true,
+      "cited_count": 4
+    },
+    {
+      "case_id": "e1b602e47ded79a35d8df4eefe194e39<::>1",
+      "arm": "0.75",
+      "support": "SUPPORTED",
+      "coverage": "ANSWERED",
+      "reason": "Another language及优先内置语言模型规则有直接来源。",
+      "answer_sha256": "27910ff47b49c042087294334e2b0ded41a035be8af603486b4ee79e1cecaf97",
+      "citation_ids_valid": true,
+      "cited_count": 2
+    },
+    {
+      "case_id": "fdee20f7fd677e420742b09989623d68<::>6",
+      "arm": "0.25",
+      "support": "SUPPORTED",
+      "coverage": "CLARIFICATION",
+      "reason": "用户找不到web chat的目标有歧义，询问界面配置还是网站widget合理；不将没有实质答案当完成。",
+      "answer_sha256": "a1f1a804c4717e61d9f3512ddf98569d5fa521b28376a523993a0a6d739e5821",
+      "citation_ids_valid": true,
+      "cited_count": 0
+    },
+    {
+      "case_id": "fdee20f7fd677e420742b09989623d68<::>6",
+      "arm": "0.75",
+      "support": "REVIEW_REQUIRED",
+      "coverage": "PARTIAL",
+      "reason": "launcher位置有直接支持；移动/隐藏的具体排查依赖历史assistant叙述，当前证据仅说可定制。以假设方式表达是否可接受需明确建议类评分规则，暂不硬计幻觉。",
+      "answer_sha256": "b57e057945459f684ddf4078a87b5ab945df15aab04d8f95f2812020d32da000",
+      "citation_ids_valid": true,
+      "cited_count": 1
+    },
+    {
+      "case_id": "a6eab3f851684c4ba01ae141ce590342<::>2",
+      "arm": "0.25",
+      "support": "UNSUPPORTED",
+      "coverage": "PARTIAL",
+      "reason": "来源确定非居民表单家族，未给NR-EZ资格条件；首句以非居民作为足够条件过强，后文补资格依赖不能补出未提供的规则。",
+      "answer_sha256": "5efca4a122ab3ddbbbb0f1266f86e651dbb6ecce4bf671edcdc5f9a21a407451",
+      "citation_ids_valid": true,
+      "cited_count": 1
+    },
+    {
+      "case_id": "a6eab3f851684c4ba01ae141ce590342<::>2",
+      "arm": "0.75",
+      "support": "UNSUPPORTED",
+      "coverage": "PARTIAL",
+      "reason": "把1040EZ资料的复杂度/标准扣除规则套用于1040NR-EZ；型号对象不同，来源并不支持。",
+      "answer_sha256": "e85597db6f0d6a4406d02ad880cbe4c367fbde1d14bc625c83976f5a08aab9fd",
+      "citation_ids_valid": true,
+      "cited_count": 5
+    },
+    {
+      "case_id": "535ebd306304982e4e49cc989ce5b10b<::>3",
+      "arm": "0.25",
+      "support": "REVIEW_REQUIRED",
+      "coverage": "ANSWERED",
+      "reason": "流动性/罚息/现金折扣有来源；often around20–30%把20%+及单例29.99%写成频率区间，严格范围是否充分需复核。",
+      "answer_sha256": "38e097ecaec2255023e8876add84c580740426f43450f8671a4f8051f7f06ee0",
+      "citation_ids_valid": true,
+      "cited_count": 3
+    },
+    {
+      "case_id": "535ebd306304982e4e49cc989ce5b10b<::>3",
+      "arm": "0.75",
+      "support": "UNSUPPORTED",
+      "coverage": "ANSWERED",
+      "reason": "excellent credit未在任何本次来源出现；来源仅说须qualify，不能加强为通常要求excellent credit。",
+      "answer_sha256": "8a576db37996e9f1104d7fe11df1e48b9620fdec3b91d1db524f39177d6122fc",
+      "citation_ids_valid": true,
+      "cited_count": 5
+    },
+    {
+      "case_id": "35e6be0f2049527ae17cf77169cc4f70<::>4",
+      "arm": "0.25",
+      "support": "SUPPORTED",
+      "coverage": "PARTIAL",
+      "reason": "所列五类有支持，但未覆盖来源体系全部七类；不把列举include判假，记录覆盖不全。",
+      "answer_sha256": "1ee245e959b4bd67657d4632d579803f1f0f7b54cf73014d7fc8ced52ff6c1f2",
+      "citation_ids_valid": true,
+      "cited_count": 2
+    },
+    {
+      "case_id": "35e6be0f2049527ae17cf77169cc4f70<::>4",
+      "arm": "0.75",
+      "support": "SUPPORTED",
+      "coverage": "ANSWERED",
+      "reason": "七类定义在两段来源中可找到；开头仅引用第一段不足以支持后续三类，虽全证据支持，局部引用需修订。",
+      "answer_sha256": "f9a6e1730d2ca37a517db887484ba480010d0138c302522753d5761d012113f0",
+      "citation_ids_valid": true,
+      "cited_count": 2
+    },
+    {
+      "case_id": "8a19ee37ca7d97eaddbe2e19ca600556<::>6",
+      "arm": "0.25",
+      "support": "SUPPORTED",
+      "coverage": "ANSWERED",
+      "reason": "免费门槛/尺寸/地点/材料及居民范围均直接支持。",
+      "answer_sha256": "75cd3dbc4f1499e257901c758588cbb9135ce780aae736d01ed6f263075e4dd8",
+      "citation_ids_valid": true,
+      "cited_count": 1
+    },
+    {
+      "case_id": "8a19ee37ca7d97eaddbe2e19ca600556<::>6",
+      "arm": "0.75",
+      "support": "SUPPORTED",
+      "coverage": "ANSWERED",
+      "reason": "同前，无需把商业收费作为住宅问题必答内容。",
+      "answer_sha256": "0772103439e25b8a606ee94372bb8de14ed1256fa19c5ffdaf5e105056022ae8",
+      "citation_ids_valid": true,
+      "cited_count": 1
+    }
+  ],
+  "summary": {
+    "0.25": {
+      "SUPPORTED": 6,
+      "UNSUPPORTED": 1,
+      "REVIEW_REQUIRED": 1
+    },
+    "0.75": {
+      "SUPPORTED": 5,
+      "UNSUPPORTED": 2,
+      "REVIEW_REQUIRED": 1
+    }
+  }
+}

@@ -204,3 +204,5 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 - G4答案预注册（e4fd3e3）：每域按固定hash从32题取2题共8题，两臂.25/.75，原reference.input历史/末轮问题、冻结pack证据，不发送gold/targets。真实ResponseAssembler候选及compose provider，Flash最多16调用、输出800；不跑verifier/发布。候选输入与模型消息留痕，按事实支持/需求覆盖人工逐例评分；小样本非整体或线上准确率，原公共题不冒充电商Agent规划。
 
 - G4答案生成完成：每域2题共8题、两臂16次Flash/16份非空草稿，API任务已结束；原历史/末轮问题与真实捕获请求一致。96视图零API回归及16请求审计各1项通过。见[报告](../docs/rag-g4-answer8-2026-09-08.zh-CN.md)。没有verifier/发布、没有答案正确率结论；下一动作只读冻结答案及引用原文作逐项支持/覆盖评分，勿重复调用。当前生产不改。交付：`528b23c` 已提交并推送到 origin/feat/customer-service-target-architecture。
+
+- G4答案来源核对：Codex非盲16草稿评审，.25为6支持/1无依据/1待复核，.75为5/2/1；不是答案准确率，覆盖另记。明确候选错误：1040EZ资料套入1040NR-EZ、qualify加强为excellent credit。引用ID均合法不代表支持，网页建议与频率概括保留复核；限制令覆盖改善但局部引用不足。API0，1项SHA/计数审计通过。见[报告](../docs/rag-g4-answer8-review-2026-09-08.zh-CN.md)。不采用权重，下一项冻结两条明确错误/最小修订检验现有verifier，未调用不得称漏检；领域读回及全链heldout仍开放。交付待本轮确认。
