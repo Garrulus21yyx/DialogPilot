@@ -8,7 +8,7 @@
 
 独立会话维护记录（不改变并行检索实验优先级）：本会话用户授权修复近期知识证据续接，见[证据复用计划](conversation-evidence-reuse-2026-09-08.md)。原12条重判为10通过/2待核实，不以无RAG调用判业务错误。final/追问的私有证据记录接回主Agent，复用同一来源有效性检查，不加模型或检索层；427项真实PG及相关回归通过，独立审查通过，模型API0。此为实现验证，非R01语义关闭；旧pack缺失不伪造迁移，检索/微调并行工作保持原安排。
 
-**当前唯一活动项（24a1b4a）：Doc2Dial人工历史完整query100题配对已完成：最终证据58→96，39救回1误伤。下一项为少量真实统一Conversation Agent查询对照，尚未执行；不再用raw-only结果冒充完整链路。**
+**当前活动项：真实上下文/主Agent20题诊断已完成（61d1b48后）。8直接query/9回复追问/3委派未执行；直接query候选8/8、最终7/8。下一项取证选择及委派链验证，尚未实施修复。不把7/20当端到端准确率，不继续切块或权重支线。**
 
 预注册：冻结原query、语料、分路20、融合20、CE分数、最终5/2600；复用fresh100记录，不调参。测全库包含（Doc）、Dense20/BM2520/并集、融合20、CE Top5、实际pack/wire；逐例保存损失位置，区分指标上限与语义根因。预算：API0、新embedding0、新CE0。验收：复现原baseline与来源身份，分层集合不变量成立，报告每层净损失及局限；不以本次诊断宣称策略改善。完成后优先补Doc仅依据历史的完整query诊断，不重构Agent、不恢复微调。
 
@@ -469,3 +469,7 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 - R01 query诊断预注册24a1b4a：已按id/history/query编写100条单次完整query并hash冻结，不看gold重写、不按结果修改。先前上下文已暴露少数案例，不能称全盲；54/96无新问题，保留分母单列。同488篇/512-64/.5/各20/融合20/CE/5-2600，最多2000新本地CE、API0；原raw基线复验。只测上下文消解，不同时同义扩展或改Agent。
 
 - 2026-09-08 query100完成：原raw两路排名完全复现；历史完整query并集66→100、融合65→98、wire58→96，MRR .4313→.7697、nDCG .4711→.8205，39救回1误伤。2000本地CE/API0，人工编写由本会话完成非零LLM成本；查询先hash冻结，无按结果修改。少数案例此前已暴露，已消费诊断非盲验/Agent/答案准确率。独立零模型audit输入/评分/排序/pack/wire全部通过，配对区间+28至48点。报告docs/rag-resolved-query100-2026-09-08.zh-CN.md，产物rag-resolved-query100-2026-09-08。相干提交推送；下一步真实Agent少量query对照，不再盲扫权重，微调暂停。
+
+- Agent上下文20预注册：固定原100前20，Flash/NONE/2048各一次20调用0重试。真实MemoryManager写读及summary阈值、TargetTurnContextLoader默认8消息、真实ConversationAgent/provider；隔离Redis，PG投影watermark适配为夹具，无跨会话episode，无手工摘要/知识。达到摘要阈值停止避免隐式付费。实际payload/工具query落盘；无query计零、多query单列，不挑样本。检索同488篇/20/5-2600，对照同20人工query。
+
+- Agent context20完成：真实MemoryManager+隔离Redis+Loader默认8+当前Agent，PG水位/空episode夹具明确；20Flash无协议错误，8直接query、9RESPOND、3委派未执行。有效摘要chunks0、memory触发0；直出query完整候选8/8、wire7/8，全20首次直接证据7/20，人工同20为20/20；非E2E。审计20实际窗口与payload/160评分/wire通过。报告docs/rag-agent-context20-2026-09-08.zh-CN.md，输入124965/输出1757。下一项取证与委派，不做盲目检索调参；相干提交推送，无生产变更。
