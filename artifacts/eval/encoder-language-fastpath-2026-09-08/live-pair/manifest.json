@@ -1,0 +1,21 @@
+{
+  "case_ids": [
+    "ind-zh-02",
+    "ind-zh-04",
+    "ind-zh-01",
+    "ind-zh-03",
+    "ind-zh-05",
+    "ind-en-09",
+    "ind-en-10",
+    "ind-en-11",
+    "ind-en-01",
+    "ind-en-02"
+  ],
+  "max_model_calls": 20,
+  "source_sha256": "cdbb5ae300b79529a24dc89c93a9a75f51900c1abf7c1279f0519326cf632b76",
+  "selection": "first up to3 accepted + deferred to5 per language; stratified diagnostic, not prevalence",
+  "model": "deepseek-v4-flash",
+  "reasoning": "none",
+  "retries": 0,
+  "scope": "planning only; no business tools, no answer generation"
+}

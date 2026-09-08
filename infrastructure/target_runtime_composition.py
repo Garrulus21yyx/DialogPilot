@@ -175,7 +175,9 @@ async def build_target_runtime(
             checkpointer=checkpointer,
             control_guard=control_guard,
         )
-        encoder = _target_encoder(project_root) if enable_encoder else None
+        encoder = _target_encoder(project_root, language=os.getenv(
+            "TARGET_ENCODER_LANGUAGE", response_locale or os.getenv("TARGET_RESPONSE_LOCALE", "zh-CN")
+        )) if enable_encoder else None
         conversation_agent = ConversationAgent(
             AnthropicConversationPlanningProvider(
                 {role: framework_model(model_policy.profile(role), provider_config,
@@ -268,16 +270,20 @@ async def build_target_runtime(
         raise
 
 
-def _target_encoder(project_root: Path) -> TargetEncoderUnderstanding | None:
+def _target_encoder(project_root: Path, *, language: str | None = None) -> TargetEncoderUnderstanding | None:
     enabled = os.getenv("TARGET_ENCODER_ENABLED", "true").strip().lower()
     if enabled not in {"true", "false"}:
         raise RuntimeError("TARGET_ENCODER_ENABLED must be true or false")
     if enabled == "false":
         return None
+    language = (language or os.getenv("TARGET_ENCODER_LANGUAGE", "zh")).lower().split("-", 1)[0]
+    if language not in {"zh", "en"}:
+        raise RuntimeError("TARGET_ENCODER_LANGUAGE must select zh or en")
     artifact_dir = Path(os.getenv(
         "TARGET_ENCODER_ARTIFACT_DIR",
-        str(project_root / "artifacts" / "target-encoder-zh-v2"),
+        str(project_root / "artifacts" / f"target-encoder-{language}-context-v2"),
     ))
-    return TargetEncoderUnderstanding(
-        load_target_text_encoder_artifact(artifact_dir)
-    )
+    artifact = load_target_text_encoder_artifact(artifact_dir)
+    if artifact.manifest.required_languages != (language,):
+        raise RuntimeError("encoder artifact must be calibrated for the selected language")
+    return TargetEncoderUnderstanding(artifact)

@@ -33,17 +33,24 @@ Registry 当前包含 6 个领域 Agent、19 个原子 Tool、1 个复合 Skill
 
 ## 启动配置
 
-默认加载仓库内的 `artifacts/target-encoder-zh-v2`。可配置：
+默认按回复语言加载仓库内的 `artifacts/target-encoder-zh-context-v2` 或
+`artifacts/target-encoder-en-context-v2`；未配置时使用中文。两种语言独立校准、独立启用。
+可显式配置部署语言，不增加语言识别模型：
 
 ```bash
 TARGET_ENCODER_ENABLED=true
-TARGET_ENCODER_ARTIFACT_DIR=/absolute/path/to/target-encoder-zh-v2
+TARGET_ENCODER_LANGUAGE=zh
+# 英文部署设为 en；一般无需覆盖artifact路径。
+# TARGET_ENCODER_ARTIFACT_DIR=/absolute/path/to/target-encoder-zh-context-v2
 ```
 
 `TARGET_ENCODER_ENABLED=false` 是能力级 kill switch：它只关闭 Encoder ACCEPT，
 请求继续进入 structured provider，不关闭 DIRECT、Worker、Flow 或其他业务能力。
 artifact 缺失、摘要不一致、Bundle 版本过期或 capability owner/effect 不一致时启动失败，
 不会静默加载不兼容模型。
+语言与artifact的校准语言不一致也会明确报错。当前中文启用退款状态查询，英文启用知识问答和商品识别；
+其余类别、未建模摘要、低置信和状态冲突仍进入既有ConversationAgent，不是第二条执行链。
+数据、完整策略和少量真实规划对照见[语言快速路由报告](encoder-language-fastpath-2026-09-08.zh-CN.md)。
 
 Structured provider 使用 `ModelRole.INTENT` 的模型配置。provider 超时返回 retryable
 typed failure；无效 JSON、未知 goal 或凭空生成 entity 返回 non-retryable typed failure。

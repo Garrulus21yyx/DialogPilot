@@ -1,0 +1,50 @@
+{"case_id":"ind-zh-01","text":"帮我看一下 DP2468 那笔退款目前走到哪一步了。","label":"refund_status_summary","language":"zh","expected_reason":"查询既有退款进度，不发起申请。"}
+{"case_id":"ind-zh-02","text":"退款申请已经交过了，现在是什么状态？","label":"refund_status_summary","language":"zh","expected_reason":"已绑定订单的既有退款状态读取。"}
+{"case_id":"ind-zh-03","text":"请核对订单 DP2468 的退款处理记录，我要知道最新进度。","label":"refund_status_summary","language":"zh","expected_reason":"明确单一退款状态查询。"}
+{"case_id":"ind-zh-04","text":"之前提交的退款处理完了没，查当前结果就好。","label":"refund_status_summary","language":"zh","expected_reason":"只读退款处理状态；不以此保证银行到账。"}
+{"case_id":"ind-zh-05","text":"不要替我重新申请退款，只看看原来那笔处理得怎么样。","label":"refund_status_summary","language":"zh","expected_reason":"否定新写操作，但明确保留旧退款查询。"}
+{"case_id":"ind-zh-06","text":"嗯，就查这个。","messages":[{"role":"user","content":"我那笔退款想核实一下。"},{"role":"assistant","content":"你是想查询已提交退款的处理状态，对吗？"}],"label":"refund_status_summary","language":"zh","expected_reason":"短回复承接唯一只读退款状态目标。"}
+{"case_id":"ind-zh-07","text":"我只想了解平台的退货期限规定。","label":"general_qa","language":"zh","expected_reason":"通用退货规则，需要知识查询而非订单工具。"}
+{"case_id":"ind-zh-08","text":"退款按原路退回有哪些通用规则？","label":"general_qa","language":"zh","expected_reason":"询问退款方式政策，不查个人退款状态。"}
+{"case_id":"ind-zh-09","text":"食品类商品拆封后还能退吗？请查平台规定。","label":"general_qa","language":"zh","expected_reason":"商品类别条件是政策问题，不是商品识别。"}
+{"case_id":"ind-zh-10","text":"退货运费由哪一方承担，有没有公开说明？","label":"general_qa","language":"zh","expected_reason":"查询通用运费责任政策。"}
+{"case_id":"ind-zh-11","text":"礼品一起送来的订单，退货时礼品是否也要寄回？先问规则。","label":"general_qa","language":"zh","expected_reason":"只查询附赠品退货政策，不执行退货。"}
+{"case_id":"ind-zh-12","text":"识别一下这张照片里的商品是什么型号。","label":"product_identification","language":"zh","expected_reason":"仅识别已绑定媒体IMG2468中的商品。"}
+{"case_id":"ind-zh-13","text":"图已经发了，请帮我确认图上的产品名称。","label":"product_identification","language":"zh","expected_reason":"已有媒体资产，目标只为商品识别。"}
+{"case_id":"ind-zh-14","text":"这个包装照片对应的是哪款商品？","label":"product_identification","language":"zh","expected_reason":"依据照片确定商品，不查库存或实时价格。"}
+{"case_id":"ind-zh-15","text":"我不知道图中设备叫什么，能识别出来吗？","label":"product_identification","language":"zh","expected_reason":"已绑定图片的单一识别能力。"}
+{"case_id":"ind-zh-16","text":"嗯，就查这个。","messages":[{"role":"user","content":"我还没决定要不要退。"},{"role":"assistant","content":"你要查询退款资格还是现在发起退款？"}],"label":"__DEFER__","language":"zh","expected_reason":"相同短回复无法消解资格查询与发起退款分支。"}
+{"case_id":"ind-zh-17","text":"好，按这个办。","messages":[{"role":"assistant","content":"你确定要立即提交这笔退款申请吗？"}],"label":"__DEFER__","language":"zh","expected_reason":"写操作确认不能由只读分类快速路径执行。"}
+{"case_id":"ind-zh-18","text":"别查退款了，我暂时什么都不办。","label":"__DEFER__","language":"zh","expected_reason":"取消或停止诉求，不是退款状态查询。"}
+{"case_id":"ind-zh-19","text":"退款到哪一步了？另外帮我取消还没发货的那单。","label":"__DEFER__","language":"zh","expected_reason":"退款查询与订单取消两个目标，不能截取只读部分。"}
+{"case_id":"ind-zh-20","text":"先查退款进度，再告诉我这张商品图的型号。","label":"__DEFER__","language":"zh","expected_reason":"两项不同能力需全局规划。"}
+{"case_id":"ind-zh-21","text":"不用继续了，谢谢你的耐心。","label":"__DEFER__","language":"zh","expected_reason":"自然对话或停止任务，不制造工具调用。"}
+{"case_id":"ind-zh-22","text":"订单 DP2468 今天发货了没有？","label":"__DEFER__","language":"zh","expected_reason":"真实订单状态查询不在本冻结三能力中，不能标知识或退款。"}
+{"case_id":"ind-zh-23","text":"这款商品现在还有现货吗？","label":"__DEFER__","language":"zh","expected_reason":"实时库存需要领域业务能力，不是知识问答或图片识别。"}
+{"case_id":"ind-zh-24","text":"是的。","messages":[{"role":"assistant","content":"商品是否拆过封？"}],"label":"__DEFER__","language":"zh","expected_reason":"没有原始信息需求，不能仅靠拆封问题猜测知识查询。"}
+{"case_id":"ind-zh-25","text":"把退款换成店铺余额，不要退银行卡。","label":"__DEFER__","language":"zh","expected_reason":"修改退款方式是业务变更，不是进度读取。"}
+{"case_id":"ind-en-01","text":"Could you look up where the refund on DP2468 currently stands?","label":"refund_status_summary","language":"en","expected_reason":"Single read of an existing refund's current status."}
+{"case_id":"ind-en-02","text":"I already sent the refund request; please check its progress, not submit another one.","label":"refund_status_summary","language":"en","expected_reason":"Explicit read objective with new submission excluded."}
+{"case_id":"ind-en-03","text":"What is the latest recorded status of my refund?","label":"refund_status_summary","language":"en","expected_reason":"Bound order fixture supports the existing refund status read."}
+{"case_id":"ind-en-04","text":"Please check whether that existing refund request is still being processed.","label":"refund_status_summary","language":"en","expected_reason":"Read processing status without promising bank settlement."}
+{"case_id":"ind-en-05","text":"No changes, please. I just need an update on the refund I've already requested.","label":"refund_status_summary","language":"en","expected_reason":"Negation applies to changes, not the requested read."}
+{"case_id":"ind-en-06","text":"Yes, that one please.","messages":[{"role":"user","content":"I would like an update about my refund."},{"role":"assistant","content":"Shall I check the status of your existing refund request?"}],"label":"refund_status_summary","language":"en","expected_reason":"Short reply confirms one read-only refund-status objective."}
+{"case_id":"ind-en-07","text":"Where can I find the standard time limit for returning a purchase?","label":"general_qa","language":"en","expected_reason":"General return-window policy, not a personal status lookup."}
+{"case_id":"ind-en-08","text":"Please check the rules about returning goods with promotional gifts.","label":"general_qa","language":"en","expected_reason":"Policy evidence about gifts accompanying returns."}
+{"case_id":"ind-en-09","text":"Who normally pays postage when an item is returned? I am only asking about your policy.","label":"general_qa","language":"en","expected_reason":"General return-postage rule; no return submission."}
+{"case_id":"ind-en-10","text":"Does your published returns policy exclude opened food products?","label":"general_qa","language":"en","expected_reason":"Policy lookup retaining product-category and opened condition."}
+{"case_id":"ind-en-11","text":"What does the policy say about refunds going back to the original payment method?","label":"general_qa","language":"en","expected_reason":"General refund-method rule, not changing an actual refund."}
+{"case_id":"ind-en-12","text":"Please identify the product model shown in the photo I uploaded.","label":"product_identification","language":"en","expected_reason":"Identify the item from bound media IMG2468 only."}
+{"case_id":"ind-en-13","text":"I have a picture of the packaging; which product is it?","label":"product_identification","language":"en","expected_reason":"Photo-based product identification, not stock or price lookup."}
+{"case_id":"ind-en-14","text":"Can you name the device in this image?","label":"product_identification","language":"en","expected_reason":"Single identification goal over the supplied image."}
+{"case_id":"ind-en-15","text":"Take a look at my uploaded photo and tell me which model I own.","label":"product_identification","language":"en","expected_reason":"Bound media supports the product-identification skill."}
+{"case_id":"ind-en-16","text":"Yes, that one please.","messages":[{"role":"user","content":"I'm undecided about returning this."},{"role":"assistant","content":"Do you want to check eligibility or start a new refund?"}],"label":"__DEFER__","language":"en","expected_reason":"The same short reply does not identify which of two materially different goals is intended."}
+{"case_id":"ind-en-17","text":"All right, go ahead.","messages":[{"role":"assistant","content":"May I submit the refund request now?"}],"label":"__DEFER__","language":"en","expected_reason":"Possible write approval belongs to the governed approval path."}
+{"case_id":"ind-en-18","text":"Stop looking into the refund; I don't need any action now.","label":"__DEFER__","language":"en","expected_reason":"Cancellation or stopping is not a read-only status request."}
+{"case_id":"ind-en-19","text":"Check my refund and cancel the order that hasn't shipped yet.","label":"__DEFER__","language":"en","expected_reason":"Independent read and write goals cannot collapse to one fast-path label."}
+{"case_id":"ind-en-20","text":"Identify this item from the picture and also check my refund progress.","label":"__DEFER__","language":"en","expected_reason":"Two distinct capabilities require full planning."}
+{"case_id":"ind-en-21","text":"That's everything for now. You've been very helpful.","label":"__DEFER__","language":"en","expected_reason":"Social closure should not start a business tool."}
+{"case_id":"ind-en-22","text":"Has order DP2468 been dispatched today?","label":"__DEFER__","language":"en","expected_reason":"Live order state is not a refund status or knowledge-policy query."}
+{"case_id":"ind-en-23","text":"Is this product available in stock right now?","label":"__DEFER__","language":"en","expected_reason":"Live inventory is outside the frozen fast-path capability set."}
+{"case_id":"ind-en-24","text":"No, not yet.","messages":[{"role":"assistant","content":"Have you opened the package?"}],"label":"__DEFER__","language":"en","expected_reason":"The original information need is absent; the short answer alone cannot select a safe task."}
+{"case_id":"ind-en-25","text":"Send my refund to store credit instead of my card.","label":"__DEFER__","language":"en","expected_reason":"Changing the refund destination is a write objective, not progress reading."}
