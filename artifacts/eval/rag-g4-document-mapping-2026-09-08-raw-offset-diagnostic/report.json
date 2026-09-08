@@ -1,0 +1,133 @@
+{
+  "revision": "2c618bb98db3c8526433e22d8a2f7320f10a7470",
+  "contract": "Official ID exists and document[start:end] exactly equals passage text",
+  "api_calls": 0,
+  "stats": {
+    "clapnq": {
+      "official_documents": 178890,
+      "text_mismatch": 183408
+    },
+    "cloud": {
+      "official_documents": 8578,
+      "text_mismatch": 72439,
+      "empty_excluded": 3
+    },
+    "fiqa": {
+      "official_documents": 57638,
+      "text_mismatch": 60984,
+      "empty_excluded": 38
+    },
+    "govt": {
+      "official_documents": 7661,
+      "text_mismatch": 49607
+    }
+  },
+  "failure_examples": {
+    "clapnq": [
+      {
+        "id": "837799097_6931-7548-0-617",
+        "state": "text_mismatch"
+      },
+      {
+        "id": "837799097_7549-7959-0-406",
+        "state": "text_mismatch"
+      },
+      {
+        "id": "837799097_7960-8403-0-443",
+        "state": "text_mismatch"
+      },
+      {
+        "id": "837799097_8404-9023-0-619",
+        "state": "text_mismatch"
+      },
+      {
+        "id": "837799097_11163-11596-0-432",
+        "state": "text_mismatch"
+      }
+    ],
+    "cloud": [
+      {
+        "id": "ibmcld_00422-0-387",
+        "state": "text_mismatch"
+      },
+      {
+        "id": "ibmcld_00423-7-1742",
+        "state": "text_mismatch"
+      },
+      {
+        "id": "ibmcld_00423-1296-2298",
+        "state": "text_mismatch"
+      },
+      {
+        "id": "ibmcld_00424-0-1490",
+        "state": "text_mismatch"
+      },
+      {
+        "id": "ibmcld_00425-0-260",
+        "state": "text_mismatch"
+      }
+    ],
+    "fiqa": [
+      {
+        "id": "10171-0-2129",
+        "state": "text_mismatch"
+      },
+      {
+        "id": "10171-1606-2596",
+        "state": "text_mismatch"
+      },
+      {
+        "id": "10174-0-315",
+        "state": "text_mismatch"
+      },
+      {
+        "id": "10180-0-830",
+        "state": "text_mismatch"
+      },
+      {
+        "id": "10191-0-372",
+        "state": "text_mismatch"
+      }
+    ],
+    "govt": [
+      {
+        "id": "45cbe52725a3cd97-2-2092",
+        "state": "text_mismatch"
+      },
+      {
+        "id": "45cbe52725a3cd97-1623-3411",
+        "state": "text_mismatch"
+      },
+      {
+        "id": "45cbe52725a3cd97-2969-5081",
+        "state": "text_mismatch"
+      },
+      {
+        "id": "45cbe52725a3cd97-4583-6515",
+        "state": "text_mismatch"
+      },
+      {
+        "id": "45cbe52725a3cd97-6071-8055",
+        "state": "text_mismatch"
+      }
+    ]
+  },
+  "hashes": {
+    "clapnq": {
+      "documents": "24580c5dfa3c92c0d508b2f7d0bac6af5e8d233087e64de3ba2c7bc930f0e345",
+      "passages": "3f4bd79341b176070a83b6281bf380d7d6958270c137913f7377121b85a0747e"
+    },
+    "cloud": {
+      "documents": "c74ac6248f7255cc0a3ed13338d9e9c94df78c58bd0fdf32e7ec5aabe89218f9",
+      "passages": "a0c5427013c65556aeddfdc246dd6068f3a7fad08ce6ae7adddaa9e87aae246d"
+    },
+    "fiqa": {
+      "documents": "28df3e6afc777ac5ea75fa0cd1bb9ac808c0b50f600a77d362c153fb363afada",
+      "passages": "59f7cf5b043abe007fdb6521eb281bf055524de4376466e9cb4808466e761ee9"
+    },
+    "govt": {
+      "documents": "12c55e6829b3561b8a0b53d37e58d0b4f24892e1fa7a4b6ee882f90c3baf5529",
+      "passages": "09adcc5a1a8d11e362c66d7dbf0ef2ea338df4327d655102bf91ea8e258399f6"
+    }
+  }
+}

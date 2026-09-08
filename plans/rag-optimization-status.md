@@ -238,3 +238,7 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 - R02来源内定位诊断预注册：开发32题原官方query、已有Dense/BM25各20，读取锁定原始passage的完整URL作为来源身份，不按gold反推父ID。统计双路遗漏gold是否有同URL候选、首个父来源排名及来源片段数；完整URL缺失/不一致单列，最多Top3不同来源的诊断覆盖另列。API0/新模型评分0，不把URL命中当child召回或parent策略收益；若来源定位机会不足，不启动父级实验。
 
 - R02 URL诊断完成：32题15题缺28个gold；10个有效URL中4个有同源Top20、6个无，18个缺可靠URL不可判。4个来源最佳不同父排名10/13/6/5，Top3没有；不启动基于当前Top3的父内实验。ClapNQ183408条url为同一regex，FiQA60984缺url，Govt24非法；首次非空分组报告标无效保留，源SHA与锁定manifest一致。API0，详见parent-opportunity32报告。下一项官方document/passsage映射校验及独立父级定位可行性；不靠前缀猜来源，不泛化为parent无用。
+
+- R02官方映射预注册：下载同锁定revision的四域document_level，按官方document_id/_id匹配passage的末尾起止偏移，要求父ID实际存在且父正文[start:end]逐字等于passage正文；身份猜测不算成功。全非空语料审核成功/缺父/偏移不符，保存SHA与计数；ClapNQ官方document粒度不自动等同整篇Wikipedia。API0/模型0，先建立可靠映射再重算32开发题父级机会。
+
+- R02官方映射完成：365323/366438非空片段通过官方父ID+严格正文转换，1115未解释（Clap225/Govt890）不入映射。Cloud72439/FiQA60984全通过；连续空格规范化解释多数offset差异，不能当原始偏移。开发28个漏gold均有验证父，仍仅4个父进Top20、0个前三，未测父级策略收益。API0；原切片/加标题中间报告保留。一次null标题修正、一次重复规范化主动中断改缓存后完成；无模型任务遗留。见document-mapping报告。下一项Cloud可靠映射下独立父定位与child对照，非直接Top3扩父。
