@@ -1,0 +1,104 @@
+{
+  "status": "ASSISTANT_REVIEWED_SYNTHETIC",
+  "scope": "Assistant direct review of full dialogue prefixes; not human gold or fresh evaluation",
+  "source_sha256": {
+    "en/calibration.jsonl": "355c1231827f8ccb0492cbffed9764c8536d2b2efa362212731c97a04a78e86f",
+    "en/heldout.jsonl": "6d1d1db4530f146300d4c8b0609e1b52062511658fc86f9b5ae1ed79efbd5c1d",
+    "en/train.jsonl": "681425060a07464fabb48433c7eafe282c38895476c097ad6af56031aa0b19fc",
+    "zh/calibration.jsonl": "8987509b2d7c520cd07eaa671691dacb7d00e147aa6afc45daf84f7ae828e0b0",
+    "zh/heldout.jsonl": "e65e23bc2c3f1ff0c0842164716790244d867b1fb4734829c79257b082aae43c",
+    "zh/train.jsonl": "89d872ab13bda07b2afbb13718193fb4e0704946b081ec6e776b54ab928bc87b"
+  },
+  "review_sha256": "7c7b6838447241dcb64dcfec238bd5277f45c09e43b930ef8fb1b6142dd22a2a",
+  "splits": {
+    "en/calibration.jsonl": {
+      "input": 48,
+      "accepted": 47,
+      "labels": {
+        "billing_refund": 17,
+        "order_logistics": 8,
+        "human_service": 4,
+        "product_technical": 7,
+        "general": 8,
+        "account_security": 2,
+        "__DEFER__": 1
+      },
+      "sha256": "3220b641a36b0b6a76e513c4c3fbbadc0c41a0bf88aeb10b8769b0bb723ac236"
+    },
+    "en/heldout.jsonl": {
+      "input": 24,
+      "accepted": 24,
+      "labels": {
+        "billing_refund": 8,
+        "__DEFER__": 6,
+        "product_technical": 2,
+        "human_service": 1,
+        "general": 3,
+        "account_security": 3,
+        "order_logistics": 1
+      },
+      "sha256": "454ce33a384f7b243437b19b6fa3baf5293af1e0cb86f0b24d5b8a853117212c"
+    },
+    "en/train.jsonl": {
+      "input": 240,
+      "accepted": 237,
+      "labels": {
+        "general": 30,
+        "product_technical": 37,
+        "billing_refund": 70,
+        "order_logistics": 40,
+        "human_service": 17,
+        "account_security": 19,
+        "__DEFER__": 24
+      },
+      "sha256": "e23f0bd751e56bf8fe70f418d519cdb86a5beae7638a3986906c1f81de9821b9"
+    },
+    "zh/calibration.jsonl": {
+      "input": 72,
+      "accepted": 70,
+      "labels": {
+        "billing_refund": 21,
+        "__DEFER__": 16,
+        "account_security": 2,
+        "general": 9,
+        "human_service": 5,
+        "product_technical": 12,
+        "order_logistics": 5
+      },
+      "sha256": "fc0446196bcad78ed8880f6686a915e78b1bf47612f0e74630cc6421581f69b6"
+    },
+    "zh/heldout.jsonl": {
+      "input": 69,
+      "accepted": 67,
+      "labels": {
+        "general": 9,
+        "billing_refund": 20,
+        "order_logistics": 12,
+        "product_technical": 5,
+        "account_security": 10,
+        "human_service": 10,
+        "__DEFER__": 1
+      },
+      "sha256": "993146a4186a8387398db324eb9677c95d0af054865ce4369d83941a0f822b71"
+    },
+    "zh/train.jsonl": {
+      "input": 240,
+      "accepted": 225,
+      "labels": {
+        "billing_refund": 61,
+        "__DEFER__": 39,
+        "general": 23,
+        "product_technical": 34,
+        "account_security": 23,
+        "order_logistics": 27,
+        "human_service": 18
+      },
+      "sha256": "7eee62f49081f6e048524db1034c63cd35139ee0e5c5fc05c88f54b128861ad7"
+    }
+  },
+  "decisions": {
+    "retained": 552,
+    "quarantined": 23,
+    "corrected": 118
+  }
+}
