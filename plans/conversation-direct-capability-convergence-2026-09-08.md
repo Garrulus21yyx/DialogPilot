@@ -1343,3 +1343,39 @@ reviewer-only counterfactual. Stop this witness's repeated reviewer tuning. Next
 separately test actor action selection and current reviewer behavior on fresh scoped
 conflict/independence/batch/information-only cases, using unchanged production
 contracts, before another business run. Whole goal remains open.
+
+Fresh boundary probe registered (six synthetic cases, not tau success scoring):
+`data/eval/action-boundary-fresh6-2026-09-09.json`. Independent pre-run review
+corrected two oracle ambiguities: redirect-before-cancel can be legal, and unknown
+post-effects alone do not establish a prohibition on partial work. Fixtures now
+state incompatible delivery outcomes and conditional authorization explicitly.
+
+Use production actor system and preparation/interaction wrappers for one native
+model decision per case; do not execute selected tools or claim full framework-loop
+coverage. Separately pass a fixed, explicitly targeted candidate to the unchanged
+DomainOutcomeReview. Current WORKER and VERIFIER profiles; 4096 tokens and 90s per
+call; at most twelve calls. No extra retry or prompt edits. Persist raw captures,
+candidate verdicts, actor calls and prose separately. Actor absence of a forbidden
+call is not by itself success: audit positive action/parameters, valid sequencing,
+batch completeness and whether questions/limitations are appropriate. This is new
+diagnostic evidence, not an independent real-customer benchmark or business closure.
+
+Fresh6 completed: `artifacts/eval/action-boundary-fresh6-2026-09-09` (12 model calls,
+zero business calls). Six fixture tests pass. Independent output review confirms
+all six fixed-candidate verdicts AND their corrections match the bounded cases.
+Actor: correct next choice in conflict, one-time batch (both I1/I2), conditional
+unknown effect and information-only cases. `close_and_adjust` wrongly asks the user
+to choose, although adjust-before-close is legal. `independent_shipments` selects
+correct targets/parameters but issues two preparations together, violating the
+single-proposal segment contract. The information-only text also contains internal
+task explanation; it is not a verified customer response.
+
+These are two independent probes, not actor-to-review closure. The first-decision
+tool subset includes production prepare/interaction wrappers, not the full archive
+reader environment, and synthetic parameter schemas are deliberately broad; neither
+schema validity nor absence of forbidden calls counts as actor success. Independent
+review recommends testing the existing full worker/middleware on the two deviations
+before any prompt change. Verify rejection, one correction, exactly one pending
+proposal, preserved remaining goal, zero external writes. If a fresh run never emits
+the original bad choice, report no correction triggered rather than claiming recovery
+was proven. No production change or Encoder activation in this step.
