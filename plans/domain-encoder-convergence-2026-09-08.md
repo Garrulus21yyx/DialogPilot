@@ -75,3 +75,21 @@ cross-domain addition / unresolved reference；标签依据当前有效诉求，
 - 隔离176 passed / 3 skipped。真实客服任务未执行。
 - 报告docs/domain-encoder-multiturn-v2-2026-09-08.zh-CN.md；原输出artifacts/eval/domain-encoder-v2-2026-09-08/。
 - 下一缺口是自然澄清、否定作用域、已完成历史和双域并存的自由会话族；不自动追加试训，不扩充Encoder职责。
+
+## v3 决策前诊断（用户要求寻找可行方案）
+
+状态：固定权重诊断完成，下一方法已选定，模型可用性仍未闭环；起点beebe3d。
+先固定v2权重重放已消费calibration，不开新留出、不训练、不改线上门槛。
+假设一：general无可用阈值可能是候选精度、margin或样本量下界，旧输出均压成0无法归因。
+输出逐类argmax/margin/经验精度/Wilson候选及风险覆盖曲线，保留原分数与manifest摘要。
+假设二：按行采样过度加权少量模板族，需先据诊断决定家族均衡或新自由会话来源，不能直接第三轮堆模板。
+参照：COLING2025 differential generation（https://aclanthology.org/2025.coling-main.151/）强调跨类别差异与伪样本审查；
+ACL2022 KNN-contrastive（https://aclanthology.org/2022.acl-long.352/）区分IND分类与OOD拒绝。论文不保证本项目结果。
+本轮先做不改变模型的证据诊断，另核查公开电商多轮语料可用性，再给出选定的改进路线。
+
+结果：zhgeneral margin22/18无98%候选，zhhuman可14/14但Wilson不足；engeneral5/0，enhuman72/61无98%候选。
+选择：自由完整对话/前缀→离线标注审查→差异成对样本→家族权重对照→独立校准，不新增线上层、不直接第三轮扩模板训练。
+原分数与曲线：artifacts/eval/domain-calibration-audit-2026-09-08/。
+方法与数据来源核查：docs/domain-encoder-next-method-2026-09-08.zh-CN.md。
+诊断、测试及文档单独commit/push；实际训练效果不在本轮声称范围内。
+69项相关测试通过；独立审查确认校准诊断语义一致。来源group_id数量不当作独立语义场景数。
