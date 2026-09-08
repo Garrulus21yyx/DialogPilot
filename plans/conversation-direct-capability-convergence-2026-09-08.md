@@ -580,3 +580,27 @@ held-out success rate. A failure remains evidence and cannot establish closure.
 
 PostgreSQL rerun of the domain-outcome boundary suite completed: all 50 tests
 passed in 6.46 seconds, including the two previously skipped cases.
+
+Shared-contract implementation commit `2d06b66` was pushed. Fixed task19 replay
+session 80027 completed with exit0, user_stop, six application turns. ENV=0 with
+actual DB mismatch; ACTION=0 (all six required reads matched, required return write
+absent); ALL unavailable due evaluator error. This differs from the prior max-step
+zero with null checks: here no business write executed. The simulator produced
+text and stopped normally; do not attribute this failure to an empty user message.
+
+The semantic hypothesis did not pass. Turn1 sent the identical empty-email lookup
+five times; every external result says User not found/error=true, and all five
+application outcomes are TERMINAL_FAILURE/TOOL_REJECTED. Turns1/2 exhausted the
+main observation budget. Turn3 again asked to proceed without a prepared action.
+Turn4's direct reply denied previously known identity/order/pricing and failed
+answer verification. Turn5 attempted delegation but supplied order=W2890441 where
+the model schema required entity_1, causing CONVERSATION_PROVIDER_OUTPUT_INVALID.
+No confirmation/preparation closure is established by the shared prompt migration.
+
+No further task was launched or production branch added after this result. Asked
+the existing independent reviewer to trace observation failure detail/progress and
+entity-selection conversion end to end, distinguishing model noncompliance from
+an actual input/contract defect. Next repair must account for this shared main-agent
+execution boundary, not special-case empty email or accept arbitrary order values.
+Original and new failed artifacts remain separate and unchanged. Encoder remains
+disabled; the overall persistent objective remains open.
