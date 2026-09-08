@@ -80,6 +80,7 @@ class _Publication:
         verifier_status,
         expected_work_controls=(),
         execution_stages=(),
+        knowledge_evidence=(),
     ):
         key = str(identity.invocation_key)
         published = PublishedTargetResponse(f"response:{key}", 1, "selected")
@@ -108,7 +109,7 @@ class _Publication:
         expires_at,
         expected_work_controls=(),
         related_signals=(),
-        execution_stages=(),
+        execution_stages=(), knowledge_evidence=(),
     ):
         key = str(identity.invocation_key)
         published = PublishedTargetResponse(f"interaction:{key}", 1, "selected")

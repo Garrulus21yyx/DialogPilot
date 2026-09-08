@@ -25,10 +25,12 @@ class TargetTurnContextLoader:
 
     version = "target-turn-context-loader-v1"
 
-    def __init__(self, projection_reader, tool_manager, *, recent_limit: int = 8) -> None:
+    def __init__(self, projection_reader, tool_manager, *, recent_limit: int = 8,
+                 knowledge_reader=None) -> None:
         self._projection_reader = projection_reader
         self._tools = tool_manager
         self._recent_limit = max(1, int(recent_limit))
+        self._knowledge_reader = knowledge_reader
 
     async def load(self, invocation, observations, state, deterministic):
         recent = []
@@ -96,6 +98,18 @@ class TargetTurnContextLoader:
             source_watermark=watermark,
             projection_reason_codes=reason_codes,
         )
+        if self._knowledge_reader is not None:
+            import asyncio
+            try:
+                knowledge = await asyncio.to_thread(self._knowledge_reader.load, invocation)
+                context = replace(context, knowledge_evidence=knowledge)
+            except Exception as exc:
+                # Preserve conversation if the optional evidence read fails;
+                # absence is not an instruction to rerun every prior lookup.
+                context = replace(context,
+                    projection_status=TargetContextProjectionStatus.DEGRADED,
+                    projection_reason_codes=(*context.projection_reason_codes,
+                        "KNOWLEDGE_CONTEXT_" + type(exc).__name__))
 
         needs_history = (
             deterministic.kind is ResolutionKind.UNRESOLVED

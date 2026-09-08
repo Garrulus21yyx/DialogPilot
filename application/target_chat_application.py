@@ -90,6 +90,7 @@ class TargetPublicationPort(Protocol):
         verifier_status: str,
         expected_work_controls: tuple[WorkControlBinding, ...] = (),
         execution_stages: tuple = (),
+        knowledge_evidence: tuple[dict, ...] = (),
     ) -> PublishedTargetResponse: ...
 
     def publish_interaction(
@@ -104,6 +105,7 @@ class TargetPublicationPort(Protocol):
         expected_work_controls: tuple[WorkControlBinding, ...] = (),
         related_signals: tuple[tuple[str, int], ...] = (),
         execution_stages: tuple = (),
+        knowledge_evidence: tuple[dict, ...] = (),
     ) -> PublishedTargetResponse: ...
 
 
@@ -316,6 +318,7 @@ class TargetChatApplication:
                         *(pending_input.suspended_work_items if present_input else ())) if item.control),
                 **({"related_signals": ((pending_input.interaction_id, pending_input.version),)} if present_input else {}),
                 execution_stages=assembly.diagnostics,
+                knowledge_evidence=assembly.knowledge_evidence,
             )
             return NeedsInput(
                 str(identity.workflow_run_id),
@@ -354,6 +357,7 @@ class TargetChatApplication:
                 expected_work_controls=tuple(item.control for item in pending_input.suspended_work_items
                                              if item.control),
                 execution_stages=assembly.diagnostics,
+                knowledge_evidence=assembly.knowledge_evidence,
             )
             return NeedsInput(
                 str(identity.workflow_run_id),
@@ -610,6 +614,7 @@ class TargetChatApplication:
             evidence_sha256=evidence_sha,
             verifier_status=verifier_status,
             execution_stages=assembly.diagnostics if assembly else (),
+            knowledge_evidence=assembly.knowledge_evidence if assembly and assembly.verified else (),
             expected_work_controls=tuple(dict.fromkeys(
                 item.control for item in (*work_items,
                     *(pending.suspended_work_items if pending else ()),

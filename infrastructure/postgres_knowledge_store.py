@@ -503,7 +503,11 @@ class PostgresKnowledgeStore:
             operations_audit_ref="local-direct-ingest", schema_version="knowledge-source-v2",
         )
 
-    def validate_publication_evidence(self, packs) -> bool:
+    def validate_current_evidence(self, packs) -> bool:
+        """Reuse existing source validation with current effective-revision rules."""
+        return self.validate_publication_evidence(packs, as_of=datetime.now(timezone.utc))
+
+    def validate_publication_evidence(self, packs, *, as_of=None) -> bool:
         """Linearize source authorization after model verification, before assembly.
 
         Share locks make the decision coherent with concurrent withdrawal and
@@ -519,7 +523,7 @@ class PostgresKnowledgeStore:
                 if active is None or not packs:
                     return False
                 for pack in packs:
-                    if pack['evidence_pack']['index_manifest_fingerprint'] != active[0]:
+                    if as_of is None and pack['evidence_pack']['index_manifest_fingerprint'] != active[0]:
                         return False
                     for item in evidence_items(pack):
                         ref = item['source_ref']
@@ -532,6 +536,25 @@ class PostgresKnowledgeStore:
                               ref['source_revision'], self._locale, self._product)).fetchone()
                         if member is None:
                             return False
+                        if as_of is not None:
+                            # Same temporal predicate as retrieval/cache reread;
+                            # a historical lookup is not automatically current.
+                            from infrastructure.knowledge_applicability import source_applicability
+                            predicate, params = source_applicability("reuse_source", as_of=as_of)
+                            from psycopg import sql
+                            applicable = connection.execute(sql.SQL("""
+                                SELECT 1 FROM (
+                                    SELECT *, revision_id AS source_revision
+                                    FROM retrieval.knowledge_source_manifest_entries
+                                ) reuse_source
+                                WHERE tenant_id=%s AND backend_id=%s AND generation_id=%s
+                                  AND source_id=%s AND source_revision=%s AND scope='public'
+                                  AND locale=%s AND product=%s AND {}
+                            """).format(predicate), (self._tenant_id, self.backend_id, active[1],
+                                ref['source_id'], ref['source_revision'], self._locale, self._product,
+                                *params)).fetchone()
+                            if applicable is None:
+                                return False
                         row = connection.execute("""
                             SELECT content, checksum, withdrawn_at FROM retrieval.knowledge_source_revisions
                             WHERE tenant_id=%s AND source_id=%s AND revision_id=%s FOR SHARE

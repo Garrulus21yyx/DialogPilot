@@ -23,6 +23,7 @@ from infrastructure.target_conversation_provider import AnthropicConversationPla
 from infrastructure.target_tool_execution import TargetToolExecutor
 from infrastructure.target_turn_context import TargetTurnContextLoader
 from infrastructure.postgres_memory_projection import PostgresMemoryProjectionReader
+from infrastructure.postgres_conversation_evidence import PostgresConversationEvidence
 from infrastructure.postgres_conversation import PostgresConversationTurnStore
 from application.conversation_store import ConversationScope, TurnRole, TurnToAppend
 from infrastructure.target_chat_adapters import PostgresTargetAdmission, PostgresTargetPublication
@@ -99,9 +100,11 @@ async def run_mixed(*, platform, store, client, policy, provider_config, output,
             manager=TargetConversationManager(state_store=PostgresConversationStateStore(platform),registry=registry,
                 understanding=CascadedTargetUnderstanding(StateBoundTargetUnderstanding(),agent),
                 orchestration=OrchestrationRuntime(direct_executor=TargetToolExecutor(tools),domain_workers={}),
-                context_provider=TargetTurnContextLoader(PostgresMemoryProjectionReader(platform,memory),tools))
+                context_provider=TargetTurnContextLoader(PostgresMemoryProjectionReader(platform,memory),tools,
+                    knowledge_reader=PostgresConversationEvidence(platform, store.validate_current_evidence)))
             assembler=ResponseAssembler(agent,knowledge_verifier=verifier,
-                                        knowledge_source_validator=store.validate_publication_evidence)
+                                        knowledge_source_validator=store.validate_publication_evidence,
+                                        knowledge_reuse_validator=store.validate_current_evidence)
             application=TargetChatApplication(manager=manager,admission=PostgresTargetAdmission(platform),
                 publication=PostgresTargetPublication(PostgresResponseDeliveryService(platform,resume_binding_secret=uuid.uuid4().hex)),
                 bundle_version=registry.bundle_version,response_assembler=assembler,knowledge_context_factory=context)

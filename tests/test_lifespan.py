@@ -79,6 +79,10 @@ def test_lifespan_wires_memory_budget_to_memory_owner(
         def registered_tools(self):
             return tuple(self.tools)
 
+        @property
+        def registered_tool_names(self):
+            return tuple(tool.name for tool in self.tools)
+
         def get_stats(self):
             return {}
 
@@ -107,6 +111,9 @@ def test_lifespan_wires_memory_budget_to_memory_owner(
             return True
 
         def validate_publication_evidence(self, packs):
+            return True
+
+        def validate_current_evidence(self, packs):
             return True
 
         def embed_query(self, _query, _generation):

@@ -106,6 +106,7 @@ class TargetTurnContext:
     memory_status: str = "NOT_REQUIRED"
     entity_bindings: EntityBindingSet = EntityBindingSet()
     knowledge_filter_contract: dict = field(default_factory=dict)
+    knowledge_evidence: tuple[dict, ...] = ()
 
     def __post_init__(self) -> None:
         if self.source_watermark < 0:

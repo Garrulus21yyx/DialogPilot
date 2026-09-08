@@ -64,7 +64,7 @@ async def run_full_chain(*,database_url,platform,store,client,policy,provider_co
                 if socket.exists():break
                 await asyncio.sleep(.05)
             memory=MemoryManager(redis_url='unix://'+str(socket),fact_store=PostgresMemoryFactStore(platform),api_key=provider_config['api_key'],base_url=policy.base_url,model_profile=policy.profile(ModelRole.SYNTHESIS))
-            components=await build_target_runtime(database_url=database_url,postgres_pool=platform,tool_manager=tools,memory=memory,response_delivery=PostgresResponseDeliveryService(platform,resume_binding_secret=uuid.uuid4().hex),model_policy=policy,provider_config=provider_config,project_root=Path.cwd(),registry=registry,knowledge_context_factory=knowledge_context,knowledge_verifier=verifier,knowledge_source_validator=store.validate_publication_evidence)
+            components=await build_target_runtime(database_url=database_url,postgres_pool=platform,tool_manager=tools,memory=memory,response_delivery=PostgresResponseDeliveryService(platform,resume_binding_secret=uuid.uuid4().hex),model_policy=policy,provider_config=provider_config,project_root=Path.cwd(),registry=registry,knowledge_context_factory=knowledge_context,knowledge_verifier=verifier,knowledge_source_validator=store.validate_publication_evidence,knowledge_reuse_validator=store.validate_current_evidence)
             components.understanding._planner._provider._callbacks=(capture,)
             turns=PostgresConversationTurnStore(platform)
             for case in cases:

@@ -150,6 +150,7 @@ class PostgresTargetPublication:
         expected_work_controls=(),
         related_signals=(),
         execution_stages=(),
+        knowledge_evidence=(),
     ):
         now = datetime.now(timezone.utc).isoformat()
         result = self._delivery.publication.publish_interaction_request(
@@ -177,6 +178,7 @@ class PostgresTargetPublication:
                 expected_work_controls=tuple(expected_work_controls),
                 related_signals=tuple(related_signals),
                 execution_stages=tuple(stage.to_dict() for stage in execution_stages),
+                knowledge_evidence=tuple(knowledge_evidence),
             )
         )
         return PublishedTargetResponse(
@@ -196,6 +198,7 @@ class PostgresTargetPublication:
         verifier_status,
         expected_work_controls=(),
         execution_stages=(),
+        knowledge_evidence=(),
     ):
         selected = self._delivery.select_response(
             user_id=str(identity.user_id),
@@ -214,6 +217,7 @@ class PostgresTargetPublication:
                     "verified": public_response["verified"],
                 },
                 "evidence_sha256": evidence_sha256,
+                "knowledge_evidence": tuple(knowledge_evidence),
                 "bundle_version": bundle_version,
                 "index_manifest_sha256": _NO_INDEX_MANIFEST_SHA256,
                 "public_response": dict(public_response),

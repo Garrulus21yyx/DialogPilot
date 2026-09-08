@@ -66,6 +66,7 @@ class FinalResponseCommand:
     public_response: Mapping[str, Any] = field(default_factory=dict)
     execution_stages: tuple[Mapping[str, Any], ...] = ()
     expected_work_controls: tuple[WorkControlBinding, ...] = ()
+    knowledge_evidence: tuple[Mapping[str, Any], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -84,6 +85,7 @@ class InteractionRequestCommand:
     expected_work_controls: tuple[WorkControlBinding, ...] = ()
     related_signals: tuple[tuple[str, int], ...] = ()
     execution_stages: tuple[Mapping[str, Any], ...] = ()
+    knowledge_evidence: tuple[Mapping[str, Any], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -148,6 +150,8 @@ def command_fingerprint(command: PublicationCommand) -> str:
     raw = dict(command.__dict__)
     # Retry timing is transport metadata, not part of the selected publication fact.
     raw.pop("created_at", None)
+    if not raw.get("knowledge_evidence"):
+        raw.pop("knowledge_evidence", None)
     if not raw.get("related_signals"):
         raw.pop("related_signals", None)
     # Older interaction publications have no diagnostic field. An absent

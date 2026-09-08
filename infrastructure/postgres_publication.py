@@ -327,6 +327,13 @@ class PostgresPublicationService:
                 "handoff_id": command.handoff_id,
                 "human_message_id": command.human_message_id,
             })
+        # Internal evidence belongs to the private column, never delivery payload.
+        evidence = getattr(command, "knowledge_evidence", ())
+        if evidence:
+            result["verification"] = {
+                **(result["verification"] or {}),
+                "knowledge_evidence": list(evidence),
+            }
         return result
 
     def _resume_signature(self, publication_id: str, signal_id: str, version: int) -> str:

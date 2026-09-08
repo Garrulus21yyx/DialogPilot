@@ -567,6 +567,7 @@ async def lifespan(app: FastAPI):
         project_root=pathlib.Path(_ROOT),
         knowledge_context_factory=_knowledge_execution_context,
         knowledge_source_validator=_knowledge_store.validate_publication_evidence,
+        knowledge_reuse_validator=_knowledge_store.validate_current_evidence,
     )
     _target_chat_runtime = target_components.application
     _target_orchestration = target_components.orchestration

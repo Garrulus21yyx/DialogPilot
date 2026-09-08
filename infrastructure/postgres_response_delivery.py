@@ -103,6 +103,7 @@ class PostgresResponseDeliveryService:
                 )
                 for item in metadata.get("expected_work_controls") or ()
             ),
+            knowledge_evidence=tuple(metadata.get("knowledge_evidence") or ()),
         ))
         return self._get(result.record.publication_id, user_id=user_id)
 

@@ -19,6 +19,26 @@ def instant(year):
     return datetime(year, 1, 1, tzinfo=timezone.utc)
 
 
+def test_reuse_tracks_source_revision_not_unrelated_index_changes(store):
+    from tests.test_knowledge_tool_contract import evidence_result
+    knowledge, _, _ = store
+    doc = SourceDocument.create(source_id='policy', title='政策', content='未拆封可以退。',
+                                effective_from=instant(2020))
+    imported = knowledge.import_documents((doc,))
+    pack = evidence_result(doc.content)
+    pack['evidence_pack']['index_manifest_fingerprint'] = knowledge.active_generation().manifest_hash
+    pack['evidence_pack']['items'][0]['source_ref'].update(
+        source_revision=imported.revisions[0].revision_id, checksum=imported.revisions[0].checksum)
+    assert knowledge.validate_current_evidence([pack])
+    knowledge.import_documents((SourceDocument.create(source_id='unrelated', title='说明',
+        content='另一种服务说明。', effective_from=instant(2020)),))
+    assert not knowledge.validate_publication_evidence([pack])  # original retrieval snapshot
+    assert knowledge.validate_current_evidence([pack])  # unchanged live source still reusable
+    knowledge.import_documents((replace(doc, content='新版规则。',
+        checksum=SourceDocument.content_checksum('新版规则。'), effective_from=instant(2021)),))
+    assert not knowledge.validate_current_evidence([pack])
+
+
 def test_source_update_time_facets_withdrawal_and_cache_reread(store, postgres_database_url):
     knowledge, pool, _ = store
     old = SourceDocument.create(source_id='policy',title='退款政策',content='旧版退款期限七天。', effective_from=instant(2023))
@@ -66,6 +86,17 @@ def test_source_update_time_facets_withdrawal_and_cache_reread(store, postgres_d
             1.0,1,(), 'allowed_public',row['content']),))
         wire = {'status':'OK','evidence_pack':packed.to_dict(include_text=True)}
         assert knowledge.validate_publication_evidence([wire])
+        assert knowledge.validate_publication_evidence([wire], as_of=instant(2026))
+        assert not knowledge.validate_publication_evidence([wire], as_of=instant(2024))
+        assert not knowledge.validate_publication_evidence([wire], as_of=instant(2027))
+        # A newer same-named source in another tenant/backend must not supersede
+        # this source. Exercise SQL correlations, not just local type checks.
+        from infrastructure.postgres_knowledge_store import PostgresKnowledgeStore
+        other = PostgresKnowledgeStore(pool, tenant_id='other-tenant',
+                                       embedding_provider=knowledge._embedding_provider)
+        other.backend_id = 'OTHER_KNOWLEDGE_TEST'
+        other.import_documents((replace(newer, effective_from=instant(2026)),))
+        assert knowledge.validate_publication_evidence([wire], as_of=instant(2026))
         knowledge.withdraw_revision('policy',second.revisions[0].revision_id,reason='incorrect policy')
         assert not knowledge.validate_publication_evidence([wire])
         knowledge.withdraw_revision('policy',second.revisions[0].revision_id,reason='retry')

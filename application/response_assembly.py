@@ -49,6 +49,7 @@ class AssembledResponse:
     diagnostics: tuple[StageObservation, ...] = ()
     evidence_sha256: str = ""
     evidence_json: str = ""
+    knowledge_evidence: tuple[dict, ...] = ()
 
     @property
     def verified(self) -> bool:
@@ -58,6 +59,7 @@ class AssembledResponse:
     def __post_init__(self) -> None:
         object.__setattr__(self, "evidence_refs", tuple(self.evidence_refs))
         object.__setattr__(self, "diagnostics", tuple(self.diagnostics))
+        object.__setattr__(self, "knowledge_evidence", tuple(self.knowledge_evidence))
         if self.evidence_json and hashlib.sha256(self.evidence_json.encode()).hexdigest() != self.evidence_sha256:
             raise ValueError("response evidence changed after capture")
         if self.verified_text_sha256 and self.verified_text_sha256 != hashlib.sha256(self.text.encode()).hexdigest():
@@ -76,7 +78,7 @@ class ResponseAssembler:
     version = "response-assembler-v9-reply-only"
 
     def __init__(self, composer: ConversationComposer | None = None, *,
-                 knowledge_verifier=None, knowledge_source_validator=None,
+                 knowledge_verifier=None, knowledge_source_validator=None, knowledge_reuse_validator=None,
                  fallback_locale="zh-CN", internal_tool_names=(), trace_sink=None) -> None:
         if fallback_locale not in {"zh-CN", "en"}:
             raise ValueError("unsupported customer fallback locale")
@@ -85,6 +87,7 @@ class ResponseAssembler:
         self._composer = composer
         self._knowledge_verifier = knowledge_verifier
         self._knowledge_source_validator = knowledge_source_validator
+        self._knowledge_reuse_validator = knowledge_reuse_validator
         self._trace_sink = trace_sink
 
     async def assemble(self, board, *, current_message: str, system_notice: str = "", conversation_context=None,
@@ -128,8 +131,16 @@ class ResponseAssembler:
         stage = "evidence_assembly"
         try:
             items = {}
+            from application.conversation_evidence import reusable_evidence, evidence_identity
+            retained = reusable_evidence(conversation_context)
+            entries = {evidence_identity(entry): entry for entry in retained}
             for fact in knowledge_facts:
                 pack = json.loads(fact.value_json)
+                entry = {"pack": {"status": "OK", "evidence_pack": pack["evidence_pack"]},
+                         "observed_at": fact.observed_at.isoformat()}
+                entries.setdefault(evidence_identity(entry), entry)
+            for entry in entries.values():
+                pack = entry["pack"]
                 packs.append(pack)
                 for item in evidence_items(pack):
                     prior = items.setdefault(item["chunk_id"], item)
@@ -184,15 +195,27 @@ class ResponseAssembler:
             from application.knowledge_tool_contract import validate_answer_citations
             validate_answer_citations(candidate.text, allowed)
             stage = "source_validation"
-            if packs and (self._knowledge_source_validator is None
-                          or not self._knowledge_source_validator(packs)):
+            # Check only sources actually cited by this answer. Unrelated old
+            # evidence cannot block a greeting or a different successful task.
+            used = tuple(entry for entry in entries.values() if any(
+                f"[{evidence_id(item['chunk_id'])}]" in candidate.text
+                for item in evidence_items(entry["pack"])))
+            retained_ids = {evidence_identity(entry) for entry in retained}
+            reused = [entry["pack"] for entry in used if evidence_identity(entry) in retained_ids]
+            fresh = [entry["pack"] for entry in used if evidence_identity(entry) not in retained_ids]
+            if fresh and (self._knowledge_source_validator is None
+                          or not self._knowledge_source_validator(fresh)):
                 raise ValueError("knowledge sources are no longer valid")
+            if reused and (self._knowledge_reuse_validator is None
+                           or not self._knowledge_reuse_validator(reused)):
+                raise ValueError("reused knowledge sources are no longer current")
             return AssembledResponse(
                 candidate.text, candidate.mode,
                 candidate.evidence_refs,
                 True, "PASS", "KNOWLEDGE_SUPPORT_CHECKED" if packs else "ANSWER_SUPPORT_CHECKED",
                 hashlib.sha256(candidate.text.encode()).hexdigest(),
-                evidence_sha256=candidate.evidence_sha256, evidence_json=candidate.evidence_json)
+                evidence_sha256=candidate.evidence_sha256, evidence_json=candidate.evidence_json,
+                knowledge_evidence=used)
         except Exception as exc:
             failed = self._failed(exc, system_notice + _render_board(board, locale=self.fallback_locale), stage)
             if knowledge_facts or knowledge_failure:
@@ -289,7 +312,8 @@ class ResponseAssembler:
             ],
             "response_requirements": [
                 *(["Cite policy claims with the supplied [E...] evidence IDs. Preserve conditions, exceptions and negation. Do not invent citation IDs."]
-                  if any(f.requirement_id == "knowledge.active_source" for r in board.results for f in r.facts) else []),
+                  if any(f.requirement_id == "knowledge.active_source" for r in board.results for f in r.facts)
+                  or (conversation_context or {}).get("knowledge_evidence") else []),
                 "Address the customer directly in the language they use or request. Do not include drafting notes, self-instructions or commentary about how to answer.",
                 "Internal tool names, operation keys and raw parameter JSON are not customer explanations. Use supplied facts to explain item references; do not invent names, prices, fees or return instructions.",
                 "COMMITTED receipts establish execution of their recorded actions. Use accompanying write-result facts for returned business state; earlier read observations or assistant messages do not establish non-execution after that action. Do not infer downstream settlement or delivery beyond the returned result.",

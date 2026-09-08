@@ -52,6 +52,7 @@ from infrastructure.target_product_execution import TargetProductExecutor
 from infrastructure.target_tool_execution import TargetToolExecutor
 from infrastructure.target_turn_context import TargetTurnContextLoader
 from infrastructure.postgres_memory_projection import PostgresMemoryProjectionReader
+from infrastructure.postgres_conversation_evidence import PostgresConversationEvidence
 from infrastructure.target_workflow_execution import TargetWorkflowExecutor
 from services.answer_verifier import AnswerVerifier
 
@@ -80,6 +81,7 @@ async def build_target_runtime(
     knowledge_context_factory=None,
     knowledge_verifier=None,
     knowledge_source_validator=None,
+    knowledge_reuse_validator=None,
     registry: CapabilityRegistryBundle | None = None,
     enable_encoder: bool = True,
     response_locale: str | None = None,
@@ -196,7 +198,9 @@ async def build_target_runtime(
             understanding=understanding,
             orchestration=orchestration,
             context_provider=TargetTurnContextLoader(
-                PostgresMemoryProjectionReader(postgres_pool, memory), tool_manager),
+                PostgresMemoryProjectionReader(postgres_pool, memory), tool_manager,
+                knowledge_reader=(PostgresConversationEvidence(postgres_pool, knowledge_reuse_validator)
+                                  if knowledge_reuse_validator is not None else None)),
         )
         # Answer support is part of the assembled Target runtime, including
         # tool-only environments. Callers may inject a verifier, not omit it.
@@ -212,6 +216,7 @@ async def build_target_runtime(
                                       internal_tool_names=tool_manager.registered_tool_names,
                                       knowledge_verifier=knowledge_verifier,
                                       knowledge_source_validator=knowledge_source_validator,
+                                      knowledge_reuse_validator=knowledge_reuse_validator,
                                       trace_sink=langfuse_sink)
         publication = PostgresTargetPublication(response_delivery)
         application = TargetChatApplication(

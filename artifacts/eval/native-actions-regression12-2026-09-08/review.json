@@ -5,8 +5,10 @@
   "api_calls": 12,
   "protocol_and_compile_valid": 12,
   "semantic_pass": 10,
-  "semantic_partial_or_uncertain": 1,
-  "semantic_fail": 1,
+  "semantic_partial_or_uncertain": 2,
+  "semantic_fail": 0,
+  "original_preregistered_result": {"pass": 10, "uncertain": 1, "fail": 1},
+  "regrading_reason": "dfe violated the preregistered evidence-or-clarify action requirement, but no-call alone does not prove a bad continuation. Original history has no source capture, so answer support/applicability is unassessable, not demonstrated false. No raw call or original criterion changed.",
   "required_knowledge_selected": "7/7",
   "social": "2/2",
   "ambiguity_clarification": "2/2",
@@ -75,8 +77,8 @@
     },
     {
       "case_id": "doc2dial-dev-dfe69859eb7ea18e177951165518bee0-4",
-      "pass": false,
-      "reason": "无证据复述历史助手的VS-118流程"
+      "pass": null,
+      "reason": "沿用历史助手VS-118流程；原历史没有来源记录，依据及新增适用性无法判定。没有本轮检索不等同于业务回答错误。"
     },
     {
       "case_id": "control_condition",
