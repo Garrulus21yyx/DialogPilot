@@ -1,0 +1,11 @@
+# 全量 WixQA PostgreSQL 分路核对
+
+复用已导入6221篇/11167片段、开发20原问题及缓存query向量；没有重新embedding或外部API。实际PostgresKnowledgeCandidateSource每路20，固定en/public/有效generation。来源ID+原文位置映射离线ID。
+
+20次请求：9成功，11返回POSTGRES_UNAVAILABLE。成功9条Dense和BM25的Top20集合与顺序全部和离线相同。不能报告20/20一致，也不能把11个后端失败当语义Recall为零后解释为query差。
+
+Docker PostgreSQL日志出现canceling statement due to statement timeout，对应BM25 CTE语句；RetrievalPoolConfig默认statement_timeout_ms=750，source整体deadline3秒。当前BM25 scoped MATERIALIZED后对全体片段lexical_terms做unnest，并计算scope统计及查询词tf/df。下一步必须读取执行计划确定耗时节点，不能仅凭源码归因全部时间，也不能单纯放宽超时宣称优化。
+
+首次脚本缺policy必填身份、随后误用model_version而非profile fingerprint，在真实搜索前被合同拒绝，均修正。第一轮搜索2成功后因断言遇到后端失败停止；保留在-interrupted目录。随后脚本改为逐项记录typed失败，完整运行20，未更换问题/权重/超时；该补跑不覆盖早期失败。9/20是完整第二轮口径，非新鲜验收。
+
+活动下一步：同库、固定失败见证的EXPLAIN ANALYZE诊断（诊断连接可另设超时，但不改生产默认、不算可用率修复）；根据实际计划优化词项候选生成并保持BM25全scope统计语义，验证排名等价与原预算下完整20题成功率。策略筛选和付费答案暂缓，避免将后端超时混成模型问题。
