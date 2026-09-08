@@ -10,6 +10,7 @@ from application.context_budget import ContextBudgetManager, ModelContextBudgetE
 from application.historical_context_budget import fit_historical_payload
 from infrastructure.conversation_observation_tool import observation_document
 from tests.test_business_observation_continuity import observed_board
+from application.deterministic_resolution import ResolutionKind
 
 
 def historical(size=360000):
@@ -19,6 +20,25 @@ def historical(size=360000):
     original = BusinessObservation.model_validate(data)
     return original, {'status':'HISTORICAL', 'publication_id':'p1',
                       'observation_id':original.observation_id, 'observation':data}
+
+
+@pytest.mark.parametrize('kind', list(ResolutionKind))
+def test_host_projection_precedes_every_resolution_branch_without_model_or_tool_call(kind):
+    from types import SimpleNamespace
+    from application.conversation_evidence import ConversationEvidence
+    from application.deterministic_resolution import TurnObservations
+    from infrastructure.target_turn_context import TargetTurnContextLoader
+    from tests.test_target_turn_context import Memory, Tools, _identity, _state
+    original, entry = historical()
+    class Reader:
+        def load(self, invocation):
+            return ConversationEvidence(business=(entry,))
+    tools = Tools()
+    context = asyncio.run(TargetTurnContextLoader(Memory(), tools, evidence_reader=Reader(),
+        historical_context_budget=ContextBudgetManager()).load(
+            _identity(), TurnObservations('Continue'), _state(), SimpleNamespace(kind=kind)))
+    assert context.business_observations[0]['observation']['facts'][0]['value_reference']
+    assert tools.calls == [] and entry['observation']['facts'][0]['value_json'] == original.facts[0].value_json
 
 
 @pytest.mark.parametrize('size', [0, 1000, 360000])
@@ -155,3 +175,85 @@ def test_domain_prompt_fits_large_history_with_its_read_capability(size, overhea
     runtime = json.loads(prompt[1]['text'])['runtime_context']
     assert runtime['business_observations'][0]['observation']['facts'][0]['value_reference']
     assert not runtime['verified_facts'] and model.calls == 0
+
+
+@pytest.mark.parametrize('backend', ['memory', 'postgres'])
+def test_selected_history_survives_manager_observation_checkpoint_and_reply(backend, request):
+    from contextlib import asynccontextmanager
+    database_url = request.getfixturevalue('postgres_database_url') if backend == 'postgres' else None
+    from application.conversation_agent import ConversationAgent
+    from application.conversation_actions import planning_actions, action_proposal
+    from application.conversation_state import InMemoryConversationStateStore
+    from application.deterministic_resolution import TurnObservations
+    from application.orchestration_runtime import OrchestrationRuntime
+    from application.response_assembly import ResponseAssembler
+    from application.target_conversation_manager import TargetConversationManager, TargetTurnContext
+    from application.turn_runtime import TurnRuntime
+    from infrastructure.conversation_tool_catalog import ConversationToolCatalog
+    from infrastructure.target_tool_execution import TargetToolExecutor
+    from infrastructure.langgraph_checkpoint import target_checkpoint_serializer
+    from langgraph.checkpoint.memory import InMemorySaver
+    from tests.test_conversation_actions import calls
+    from tests.test_conversation_observation_tool import setup_reader
+    from tests.test_knowledge_answer_boundary import Verifier
+    from tests.test_turn_runtime import _identity
+
+    original, entry = historical()
+    _, reader, tools, registry = setup_reader()
+    reads = []
+    def read(invocation, **kwargs):
+        reads.append(kwargs)
+        return original
+    reader.read_business = read
+    model_inputs = []
+    class Provider:
+        async def plan(self, payload):
+            model_inputs.append(copy.deepcopy(payload))
+            context = payload['conversation_context']
+            assert context['business_observations'][0]['observation']['facts'][0]['value_reference']
+            if context.get('observed_execution'):
+                return {'status':'respond', 'response':'The previous lookup reported shipped.'}
+            actions = planning_actions(payload)
+            tool = next(action for action in actions if action.kind == 'atomic_read')
+            return action_proposal(actions, calls((tool.name, {
+                'publication_id':'p1','observation_id':original.observation_id,
+                'pointer':'/facts/0/value/status'})), '')
+    agent = ConversationAgent(Provider(), tool_catalog=ConversationToolCatalog(tools))
+    class Understanding:
+        async def __call__(self, *args):
+            return await agent.plan(*args)
+    class Context:
+        async def load(self, *args):
+            return TargetTurnContext(business_observations=(entry,))
+    memory_saver = InMemorySaver(serde=target_checkpoint_serializer())
+    @asynccontextmanager
+    async def checkpoint():
+        if database_url:
+            from infrastructure.langgraph_checkpoint import AsyncPostgresCheckpointOwner
+            async with AsyncPostgresCheckpointOwner(database_url, setup=True) as saver:
+                yield saver
+        else:
+            yield memory_saver
+    async def run():
+        verifier = Verifier(True)
+        store = InMemoryConversationStateStore()
+        def runtime(saver):
+            manager = TargetConversationManager(state_store=store,
+                registry=registry, understanding=Understanding(), context_provider=Context(),
+                orchestration=OrchestrationRuntime(direct_executor=TargetToolExecutor(tools, registry=registry),
+                                                   domain_workers={}, checkpointer=saver))
+            return TurnRuntime(manager, ResponseAssembler(knowledge_verifier=verifier), checkpointer=saver)
+        identity, message = _identity(), TurnObservations('Explain the previous lookup')
+        async with checkpoint() as saver:
+            result = await runtime(saver).execute(identity, message)
+        assert result.assembled.verified and len(reads) == 1 and len(model_inputs) == 2
+        evidence = json.loads(result.assembled.evidence_json)
+        assert evidence['user_context']['business_observations'][0]['observation']['facts'][0]['value_reference']
+        assert 'shipped' in json.dumps(evidence['facts'])
+        assert 'x' * 30000 not in json.dumps(evidence)
+        assert json.loads(verifier.calls[0][1]['context']) == evidence
+        async with checkpoint() as saver:
+            replay = await runtime(saver).execute(identity, message)
+        assert replay.assembled.evidence_json == result.assembled.evidence_json and len(reads) == 1
+        assert entry['observation']['facts'][0]['value_json'] == original.facts[0].value_json
+    asyncio.run(run())

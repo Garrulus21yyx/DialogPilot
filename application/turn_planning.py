@@ -177,6 +177,9 @@ class TurnProposal:
     approval_decision: ApprovalDecisionProposal | None = None
     response_text: str | None = None
     input_values: tuple[tuple[str, str, object], ...] = ()
+    # Program-produced input projection, never parsed from the model's commands.
+    # Manager carries it into PreparedTurn.context; it grants no execution rights.
+    historical_context_view: tuple[dict, ...] | None = None
 
     def __post_init__(self) -> None:
         if self.disposition is ProposalDisposition.RESPOND:

@@ -206,7 +206,13 @@ async def build_target_runtime(
             orchestration=orchestration,
             context_provider=TargetTurnContextLoader(
                 PostgresMemoryProjectionReader(postgres_pool, memory), tool_manager,
-                evidence_reader=evidence_reader),
+                evidence_reader=evidence_reader,
+                historical_context_budget=ContextBudgetManager(
+                    context_window_tokens=min(conversation_context_budget.available_tokens,
+                                              context_budget.available_tokens,
+                                              synthesis_context_budget.available_tokens,
+                                              review_budget.available_tokens),
+                    reserved_output_tokens=0, protocol_reserve_tokens=0)),
         )
         # Answer support is part of the assembled Target runtime, including
         # tool-only environments. Callers may inject a verifier, not omit it.

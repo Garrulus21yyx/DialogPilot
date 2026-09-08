@@ -943,3 +943,45 @@ receipt-arguments/recovery-detail identity and effect-preservation checks; focus
 projection suite now 10 passed. This increment covers executable planning views,
 not the unresolved selected-evidence handoff to reply authoring. Reply externalizing
 attempt was removed; original author/verifier snapshot remains unmodified.
+
+Selected-view handoff diagnosis at eb8e383: ConversationAgent budgets a copied
+historical view but discards that view on returning TurnProposal. Manager keeps
+the loaded full history in PreparedTurn.context, so final authoring reintroduces
+the oversized original despite successful planning/read selection. Repair at the
+planning-result/context boundary: carry the program-produced historical view
+(not model-generated labels or business authority) into the existing prepared
+context for initial and observation planning. Selected native read bodies remain
+ordinary ResultBoard facts. Existing checkpoints then retain the same input view;
+no second store or reply-side read loop is required. Verify actual Manager ->
+tool -> observation -> reply, plus checkpoint serialization and unchanged originals.
+
+Fresh review identified the deterministic bypass: input/approval/reconciliation
+does not call ConversationAgent and reloads full history. Host projection now also
+runs in the existing Context Loader, independent of ResolutionKind, using the
+minimum configured participating call budget as the historical-source ceiling.
+Each actual model call still checks its entire input after adding its own payload;
+this ceiling is not an assertion that all later prompts always fit. The program
+projection handoff retains any further planning-time selection. No main-model call
+was added for deterministic continuation. Branch-matrix and real checkpoint/submit
+tests are required before claiming this surface closed.
+
+Handoff implementation checks: 136 planning/observation/runtime tests passed,
+1 PG skip. Real PostgreSQL run (including reopened checkpoint, source read,
+Manager observation, final evidence equality and actual runtime composition):
+92 passed in 8.56s. Host projection covers every ResolutionKind without invoking
+a model/tool. Additional approval integration with a scripted committed receipt:
+1 passed; verifies pending approval consumption, bounded reply evidence and one
+execution across replay. This is not an external business API result. Fresh
+independent review found no further concrete blocker in the selected-view handoff;
+mandatory full-call budget failures remain explicitly supported, not hidden.
+
+Next fixed replay registration: task19 from the original ten-task development
+set, offset14/count1, max_steps80, seed300, same configured Pro/Flash roles,
+encoder disabled, one run only. Hypothesis: repeated lookup/denial caused by lost
+history support and view handoff is removed; the unchanged full customer goal
+must retain compatible/alternative action constraints and exact confirmation.
+Measure original tool calls, writes/receipts, repeated confirmations, task/user
+termination, official ENV/ACTION and judge availability separately, plus full
+reply support and state. Passing requires actual requested business state AND
+supported customer response; missing judge credentials are not score zero. Keep
+any failure and diagnose it before another run. No new training/retrieval tuning.

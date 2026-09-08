@@ -294,6 +294,8 @@ class TargetConversationManager:
         proposal = await self._understanding(
             observations, state, deterministic, self._registry, turn_context,
         )
+        if proposal.historical_context_view is not None:
+            turn_context = replace(turn_context, business_observations=proposal.historical_context_view)
         from application.target_understanding import StateBoundTargetUnderstanding
         if proposal.input_values:
             pending = state.pending_interaction
@@ -417,6 +419,8 @@ class TargetConversationManager:
         context = replace(previous.context, observed_execution=board, observation_feedback=progress_feedback)
         proposal = await self._understanding(previous.observations, state, deterministic,
                                              self._registry, context)
+        if proposal.historical_context_view is not None:
+            context = replace(context, business_observations=proposal.historical_context_view)
         if proposal.input_values or proposal.approval_decision is not None:
             raise TurnPlanningError("execution observation cannot consume a new user decision")
         waiting_items = tuple(item for pending in (state.pending_interaction, state.pending_approval)

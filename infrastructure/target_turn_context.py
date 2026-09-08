@@ -23,14 +23,15 @@ _HISTORICAL_REFERENCES = (
 class TargetTurnContextLoader:
     """Load mandatory current context; retrieve cross-session memory only on demand."""
 
-    version = "target-turn-context-loader-v1"
+    version = "target-turn-context-loader-v2-historical-view"
 
     def __init__(self, projection_reader, tool_manager, *, recent_limit: int = 8,
-                 evidence_reader=None) -> None:
+                 evidence_reader=None, historical_context_budget=None) -> None:
         self._projection_reader = projection_reader
         self._tools = tool_manager
         self._recent_limit = max(1, int(recent_limit))
         self._evidence_reader = evidence_reader
+        self._historical_context_budget = historical_context_budget
 
     async def load(self, invocation, observations, state, deterministic):
         recent = []
@@ -111,6 +112,16 @@ class TargetTurnContextLoader:
                     projection_status=TargetContextProjectionStatus.DEGRADED,
                     projection_reason_codes=(*context.projection_reason_codes,
                         "EVIDENCE_CONTEXT_" + type(exc).__name__))
+
+        # Host-side selection also covers deterministic input/approval resumes,
+        # which correctly bypass the planning model. Model calls still enforce
+        # their complete input budget after adding task-specific context.
+        if self._historical_context_budget is not None and context.business_observations:
+            from application.historical_context_budget import fit_historical_payload
+            projected = fit_historical_payload(self._historical_context_budget,
+                {'business_observations': list(context.business_observations)},
+                observation_path=('business_observations',))
+            context = replace(context, business_observations=tuple(projected.payload['business_observations']))
 
         needs_history = (
             deterministic.kind is ResolutionKind.UNRESOLVED

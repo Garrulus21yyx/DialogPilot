@@ -184,7 +184,7 @@ class ConversationPlanningProvider(Protocol):
 class ConversationAgent:
     """Plan one deferred turn, then compile only Registry-backed commands."""
 
-    version = "conversation-agent-v12-partial-input"
+    version = "conversation-agent-v13-context-view"
 
     def __init__(
         self,
@@ -374,10 +374,12 @@ class ConversationAgent:
                 "CONVERSATION_PROVIDER_FAILURE",
             )
         try:
-            return self._validate_and_compile(
+            proposal = self._validate_and_compile(
                 raw, observations, state, registry, turn_context, deterministic.resumed_work_items,
                 atomic_reads=atomic_reads,
             )
+            return replace(proposal, historical_context_view=tuple(
+                budgeted.payload['conversation_context'].get('business_observations', ())))
         except (KeyError, TypeError, ValueError, ValidationError):
             logger.exception("Conversation planning semantic contract rejected")
             return TurnProposal(
