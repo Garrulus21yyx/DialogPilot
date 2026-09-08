@@ -303,3 +303,7 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 - R01/R06多条件开发4题预注册：已知合成政策的新问法，边界日期+加急运费、欧洲第十天、定制非质量、手册地址+仓库签收+审核到账。不是新鲜heldout。固定现有语料/默认.25融合/listwise Flash/真实入口，本地embedding；不预写query，API总硬上限24，SDK零重试。记录每条必要结论、来源、调用与实际走过路径，尤其长手册相关问题不自动等于领域归档路径被覆盖。当前runner增显式输出/案例/API预算参数，原默认可复现。过关仅允许进入更广开发集准备；失败保留并按query/candidate/可见证据/生成分类，不因单例直接换模型或改prompt。
 
 - 多条件4题完成：13次Flash，前三题各4次Completed/verified；边界日十八元且加急不报销、欧洲第十天仍在十四日期限内、定制非质量例外核心结论符合模拟政策。三题各5条source区间精确核对通过。长手册题1次调用后Failed，尚未执行knowledge_search；发送Schema明确required result，捕获SDK原始AIMessage里的submit_turn_plan args就是{}，不是校验器丢字段。未捕获原HTTP，不能判定供应商与SDK哪端产生空参数，不能解释为query智力或召回不行。未自动重跑；完整失败轨迹保留。产物rag-entry-multicondition4-2026-09-08，整体3完成/1协议失败不是检索Recall，也没有证明预算修复收益。下一项先零API梳理已有空工具参数失败的共有调用合同/模型返回模式，再决定有界协议复测；不将后续检索调参建立在此未进入检索的案例上。
+
+- 空参数边界诊断预注册：最近6条planner同schema SHA前缀5fd8f96f12、max_tokens800；五成功一空参数，失败output129/stop tool_use非长度终止。安装版extract_tool_calls直接复制block.input。允许仅一次冻结失败输入的Flash NONE调用，SDK重试0，httpx事件钩子只保存响应JSON的工具内容/usage/stop（不保存认证头或thinking），对照SDK args；不跑RAG/不执行业务/不自动重试。成功不能证明偶发问题消失；响应仍空才可将该次空参数定位到SDK上游接口响应。
+
+- 空计划传输诊断完成：6条近期planner请求schema完全相同、max_tokens800，失败129输出/stop tool_use；本地SDK extract_tool_calls保持input。冻结失败输入单次HTTP复测返回合法result/general_qa/resolved_query，接口body与SDK args一致，四项问题保留。实际API1，无重试；首次诊断装配用了httpx而安装版Anthropic要求httpx2，网络前失败，换为SDK要求客户端后成功。原失败未有HTTPbody，不能追认原始供应商原因；此复测说明同上下文可成功，不证明问题修复或成功率。未改生产校验/模型/prompt。后续回到该长手册题的真实检索链路验收，偶发计划协议错误单列，不循环复测planner。
