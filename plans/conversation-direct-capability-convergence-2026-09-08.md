@@ -1157,3 +1157,26 @@ failed; corrected to object identity with the actual runtime Registry. Verificat
 103 passed / 5 skipped; PG composition + TurnRuntime: 17 passed in 4.66s. No live
 model/task calls. Full-policy model feasibility judgment remains unverified; policy
 presence alone does not close that semantic false-positive defect.
+
+Next bounded development experiment (2026-09-09): use the unchanged production
+DomainOutcomeReview system/schema on four synthetic state-transition cases:
+same-object conflict, independent objects, valid sequence, wrong sequence. Compare
+configured verifier model with thinking NONE/HIGH; fixed 4096 completion tokens,
+one call per case/profile, maximum eight calls, no tools/DB writes. Hypothesis:
+explicit inference budget affects compatibility judgment even with complete policy.
+Measure expected accept/reject, typed failures and captured usage. This is a
+mechanism probe, not a held-out score: even 4/4 permits only a subsequent realistic
+captured-input comparison, never immediate production adoption. Preserve failures.
+
+Experiment completed: `artifacts/eval/action-feasibility-dev4-2026-09-09/`.
+Both NONE and HIGH scored 4/4 with eight actual SDK calls, no tool execution.
+Total model latency was 8.806s vs 27.155s and output tokens 295 vs 1812.
+These are diagnostic totals, not controlled latency benchmarks (cache hits differ).
+SDK warned that thinking changes forced-tool structured-output handling; the HIGH
+requests also contain 72 more input tokens, so this is a deployed configuration
+comparison, not a pure reasoning-only intervention. No parser failures occurred.
+Conclusion: the current model can solve compact explicit transition cases; this
+does not justify enabling HIGH or adding another reasoning gate. Next compare
+the actual failed captured policy/goal/history against a faithful reduced view,
+without deleting relevant constraints or modifying production prompts. Actual
+long-context feasibility remains open. Encoder remains disabled; no live tau rerun.
