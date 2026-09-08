@@ -1,9 +1,9 @@
 """Source and article-qrel audit of scoped public real-entry outputs."""
-import json,re,hashlib,gzip
+import json,re,hashlib,gzip,argparse
 from pathlib import Path
 
 def main():
- root=Path('artifacts/eval/wixqa-real-entry-scoped-pair2-v2-2026-09-08')
+ parser=argparse.ArgumentParser();parser.add_argument('--root',type=Path,default=Path('artifacts/eval/wixqa-real-entry-scoped-pair2-v2-2026-09-08'));root=parser.parse_args().root
  with Path('/tmp/dialogpilot-rag-external-lock-20260907/wix-corpus.jsonl').open() as f:docs={str(r['id']):r['contents'] for r in map(json.loads,f)}
  result={};identities=[]
  for arm in ('0.25','0.5'):

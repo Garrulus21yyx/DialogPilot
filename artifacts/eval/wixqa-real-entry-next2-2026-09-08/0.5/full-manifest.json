@@ -1,0 +1,45 @@
+{
+  "scope": "WixQA public frozen dev questions, full 6221-article corpus; production runtime/admission/coordinator/context/knowledge handler/PostgreSQL retrieval/LLM rerank/compose/verifier/publication; excludes HTTP authentication, external delivery, business writes",
+  "cases": [
+    {
+      "id": "wix-1cfd00a60c55-2",
+      "history": [],
+      "message": "I am struggling with adjusting section heights in the Wix Editor. I need assistance with this issue.",
+      "required": []
+    },
+    {
+      "id": "wix-1cfd00a60c55-3",
+      "history": [],
+      "message": "I need help managing the categories my booking services are in on my Wix website.",
+      "required": []
+    }
+  ],
+  "retrieval_policy": {
+    "top_k": 5,
+    "candidate_k": 20,
+    "context_max_tokens": 2600,
+    "rrf_k": 10,
+    "vector_weight": 0.5,
+    "lexical_weight": 0.5,
+    "raw_query_weight": 0.2,
+    "standalone_query_weight": 0.6,
+    "expansion_query_weight": 0.0,
+    "query_expansion_count": 0,
+    "metadata_hint_weight": 0.5
+  },
+  "reranker_version": "customer-support-listwise-v4-complete-evidence:7fddc3b741d5e6c9aa91b210f319ed3ec824ebc6ba4879dea2444fb2f3e6f544",
+  "source_sha256": {
+    "application/conversation_agent.py": "ff08031cb4303059c6db26246e69291ef122ace651a5b7b20c35856d83e693d7",
+    "application/knowledge_tool_contract.py": "0a8bd479283d70f7bc5920bfaa31c42223dd5d80ed8b5c6a29de3e3f87724c81",
+    "application/knowledge_retriever.py": "54002b73df474dc8ab138681a18ea36998d085ed8f92d5484eaf6c6ef010f887",
+    "application/response_assembly.py": "92973925938be9133997ed95256cbc3eec163db5f37e0331026c73177e285816",
+    "infrastructure/target_conversation_provider.py": "83a9acf7a788edae0870f0dcb7e58448ea3f2e4edd626800a045a70d3dfe500c",
+    "api/main.py": "194a911c74feb50089385a4f568d316fa567f59b4e9e1ba6ce172bd45e1e9afb",
+    "infrastructure/postgres_knowledge_retriever.py": "4a1e200fbbd7b42a69f74fe30072bdbb4c5c268f1e7abd3caceec8303e6d4fb9",
+    "infrastructure/knowledge_applicability.py": "1793f9210000be135cc8b6025841cacc743dc89259f90532c51c8c8137124354",
+    "services/answer_verifier.py": "61383a234478fcfc59f05b7ea2e9bff25577df5d6e940ed6e25694f12010afee",
+    "services/claim_verification.py": "20eba3edfb3a326b7285c88c66c7c833fc74d0a3e4bed6ba3fd2e8da08cb2676",
+    "evaluation/rag_full_chain_probe.py": "59bec5e6f16a0329f7d9c8bccad8c28e8c61efd65d0c37fd97612f4754aad6c0"
+  },
+  "max_api_calls": 12
+}

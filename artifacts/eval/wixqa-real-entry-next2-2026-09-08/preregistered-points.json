@@ -1,0 +1,68 @@
+{
+  "gap": "R10",
+  "selection": "dev positions 3 and 4, before real generation; previously consumed retrieval dev, not fresh heldout",
+  "budget": "12 calls per arm, Flash NONE, SDK retries 0",
+  "fixed": "full corpus, existing bundle, encoder off, query agent, candidate20 final5 context2600",
+  "arms": [
+    0.25,
+    0.5
+  ],
+  "metrics": [
+    "article recall",
+    "reference point coverage",
+    "explicit request adequacy separately",
+    "unsupported additional claims",
+    "API and latency"
+  ],
+  "adoption": "diagnostic only; no default weight change from two cases; queries independently generated",
+  "grading": "author semantic assessment, exact excerpts as witnesses; not independent blind review. Broad manage-categories request may be adequately answered without every optional operation; report 7-point reference coverage separately. Partial step support marked partial, not fully covered. No production answer injection.",
+  "cases": [
+    {
+      "case": {
+        "group_id": "0409684b78e2835e9ff3751eb24f3f795de5cca2ec6f5a0c2ba310dc4c684644",
+        "config": "wix-expertwritten",
+        "row_index": 157,
+        "article_ids": [
+          "f9cf92b16b6d02aa90ad11d717bbd3f75ff35b0fd1b9f8043f751413ff06a7ef"
+        ],
+        "exposed": false,
+        "query": "I am struggling with adjusting section heights in the Wix Editor. I need assistance with this issue."
+      },
+      "reference_answer": "To adjust the size of your section:\n\nClick the section in your Editor.\nClick and drag the Adjust section height handle at the bottom of the section to make it taller or shorter.",
+      "reference_points": [
+        "Select the section in the Editor",
+        "Drag the Adjust section height handle at the bottom to increase or decrease height"
+      ],
+      "source_hashes": {
+        "f9cf92b16b6d02aa90ad11d717bbd3f75ff35b0fd1b9f8043f751413ff06a7ef": "8d7a5577299e20adb9518a9ada224c5b7ff304a186794807cfc238165c3042a5"
+      }
+    },
+    {
+      "case": {
+        "group_id": "040bc86dc781177918618def325def54ceb81c1f22e32467044346c7ab338b86",
+        "config": "wix-expertwritten",
+        "row_index": 15,
+        "article_ids": [
+          "0edfb79224593e47a232c58687f04d0534cabe82e36a6af890f92830860b5b72",
+          "9b71e0c1c1101d626c050e2209b382430c36eb91644c25dc9016802164ea769f"
+        ],
+        "exposed": false,
+        "query": "I need help managing the categories my booking services are in on my Wix website."
+      },
+      "reference_answer": "To manage the categories for your booking services on your Wix website, you can follow these steps:\n\n**Creating categories**\n1. Go to Booking Services in your site's dashboard.\n2. Click Manage Categories.\n3. Click + Add New Category.\n4. Enter the Category Name.\n5. Click Add to save.\n\n**Assigning a service to a category**\n1. Go to Booking Services in your site's dashboard.\n2. Select the service you want to assign to a category.\n3. Click the Service category drop-down and choose the relevant category.\n4. Click Save.\n\n**Reordering your services and categories**\n- To reorder services within a category:\n  1. Select a category from the drop-down at the top.\n  2. Click and hold the drag handle next to your services to drag and drop them into your preferred order.\n\n- To reorder categories:\n  1. Click Manage Categories at the top of the list.\n  2. Click and hold the drag handle next to your categories to drag and drop them into your preferred order.\n\n**Renaming categories**\n1. Go to Booking Services in your site's dashboard.\n2. Click Manage Categories.\n3. Hover over the category you want to rename.\n4. Click Edit Name.\n5. Enter the new category name.\n6. Click Save.\n\n**Deleting a category**\n1. Go to Booking Services in your site's dashboard.\n2. Click Manage Categories.\n3. Hover over the relevant category.\n4. Click Delete.\n5. Choose to move services to another category or delete the category and its services.\n\n",
+      "reference_points": [
+        "Open Booking Services and Manage Categories in dashboard",
+        "Create category: Add New Category, name, Add",
+        "Assign service: select service, Service category dropdown, Save",
+        "Reorder services using drag handles within selected category",
+        "Reorder categories with Manage Categories drag handles",
+        "Rename: Manage Categories, Edit Name, new name, Save",
+        "Delete: Manage Categories, Delete, distinguish moving services from deleting services"
+      ],
+      "source_hashes": {
+        "0edfb79224593e47a232c58687f04d0534cabe82e36a6af890f92830860b5b72": "b5d5cdb5dc4a73d7931fdb08757779804c732bf1821304b4ca9851041f283881",
+        "9b71e0c1c1101d626c050e2209b382430c36eb91644c25dc9016802164ea769f": "55b35de5081f37dd67ba2ecb87e502293bbce2def1262b6b94d700dd86fed991"
+      }
+    }
+  ]
+}

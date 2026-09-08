@@ -25,11 +25,12 @@ from infrastructure.knowledge_retriever_adapters import ToolManagerRerankerAdapt
 
 async def main():
  os.environ['TARGET_ENCODER_ENABLED']='false'  # Chinese ecommerce classifier has no Wix bundle calibration.
- parser=argparse.ArgumentParser();parser.add_argument('--weight',type=float,choices=(.25,.5),required=True);args=parser.parse_args()
- root=Path('artifacts/eval/wixqa-real-entry-scoped-pair2-v2-2026-09-08')/str(args.weight);root.mkdir(parents=True,exist_ok=False)
- rows=[json.loads(l) for l in Path('artifacts/eval/wixqa-fixed-dev20-2026-09-08/cases.jsonl').read_text().splitlines()][:2]
- cases=[{'id':f"wix-scoped-v2-{args.weight}-{i}",'history':[],'message':r['case']['query'],'required':[]} for i,r in enumerate(rows)]
- (root/'selection.json').write_text(json.dumps({'selection':'first two frozen dev cases, no outcome-based selection','cases':[r['case'] for r in rows]},indent=2)+'\n')
+ parser=argparse.ArgumentParser();parser.add_argument('--weight',type=float,choices=(.25,.5),required=True);parser.add_argument('--offset',type=int,default=0);parser.add_argument('--output',type=Path,default=Path('artifacts/eval/wixqa-real-entry-scoped-pair2-v2-2026-09-08'));args=parser.parse_args()
+ if args.offset not in range(19):raise ValueError('two-case offset outside frozen dev20')
+ root=args.output/str(args.weight);root.mkdir(parents=True,exist_ok=False)
+ rows=[json.loads(l) for l in Path('artifacts/eval/wixqa-fixed-dev20-2026-09-08/cases.jsonl').read_text().splitlines()][args.offset:args.offset+2]
+ cases=[{'id':f"wix-{hashlib.sha256(str(root).encode()).hexdigest()[:12]}-{args.offset+i}",'history':[],'message':r['case']['query'],'required':[]} for i,r in enumerate(rows)]
+ (root/'selection.json').write_text(json.dumps({'selection':'consecutive frozen dev cases, no outcome-based selection','offset':args.offset,'cases':[r['case'] for r in rows]},indent=2)+'\n')
  values={k:str(v) for k,v in dotenv_values('.env').items() if v is not None};values.update(os.environ)
  values.update(MODEL_PROVIDER='deepseek',RAG_VECTOR_WEIGHT=str(args.weight),RAG_LEXICAL_WEIGHT=str(1-args.weight))
  for role in ModelRole:

@@ -1,0 +1,40 @@
+{
+  "scope": "same frozen query per row; candidate only, no rerank or answer replay",
+  "new_api_calls": 0,
+  "arms": {
+    "0.25": {
+      "query": "How do I adjust section heights in the Wix Editor? Provide guidance on resizing and setting section heights in the Wix Editor.",
+      "route_gold_ranks": {
+        "raw:vector": [
+          1,
+          5
+        ],
+        "raw:bm25": []
+      },
+      "replayed_gold_positions": {
+        "0.25": [],
+        "0.5": [
+          4,
+          12
+        ]
+      }
+    },
+    "0.5": {
+      "query": "How do I adjust section heights in the Wix Editor?",
+      "route_gold_ranks": {
+        "raw:vector": [
+          1,
+          2
+        ],
+        "raw:bm25": []
+      },
+      "replayed_gold_positions": {
+        "0.25": [],
+        "0.5": [
+          1,
+          4
+        ]
+      }
+    }
+  }
+}

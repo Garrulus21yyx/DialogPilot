@@ -1,0 +1,122 @@
+{
+  "review": "author review after generation using pre-recorded points; not blinded or independent; no automatic semantic truth claim",
+  "arms": {
+    "0.25": [
+      {
+        "case_index": 0,
+        "answer_sha256": "eb3924a38b5e379d107afa6c7a7f07131732959c9e00ff03870960598b3b74c8",
+        "reference_point_assessments": [
+          {
+            "point": "Select the section in the Editor",
+            "covered_author_assessment": true
+          },
+          {
+            "point": "Drag the Adjust section height handle at the bottom to increase or decrease height",
+            "covered_author_assessment": false
+          }
+        ],
+        "qualification": "Point coverage is separate from support of additional claims; broad categories question does not require all seven operations."
+      },
+      {
+        "case_index": 1,
+        "answer_sha256": "d817bac08b1dc6b31c66337ef7036869b2250fcb05278440a2b0962a456f47f6",
+        "reference_point_assessments": [
+          {
+            "point": "Open Booking Services and Manage Categories in dashboard",
+            "covered_author_assessment": true
+          },
+          {
+            "point": "Create category: Add New Category, name, Add",
+            "covered_author_assessment": true
+          },
+          {
+            "point": "Assign service: select service, Service category dropdown, Save",
+            "covered_author_assessment": true
+          },
+          {
+            "point": "Reorder services using drag handles within selected category",
+            "covered_author_assessment": true
+          },
+          {
+            "point": "Reorder categories with Manage Categories drag handles",
+            "covered_author_assessment": true
+          },
+          {
+            "point": "Rename: Manage Categories, Edit Name, new name, Save",
+            "covered_author_assessment": true
+          },
+          {
+            "point": "Delete: Manage Categories, Delete, distinguish moving services from deleting services",
+            "covered_author_assessment": true
+          }
+        ],
+        "qualification": "Point coverage is separate from support of additional claims; broad categories question does not require all seven operations."
+      }
+    ],
+    "0.5": [
+      {
+        "case_index": 0,
+        "answer_sha256": "aaf47ed1913b9d4ce5d90cf4c23319c02f1392ee8b080ac4883f2de41c06d951",
+        "reference_point_assessments": [
+          {
+            "point": "Select the section in the Editor",
+            "covered_author_assessment": true
+          },
+          {
+            "point": "Drag the Adjust section height handle at the bottom to increase or decrease height",
+            "covered_author_assessment": true
+          }
+        ],
+        "qualification": "Point coverage is separate from support of additional claims; broad categories question does not require all seven operations."
+      },
+      {
+        "case_index": 1,
+        "answer_sha256": "f9e7b3b8f3e7a1646f7120aff2acd9f91857ae83641b7d693eaceac4fad500d1",
+        "reference_point_assessments": [
+          {
+            "point": "Open Booking Services and Manage Categories in dashboard",
+            "covered_author_assessment": true
+          },
+          {
+            "point": "Create category: Add New Category, name, Add",
+            "covered_author_assessment": true
+          },
+          {
+            "point": "Assign service: select service, Service category dropdown, Save",
+            "covered_author_assessment": true
+          },
+          {
+            "point": "Reorder services using drag handles within selected category",
+            "covered_author_assessment": false
+          },
+          {
+            "point": "Reorder categories with Manage Categories drag handles",
+            "covered_author_assessment": true
+          },
+          {
+            "point": "Rename: Manage Categories, Edit Name, new name, Save",
+            "covered_author_assessment": true
+          },
+          {
+            "point": "Delete: Manage Categories, Delete, distinguish moving services from deleting services",
+            "covered_author_assessment": true
+          }
+        ],
+        "qualification": "Point coverage is separate from support of additional claims; broad categories question does not require all seven operations."
+      }
+    ]
+  },
+  "support_issues": [
+    {
+      "case_index": 0,
+      "arm": "0.25",
+      "issue": "Uses element stretch-handle evidence to instruct section resizing; section-specific applicability not established by cited passage. The specific bottom section-height handle is missing."
+    },
+    {
+      "case_index": 0,
+      "arm": "0.5",
+      "issue": "Core section-height instruction supported. Extra H-field instruction cites elements; viewport statement cites strips. Applicability to sections not established by supplied citations."
+    }
+  ],
+  "runtime_verifier": "Both section answers received supported=true, answered=true, issues=[]; this is not independent semantic validation."
+}
