@@ -89,7 +89,7 @@ def test_state_product_exposes_only_available_actions(approval, pending, active,
 
 
 def test_entity_selection_injects_original_value_and_source_not_model_copies():
-    p, models = provider(("order_status", {"entity": "entity_1"}))
+    p, models = provider(("order_status", {"entity": "DP1234"}))
     result, state, registry = _invoke(ConversationAgent(p), "查订单 DP1234")
     assert result.disposition is ProposalDisposition.RESOLVED
     command, = result.commands
@@ -100,6 +100,39 @@ def test_entity_selection_injects_original_value_and_source_not_model_copies():
     RoutePolicy().accept(result, state, registry)
     assert models[ModelRole.INTENT].calls == 1
     assert models[ModelRole.SYNTHESIS].calls == 0
+
+
+@pytest.mark.parametrize("field_name,action_name,argument", [
+    ("order_id", "order_status", "entity"),
+    ("order_id", "delegate_task", "order"),
+    ("asset_id", "delegate_task", "media"),
+])
+def test_scoped_entity_values_preserve_all_sources_and_reject_unknowns(field_name, action_name, argument):
+    rows = [{"value": "A", "source_ref": "first"},
+            {"value": "A", "source_ref": "second"},
+            {"value": "candidate_1", "source_ref": "third"},
+            {"value": "B", "source_ref": "fourth"}]
+    for order in itertools.permutations(rows):
+        value = payload()
+        value["entity_bindings"] = [{"field_name": field_name, "status": "AMBIGUOUS",
+                                     "candidates": [*order, order[0]]}]
+        original = copy.deepcopy(value)
+        action = next(a for a in planning_actions(value) if a.name == action_name)
+        base = ({"target_agent": "order_logistics", "objective": "Investigate", "allow_action_proposals": False}
+                if action_name == "delegate_task" else {})
+        choices = action.properties[argument]["enum"]
+        assert len(choices) == 4  # Same value/source duplicates do not create a choice.
+        assert "candidate_1" in choices and "B" in choices
+        assert "A" not in choices  # Two sources cannot be silently collapsed.
+        converted = [action.convert({**base, argument: key}) for key in choices]
+        assert {(row[field_name], row[f"{field_name}_source_ref"]) for row in converted} == {
+            (row["value"], row["source_ref"]) for row in rows}
+        for invalid in ("unknown", "entity_1", "A"):
+            with pytest.raises(ValidationError):
+                action.convert({**base, argument: invalid})
+        with pytest.raises(ValidationError):
+            action.convert({**base, argument: "B", f"{field_name}_source_ref": "forged"})
+        assert value == original
 
 
 @pytest.mark.parametrize("status", ["STALE", "UNAUTHORIZED", "MISSING"])
@@ -210,7 +243,7 @@ def test_real_pending_input_conversion_reuses_task_not_new_goal():
 
 def test_delegation_preserves_independent_order_media_and_address_bindings():
     p, _ = provider(("delegate_task", {"target_agent": "product_technical", "objective": "调查订单和图片并改址",
-        "allow_action_proposals": True, "order": "entity_1", "media": "entity_2", "new_address": "上海新路8号"}))
+        "allow_action_proposals": True, "order": "DP1234", "media": "IMG5678", "new_address": "上海新路8号"}))
     proposal, state, registry = _invoke(ConversationAgent(p), "调查 DP1234 和 IMG5678，改到上海新路8号")
     command, = proposal.commands
     assert command.kind is CommandKind.DELEGATE_TASK

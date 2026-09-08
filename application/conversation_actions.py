@@ -72,13 +72,27 @@ def _selector(choices, description):
 
 
 def _entity_choices(payload, field_name):
-    choices = {}
+    candidates = []
     for group in payload.get("entity_bindings", ()):
         if group["field_name"] not in {field_name, "reference"} or group["status"] not in {"UNIQUE", "AMBIGUOUS"}:
             continue
         for item in group["candidates"]:
-            choices[f"entity_{len(choices) + 1}"] = {
-                field_name: item["value"], f"{field_name}_source_ref": item["source_ref"]}
+            bound = {field_name: item["value"], f"{field_name}_source_ref": item["source_ref"]}
+            if bound not in candidates:
+                candidates.append(bound)
+    values = [item[field_name] for item in candidates]
+    reserved = {value for value in values if isinstance(value, str)}
+    choices = {}
+    for index, bound in enumerate(candidates, 1):
+        value = bound[field_name]
+        if isinstance(value, str) and values.count(value) == 1:
+            key = value
+        else:
+            # Source ambiguity is a real choice; never silently select one source.
+            key = f"candidate_{index}"
+            while key in reserved or key in choices:
+                key = "_" + key
+        choices[key] = bound
     return choices
 
 
@@ -128,7 +142,7 @@ def planning_actions(payload):
             choices = _entity_choices(payload, field_name)
             if not choices:
                 continue  # Open domain investigation remains available below.
-            labels = {key: bound[field_name] for key, bound in choices.items()}
+            labels = choices
             properties["entity"] = _selector(choices, f"Select the {field_name} from scoped candidates: {labels}")
             required.append("entity")
             selections["entity"] = choices
@@ -150,7 +164,7 @@ def planning_actions(payload):
             choices = _entity_choices(payload, field_name)
             if choices:
                 properties[name] = _selector(choices, f"Optional relevant {field_name}: " +
-                                            str({key: bound[field_name] for key, bound in choices.items()}))
+                                            str(choices))
                 selections[name] = choices
         goal("delegate_task", "delegate_task", properties,
              ("target_agent", "objective", "allow_action_proposals"), selections=selections)

@@ -19,7 +19,7 @@ from langchain_core.runnables.config import ensure_config, merge_configs
 
 
 class AnthropicConversationPlanningProvider:
-    version = "anthropic-conversation-provider-v21-shared-action-interaction"
+    version = "anthropic-conversation-provider-v22-scoped-entity-values"
 
     def __init__(self, models, *, model_profile: ModelProfile, synthesis_profile: ModelProfile, max_tokens: int = 800, callbacks=()) -> None:
         self._models = models

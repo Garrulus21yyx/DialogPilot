@@ -707,3 +707,33 @@ OS-kill recovery test or a real-model effectiveness measurement. No tau replay.
 Remaining causal work: entity selector contract, whole-goal preparation and actual
 model response behavior. Encoder remains disabled. Selective commit excludes the
 pre-existing framework/archive/RAG edits owned by the user.
+
+## Entity selection simplification in progress at 66fa5b3
+
+Observed task19 delegation supplied the actual known order W2890441 while the
+native schema demanded entity_1. That output violated the advertised enum; the
+conversion correctly refused it, but the extra value-to-alias translation is not
+needed for unambiguous values. `_entity_choices` is the single owner used by both
+shortcut and delegated action schemas. Simplify there, not by accepting arbitrary
+strings in a downstream error handler. Exact scoped candidates remain an enum and
+their source refs remain host-bound. Preserve explicit selectors for same-value
+different-source candidates, avoid alias/value collisions, and deduplicate identical
+value/source pairs. Migrate current scripted SDK callers; immutable historical
+captures stay historical. Tests must cover source preservation, candidate ordering,
+duplicates, conflicting sources and invalid selections before any execution.
+
+Implemented the shared choice conversion and migrated both current scripted SDK
+callers; provider contract version v22-scoped-entity-values. Generated permutations
+cover shortcut/delegate order/media selection, identical duplicates, ambiguous
+source preservation, collisions with actual candidate_1 values, immutable inputs,
+unknown/legacy selector rejection and forged source rejection. Targeted catalog,
+ConversationAgent, parameter-acceptance and observation suites: 147 passed in
+5.55s. Independent fresh-context review found no concrete blocking conversion
+gap. Search found no remaining current caller using old entity_N selectors apart
+from the negative test. Historical captures were not rewritten.
+
+This repairs the model-facing interface, not semantic task completion. No model
+replay was launched. Next inspect the actual task19 turn4 planning input and the
+whole-goal preparation boundary before registering a fixed replay: preserved
+history must be distinguished from the model ignoring it. The shared prompt's
+previous failure remains failed evidence, not reset by this interface migration.
