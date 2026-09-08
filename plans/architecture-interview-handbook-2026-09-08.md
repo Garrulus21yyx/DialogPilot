@@ -14,7 +14,7 @@
 2. done：完成架构/目录/端到端调用链与核心模块讲解。
 3. done：完成意图范式、框架、RAG、评测、恢复、多模态与面试追问的详细回答。
 4. done：更新导航和项目讲述，检查源码链接、数据口径、Jekyll 构建与页面展示。
-5. in_progress：审阅文档改动、隔离提交并 push；记录交付 SHA、验证结果和线上状态。
+5. done：审阅文档改动、隔离提交并 push；记录交付 SHA、验证结果和线上状态。
 
 ## 验收
 - 每项重要选型有原理、替代方案、项目实现、失败路径、检验方法与边界。
@@ -31,3 +31,9 @@
 - 结果见docs/assets/handbook/validation.json。未重跑应用测试/付费模型；现有开发/质量缺口没有改为已关闭。
 - Pages配置为main/docs，在/tmp/dialogpilot-handbook隔离checkout提交；当前工作目录开发分支与所有原修改保持。
 - 下一步：只stage docs与本计划，提交并fast-forward push main，确认Pages构建及线上页面。
+
+## 发布结果
+- 正文提交03b36c730f118b2fd50f429526e8a23558bbd83a已fast-forward推送main。Pages run 34261897624 的build/report/deploy全部success，API状态built。
+- 线上5个核心页面HTTP200且匹配新正文；真实浏览器确认80张问题卡、搜索存在、390px无横向溢出。完整记录见validation.json。
+- 随后仅补交本验证记录；无应用代码、模型配置或实验状态变更。源开发分支继续独立推进，本文采用明确快照而不暗示实时追随。
+- 文档工作完成；后续源码演进时按source-snapshot重新校准，RAG质量、Encoder采用与微调状态沿各原计划维护。

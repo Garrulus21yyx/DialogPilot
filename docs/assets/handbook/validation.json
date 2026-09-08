@@ -48,5 +48,46 @@
     "mermaid_errors": 0,
     "notes": "Initial long source-path mobile overflow repaired with overflow-wrap:anywhere; evidence raw frontmatter made static text."
   },
-  "errors": []
+  "errors": [],
+  "online": {
+    "content_commit": "03b36c730f118b2fd50f429526e8a23558bbd83a",
+    "pages_run": 34261897624,
+    "build": "success",
+    "deploy": "success",
+    "checked_at": "2026-09-08T18:16:56.129965+00:00",
+    "http": [
+      {
+        "path": "architecture.html",
+        "status": 200,
+        "content_verified": true
+      },
+      {
+        "path": "interview-guide.html",
+        "status": 200,
+        "content_verified": true
+      },
+      {
+        "path": "rag-study.html",
+        "status": 200,
+        "content_verified": true
+      },
+      {
+        "path": "project-pitch.html",
+        "status": 200,
+        "content_verified": true
+      },
+      {
+        "path": "handbook-evidence.html",
+        "status": 200,
+        "content_verified": true
+      }
+    ],
+    "live_browser": {
+      "question_cards": 80,
+      "search_present": true,
+      "viewport": 390,
+      "scroll_width": 390,
+      "empty_search_restore_expand_collapse": "passed locally"
+    }
+  }
 }
