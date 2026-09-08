@@ -1,0 +1,64 @@
+{
+  "cases": 20,
+  "corpus_articles": 6221,
+  "chunks": 11167,
+  "api_calls": 0,
+  "unique_ce_pairs": 553,
+  "summary": {
+    "0.25": {
+      "candidate20": {
+        "article_recall": 0.5083333333333333,
+        "all_articles": 0.35,
+        "article_mrr": 0.3120833333333333,
+        "article_ndcg": 0.314241758976027
+      },
+      "ce5": {
+        "article_recall": 0.4083333333333333,
+        "all_articles": 0.3,
+        "article_mrr": 0.4041666666666667,
+        "article_ndcg": 0.36224655699286434
+      },
+      "pack5": {
+        "article_recall": 0.4083333333333333,
+        "all_articles": 0.3,
+        "article_mrr": 0.4041666666666667,
+        "article_ndcg": 0.36224655699286434
+      }
+    },
+    "0.5": {
+      "candidate20": {
+        "article_recall": 0.6166666666666667,
+        "all_articles": 0.5,
+        "article_mrr": 0.3947222222222222,
+        "article_ndcg": 0.41269944988944296
+      },
+      "ce5": {
+        "article_recall": 0.5166666666666667,
+        "all_articles": 0.45,
+        "article_mrr": 0.5083333333333333,
+        "article_ndcg": 0.4623111827136659
+      },
+      "pack5": {
+        "article_recall": 0.5166666666666667,
+        "all_articles": 0.45,
+        "article_mrr": 0.5083333333333333,
+        "article_ndcg": 0.4623111827136659
+      }
+    }
+  },
+  "paired": {
+    "candidate20": {
+      "better": 4,
+      "worse": 2
+    },
+    "ce5": {
+      "better": 4,
+      "worse": 2
+    },
+    "pack5": {
+      "better": 4,
+      "worse": 2
+    }
+  },
+  "metric_scope": "Article qrels; first deduplicate sources within the fixed chunk budget; nDCG ideal uses stage chunk budget. Not span recall, actual PG latency, Agent queries, or answer correctness."
+}
