@@ -1,0 +1,18 @@
+{
+  "candidate_budget": 40,
+  "per_route": 20,
+  "final_k": 5,
+  "tokens": 2600,
+  "api_calls": 0,
+  "new_document_embeddings": 0,
+  "max_new_ce_pairs": 6500,
+  "arms": [
+    "baseline20",
+    "union_ce",
+    "union_ce_0.75",
+    "Wix-only union_article_first"
+  ],
+  "script_sha256": "fd3d929b9a8873aced5c4d99fc2102d8f2ca2ee9b7331b439918319b6f27fe72",
+  "adopted": false,
+  "scope": "Consumed dev, new CE cost disclosed; no Agent changes"
+}

@@ -1,0 +1,18 @@
+{
+  "gap": "R04/R05",
+  "api_calls": 0,
+  "new_scores": 0,
+  "script_sha256": "540c7cf0b06ebd474f6d3de575fc9deee2fea7570cf6468063c2c9d153b06028",
+  "arms": [
+    "baseline",
+    "ce_0.75",
+    "ce_0.5",
+    "Wix-only article_first"
+  ],
+  "budget": {
+    "candidate": 20,
+    "final": 5,
+    "tokens": 2600
+  },
+  "scope": "Consumed development selection; frozen queries/candidates; no production adoption"
+}

@@ -1,0 +1,77 @@
+{
+  "Doc2Dial": {
+    "n": 300,
+    "new_ce_pairs": 1747,
+    "wall_seconds": 17.934802504256368,
+    "candidate_recall": 0.7766666666666666,
+    "summary": {
+      "baseline20": {
+        "recall": 0.6933333333333334,
+        "mrr": 0.585388888888889,
+        "ndcg": 0.6127811159216056
+      },
+      "union_ce": {
+        "recall": 0.6966666666666667,
+        "mrr": 0.5846666666666667,
+        "ndcg": 0.612966682115489
+      },
+      "union_ce_0.75": {
+        "recall": 0.7,
+        "mrr": 0.5848333333333333,
+        "ndcg": 0.6139065629278088
+      }
+    },
+    "paired": {
+      "union_ce": {
+        "better": 2,
+        "worse": 1
+      },
+      "union_ce_0.75": {
+        "better": 3,
+        "worse": 1
+      }
+    }
+  },
+  "WixQA": {
+    "n": 20,
+    "new_ce_pairs": 155,
+    "wall_seconds": 1.4091065432876348,
+    "candidate_recall": 0.825,
+    "summary": {
+      "baseline20": {
+        "recall": 0.675,
+        "mrr": 0.5141666666666667,
+        "ndcg": 0.5330078570280466
+      },
+      "union_ce": {
+        "recall": 0.725,
+        "mrr": 0.5258333333333334,
+        "ndcg": 0.5536254819441615
+      },
+      "union_ce_0.75": {
+        "recall": 0.65,
+        "mrr": 0.5083333333333333,
+        "ndcg": 0.5246141434859122
+      },
+      "union_article_first": {
+        "recall": 0.725,
+        "mrr": 0.5258333333333334,
+        "ndcg": 0.5536254819441615
+      }
+    },
+    "paired": {
+      "union_ce": {
+        "better": 1,
+        "worse": 0
+      },
+      "union_ce_0.75": {
+        "better": 1,
+        "worse": 2
+      },
+      "union_article_first": {
+        "better": 1,
+        "worse": 0
+      }
+    }
+  }
+}

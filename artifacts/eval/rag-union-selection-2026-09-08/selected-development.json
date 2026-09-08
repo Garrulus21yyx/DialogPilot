@@ -1,0 +1,138 @@
+{
+  "adopted_in_production": false,
+  "scope": "post-selection consumed-data development findings, not fresh validation",
+  "datasets": [
+    {
+      "dataset": "Doc2Dial",
+      "candidate": "union_ce_0.75",
+      "n": 300,
+      "changes": [
+        {
+          "case_id": "doc2dial-dev-9d4920bea87d4f4cb977483d943c1ef3-10",
+          "before": 0.0,
+          "after": 1.0,
+          "removed": [
+            "About the NYS Driver Point System#3_0::chunk-1",
+            "Appeal a TVB ticket conviction#1_0::chunk-1",
+            "Creating a MyDMV account#1_0::chunk-1"
+          ],
+          "added": [
+            "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0::chunk-1",
+            "About New York State Inspections#3_0::chunk-2",
+            "ATVs: Information for Owners and Operators#3_0::chunk-6"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-69a1ae6bc0b246b8725a70ae49745fe8-5",
+          "before": 0.0,
+          "after": 1.0,
+          "removed": [
+            "Aid for Military Families | Federal Student Aid#1_0::chunk-4",
+            "Dependency Status | Federal Student Aid#1_0::chunk-3",
+            "Check Your VA Claim Or Appeal Status | Veterans Affairs#1_0::chunk-1"
+          ],
+          "added": [
+            "Appeal A Decision | Social Security Administration#1_0::chunk-2",
+            "Appeal A Decision | Social Security Administration#2_0::chunk-2",
+            "Apply for Retirement Benefits | SSA#1_0::chunk-0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-4a856ad6df4f53edcd00f1aaa7cffdbc-7",
+          "before": 0.0,
+          "after": 1.0,
+          "removed": [
+            "Benefit Verification Letter  | Social Security Administration#1_0::chunk-0"
+          ],
+          "added": [
+            "Apply For A Child (Under Age 18) | Disability Benefits | SSA#2_0::chunk-0"
+          ]
+        },
+        {
+          "case_id": "doc2dial-dev-56ecb9ca49fe6db3568b935cff6c0510-11",
+          "before": 1.0,
+          "after": 0.0,
+          "removed": [
+            "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0::chunk-1"
+          ],
+          "added": [
+            "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0::chunk-3"
+          ]
+        }
+      ],
+      "metrics": {
+        "recall": 0.7,
+        "mrr": 0.5848333333333333,
+        "ndcg": 0.6139065629278088
+      }
+    },
+    {
+      "dataset": "MTRAG",
+      "candidate": "ce_0.75",
+      "n": 35,
+      "changes": [
+        {
+          "case_id": "6528deeee4180c1b2b770a2929482e82<::>3",
+          "before": 0.3333333333333333,
+          "after": 0.6666666666666666,
+          "removed": [
+            "mtrag:clapnq:804066200_4919-5526-0-607"
+          ],
+          "added": [
+            "mtrag:clapnq:846587463_28843-29416-0-573"
+          ]
+        },
+        {
+          "case_id": "cfbcfa3e382f12aed450b10f87a72aeb<::>2",
+          "before": 0.5,
+          "after": 1.0,
+          "removed": [
+            "mtrag:clapnq:850931827_6950-8562-0-1612"
+          ],
+          "added": [
+            "mtrag:clapnq:850931827_12432-13339-0-907"
+          ]
+        },
+        {
+          "case_id": "4175fcce99c56af0e02be5b8990fc16a<::>1",
+          "before": 0.0,
+          "after": 0.25,
+          "removed": [
+            "mtrag:cloud:ibmcld_15020-7-1759"
+          ],
+          "added": [
+            "mtrag:cloud:ibmcld_15111-10169-12034"
+          ]
+        }
+      ],
+      "metrics": {
+        "recall": 0.47238095238095235,
+        "mrr": 0.5547619047619048,
+        "ndcg": 0.44284060432121125
+      }
+    },
+    {
+      "dataset": "WixQA",
+      "candidate": "union_ce",
+      "n": 20,
+      "changes": [
+        {
+          "case_id": "435cc9cd25371790b4e6e0b6b3f6c53d75948a994da013caf18d1b1bec6550ce",
+          "before": 0.0,
+          "after": 1.0,
+          "removed": [
+            "8eec001dd7d045e7db14f1a777c4a1fb12b84cfe00ad32c01a451849f47aa4f3:3584:5632"
+          ],
+          "added": [
+            "b54fcc3f9518e850f59e6eb131b94cab4596c2e113953f9add9eab86d6ef5495:0:2048"
+          ]
+        }
+      ],
+      "metrics": {
+        "recall": 0.725,
+        "mrr": 0.5258333333333334,
+        "ndcg": 0.5536254819441615
+      }
+    }
+  ]
+}
