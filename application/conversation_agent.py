@@ -34,7 +34,7 @@ from application.work_item import ArgumentValue
 _GOAL_DESCRIPTIONS = {
     "delegate_task": "Delegate an open objective to a registered domain using target_agent and objective. The domain chooses its available tools; this does not authorize an unavailable action.",
     "cancel_active_work": "Cancel one active conversation objective using its revises_control_id; this does not cancel an order.",
-    "continue_active_work": "Continue a pending objective unchanged using its revises_control_id. The runtime restores its tools, arguments and checkpoint; do not restate or reconstruct them. For a changed scope use delegate_task with revises_control_id instead.",
+    "continue_active_work": "Continue an unchanged objective listed in resumable_work using its control_id as revises_control_id. An active control alone is not a resume entry. The runtime restores accepted tools and arguments; do not reconstruct them. Pending approval still requires an approval decision. For a changed scope use delegate_task with revises_control_id instead.",
     "general_qa": "Retrieve policy or FAQ evidence, including shipping, address-change rules, coupons and general procedures; performs no business action.",
     "order_status": "Read a specific order's current record; requires a bound order_id.",
     "logistics_status": "Read shipping status from a specific order record; requires a bound order_id and does not fetch carrier tracking events.",
@@ -157,7 +157,7 @@ class ConversationPlanningProvider(Protocol):
 class ConversationAgent:
     """Plan one deferred turn, then compile only Registry-backed commands."""
 
-    version = "conversation-agent-plan-v6-pending-goal-semantics"
+    version = "conversation-agent-plan-v7-resume-candidates"
 
     def __init__(
         self,
@@ -230,6 +230,8 @@ class ConversationAgent:
             turn_context.understanding_evidence
             if turn_context is not None else ()
         )
+        from application.work_recovery import planning_continuations
+        resumable = planning_continuations(state, deterministic.resumed_work_items)
         payload = {
             "schema_version": "conversation-plan-request-v2-references",
             "knowledge_filter_contract": (turn_context.knowledge_filter_contract or None) if turn_context else None,
@@ -289,6 +291,13 @@ class ConversationAgent:
                 }
                 for item in state.active_work_controls
             ],
+            "resumable_work": [{"control_id": item.control.control_id,
+                "revision": item.control.revision, "owner_agent": item.owner_agent,
+                "objective": item.objective,
+                "required_approval_id": (state.pending_approval.approval_id
+                    if state.pending_approval is not None
+                    and item.control == state.pending_approval.origin_control else None),
+                } for item in resumable],
             "understanding_evidence": [
                 {"kind": kind, "value": value}
                 for kind, value in (
@@ -482,12 +491,8 @@ class ConversationAgent:
                 )
             elif kind == "continue_active_work":
                 from application.target_understanding import StateBoundTargetUnderstanding
-                pending = state.pending_interaction
-                candidates = (*(pending.suspended_work_items if pending else ()),
-                              *(state.pending_approval.suspended_work_items if state.pending_approval else ()))
-                if pending and observations.interaction_values:
-                    candidates = (*resolved_items,
-                                  *(state.pending_approval.suspended_work_items if state.pending_approval else ()))
+                from application.work_recovery import planning_continuations
+                candidates = planning_continuations(state, resolved_items)
                 original = next((item for item in candidates
                                  if item.control and item.control.control_id == revises_control_id), None)
                 if original is None:

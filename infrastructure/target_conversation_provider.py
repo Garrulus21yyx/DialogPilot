@@ -14,7 +14,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 
 
 class AnthropicConversationPlanningProvider:
-    version = "anthropic-conversation-planning-provider-v13-native-reply"
+    version = "anthropic-conversation-planning-provider-v14-resume-candidates"
 
     def __init__(self, models, *, model_profile: ModelProfile, synthesis_profile: ModelProfile, max_tokens: int = 800, callbacks=()) -> None:
         self._models = models
@@ -50,6 +50,11 @@ class AnthropicConversationPlanningProvider:
                 "Set revises_control_id only when the user corrects or replaces one "
                 "specific objective listed in active_work_controls. New independent "
                 "goals must omit it. Never revise unrelated active work. "
+                "active_work_controls describes valid goal revisions, not execution progress. "
+                "Only resumable_work supplies continuation targets. If none exists, do not invent "
+                "a resume: explain the retained result or plan a new attempt when the user requests it. "
+                "A candidate with required_approval_id also requires a decision for that proposal; "
+                "listing a candidate is not authorization to execute it. "
                 "A pending_input reference only identifies a question, not assent to its old goal. "
                 "Interpret the current reply against the conversation: for an unchanged pending goal "
                 "use continue_active_work with its revises_control_id; for a scope correction use "

@@ -5,6 +5,20 @@ from application.agent_result import AgentResultStatus, MissingInputSpec
 from application.work_item import ControlMode
 
 
+def planning_continuations(state, resolved_items=()):
+    """Project pending work, not revision validity, into semantic resume choices.
+
+    Resolver-owned typed input replaces the corresponding persisted envelope.
+    Acceptance and actual checkpoint recovery remain with Policy and Runtime.
+    """
+    items = {(item.work_item_id, item.control): item
+        for pending in (state.pending_interaction, state.pending_approval)
+        if pending is not None for item in pending.suspended_work_items}
+    items.update({(item.work_item_id, item.control): item for item in resolved_items})
+    return tuple(item for item in items.values()
+                 if item.control is not None and state.accepts(item.control))
+
+
 def recovery_candidates(plan, board):
     items = {item.work_item_id: item for item in plan.items}
     return tuple(result for result in board.results

@@ -92,6 +92,10 @@ def test_whole_turn_preserves_unaddressed_waits_and_exact_authorization(decision
         prepared = await manager.prepare(_identity("reply"), observations)
         assert len(provider.calls) == 1
         assert provider.calls[0]["pending_approval"]["arguments"]["expected_order_version"] == 4
+        candidates = {item["control_id"]: item for item in provider.calls[0]["resumable_work"]}
+        assert candidates[origin.control.control_id]["required_approval_id"] == "approval"
+        assert candidates[field.control.control_id]["required_approval_id"] is None
+        assert candidates[peer.control.control_id]["required_approval_id"] is None
         assert store.load(state.tenant_id, state.user_id, state.conversation_id) == state
         items = prepared.plan.work.items if prepared.plan.work else ()
         controls = [item.control.control_id for item in items]

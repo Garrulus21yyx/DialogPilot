@@ -33,6 +33,34 @@ class RecoveryProvider:
             for item in payload["stopped_tasks"]]}
 
 
+@pytest.mark.parametrize("has_wait", [False, True])
+@pytest.mark.parametrize("roundtrip", [False, True])
+def test_planner_resume_choices_match_persisted_waits_not_active_revisions(has_wait, roundtrip):
+    from dataclasses import replace
+    from application.deterministic_resolution import DeterministicResolution, ResolutionKind
+    from tests.test_conversation_agent import Provider
+    from tests.test_parameter_acceptance import accepted_work
+
+    state, registry, item, _ = accepted_work(CommandKind.DELEGATE_TASK)
+    if not has_wait:
+        state = replace(state, pending_interaction=None)
+    if roundtrip:
+        state = conversation_state_from_payload(conversation_state_to_payload(state))
+    provider = Provider({"status": "resolved", "goals": [{"kind": "continue_active_work",
+        "revises_control_id": item.control.control_id}]})
+    proposal = asyncio.run(ConversationAgent(provider).plan(TurnObservations("Continue"), state,
+        DeterministicResolution(ResolutionKind.UNRESOLVED, "TEST", state.fingerprint), registry))
+    payload = provider.calls[0]
+    assert payload["active_work_controls"]  # Revision remains valid for publication.
+    assert bool(payload["resumable_work"]) is has_wait
+    assert (proposal.disposition is ProposalDisposition.RESOLVED) is has_wait
+    if has_wait:
+        assert proposal.commands[0].resumed_work_item == item
+        assert payload["resumable_work"][0]["control_id"] == item.control.control_id
+    else:
+        assert proposal.disposition is ProposalDisposition.INVALID_PROVIDER_OUTPUT
+
+
 def test_recovery_uses_the_existing_provider_transport_with_its_own_bounded_schema():
     from core.model_policy import ModelProfile, ModelRole
     from tests.framework_structured_stub import models
