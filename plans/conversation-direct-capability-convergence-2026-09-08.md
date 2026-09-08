@@ -1180,3 +1180,36 @@ does not justify enabling HIGH or adding another reasoning gate. Next compare
 the actual failed captured policy/goal/history against a faithful reduced view,
 without deleting relevant constraints or modifying production prompts. Actual
 long-context feasibility remains open. Encoder remains disabled; no live tau rerun.
+
+Actual-input experiment registered: observation c27f46378bd94a40 from the latest
+task19 run, original user payload 59,056 characters plus 4,152-character system.
+Compare original input vs removing ONLY working_context; retain policy, objective,
+capabilities, candidate, arguments, receipts and input signal. This removal is an
+information-loss ablation, NOT a proposed production compressor. Same production
+system/schema (assert exact equality); verifier model NONE/HIGH, two repeats per
+arm, eight calls max, 4096 completion tokens, no business tools. Expected reject:
+the selected return changes the same order out of delivered, preventing remaining
+exchanges. Measure acceptance and typed parsing failures; never auto-adopt context
+deletion from this test. Source and raw SDK outputs retained in private artifacts.
+
+Independent review approved a narrower next intervention: remove only the two
+AI natural-language text blocks ("independent actions" / "prepare return first"),
+retaining all human context, tool calls/parameters, tool results and message order.
+Register four NONE calls: original twice and this ablation twice. Same source,
+system/schema/model/budget; no production change. Distinguish wrong acceptance,
+rejection with impossible correction, and correct state-conflict explanation.
+
+Both registered actual-input experiments completed (12 SDK calls, zero business
+calls): `action-feasibility-captured8-2026-09-09` and
+`action-feasibility-actor4-2026-09-09` under artifacts/eval. NONE original accepted
+4/4 across the two runs. Removing all working_context rejected 2/2 but gave an
+invalid correction (prepare return and exchanges together); this is NOT semantic
+success. Removing only actor text still accepted 2/2. HIGH exhausted all 4096
+output tokens in each of four calls and raised OutputParserException through the
+typed ModelInvocationError; none produced a usable judgment. No adoption.
+Independent review confirmed that actor-only ablation preserves actual observations,
+tool calls and order; its negative result rules out claiming actor prose alone as
+the demonstrated cause. Next isolate scheduler advice while retaining the factual
+"No calls in this batch were executed" result. Do not delete history in production,
+raise budgets blindly, or add a case-specific acceptance rule. Runner transform
+test passed; production code/config unchanged in this experiment.
