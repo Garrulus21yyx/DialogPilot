@@ -118,15 +118,10 @@ class TargetFrameworkAgent:
 
         try:
             history = await resolved_working_messages(context, self._archive)
-            fact_values = []
-            for fact in context.verified_facts:
-                value = json.loads(fact.value_json)
-                if count_tokens_approximately([HumanMessage(content=fact.value_json)]) > self._context_budget.available_tokens // 5:
-                    reference = await self._archive.save(context, {"content": fact.value_json})
-                    value = json.loads(result_pointer(reference, fact.value_json))
-                fact_values.append(value)
-            prompt = self._build_prompt(context, fact_values=fact_values)
             tools = self._tools(context)
+            system = self._system(context)
+            overhead = model_overhead_tokens(system, tools)
+            prompt = await self._prepare_prompt(context, overhead_tokens=overhead)
         except ModelContextBudgetExceeded as exc:
             return self._failure(context, "CONTEXT_BUDGET_EXCEEDED", error=exc, stage="agent_context")
         except ResultArchiveError as exc:
@@ -138,8 +133,6 @@ class TargetFrameworkAgent:
         # bind the prompt to the execution contract so a resumed revision appends
         # a new user input while replaying the same execution remains idempotent.
         pinned = HumanMessage(content=prompt, id=f"task-context:{item.fingerprint}")
-        system = self._system(context)
-        overhead = model_overhead_tokens(system, tools)
         graph = create_agent(
             self._model,
             tools,
@@ -480,6 +473,29 @@ class TargetFrameworkAgent:
             infer_schema=False,
             response_format="content_and_artifact",
         )
+
+    async def _prepare_prompt(self, context: AgentContextView, *, overhead_tokens: int) -> str:
+        """Admit the complete task and schema before externalizing source facts.
+
+        Working history is handled by ContextCompaction; this pinned task cannot
+        be summarized away. Fact originals remain authoritative and unchanged.
+        """
+        values = [json.loads(fact.value_json) for fact in context.verified_facts]
+        remaining = sorted(range(len(values)), key=lambda i: len(context.verified_facts[i].value_json), reverse=True)
+        while True:
+            try:
+                prompt = self._build_prompt(context, fact_values=values)
+                required = count_tokens_approximately([HumanMessage(content=prompt)]) + overhead_tokens
+                if required > self._context_budget.available_tokens:
+                    raise ModelContextBudgetExceeded(required, self._context_budget.available_tokens)
+                return prompt
+            except ModelContextBudgetExceeded:
+                if not remaining:
+                    raise
+                index = remaining.pop(0)
+                original = context.verified_facts[index].value_json
+                reference = await self._archive.save(context, {"content": original})
+                values[index] = json.loads(result_pointer(reference, original))
 
     def _build_prompt(self, context: AgentContextView, *, fact_values=None) -> str:
         item = context.work_item
