@@ -1709,3 +1709,36 @@ guess a threshold increase. The fixed run continues unchanged to retain all fail
 Task20 also completed user_stop with ALL=1 / ENV=1 / ACTION=1. Two of ten rows now
 complete; do not turn this interim pair into an overall success rate. Remaining
 tasks continue under the same live handle; no restart or production edits.
+
+## Verified run interruption and newly persisted evidence
+
+Session84372 was polled again and returned terminal exit143. A process lookup
+found no remaining run_tau3_full process. The manifest still says RUNNING, so it
+is stale, not evidence of continued execution. Signal origin is unknown; do not
+attribute termination to the application exceptions or provider cost warnings.
+No restart has been performed. Original artifacts remain unchanged.
+
+Four task rows are present: 19 ALL missing/ENV0/ACTION1; 20 ALL1/ENV1/ACTION1;
+21 ALL missing/ENV1/ACTION0; 22 ALL0/ENV0/ACTION0. There is no completed row for
+23,24,25,28,29,30. Application logs contain a later three-change domain outcome
+rejection, so absence of a task23 row must not be described as never started.
+Do not report ten-task metrics from these four rows or silently rerun completed
+tasks. Determine resumability and preserve any partial attempt before continuation.
+
+Task22 public trajectory establishes: native name/ZIP lookup succeeds; user gives
+new address at turn11 and state NY at turn21, after repeated confirmations. The
+next reply fails. Later reads confirm neither account nor order address changed;
+user then withdraws the request. Final reply exposes internal planning prose.
+Application logs twice record `provider invented a shipping address` at
+conversation_agent.py:491. Inspection shows `new_address` is required to be a
+literal substring of ONLY observations.raw_text and its binding is unconditionally
+CURRENT_MESSAGE. This boundary cannot represent address components supplied over
+multiple turns or a confirmation-only turn. This is a proven contract limitation;
+capture the exact proposed arguments to establish each rejection's causality before
+changing the owner and all consumers. Do not simply remove provenance validation.
+
+Reviewer budget failure also recurs with required28518 versus available28072,
+in addition to the earlier30742 case. These retained failures keep convergence
+open. Next work: reconcile partial-run lifecycle, inspect task22 proposal/binding
+provenance end-to-end and review input admission at its owner; no threshold patch,
+new live experiment, or completion claim follows from this status update.
