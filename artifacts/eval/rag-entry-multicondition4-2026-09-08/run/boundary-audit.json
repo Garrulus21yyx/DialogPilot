@@ -1,0 +1,28 @@
+{
+  "source_checks": [
+    {
+      "case_id": "boundary-express",
+      "source_items": 5,
+      "all_source_intervals_exact": true
+    },
+    {
+      "case_id": "eu-day10",
+      "source_items": 5,
+      "all_source_intervals_exact": true
+    },
+    {
+      "case_id": "custom-not-quality",
+      "source_items": 5,
+      "all_source_intervals_exact": true
+    },
+    {
+      "case_id": "manual-address-arrival",
+      "source_items": 0,
+      "all_source_intervals_exact": null
+    }
+  ],
+  "last_case_required_schema_result": true,
+  "last_case_sdk_tool_args_empty": true,
+  "raw_http_response_captured": false,
+  "inference": "Failure is present before structured schema validation; SDK vs provider transport cause not established."
+}

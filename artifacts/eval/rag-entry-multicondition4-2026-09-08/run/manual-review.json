@@ -1,0 +1,41 @@
+{
+  "scope": "4 synthetic development cases; 3 completed and 1 planning protocol failure. Nonblind source-based review, not heldout accuracy. No before-after comparison.",
+  "rows": [
+    {
+      "id": "boundary-express",
+      "outcome": "Completed",
+      "api_calls": 4,
+      "knowledge_calls": 1,
+      "packed_items": 5,
+      "answer": "2026年4月1日当天适用的普通质量退货标准寄回运费报销上限为十八元[E917c0a401e95]。加急运费不在报销范围内，仅按平台指定方式寄回可报销标准运费[E0584df3c2a04]。",
+      "classification": "supported_core_answer_nonblind_review"
+    },
+    {
+      "id": "eu-day10",
+      "outcome": "Completed",
+      "api_calls": 4,
+      "knowledge_calls": 1,
+      "packed_items": 5,
+      "answer": "来得及。欧洲区未拆封普通商品的无理由退货申请期限为签收后十四日[Eaba2a35d5f22]，您在签收第十天申请，单看期限仍在范围内。退货期限以签收记录为起点，是否符合条件还需结合商品类别和状态核实[Efb5727bbf675]。",
+      "classification": "supported_core_answer_nonblind_review"
+    },
+    {
+      "id": "custom-not-quality",
+      "outcome": "Completed",
+      "api_calls": 4,
+      "knowledge_calls": 1,
+      "packed_items": 5,
+      "answer": "很抱歉，刻字属于定制商品，不适用七日无理由退货，即使未拆封且签收不足七日也一样[Efe8c8b2e5b7a][E6f880093d750]。如果您发现商品存在质量问题，仍可申请售后审核，需要提交问题照片及订单信息[E6f880093d750]。",
+      "classification": "supported_core_answer_nonblind_review"
+    },
+    {
+      "id": "manual-address-arrival",
+      "outcome": "Failed",
+      "api_calls": 1,
+      "knowledge_calls": 0,
+      "packed_items": 0,
+      "answer": "",
+      "classification": "planning_protocol_failure_before_retrieval"
+    }
+  ]
+}
