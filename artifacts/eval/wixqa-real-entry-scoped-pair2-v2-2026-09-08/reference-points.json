@@ -1,0 +1,229 @@
+{
+  "scope": "Post-hoc author annotation of two consumed dev examples; no independent review; no accuracy or causal improvement claim.",
+  "source": "WixQA ExpertWritten rows 166 and 112; optional additions beyond reference excluded from coverage denominator.",
+  "new_api_calls": 0,
+  "arms": {
+    "0.25": {
+      "annotations": [
+        {
+          "case_index": 0,
+          "point": "Published sites remain editable",
+          "scope": "core",
+          "model_visible_evidence_ids": [
+            "E47daa3c75cc6",
+            "Ee90a68940ea1",
+            "Eab498ddd4394"
+          ],
+          "answer_covered_author_assessment": true,
+          "answer_quote_witness": "edit your site at any time",
+          "answer_sha256": "0c35d02e5b85448a321ad089c114744ec66589a9553dcdd438d68d1e4e9195bd"
+        },
+        {
+          "case_index": 0,
+          "point": "Open editor from site dashboard",
+          "scope": "core",
+          "model_visible_evidence_ids": [
+            "Eab498ddd4394"
+          ],
+          "answer_covered_author_assessment": true,
+          "answer_quote_witness": "from your site's dashboard",
+          "answer_sha256": "0c35d02e5b85448a321ad089c114744ec66589a9553dcdd438d68d1e4e9195bd"
+        },
+        {
+          "case_index": 0,
+          "point": "Click Edit Site",
+          "scope": "reference_detail",
+          "model_visible_evidence_ids": [
+            "Ef328a422c597"
+          ],
+          "answer_covered_author_assessment": false,
+          "answer_quote_witness": null,
+          "answer_sha256": "0c35d02e5b85448a321ad089c114744ec66589a9553dcdd438d68d1e4e9195bd"
+        },
+        {
+          "case_index": 0,
+          "point": "Use the correct account",
+          "scope": "reference_detail",
+          "model_visible_evidence_ids": [],
+          "answer_covered_author_assessment": false,
+          "answer_quote_witness": null,
+          "answer_sha256": "0c35d02e5b85448a321ad089c114744ec66589a9553dcdd438d68d1e4e9195bd"
+        },
+        {
+          "case_index": 1,
+          "point": "Monthly subscription covers campaigns",
+          "scope": "core",
+          "model_visible_evidence_ids": [
+            "E317827488a79",
+            "E634df52f85c6",
+            "E975060ac5af1"
+          ],
+          "answer_covered_author_assessment": true,
+          "answer_quote_witness": "monthly subscription",
+          "answer_sha256": "592e86f7657a67b0f9222f335598ad022183991ac3d557f3dbf63b7a68910c3b"
+        },
+        {
+          "case_index": 1,
+          "point": "Extra one-time credits do not change subscription",
+          "scope": "core",
+          "model_visible_evidence_ids": [
+            "E634df52f85c6"
+          ],
+          "answer_covered_author_assessment": true,
+          "answer_quote_witness": "doesn’t affect your monthly subscription",
+          "answer_sha256": "592e86f7657a67b0f9222f335598ad022183991ac3d557f3dbf63b7a68910c3b"
+        },
+        {
+          "case_index": 1,
+          "point": "Wix fee 15 percent, ad credit 85 percent",
+          "scope": "core",
+          "model_visible_evidence_ids": [
+            "E975060ac5af1"
+          ],
+          "answer_covered_author_assessment": true,
+          "answer_quote_witness": "remaining 85%",
+          "answer_sha256": "592e86f7657a67b0f9222f335598ad022183991ac3d557f3dbf63b7a68910c3b"
+        },
+        {
+          "case_index": 1,
+          "point": "Pausing last active campaign disables auto-renew",
+          "scope": "reference_detail",
+          "model_visible_evidence_ids": [
+            "E975060ac5af1",
+            "E48d21d94cf4d"
+          ],
+          "answer_covered_author_assessment": false,
+          "answer_quote_witness": null,
+          "answer_sha256": "592e86f7657a67b0f9222f335598ad022183991ac3d557f3dbf63b7a68910c3b"
+        },
+        {
+          "case_index": 1,
+          "point": "Manage subscription through campaign dashboard",
+          "scope": "reference_detail",
+          "model_visible_evidence_ids": [
+            "E975060ac5af1"
+          ],
+          "answer_covered_author_assessment": false,
+          "answer_quote_witness": null,
+          "answer_sha256": "592e86f7657a67b0f9222f335598ad022183991ac3d557f3dbf63b7a68910c3b"
+        }
+      ],
+      "core_covered": 5,
+      "core_total": 5,
+      "reference_detail_covered": 0,
+      "reference_detail_total": 4
+    },
+    "0.5": {
+      "annotations": [
+        {
+          "case_index": 0,
+          "point": "Published sites remain editable",
+          "scope": "core",
+          "model_visible_evidence_ids": [
+            "Eab498ddd4394"
+          ],
+          "answer_covered_author_assessment": true,
+          "answer_quote_witness": "edit your published site at any time",
+          "answer_sha256": "e95fa6f52368f633e06bc84720f2fe68cf86ede0f145fa46d07152816e09593f"
+        },
+        {
+          "case_index": 0,
+          "point": "Open editor from site dashboard",
+          "scope": "core",
+          "model_visible_evidence_ids": [
+            "Eab498ddd4394",
+            "E9ee698f9b0ab"
+          ],
+          "answer_covered_author_assessment": true,
+          "answer_quote_witness": "site's dashboard",
+          "answer_sha256": "e95fa6f52368f633e06bc84720f2fe68cf86ede0f145fa46d07152816e09593f"
+        },
+        {
+          "case_index": 0,
+          "point": "Click Edit Site",
+          "scope": "reference_detail",
+          "model_visible_evidence_ids": [
+            "E9ee698f9b0ab"
+          ],
+          "answer_covered_author_assessment": true,
+          "answer_quote_witness": "**Edit Site**",
+          "answer_sha256": "e95fa6f52368f633e06bc84720f2fe68cf86ede0f145fa46d07152816e09593f"
+        },
+        {
+          "case_index": 0,
+          "point": "Use the correct account",
+          "scope": "reference_detail",
+          "model_visible_evidence_ids": [
+            "E9ee698f9b0ab"
+          ],
+          "answer_covered_author_assessment": true,
+          "answer_quote_witness": "correct account",
+          "answer_sha256": "e95fa6f52368f633e06bc84720f2fe68cf86ede0f145fa46d07152816e09593f"
+        },
+        {
+          "case_index": 1,
+          "point": "Monthly subscription covers campaigns",
+          "scope": "core",
+          "model_visible_evidence_ids": [
+            "Ee33b886f5971",
+            "E975060ac5af1",
+            "E317827488a79",
+            "E634df52f85c6"
+          ],
+          "answer_covered_author_assessment": true,
+          "answer_quote_witness": "monthly subscription",
+          "answer_sha256": "9ded07867e302bc8232fd9164f2aee2f1dce5a7959949c5a781c9f19bc5e7987"
+        },
+        {
+          "case_index": 1,
+          "point": "Extra one-time credits do not change subscription",
+          "scope": "core",
+          "model_visible_evidence_ids": [
+            "E634df52f85c6"
+          ],
+          "answer_covered_author_assessment": true,
+          "answer_quote_witness": "doesn't affect your monthly subscription",
+          "answer_sha256": "9ded07867e302bc8232fd9164f2aee2f1dce5a7959949c5a781c9f19bc5e7987"
+        },
+        {
+          "case_index": 1,
+          "point": "Wix fee 15 percent, ad credit 85 percent",
+          "scope": "core",
+          "model_visible_evidence_ids": [
+            "E975060ac5af1"
+          ],
+          "answer_covered_author_assessment": true,
+          "answer_quote_witness": "remaining 85%",
+          "answer_sha256": "9ded07867e302bc8232fd9164f2aee2f1dce5a7959949c5a781c9f19bc5e7987"
+        },
+        {
+          "case_index": 1,
+          "point": "Pausing last active campaign disables auto-renew",
+          "scope": "reference_detail",
+          "model_visible_evidence_ids": [
+            "E975060ac5af1",
+            "E48d21d94cf4d"
+          ],
+          "answer_covered_author_assessment": false,
+          "answer_quote_witness": null,
+          "answer_sha256": "9ded07867e302bc8232fd9164f2aee2f1dce5a7959949c5a781c9f19bc5e7987"
+        },
+        {
+          "case_index": 1,
+          "point": "Manage subscription through campaign dashboard",
+          "scope": "reference_detail",
+          "model_visible_evidence_ids": [
+            "E975060ac5af1"
+          ],
+          "answer_covered_author_assessment": true,
+          "answer_quote_witness": "**Manage Spend & Credits**",
+          "answer_sha256": "9ded07867e302bc8232fd9164f2aee2f1dce5a7959949c5a781c9f19bc5e7987"
+        }
+      ],
+      "core_covered": 5,
+      "core_total": 5,
+      "reference_detail_covered": 3,
+      "reference_detail_total": 4
+    }
+  }
+}
