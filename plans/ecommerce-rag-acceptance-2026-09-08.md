@@ -40,4 +40,4 @@ E04纯RAG预注册：100题/50族（排除20混合题，34原开发+66原留存�
 
 E04入口审计：v1工具RESOLVED只用传入完整query，original字段并非召回分支。v1保留为完整query单路诊断（100×2、50改写调用），不称raw+standalone。v2纯检索入口使用既有HISTORY合同并复用v1全部冻结query结果，显式捕获raw/standalone权重。v2新增API0，模型/语料/预算不变；不改生产合同，不重复付费改写。
 
-E04执行完成：100×2纯RAG，v1诊断50 Flash改写调用，v2冻结重放API0。两臂来源R@5/20和wire均1.0，精排nDCG1→.995，误伤排序1条ec-057-2；不采用强制改写。1000证据定位/checksum通过、7 tests通过。见docs/ecommerce-pure-rag-2026-09-08.zh-CN.md。待本次提交推送；后续只维护纯RAG基准/难例数据，业务核验暂停。
+E04执行完成：100×2纯RAG，v1诊断50 Flash改写调用，v2冻结重放API0。两臂来源R@5/20和wire均1.0，精排nDCG1→.995，误伤排序1条ec-057-2；不采用强制改写。1000证据定位/checksum通过、7 tests通过。见docs/ecommerce-pure-rag-2026-09-08.zh-CN.md。已提交并推送236199e；后续只维护纯RAG基准/难例数据，业务核验暂停。
