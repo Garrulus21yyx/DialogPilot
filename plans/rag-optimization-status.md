@@ -256,3 +256,7 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 - R02语义来源审计预注册：仅复核语言支持/web chat两条已消费见证，固定原reference.input、两臂CE Top5与官方gold；Codex非盲来源核对，保留官方指标，不修改qrels、不由待测模型自评分。记录直接支持、仅相关、适用版本差异、用户意图歧义，来源引用绑定原文SHA。API0。目的判断指标损失是否代表语义质量损失，不生成新的整体准确率。
 
 - R02语义复核完成：语言题为明确首轮，无query上下文缺失；parent_local第1未标注片段直接支持非英语创建dialog，第4讲Another language，目标漏gold反而讲分析笔记本语言。web两臂第1已有默认launcher入口信息，gold偏主页/建议，实际意图和经典/新版适用仍不定。纠正“官方Recall误伤=语义误伤”的过度解释；原指标/qrels全部保留。五处引文/源SHA核验、API0，Codex非盲诊断不作准确率。见miss-semantics2报告。停止针对两gold调配额/query；下一项固定证据的小规模答案支持/版本验证，领域读回及跨集验收仍开放。
+
+- R06两题答案预注册：语言/web两条已消费诊断，冻结Cloud parent-validation8 pack的dense/parent_local两臂、原reference.input历史，真实ResponseAssembler/compose provider，Flash NONE输出800，最多4调用。无新query/retrieval/verifier，不改变prompt；主要检查非英语支持/默认入口条件/真实配置与版本未确定，来源逐项复核，不报统计显著或整体准确率。API失败/非空草稿与语义支持分列。
+
+- R06两题答案完成：4次Flash/4非空/4引用合法，1项输入与引用审计通过。语言核心结论两臂均支持；web两臂均条件性默认入口+追问，不是用户故障已解决，经典/新版适用未核实；Dense的隐藏入口举例源于历史助手，未断言实际配置。Codex非盲复核，无准确率提升结论。parent_local不采用，停止两见证继续付费调参。见parent-answers2报告。活动下一项恢复领域Agent归档证据实际读回（既有27/96归档仅证明可恢复），之后其他公共集验收；微调暂停。

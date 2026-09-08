@@ -1,0 +1,48 @@
+{
+  "scope": "4 frozen compositions; no verifier/publication; qualitative only",
+  "results": [
+    {
+      "case_id": "e1b602e47ded79a35d8df4eefe194e39<::>1",
+      "arm": "dense",
+      "answer_sha256": "c0e3b09faed1f60ce6f529fc9228d8c08c1e8bb5f16c374f8a671b9bf2158e73",
+      "assessment": "CORE_ANSWER_SUPPORTED",
+      "task_resolved": true,
+      "limitations": [],
+      "reviewer": "Codex nonblind source review; not independent benchmark label"
+    },
+    {
+      "case_id": "e1b602e47ded79a35d8df4eefe194e39<::>1",
+      "arm": "parent_local",
+      "answer_sha256": "866f0dd23dad51024980d9437d8d4da39428a76c3e80b2ff50885f56de940892",
+      "assessment": "CORE_ANSWER_SUPPORTED",
+      "task_resolved": true,
+      "limitations": [],
+      "reviewer": "Codex nonblind source review; not independent benchmark label"
+    },
+    {
+      "case_id": "fdee20f7fd677e420742b09989623d68<::>6",
+      "arm": "dense",
+      "answer_sha256": "b4a41a72839d6e4c8c49d49b2929b1e663a9c1f84d66f37ce1e3d75255e4dfa3",
+      "assessment": "QUALIFIED_GUIDANCE_AND_CLARIFICATION",
+      "task_resolved": false,
+      "limitations": [
+        "Exact product version and user configuration not established",
+        "Default launcher location does not prove actual deployed location",
+        "Hidden-launcher example originates in prior assistant history; not independently confirmed as actual configuration"
+      ],
+      "reviewer": "Codex nonblind source review; not independent benchmark label"
+    },
+    {
+      "case_id": "fdee20f7fd677e420742b09989623d68<::>6",
+      "arm": "parent_local",
+      "answer_sha256": "607314e3b45c0ef94a8e2e733b1801ad68d6d9ea1d6c15f364127a5aff1c37ef",
+      "assessment": "QUALIFIED_GUIDANCE_AND_CLARIFICATION",
+      "task_resolved": false,
+      "limitations": [
+        "Exact product version and user configuration not established",
+        "Default launcher location does not prove actual deployed location"
+      ],
+      "reviewer": "Codex nonblind source review; not independent benchmark label"
+    }
+  ]
+}
