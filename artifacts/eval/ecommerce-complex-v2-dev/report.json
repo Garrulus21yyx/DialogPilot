@@ -1,0 +1,65 @@
+{
+  "n": 40,
+  "groups": 10,
+  "documents": 6,
+  "chunks": 17,
+  "gold_units": 30,
+  "chunk_containment": 1.0,
+  "summary": {
+    "history_concat": {
+      "candidate": {
+        "complete_r5": 0.425,
+        "unit_r5": 0.775,
+        "complete_r20": 1.0,
+        "unit_r20": 1.0,
+        "mrr5": 0.8245833333333333,
+        "ndcg5": 0.7376106340166906
+      },
+      "rerank": {
+        "complete_r5": 0.625,
+        "unit_r5": 0.875,
+        "complete_r20": 1.0,
+        "unit_r20": 1.0,
+        "mrr5": 0.9583333333333334,
+        "ndcg5": 0.8554322651138413
+      },
+      "wire": {
+        "complete_r5": 0.625,
+        "unit_r5": 0.875,
+        "complete_r20": 0.625,
+        "unit_r20": 0.875,
+        "mrr5": 0.9583333333333334,
+        "ndcg5": 0.8554322651138413
+      }
+    },
+    "standalone_raw": {
+      "candidate": {
+        "complete_r5": 0.475,
+        "unit_r5": 0.8,
+        "complete_r20": 1.0,
+        "unit_r20": 1.0,
+        "mrr5": 0.8583333333333334,
+        "ndcg5": 0.74775865781138
+      },
+      "rerank": {
+        "complete_r5": 0.775,
+        "unit_r5": 0.925,
+        "complete_r20": 1.0,
+        "unit_r20": 1.0,
+        "mrr5": 0.9583333333333334,
+        "ndcg5": 0.8831291107640364
+      },
+      "wire": {
+        "complete_r5": 0.775,
+        "unit_r5": 0.925,
+        "complete_r20": 0.775,
+        "unit_r20": 0.925,
+        "mrr5": 0.9583333333333334,
+        "ndcg5": 0.8831291107640364
+      }
+    }
+  },
+  "rescue": 7,
+  "hurt": 1,
+  "definition": "Complete = all 3 annotated source clauses covered; unit recall averages 3 binary coverage labels. nDCG uses binary relevance of whole chunks containing any gold unit, ideal from complete corpus chunks. Not answer correctness. Only dev opened for scoring."
+}

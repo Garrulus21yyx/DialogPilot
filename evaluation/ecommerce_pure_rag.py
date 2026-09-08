@@ -20,6 +20,19 @@ class RerankCapture:
         return ids, fallback
 
 
+class MemoTransformer:
+    """Capture and retrieval reuse one identical query transformation."""
+    def __init__(self, delegate):
+        self.delegate, self.cache = delegate, {}
+    async def standalone(self, query, history=()):
+        key=(query,tuple(history))
+        if key not in self.cache:
+            self.cache[key]=await self.delegate.standalone(query,history)
+        return self.cache[key]
+    async def expand(self, query, **kwargs):
+        return await self.delegate.expand(query,**kwargs)
+
+
 class ReplayTransformer:
     def __init__(self, path):
         self.queries = {}

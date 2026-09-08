@@ -174,6 +174,9 @@ async def evaluate(args, database_url):
                 candidate_source=source, transformer=QueryTransformer(client, policy.profile(ModelRole.REWRITE)),
                 reranker=reranker, evidence_validator=PostgresKnowledgeEvidenceValidator(source),
             )
+            if getattr(args, 'pure_rag_inputs', None):
+                from evaluation.ecommerce_pure_rag import MemoTransformer
+                api._knowledge_retriever._transformer = MemoTransformer(api._knowledge_retriever._transformer)
             if getattr(args, 'pure_rewrite_cache', None):
                 from evaluation.ecommerce_pure_rag import ReplayTransformer
                 api._knowledge_retriever._transformer = ReplayTransformer(args.pure_rewrite_cache)

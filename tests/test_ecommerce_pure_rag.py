@@ -35,3 +35,21 @@ def test_rewrite_replay_requires_identical_history_and_query(tmp_path):
     replay=ReplayTransformer(p)
     assert asyncio.run(replay.standalone('不是',['assistant: 是质量问题吗？']))==('非质量原因退货',None)
     with pytest.raises(KeyError):asyncio.run(replay.standalone('不是',['assistant: 是七天内吗？']))
+
+
+def test_capture_and_retrieval_share_one_identical_transform():
+    import asyncio
+    from evaluation.ecommerce_pure_rag import MemoTransformer
+    class Delegate:
+        calls=0
+        async def standalone(self, query, history):
+            self.calls+=1
+            return query+' resolved',None
+    async def check():
+        delegate=Delegate();memo=MemoTransformer(delegate)
+        first=await memo.standalone('否',['A'])
+        assert await memo.standalone('否',['A'])==first
+        assert delegate.calls==1
+        await memo.standalone('否',['B'])
+        assert delegate.calls==2
+    asyncio.run(check())

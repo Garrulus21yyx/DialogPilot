@@ -1,0 +1,26 @@
+{
+  "documents": 6287,
+  "external_documents": 6221,
+  "synthetic_near_scope_documents": 60,
+  "chunks_structure_512_64": {
+    "target_and_initial_distractors": 17,
+    "near_scope_negative": 60,
+    "external_background": 11513
+  },
+  "chunks_total": 11590,
+  "original_corpus_sha256": "d415b2bf4fa885227dd4bb552b8cca5af6e04e5faf8f09efe5541d0fc3e6e5a4",
+  "wix_raw_sha256": "46b852c60b85fb1828e7c6118bb56ba796eba99120a6b69c6b984c06e1c5e1fe",
+  "expanded_corpus_sha256": "cae0218aa05a4b88dc5ef1a212b00b0513b52e4435d75bdd7dac47a504d82e58",
+  "external_source": "https://huggingface.co/datasets/Wix/WixQA",
+  "external_corpus_download": "https://huggingface.co/datasets/Wix/WixQA/resolve/main/wix_kb_corpus/wix_kb_corpus.jsonl",
+  "license": "Wix data card MIT; synthetic additions authored in this project",
+  "query_gold_unchanged": true,
+  "heldout_executed": false,
+  "api_calls": 0,
+  "evaluation_status": "CORPUS_BUILT_NOT_RETRIEVAL_SCORED",
+  "limitations": [
+    "English external background is not equivalent to hard Chinese ecommerce negatives",
+    "Synthetic near-scope policies intentionally share wording; not independently authored enterprise documents",
+    "Applicability is textual here; not a metadata lifecycle test"
+  ]
+}
