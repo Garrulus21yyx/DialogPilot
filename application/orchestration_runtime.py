@@ -185,11 +185,12 @@ class OrchestrationRuntime:
 
     async def _initialize(self, state: ParentGraphState):
         plan = state["work_plan"]
-        board = self._result_board.evaluate(plan, ())
+        board = self._result_board.evaluate(
+            plan, (), retained_outcomes=tuple(state.get("retained_outcomes", ())))
         return {
             "ready_items": board.ready_items,
             "agent_results": [],
-            "facts": (),
+            "facts": board.facts,
             "board": board,
         }
 
@@ -520,6 +521,7 @@ class OrchestrationRuntime:
         trusted_context: Mapping[str, str] | None = None,
         interrupt_after_completion: bool = False,
         pending_approval: PendingApprovalState | None = None,
+        retained_outcomes: tuple[tuple[WorkItem, AgentResult | None], ...] = (),
     ) -> ResultBoardSnapshot:
         if self._checkpointer is not None and not str(thread_id or "").strip():
             raise OrchestrationRuntimeError("checkpointed execution requires thread_id")
@@ -539,6 +541,7 @@ class OrchestrationRuntime:
             "trusted_context": dict(trusted_context or {}),
             "interrupt_after_completion": bool(interrupt_after_completion),
             "pending_approval": pending_approval,
+            "retained_outcomes": tuple(retained_outcomes),
         }
         if self._checkpointer is not None:
             snapshot = await self.graph.aget_state(config)
@@ -549,6 +552,9 @@ class OrchestrationRuntime:
                     raise OrchestrationRuntimeError(
                         "checkpoint thread is bound to another work plan"
                     )
+                saved_outcomes = tuple(tuple(pair) for pair in snapshot.values.get("retained_outcomes", ()))
+                if saved_outcomes != tuple(retained_outcomes):
+                    raise OrchestrationRuntimeError("checkpoint thread is bound to different observed outcomes")
                 board = snapshot.values.get("board")
                 if board is not None and board.complete:
                     return board

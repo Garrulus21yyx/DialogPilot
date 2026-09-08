@@ -93,6 +93,47 @@ class Executor:
         )
 
 
+@pytest.mark.parametrize("status", [AgentResultStatus.SUCCEEDED, AgentResultStatus.TERMINAL_FAILURE])
+def test_new_execution_step_consumes_prior_outcomes_without_rescheduling_them(status):
+    async def scenario():
+        saver = InMemorySaver()
+        calls = []
+        first = _item("step:0:lookup", "retail", ControlMode.DIRECT, "customer")
+        second = _item("step:1:lookup", "retail", ControlMode.DIRECT, "order")
+        executor = Executor(calls)
+        runtime = OrchestrationRuntime(direct_executor=executor, domain_workers={}, checkpointer=saver)
+        prior = await runtime.execute(WorkPlan((first,), first.work_item_id),
+                                      current_message="Complete the original request", thread_id="step:0")
+
+        async def next_executor(context):
+            assert context.work_item == second
+            assert prior.facts[0] in context.verified_facts
+            assert context.current_message == "Complete the original request"
+            return await Executor(calls, status=status)(context)
+
+        runtime = OrchestrationRuntime(direct_executor=next_executor, domain_workers={}, checkpointer=saver)
+        plan = WorkPlan((second,), second.work_item_id)
+        board = await runtime.execute(plan, current_message="Complete the original request",
+            thread_id="step:1", retained_outcomes=prior.outcome_items)
+        assert board.retained_outcomes == prior.outcome_items
+        assert prior.facts[0] in board.facts
+        assert board.task_completed is (status is AgentResultStatus.SUCCEEDED)
+        if status is AgentResultStatus.TERMINAL_FAILURE:
+            assert board.partial_delivery_allowed
+        before = list(calls)
+        # Recreate the runtime: persisted outcomes and the completed second step
+        # must survive without executing either tool again.
+        restarted = OrchestrationRuntime(direct_executor=next_executor, domain_workers={}, checkpointer=saver)
+        restored = await restarted.execute(plan, current_message="Complete the original request",
+            thread_id="step:1", retained_outcomes=prior.outcome_items)
+        assert restored == board
+        assert calls == before
+        assert len(calls) == 4
+        with pytest.raises(OrchestrationRuntimeError, match="different observed outcomes"):
+            await restarted.execute(plan, current_message="Complete the original request", thread_id="step:1")
+    asyncio.run(scenario())
+
+
 @pytest.mark.parametrize("expired", [False, True])
 def test_bound_continuation_restores_only_valid_progress_from_checkpoint(expired):
     from dataclasses import replace

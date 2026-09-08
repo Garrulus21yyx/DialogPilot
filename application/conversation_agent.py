@@ -512,6 +512,7 @@ class ConversationAgent:
                     f"Read {capability['tool_id']}",
                     arguments=tuple(ArgumentValue.create(key, val) for key, val in value["arguments"].items()),
                     requirement_ids=tuple(capability["requirement_ids"]), tool_id=capability["tool_id"],
+                    observe_result=True,
                 )
             elif kind == "delegate_task":
                 target_agent = value.get("target_agent")

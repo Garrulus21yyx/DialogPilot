@@ -119,8 +119,14 @@ class CommandProposal:
     allow_action_proposals: bool = False
     # Internal state-bound continuation; never supplied by the planning model.
     resumed_work_item: WorkItem | None = None
+    # Host-set provenance for a native main-agent read, not a model parameter.
+    observe_result: bool = False
 
     def __post_init__(self) -> None:
+        if type(self.observe_result) is not bool or (
+            self.observe_result and self.kind is not CommandKind.DIRECT_TOOL
+        ):
+            raise TurnPlanningError("main observation requires a direct tool command")
         if not isinstance(self.allow_action_proposals, bool):
             raise TurnPlanningError("action proposal scope must be boolean")
         if self.allow_action_proposals and self.kind is not CommandKind.DELEGATE_TASK:
@@ -370,6 +376,8 @@ class RoutePolicy:
             if not command.tool_id or any((command.skill_id, command.flow_ref, command.action_ref)):
                 raise TurnPlanningError("DIRECT_TOOL requires only a tool reference")
             tool = registry.tool(command.tool_id)
+            if command.observe_result and tool.effect is not CapabilityEffect.READ:
+                raise TurnPlanningError("main observation is restricted to registered reads")
             if tool.tool_id not in agent.allowed_tool_ids:
                 raise TurnPlanningError("direct tool is outside agent allowlist")
             self._validate_requirements(command, (tool.tool_id,), requirements)
@@ -669,9 +677,20 @@ class TurnPlan:
     compiler_version: str
     control_mutations: tuple[WorkControlMutation, ...] = ()
     response_text: str | None = None
+    # A dependent task already owns the next decision for a consumed result.
+    observation_work_item_ids: tuple[str, ...] = ()
 
     def __post_init__(self):
         object.__setattr__(self, "control_mutations", tuple(self.control_mutations))
+        object.__setattr__(self, "observation_work_item_ids", tuple(self.observation_work_item_ids))
+        _unique(self.observation_work_item_ids, "observation work items")
+        items = {item.work_item_id: item for item in self.work.items} if self.work else {}
+        consumed = {dependency for item in items.values() for dependency in item.dependencies}
+        for identity in self.observation_work_item_ids:
+            item = items.get(identity)
+            if (item is None or item.control_mode is not ControlMode.DIRECT
+                    or item.effect is not CapabilityEffect.READ or identity in consumed):
+                raise TurnPlanningError("main observation requires an unconsumed direct read")
         if self.route.mode is RouteMode.RESPONSE:
             if (not isinstance(self.response_text, str) or not self.response_text.strip()
                     or self.work is not None or self.transitions is not None or self.control_mutations):
@@ -692,6 +711,7 @@ class TurnPlan:
             "registry": self.registry_fingerprint,
             "compiler": self.compiler_version,
             "response_text": self.response_text,
+            "observation_work_item_ids": self.observation_work_item_ids,
             "control_mutations": [
                 (item.kind, item.control_id, item.expected_revision)
                 for item in self.control_mutations
@@ -701,7 +721,7 @@ class TurnPlan:
 
 
 class TurnPlanCompiler:
-    version = "turn-plan-compiler-v3-response-or-work"
+    version = "turn-plan-compiler-v4-planning-step"
 
     def compile(
         self,
@@ -709,7 +729,10 @@ class TurnPlanCompiler:
         state: ConversationState,
         registry: CapabilityRegistryBundle,
         invocation: InvocationIdentity,
+        *, planning_step: int = 0,
     ) -> TurnPlan:
+        if type(planning_step) is not int or planning_step < 0:
+            raise PlanningInvariantError("planning step must be a nonnegative integer")
         if validated.state_fingerprint != state.fingerprint:
             raise PlanningInvariantError("validated command uses stale conversation state")
         if validated.registry_fingerprint != registry.fingerprint:
@@ -740,7 +763,7 @@ class TurnPlanCompiler:
         )
         items = tuple(
             self._compile_item(
-                index, item, state, invocation, registry,
+                index, item, state, invocation, registry, planning_step,
             )
             for index, item in enumerate(executable, start=1)
         )
@@ -826,6 +849,11 @@ class TurnPlanCompiler:
                 )
                 for item in cancellations
             ),
+            observation_work_item_ids=tuple(
+                item.work_item_id for command, item in zip(executable, items)
+                if command.proposal.observe_result and not any(
+                    item.work_item_id in consumer.dependencies for consumer in items)
+            ),
         )
 
     def _compile_item(
@@ -835,10 +863,11 @@ class TurnPlanCompiler:
         state,
         invocation,
         registry,
+        planning_step,
     ) -> WorkItem:
         proposal = command.proposal
         agent = registry.agent(proposal.target_agent)
-        work_item_id = f"work:{invocation.invocation_key}:{index}:{proposal.command_id}"
+        work_item_id = f"work:{invocation.invocation_key}:step:{planning_step}:{index}:{proposal.command_id}"
         control_mode = {
             CommandKind.DIRECT_TOOL: ControlMode.DIRECT,
             CommandKind.DELEGATE_TASK: ControlMode.DELEGATED,
@@ -851,7 +880,7 @@ class TurnPlanCompiler:
         write = command.effect is CapabilityEffect.WRITE
         if write and proposal.flow_ref is None:
             control_mode = ControlMode.ACTION
-        control = self._control_binding(proposal, state, invocation)
+        control = self._control_binding(proposal, state, invocation, planning_step)
         replay = next((
             item for item in state.work_controls
             if item.control_id == control.control_id
@@ -911,10 +940,10 @@ class TurnPlanCompiler:
         )
 
     @staticmethod
-    def _control_binding(proposal, state, invocation) -> WorkControlBinding:
+    def _control_binding(proposal, state, invocation, planning_step) -> WorkControlBinding:
         if proposal.revises_control_id is None:
             return WorkControlBinding(
-                f"control:{invocation.invocation_key}:{proposal.command_id}", 1,
+                f"control:{invocation.invocation_key}:step:{planning_step}:{proposal.command_id}", 1,
             )
         current = next(
             item for item in state.active_work_controls

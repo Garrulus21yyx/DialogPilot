@@ -4,7 +4,7 @@ Status: repair in progress; direct executor identity migration implemented, full
 capability exposure and goal-continuation repair not complete or verified closed.
 Scope: failures from the fixed ten-task run after the rejected encoder trial.
 Baseline evidence: `artifacts/eval/tau3-new10-after-encoder-trial-2026-09-08/`.
-Current inspection HEAD: ceeab4e, with existing user-owned business recovery changes.
+Current inspection HEAD: ea8ae43, with existing user-owned business recovery changes.
 
 ## Established causal chain
 
@@ -125,3 +125,92 @@ e93e24ee0b512b31 also confirms identity-only delegation with action proposals fa
 the original three business changes were not in that delegated objective. Repair
 and validation of that semantic/continuation boundary remain required before
 rerunning the frozen business tasks or declaring the user goal complete.
+
+## Main read observation continuation — reviewed implementation contract
+
+Status: design reviewed, implementation pending. The current TurnRuntime is a
+one-pass phase graph. OrchestrationRuntime rejects a different plan on the same
+execution thread and only resumes interrupted threads; its checkpoint is not an
+arbitrary next-step execution API. PreparedTurn/ManagedTurnResult currently occupy
+one slot and compiler IDs have no planning-step scope. These account for why adding
+an outer while loop would lose outcomes or collide/replay execution, not a reason
+to deny main-agent tool use.
+
+Decision: extend the existing checkpointed TurnRuntime, not add create_agent as a
+second executor around the same WorkPlan. Its model decision still uses the same
+ConversationAgent provider, RoutePolicy, compiler and governed tool executor.
+Framework StateGraph owns looping/checkpoints; application code owns the transition
+between an accepted plan, its observed results, and the next accepted plan.
+
+Required owner changes, to land and verify together:
+
+1. Accepted plan records which reads originated from main native calls and need
+   observation. Do not infer that from DIRECT (which also includes shortcuts and
+   preparation). Reads already passed to a dependent domain goal do not force a
+   second global interpretation after that domain finishes.
+2. A bounded planning-step identity lives under the same invocation. Compiler
+   work/control identities and execution thread scope distinguish those steps;
+   no fabricated user messages or new authorization identities.
+3. Turn checkpoint retains the original request/context and prior paired
+   (WorkItem, AgentResult) outcomes. Each accepted next plan is checkpointed before
+   execution. Previous outcomes feed ResultBoard's existing retained-results
+   mechanism, never the new ready queue.
+4. Manager constructs next-decision inputs from the unchanged original request,
+   scoped state and newly observed facts. It does not treat the just-completed
+   read objective as the user's full objective. Approval/input waits retain their
+   existing authoritative transition and are not consumed by this loop.
+5. A final main response after observation is checked against the retained board,
+   not the RESPONSE_ONLY_NO_STATE_CHANGE branch with board=None. Domain completion
+   does not require a redundant main planning call.
+6. Planning failure/budget exhaustion preserves successful facts and produces a
+   typed incomplete outcome and partial reply. Read-step completion cannot imply
+   the outstanding user request completed. No automatic tool/write retry.
+7. Checkpoint version and codecs, state commits, outcome projection, diagnostics
+   and response assembly migrate with the same lifecycle contract.
+
+Falsifiable acceptance: read→read→final; read→delegate without another global
+planning call after domain completion; same model goal IDs across steps; failure
+after a successful read with partial delivery; replay from every graph boundary
+without rerunning completed tools; preserved approval/input waits; budget stop
+reported incomplete; no committed write repeated by continuation. Add independent
+fresh-context review after implementation, then fixed bounded model replays.
+
+Separate semantic correction remains necessary: delegation describes the full
+requested domain outcome, not authentication alone. A false allow_action_proposals
+from the primary planner is faithfully enforced downstream; changing ToolManager
+to ignore that envelope is not a repair. Do not blindly remove that flag without
+tracing approval policies and all consumers (including USER_COMMAND_SUFFICIENT).
+
+Implementation progress: compiler now accepts a trusted nonnegative planning_step
+and scopes every newly created WorkItem/control identity with that step under the
+unchanged invocation. Same-step replay is stable; model goal names containing
+step-like text do not select another namespace. Compiler version v4. Scope/control
+tests: 50 passed; pre-existing conversation/action tests: 95 passed. This code is
+not yet an enabled read-observation loop; phase state, retained outcome delivery,
+checkpoint migration and restart tests remain pending and must land coherently.
+
+### Observation provenance and retained-step inputs (implemented prerequisites)
+
+Native atomic conversion now sets host-owned `observe_result`; the model does not
+fill another control field. The compiler records terminal native read WorkItem IDs
+in TurnPlan. Reads consumed by dependencies do not demand redundant global
+planning. RoutePolicy checks read effect; TurnPlan validates membership, uniqueness,
+direct/read mode and non-consumption. This provenance participates in plan identity
+and the existing checkpoint codec. Exhaustive four-node forward DAG checks cover
+all 64 dependency graphs, alongside shortcut/native distinction and invalid frontiers.
+
+OrchestrationRuntime accepts prior paired outcomes when starting a distinct execution
+step, evaluates them through the existing ResultBoard, and supplies their facts to
+workers without scheduling the old items. Reopening that execution requires the
+same observed outcomes. In-memory checkpoint recreation tests cover successful and
+failed second steps, preserved first-step evidence, partial delivery, no tool replay,
+and rejection of altered prior observations. This is not a real PostgreSQL restart
+test or a main-agent loop test.
+
+Checks: 175 passed, 3 skipped across conversation/action/compiler/control and
+orchestration tests. Initial added test omitted the constructor's required
+domain_workers argument; corrected the fixture, not the runtime contract. No model
+or τ³ run. These prerequisites are implemented; TurnRuntime observation branches,
+manager next-decision context, original-objective completion/failure projection and
+end-to-end checkpoint migration remain open. Do not enable a loop or claim closure
+from these component results.

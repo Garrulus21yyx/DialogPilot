@@ -80,6 +80,7 @@ def test_exact_schema_and_business_metadata_named_arguments_reach_runtime(name):
         tenant_id="tenant-a", user_id="user-a", conversation_id="conversation-a", request_id="read")
     plan = TurnPlanCompiler().compile(RoutePolicy().accept(proposal, state, registry), state, registry, identity)
     item, = plan.work.items
+    assert plan.observation_work_item_ids == (item.work_item_id,)
     result = asyncio.run(TargetToolExecutor(tools, registry=registry)(_context(item)))
     assert observed == [args]
     assert result.status.value == "SUCCEEDED"
@@ -245,6 +246,7 @@ def test_read_to_dependent_goal_compiles_and_delivers_facts(invalid):
         assert not observed
         return
     plan = TurnPlanCompiler().compile(RoutePolicy().accept(proposal, state, registry), state, registry, identity)
+    assert plan.observation_work_item_ids == ()
     consumed = []
 
     async def worker(context):
@@ -260,3 +262,88 @@ def test_read_to_dependent_goal_compiles_and_delivers_facts(invalid):
     asyncio.run(runtime.execute(plan.work, current_message=message.raw_text,
         trusted_context={"tenant_id": "tenant-a", "user_id": "user-a", "conversation_id": "conversation-a"}))
     assert len(consumed) == 1
+
+
+@pytest.mark.parametrize("goal_id", ["lookup", "step:1:lookup", "atomic:call-0"])
+def test_planning_steps_scope_ids_without_changing_invocation(goal_id):
+    from application.turn_planning import CommandKind, CommandProposal, TurnProposal
+    from application.work_item import ArgumentValue
+    registry, _, _, _, _ = fixture()
+    state = _state()
+    invocation = IdentityFactory(lambda: "same-request").create_invocation(
+        tenant_id="tenant-a", user_id="user-a", conversation_id="conversation-a", request_id="steps")
+    proposal = TurnProposal(ProposalDisposition.RESOLVED, (
+        CommandProposal(goal_id, CommandKind.DIRECT_TOOL, "retail", "Find customer",
+                        arguments=(ArgumentValue.create("goal_id", "business"),
+                                   ArgumentValue.create("depends_on", "business")),
+                        requirement_ids=("customer.record",), tool_id="find_customer"),), "TEST")
+    accepted = RoutePolicy().accept(proposal, state, registry)
+    compiler = TurnPlanCompiler()
+    plans = [compiler.compile(accepted, state, registry, invocation, planning_step=step)
+             for step in range(5)]
+    assert len({plan.work.items[0].work_item_id for plan in plans}) == 5
+    assert len({plan.work.items[0].control.control_id for plan in plans}) == 5
+    assert len({plan.plan_id for plan in plans}) == 5
+    assert plans[2] == compiler.compile(accepted, state, registry, invocation, planning_step=2)
+    assert all(str(invocation.invocation_key) in plan.work.items[0].control.control_id for plan in plans)
+
+
+@pytest.mark.parametrize("step", [-1, True, "1", 1.5])
+def test_invalid_planning_step_is_an_invariant_error(step):
+    from application.turn_planning import PlanningInvariantError, TurnProposal
+    registry, _, _, _, _ = fixture()
+    state = _state()
+    accepted = RoutePolicy().accept(TurnProposal(ProposalDisposition.RESPOND, (), "TEST", response_text="Hello"), state, registry)
+    invocation = IdentityFactory(lambda: "same-request").create_invocation(
+        tenant_id="tenant-a", user_id="user-a", conversation_id="conversation-a", request_id="steps")
+    with pytest.raises(PlanningInvariantError):
+        TurnPlanCompiler().compile(accepted, state, registry, invocation, planning_step=step)
+
+
+def test_observation_frontier_for_all_four_read_dependency_graphs():
+    """Every forward-edge DAG: observe only native leaves, never their inputs."""
+    from itertools import combinations
+    from application.turn_planning import CommandKind, CommandProposal, TurnProposal
+    from infrastructure.langgraph_checkpoint import target_checkpoint_serializer
+    registry, _, _, _, _ = fixture()
+    state = _state()
+    invocation = IdentityFactory(lambda: "frontier").create_invocation(
+        tenant_id="tenant-a", user_id="user-a", conversation_id="conversation-a", request_id="frontier")
+    possible = tuple(combinations(range(4), 2))
+    serializer = target_checkpoint_serializer()
+    for mask in range(1 << len(possible)):
+        edges = tuple(edge for bit, edge in enumerate(possible) if mask & (1 << bit))
+        commands = tuple(CommandProposal(
+            str(index), CommandKind.DIRECT_TOOL, "retail", "Read customer",
+            requirement_ids=("customer.record",), tool_id="find_customer",
+            dependencies=tuple(str(source) for source, target in edges if target == index),
+            observe_result=True) for index in range(4))
+        accepted = RoutePolicy().accept(TurnProposal(ProposalDisposition.RESOLVED, commands, "TEST"), state, registry)
+        plan = TurnPlanCompiler().compile(accepted, state, registry, invocation)
+        consumed = {source for source, _ in edges}
+        assert plan.observation_work_item_ids == tuple(
+            item.work_item_id for index, item in enumerate(plan.work.items) if index not in consumed)
+        assert serializer.loads_typed(serializer.dumps_typed(plan)) == plan
+        # Provenance changes the accepted plan identity even with identical work.
+        shortcut = replace(plan, observation_work_item_ids=())
+        assert shortcut.plan_id != plan.plan_id
+        assert shortcut.work == plan.work
+
+
+@pytest.mark.parametrize("invalid", ["unknown", "duplicate", "consumed"])
+def test_plan_rejects_invalid_observation_frontier(invalid):
+    from application.turn_planning import CommandKind, CommandProposal, TurnProposal, TurnPlanningError
+    registry, _, _, _, _ = fixture()
+    state = _state()
+    invocation = IdentityFactory(lambda: "frontier").create_invocation(
+        tenant_id="tenant-a", user_id="user-a", conversation_id="conversation-a", request_id="invalid")
+    commands = tuple(CommandProposal(
+        str(index), CommandKind.DIRECT_TOOL, "retail", "Read customer",
+        requirement_ids=("customer.record",), tool_id="find_customer",
+        dependencies=("0",) if index else (), observe_result=True) for index in range(2))
+    plan = TurnPlanCompiler().compile(RoutePolicy().accept(
+        TurnProposal(ProposalDisposition.RESOLVED, commands, "TEST"), state, registry), state, registry, invocation)
+    identities = {"unknown": ("missing",), "duplicate": plan.observation_work_item_ids * 2,
+                  "consumed": (plan.work.items[0].work_item_id,)}[invalid]
+    with pytest.raises(TurnPlanningError):
+        replace(plan, observation_work_item_ids=identities)
