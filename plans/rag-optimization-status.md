@@ -307,3 +307,7 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 - 空参数边界诊断预注册：最近6条planner同schema SHA前缀5fd8f96f12、max_tokens800；五成功一空参数，失败output129/stop tool_use非长度终止。安装版extract_tool_calls直接复制block.input。允许仅一次冻结失败输入的Flash NONE调用，SDK重试0，httpx事件钩子只保存响应JSON的工具内容/usage/stop（不保存认证头或thinking），对照SDK args；不跑RAG/不执行业务/不自动重试。成功不能证明偶发问题消失；响应仍空才可将该次空参数定位到SDK上游接口响应。
 
 - 空计划传输诊断完成：6条近期planner请求schema完全相同、max_tokens800，失败129输出/stop tool_use；本地SDK extract_tool_calls保持input。冻结失败输入单次HTTP复测返回合法result/general_qa/resolved_query，接口body与SDK args一致，四项问题保留。实际API1，无重试；首次诊断装配用了httpx而安装版Anthropic要求httpx2，网络前失败，换为SDK要求客户端后成功。原失败未有HTTPbody，不能追认原始供应商原因；此复测说明同上下文可成功，不证明问题修复或成功率。未改生产校验/模型/prompt。后续回到该长手册题的真实检索链路验收，偶发计划协议错误单列，不循环复测planner。
+
+- 长手册真实入口续验预注册：仅manual-address-arrival原上下文，独立测试库，原模型/语料/预算/默认融合不变；不注入上轮成功query，真实Agent再次规划。API总上限8，SDK重试0，保存第一次终态，不循环跑至成功。原四题中的计划失败仍保留，不能以续验成功覆盖。核查地址/签收/审核/到账四项支持及实际经过的工具路径；若未走领域归档路径，明确不代表R05模型侧验收。完成后结束此单例，汇总当前开发证据并回到可量化召回主线。
+
+- 长手册续验完成：4次Flash，Completed，实际DIRECT知识问答，一次knowledge_search取到所需四主题；不证明领域归档路径收益。5条来源区间核对通过，存在引用E38用“不被拒绝”支持“不通过”的不匹配，虽别的手册片段可支持部分结论也不能替换该引用。当前6个不同开发问题首轮5完成/1规划失败；加一次续验共7执行6完成，完整链25调用+独立传输诊断1，不写6/6首轮成功。汇总docs/rag-current-entry-status-2026-09-08.zh-CN.md。停止这六题追加付费单例调试；活动下一项统一每层候选/证据/qrel可计算性审计，补齐缺失评估捕获后回到固定候选方案同预算配对。引用语义误判保留R06，不靠重跑刷分。
