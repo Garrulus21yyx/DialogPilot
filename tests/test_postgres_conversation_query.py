@@ -114,17 +114,17 @@ def _final(identity):
     )
 
 
-def _interaction(identity):
-    from application.conversation_state import ConversationState
+def _interaction(identity, pool):
+    from tests.test_postgres_publication import _seed_waits
+    state = _seed_waits(pool, identity, approval_id="signal-query")
     return InteractionRequestCommand(
         invocation_key=identity.invocation_key,
         tenant_id=str(identity.tenant_id), user_id=str(identity.user_id),
         conversation_id=str(identity.conversation_id),
-        signal_id="signal-query", signal_version=1,
-        challenge="approve?", resume_schema={"type": "boolean"},
+        signal_id="signal-query", signal_version=2,
+        challenge="approve?", resume_schema={"type": "boolean", "interaction_kind": "APPROVAL"},
         created_at="2026-09-02T11:00:01+00:00", policy=_policy(),
-        expected_state_fingerprint=ConversationState.empty(tenant_id=str(identity.tenant_id),
-            user_id=str(identity.user_id), conversation_id=str(identity.conversation_id)).fingerprint,
+        expected_state_fingerprint=state.fingerprint,
     )
 
 
@@ -193,8 +193,10 @@ def test_public_event_cursor_pagination_matches_continuous_read_without_gaps(
     query_components,
 ):
     _, identity, query, publication = query_components
-    interaction = publication.publish_interaction_request(_interaction(identity))
-    final = publication.select_final_response(_final(identity))
+    interaction_command = _interaction(identity, publication.pool)
+    interaction = publication.publish_interaction_request(interaction_command)
+    final = publication.select_final_response(replace(_final(identity),
+        expected_state_fingerprint=interaction_command.expected_state_fingerprint))
 
     continuous = query.list_public_events(
         tenant_id=str(identity.tenant_id),
@@ -264,7 +266,8 @@ def test_invocation_projection_keeps_admission_waiting_completion_and_delivery_s
     assert admitted.execution_status is None
     assert admitted.delivery_status is None
 
-    interaction = publication.publish_interaction_request(_interaction(identity))
+    interaction_command = _interaction(identity, publication.pool)
+    interaction = publication.publish_interaction_request(interaction_command)
     waiting = query.invocation_status(
         str(identity.invocation_key),
         tenant_id=str(identity.tenant_id), user_id=str(identity.user_id),
@@ -275,7 +278,8 @@ def test_invocation_projection_keeps_admission_waiting_completion_and_delivery_s
     )
     assert waiting.delivery_status is DeliveryStatusV1.SELECTED
 
-    final = publication.select_final_response(_final(identity))
+    final = publication.select_final_response(replace(_final(identity),
+        expected_state_fingerprint=interaction_command.expected_state_fingerprint))
     completed = query.invocation_status(
         str(identity.invocation_key),
         tenant_id=str(identity.tenant_id), user_id=str(identity.user_id),

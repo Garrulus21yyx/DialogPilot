@@ -108,7 +108,33 @@ def _final(identity, text="answer"):
     )
 
 
-def _interaction(identity):
+def _seed_waits(pool, identity, approval_id="approval-signal"):
+    from application.agent_result import RequestedField
+    from application.conversation_state import PendingApprovalState, PendingInteractionState, WorkstreamState, WorkstreamStatus
+    from infrastructure.postgres_target_runtime import PostgresConversationStateStore
+    from tests.test_work_control import _item
+    store = PostgresConversationStateStore(pool)
+    state = store.load(identity.tenant_id, identity.user_id, identity.conversation_id)
+    if state.pending_approval is not None:
+        return state
+    approval_work = _item("approval-control", 1, work_item_id="write")
+    input_work = _item("input-control", 1, work_item_id="read")
+    active = state.accept_work_items((approval_work, input_work), invocation_key=str(identity.invocation_key))
+    waiting = replace(active,
+        workstreams=(WorkstreamState("approval-work", "order_logistics", "action:v1", "APPROVE",
+                                    WorkstreamStatus.WAITING_APPROVAL, 1),),
+        pending_approval=PendingApprovalState(approval_id, 2, "approval-work", "write",
+            "action:v1", "operation", "order", "1", DEADLINE,
+            suspended_work_items=(approval_work,), origin_work_item_id="write", control=approval_work.control),
+        pending_interaction=PendingInteractionState("fields-signal", 3,
+            (RequestedField("color", "read", "string"),), (), suspended_work_items=(input_work,),
+            checkpoint_thread_id="input-checkpoint"))
+    assert store.compare_and_set(state, waiting)
+    return waiting
+
+
+def _interaction(identity, pool):
+    state = _seed_waits(pool, identity)
     return InteractionRequestCommand(
         invocation_key=identity.invocation_key,
         tenant_id=str(identity.tenant_id),
@@ -117,17 +143,16 @@ def _interaction(identity):
         signal_id="approval-signal",
         signal_version=2,
         challenge="Please confirm",
-        resume_schema={"type": "boolean"},
+        resume_schema={"type": "boolean", "interaction_kind": "APPROVAL"},
         created_at=CREATED,
         policy=_policy(ConnectorCapability.QUERY_RECEIPT),
-        expected_state_fingerprint=ConversationState.empty(tenant_id=str(identity.tenant_id),
-            user_id=str(identity.user_id), conversation_id=str(identity.conversation_id)).fingerprint,
+        expected_state_fingerprint=state.fingerprint,
     )
 
 
 def test_interaction_uses_the_same_transactional_control_check(publication_components):
     pool, identity, service, _ = publication_components
-    command = replace(_interaction(identity), expected_state_fingerprint="stale")
+    command = replace(_interaction(identity, pool), expected_state_fingerprint="stale")
     with pytest.raises(PublicationConflictError, match="conversation state"):
         service.publish_interaction_request(command)
     with pool.transaction() as connection:
@@ -142,8 +167,12 @@ def test_interaction_replay_retains_diagnostics_without_exposing_them_in_challen
     pool, identity, service, _ = publication_components
     observation = StageObservation("conversation_recovery", StageStatus.FAILED,
                                    {"code": "RECOVERY_PROVIDER_FAILURE"})
-    command = replace(_interaction(identity), resume_schema={"interaction_kind": kind},
+    command = replace(_interaction(identity, pool), resume_schema={"interaction_kind": kind},
                       execution_stages=(observation.to_dict(),))
+    if kind == "FIELDS":
+        command = replace(command, signal_id="fields-signal", signal_version=3)
+    elif kind == "COMPOUND":
+        command = replace(command, related_signals=(("fields-signal", 3),))
     first = service.publish_interaction_request(command)
     adapter = PostgresTargetPublication(SimpleNamespace(pool=pool,
         completed_for_invocation=lambda *args, **kwargs: None))
@@ -163,7 +192,8 @@ def test_compound_interaction_records_both_signals_in_one_publication(publicatio
     from types import SimpleNamespace
     from infrastructure.target_chat_adapters import PostgresTargetPublication
     pool, identity, service, _ = publication_components
-    command = replace(_interaction(identity), related_signals=(("fields-signal", 3),))
+    command = replace(_interaction(identity, pool), related_signals=(("fields-signal", 3),),
+                      resume_schema={"interaction_kind": "COMPOUND"})
     first = service.publish_interaction_request(command)
     replay = service.publish_interaction_request(command)
     assert replay.record.publication_id == first.record.publication_id
@@ -321,12 +351,12 @@ def test_interaction_and_human_publications_preserve_nonterminal_meaning(
     publication_components,
 ):
     pool, identity, service, _ = publication_components
-    interaction = service.publish_interaction_request(_interaction(identity))
+    interaction = service.publish_interaction_request(_interaction(identity, pool))
     human = service.publish_human_reply(_human(identity))
     assert interaction.record.kind is PublicationKind.INTERACTION_REQUEST
     assert human.record.kind is PublicationKind.HUMAN_REPLY
     assert service.publish_interaction_request(
-        _interaction(identity),
+        _interaction(identity, pool),
     ).status is PublicationApplyStatus.ALREADY_APPLIED
     assert service.publish_human_reply(
         _human(identity),

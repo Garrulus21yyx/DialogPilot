@@ -60,3 +60,85 @@ def test_pure_reply_does_not_bypass_freshness_with_no_work_items(publication_com
     assert store.compare_and_set(empty, changed)
     with pytest.raises(PublicationConflictError, match="conversation state is stale"):
         publication.select_final_response(command)
+
+
+@pytest.mark.parametrize("kind", ["FIELDS", "APPROVAL", "COMPOUND"])
+@pytest.mark.parametrize("change", ["unknown", "version", "consumed", "duplicate"])
+def test_interaction_requires_actual_pending_signal_even_with_current_fingerprint(
+    publication_components, kind, change,
+):
+    from tests.test_postgres_publication import _interaction
+    pool, identity, publication, _ = publication_components
+    command = _interaction(identity, pool)
+    if kind == "FIELDS":
+        command = replace(command, signal_id="fields-signal", signal_version=3)
+    elif kind == "COMPOUND":
+        command = replace(command, related_signals=(("fields-signal", 3),))
+    command = replace(command, resume_schema={"interaction_kind": kind})
+    if change == "unknown":
+        command = replace(command, signal_id="never-issued")
+    elif change == "version":
+        command = replace(command, signal_version=command.signal_version + 1)
+    elif change == "duplicate":
+        command = replace(command, related_signals=((command.signal_id, command.signal_version),))
+    else:
+        store = PostgresConversationStateStore(pool)
+        before = store.load(identity.tenant_id, identity.user_id, identity.conversation_id)
+        after = replace(before, version=before.version + 1,
+            pending_interaction=None if kind == "FIELDS" else before.pending_interaction,
+            pending_approval=None if kind != "FIELDS" else before.pending_approval,
+            consumed_signal_ids=(*before.consumed_signal_ids, command.signal_id))
+        assert store.compare_and_set(before, after)
+        command = replace(command, expected_state_fingerprint=after.fingerprint)
+    with pytest.raises(PublicationConflictError, match="not a current pending interaction"):
+        publication.publish_interaction_request(command)
+    with pool.transaction() as connection:
+        assert connection.execute("SELECT count(*) FROM dialogpilot_app.response_deliveries").fetchone()[0] == 0
+
+
+def test_committed_interaction_replays_after_signal_consumption(publication_components):
+    from tests.test_postgres_publication import _interaction
+    pool, identity, publication, _ = publication_components
+    command = _interaction(identity, pool)
+    first = publication.publish_interaction_request(command)
+    store = PostgresConversationStateStore(pool)
+    before = store.load(identity.tenant_id, identity.user_id, identity.conversation_id)
+    after = replace(before, version=before.version + 1, pending_approval=None,
+                    consumed_signal_ids=(*before.consumed_signal_ids, command.signal_id))
+    assert store.compare_and_set(before, after)
+    replay = publication.publish_interaction_request(command)
+    assert replay.status is PublicationApplyStatus.ALREADY_APPLIED
+    assert replay.record.publication_id == first.record.publication_id
+
+
+@pytest.mark.parametrize("kind", [None, "FIELDS", "COMPOUND", "UNKNOWN"])
+def test_valid_approval_signal_cannot_be_published_as_another_interaction_kind(publication_components, kind):
+    from tests.test_postgres_publication import _interaction
+    pool, identity, publication, _ = publication_components
+    command = replace(_interaction(identity, pool), resume_schema={"interaction_kind": kind})
+    with pytest.raises(PublicationConflictError, match="interaction kind differs"):
+        publication.publish_interaction_request(command)
+
+
+@pytest.mark.parametrize("kind", ["FIELDS", "APPROVAL", "COMPOUND"])
+def test_persisted_wait_with_inactive_target_cannot_request_continuation(publication_components, kind):
+    from tests.test_postgres_publication import _interaction
+    pool, identity, publication, _ = publication_components
+    command = _interaction(identity, pool)
+    if kind == "FIELDS":
+        command = replace(command, signal_id="fields-signal", signal_version=3)
+    elif kind == "COMPOUND":
+        command = replace(command, related_signals=(("fields-signal", 3),))
+    store = PostgresConversationStateStore(pool)
+    state = store.load(identity.tenant_id, identity.user_id, identity.conversation_id)
+    target = "input-control" if kind == "FIELDS" else "approval-control"
+    # Simulate an invalid persisted pending envelope: the signal exists, but its
+    # execution authority has ended. Fingerprint equality alone must not grant it.
+    invalid = replace(state, version=state.version + 1, work_controls=tuple(
+        replace(item, status=WorkControlStatus.CANCELLED) if item.control_id == target else item
+        for item in state.work_controls))
+    assert store.compare_and_set(state, invalid)
+    command = replace(command, expected_state_fingerprint=invalid.fingerprint,
+                      resume_schema={"interaction_kind": kind})
+    with pytest.raises(PublicationConflictError, match="interaction work control is stale"):
+        publication.publish_interaction_request(command)

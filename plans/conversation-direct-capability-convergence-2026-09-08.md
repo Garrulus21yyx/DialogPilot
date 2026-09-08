@@ -1076,3 +1076,24 @@ are recovered through existing-publication lookup; rebuilding an old command wit
 the new contract is not an identical replay. No old-command fallback is introduced.
 Do not declare the publication boundary closed until pending signal membership,
 all wait variants and final integrated regressions are verified. No live tau rerun.
+
+Pending signal validation now consumes the same locked state: primary/related
+signals must be current and unique, declared interaction kind must match the
+selected waits, and suspended/origin controls still require current execution
+authority. Already committed replay remains before these checks. Test fixtures
+now create real independent pending approval/input with controls and checkpoint
+binding rather than inventing standalone publication signals. Initial fixture
+migration failed independence validation (8 failures, then 21 failures in a run
+that had already loaded the incomplete fixture); checkpoint-bound fixture fixed.
+Fresh PG run: 61 passed in 76.79s, including actual approval conversation and
+observation/write runtime integration, snapshot and pending-signal matrices,
+publication transactions and query projections. No model calls or external writes.
+Independent review found no new blocker and requested direct wrong-kind and
+inactive-control witnesses; those seven additional PG checks are running.
+
+Additional seven PG checks passed in 10.23s. Snapshot/signal implementation and
+bounded database tests are complete; real-model task closure is not established.
+Next active item is the already observed coupled return/exchange feasibility
+failure, including policy visibility, pre-write promises and confirmation scope.
+Do not rerun the fixed task until that causal review determines the required
+repair. Encoder remains rejected/disabled; original ten-task evidence is unchanged.

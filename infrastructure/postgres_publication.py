@@ -229,6 +229,28 @@ class PostgresPublicationService:
             command.tenant_id, command.user_id, command.conversation_id))
         if not command.expected_state_fingerprint or state.fingerprint != command.expected_state_fingerprint:
             raise PublicationConflictError("publication conversation state is stale")
+        if isinstance(command, InteractionRequestCommand):
+            pending = {}
+            if state.pending_interaction is not None:
+                item = state.pending_interaction
+                pending[(item.interaction_id, item.version)] = item
+            if state.pending_approval is not None:
+                item = state.pending_approval
+                pending[(item.approval_id, item.version)] = item
+            selected = ((command.signal_id, command.signal_version), *command.related_signals)
+            if len(set(selected)) != len(selected) or any(key not in pending for key in selected):
+                raise PublicationConflictError("publication signal is not a current pending interaction")
+            kind = ("COMPOUND" if len(selected) == 2 else
+                    "FIELDS" if pending[selected[0]] is state.pending_interaction else "APPROVAL")
+            if command.resume_schema.get("interaction_kind") != kind:
+                raise PublicationConflictError("publication interaction kind differs from its pending signals")
+            for key in selected:
+                wait = pending[key]
+                controls = tuple(item.control for item in wait.suspended_work_items)
+                if getattr(wait, "origin_control", None) is not None:
+                    controls += (wait.origin_control,)
+                if any(control is None or not state.accepts(control) for control in controls):
+                    raise PublicationConflictError("publication interaction work control is stale")
 
     @staticmethod
     def _parts(command: PublicationCommand):
