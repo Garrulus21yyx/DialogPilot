@@ -176,6 +176,13 @@ async def evaluate(args, database_url):
                         'generation_profile': policy.profile(ModelRole.SYNTHESIS).to_dict(),
                         'max_api_calls': client.limit, 'sdk_retries': 0,
                         'fixed_query_override': {'synthetic:elliptic': '耳机已拆封，非质量原因可以退货吗？'}}
+            if getattr(args, 'full_chain', False):
+                from evaluation.rag_full_chain_probe import CASES
+                full_cases = args.full_definitions if args.full_definitions is not None else CASES
+                if args.full_case_limit is not None:
+                    full_cases = full_cases[:args.full_case_limit]
+                manifest.update(scope='Full durable runtime evaluation; actual Agent queries captured in full-cases',
+                                cases=len(full_cases), case_definitions=full_cases, fixed_query_override={})
             if args.mixed_business:
                 manifest.update(scope='Mixed application evaluation; see mixed-manifest.json for executed cases and scope',
                                 cases=len(args.mixed_definitions) if args.mixed_definitions else 5, case_definitions=args.mixed_definitions or [], fixed_query_override={})
