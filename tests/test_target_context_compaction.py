@@ -72,7 +72,7 @@ def test_result_index_remains_complete_when_sdk_clears_old_messages():
     async def run():
         context = _context()
         archive = TargetResultArchive(InMemoryStore())
-        persistence = ToolResultPersistence(archive, 100000)
+        persistence = ToolResultPersistence(archive)
         pinned = HumanMessage(content="Inspect only", id="current")
         messages, records = [pinned], {}
         originals = {}
@@ -162,7 +162,7 @@ def test_archive_failure_checkpoints_original_and_stops_without_model():
         async def aput(self, *args, **kwargs):
             raise OSError("storage unavailable")
     async def run():
-        middleware = ToolResultPersistence(TargetResultArchive(Unavailable()), 50)
+        middleware = ToolResultPersistence(TargetResultArchive(Unavailable()))
         message = ToolMessage(content="complete original" * 200, tool_call_id="call",
             artifact={"schema": "tool-result-v1", "result": {"success": True, "data": "original"}})
         async def handler(_request):
@@ -239,4 +239,49 @@ def test_postgres_original_survives_store_reopen(postgres_database_url):
             reference = await TargetResultArchive(store).save(_context(), {"content": "original", "artifact": {}})
         async with AsyncPostgresStore.from_conn_string(postgres_database_url) as store:
             assert (await TargetResultArchive(store).read(_context(), reference))["text"] == "original"
+    asyncio.run(run())
+
+
+@pytest.mark.parametrize('batch_size', [1, 2, 5])
+def test_admission_preserves_fitting_results_and_offloads_only_under_batch_pressure(batch_size):
+    async def run():
+        context = _context()
+        archive = TargetResultArchive(InMemoryStore())
+        persistence = ToolResultPersistence(archive)
+        pinned = HumanMessage(content='Read the evidence; keep its conditions.', id='goal')
+        calls = [{'id': f'c{i}', 'name': 'lookup', 'args': {}} for i in range(batch_size)]
+        messages = [pinned, AIMessage(content='', tool_calls=calls)]
+        originals = {}
+        for call in calls:
+            raw = ToolMessage(content='source condition ' + 'x' * 14000,
+                tool_call_id=call['id'], artifact={'schema': 'tool-result-v1', 'result': {'success': True}})
+            async def handler(_request):
+                return raw
+            command = await persistence.awrap_tool_call(SimpleNamespace(runtime=SimpleNamespace(context=context)), handler)
+            message = command.update['messages'][0]
+            assert message.content == raw.content  # persistence never discards fresh text
+            originals[call['id']] = raw.content
+            messages.append(message)
+        before = messages_to_dict(messages)
+        model = ScriptedToolModel(responses=[])
+        compact = ContextCompaction(model, archive, available_tokens=14200,
+            overhead_tokens=100, pinned_message=pinned)
+        fits = compact.count(messages) <= compact.available
+        update = await compact.abefore_model({'messages': messages}, SimpleNamespace(context=context))
+        final = [m for m in update['messages'] if isinstance(m, (HumanMessage, AIMessage, ToolMessage))] if update else messages
+        assert compact.count(final) <= compact.available
+        results = [m for m in final if isinstance(m, ToolMessage)]
+        assert len(results) == batch_size
+        for message in results:
+            original = originals[message.tool_call_id]
+            stored = await archive.load(context, message.artifact['reference'])
+            assert stored['content'] == original
+            if fits:
+                assert message.content == original
+            elif message.content != original:
+                pointer = json.loads(message.content)
+                assert pointer['complete'] is False
+                assert pointer['result_ref'] == message.artifact['reference']
+        assert messages_to_dict(messages) == before
+        assert model.calls == 0
     asyncio.run(run())

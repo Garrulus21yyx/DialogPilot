@@ -148,7 +148,7 @@ class TargetFrameworkAgent:
             context_schema=AgentContextView,
             middleware=[
                 WorkControlMiddleware(self._control_guard),
-                ToolResultPersistence(self._archive, max(256, self._context_budget.available_tokens // 5)),
+                ToolResultPersistence(self._archive),
                 InteractionBoundaryMiddleware(("prepare_" + tool_id for ref in item.allowed_actions
                     for tool_id in self._registry.action(ref).allowed_tool_ids),
                     review=DomainOutcomeReview(self._review_model, callbacks=self._callbacks,

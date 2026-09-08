@@ -14,7 +14,7 @@ from infrastructure.target_agent_result_adapter import framework_artifact
 from mcp.tool_manager import ToolResult
 
 
-async def replay(rows, budget):
+async def replay(rows):
     archive=TargetResultArchive(InMemoryStore());results=[]
     for row in rows:
         for arm,value in row['arms'].items():
@@ -27,7 +27,7 @@ async def replay(rows, budget):
             result=ToolResult(success=True,data={'frozen_serialized_view':json.loads(wire)},tool_name='knowledge_search',output_for_model=wire,authority='knowledge.active_source')
             original=ToolMessage(content=wire,tool_call_id='eval-'+arm,artifact=framework_artifact(result))
             async def handler(_request):return original
-            update=await ToolResultPersistence(archive,budget).awrap_tool_call(SimpleNamespace(runtime=SimpleNamespace(context=context)),handler)
+            update=await ToolResultPersistence(archive).awrap_tool_call(SimpleNamespace(runtime=SimpleNamespace(context=context)),handler)
             message=update.update['messages'][0]
             if update.update.get('archive_failed'):raise ValueError(update.update['tool_observations'][original.tool_call_id]['archive_error'])
             ref=update.update['tool_observations'][original.tool_call_id]['reference']
@@ -42,10 +42,10 @@ async def replay(rows, budget):
 async def main():
     source=Path('artifacts/eval/rag-g4-mtrag-pack32-2026-09-08/cases.json.gz')
     rows=json.loads(gzip.decompress(source.read_bytes()))
-    result={str(b):await replay(rows,b) for b in (2840,256)}
-    out=Path('artifacts/eval/rag-g4-mtrag-tool-boundary-2026-09-08');out.mkdir(exist_ok=False)
+    result={'persistence':await replay(rows)}
+    out=Path('artifacts/eval/rag-g4-mtrag-persistence-inline-2026-09-08');out.mkdir(exist_ok=False)
     summary={b:{'views':len(rs),'blocked':sum(r['blocked'] for r in rs),'offloaded':sum(r.get('offloaded',False) for r in rs),'recoverable':sum(r.get('original_recovered',False) for r in rs)} for b,rs in result.items()}
-    report={'scope':'guard + domain persistence, default-budget and forced boundary; not whole agent input or DIRECT synthesis','api_calls':0,'source_sha256':hashlib.sha256(source.read_bytes()).hexdigest(),'summary':summary}
+    report={'scope':'guard + domain persistence; fresh content remains inline; whole-context admission is tested separately','api_calls':0,'source_sha256':hashlib.sha256(source.read_bytes()).hexdigest(),'summary':summary}
     (out/'cases.json').write_text(json.dumps(result,indent=2)+'\n');(out/'report.json').write_text(json.dumps(report,indent=2)+'\n')
     print(json.dumps(report,indent=2))
 

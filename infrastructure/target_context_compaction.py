@@ -31,9 +31,8 @@ class ResultState(AgentState):
 class ToolResultPersistence(AgentMiddleware):
     state_schema = ResultState
 
-    def __init__(self, archive, output_tokens):
+    def __init__(self, archive):
         self.archive = archive
-        self.output_tokens = output_tokens
 
     async def awrap_tool_call(self, request, handler):
         response = await handler(request)
@@ -59,8 +58,8 @@ class ToolResultPersistence(AgentMiddleware):
         pointer = {"schema": artifact["schema"], "reference": reference, "result": envelope,
                    "observation": hashlib.sha256(json.dumps(observation, sort_keys=True, default=str).encode()).hexdigest()}
         content = response.content
-        if count_tokens_approximately([response]) > self.output_tokens:
-            content = result_pointer(reference, content)
+        # Persistence preserves content. ContextCompaction owns model admission
+        # after the complete parallel tool batch and prompt overhead are known.
         response = response.model_copy(update={"content": content, "artifact": pointer})
         return Command(update={"messages": [response],
             "tool_observations": {response.tool_call_id: {
@@ -150,9 +149,35 @@ class ContextCompaction(AgentMiddleware):
                         json.dumps({"history_ref": archive_ref, "tool_call_id": source.tool_call_id,
                                     "read_tool_result": {"reference": archive_ref}}))
                 messages[index] = message.model_copy(update={"content": text, "artifact": source.artifact})
+        # Only offload fresh results if the protected suffix itself cannot fit.
+        # Old history has a separate summarization path; it must not force an
+        # otherwise admissible new evidence batch into pointer-only messages.
+        cutoff = self.summary._determine_cutoff_index(messages)
+        def protected_count():
+            protected = messages[cutoff:]
+            if not any(message.id == self.pinned.id for message in protected):
+                protected = [self.pinned, *protected]
+            return self.count(protected)
+        offloaded = []
+        candidates = sorted(
+            (i for i in range(cutoff, len(messages))
+             if isinstance(messages[i], ToolMessage)
+             and isinstance(messages[i].artifact, dict)
+             and messages[i].artifact.get("reference")),
+            key=lambda i: count_tokens_approximately([messages[i]]), reverse=True,
+        )
+        for index in candidates:
+            if protected_count() <= self.available:
+                break
+            source = messages[index]
+            pointer = result_pointer(source.artifact["reference"], str(source.content))
+            replacement = source.model_copy(update={"content": pointer})
+            if count_tokens_approximately([replacement]) < count_tokens_approximately([source]):
+                messages[index] = replacement
+                offloaded.append(source.tool_call_id)
         cleared = self.count(messages)
         update = None
-        if cleared >= self.hard:
+        if cleared >= self.hard and (cutoff > 0 or cleared > self.available):
             # Admission is per actual invocation, not the uncompressed history.
             # Only the SDK-preserved suffix plus the current goal/overhead is
             # irreducible; the older prefix is the summary model's separate input.
@@ -182,4 +207,5 @@ class ContextCompaction(AgentMiddleware):
             raise ModelContextBudgetExceeded(after, self.hard)
         return {"messages": [RemoveMessage(id=REMOVE_ALL_MESSAGES), *messages],
                 "compaction_records": [{"before_tokens": before, "after_tokens": after,
-                    "summarized": bool(update), "original_ref": archive_ref}]}
+                    "summarized": bool(update), "original_ref": archive_ref,
+                    "offloaded_tool_calls": offloaded}]}

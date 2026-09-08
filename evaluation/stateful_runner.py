@@ -650,9 +650,20 @@ async def _tool_output(case: FixtureRequest) -> FixtureEvidence:
                            artifact=framework_artifact(result))
     async def handler(_request):
         return original
-    update = await ToolResultPersistence(archive, 300).awrap_tool_call(
+    update = await ToolResultPersistence(archive).awrap_tool_call(
         SimpleNamespace(runtime=SimpleNamespace(context=context)), handler)
     visible = update.update["messages"][0]
+    from infrastructure.target_context_compaction import ContextCompaction
+    from langchain_core.messages import HumanMessage, AIMessage
+    from langchain_core.language_models.fake_chat_models import FakeListChatModel
+    pinned = HumanMessage(content="Inspect result", id="fixture-goal")
+    batch = [pinned, AIMessage(content="", tool_calls=[{
+        "id": result.call_id, "name": "long_read", "args": {}}]), visible]
+    compact = ContextCompaction(FakeListChatModel(responses=["No older history."]),
+        archive, available_tokens=300, overhead_tokens=0, pinned_message=pinned)
+    admitted = await compact.abefore_model({"messages": batch}, SimpleNamespace(context=context))
+    if admitted:
+        visible = next(m for m in admitted["messages"] if isinstance(m, ToolMessage))
     reference = json.loads(visible.content).get("result_ref")
     saved = await archive.load(context, reference)
     return FixtureEvidence({
