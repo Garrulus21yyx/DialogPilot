@@ -188,14 +188,44 @@ class ValidatedCommandPlan:
 
 
 class RoutePolicy:
-    version = "route-policy-v1"
+    version = "route-policy-v2"
 
     def accept(
         self,
         proposal: TurnProposal,
         state: ConversationState,
         registry: CapabilityRegistryBundle,
+        *,
+        planning_state: ConversationState | None = None,
+        continuation_items: tuple[WorkItem, ...] = (),
     ) -> ValidatedCommandPlan:
+        planning_state = planning_state or state
+        if (planning_state.tenant_id, planning_state.user_id, planning_state.conversation_id) != (
+                state.tenant_id, state.user_id, state.conversation_id):
+            raise TurnPlanningError("planning snapshot belongs to another conversation")
+        # Envelopes originate in persisted waits/grants or the resolver's accepted
+        # typed input, never in the proposal being checked.
+        saved_items = (
+            *(item for pending in (state.pending_interaction, state.pending_approval)
+              if pending is not None for item in pending.suspended_work_items),
+            *(item for grant in state.accepted_approvals for item in grant.suspended_work_items))
+        accepted_items = {}
+        for item in saved_items:
+            key = (item.work_item_id, item.control)
+            if key in accepted_items and accepted_items[key] != item:
+                raise TurnPlanningError("persisted continuation envelopes conflict")
+            accepted_items[key] = item
+        # Explicit items are supplied by the resolver after validating this
+        # turn's input. A typed field replaces its old value, not its capabilities.
+        for item in continuation_items:
+            key = (item.work_item_id, item.control)
+            previous = accepted_items.get(key)
+            if previous is not None and any(
+                    value != getattr(item, name) for name, value in previous.__dict__.items()
+                    if name not in {"arguments", "argument_bindings"}):
+                raise TurnPlanningError("resolved input changed its work envelope")
+            accepted_items[key] = item
+        continuation_items = tuple(accepted_items.values())
         if proposal.approval_decision is not None:
             raise TurnPlanningError("approval decision must be bound before command validation")
         if str(state.tenant_id) != registry.tenant_id:
@@ -216,7 +246,8 @@ class RoutePolicy:
         if any(set(item.dependencies).difference(command_ids) for item in proposal.commands):
             raise TurnPlanningError("command dependency is outside this proposal")
         validated = tuple(
-            self._accept_command(item, registry, state) for item in proposal.commands
+            self._accept_command(item, registry, state, planning_state, continuation_items)
+            for item in proposal.commands
         )
         security_preempted = (
             any(item.proposal.target_agent == "account_security" for item in validated)
@@ -248,6 +279,8 @@ class RoutePolicy:
         command: CommandProposal,
         registry: CapabilityRegistryBundle,
         state: ConversationState,
+        planning_state: ConversationState,
+        continuation_items: tuple[WorkItem, ...],
     ) -> ValidatedCommand:
         agent = registry.agent(command.target_agent)
         if command.revises_control_id is not None:
@@ -264,6 +297,24 @@ class RoutePolicy:
                     or control.owner_agent != command.target_agent
                     or control.objective != command.objective):
                 raise TurnPlanningError("continuation must bind the active originating objective")
+            original = command.resumed_work_item
+            if original is None or original not in continuation_items:
+                raise TurnPlanningError("continuation lacks its accepted work envelope")
+            if (original.control is None
+                    or original.control.control_id != command.revises_control_id
+                    or original.control.revision != control.revision
+                    or original.work_item_id != command.continuation_of
+                    or original.owner_agent != command.target_agent
+                    or original.objective != command.objective
+                    or original.registry_fingerprint != registry.fingerprint
+                    or command.arguments != original.arguments
+                    or command.argument_bindings != original.argument_bindings
+                    or command.requirement_ids != original.requirement_ids):
+                raise TurnPlanningError("continuation parameters differ from accepted work")
+            if command.kind is CommandKind.DIRECT_TOOL and original.allowed_tools != (command.tool_id,):
+                raise TurnPlanningError("continuation tool differs from accepted work")
+            if command.kind is CommandKind.RUN_SKILL and original.skill_hint != command.skill_id:
+                raise TurnPlanningError("continuation skill differs from accepted work")
         if command.kind is CommandKind.CANCEL_WORK:
             if command.revises_control_id is None:
                 raise TurnPlanningError("cancel command requires an active work control")
@@ -271,10 +322,11 @@ class RoutePolicy:
                 command, (), (), CapabilityEffect.READ, CapabilityRisk.LOW,
                 "work-control-v1",
             )
-        if any(
-            item.valid_for(state) is not BindingStatus.UNIQUE
-            for item in command.argument_bindings
-        ):
+        if any(not item.belongs_to(state) for item in command.argument_bindings):
+            raise TurnPlanningError("command carries a stale or unauthorized binding")
+        if (command.continuation_of is None and command.kind is not CommandKind.CONTINUE_ACTION
+                and any(item.valid_for(planning_state) is not BindingStatus.UNIQUE
+                        for item in command.argument_bindings)):
             raise TurnPlanningError("command carries a stale or unauthorized binding")
         requirement_index = {
             item.requirement_id: item for item in registry.requirements
@@ -310,13 +362,6 @@ class RoutePolicy:
                 and not command.candidate_skill_ids
             )
             resumed = command.resumed_work_item
-            if resumed is not None and (
-                    resumed.owner_agent != agent.agent_id
-                    or resumed.registry_fingerprint != registry.fingerprint
-                    or resumed.control is None
-                    or resumed.control.control_id != command.revises_control_id
-                    or resumed.control.revision != control.revision):
-                raise TurnPlanningError("resumed capability envelope does not match current work")
             skill_ids = (
                 (command.skill_id,)
                 if command.kind is CommandKind.RUN_SKILL and command.skill_id
@@ -510,7 +555,7 @@ class RoutePolicy:
                 raise TurnPlanningError(
                     "workflow continuation differs from accepted approval"
                 )
-            if command.arguments != grant.arguments:
+            if command.arguments != grant.arguments or command.argument_bindings != grant.argument_bindings:
                 raise TurnPlanningError(
                     "workflow continuation arguments differ from accepted approval"
                 )

@@ -270,6 +270,8 @@ class TargetConversationManager:
                 observations, state, turn_context,
             ),
         )
+        planning_state = state
+        continuation_items = deterministic.resumed_work_items
         proposal = await self._understanding(
             observations, state, deterministic, self._registry, turn_context,
         )
@@ -285,6 +287,10 @@ class TargetConversationManager:
                 interaction_values=(), structured_fields=(),
                 approval_id=decision.approval_id, approval_decision=decision.approved), state)
             state = self._apply_deterministic(state, deterministic)
+            # The original resolver's typed fields supersede the unchanged
+            # envelopes carried by the subsequently consumed approval.
+            continuation_items = tuple({(item.work_item_id, item.control): item
+                for item in (*deterministic.resumed_work_items, *continuation_items)}.values())
             if state is not approval_state:
                 transitions.append(state)
             bound = await StateBoundTargetUnderstanding()(observations, state, deterministic, self._registry)
@@ -293,7 +299,8 @@ class TargetConversationManager:
             resume_thread_id = approval_state.pending_approval.checkpoint_thread_id
         proposal = StateBoundTargetUnderstanding.preserve_input_continuations(proposal, state)
         proposal = StateBoundTargetUnderstanding.preserve_approval_continuations(proposal, state)
-        validated = self._route_policy.accept(proposal, state, self._registry)
+        validated = self._route_policy.accept(proposal, state, self._registry,
+            planning_state=planning_state, continuation_items=continuation_items)
         plan = self._compiler.compile(validated, state, self._registry, invocation)
         planned_state = self._apply_plan_accepted(state, plan, invocation)
         if state.pending_approval is not None and planned_state.pending_approval is None:

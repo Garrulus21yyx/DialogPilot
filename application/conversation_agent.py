@@ -360,7 +360,7 @@ class ConversationAgent:
             )
         try:
             return self._validate_and_compile(
-                raw, observations, state, registry, turn_context,
+                raw, observations, state, registry, turn_context, deterministic.resumed_work_items,
             )
         except (KeyError, TypeError, ValueError):
             logger.exception("Conversation planning semantic contract rejected")
@@ -370,7 +370,7 @@ class ConversationAgent:
             )
 
     def _validate_and_compile(
-        self, raw, observations, state, registry, turn_context,
+        self, raw, observations, state, registry, turn_context, resolved_items,
     ):
         if not isinstance(raw, Mapping):
             raise TypeError("semantic result must be an object")
@@ -486,10 +486,7 @@ class ConversationAgent:
                 candidates = (*(pending.suspended_work_items if pending else ()),
                               *(state.pending_approval.suspended_work_items if state.pending_approval else ()))
                 if pending and observations.interaction_values:
-                    from application.deterministic_resolution import DeterministicResolver
-                    filled = DeterministicResolver().resolve(replace(observations, raw_text="",
-                        approval_id=None, approval_decision=None), state)
-                    candidates = (*filled.resumed_work_items,
+                    candidates = (*resolved_items,
                                   *(state.pending_approval.suspended_work_items if state.pending_approval else ()))
                 original = next((item for item in candidates
                                  if item.control and item.control.control_id == revises_control_id), None)

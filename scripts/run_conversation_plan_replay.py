@@ -86,7 +86,7 @@ def compile_captured(key,payload,output):
                                    if payload['conversation_context'].get('summary') else ()))
     return ConversationAgent(SimpleNamespace())._validate_and_compile(
         output,TurnObservations(payload['message'],()),state,
-        build_default_capability_registry('plan-replay'),context)
+        build_default_capability_registry('plan-replay'),context,())
 
 
 async def run(args):

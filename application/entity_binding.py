@@ -106,12 +106,14 @@ class EntityBinding:
     def value(self) -> object:
         return json.loads(self.value_json)
 
+    def belongs_to(self, state) -> bool:
+        """Scope remains mandatory even after a parameter has been accepted."""
+        return (self.tenant_id, self.user_id, self.conversation_id) == (
+            str(state.tenant_id), str(state.user_id), str(state.conversation_id))
+
     def valid_for(self, state, *, now: datetime | None = None) -> BindingStatus:
-        if (
-            self.tenant_id != str(state.tenant_id)
-            or self.user_id != str(state.user_id)
-            or self.conversation_id != str(state.conversation_id)
-        ):
+        """Validate a fresh selection, not the lifetime of an accepted parameter."""
+        if not self.belongs_to(state):
             return BindingStatus.UNAUTHORIZED
         if self.valid_until is not None and (now or datetime.now(timezone.utc)) >= (
             datetime.fromisoformat(self.valid_until)

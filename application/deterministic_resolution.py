@@ -138,8 +138,18 @@ class DeterministicResolver:
             if observations.interaction_id is not None and (pending is None or
                     (observations.interaction_id, observations.interaction_version) != (pending.interaction_id, pending.version)):
                 raise DeterministicResolutionError("interaction reply targets another interaction")
+            fields = ()
+            resumed = ()
+            if observations.interaction_values:
+                if pending is None or observations.interaction_id is None:
+                    raise DeterministicResolutionError("pending input requires interaction identity")
+                fields = self._bind_pending_fields(observations, pending.requested_fields)
+                if fields is None:
+                    raise DeterministicResolutionError("typed fields do not match pending input")
+                resumed = self._resume_work_items(pending.suspended_work_items, fields, state)
             return DeterministicResolution(ResolutionKind.UNRESOLVED,
-                "APPROVAL_WITH_TEXT_REQUIRES_PLANNING", state.fingerprint)
+                "APPROVAL_WITH_TEXT_REQUIRES_PLANNING", state.fingerprint,
+                fields=fields, resumed_work_items=resumed)
         if pending is not None and observations.approval_decision is None:
             if observations.interaction_id is not None and (
                 observations.interaction_id != pending.interaction_id

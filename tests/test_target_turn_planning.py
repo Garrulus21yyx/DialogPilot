@@ -265,11 +265,18 @@ def test_workflow_preparation_is_read_only_but_starts_versioned_workstream():
 
 
 def test_workflow_continuation_requires_consumed_bound_approval():
+    from dataclasses import replace
+    from application.entity_binding import BindingSource, BindingStatus, EntityBinding
+
     registry = _registry()
     state = _state().start_workstream(WorkstreamState(
         "refund-ws", "billing_refund", "execute_refund:v1", "CHECK",
         WorkstreamStatus.ACTIVE, 1, flow_ref="execute_refund:v1",
     ))
+    binding = EntityBinding.create("order_id", "DP1234", source=BindingSource.WORKSTREAM_SLOT,
+        source_ref="workstream:refund-ws:slot:order_id", source_version=1, workstream_id="refund-ws",
+        tenant_id=str(state.tenant_id), user_id=str(state.user_id),
+        conversation_id=str(state.conversation_id), priority=400)
     state = state.wait_for_approval(PendingApprovalState(
         "approval-1", 1, "refund-ws", "prepare-work",
         "refund.request.create:v1", "operation-1", "order:DP1234", "7",
@@ -279,6 +286,7 @@ def test_workflow_continuation_requires_consumed_bound_approval():
             ArgumentValue.create("reason", "用户申请退款"),
             ArgumentValue.create("expected_order_version", 7),
         ),
+        argument_bindings=(binding,),
     ))
     command = CommandProposal(
         "continue-refund", CommandKind.CONTINUE_ACTION, "billing_refund",
@@ -292,6 +300,7 @@ def test_workflow_continuation_requires_consumed_bound_approval():
         approval_binding="approval-1",
         approval_signal_version=1,
         operation_key="operation-1",
+        argument_bindings=(binding,),
     )
     proposal = TurnProposal(ProposalDisposition.RESOLVED, (command,), "RESUME")
 
@@ -301,6 +310,10 @@ def test_workflow_continuation_requires_consumed_bound_approval():
     approved = state.consume_approval(
         approval_id="approval-1", approval_version=1, approved=True,
     )
+    assert binding.valid_for(approved) is BindingStatus.STALE
+    altered_source = replace(command, argument_bindings=(replace(binding, source_ref="invented"),))
+    with pytest.raises(TurnPlanningError, match="arguments differ"):
+        RoutePolicy().accept(replace(proposal, commands=(altered_source,)), approved, registry)
     tampered = TurnProposal(
         ProposalDisposition.RESOLVED,
         (CommandProposal(**{
@@ -319,6 +332,7 @@ def test_workflow_continuation_requires_consumed_bound_approval():
                 ArgumentValue.create("order_id", "DP9999"),
                 *command.arguments[1:],
             ),
+            "argument_bindings": (replace(binding, value_json='"DP9999"'),),
         }),),
         "RESUME",
     )
