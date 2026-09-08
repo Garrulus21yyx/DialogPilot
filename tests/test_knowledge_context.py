@@ -58,6 +58,9 @@ class FakeKnowledgeStore:
         self.manifest = manifest
         self.generation_id = generation_id
 
+    def collection_scope(self, generation):
+        return "zh-CN", ""
+
     def active_generation(self):
         profile = EmbeddingProfile(
             provider="test-model-provider",
@@ -341,3 +344,35 @@ def test_pinned_knowledge_generation_drift_fails_closed_before_retrieval(monkeyp
 
     assert result.generation_status == "conflict"
     assert retriever.requests == []
+
+
+def test_manifest_collection_scope_reaches_shared_retrieval_boundary(monkeypatch):
+    fake = FakeKnowledgeStore()
+    retriever = FakeRetriever([])
+    monkeypatch.setattr(main, '_knowledge_store', fake)
+    monkeypatch.setattr(main, '_knowledge_retriever', retriever)
+    for locale, product in [('en', ''), ('zh-CN', 'catalog-a'), ('es', 'catalog-b')]:
+        monkeypatch.setattr(fake, 'collection_scope', lambda generation: (locale, product))
+        asyncio.run(main._retrieve_knowledge(
+            '政策条件', history=(), policy_values={}, policy_version='test',
+            tenant_id='tenant-test', user_scope='user-test', conversation_id='',
+            authorization_fingerprint='test', requirement_signature='knowledge.active_source'))
+        assert (retriever.requests[-1].locale, retriever.requests[-1].product) == (locale, product or None)
+
+
+def test_manifest_scope_conflict_does_not_search(monkeypatch):
+    from application.knowledge_source import KnowledgeSourceContractError
+    fake = FakeKnowledgeStore()
+    retriever = FakeRetriever([])
+    def fail(generation):
+        raise KnowledgeSourceContractError('mismatch')
+    monkeypatch.setattr(fake, 'collection_scope', fail)
+    monkeypatch.setattr(main, '_knowledge_store', fake)
+    monkeypatch.setattr(main, '_knowledge_retriever', retriever)
+    result = asyncio.run(main._retrieve_knowledge(
+        'policy', history=(), policy_values={}, policy_version='test',
+        tenant_id='tenant-test', user_scope='user-test', conversation_id='',
+        authorization_fingerprint='test', requirement_signature='knowledge.active_source'))
+    assert result.status is RetrievalStatus.CONFLICT
+    assert result.detail_code == 'COLLECTION_MANIFEST_MISMATCH'
+    assert not retriever.requests

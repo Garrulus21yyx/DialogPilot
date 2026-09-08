@@ -297,6 +297,20 @@ class PostgresKnowledgeStore:
             cached.update((identity(chunk), vector) for chunk, vector in zip(batch, vectors, strict=True))
         return tuple(cached[identity(chunk)] for chunk in chunks)
 
+    def collection_scope(self, generation: RetrievalGeneration) -> tuple[str, str]:
+        """Read collection identity from the immutable generation manifest."""
+        from application.knowledge_source import KnowledgeSourceContractError
+        with self._pool.transaction() as connection:
+            rows = connection.execute("""
+                SELECT locale, product, scope, manifest_hash
+                FROM retrieval.knowledge_source_manifests
+                WHERE tenant_id=%s AND backend_id=%s AND generation_id=%s
+            """, (self._tenant_id, self.backend_id, generation.generation_id)).fetchall()
+        if (len(rows) != 1 or rows[0][2] != "public"
+                or rows[0][3] != generation.manifest_hash):
+            raise KnowledgeSourceContractError("knowledge collection manifest mismatch")
+        return str(rows[0][0]), str(rows[0][1])
+
     def active_generation(self) -> RetrievalGeneration:
         return self._generations.active(
             RetrievalCorpus.KNOWLEDGE, backend_id=self.backend_id,

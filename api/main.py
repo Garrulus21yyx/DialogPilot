@@ -2627,6 +2627,13 @@ async def _retrieve_knowledge(
             )
     else:
         generation_id = generation.generation_id
+    from application.knowledge_source import KnowledgeSourceContractError
+    try:
+        collection_locale, collection_product = _knowledge_store.collection_scope(generation)
+    except KnowledgeSourceContractError:
+        return EvidencePackResult(
+            RetrievalStatus.CONFLICT, None, None, "COLLECTION_MANIFEST_MISMATCH",
+        )
     request = KnowledgeRetrievalRequest(
         tenant_id=tenant_id, user_scope=user_scope,
         authorization_fingerprint=authorization_fingerprint,
@@ -2634,7 +2641,7 @@ async def _retrieve_knowledge(
         deletion_epoch=epoch, requirement_signature=requirement_signature,
         query=query, history=history, query_mode=query_mode,
         conversation_range_hash=_fingerprint({"history": list(history)}),
-        locale="zh-CN", product=None, manifest_fingerprint=manifest,
+        locale=collection_locale, product=collection_product, manifest_fingerprint=manifest,
         generation_id=generation_id,
         policy=_knowledge_policy(policy_values, policy_version=policy_version),
         source_type_hints=source_type_hints,

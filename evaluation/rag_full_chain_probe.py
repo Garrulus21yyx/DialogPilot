@@ -36,14 +36,14 @@ CASES = [
 ]
 
 
-async def run_full_chain(*,database_url,platform,store,client,policy,provider_config,output,handler,retrieval_policy=None,case_limit=None,reranker_version=None,case_definitions=None):
+async def run_full_chain(*,database_url,platform,store,client,policy,provider_config,output,handler,retrieval_policy=None,case_limit=None,reranker_version=None,case_definitions=None,tenant_id="rag-tool-dev",scope_label="synthetic ecommerce"):
     definitions=CASES if case_definitions is None else case_definitions
     if case_limit is not None and not 1 <= case_limit <= len(definitions):
         raise ValueError('full-chain case limit outside supported cases')
     if (output/'full-cases.jsonl').exists() or (output/'full-cases.jsonl.gz').exists():
         raise ValueError('full-chain evaluation requires a fresh output directory')
     cases=definitions[:case_limit] if case_limit is not None else definitions
-    registry=build_default_capability_registry('rag-tool-dev')
+    registry=build_default_capability_registry(tenant_id)
     tools=RecordedTools(api_key=provider_config['api_key'],base_url=policy.base_url,model=policy.profile(ModelRole.INTENT).model)
     from application.knowledge_tool_contract import knowledge_query_schema, knowledge_tool_schema_for_context
     tools.captures=[];tools.register(Tool(name='knowledge_search',description='检索有效知识原文；query须为完整问题，保留否定、日期及已知条件。',handler=handler,schema=knowledge_query_schema(),schema_factory=knowledge_tool_schema_for_context,schema_factory_version="knowledge-filter-contract-v1",authority='knowledge.active_source',read_only=True))
@@ -52,7 +52,7 @@ async def run_full_chain(*,database_url,platform,store,client,policy,provider_co
     generation=store.active_generation()
     def knowledge_context():
         return {'retrieval_policy':dict(retrieval_policy or {}),'knowledge_filter_contract':store.filter_contract_snapshot(),'knowledge_as_of':datetime.now(timezone.utc).isoformat(),'knowledge_timezone':'UTC','cache_scope':registry.bundle_version,'bundle_version':registry.bundle_version,'pinned_execution_refs':{'bundle_version':registry.bundle_version,'knowledge_backend_ref':generation.backend_fingerprint,'corpus_manifest_ref':generation.manifest_hash,'retrieval_policy_ref':registry.bundle_version,'knowledge_generation_ref':generation.generation_id}}
-    manifest={'scope':'synthetic ecommerce; production runtime/admission/coordinator/context/knowledge handler/PostgreSQL retrieval/LLM rerank/compose/verifier/publication; excludes HTTP authentication, external delivery, business writes','cases':cases,'retrieval_policy':retrieval_policy,'reranker_version':reranker_version,'source_sha256':{f:hashlib.sha256(Path(f).read_bytes()).hexdigest() for f in ('application/conversation_agent.py','application/knowledge_tool_contract.py','application/knowledge_retriever.py','application/response_assembly.py','infrastructure/target_conversation_provider.py','api/main.py','infrastructure/postgres_knowledge_retriever.py','infrastructure/knowledge_applicability.py','services/answer_verifier.py','services/claim_verification.py','evaluation/rag_full_chain_probe.py')},'max_api_calls':client.limit}
+    manifest={'scope':scope_label+'; production runtime/admission/coordinator/context/knowledge handler/PostgreSQL retrieval/LLM rerank/compose/verifier/publication; excludes HTTP authentication, external delivery, business writes','cases':cases,'retrieval_policy':retrieval_policy,'reranker_version':reranker_version,'source_sha256':{f:hashlib.sha256(Path(f).read_bytes()).hexdigest() for f in ('application/conversation_agent.py','application/knowledge_tool_contract.py','application/knowledge_retriever.py','application/response_assembly.py','infrastructure/target_conversation_provider.py','api/main.py','infrastructure/postgres_knowledge_retriever.py','infrastructure/knowledge_applicability.py','services/answer_verifier.py','services/claim_verification.py','evaluation/rag_full_chain_probe.py')},'max_api_calls':client.limit}
     (output/'full-manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')
     rows=[]
     with tempfile.TemporaryDirectory(prefix='rag-full-redis-') as temp:
@@ -67,12 +67,12 @@ async def run_full_chain(*,database_url,platform,store,client,policy,provider_co
             components.understanding._planner._provider._callbacks=(capture,)
             turns=PostgresConversationTurnStore(platform)
             for case in cases:
-                conv='full-'+case['id'];scope=ConversationScope('rag-tool-dev','eval-user',conv)
+                conv='full-'+case['id'];scope=ConversationScope(tenant_id,'eval-user',conv)
                 for i,(role,text) in enumerate(case['history']):
                     tid=f'{conv}-{i}';turns.append_turn(scope,TurnToAppend(tid,tid,TurnRole.INBOUND if role=='user' else TurnRole.ASSISTANT,text,datetime.now(timezone.utc).isoformat()))
                 before,len_tools=len(client.calls),len(tools.captures)
                 try:
-                    outcome=await components.coordinator.handle(ChatCommand(message=case['message'],tenant_id='rag-tool-dev',user_id='eval-user',conv_id=conv,request_id='req-'+uuid.uuid4().hex,authorization_fingerprint='isolated-full-rag'))
+                    outcome=await components.coordinator.handle(ChatCommand(message=case['message'],tenant_id=tenant_id,user_id='eval-user',conv_id=conv,request_id='req-'+uuid.uuid4().hex,authorization_fingerprint='isolated-full-rag'))
                     if isinstance(outcome,Accepted):
                         await components.coordinator.pump_once()
                         outcome=await components.coordinator.await_outcome(outcome,timeout_seconds=180)

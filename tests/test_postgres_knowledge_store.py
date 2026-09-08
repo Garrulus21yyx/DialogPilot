@@ -309,3 +309,18 @@ def test_model_rebuild_is_batched_and_failure_does_not_activate(store, monkeypat
     assert [len(values) for values in provider.document_inputs] == [1, 1, 1]
     assert rebuilding.active_generation().generation_id != active
     assert rebuilding.doc_count() == 3
+
+
+def test_collection_scope_comes_from_selected_manifest(store):
+    from application.knowledge_source import KnowledgeSourceContractError
+    knowledge, pool, provider = store
+    english = PostgresKnowledgeStore(pool, tenant_id='tenant-a', locale='en', product='docs', embedding_provider=provider)
+    english.import_documents((_document('guide', 'English help text.'),))
+    generation = english.active_generation()
+    # Even another configured store must read the selected manifest's scope.
+    assert knowledge.collection_scope(generation) == ('en', 'docs')
+    with pytest.raises(KnowledgeSourceContractError):
+        english.collection_scope(replace(generation, manifest_hash='f' * 64))
+    foreign = PostgresKnowledgeStore(pool, tenant_id='tenant-b', embedding_provider=provider)
+    with pytest.raises(KnowledgeSourceContractError):
+        foreign.collection_scope(generation)

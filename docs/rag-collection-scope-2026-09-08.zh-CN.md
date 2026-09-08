@@ -1,0 +1,11 @@
+# 真实知识入口的集合范围修复
+
+公共真实入口接线发现_retrieve_knowledge将locale硬编码为zh-CN。WixQA有效generation的manifest为en，因此绕过Agent直接做PG分路能成功，不代表同一库经真实knowledge_search能查到。这里是检索范围传递缺口，不是模型查询智力问题。
+
+PostgresKnowledgeStore新增collection_scope(generation)，从不可变knowledge_source_manifests按租户/backend/generation取locale、product，验证public和manifest_hash。API/Agent/预检索共用_retrieve_knowledge使用此结果，模型不提供collection locale。清单缺失、跨租户或hash不一致返回COLLECTION_MANIFEST_MISMATCH冲突，不退回zh-CN猜测。原请求合同将空product规范成None，非空集合产品保留。
+
+评估run_full_chain增加显式tenant_id及scope_label，默认保留原模拟配置，公共评估可用wixqa-eval并准确记录语料属性；仍复用现有Conversation Agent/PG历史/知识handler/生成核验发布。
+
+47项检查通过，含真实PG：跨语言/产品集合传递，manifest hash错误/跨租户拒绝且不搜索，默认API/工具/预检索一致，动态过滤和导入历史回归。新增fixture最初忽略空product规范化而失败，修正预期后通过。无API调用，尚未运行公共真实Agent答案，不把接线修复称为答案提升。
+
+下一步以保留的全量WixQA库运行公共问题小批Flash对照，真实Agent自行生成query，固定预算和权重；不再创建模拟替代语料或重复导入。
