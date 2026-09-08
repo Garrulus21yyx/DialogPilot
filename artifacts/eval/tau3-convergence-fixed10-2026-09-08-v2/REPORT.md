@@ -9,9 +9,18 @@ this is an incremental inspection, not a completed batch or held-out score.
 | 4 | unavailable | 1 | 0 | true | Both pending-order changes committed; completed-first/pending-second reply retained correct scopes |
 | 6 | 1 | 1 | 1 | true | Only lamp exchanged after user withdrew bottle; no post-write context failure in this run |
 | 7 | 1 | 1 | 1 | true | Lamp exchange completed; clarification wording still contains a potentially redundant resolved-lamp confirmation |
+| 8 | 0 | 0 | 0 | false | User repeatedly withdraws bottle exchange; system insists on both items, then ends DOMAIN_OUTCOME_REJECTED |
 
 Remaining tasks not yet inspected. Do not interpret this table as three complete
 quality passes.
+
+Task8 falsifies integrated closure: a once-per-order exchange restriction is
+repeatedly presented as a requirement to exchange both original items despite
+the user's explicit decision to skip the bottle. No write occurs and the user
+eventually gives up. The trajectory establishes the symptom and ignored scope
+correction, not yet whether the stale objective originated in planning, resume,
+domain review or reply composition. Inspect linked producer/consumer inputs
+after collecting the batch; do not add a bottle/lamp policy exception.
 
 ## Task4 evidence
 
