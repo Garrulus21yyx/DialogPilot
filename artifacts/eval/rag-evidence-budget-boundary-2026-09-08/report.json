@@ -1,0 +1,717 @@
+{
+  "scope": "Zero-provider replay of body, serialized evidence and archived request budgets.\n\nCounterfactual request sizes are SDK estimates, not provider usage or measured\nAgent completion. Replace every archived knowledge view in the first request\ncontaining it, retaining other request messages and tool schema overhead.\n",
+  "api_calls": 0,
+  "source_sha256": "23a13c723f8a1d9ad7f665fb4a53236868960c61b72c683307f98b4cf95bf69f",
+  "views": [
+    {
+      "case_id": "1534a095279f2cb888fb0bea17bd70da<::>4",
+      "arm": "0.25",
+      "body_estimate": 696,
+      "wire_sdk_estimate": 1223,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "1534a095279f2cb888fb0bea17bd70da<::>4",
+      "arm": "0.5",
+      "body_estimate": 696,
+      "wire_sdk_estimate": 1223,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "1534a095279f2cb888fb0bea17bd70da<::>4",
+      "arm": "0.75",
+      "body_estimate": 696,
+      "wire_sdk_estimate": 1223,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "dd82f0f978316e73618cf0addd369cd8<::>5",
+      "arm": "0.25",
+      "body_estimate": 2162,
+      "wire_sdk_estimate": 2663,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "dd82f0f978316e73618cf0addd369cd8<::>5",
+      "arm": "0.5",
+      "body_estimate": 996,
+      "wire_sdk_estimate": 1494,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "dd82f0f978316e73618cf0addd369cd8<::>5",
+      "arm": "0.75",
+      "body_estimate": 996,
+      "wire_sdk_estimate": 1494,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "a3f07e9ed5f257db6aecd30511f03af1<::>4",
+      "arm": "0.25",
+      "body_estimate": 1304,
+      "wire_sdk_estimate": 1802,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "a3f07e9ed5f257db6aecd30511f03af1<::>4",
+      "arm": "0.5",
+      "body_estimate": 1558,
+      "wire_sdk_estimate": 2057,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "a3f07e9ed5f257db6aecd30511f03af1<::>4",
+      "arm": "0.75",
+      "body_estimate": 1558,
+      "wire_sdk_estimate": 2057,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "41a4006bfa6841516188c1695ebaf16c<::>2",
+      "arm": "0.25",
+      "body_estimate": 921,
+      "wire_sdk_estimate": 1425,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "41a4006bfa6841516188c1695ebaf16c<::>2",
+      "arm": "0.5",
+      "body_estimate": 1230,
+      "wire_sdk_estimate": 1739,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "41a4006bfa6841516188c1695ebaf16c<::>2",
+      "arm": "0.75",
+      "body_estimate": 1230,
+      "wire_sdk_estimate": 1739,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "3f5fa378239f7475baac89fa40288aaa<::>6",
+      "arm": "0.25",
+      "body_estimate": 748,
+      "wire_sdk_estimate": 1244,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "3f5fa378239f7475baac89fa40288aaa<::>6",
+      "arm": "0.5",
+      "body_estimate": 851,
+      "wire_sdk_estimate": 1349,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "3f5fa378239f7475baac89fa40288aaa<::>6",
+      "arm": "0.75",
+      "body_estimate": 796,
+      "wire_sdk_estimate": 1296,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "5c13daa9432149f6243aa1115629cd1a<::>7",
+      "arm": "0.25",
+      "body_estimate": 605,
+      "wire_sdk_estimate": 1112,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "5c13daa9432149f6243aa1115629cd1a<::>7",
+      "arm": "0.5",
+      "body_estimate": 667,
+      "wire_sdk_estimate": 1174,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "5c13daa9432149f6243aa1115629cd1a<::>7",
+      "arm": "0.75",
+      "body_estimate": 667,
+      "wire_sdk_estimate": 1174,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "c1e53df98a28f19448f4af244304b89a<::>4",
+      "arm": "0.25",
+      "body_estimate": 1363,
+      "wire_sdk_estimate": 1871,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "c1e53df98a28f19448f4af244304b89a<::>4",
+      "arm": "0.5",
+      "body_estimate": 801,
+      "wire_sdk_estimate": 1303,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "c1e53df98a28f19448f4af244304b89a<::>4",
+      "arm": "0.75",
+      "body_estimate": 781,
+      "wire_sdk_estimate": 1283,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "b2805ee4c478194c234e2384ffb0a6bf<::>3",
+      "arm": "0.25",
+      "body_estimate": 1100,
+      "wire_sdk_estimate": 1605,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "b2805ee4c478194c234e2384ffb0a6bf<::>3",
+      "arm": "0.5",
+      "body_estimate": 872,
+      "wire_sdk_estimate": 1374,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "b2805ee4c478194c234e2384ffb0a6bf<::>3",
+      "arm": "0.75",
+      "body_estimate": 872,
+      "wire_sdk_estimate": 1374,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "20c2cbd18c16c12c9c2bbead6aef1a21<::>1",
+      "arm": "0.25",
+      "body_estimate": 2414,
+      "wire_sdk_estimate": 2941,
+      "archive_at_2840": true
+    },
+    {
+      "case_id": "20c2cbd18c16c12c9c2bbead6aef1a21<::>1",
+      "arm": "0.5",
+      "body_estimate": 2414,
+      "wire_sdk_estimate": 2941,
+      "archive_at_2840": true
+    },
+    {
+      "case_id": "20c2cbd18c16c12c9c2bbead6aef1a21<::>1",
+      "arm": "0.75",
+      "body_estimate": 2156,
+      "wire_sdk_estimate": 2678,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "e1b602e47ded79a35d8df4eefe194e39<::>1",
+      "arm": "0.25",
+      "body_estimate": 2110,
+      "wire_sdk_estimate": 2641,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "e1b602e47ded79a35d8df4eefe194e39<::>1",
+      "arm": "0.5",
+      "body_estimate": 2162,
+      "wire_sdk_estimate": 2693,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "e1b602e47ded79a35d8df4eefe194e39<::>1",
+      "arm": "0.75",
+      "body_estimate": 2332,
+      "wire_sdk_estimate": 2857,
+      "archive_at_2840": true
+    },
+    {
+      "case_id": "2f013337236ea4635ad106813275dab7<::>2",
+      "arm": "0.25",
+      "body_estimate": 2164,
+      "wire_sdk_estimate": 2679,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "2f013337236ea4635ad106813275dab7<::>2",
+      "arm": "0.5",
+      "body_estimate": 2324,
+      "wire_sdk_estimate": 2859,
+      "archive_at_2840": true
+    },
+    {
+      "case_id": "2f013337236ea4635ad106813275dab7<::>2",
+      "arm": "0.75",
+      "body_estimate": 1682,
+      "wire_sdk_estimate": 2250,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "fdee20f7fd677e420742b09989623d68<::>6",
+      "arm": "0.25",
+      "body_estimate": 2523,
+      "wire_sdk_estimate": 3057,
+      "archive_at_2840": true
+    },
+    {
+      "case_id": "fdee20f7fd677e420742b09989623d68<::>6",
+      "arm": "0.5",
+      "body_estimate": 2503,
+      "wire_sdk_estimate": 3024,
+      "archive_at_2840": true
+    },
+    {
+      "case_id": "fdee20f7fd677e420742b09989623d68<::>6",
+      "arm": "0.75",
+      "body_estimate": 2543,
+      "wire_sdk_estimate": 3070,
+      "archive_at_2840": true
+    },
+    {
+      "case_id": "c6c3b02ca32795af64c903dd76700517<::>1",
+      "arm": "0.25",
+      "body_estimate": 2355,
+      "wire_sdk_estimate": 2778,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "c6c3b02ca32795af64c903dd76700517<::>1",
+      "arm": "0.5",
+      "body_estimate": 2372,
+      "wire_sdk_estimate": 2794,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "c6c3b02ca32795af64c903dd76700517<::>1",
+      "arm": "0.75",
+      "body_estimate": 2369,
+      "wire_sdk_estimate": 2793,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "1be66272113492407e814eaf21a761d4<::>3",
+      "arm": "0.25",
+      "body_estimate": 2429,
+      "wire_sdk_estimate": 2951,
+      "archive_at_2840": true
+    },
+    {
+      "case_id": "1be66272113492407e814eaf21a761d4<::>3",
+      "arm": "0.5",
+      "body_estimate": 2578,
+      "wire_sdk_estimate": 3109,
+      "archive_at_2840": true
+    },
+    {
+      "case_id": "1be66272113492407e814eaf21a761d4<::>3",
+      "arm": "0.75",
+      "body_estimate": 2556,
+      "wire_sdk_estimate": 3090,
+      "archive_at_2840": true
+    },
+    {
+      "case_id": "47b2471404382af6e973013ab1cf96b9<::>8",
+      "arm": "0.25",
+      "body_estimate": 2564,
+      "wire_sdk_estimate": 2999,
+      "archive_at_2840": true
+    },
+    {
+      "case_id": "47b2471404382af6e973013ab1cf96b9<::>8",
+      "arm": "0.5",
+      "body_estimate": 2564,
+      "wire_sdk_estimate": 2999,
+      "archive_at_2840": true
+    },
+    {
+      "case_id": "47b2471404382af6e973013ab1cf96b9<::>8",
+      "arm": "0.75",
+      "body_estimate": 2253,
+      "wire_sdk_estimate": 2785,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "ddbbbe7ea13560c5768639207e1ca604<::>6",
+      "arm": "0.25",
+      "body_estimate": 2470,
+      "wire_sdk_estimate": 2993,
+      "archive_at_2840": true
+    },
+    {
+      "case_id": "ddbbbe7ea13560c5768639207e1ca604<::>6",
+      "arm": "0.5",
+      "body_estimate": 2449,
+      "wire_sdk_estimate": 2977,
+      "archive_at_2840": true
+    },
+    {
+      "case_id": "ddbbbe7ea13560c5768639207e1ca604<::>6",
+      "arm": "0.75",
+      "body_estimate": 2436,
+      "wire_sdk_estimate": 2962,
+      "archive_at_2840": true
+    },
+    {
+      "case_id": "dcc0215a118ac833dfe054350df2afaa<::>4",
+      "arm": "0.25",
+      "body_estimate": 1672,
+      "wire_sdk_estimate": 2143,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "dcc0215a118ac833dfe054350df2afaa<::>4",
+      "arm": "0.5",
+      "body_estimate": 946,
+      "wire_sdk_estimate": 1411,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "dcc0215a118ac833dfe054350df2afaa<::>4",
+      "arm": "0.75",
+      "body_estimate": 946,
+      "wire_sdk_estimate": 1411,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "dc1aaac0b33553d8c897d4150955d803<::>7",
+      "arm": "0.25",
+      "body_estimate": 1014,
+      "wire_sdk_estimate": 1481,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "dc1aaac0b33553d8c897d4150955d803<::>7",
+      "arm": "0.5",
+      "body_estimate": 946,
+      "wire_sdk_estimate": 1413,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "dc1aaac0b33553d8c897d4150955d803<::>7",
+      "arm": "0.75",
+      "body_estimate": 1169,
+      "wire_sdk_estimate": 1637,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "f05ba9633e1b377f9c4d64afd3da3c45<::>3",
+      "arm": "0.25",
+      "body_estimate": 1073,
+      "wire_sdk_estimate": 1535,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "f05ba9633e1b377f9c4d64afd3da3c45<::>3",
+      "arm": "0.5",
+      "body_estimate": 656,
+      "wire_sdk_estimate": 1116,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "f05ba9633e1b377f9c4d64afd3da3c45<::>3",
+      "arm": "0.75",
+      "body_estimate": 749,
+      "wire_sdk_estimate": 1209,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "535ebd306304982e4e49cc989ce5b10b<::>3",
+      "arm": "0.25",
+      "body_estimate": 1375,
+      "wire_sdk_estimate": 1851,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "535ebd306304982e4e49cc989ce5b10b<::>3",
+      "arm": "0.5",
+      "body_estimate": 1601,
+      "wire_sdk_estimate": 2078,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "535ebd306304982e4e49cc989ce5b10b<::>3",
+      "arm": "0.75",
+      "body_estimate": 1562,
+      "wire_sdk_estimate": 2042,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "af5e45e59e1254e0b7869cb477674d02<::>4",
+      "arm": "0.25",
+      "body_estimate": 806,
+      "wire_sdk_estimate": 1278,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "af5e45e59e1254e0b7869cb477674d02<::>4",
+      "arm": "0.5",
+      "body_estimate": 1012,
+      "wire_sdk_estimate": 1480,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "af5e45e59e1254e0b7869cb477674d02<::>4",
+      "arm": "0.75",
+      "body_estimate": 989,
+      "wire_sdk_estimate": 1457,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "c5518952b78b171de2d5b9317103ba62<::>6",
+      "arm": "0.25",
+      "body_estimate": 1304,
+      "wire_sdk_estimate": 1781,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "c5518952b78b171de2d5b9317103ba62<::>6",
+      "arm": "0.5",
+      "body_estimate": 1421,
+      "wire_sdk_estimate": 1891,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "c5518952b78b171de2d5b9317103ba62<::>6",
+      "arm": "0.75",
+      "body_estimate": 1065,
+      "wire_sdk_estimate": 1541,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "a6eab3f851684c4ba01ae141ce590342<::>2",
+      "arm": "0.25",
+      "body_estimate": 957,
+      "wire_sdk_estimate": 1428,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "a6eab3f851684c4ba01ae141ce590342<::>2",
+      "arm": "0.5",
+      "body_estimate": 993,
+      "wire_sdk_estimate": 1466,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "a6eab3f851684c4ba01ae141ce590342<::>2",
+      "arm": "0.75",
+      "body_estimate": 1385,
+      "wire_sdk_estimate": 1859,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "6af5334fbd010b919d7fa174823abd12<::>4",
+      "arm": "0.25",
+      "body_estimate": 2258,
+      "wire_sdk_estimate": 2724,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "6af5334fbd010b919d7fa174823abd12<::>4",
+      "arm": "0.5",
+      "body_estimate": 1635,
+      "wire_sdk_estimate": 2099,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "6af5334fbd010b919d7fa174823abd12<::>4",
+      "arm": "0.75",
+      "body_estimate": 1747,
+      "wire_sdk_estimate": 2213,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "8a19ee37ca7d97eaddbe2e19ca600556<::>6",
+      "arm": "0.25",
+      "body_estimate": 2152,
+      "wire_sdk_estimate": 2619,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "8a19ee37ca7d97eaddbe2e19ca600556<::>6",
+      "arm": "0.5",
+      "body_estimate": 2152,
+      "wire_sdk_estimate": 2619,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "8a19ee37ca7d97eaddbe2e19ca600556<::>6",
+      "arm": "0.75",
+      "body_estimate": 2560,
+      "wire_sdk_estimate": 3127,
+      "archive_at_2840": true
+    },
+    {
+      "case_id": "6495c82abb6bef2d8efd06020cde3adf<::>1",
+      "arm": "0.25",
+      "body_estimate": 2472,
+      "wire_sdk_estimate": 3033,
+      "archive_at_2840": true
+    },
+    {
+      "case_id": "6495c82abb6bef2d8efd06020cde3adf<::>1",
+      "arm": "0.5",
+      "body_estimate": 2428,
+      "wire_sdk_estimate": 3010,
+      "archive_at_2840": true
+    },
+    {
+      "case_id": "6495c82abb6bef2d8efd06020cde3adf<::>1",
+      "arm": "0.75",
+      "body_estimate": 2325,
+      "wire_sdk_estimate": 2915,
+      "archive_at_2840": true
+    },
+    {
+      "case_id": "fc3e765d7ffc28ffc7ee7ea38fd3c73a<::>5",
+      "arm": "0.25",
+      "body_estimate": 2597,
+      "wire_sdk_estimate": 3213,
+      "archive_at_2840": true
+    },
+    {
+      "case_id": "fc3e765d7ffc28ffc7ee7ea38fd3c73a<::>5",
+      "arm": "0.5",
+      "body_estimate": 2241,
+      "wire_sdk_estimate": 2621,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "fc3e765d7ffc28ffc7ee7ea38fd3c73a<::>5",
+      "arm": "0.75",
+      "body_estimate": 1915,
+      "wire_sdk_estimate": 2094,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "d2432696b32af73cf3dabd7090997afb<::>2",
+      "arm": "0.25",
+      "body_estimate": 2211,
+      "wire_sdk_estimate": 2651,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "d2432696b32af73cf3dabd7090997afb<::>2",
+      "arm": "0.5",
+      "body_estimate": 2211,
+      "wire_sdk_estimate": 2651,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "d2432696b32af73cf3dabd7090997afb<::>2",
+      "arm": "0.75",
+      "body_estimate": 2211,
+      "wire_sdk_estimate": 2651,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "f0d2873b877409f61da7dbdddd22d279<::>3",
+      "arm": "0.25",
+      "body_estimate": 2370,
+      "wire_sdk_estimate": 3006,
+      "archive_at_2840": true
+    },
+    {
+      "case_id": "f0d2873b877409f61da7dbdddd22d279<::>3",
+      "arm": "0.5",
+      "body_estimate": 2252,
+      "wire_sdk_estimate": 2863,
+      "archive_at_2840": true
+    },
+    {
+      "case_id": "f0d2873b877409f61da7dbdddd22d279<::>3",
+      "arm": "0.75",
+      "body_estimate": 2061,
+      "wire_sdk_estimate": 2695,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "35e6be0f2049527ae17cf77169cc4f70<::>4",
+      "arm": "0.25",
+      "body_estimate": 2185,
+      "wire_sdk_estimate": 2742,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "35e6be0f2049527ae17cf77169cc4f70<::>4",
+      "arm": "0.5",
+      "body_estimate": 2577,
+      "wire_sdk_estimate": 3281,
+      "archive_at_2840": true
+    },
+    {
+      "case_id": "35e6be0f2049527ae17cf77169cc4f70<::>4",
+      "arm": "0.75",
+      "body_estimate": 2551,
+      "wire_sdk_estimate": 3236,
+      "archive_at_2840": true
+    },
+    {
+      "case_id": "941445ba11ba7ba2c92c5184c9d798d6<::>5",
+      "arm": "0.25",
+      "body_estimate": 2208,
+      "wire_sdk_estimate": 2703,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "941445ba11ba7ba2c92c5184c9d798d6<::>5",
+      "arm": "0.5",
+      "body_estimate": 2275,
+      "wire_sdk_estimate": 2751,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "941445ba11ba7ba2c92c5184c9d798d6<::>5",
+      "arm": "0.75",
+      "body_estimate": 2275,
+      "wire_sdk_estimate": 2751,
+      "archive_at_2840": false
+    },
+    {
+      "case_id": "d7b4f863baa92fd08c1db2b1a95170dd<::>3",
+      "arm": "0.25",
+      "body_estimate": 2597,
+      "wire_sdk_estimate": 3156,
+      "archive_at_2840": true
+    },
+    {
+      "case_id": "d7b4f863baa92fd08c1db2b1a95170dd<::>3",
+      "arm": "0.5",
+      "body_estimate": 2597,
+      "wire_sdk_estimate": 3156,
+      "archive_at_2840": true
+    },
+    {
+      "case_id": "d7b4f863baa92fd08c1db2b1a95170dd<::>3",
+      "arm": "0.75",
+      "body_estimate": 2561,
+      "wire_sdk_estimate": 3127,
+      "archive_at_2840": true
+    }
+  ],
+  "requests": [
+    {
+      "probe": "rag-g4-domain-archive1-navigation-2026-09-08",
+      "request_index": 1,
+      "replaced_pointers": 2,
+      "archived_request_sdk_estimate": 2641,
+      "full_evidence_request_sdk_estimate": 7367,
+      "available": 14200,
+      "full_fits": true,
+      "trace_sha256": "2b0019da59570e72f6d35a693b1a0540b1abd1a6f186a8925f9a0e3b424925cc"
+    },
+    {
+      "probe": "rag-g4-domain-nav-weak-2026-09-08",
+      "request_index": 1,
+      "replaced_pointers": 1,
+      "archived_request_sdk_estimate": 2506,
+      "full_evidence_request_sdk_estimate": 5100,
+      "available": 14200,
+      "full_fits": true,
+      "trace_sha256": "d7d7b38aa13324a5c21b65aac2800bcbcc061c4cbdda4220abb465f0ab0be1ad"
+    },
+    {
+      "probe": "rag-g4-domain-nav-preannotation-2026-09-08",
+      "request_index": 1,
+      "replaced_pointers": 2,
+      "archived_request_sdk_estimate": 3378,
+      "full_evidence_request_sdk_estimate": 8314,
+      "available": 14200,
+      "full_fits": true,
+      "trace_sha256": "ad2ce60e1e03319d36feff544855cdc60edbc066a12efa26e408fc9b1042999f"
+    }
+  ],
+  "summary": {
+    "views": 96,
+    "archived": 27,
+    "max_body": 2597,
+    "max_wire": 3281
+  }
+}
