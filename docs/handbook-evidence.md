@@ -6,7 +6,7 @@ permalink: /handbook-evidence.html
 
 # DialogPilot 架构边界：来源与证据
 
-> 核查日期2026-09-08。写作起点59dd33c，最终合入当日新增的ceeab4e扩库报告；代码快照以[逐文件SHA-256]({{ '/assets/handbook/source-snapshot.json' | relative_url }})为准。文档发布到main/docs，应用开发分支没有合并到main。源码链接指向快照基点的GitHub文件；标记working_tree_modified的文件还检查了未提交修改，其hash保存在manifest，链接展示的是最近提交版本。
+> 核查日期2026-09-09，源码冻结于 `89feac2`。主规划职责调整由 `d8e8933` 交付，最新 task22 报告随89feac2保存。网页发布在main/docs，开发应用代码未合并到main。源码链接与[逐文件SHA-256]({{ '/assets/handbook/source-snapshot.json' | relative_url }})固定到该版本；工作区仍在并行修改的文件仅记录身份，不据此新增已实现结论。上一轮快照另存[2026-09-08归档]({{ '/assets/handbook/source-snapshot-2026-09-08.json' | relative_url }})。
 
 ## 1. 怎样使用证据
 
@@ -22,11 +22,36 @@ permalink: /handbook-evidence.html
 | 上下文压缩开发8×2 | 16/16结构与语义维度通过 | 任意长会话零损失、独立人工E2E正确率 |
 | 中文混合链路历史80题 | 可见来源85→90%；自动PASS61→76，仍有误通过 | 95%真实业务准确率 |
 | 中文复杂小库40题 | 最终完整覆盖62.5→77.5%，17chunks/candidate20 | 大库召回改善 |
-| 中文扩库40题/6287文档 | 完整覆盖30→32.5%；两臂都OK的39题均12/39，救回3误伤3 | 改写已证语义净收益、metadata硬过滤已验收 |
+| 早期中文扩库40题/6287文档 | 完整覆盖30→32.5%；两臂都OK的39题均12/39，救回3误伤3 | 改写已证语义净收益、metadata硬过滤已验收 |
 | Encoder冻结权重独立复核 | 中英文各校准/评测35，均5/35且只预测退款，未启用 | 已实现高质量线上快速路由 |
 | Reranker小规模微调 | Top5 24/40→24/40，无收益 | 微调有效；目前仍暂停 |
 
+| Metadata贯通80题 | 完整可见32.5→77.5%，错误范围来源73→0题；16题Top5损失、2题超时 | 当前仍未消费的盲测、业务完成率 |
+| 同80题答案评估 | 严格完整有据57/80；参考与审阅非独立人工 | 生产准确率、独立人工Gold |
+| Markdown标题切块40开发题 | 离线5秒SQL预算，wire完整33→37题，候选完整40→40 | 默认已采用、750ms预算性能通过 |
+| 原生FTS另一批Wix20 | pack文章Recall67.5→60%，完整12→11题，候选不采用 | 更快就代表质量更好 |
+| 原生FTS中文40回归 | 750ms下原生40可执行、wire完整33/40；BM25全不可用，与历史5秒wire一致 | 排序质量0→82.5%的提升 |
+| 主Agent职责收缩后的task22 | d8e8933，读取与提案准备发生，无地址写入；ENV/ACTION/ALL均0，无评分器错误 | 审批展示与续接已闭环、泛化成功率 |
+
 报告：[rag-three-dataset-final-2026-09-08.zh-CN.md]({{ '/assets/handbook/evidence/docs__rag-three-dataset-final-2026-09-08.zh-CN.md.txt' | relative_url }})、[ecommerce-rag-heldout-pair-2026-09-08.zh-CN.md]({{ '/assets/handbook/evidence/docs__ecommerce-rag-heldout-pair-2026-09-08.zh-CN.md.txt' | relative_url }})、[ecommerce-complex-rag-2026-09-08.zh-CN.md]({{ '/assets/handbook/evidence/docs__ecommerce-complex-rag-2026-09-08.zh-CN.md.txt' | relative_url }})、[domain-encoder-reviewed-trial-2026-09-08.zh-CN.md]({{ '/assets/handbook/evidence/docs__domain-encoder-reviewed-trial-2026-09-08.zh-CN.md.txt' | relative_url }})、[rag-reranker-finetune-2026-09-07.zh-CN.md]({{ '/assets/handbook/evidence/docs__rag-reranker-finetune-2026-09-07.zh-CN.md.txt' | relative_url }})。
+
+### 本次结构变更与证据对应
+
+- 主 Agent 只读取证、知识查询、领域委派与原生对话；新写操作准备由领域承担。见[职责边界](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/docs/conversation-responsibility-boundary.md)。
+- requested_information 只投影模型需要的字段名与说明；私有任务绑定仍由运行时保存。见[输入投影](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/pending_input_view.py)。
+- requested_objective、observed_segment、pending_actions 和 turn_execution 共同描述回答范围；作者与核验使用同一快照。见[回答组装](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/response_assembly.py)。
+- task22 为已消费开发任务，offset17、seed300、80步预算；误选task29的中断不计入。第三轮仅准备账户修改，但审批展示受阻，之后核验schema失败，用户撤回。详见[完整运行结论](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/artifacts/eval/tau3-task22-scoped-conversation-corrected-2026-09-09/REPORT.md)。
+
+源码回归与组件模型探针提供各自范围的证据；本次没有重跑这些实验。未提交的进一步审批发布修改仍在工作区，不能混进89feac2已发布设计。
+
+### 本次报告原文快照
+
+- [docs/conversation-responsibility-boundary.md]({{ '/assets/handbook/evidence/docs__conversation-responsibility-boundary.md.txt' | relative_url }})
+- [docs/ecommerce-scoped-rag-2026-09-08.zh-CN.md]({{ '/assets/handbook/evidence/docs__ecommerce-scoped-rag-2026-09-08.zh-CN.md.txt' | relative_url }})
+- [docs/ecommerce-answer-quality-2026-09-09.zh-CN.md]({{ '/assets/handbook/evidence/docs__ecommerce-answer-quality-2026-09-09.zh-CN.md.txt' | relative_url }})
+- [docs/rag-header-retrieval-pair-2026-09-09.zh-CN.md]({{ '/assets/handbook/evidence/docs__rag-header-retrieval-pair-2026-09-09.zh-CN.md.txt' | relative_url }})
+- [docs/rag-native-fts-acceptance-2026-09-09.zh-CN.md]({{ '/assets/handbook/evidence/docs__rag-native-fts-acceptance-2026-09-09.zh-CN.md.txt' | relative_url }})
+- [artifacts/eval/tau3-task22-scoped-conversation-corrected-2026-09-09/REPORT.md]({{ '/assets/handbook/evidence/artifacts__eval__tau3-task22-scoped-conversation-corrected-2026-09-09__REPORT.md.txt' | relative_url }})
 
 ## 3. 官方原理与数据来源
 
@@ -53,4 +78,4 @@ permalink: /handbook-evidence.html
 
 写作颗粒度参考用户提供的[Affordance Runtime追问页](https://garrulus21yyx.github.io/affordance-runtime/interview-playbook.html)：短答后展开机制、追问和源码定位。这里只借用阅读组织，不迁移其DOM、Monitor、AndroidWorld或PydanticAI主运行时结论到DialogPilot。
 
-手册有80个详细追问，经典知识解释用于帮助完整口述；实际是否启用、指标高低、API默认以源码快照与报告为准。简历页保留单独标注的模拟写作版本，不混入本页实测表。
+手册有92个详细追问，经典知识解释用于帮助完整口述；实际是否启用、指标高低、API默认以源码快照与报告为准。简历页保留单独标注的模拟写作版本，不混入本页实测表。

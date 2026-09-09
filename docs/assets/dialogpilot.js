@@ -29,11 +29,11 @@
       },
       overview: {
         eyebrow: "架构证据 · DialogPilot",
-        signals: ["身份", "记忆", "意图", "RAG", "TaskGraph", "ReAct", "工具", "校验", "工单", "进化"]
+        signals: ["对话", "只读取证", "领域委派", "业务准备", "审批", "执行", "回答", "核验", "发布"]
       },
       tutorial: {
         eyebrow: "运行时手册 · Python Agent 系统",
-        signals: ["记忆", "意图", "RAG", "任务图", "ReAct", "工具", "覆盖", "融合", "校验", "工单"]
+        signals: ["对话", "上下文", "RAG", "任务图", "领域工具", "当前提案", "回答", "核验", "交付"]
       }
     };
     const profile = pageProfiles[mode] || pageProfiles.tutorial;
