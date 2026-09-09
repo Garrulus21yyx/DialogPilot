@@ -34,10 +34,10 @@ def test_business_description_survives_every_exposure_without_exposing_a_write(d
     assert 'order_cancel' not in {t['tool_id'] for t in catalog(registry, _state())}
 
     provider = Provider({'status': 'respond', 'response': 'Hello.'})
-    agent = ConversationAgent(provider, tool_catalog=catalog, action_semantics=semantics)
+    agent = ConversationAgent(provider, tool_catalog=catalog)
     observation, state = TurnObservations('Hello'), _state()
     asyncio.run(agent.plan(observation, state, DeterministicResolver().resolve(observation, state), registry))
-    assert provider.calls[0]['business_action_semantics'] == semantics
+    assert 'business_action_semantics' not in provider.calls[0]
     evidence = _response_context(_board(), registry=registry, action_semantics=semantics)
     assert evidence['capability_policy']['business_actions'] == list(semantics)
     before = json.dumps(evidence, sort_keys=True)

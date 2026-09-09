@@ -196,7 +196,7 @@ async def build_target_runtime(
             ),
             context_budget=conversation_context_budget,
             synthesis_context_budget=synthesis_context_budget,
-            tool_catalog=tool_catalog, action_semantics=action_semantics,
+            tool_catalog=tool_catalog,
         )
         understanding = CascadedTargetUnderstanding(
             StateBoundTargetUnderstanding(), conversation_agent, encoder=encoder,

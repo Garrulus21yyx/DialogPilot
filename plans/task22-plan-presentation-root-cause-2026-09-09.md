@@ -1,5 +1,36 @@
 # Task 22: operation names and reply lifecycle
 
+## Production conversation responsibility narrowing
+
+User requests adoption after the input projection repair. Main planner owns
+conversation, read/knowledge selection, delegation and bound interaction decisions.
+New change preparation belongs to domain workers. Remove preparation shortcut
+vocabulary/conversion and raw write-operation instructions from the main planner;
+keep domain preparation, approval runtime and Orchestrator DIRECT execution.
+Migrate shortcut-specific tests to rejection plus positive delegated preparation
+contracts. Ordinary reads, multi-goal delegation, input and approval continuity
+remain acceptance requirements. No new judge or fallback; no business task rerun.
+
+Implementation: removed four new preparation shortcuts and their main conversion
+branches; domain operations remain registered. Main action semantics injection
+removed, role replaced with conversation/read/delegation responsibilities. Bound
+approval/input/resume and explicit human handoff remain. Independent review found
+no remaining deterministic blocker after migrating prompt/Encoder fallback tests.
+546 tests passed, 13 skipped. Default registry fingerprint changes: old suspended
+work must drain or be explicitly migrated, not silently rebound.
+
+Model probe caveat: scoped_production_check.json and
+scoped_production_role_replaced.json omitted supported_goals when reconstructing
+the historical capture and therefore lacked delegate_task. Both are INVALID
+replay experiments, not production failure evidence. Script now reconstructs
+supported control goals from recorded declarations and asserts exact tool-name
+set equality before spending a call. Preserve both invalid records and the
+subsequent catalog-complete result. No business calls were executed.
+Catalog-complete production-provider probe: resolved delegate_task to retail,
+both account and order address changes retained, preparation allowed but no
+execution approval granted. Evidence: scoped_production_catalog_complete.json.
+This establishes one successful planning probe, not downstream business closure.
+
 ## Pending-input presentation repair
 
 User requests separating user messages, pending task information and tool schema.

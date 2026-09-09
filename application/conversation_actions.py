@@ -147,9 +147,6 @@ def planning_actions(payload):
             properties["entity"] = _selector(choices, f"Select the {field_name} from scoped candidates: {labels}")
             required.append("entity")
             selections["entity"] = choices
-        if kind == "change_address":
-            properties["new_address"] = {**_TEXT, "description": "Complete new shipping address quoted verbatim from the current user message. For an address assembled across turns, use delegate_task with the complete objective instead."}
-            required.append("new_address")
         goal(kind, kind, properties, tuple(required), selections=selections)
     domains = payload.get("domain_capabilities", ())
     if "delegate_task" in supported and domains:

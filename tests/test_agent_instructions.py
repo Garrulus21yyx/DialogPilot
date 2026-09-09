@@ -18,12 +18,11 @@ def test_conversation_role_precedes_only_relevant_state_instructions(approval, i
         "resumable_work": [{"control_id": "c"}] if resume else [],
     })
     assert prompt.startswith("You are DialogPilot, the customer's ecommerce service assistant.")
-    assert "Reply in ordinary text" in prompt
-    assert "Use an available direct tool" in prompt
-    assert "Call a specialist subagent" in prompt
-    from application.action_approval import action_presentation_instruction
-    assert action_presentation_instruction(()) in prompt
-    assert "without scheduling more work" in prompt
+    assert "Answer ordinary conversation directly" in prompt
+    assert "direct read tool" in prompt
+    assert "call the appropriate specialist subagent" in prompt
+    assert "do not need to collect all fields" in prompt
+    assert "does not schedule later work" in prompt
     assert ("Pending action decision:" in prompt) == approval
     assert ("Pending information:" in prompt) == inputs
     assert ("Existing work:" in prompt) == (active or resume)

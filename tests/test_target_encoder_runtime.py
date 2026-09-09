@@ -36,11 +36,11 @@ class _Provider:
 
     async def plan(self, payload):
         self.calls.append(payload)
-        kind = (
-            "execute_refund"
-            if "退掉" in str(payload["message"])
-            else "order_status"
-        )
+        if "退掉" in str(payload["message"]):
+            return {"status":"resolved", "goals":[{"kind":"delegate_task",
+                "target_agent":"billing_refund", "objective":"为订单 DP2468 调查并准备退货",
+                "allow_action_proposals":True}]}
+        kind = "order_status"
         return {
             "status": "resolved",
             "goals": [{
@@ -134,7 +134,7 @@ def test_encoder_defers_generic_progress_to_conversation_planner():
 
     write = _invoke(cascade, "把 DP2468 直接退掉")
     assert write.reason_code == "CONVERSATION_AGENT_PLAN"
-    assert write.commands[0].kind.value == "PREPARE_ACTION"
+    assert write.commands[0].kind.value == "DELEGATE_TASK"
     assert len(provider.calls) == 2
 
 

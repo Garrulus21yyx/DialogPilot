@@ -233,174 +233,27 @@ def test_conversation_agent_revises_or_cancels_only_named_active_work():
     assert proposal.disposition is ProposalDisposition.INVALID_PROVIDER_OUTPUT
 
 
-def test_address_change_compiles_one_governed_flow_and_rejects_invented_address():
-    text = "把订单 DP1234 的地址改成 Berlin Example Street 9"
-    provider = Provider({
-        "status": "resolved",
-        "goals": [{
-            "kind": "change_address",
-            "order_id": "DP1234", "order_id_source_ref": "turn-message:current:reference:1",
-            "new_address": "Berlin Example Street 9",
-        }],
-    })
-    proposal, state, registry = _invoke(
-        ConversationAgent(provider), text,
-    )
-
-    assert proposal.disposition is ProposalDisposition.RESOLVED
-    command = proposal.commands[0]
-    assert command.kind is CommandKind.PREPARE_ACTION
-    assert command.action_ref == "order.shipping_address.change:v1"
-    plan = TurnPlanCompiler().compile(
-        RoutePolicy().accept(proposal, state, registry),
-        state,
-        registry,
-        IdentityFactory().create_invocation(
-            tenant_id="tenant-a",
-            user_id="user-a",
-            conversation_id="conversation-a",
-            request_id="address-request",
-        ),
-    )
-    assert plan.transitions.mutations[0].flow_ref == "change_shipping_address:v1"
-    assert plan.work.items[0].allowed_tools == ("order_lookup",)
-
-    invented = Provider({
-        "status": "resolved",
-        "goals": [{
-            "kind": "change_address",
-            "order_id": "DP1234", "order_id_source_ref": "turn-message:current:reference:1",
-            "new_address": "Invented Address 1",
-        }],
-    })
-    rejected, _, _ = _invoke(ConversationAgent(invented), text)
+@pytest.mark.parametrize('kind,owner', [('change_address','order_logistics'),
+    ('cancel_order','order_logistics'), ('execute_refund','billing_refund'), ('freeze_account','account_security')])
+def test_new_business_changes_require_specialist_delegation(kind, owner):
+    rejected, _, _ = _invoke(ConversationAgent(Provider({
+        'status':'resolved','goals':[{'kind':kind}]})), 'Please make this change')
     assert rejected.disposition is ProposalDisposition.INVALID_PROVIDER_OUTPUT
+    accepted, state, registry = _invoke(ConversationAgent(Provider({
+        'status':'resolved','goals':[{'kind':'delegate_task','target_agent':owner,
+            'objective':f'Investigate and prepare {kind}; ask for missing details if needed',
+            'allow_action_proposals':True}]})), 'Please make this change')
+    assert accepted.disposition is ProposalDisposition.RESOLVED
+    assert accepted.commands[0].kind is CommandKind.DELEGATE_TASK
+    assert accepted.commands[0].target_agent == owner
+    RoutePolicy().accept(accepted,state,registry)
 
 
-def test_address_change_stays_a_flow_and_missing_address_stays_typed():
-    proposal, _, registry = _invoke(
-        ConversationAgent(Provider({
-            "status": "resolved",
-            "goals": [{
-                "kind": "change_address",
-                "order_id": "DP1234", "order_id_source_ref": "turn-message:current:reference:1",
-                "new_address": "Berlin Example Street 9",
-            }],
-        })),
-        "把订单 DP1234 的地址改成 Berlin Example Street 9",
-    )
-
-    assert proposal.disposition is ProposalDisposition.RESOLVED
-    assert proposal.commands[0].kind is CommandKind.PREPARE_ACTION
-    assert proposal.commands[0].skill_id is None
-    assert proposal.commands[0].action_ref == "order.shipping_address.change:v1"
-    assert all("address" not in skill.skill_id for skill in registry.skills)
-
-    missing, _, _ = _invoke(
-        ConversationAgent(Provider({
-            "status": "insufficient_context",
-            "missing_fields": ["new_address"],
-        })),
-        "订单 DP1234 修改地址",
-    )
-    assert missing.disposition is ProposalDisposition.CLARIFY
-    assert missing.reason_code == "SEMANTIC_INSUFFICIENT_CONTEXT"
-
-
-def test_security_review_is_direct_but_account_freeze_is_a_governed_flow():
-    review, _, registry = _invoke(
-        ConversationAgent(Provider({
-            "status": "resolved", "goals": [{"kind": "security_review"}],
-        })),
-        "这次异常登录不是我操作的，帮我查一下",
-    )
-    freeze, state, _ = _invoke(
-        ConversationAgent(Provider({
-            "status": "resolved", "goals": [{"kind": "freeze_account"}],
-        })),
-        "立即冻结账户",
-    )
-
-    review_command = review.commands[0]
-    freeze_command = freeze.commands[0]
-    assert review_command.kind is CommandKind.DIRECT_TOOL
-    assert review_command.tool_id == "account_security_event_list"
-    assert review_command.skill_id is None
-    assert freeze_command.kind is CommandKind.PREPARE_ACTION
-    assert freeze_command.action_ref == "account.freeze:v1"
-    assert freeze_command.flow_ref == "freeze_account:v1"
-    assert freeze_command.skill_id is None
-    assert all("security" not in skill.skill_id for skill in registry.skills)
-
-    plan = TurnPlanCompiler().compile(
-        RoutePolicy().accept(freeze, state, registry),
-        state,
-        registry,
-        IdentityFactory().create_invocation(
-            tenant_id="tenant-a",
-            user_id="user-a",
-            conversation_id="conversation-a",
-            request_id="freeze-request",
-        ),
-    )
-    assert plan.transitions.mutations[0].flow_ref == "freeze_account:v1"
-    assert plan.work.items[0].allowed_tools == ("account_security_state",)
-
-
-def test_conversation_agent_security_goals_cannot_select_unregistered_capabilities():
-    review, _, _ = _invoke(
-        ConversationAgent(Provider({
-            "status": "resolved",
-            "goals": [{"kind": "security_review"}],
-        })),
-        "检查最近的安全事件",
-    )
-    freeze, _, _ = _invoke(
-        ConversationAgent(Provider({
-            "status": "resolved",
-            "goals": [{"kind": "freeze_account"}],
-        })),
-        "冻结我的账户",
-    )
-
-    assert review.commands[0].tool_id == "account_security_event_list"
-    assert freeze.commands[0].action_ref == "account.freeze:v1"
-
-
-def test_security_signal_preempts_only_registry_marked_business_writes():
-    proposal, state, registry = _invoke(
-        ConversationAgent(Provider({
-            "status": "resolved",
-            "goals": [
-                {"goal_id": "security", "kind": "security_review"},
-                {
-                    "goal_id": "refund",
-                    "kind": "execute_refund",
-                    "order_id": "DP1234", "order_id_source_ref": "turn-message:current:reference:1",
-                },
-            ],
-        })),
-        "账号被盗，帮我查异常登录，同时把订单 DP1234 退款",
-    )
-
-    validated = RoutePolicy().accept(proposal, state, registry)
-    plan = TurnPlanCompiler().compile(
-        validated,
-        state,
-        registry,
-        IdentityFactory().create_invocation(
-            tenant_id="tenant-a", user_id="user-a",
-            conversation_id="conversation-a", request_id="security-preemption",
-        ),
-    )
-
-    assert validated.reason_code == "SECURITY_PREEMPTED_NONESSENTIAL_WRITES"
-    assert [item.proposal.command_id for item in validated.commands] == [
-        "security",
-    ]
-    assert plan.route.mode is RouteMode.DIRECT
-    assert plan.transitions is None
-    assert plan.work.items[0].allowed_tools == ("account_security_event_list",)
+def test_security_review_remains_a_direct_read():
+    proposal, _, _ = _invoke(ConversationAgent(Provider({
+        'status':'resolved','goals':[{'kind':'security_review'}]})), 'Check recent security events')
+    assert proposal.commands[0].kind is CommandKind.DIRECT_TOOL
+    assert proposal.commands[0].tool_id == 'account_security_event_list'
 
 
 def test_security_signal_keeps_human_handoff_as_an_essential_coordination_action():

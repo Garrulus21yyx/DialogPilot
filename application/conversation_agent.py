@@ -19,7 +19,6 @@ from application.context_budget import (
 from application.deterministic_resolution import ResolutionKind
 from application.entity_binding import (
     BindingStatus,
-    EntityBindingResolver,
 )
 from application.turn_planning import (
     CommandKind,
@@ -41,12 +40,9 @@ _GOAL_DESCRIPTIONS = {
     "general_qa": "Retrieve policy or FAQ evidence, including shipping, address-change rules, coupons and general procedures; performs no business action.",
     "order_status": "Read a specific order's current record; requires a bound order_id.",
     "logistics_status": "Read shipping status from a specific order record; requires a bound order_id and does not fetch carrier tracking events.",
-    "cancel_order": "Prepare cancellation of a specific order when the user requests that action; requires a bound order_id. Policy questions use general_qa.",
-    "change_address": "Prepare a shipping-address change with a bound order_id and a complete new_address quoted from the current user message. Delegate changes requiring address resolution across turns. Questions about whether or how changes work use general_qa.",
     "refund_policy": "Retrieve return/refund rules, after-sales conditions and the meaning of policy stages, including questions applied to a known order. An order reference does not turn a policy question into a business-state lookup. No order ID is required and no refund is started.",
     "refund_eligibility": "Read a specific order's operational refund-submission precheck (order status, configured submission window, existing application); requires a bound order_id. Does not assess gift, product-exception or refund-amount policies. Pair with refund_policy when those rules are also requested.",
     "refund_status": "Read an existing order's current refund progress; requires a bound order_id. Explaining whether one approval stage implies another outcome requires refund_policy evidence; a progress read alone does not establish that rule.",
-    "execute_refund": "Prepare a refund action explicitly requested for a specific order; requires a bound order_id. General refund rules use refund_policy.",
     "invoice_qa": "Retrieve invoice rules and procedures; does not issue or modify an invoice.",
     "product_identification": "Identify a product from a supplied media asset using registered identification capabilities; requires a bound asset_id. Text-only documentation questions use product_qa.",
     "product_qa": "Retrieve product documentation or knowledge evidence for product rules, compatibility requirements and safe-use questions. Can retrieve rules about unknown prerequisites without identifying a physical product; does not require an asset_id. Actual media identification uses product_identification.",
@@ -55,7 +51,6 @@ _GOAL_DESCRIPTIONS = {
     "media_visual_analysis": "Analyze visual appearance, regions, layout or controls of a supplied asset; requires a bound asset_id.",
     "human_handoff": "Request transfer to human support.",
     "security_review": "Read recent account security events; does not freeze the account.",
-    "freeze_account": "Prepare an account freeze explicitly requested by the user; does not merely explain account security rules.",
 }
 _GOALS = frozenset(_GOAL_DESCRIPTIONS)
 _KNOWLEDGE_GOALS = frozenset({"general_qa", "refund_policy", "invoice_qa", "product_qa"})
@@ -92,7 +87,7 @@ def planning_output_schema(supported_goals=None, knowledge_filter_contract=None)
             "kind": {"type": "string", "enum": sorted(_GOALS if supported_goals is None else supported_goals)},
             **{key: dict(text) for key in (
                 "goal_id", "order_id", "order_id_source_ref", "asset_id",
-                "asset_id_source_ref", "new_address", "revises_control_id",
+                "asset_id_source_ref", "revises_control_id",
                 "target_agent", "objective",
             )},
             "resolved_query": {**text, "maxLength": 4000},
@@ -115,9 +110,7 @@ def planning_output_schema(supported_goals=None, knowledge_filter_contract=None)
             "else": {"not": {"anyOf": [{"required": ["tool_id"]}, {"required": ["arguments"]}]}},
         }, {"if": {"properties": {"kind": {"not": {"enum": ["atomic_read", "delegate_task"]}}}},
          "then": {"not": {"required": ["target_agent"]}}
-        }, {"if": {"properties": {"kind": {"const": "change_address"}}},
-             "then": {"required": ["new_address"]},
-             "else": {"not": {"required": ["new_address"]}}},
+        },
         {"if": {"properties": {"kind": {"enum": sorted(_KNOWLEDGE_GOALS)}}},
              "then": {"required": ["resolved_query"]}}],
     }
@@ -206,11 +199,9 @@ class ConversationAgent:
         context_budget: ContextBudgetManager | None = None,
         synthesis_context_budget: ContextBudgetManager | None = None,
         tool_catalog=None,
-        action_semantics=(),
     ) -> None:
         self._provider = provider
         self._tool_catalog = tool_catalog
-        self._action_semantics = tuple(action_semantics)
         self._context_budget = context_budget or ContextBudgetManager()
         self._synthesis_context_budget = synthesis_context_budget or self._context_budget
 
@@ -332,7 +323,6 @@ class ConversationAgent:
             ),
             "supported_goals": sorted(_available_goals(registry)),
             "atomic_reads": atomic_reads,
-            "business_action_semantics": self._action_semantics,
             # Policies can constrain direct reads as well as specialist writes.
             # Keep them once as configuration, separate from short routing cards.
             "business_policies": [{"agent_id": agent.agent_id, "policy": agent.business_policy}
@@ -515,11 +505,6 @@ class ConversationAgent:
                 binding_set, "asset_id", asset_id,
                 str(value.get("asset_id_source_ref") or ""), state,
             )
-            address_binding = None
-            if kind == "change_address":
-                address_binding = EntityBindingResolver.bind_current_text(
-                    "new_address", value["new_address"], observations, state,
-                )
             revises_control_id = str(value.get("revises_control_id") or "").strip()
             if revises_control_id and revises_control_id not in {
                 item.control_id for item in state.active_work_controls
@@ -589,7 +574,7 @@ class ConversationAgent:
             else:
                 command = self._command(
                     goal_id, kind, str(value.get("resolved_query") or observations.raw_text), state,
-                    order_binding, asset_binding, address_binding, registry,
+                    order_binding, asset_binding, registry,
                 )
             if command.tool_id == "knowledge_search" and kind != "atomic_read":
                 from application.knowledge_tool_contract import knowledge_query_options
@@ -617,15 +602,10 @@ class ConversationAgent:
     @staticmethod
     def _command(
         goal_id, kind, text, state, order_binding, asset_binding,
-        address_binding, registry,
+        registry,
     ):
         order_id = str(order_binding.value) if order_binding is not None else ""
         asset_id = str(asset_binding.value) if asset_binding is not None else ""
-        new_address = str(address_binding.value) if address_binding is not None else ""
-        bindings = tuple(
-            item for item in (order_binding, asset_binding, address_binding)
-            if item is not None
-        )
         if kind == "general_qa":
             registry.tool("knowledge_search")
             return CommandProposal(
@@ -644,19 +624,6 @@ class ConversationAgent:
                 ("account.security_events",),
                 tool_id="account_security_event_list",
             )
-        if kind == "freeze_account":
-            registry.action("account.freeze:v1")
-            return CommandProposal(
-                goal_id,
-                CommandKind.PREPARE_ACTION,
-                "account_security",
-                "Check current account state before freezing the account",
-                (),
-                ("account.current_state",),
-                flow_ref=registry.action("account.freeze:v1").flow_ref,
-                action_ref="account.freeze:v1",
-                target_entity_ref=f"account:{state.user_id}",
-            )
         if kind in {"order_status", "logistics_status"}:
             if not order_id:
                 raise ValueError("order status lacks observed order ID")
@@ -667,36 +634,6 @@ class ConversationAgent:
                 (ArgumentValue.create("order_id", order_id),),
                 ("order.current_state",), tool_id="order_lookup",
                 argument_bindings=(order_binding,),
-            )
-        if kind == "cancel_order":
-            if not order_id:
-                raise ValueError("order cancellation lacks observed order ID")
-            registry.action("order.cancel:v1")
-            return CommandProposal(
-                goal_id, CommandKind.PREPARE_ACTION, "order_logistics",
-                "Check current order state before cancellation",
-                (ArgumentValue.create("order_id", order_id),),
-                ("order.current_state",),
-                flow_ref=registry.action("order.cancel:v1").flow_ref, action_ref="order.cancel:v1",
-                target_entity_ref=f"order:{order_id}",
-                argument_bindings=(order_binding,),
-            )
-        if kind == "change_address":
-            if not order_id or not new_address:
-                raise ValueError("address change lacks observed order ID or address")
-            registry.action("order.shipping_address.change:v1")
-            return CommandProposal(
-                goal_id, CommandKind.PREPARE_ACTION, "order_logistics",
-                "Check current order state before changing its shipping address",
-                (
-                    ArgumentValue.create("order_id", order_id),
-                    ArgumentValue.create("new_address", new_address),
-                ),
-                ("order.current_state",),
-                flow_ref=registry.action("order.shipping_address.change:v1").flow_ref,
-                action_ref="order.shipping_address.change:v1",
-                target_entity_ref=f"order:{order_id}",
-                argument_bindings=bindings,
             )
         if kind == "refund_policy":
             registry.tool("knowledge_search")
@@ -726,22 +663,6 @@ class ConversationAgent:
                 "Query current refund status",
                 (ArgumentValue.create("order_id", order_id),),
                 ("refund.current_state",), tool_id="refund_status",
-                argument_bindings=(order_binding,),
-            )
-        if kind == "execute_refund":
-            if not order_id:
-                raise ValueError("refund execution lacks observed order ID")
-            registry.action("refund.request.create:v1")
-            return CommandProposal(
-                goal_id, CommandKind.PREPARE_ACTION, "billing_refund",
-                "Check refund eligibility before a governed write",
-                (
-                    ArgumentValue.create("order_id", order_id),
-                    ArgumentValue.create("reason", text),
-                ),
-                ("refund.eligibility",),
-                flow_ref=registry.action("refund.request.create:v1").flow_ref, action_ref="refund.request.create:v1",
-                target_entity_ref=f"order:{order_id}",
                 argument_bindings=(order_binding,),
             )
         if kind == "product_identification":

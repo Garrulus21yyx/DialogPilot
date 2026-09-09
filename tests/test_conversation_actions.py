@@ -61,13 +61,13 @@ def test_each_author_receives_its_own_approval_responsibility(monkeypatch, pendi
     assert len(prompts) == 2
     assert all(ACTION_INTERACTION_CONTRACT not in prompt for prompt in prompts)
     assert prompts[0].startswith("You are DialogPilot, the customer's ecommerce service assistant.")
-    assert action_presentation_instruction(()) in prompts[0]
+    assert "Approval presentation belongs to the" in prompts[0]
     assert action_presentation_instruction([{}] if pending else []) in prompts[1]
     assert ACTION_INTERACTION_CONTRACT in SYSTEM
     worker, context, _, _ = domain([])
     assert ACTION_INTERACTION_CONTRACT in worker._system(context)
     assert "delegate only open investigations" not in prompts[0]
-    assert "business-change preparation" in prompts[0]
+    assert "The specialist" in prompts[0]
     assert models[ModelRole.INTENT].calls == models[ModelRole.SYNTHESIS].calls == 1
 
 
