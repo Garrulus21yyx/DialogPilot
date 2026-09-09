@@ -136,6 +136,10 @@ Final verification on the delivered implementation:
 - Three production files changed; tests and this report migrate their consumers.
   Unrelated framework-worker/RAG/archive/documentation changes remain unstaged.
 
-Next validation: one explicitly requested fixed task22 live run, reporting actual
-writes, replies and official scores separately. The prior failed task is not
-relabeled passed, and this report does not claim every earlier tau defect is fixed.
+Live validation now FAILED: the requested task22 run on305e001 completed with
+ENV/ACTION/ALL=0, no address writes and repeated planning_requires_action errors.
+The parsed live model output often had no native action; the public-channel
+contract therefore rejected ordinary turns and composition. Approval was never
+reached. Unit/SDK fixture success does not establish live-provider compatibility.
+See plans/tau3-task22-public-channel-rerun-2026-09-09.md for evidence and uncertainty.
+Closure remains open; inspect actual SDK/provider transport before another repair.
