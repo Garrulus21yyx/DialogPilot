@@ -1,6 +1,6 @@
 # Tau3 automated RCA closure
 
-Status: implementation complete on synchronized base f5fcfa6; fresh-run validation pending
+Status: implementation complete on synchronized base adbd686; fresh-run validation pending
 
 Goal: turn saved tau3 evaluations into an automated, evidence-backed loop that
 analyzes failures, runs deterministic probes, creates reviewable regression
@@ -30,13 +30,17 @@ Steps:
    judge output may support/refute hypotheses but cannot verify a root cause.
 8. `done` Reconcile causal metadata with the updated runtime's authoritative
    control revisions and document the remaining owner instrumentation boundary.
+9. `done` Rebase onto the complete planning-request budget owner, preserve the
+   terminal projection report at that boundary, and propagate its typed evidence
+   through planning, trace, and RCA without a second admission authority.
 
 Validation:
 
-- 20 focused tests pass through the project's native virtual environment.
-- Repository-wide pytest completes with 4243 passed, 653 skipped, and 35 failures
-  in untouched baseline modules/tests. None imports or exercises the new tau3 RCA
-  modules; they remain a pre-existing base-branch acceptance gap.
+- 256 focused context-budget, planning, trace, Langfuse, and tau3 RCA tests pass;
+  4 are skipped through the project's native virtual environment.
+- Repository-wide pytest completes with 4288 passed, 653 skipped, and 35 failures,
+  the same failure count seen before synchronization. The repository-wide suite is
+  not green; fresh-run closure does not rely on treating those failures as passed.
 - Python compilation and diff whitespace checks pass.
 - Historical fixed10 v2 generates candidates only for task8 and task13. In v3,
   both pass; task4's ACTION deviation remains reference-only and task16 is an

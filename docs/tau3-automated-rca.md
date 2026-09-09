@@ -180,9 +180,12 @@ but it never manufactures owner, revision, proposal, receipt, or error facts.
 accepted-plan evidence. Missing checkpoint history leaves causal hypotheses open.
 
 Planning context admission failures use
-`schema_version=conversation-context-admission-v1`. The planning owner records
-whether rejection occurred while fitting the planning payload or after the provider
-request added system instructions and tool schemas. The record contains only token
+`schema_version=conversation-context-admission-v1`. An irreducible current message
+is rejected at the application payload boundary. The provider owns admission of the
+complete rendered request, including system instructions and native tool schemas;
+when archival projection and legal history trimming cannot make it fit, that owner
+returns the final candidate's projection report and complete request accounting.
+The record contains only token
 counts and bound runtime identifiers: `required_tokens`, `available_tokens`,
 per-payload-component estimates, provider system/message/tool/protocol/output
 counts, compaction counts, pending approval ID, and `approval_binding_status`.
