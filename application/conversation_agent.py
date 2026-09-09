@@ -279,6 +279,7 @@ class ConversationAgent:
                     "field_name": field.field_name, "value_schema": field.value_schema}
                     for field in state.pending_interaction.requested_fields],
                 "objectives": [{
+                    "work_item_id": item.work_item_id,
                     "control_id": item.control.control_id if item.control else None,
                     "objective": item.objective,
                     "owner_agent": item.owner_agent,

@@ -36,12 +36,14 @@ def test_decision_is_current_user_input_not_runtime_background_and_capture_is_lo
 def test_structured_answers_and_decision_are_both_current_user_input():
     data = payload()
     data.update(supplied_interaction_values=[{"target_work_item_id": "w", "field_name": "size", "value": 42}],
+                pending_input={"requested_fields": [{"target_work_item_id": "w", "field_name": "size", "value_schema": "number"}]},
                 current_user_decision={"approval_id": "a", "decision": "approve"})
     _, messages = planning_context(data)
     blocks = [json.loads(block["text"]) for block in messages[-1].content]
     for key in ("supplied_interaction_values", "current_user_decision"):
         assert key not in blocks[0]["runtime_context"]
-        assert {key: data[key]} in blocks[2:]
+        expected = {"size": 42} if key == "supplied_interaction_values" else data[key]
+        assert {key: expected} in blocks[2:]
 
 
 @pytest.mark.parametrize("typed", [True, False])

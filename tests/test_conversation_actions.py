@@ -160,7 +160,7 @@ def test_mixed_approval_partial_fields_and_independent_work_is_one_proposal():
         {"target_work_item_id": "w1", "field_name": "order_id", "value_schema": "string"},
         {"target_work_item_id": "w2", "field_name": "order_id", "value_schema": "string"}]}
     batch = calls(("review_action", {"decision": "approve"}),
-                  ("supply_input", {"values": {"field_2": "DP1234"}}),
+                  ("supply_input", {"values": {"order_id_2": "DP1234"}}),
                   ("knowledge_search", {"query": "运费政策"}))
     for ordering in itertools.permutations(batch):
         result = action_proposal(planning_actions(value), ordering, "我会处理")
@@ -243,7 +243,7 @@ def test_real_pending_input_conversion_reuses_task_not_new_goal():
     from application.deterministic_resolution import DeterministicResolver, TurnObservations
     from application.target_conversation_manager import TargetTurnContext
     state, registry, item, _ = accepted_work()
-    p, _ = provider(("supply_input", {"values": {"field_1": "blue"}}))
+    p, _ = provider(("supply_input", {"values": {"reply": "blue"}}))
     obs = TurnObservations("blue")
     result = asyncio.run(ConversationAgent(p).plan(obs, state, DeterministicResolver().resolve(obs, state), registry, TargetTurnContext()))
     assert result.disposition is ProposalDisposition.RESOLVED
@@ -268,7 +268,7 @@ def test_delegation_preserves_entities_and_business_details_in_objective():
 def test_nonfinite_pending_values_fail_before_internal_plan(answer):
     value = payload()
     value['pending_input'] = {'requested_fields': [{'target_work_item_id': 'w', 'field_name': 'quantity', 'value_schema': 'number'}]}
-    p, _ = provider(('supply_input', {'values': {'field_1': answer}}))
+    p, _ = provider(('supply_input', {'values': {'quantity': answer}}))
     with pytest.raises(ConversationProviderOutputError):
         asyncio.run(p.plan(value))
 
@@ -277,12 +277,12 @@ def test_separate_disjoint_input_calls_merge_but_duplicate_targets_do_not():
     value = payload()
     value['pending_input'] = {'requested_fields': [
         {'target_work_item_id': 'w', 'field_name': name, 'value_schema': 'string'} for name in ('color', 'size')]}
-    batch = calls(('supply_input', {'values': {'field_1': 'blue'}}),
-                  ('supply_input', {'values': {'field_2': 'L'}}))
+    batch = calls(('supply_input', {'values': {'color': 'blue'}}),
+                  ('supply_input', {'values': {'size': 'L'}}))
     for order in itertools.permutations(batch):
         result = action_proposal(planning_actions(value), order, '')
         assert {v['field_name']: v['value'] for v in result['input_values']} == {'color': 'blue', 'size': 'L'}
-    batch[1]['args'] = {'values': {'field_1': 'red'}}
+    batch[1]['args'] = {'values': {'color': 'red'}}
     with pytest.raises(ValueError, match='duplicate_input'):
         action_proposal(planning_actions(value), batch, '')
 

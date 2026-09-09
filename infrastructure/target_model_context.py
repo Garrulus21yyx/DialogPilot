@@ -10,6 +10,7 @@ import json
 from collections.abc import Mapping
 
 from langchain_core.messages import AIMessage, HumanMessage
+from application.pending_input_view import pending_input_context, pending_input_fields
 
 CONTRACT_MARKER = "\n\nPlanning capability contract (application configuration):\n"
 CONTRACT_FIELDS = frozenset({
@@ -28,6 +29,19 @@ def context_block(name, value):
 
 def planning_context(payload):
     value = copy.deepcopy(dict(payload))
+    supplied = value.get("supplied_interaction_values")
+    if supplied:
+        aliases = {(item["target_work_item_id"], item["field_name"]): key
+                   for key, (item, _) in pending_input_fields(value.get("pending_input") or {}).items()}
+        answers = {}
+        for item in supplied:
+            binding = (item["target_work_item_id"], item["field_name"])
+            if binding not in aliases:
+                raise ValueError("supplied_input_requires_authoritative_binding")
+            answers[aliases[binding]] = item["value"]
+        value["supplied_interaction_values"] = answers
+    if value.get("pending_input"):
+        value["pending_input"] = pending_input_context(value["pending_input"])
     current = value.pop("message")
     user_inputs = {key: value.pop(key) for key in (
         "current_user_decision", "supplied_interaction_values") if key in value}
@@ -68,6 +82,8 @@ def planning_payload_from_request(request):
 
     This is an audit/replay decoder, never a second production input path.
     Captures preserve pre-SDK messages; SDK normalization is tested separately.
+    Pending information is a presentation view: replaying a bound interaction
+    requires the saved application state, not reconstructed IDs from model input.
     """
     messages = request["messages"]
     system = request.get("system", "")

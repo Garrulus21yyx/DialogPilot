@@ -1,5 +1,27 @@
 # Task 22: operation names and reply lifecycle
 
+## Pending-input presentation repair
+
+User requests separating user messages, pending task information and tool schema.
+Owner: model-facing pending-field projection shared by planning tool declaration
+and message projection. Private binding stays in PlanningAction.bound and existing
+state validation; no new state or alternate scalar/object acceptance. Business
+field names replace anonymous names, collisions receive distinct selectors with
+objective descriptions. Runtime context omits internal interaction/task/schema
+records. Test partial answers, collisions, duplicate rejection and native messages.
+Production role narrowing remains experimental, not bundled into this repair.
+
+Implemented: shared pending_input_view projects business names and objective
+descriptions; private bindings stay in PlanningAction.bound. Both pending context
+and already supplied structured answers use the same public keys. Independent
+review found the supplied-answer path still exposed IDs; migrated that producer
+and added collision/partial-answer properties covering it. Model-only snapshots
+cannot recreate private resume bindings and fail explicitly if used as state.
+Real production-provider Blue probe returned scalar color=Blue and converted to
+the original w1/color binding; no business execution. Evidence:
+artifacts/eval/reply-author-scope-2026-09-09/input_projection_check.json.
+This verifies the input-interface repair, not full approval or task22 closure.
+
 ## Scoped-main-agent trial after 5eaab11
 
 User approved a bounded trial: main agent owns conversation, read-only help and

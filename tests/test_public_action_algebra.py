@@ -25,7 +25,7 @@ def test_batch_product_and_permutation_preserves_authority(decision, work, answe
         parts.append(('review_action', {'decision': decision}))
     if work:
         parts.append({'read': ('knowledge_search', {'query': 'General policy'}),
-            'input': ('supply_input', {'values': {'field_1': 'blue'}}),
+            'input': ('supply_input', {'values': {'choice': 'blue'}}),
             'delegate': ('delegate_task', {'target_agent': 'order_logistics',
                 'objective': 'Investigate another item', 'allow_action_proposals': False})}[work])
     original = deepcopy(data)

@@ -17,6 +17,7 @@ from jsonschema import Draft202012Validator
 from application.conversation_agent import planning_goal_descriptions, planning_output_schema
 from application.evidence_query_contract import QUERY_DESCRIPTION
 from application.knowledge_tool_contract import knowledge_query_options_schema
+from application.pending_input_view import pending_input_fields
 
 
 _TEXT = {"type": "string", "minLength": 1, "pattern": r"\S"}
@@ -203,13 +204,14 @@ def planning_actions(payload):
             bound={"approval_id": payload["pending_approval"]["approval_id"]}))
     pending = payload.get("pending_input") if not observing else None
     if pending and pending.get("requested_fields"):
-        fields = {f"field_{i}": item for i, item in enumerate(pending["requested_fields"], 1)}
+        projected = pending_input_fields(pending)
+        fields = {key: item for key, (item, _) in projected.items()}
         actions.append(PlanningAction("supply_input",
             "Supply only the requested values actually answered by the user, including a partial subset. "
             "Do not recreate the task. Independent new requests can accompany this action.",
             {"values": {"type": "object", "additionalProperties": False, "minProperties": 1,
                         "properties": {key: {"type": ["string", "number", "boolean"],
-                            "description": str(item)} for key, item in fields.items()}}}, ("values",),
+                            "description": description} for key, (_, description) in projected.items()}}}, ("values",),
             bound={"fields": fields}))
     catalog = payload.get("atomic_reads", ())
     counts = Counter(item["tool_id"] for item in catalog)
