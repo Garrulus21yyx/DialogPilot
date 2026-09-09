@@ -11,6 +11,7 @@ from application.orchestration_runtime import (
     _checkpoint_matches_work_plan,
     _legacy_work_plan_fingerprint,
     _merge_agent_results,
+    _scope_result,
 )
 from application.work_item import (
     ActionSerialization,
@@ -53,6 +54,21 @@ def test_agent_result_reducer_accepts_idempotent_replay_and_rejects_conflict():
         _merge_agent_results(
             [result],
             [replace(result, status=AgentResultStatus.TERMINAL_FAILURE)],
+        )
+
+
+def test_agent_result_reducer_identity_includes_plan_scope():
+    first = _item("local", "general", ControlMode.DIRECT, "fact.first")
+    second = replace(first, requirement_ids=("fact.second",))
+    result = AgentResult("local", "general", AgentResultStatus.SUCCEEDED, "DONE", "test")
+    first_record = _scope_result(WorkPlan((first,), first.work_item_id), result)
+    second_record = _scope_result(WorkPlan((second,), second.work_item_id), result)
+
+    assert len(_merge_agent_results([first_record], [second_record])) == 2
+    with pytest.raises(OrchestrationRuntimeError, match="conflicting results"):
+        _merge_agent_results(
+            [first_record],
+            [replace(first_record, result=replace(result, reason_code="CHANGED"))],
         )
 
 

@@ -114,6 +114,7 @@ _TARGET_CHECKPOINT_TYPES = (
     ("application.work_item", "WorkControlBinding"),
     ("application.work_item", "WorkItem"),
     ("application.work_item", "WorkPlan"),
+    ("application.orchestration_runtime", "PlanScopedAgentResult"),
     ("application.capability_registry", "CapabilityEffect"),
     ("application.capability_registry", "CapabilityRisk"),
     ("application.capability_registry", "ApprovalPolicy"),

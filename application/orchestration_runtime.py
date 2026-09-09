@@ -29,9 +29,47 @@ class OrchestrationRuntimeError(ValueError):
     pass
 
 
+@dataclass(frozen=True)
+class PlanScopedAgentResult:
+    """Graph-state event identity for one result inside one accepted WorkPlan."""
+
+    execution_id: str
+    result: AgentResult
+
+    def __post_init__(self) -> None:
+        if not str(self.execution_id or "").strip():
+            raise OrchestrationRuntimeError("result execution identity is required")
+
+    def __getattr__(self, name):
+        return getattr(self.result, name)
+
+
+def _scope_result(plan: WorkPlan, result: AgentResult) -> PlanScopedAgentResult:
+    item = next((item for item in plan.items if item.work_item_id == result.work_item_id), None)
+    if item is None:
+        raise OrchestrationRuntimeError("result is outside the scoped work plan")
+    return PlanScopedAgentResult(_execution_result_id(plan, item), result)
+
+
+def _scope_results(plan: WorkPlan, results) -> list[PlanScopedAgentResult]:
+    return [_scope_result(plan, _as_agent_result(result)) for result in results]
+
+
+def _as_agent_result(result) -> AgentResult:
+    return result.result if isinstance(result, PlanScopedAgentResult) else result
+
+
+def _agent_results(results) -> tuple[AgentResult, ...]:
+    return tuple(_as_agent_result(result) for result in results)
+
+
+def _execution_result_id(plan: WorkPlan, item: WorkItem) -> str:
+    return f"{plan.fingerprint}:{item.work_item_id}:{item.fingerprint}"
+
+
 def _checkpoint_outcomes(state):
     """Keep local result IDs paired with the WorkItems from their own graph."""
-    results = {result.work_item_id: result for result in state.get("agent_results", ())}
+    results = {result.work_item_id: _as_agent_result(result) for result in state.get("agent_results", ())}
     return _merge_checkpoint_outcomes(tuple(state.get("retained_outcomes", ())), tuple(
         (item, results.get(item.work_item_id)) for item in state["work_plan"].items))
 
@@ -60,10 +98,10 @@ def _merge_agent_results(left, right):
     result for the same runnable work is idempotent; a different result for that
     identity is a checkpoint/executor conflict and must not be hidden by order.
     """
-    merged: dict[str, AgentResult] = {}
+    merged: dict[str, object] = {}
     order: list[str] = []
     for result in (*tuple(left or ()), *tuple(right or ())):
-        key = result.work_item_id
+        key = result.execution_id if isinstance(result, PlanScopedAgentResult) else f"legacy:{result.work_item_id}"
         prior = merged.get(key)
         if prior is None:
             merged[key] = result
@@ -116,7 +154,7 @@ class ParentGraphState(TypedDict, total=False):
     evidence_refs: tuple[str, ...]
     token_budget: int
     ready_items: tuple[WorkItem, ...]
-    agent_results: Annotated[list[AgentResult], _merge_agent_results]
+    agent_results: Annotated[list[PlanScopedAgentResult | AgentResult], _merge_agent_results]
     facts: tuple[FactRecord, ...]
     board: ResultBoardSnapshot
     trusted_context: Mapping[str, object]
@@ -132,6 +170,7 @@ class ParentGraphState(TypedDict, total=False):
 
 class WorkerState(TypedDict):
     work_item: WorkItem
+    work_plan: WorkPlan
     current_message: str
     recent_relevant_turns: tuple[str, ...]
     evidence_refs: tuple[str, ...]
@@ -246,12 +285,13 @@ class OrchestrationRuntime:
         if not ready:
             return "finish"
         results = {
-            result.work_item_id: result
+            result.work_item_id: _as_agent_result(result)
             for result in state.get("agent_results", ())
         }
         return [
             Send("execute_work_item", {
                 "work_item": item,
+                "work_plan": state["work_plan"],
                 "current_message": state.get("current_message", ""),
                 "recent_relevant_turns": state.get("recent_relevant_turns", ()),
                 "evidence_refs": state.get("evidence_refs", ()),
@@ -325,7 +365,7 @@ class OrchestrationRuntime:
             # Closing an execution wait does not undo completed work or cancel
             # a remote action. Give only unstarted work a terminal outcome so
             # queued items cannot leave the graph in an unfinished state.
-            returned = {result.work_item_id: result for result in state.get("agent_results", ())}
+            returned = {result.work_item_id: _as_agent_result(result) for result in state.get("agent_results", ())}
             retain = bool(resumed.get("retain_wait"))
             results = [_closed_outcome(item, returned.get(item.work_item_id))
                 if item in closed or not retain and item.work_item_id not in returned else returned.get(item.work_item_id)
@@ -334,7 +374,7 @@ class OrchestrationRuntime:
             retained = tuple((item, _closed_outcome(item, result) if item in closed else result)
                              for item, result in state.get("retained_outcomes", ()))
             return {
-                "agent_results": Overwrite(results),
+                "agent_results": Overwrite(_scope_results(state["work_plan"], results)),
                 "retained_outcomes": retained,
                 "board": self._evaluate({**state, "agent_results": results, "retained_outcomes": retained}),
                 "interrupt_after_completion": retain,
@@ -388,7 +428,7 @@ class OrchestrationRuntime:
             "trusted_context": dict(resumed.get("trusted_context") or {}),
             "pending_approval": resumed.get("pending_approval"),
             "interrupt_after_completion": bool(resumed.get("interrupt_after_completion", False)),
-            "agent_results": Overwrite(value=list(preserved)),
+            "agent_results": Overwrite(value=_scope_results(plan, preserved)),
             "facts": board.facts,
             "ready_items": board.ready_items,
             "board": board,
@@ -402,12 +442,14 @@ class OrchestrationRuntime:
     async def _execute_work_item(self, state: WorkerState):
         started = time.perf_counter()
         update = await self._run_work_item(state)
-        result = update["agent_results"][0]
+        result = _as_agent_result(update["agent_results"][0])
         owner = state["work_item"].owner_agent
         self._outcome_counts.setdefault(owner, Counter())[result.status.value] += 1
         self._elapsed_ms[owner] = (
             self._elapsed_ms.get(owner, 0.0) + (time.perf_counter() - started) * 1000
         )
+        if "work_plan" in state:
+            update = {**update, "agent_results": _scope_results(state["work_plan"], (result,))}
         return update
 
     async def _run_work_item(self, state: WorkerState):
@@ -529,7 +571,7 @@ class OrchestrationRuntime:
     async def _merge_results(self, state: ParentGraphState):
         board = self._evaluate(state)
         return {
-            "agent_results": list(board.blocked_results),
+            "agent_results": _scope_results(state["work_plan"], board.blocked_results),
             "facts": board.facts,
             "ready_items": board.ready_items,
             "board": board,
@@ -543,7 +585,7 @@ class OrchestrationRuntime:
 
     def _evaluate(self, state):
         return self._result_board.evaluate(
-            state["work_plan"], tuple(state.get("agent_results", ())),
+            state["work_plan"], _agent_results(state.get("agent_results", ())),
             retained_outcomes=tuple(state.get("retained_outcomes", ())))
 
     async def execute(
