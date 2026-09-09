@@ -99,3 +99,28 @@ def delegated_task_content(payload):
     task = {key: value.pop(key) for key in ("objective", "arguments", "requirements", "action_proposals_allowed")}
     return [context_block("source_context", source), context_block("runtime_context", value),
             context_block("delegated_task", task)]
+
+
+def delegated_working_input(history, content, execution_id):
+    """Current control facts are pinned; background stays editable SDK history.
+
+    Only application-owned task-message IDs are superseded, never user/tool
+    messages. The original working records remain in the run archive/checkpoint.
+    """
+    sections = {}
+    for block in content:
+        sections.update(json.loads(block["text"]))
+    source = dict(sections["source_context"])
+    runtime = dict(sections["runtime_context"])
+    task = sections["delegated_task"]
+    current = source.pop("source_conversation")
+    control = {key: runtime.pop(key) for key in
+               ("pending_approval", "action_decisions", "completed_actions") if key in runtime}
+    background = HumanMessage(content=[context_block("source_context", source),
+        context_block("runtime_context", runtime)], id=f"task-background:{execution_id}")
+    pinned = HumanMessage(content=[context_block("delegated_task", task),
+        context_block("source_context", {"source_conversation": current}), context_block("runtime_context", control)],
+        id=f"task-context:{execution_id}")
+    working = [m for m in history if not (isinstance(m, HumanMessage)
+        and (m.id or "").startswith(("task-context:", "task-background:")))]
+    return [background, *working, pinned], pinned

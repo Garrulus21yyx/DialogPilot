@@ -100,13 +100,14 @@ SCHEMA["properties"]["repair_owner"] = {"type": "string", "enum": ["domain", "co
 class DomainOutcomeReview:
     """One semantic boundary, with the same SDK transport and tracing as planning."""
 
-    def __init__(self, model, *, callbacks=(), available_tokens, business_policy, tools, registered_action_refs=()):
+    def __init__(self, model, *, callbacks=(), available_tokens, business_policy, tools, registered_action_refs=(), archive=None):
         self.model = model
         self.callbacks = callbacks
         self.available_tokens = available_tokens
         self.business_policy = business_policy
         self.tools = tools
         self.registered_action_refs = tuple(registered_action_refs)
+        self.archive = archive
 
     def request_messages(self, *, context, messages, kind, candidate):
         """The measured request is exactly the one passed to the SDK transport."""
@@ -146,9 +147,17 @@ class DomainOutcomeReview:
     async def assess(self, *, context, messages, kind, candidate):
         item = context.work_item
         try:
+            # Review does not call tools. Resolve offloaded originals unless the
+            # actor already supplied successful bounded pages for that reference.
+            # A preview alone must never silently replace the supporting record.
+            from infrastructure.domain_review_context import review_evidence_messages
+            messages = await review_evidence_messages(messages, context, self.archive)
             required = self.required_tokens(context=context, messages=messages, kind=kind, candidate=candidate)
             if required > self.available_tokens:
-                raise ModelContextBudgetExceeded(required, self.available_tokens)
+                return {"accepted": False, "repair_owner": "domain", "model_called": False, "feedback":
+                    "Action evidence exceeds the review input budget. Read bounded relevant evidence with "
+                    "read_tool_result before proposing again; directory previews are not sufficient evidence. "
+                    "Do not repeat business queries or claim the action was executed."}
             result = await structured_call(self.model, name="assess_domain_outcome", schema=SCHEMA,
                 system=SYSTEM, messages=self.request_messages(
                     context=context, messages=messages, kind=kind, candidate=candidate), callbacks=self.callbacks, metadata={

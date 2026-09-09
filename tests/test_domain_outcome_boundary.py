@@ -46,23 +46,16 @@ def test_assignment_error_returns_to_planner_without_local_retry_or_preparation(
     terminal("request_user_input", "Should I cancel the order you specified?"),
     terminal("report_blocked", "The request is already complete; nothing else is needed."),
 ])
-def test_all_terminal_routes_reconsider_within_sdk_before_durable_handback(candidate):
+def test_ordinary_handback_is_not_replanned_by_a_domain_judge(candidate):
     agent, context, model, calls = domain([candidate, call("prepare_order_cancel"),
                                          AIMessage(content="Cancellation is prepared, not executed.")])
     model.outcome_reviews = [
         {"accepted": False, "feedback": "The target is known; prepare its requested cancellation."},
         {"accepted": True, "feedback": ""}]
     result = asyncio.run(agent(context))
-    assert result.status.value == "WAITING_APPROVAL"
-    assert result.pending_action is not None
-    assert not result.missing_inputs and not result.action_receipts
-    assert len(calls) == 1  # Preparation read, no business write or rejected input execution.
-    assert model.calls == 2 and model.review_calls == 2
-    assert [entry["accepted"] for entry in result.execution_feedback
-            if entry["stage"] == "domain_outcome"] == [False, True]
-    assert not any((message["data"].get("artifact") or {}).get("schema") == "agent-result-v1"
-        for message in result.working_messages if message["type"] == "tool"
-        and message["data"].get("name") in {"request_user_input", "report_blocked"})
+    assert result.status.value in {"SUCCEEDED", "NEEDS_USER_INPUT", "BLOCKED"}
+    assert result.pending_action is None and not result.action_receipts
+    assert not calls and model.calls == 1 and model.review_calls == 0
 
 
 @pytest.mark.parametrize("kind,text,status", [
@@ -74,7 +67,7 @@ def test_valid_handback_stays_bound_to_assigned_work(kind, text, status):
     result = asyncio.run(agent(context))
     assert result.status.value == status
     assert result.work_item_id == context.work_item.work_item_id
-    assert model.review_calls == 1 and model.calls == 1 and not calls
+    assert model.review_calls == 0 and model.calls == 1 and not calls
     if result.missing_inputs:
         assert result.missing_inputs[0].target_work_item_id == result.work_item_id
 
@@ -183,11 +176,9 @@ def test_failed_preparation_does_not_end_segment_or_turn_acceptance_into_success
 def test_preparation_failure_does_not_spend_the_semantic_correction():
     agent, context, model, executed = domain([
         call('prepare_order_cancel', 'not-ready'),
-        terminal('report_blocked', 'An earlier preparation failed.'),
         call('prepare_order_cancel', 'ready')])
     model.outcome_reviews = [
         {'accepted': True, 'feedback': ''},
-        {'accepted': False, 'feedback': 'The preparation failure is recoverable; reassess the action.'},
         {'accepted': True, 'feedback': ''}]
     tool = next(tool for tool in agent._tool_manager.registered_tools if tool.name == 'order_lookup')
     original = tool.handler
@@ -200,7 +191,7 @@ def test_preparation_failure_does_not_spend_the_semantic_correction():
     result = asyncio.run(agent(context))
     assert result.status.value == 'WAITING_APPROVAL'
     assert result.pending_action.work_item_id.endswith(':action:ready')
-    assert model.calls == model.review_calls == 3
+    assert model.calls == model.review_calls == 2
     assert len(executed) == 2 and not result.action_receipts
 
 
@@ -215,11 +206,11 @@ def test_correction_budget_depends_on_rejections_not_accepted_reviews(accepted_h
         async def assess(self, **kwargs):
             calls.append(kwargs)
             return {'accepted': False, 'feedback': 'The assigned task remains incomplete.'}
-    state = {'messages': [AIMessage('Done.')],
+    state = {'messages': [call('prepare_order_cancel')],
              'outcome_review_calls': accepted_history + rejected_history,
              'outcome_feedback': ([{'accepted': True, 'feedback': ''}] * accepted_history
                                   + [{'accepted': False, 'feedback': 'Incomplete.'}] * rejected_history)}
-    boundary = InteractionBoundaryMiddleware(review=Review())
+    boundary = InteractionBoundaryMiddleware(('prepare_order_cancel',), review=Review())
     if rejected_history:
         with pytest.raises(DomainOutcomeRejected):
             asyncio.run(boundary.aafter_model(state, SimpleNamespace(context=None)))
@@ -305,8 +296,7 @@ def test_current_proposal_advertisement_matches_exposed_tools(pending):
     assert ("prepare_order_cancel" in exposed) is advertised
 
 
-@pytest.mark.parametrize("candidate", [AIMessage(content="Done"),
-    terminal("request_user_input", "Proceed?"), terminal("report_blocked", "Already done")])
+@pytest.mark.parametrize("candidate", [call("prepare_order_cancel")])
 def test_two_rejections_are_typed_non_success_without_pending_input(candidate):
     agent, context, model, calls = domain([candidate, candidate.model_copy(update={"id": None})])
     model.outcome_reviews = [{"accepted": False, "feedback": "Assigned objective remains unfulfilled."}] * 2
@@ -319,7 +309,7 @@ def test_two_rejections_are_typed_non_success_without_pending_input(candidate):
 
 
 def test_unavailable_assessment_is_not_silent_success_or_ordinary_agent_failure():
-    agent, context, model, _ = domain([AIMessage(content="Completed")])
+    agent, context, model, _ = domain([call("prepare_order_cancel")])
     model.outcome_reviews = [{"accepted": True, "feedback": "contradiction"}]
     result = asyncio.run(agent(context))
     assert result.status.value == "TERMINAL_FAILURE"
@@ -329,9 +319,7 @@ def test_unavailable_assessment_is_not_silent_success_or_ordinary_agent_failure(
 
 def test_resolved_receipt_does_not_need_another_write_or_blocker():
     from application.agent_result import AgentResult, AgentResultStatus, ReceiptRef
-    agent, context, model, calls = domain([
-        terminal("report_blocked", "Already cancelled; there is no further work."),
-        AIMessage(content="Cancellation is completed.")])
+    agent, context, model, calls = domain([AIMessage(content="Cancellation is completed.")])
     done = AgentResult("action", context.work_item.owner_agent, AgentResultStatus.SUCCEEDED,
         "COMMITTED", "test", action_receipts=(ReceiptRef("receipt", "v1", "operation",
                                                     "COMMITTED", "order.cancel_action"),))
@@ -341,6 +329,7 @@ def test_resolved_receipt_does_not_need_another_write_or_blocker():
     result = asyncio.run(agent(context))
     assert result.status.value == "SUCCEEDED"
     assert not calls and not result.pending_action
+    assert model.review_calls == 0 and context.dependency_results == (done,)
 
 
 @pytest.mark.parametrize("independent_status", ["SUCCEEDED", "BLOCKED", "TERMINAL_FAILURE"])
@@ -404,7 +393,7 @@ def test_assessment_preserves_provider_retryability(status_code, retryable):
             error.status_code = status_code
             raise ModelInvocationError("assess_domain_outcome", error) from error
     agent, context, _, _ = domain([])
-    agent._model = UnavailableModel(responses=[AIMessage(content="Complete")])
+    agent._model = UnavailableModel(responses=[call("prepare_order_cancel")])
     agent._review_model = agent._model
     result = asyncio.run(agent(context))
     assert result.reason_code == "DOMAIN_OUTCOME_REVIEW_UNAVAILABLE"
@@ -424,11 +413,11 @@ def test_review_uses_its_own_model_and_budget_without_actor_fallback(budget):
     result = asyncio.run(agent(context))
     assert actor.review_calls == 0 and not calls and result.pending_action is None
     if budget == 1:
-        assert reviewer.review_calls == 0 and actor.calls == 0
+        assert reviewer.review_calls == 0 and actor.calls == 1
         assert result.reason_code == "CONTEXT_BUDGET_EXCEEDED"
         assert result.retryable is False
     else:
-        assert reviewer.review_calls == 2 and actor.calls == 2
+        assert reviewer.review_calls == 1 and actor.calls == 2
         assert result.status.value == "SUCCEEDED"
 
 

@@ -31,8 +31,9 @@ class ResultState(AgentState):
 class ToolResultPersistence(AgentMiddleware):
     state_schema = ResultState
 
-    def __init__(self, archive):
+    def __init__(self, archive, *, max_inline_tokens=None):
         self.archive = archive
+        self.max_inline_tokens = max_inline_tokens
 
     async def awrap_tool_call(self, request, handler):
         response = await handler(request)
@@ -59,8 +60,18 @@ class ToolResultPersistence(AgentMiddleware):
                    "observation": tool_observation_digests(result),
                    "observation_uses_arguments": tool_observation_uses_arguments(result)}
         content = response.content
-        # Persistence preserves content. ContextCompaction owns model admission
-        # after the complete parallel tool batch and prompt overhead are known.
+        # The full artifact remains archived. Bound large read-result working
+        # views at ingestion; the SDK call/result pairing and exact result index
+        # survive. Prepared actions retain their approval/receipt presentation.
+        if (self.max_inline_tokens is not None and artifact.get("schema") == "tool-result-v1"
+                and not result.get("pending_action")
+                and count_tokens_approximately([response]) > self.max_inline_tokens):
+            content = result_pointer(reference, str(content))
+            if count_tokens_approximately([response.model_copy(update={"content": content})]) > self.max_inline_tokens:
+                content = json.dumps({"result_ref": reference, "complete": False,
+                    "total_characters": len(str(response.content)),
+                    "read_tool_result": {"reference": reference, "offset": 0},
+                    "note": "Original archived; read bounded pages before using it as evidence."})
         response = response.model_copy(update={"content": content, "artifact": pointer})
         return Command(update={"messages": [response],
             "tool_observations": {response.tool_call_id: {

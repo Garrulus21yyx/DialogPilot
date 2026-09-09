@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 class ResponseAssemblyMode(str, Enum):
     TEMPLATE = "TEMPLATE"
-    # Decode historical checkpoints only; no current execution selects this mode.
+    # A bound, single ordinary question needs no second author or model judge.
     PASS_THROUGH = "PASS_THROUGH"
     CONVERSATION_COMPOSE = "CONVERSATION_COMPOSE"
 
@@ -53,8 +53,15 @@ class AssembledResponse:
 
     @property
     def verified(self) -> bool:
-        """Only a successful check bound to this exact text attests the answer."""
+        """Publication checks are bound to text; reason identifies code vs model checks."""
         return self.verification_status == "PASS" and bool(self.verified_text_sha256)
+
+    @property
+    def interaction_ready(self) -> bool:
+        """Bound question integrity is not an attestation of factual support."""
+        return self.verified or (self.verification_status == "NOT_REQUIRED"
+            and self.verification_reason == "BOUND_QUESTION_NO_MODEL_REVIEW"
+            and bool(self.verified_text_sha256))
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "evidence_refs", tuple(self.evidence_refs))
@@ -105,7 +112,7 @@ class ResponseAssembler:
         response = await self._assemble(board, current_message=current_message,
             system_notice=system_notice, conversation_context=conversation_context, pending_approval=pending_approval,
             requested_inputs=requested_inputs, response_candidate=response_candidate)
-        if requested_inputs and not response.verified:
+        if requested_inputs and not response.interaction_ready:
             prelude = _render_board(board, locale=self.fallback_locale)
             notice = _message(self.fallback_locale,
                 "暂时无法组织后续问题，已保留处理进度，请稍后重试。",
@@ -116,7 +123,7 @@ class ResponseAssembler:
                 evidence_sha256=response.evidence_sha256, evidence_json=response.evidence_json)
         pending = [r.pending_action for r in board.results if r.pending_action]
         operation_key = pending_approval.operation_key if pending_approval else pending[0].operation_key if len(pending) == 1 else ""
-        if operation_key and response.verified_text_sha256:
+        if operation_key and response.verified:
             response = replace(response, approval_operation_key=operation_key)
         return response
 
@@ -124,6 +131,18 @@ class ResponseAssembler:
                         pending_approval=None, requested_inputs=(), response_candidate=None) -> AssembledResponse:
         from dataclasses import replace
         from application.knowledge_tool_contract import evidence_items, evidence_id, model_evidence, evidence_content_identity
+
+        if (requested_inputs and pending_approval is None and response_candidate is None
+                and all(r.status is AgentResultStatus.NEEDS_USER_INPUT for r in board.all_results)
+                and not any(result is None for _, result in board.outcome_items)
+                and not any(r.pending_action or r.action_receipts for r in board.all_results)):
+            # MissingInputSpec provides a nonempty, bound question, not proof of
+            # factual support. Independent outcomes use normal
+            # assembly so a question cannot erase another task's result.
+            text = system_notice + "\n".join(spec.question_hint.strip() for spec in requested_inputs)
+            return AssembledResponse(text, ResponseAssemblyMode.PASS_THROUGH, (), False,
+                "NOT_REQUIRED", "BOUND_QUESTION_NO_MODEL_REVIEW",
+                verified_text_sha256=hashlib.sha256(text.encode()).hexdigest())
 
         knowledge_facts = tuple(fact for result in getattr(board, "all_results", board.results) for fact in result.facts
                                 if fact.requirement_id == "knowledge.active_source")

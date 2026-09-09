@@ -181,7 +181,7 @@ def test_verifier_feedback_only_revises_reply_from_same_evidence(invalid_input):
     result = asyncio.run(ResponseAssembler(composer,
         knowledge_verifier=AnswerVerifier(model, model_profile=ModelProfile("test"))).assemble(
             _board(AgentResult("work", "order_logistics", AgentResultStatus.NEEDS_USER_INPUT,
-                "INPUT", "test", missing_inputs=missing)),
+                "INPUT", "test", missing_inputs=missing), _verified_order_result()),
             current_message="Please process my request", requested_inputs=missing))
     assert not result.verified
     assert len(composer.calls) == 2

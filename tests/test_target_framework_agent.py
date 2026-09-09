@@ -179,9 +179,11 @@ def test_domain_input_resume_reuses_progress_after_postgres_checkpoint_reopen(po
     assert len(seen_messages) == input_rounds + 2
     task_messages = [message for message in seen_messages[-1]
                      if message.type == "human" and (message.id or "").startswith("task-context:")]
-    assert len(task_messages) == input_rounds + 1
+    assert len(task_messages) == 1
     assert len({message.id for message in task_messages}) == len(task_messages)
-    final_prompt = {key: value for block in prompts[-1]
+    final_prompt = {key: value for message in seen_messages[-1]
+                    if message.type == "human" and (message.id or "").startswith(("task-context:", "task-background:"))
+                    for block in message.content
                     for section in json.loads(block["text"]).values() for key, value in section.items()}
     assert final_prompt["verified_facts"][0]["source_ref"] == "lookup-once"
     assert final_prompt["verified_facts"][0]["observed_at"]

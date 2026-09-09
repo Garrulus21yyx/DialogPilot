@@ -287,13 +287,9 @@ def test_long_result_can_be_read_without_reexecuting_tool_and_fact_is_complete(m
     assert calls == ["lookup"]
     assert json.loads(result.facts[0].value_json) == original
     assert all(len(str(message.content)) < 10000 for message in visible)
-    review, = captured
-    page = next(m for m in review["working_context"] if m.get("tool_call_id") == "page")
+    assert captured == []  # Ordinary completion is not judged again in the domain.
     actor_page = next(m for m in visible if isinstance(m, ToolMessage) and m.tool_call_id == "page")
-    assert page["content_json"] == json.loads(actor_page.content)
-    assert "large detail" in str(page["content_json"])
-    page_call = next(call for m in review["working_context"] for call in m.get("tool_calls", ()) if call["id"] == "page")
-    assert page_call["args"]["reference"]
+    assert "large detail" in actor_page.content
 
 
 def test_postgres_original_survives_store_reopen(postgres_database_url):

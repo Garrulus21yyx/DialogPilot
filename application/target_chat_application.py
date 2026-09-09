@@ -333,7 +333,7 @@ class TargetChatApplication:
                 stages=assembly.diagnostics,
             )
 
-        if present_input and assembly is not None and assembly.verified:
+        if present_input and assembly is not None and assembly.interaction_ready:
             if assembly is None:
                 return Failed("target_interaction_not_assembled", True,
                     str(identity.invocation_key), "The follow-up question could not be prepared.")
@@ -615,7 +615,8 @@ class TargetChatApplication:
             # or approval grant. No interaction publication is recorded, so a new
             # turn can present the same persisted wait without rerunning its work.
             public_response.update(execution="WAITING")
-            if (present_input or present_approval) and assembly is not None and not assembly.verified:
+            if assembly is not None and ((present_approval and not assembly.verified)
+                    or (present_input and not assembly.interaction_ready)):
                 public_response["interaction_presentation"] = "UNAVAILABLE"
         published = self._publication.publish(
             identity,

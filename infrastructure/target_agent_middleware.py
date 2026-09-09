@@ -143,6 +143,8 @@ class InteractionBoundaryMiddleware(AgentMiddleware):
         if outcome is None:
             return None
         kind, candidate = outcome
+        if kind != "PREPARE_ACTION":
+            return None
         return lambda history: (self.review.required_tokens(context=context,
             messages=history, kind=kind, candidate=candidate), self.review.available_tokens)
 
@@ -172,6 +174,11 @@ class InteractionBoundaryMiddleware(AgentMiddleware):
         if outcome is None:
             return None
         kind, candidate = outcome
+        if kind != "PREPARE_ACTION":
+            # This records a handback, not a semantic attestation. Tool results
+            # and requirements remain the authority for the resulting task state.
+            return {"accepted_outcome": {"kind": kind, "message_id": message.id,
+                "tool_call_id": calls[0]["id"] if calls else None}}
         review_calls = state.get("outcome_review_calls", 0)
         # Accepted proposals may encounter a preparation failure. They consume
         # model/tool budget, not semantic correction budget. Persisted feedback
@@ -191,7 +198,7 @@ class InteractionBoundaryMiddleware(AgentMiddleware):
         if assessment is None:
             assessment = await self.review.assess(context=runtime.context,
                 messages=state["messages"], kind=kind, candidate=candidate)
-            review_calls += 1
+            review_calls += int(assessment.get("model_called", True))
         if not assessment["accepted"] and assessment.get("repair_owner") == "conversation":
             from infrastructure.target_domain_outcome import DomainAssignmentRejected
             raise DomainAssignmentRejected(assessment["feedback"])

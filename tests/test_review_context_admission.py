@@ -83,13 +83,25 @@ def test_post_model_admission_is_checkpointed_before_review_failure(failure, bac
     async def run(saver):
         context = _context()
         pinned = HumanMessage("Only prepare the requested change.", id="goal")
-        candidate = AIMessage("The requested investigation is complete.", id="candidate")
+        candidate = AIMessage("", id="candidate", tool_calls=[{
+            "name": "prepare_change", "id": "proposal", "args": {}}])
         messages = [pinned, HumanMessage("Old context. " * 2500, id="old"),
             AIMessage("", id="read-call", tool_calls=[{"id": "read", "name": "lookup", "args": {}}]),
             ToolMessage("Current state permits the change.", id="read-result", tool_call_id="read")]
         review = DomainOutcomeReview(None, available_tokens=7000, business_policy="Policy", tools=[])
         model = ScriptedToolModel(responses=[AIMessage("Earlier work retained. No action executed.")])
-        boundary = InteractionBoundaryMiddleware(review=review)
+        from langchain.agents.middleware import hook_config
+        from langchain_core.tools import StructuredTool
+        class PreparationBoundary(InteractionBoundaryMiddleware):
+            @hook_config(can_jump_to=["end"])
+            async def abefore_model(self, state, runtime):
+                if state.get("accepted_outcome", {}).get("kind") == "PREPARE_ACTION":
+                    return {"jump_to": "end"}
+                return await super().abefore_model(state, runtime)
+        boundary = PreparationBoundary(("prepare_change",), review=review)
+        async def prepare_change():
+            return "Prepared, not executed"
+        tool = StructuredTool.from_function(coroutine=prepare_change, description="Prepare change")
         compaction = ContextCompaction(model, TargetResultArchive(InMemoryStore()),
             available_tokens=32000, overhead_tokens=100, pinned_message=pinned,
             post_model_budget=boundary.review_budget)
@@ -101,7 +113,7 @@ def test_post_model_admission_is_checkpointed_before_review_failure(failure, bac
         monkeypatch.setattr("infrastructure.target_domain_outcome.structured_call", call)
         actor = ScriptedToolModel(responses=[candidate])
         def graph_instance():
-            return create_agent(actor, tools=[], context_schema=AgentContextView,
+            return create_agent(actor, tools=[tool], context_schema=AgentContextView,
                 middleware=[boundary, compaction], checkpointer=saver)
         graph = graph_instance()
         config = {"configurable": {"thread_id": uuid4().hex}}
@@ -117,7 +129,7 @@ def test_post_model_admission_is_checkpointed_before_review_failure(failure, bac
         assert model.calls == actor.calls == 1
         should_fail = False
         output = await graph_instance().ainvoke(None, config=config, context=context)
-        assert output["accepted_outcome"]["kind"] == "COMPLETE"
+        assert output["accepted_outcome"]["kind"] == "PREPARE_ACTION"
         assert len(output["compaction_records"]) == 1
         assert model.calls == actor.calls == 1
     if backend == "memory":
