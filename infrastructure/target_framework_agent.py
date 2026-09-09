@@ -68,7 +68,7 @@ logger = logging.getLogger(__name__)
 class TargetFrameworkAgent:
     """Execute one delegated read goal through a governed framework Agent."""
 
-    version = "target-framework-agent-v4-shared-context-admission"
+    version = "target-framework-agent-v5-action-decision-scope"
 
     def __init__(
         self,
@@ -521,6 +521,8 @@ class TargetFrameworkAgent:
         payload = {
             **business_observation_context(context.trusted_context.get("business_observations", ())),
             "objective": item.objective,
+            "action_decisions": [decision for decision in context.trusted_context.get("action_decisions", ())
+                                 if item.control and decision["control_id"] == item.control.control_id],
             "action_proposals_allowed": bool(item.allowed_actions) and context.pending_approval is None,
             "source_conversation": {"current_message": context.current_message},
             "arguments": {

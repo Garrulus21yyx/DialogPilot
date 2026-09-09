@@ -53,6 +53,13 @@ async def resolved_working_messages(context, archive):
         resolution = None
         if pending.pending_action is not None:
             action = pending.pending_action
+            decision = next((value for value in context.trusted_context.get("action_decisions", ())
+                if value["approval_id"] == action.approval_binding
+                and value["decision"] in {"DECLINED", "EXPIRED"}), None)
+            if decision is not None:
+                resolution = {"status": decision["decision"], "operation_key": action.operation_key,
+                              "action_ref": action.action_ref, "arguments": decision["arguments"],
+                              "executed": False, "approval_granted": False}
             for result in context.dependency_results:
                 receipts = tuple(receipt for receipt in result.action_receipts
                     if receipt.operation_key == action.operation_key and receipt.effect_status == "COMMITTED"
@@ -73,7 +80,7 @@ async def resolved_working_messages(context, archive):
                 "content": json.dumps(resolution, ensure_ascii=False),
                 "artifact": {"schema": "resolved-interaction-v1", "resolution": resolution,
                              "original_reference": artifact.get("reference")},
-                "status": "success",
+                "status": "error" if resolution["status"] in {"DECLINED", "EXPIRED"} else "success",
             })
     return messages
 

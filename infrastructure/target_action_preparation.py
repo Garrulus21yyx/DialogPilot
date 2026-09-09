@@ -35,6 +35,17 @@ class TargetActionPreparation:
             return self._result(item, AgentResultStatus.BLOCKED, "ACTION_REQUIRES_EXTERNAL_APPROVAL")
         values = dict(arguments)
         preparation = action.preparation
+        # A new/revised goal is a new instruction; unchanged continuation cannot
+        # turn rejection into another approval request for the same parameters.
+        if item.continuation_of and item.control:
+            def user_values(arguments):
+                return {key: value for key, value in arguments.items()
+                        if preparation is None or key != preparation.target_version_argument}
+            if any(decision["decision"] == "DECLINED" and decision["action_ref"] == action.ref
+                   and decision["control_id"] == item.control.control_id
+                   and user_values(decision["arguments"]) == user_values(values)
+                   for decision in context.trusted_context.get("action_decisions", ())):
+                return self._result(item, AgentResultStatus.BLOCKED, "ACTION_PREVIOUSLY_DECLINED")
         facts = ()
         if preparation is not None:
             definition = next(tool for tool in self.tools.registered_tools

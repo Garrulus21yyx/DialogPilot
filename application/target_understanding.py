@@ -23,7 +23,7 @@ class StateBoundTargetUnderstanding:
     Conversation Agent.
     """
 
-    version = "state-bound-target-understanding-v2-typed-input"
+    version = "state-bound-target-understanding-v3-action-decisions"
 
     async def __call__(
         self, observations, state, deterministic, registry, turn_context=None,
@@ -48,16 +48,11 @@ class StateBoundTargetUnderstanding:
             ResolutionKind.RECONCILE_WORKFLOW,
         }:
             if not deterministic.approved:
-                suspended = deterministic.resumed_work_items
-                # Declining one action closes its originating objective and its
-                # dependants, not unrelated work suspended by the same turn.
-                excluded = {work.work_item_id for work in deterministic.closed_work_items}
-                independent = tuple(work for work in suspended
-                                    if work.work_item_id not in excluded)
-                commands = (*self._continuations(self._without_field_waits(independent, state), state), *(
-                    CommandProposal("decline-goal:" + work.control.control_id, CommandKind.CANCEL_WORK,
-                        work.owner_agent, work.objective, revises_control_id=work.control.control_id)
-                    for work in deterministic.closed_work_items if work.control and state.accepts(work.control)))
+                # A decision retires this proposal, not its multi-action goal.
+                # Continue with the exact decision supplied by the manager;
+                # explicit goal cancellation remains a separate command.
+                commands = self._continuations(self._without_field_waits(
+                    deterministic.resumed_work_items, state), state)
                 return TurnProposal(
                     ProposalDisposition.RESOLVED if commands else ProposalDisposition.CLARIFY,
                     commands,
@@ -149,16 +144,18 @@ class StateBoundTargetUnderstanding:
             original_state.pending_interaction.suspended_work_items if original_state.pending_interaction else ())
             if work.control}
         bound_commands = bound.commands
-        if not resolution.approved and origin and origin.control_id in explicit and explicit[origin.control_id].continuation_of:
-            # Continuing the same goal overrides the default stop for its whole
-            # dependency chain, not just the root cancellation command.
-            closed_controls = {command.revises_control_id for command in bound_commands
-                               if command.kind is CommandKind.CANCEL_WORK}
-            restored = tuple(work for work in resolution.resumed_work_items
-                             if work.control and work.control.control_id in closed_controls
-                             and work.control.control_id not in waiting)
-            bound_commands = (*tuple(command for command in bound_commands if command.kind is not CommandKind.CANCEL_WORK),
-                              *cls._continuations(restored, original_state))
+        # Explicit goal cancellation/replacement still retires old dependent
+        # goals. It is distinct from declining only the prepared action.
+        from application.action_approval import partition_work_revision
+        affected = {key for key, command in explicit.items() if command.continuation_of is None}
+        closed, _ = partition_work_revision(resolution.resumed_work_items, affected)
+        cls._validate_revised_continuations(closed, semantic.commands)
+        closed_controls = {item.control.control_id for item in closed if item.control} - explicit.keys()
+        bound_commands = tuple(
+            CommandProposal(command.command_id, CommandKind.CANCEL_WORK,
+                command.target_agent, command.objective, revises_control_id=command.revises_control_id)
+            if command.revises_control_id in closed_controls else command
+            for command in bound_commands)
         defaults = tuple(command for command in bound_commands
             if command.revises_control_id not in explicit
             and (command.revises_control_id not in waiting or command.kind is CommandKind.CANCEL_WORK))
@@ -184,7 +181,7 @@ class StateBoundTargetUnderstanding:
         Old dependent goals close unless the semantic plan explicitly replaces
         them; their previous dependency is never silently discarded.
         """
-        from application.action_approval import partition_approval_revision
+        from application.action_approval import partition_work_revision
         pending = state.pending_approval
         origin = pending.origin_control if pending else None
         if origin and any(command.continuation_of and command.revises_control_id == origin.control_id
@@ -194,7 +191,12 @@ class StateBoundTargetUnderstanding:
                     if command.revises_control_id and command.continuation_of is None}
         represented = {command.revises_control_id for command in proposal.commands
                        if command.revises_control_id}
-        closed, independent = partition_approval_revision(state.pending_approval, affected)
+        closed, independent = partition_work_revision(pending.suspended_work_items if pending else (), affected)
+        cls._validate_revised_continuations(closed, proposal.commands)
+        if origin is None or origin.control_id not in affected:
+            # The approval slot still owns these unmodified suspended goals.
+            # Changing a different goal is not a decision on its proposal.
+            independent = ()
         if not closed and not independent:
             return proposal
         cancellations = tuple(CommandProposal(
@@ -210,6 +212,13 @@ class StateBoundTargetUnderstanding:
         return replace(proposal, commands=(
             *proposal.commands, *cancellations, *cls._continuations(
                 independent, state, dependency_commands=continuation_ids)))
+
+    @staticmethod
+    def _validate_revised_continuations(closed, commands):
+        closed_controls = {item.control.control_id for item in closed if item.control}
+        if any(command.continuation_of and command.revises_control_id in closed_controls
+               for command in commands):
+            raise TurnPlanningError("cannot continue work whose prerequisite was cancelled or replaced")
 
     @classmethod
     def preserve_input_continuations(cls, proposal, state):

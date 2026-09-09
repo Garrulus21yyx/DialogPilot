@@ -480,6 +480,7 @@ class TargetConversationManager:
                 progress_transition_count=len(prepared.state_transitions),
                 source_thread_ids=prepared.source_thread_ids,
             )
+        from application.action_approval import action_decision_context
         execution_context = {
             "current_message": observations.raw_text,
             "pending_approval": state.pending_approval,
@@ -497,6 +498,9 @@ class TargetConversationManager:
                 **invocation.metadata(),
                 "business_observations": turn_context.business_observations,
                 "conv_id": str(invocation.conversation_id),
+                "action_decisions": action_decision_context(
+                    prepared.execution_context.get("action_decisions", ()),
+                    state_before.pending_approval, deterministic),
                 "resolved_input_signal": (state_before.pending_interaction.interaction_id
                     if state_before.pending_interaction is not None
                     and f"interaction:{state_before.pending_interaction.interaction_id}:v{state_before.pending_interaction.version}"
@@ -627,11 +631,12 @@ class TargetConversationManager:
     @staticmethod
     def _closed_work_items(state, resolution, plan, *, thread_id=None):
         """Project accepted goal closure into the original execution checkpoint."""
-        from application.action_approval import partition_approval_revision
+        from application.action_approval import partition_work_revision
         cancelled = {item.control_id for item in plan.control_mutations}
         affected = cancelled | {item.control.control_id for item in (plan.work.items if plan.work else ())
                                 if item.control and item.continuation_of is None}
-        approval_closed, _ = partition_approval_revision(state.pending_approval, affected)
+        approval_closed, _ = partition_work_revision(
+            state.pending_approval.suspended_work_items if state.pending_approval else (), affected)
         input_closed = tuple(item for item in (state.pending_interaction.suspended_work_items
                             if state.pending_interaction else ())
                             if item.control and item.control.control_id in cancelled)

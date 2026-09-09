@@ -100,20 +100,6 @@ class DeterministicResolution:
     action_origin_work_item_id: str | None = None
 
     @property
-    def closed_work_items(self) -> tuple[WorkItem, ...]:
-        """The declined bound action closes its origin and dependent objectives."""
-        if self.kind not in {ResolutionKind.APPROVAL_DECISION, ResolutionKind.APPROVAL_EXPIRED} or self.approved:
-            return ()
-        excluded = {self.action_origin_work_item_id} if self.action_origin_work_item_id else set()
-        while True:
-            expanded = excluded | {item.work_item_id for item in self.resumed_work_items
-                                   if excluded.intersection(item.dependencies)}
-            if expanded == excluded:
-                break
-            excluded = expanded
-        return tuple(item for item in self.resumed_work_items if item.work_item_id in excluded)
-
-    @property
     def resolved(self) -> bool:
         return self.kind is not ResolutionKind.UNRESOLVED
 

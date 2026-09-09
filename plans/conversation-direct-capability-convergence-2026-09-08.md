@@ -1875,3 +1875,105 @@ Staged-only verification in /tmp/dialogpilot-shared-admission-gqrohu78 also pass
 extended page-to-review body capture. This excludes user-owned archive pagination
 and other dirty changes. Only the framework version/assembly hunks were staged
 from the shared target_framework_agent.py file; its user pagination edits remain.
+
+## Reopened whole-request convergence review (2026-09-09)
+
+Status: IN_PROGRESS, not verified closed. User explicitly requires fixing known
+causes before another tau run. No simulator, paid model replay or encoder changes
+are authorized by this review. Preserve all original and partial-run artifacts.
+
+Review contract: one accepted WorkItem objective defines its local completion;
+the conversation planner must preserve all requested outcomes when forming those
+items. ResultBoard aggregates accepted items, not an independent interpretation of
+user intent. Action preparation resolves policy prerequisites and consequences;
+approval authorizes an exact proposal; a receipt establishes only its actual
+effect. Resuming a domain objective retains that objective and completed evidence.
+Reply verification checks expression against those facts, not task transitions.
+
+Work sequence and acceptance:
+1. IN_PROGRESS: trace goal loss, action compatibility, repeated confirmations and
+   output rejection through producers, persisted state and consumers. Independent
+   fresh-context reviews cover goal ownership and approval/resume separately.
+2. PENDING: implement only demonstrated owner/contract changes, remove redundant
+   consumers together; no arbitrary validator relaxation or business-case branch.
+3. PENDING: property/state-transition tests cover multiple outcomes, partial
+   success, changed targets, approval, errors and resume. Test both valid execution
+   and typed failure; no count of unit tests is a business success claim.
+4. PENDING: reconcile documentation and independent review; report remaining
+   uncertainty before any separately scoped business validation.
+
+Initial verified distinctions: address-current-turn rejection was a duplicated
+   planning parameter owner (a519962); reviewer overflow was different consumer
+   envelopes (ae1504d). Neither explains a goal already narrowed by the planner.
+   Source currently retains suspended parent WorkItems after preparation, so it
+   would be inaccurate to claim every multi-action failure loses checkpoint state.
+   Coupled-operation feasibility and leaked prose need their own evidence, not a
+   new if branch inferred from their last public reply.
+
+### Causal review results and bounded repair
+
+Two independent reviews confirm that preparation/approved resume retain the full
+parent WorkItem and matching receipts. Do not attribute task23 to absent task
+state without evidence. The verified mechanisms are:
+
+* Goal-source gap: task28's planner delegates authentication/status instead of the
+  requested returns. The downstream reviewer deliberately checks only the assigned
+  objective. ResultBoard's task_completed is planned-work completion, not proof of
+  user-request coverage. No deterministic keyword rule can restore omitted goals.
+  This remains open at conversation planning/semantic acceptance, not fixed by the
+  lifecycle changes below.
+* Decision-scope gap: decline/expiry formerly emitted CANCEL_WORK for the entire
+  origin and dependent goals. This is now removed. Decisions retire proposals;
+  explicit goal cancellation/replacement alone closes the dependent DAG. Consumed
+  decisions accompany unchanged continuation, are merged from validated checkpoint
+  sources, and are cleared on explicit goal replacement. Preparation rejects the
+  exact declined operation/parameters in an unchanged scope, before tool reads.
+  Working ToolMessages project DECLINED/EXPIRED instead of stale WAITING_APPROVAL;
+  originals remain immutable. No new business ledger or second runnable path.
+* Correction-budget gap: accepted semantic reviews formerly exhausted the two-call
+  correction counter, including after preparation failed. Accepted reviews no
+  longer count as rejections. Existing actor/tool limits still bound execution.
+* Semantic false acceptance: Langfuse observation ec0a89a98d1d8bdc (task19,
+  2026-09-08T23:20:01Z) contains the full three-change objective and 6698-character
+  policy with both return/exchange state transitions. It accepts exchange-first.
+  Earlier observation06783c561cf5e61e actively recommends exchange in its correction.
+  This is not missing policy or missing TaskGraph state. Input completeness and
+  scripted acceptance tests do not establish correct model reasoning.
+* Reply false acceptance: task22 observation c85fc4e9b25972cf contains the actual
+  internal drafting prose in answer plus the explicit customer-facing rule. It
+  still returns supported=true/answered=true. SDK reasoning-field conversion is
+  not established as the cause; a semantic model misjudgment is confirmed. No
+  regex blacklist, extra unconditional judge, or prompt-only closure was added.
+* Harness lifecycle: exit143 plus stale RUNNING manifest is separate. The synchronous
+  simulator runs in asyncio.to_thread; cancellation of the awaiting task does not
+  stop that thread. Adding SIGTERM cancellation without joining/stopping that work
+  could destroy its database while it still runs. This requires runner-owner
+  shutdown handling; it remains open, not concealed by changing the old manifest.
+
+Reference practices checked 2026-09-09:
+https://docs.langchain.com/oss/python/langchain/human-in-the-loop describes reject
+as skipping the specific tool and returning feedback, not cancelling all goals.
+https://docs.langchain.com/oss/python/langchain/multi-agent/subagents describes
+supervisor context/assignment and isolated workers; adopting it does not guarantee
+semantic assignment coverage. These support the owner boundaries, not a SOTA claim.
+
+Verification in progress: all64 four-node ordered DAGs, each possible changed node
+and cancel/revise, check closure and executable dependencies (512 combinations).
+Same/source-thread continuation, repeated input, goal replacement, exact declined
+action rejection and expiry matrices cover the positive lifecycle contract. Initial
+448 component/integration tests passed with PostgreSQL (one existing fork warning).
+Further PostgreSQL decision-continuity tests and final independent review pending.
+This is not a tau rerun or semantic success attestation. Overall closure stays open.
+
+Final bounded verification (2026-09-09): 437 tests passed with real PostgreSQL,
+including checkpoint takeover, SDK subgraph process exit, compound approval,
+decision continuity, domain outcome correction and pending reply planning. One
+existing multiprocessing fork warning remains. The 64-DAG matrix also checks
+multiple explicit commands: a continuation of a cancelled/replaced prerequisite
+is rejected with TurnPlanningError at approval planning; a new replacement may
+rebuild that goal. Both approval merge and pending preservation use the same
+validation. Independent read-only review found no remaining definite blocker in
+this bounded approval/budget/dependency repair. Goal narrowing, semantic false
+acceptance and runner shutdown remain OPEN; no tau or paid model rerun was made.
+Implementation and tests are ready for a scoped commit; this is not whole-request
+closure and does not authorize dependent benchmark claims.

@@ -609,6 +609,8 @@ class OrchestrationRuntime:
                for item, _ in retained_outcomes):
             raise OrchestrationRuntimeError("observed outcome registry differs from plan")
         imported = tuple(retained_outcomes)
+        from application.action_approval import merge_action_decisions
+        decisions = tuple(snapshot.values.get("trusted_context", {}).get("action_decisions", ()))
         for source in source_thread_ids:
             if source in snapshot.values.get("imported_source_threads", ()):
                 continue
@@ -631,6 +633,17 @@ class OrchestrationRuntime:
                 for item in work_plan.items) for original, _ in outcomes):
                 raise OrchestrationRuntimeError("source checkpoint has no goal in the accepted plan")
             imported = _merge_checkpoint_outcomes(imported, outcomes)
+            decisions = merge_action_decisions(decisions, other_scope.get("action_decisions", ()))
+        resumed_context = dict(trusted_context or {})
+        resumed_context["action_decisions"] = merge_action_decisions(
+            decisions, resumed_context.get("action_decisions", ()))
+        # Explicitly replaced goals start a new decision scope. A write item
+        # executing the old proposal is not a replacement of its parent goal.
+        revised = {item.control.control_id for item in work_plan.items
+                   if item.control and item.continuation_of is None and not item.operation_key}
+        resumed_context["action_decisions"] = tuple(
+            decision for decision in resumed_context["action_decisions"]
+            if decision["control_id"] not in revised)
         result = await self.graph.ainvoke(Command(resume={
             "work_plan": work_plan,
             "interrupt_after_completion": interrupt_after_completion,
@@ -638,7 +651,7 @@ class OrchestrationRuntime:
             "recent_relevant_turns": recent_relevant_turns,
             "evidence_refs": evidence_refs,
             "token_budget": token_budget,
-            "trusted_context": dict(trusted_context or {}),
+            "trusted_context": resumed_context,
             "pending_approval": pending_approval,
             "closed_work_items": closed_work_items,
             "imported_outcomes": imported,

@@ -166,6 +166,56 @@ def test_failed_preparation_does_not_end_segment_or_turn_acceptance_into_success
     assert not result.action_receipts
 
 
+def test_preparation_failure_does_not_spend_the_semantic_correction():
+    agent, context, model, executed = domain([
+        call('prepare_order_cancel', 'not-ready'),
+        terminal('report_blocked', 'An earlier preparation failed.'),
+        call('prepare_order_cancel', 'ready')])
+    model.outcome_reviews = [
+        {'accepted': True, 'feedback': ''},
+        {'accepted': False, 'feedback': 'The preparation failure is recoverable; reassess the action.'},
+        {'accepted': True, 'feedback': ''}]
+    tool = next(tool for tool in agent._tool_manager.registered_tools if tool.name == 'order_lookup')
+    original = tool.handler
+    attempts = []
+    async def initially_not_ready(params, ctx):
+        data = await original(params, ctx)
+        attempts.append(params)
+        return {**data, 'status': 'not_ready'} if len(attempts) == 1 else data
+    tool.handler = initially_not_ready
+    result = asyncio.run(agent(context))
+    assert result.status.value == 'WAITING_APPROVAL'
+    assert result.pending_action.work_item_id.endswith(':action:ready')
+    assert model.calls == model.review_calls == 3
+    assert len(executed) == 2 and not result.action_receipts
+
+
+@pytest.mark.parametrize('accepted_history', [0, 1, 2, 5])
+@pytest.mark.parametrize('rejected_history', [0, 1, 2])
+def test_correction_budget_depends_on_rejections_not_accepted_reviews(accepted_history, rejected_history):
+    from types import SimpleNamespace
+    from infrastructure.target_agent_middleware import InteractionBoundaryMiddleware
+    from infrastructure.target_domain_outcome import DomainOutcomeRejected
+    calls = []
+    class Review:
+        async def assess(self, **kwargs):
+            calls.append(kwargs)
+            return {'accepted': False, 'feedback': 'The assigned task remains incomplete.'}
+    state = {'messages': [AIMessage('Done.')],
+             'outcome_review_calls': accepted_history + rejected_history,
+             'outcome_feedback': ([{'accepted': True, 'feedback': ''}] * accepted_history
+                                  + [{'accepted': False, 'feedback': 'Incomplete.'}] * rejected_history)}
+    boundary = InteractionBoundaryMiddleware(review=Review())
+    if rejected_history:
+        with pytest.raises(DomainOutcomeRejected):
+            asyncio.run(boundary.aafter_model(state, SimpleNamespace(context=None)))
+        assert len(calls) == (1 if rejected_history == 1 else 0)
+    else:
+        update = asyncio.run(boundary.aafter_model(state, SimpleNamespace(context=None)))
+        assert update['jump_to'] == 'model'
+        assert update['outcome_review_calls'] == accepted_history + 1
+
+
 @pytest.mark.parametrize("batch", ["single", "read_first", "read_last"])
 @pytest.mark.parametrize("reason", ["wrong objective", "wrong target", "already completed action"])
 def test_rejected_action_selection_never_prepares_or_executes_its_batch(batch, reason, monkeypatch):

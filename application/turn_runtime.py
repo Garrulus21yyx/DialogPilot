@@ -57,7 +57,7 @@ class TurnRuntimeResult:
 class TurnRuntime:
     """Coordinate durable turn phases without owning their domain semantics."""
 
-    version = "turn-runtime-v15-shared-context-admission"
+    version = "turn-runtime-v16-action-decision-scope"
 
     def __init__(
         self,

@@ -29,6 +29,12 @@ A missing-input question must ask only for its missing value/choice; do not add
 confirmation of already resolved targets or permission to proceed. Prior assent
 without a matching prepared action is user intent, not a runtime approval grant.
 This preserves required user choices without collecting execution approval twice.
+An action decision applies only to the identified proposal. A declined proposal
+must not be prepared again in the unchanged objective; continue other requested
+outcomes, or report that the declined action was not performed. A declined action
+is no longer an execution obligation. Expiry is not user rejection or goal
+cancellation: refresh the proposal if still requested and obtain a new approval.
+Only explicit goal cancellation retires the entire objective and its dependants.
 Distinguish user-required final outcomes from intermediate tool effects. A tool
 leaving a state unchanged does not make that state a final user requirement. Before
 declaring requested changes incompatible or asking the user to choose, consider an
@@ -40,19 +46,40 @@ evidence that the overall user goals are mutually exclusive.
 """
 
 
-def partition_approval_revision(pending, affected_controls):
-    """Separate invalidated work and unaffected continuations of one wait.
+def merge_action_decisions(*groups):
+    """A consumed approval has one immutable outcome across checkpoint imports."""
+    decisions = {}
+    for group in groups:
+        for decision in group:
+            prior = decisions.setdefault(decision["approval_id"], decision)
+            if prior != decision:
+                raise ConversationStateConflict("approval decision differs across checkpoints")
+    return tuple(decisions.values())
 
-    Dependencies of a changed objective require a new plan, not implicit reuse.
-    The checkpoint remains the owner of previously completed results.
-    """
-    binding = pending.origin_control if pending else None
-    if binding is None or binding.control_id not in affected_controls:
-        return (), ()
-    suspended = pending.suspended_work_items
+
+def action_decision_context(previous, pending, resolution):
+    """Checkpointed evidence of consumed decisions, not a second approval store."""
+    from application.deterministic_resolution import ResolutionKind
+    decisions = tuple(previous or ())
+    if pending is None or resolution.kind not in {
+        ResolutionKind.APPROVAL_DECISION, ResolutionKind.APPROVAL_EXPIRED,
+    }:
+        return decisions
+    decision = {
+        "approval_id": pending.approval_id,
+        "action_ref": pending.action_ref,
+        "arguments": {arg.name: arg.value for arg in pending.arguments},
+        "control_id": pending.origin_control.control_id if pending.origin_control else None,
+        "decision": ("EXPIRED" if resolution.kind is ResolutionKind.APPROVAL_EXPIRED
+                     else "APPROVED" if resolution.approved else "DECLINED"),
+    }
+    return merge_action_decisions(decisions, (decision,))
+
+
+def partition_work_revision(suspended, affected_controls):
+    """Split a suspended DAG at any explicitly changed goal, not just its root."""
     excluded = {item.work_item_id for item in suspended
                 if item.control and item.control.control_id in affected_controls}
-    excluded.update(value for value in (pending.origin_work_item_id, pending.work_item_id) if value)
     while True:
         expanded = excluded | {item.work_item_id for item in suspended
                                if excluded.intersection(item.dependencies)}

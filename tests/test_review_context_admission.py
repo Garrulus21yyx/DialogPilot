@@ -106,7 +106,10 @@ def test_post_model_admission_is_checkpointed_before_review_failure(failure, bac
         graph = graph_instance()
         config = {"configurable": {"thread_id": uuid4().hex}}
         with pytest.raises(DomainOutcomeReviewUnavailable if failure == "provider" else DomainOutcomeRejected):
-            await graph.ainvoke({"messages": messages, "outcome_review_calls": 1 if failure == "second_rejection" else 0},
+            await graph.ainvoke({"messages": messages,
+                                "outcome_review_calls": 1 if failure == "second_rejection" else 0,
+                                "outcome_feedback": [{"kind": "COMPLETE", "accepted": False,
+                                    "feedback": "Resolve the target."}] if failure == "second_rejection" else []},
                                 config=config, context=context)
         snapshot = await graph.aget_state(config)
         assert snapshot.values["compaction_records"][0]["summarized"]

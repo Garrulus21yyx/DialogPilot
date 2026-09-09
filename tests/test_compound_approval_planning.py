@@ -138,8 +138,11 @@ def test_whole_turn_preserves_unaddressed_waits_and_exact_authorization(decision
         assert (prepared.state.pending_approval is None) == bool(decision or goal in {"revise", "cancel", "continue"})
         cancelled = {m.control_id for m in prepared.plan.control_mutations}
         if decision == "decline" and goal not in {"revise", "continue", "cancel"}:
-            assert origin.control.control_id in cancelled
-            assert origin_child.control.control_id in cancelled
+            assert origin.control.control_id not in cancelled
+            assert origin_child.control.control_id not in cancelled
+            root = next(item for item in items if item.control.control_id == origin.control.control_id)
+            dependent = next(item for item in items if item.control.control_id == origin_child.control.control_id)
+            assert root.work_item_id in dependent.dependencies
         if decision == "decline" and goal == "continue":
             root = next(item for item in items if item.control.control_id == origin.control.control_id)
             dependent = next(item for item in items if item.control.control_id == origin_child.control.control_id)

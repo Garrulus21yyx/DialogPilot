@@ -119,7 +119,7 @@ class InteractionBoundaryMiddleware(AgentMiddleware):
     """Accept a goal-bound handback before ending or executing an interaction."""
 
     state_schema = OutcomeState
-    max_review_calls = 2
+    max_rejections = 2
 
     def __init__(self, action_tools=(), *, review):
         self.action_tools = frozenset(action_tools)
@@ -173,7 +173,12 @@ class InteractionBoundaryMiddleware(AgentMiddleware):
             return None
         kind, candidate = outcome
         review_calls = state.get("outcome_review_calls", 0)
-        if review_calls >= self.max_review_calls:
+        # Accepted proposals may encounter a preparation failure. They consume
+        # model/tool budget, not semantic correction budget. Persisted feedback
+        # is the authority, including checkpoints written before this change.
+        rejections = sum(entry.get("accepted") is False
+                         for entry in state.get("outcome_feedback", ()))
+        if rejections >= self.max_rejections:
             raise DomainOutcomeRejected("domain_outcome_correction_budget_exhausted")
         assessment = await self.review.assess(context=runtime.context,
             messages=state["messages"], kind=kind, candidate=candidate)
@@ -183,7 +188,7 @@ class InteractionBoundaryMiddleware(AgentMiddleware):
         if assessment["accepted"]:
             return {**update, "accepted_outcome": {"kind": kind, "message_id": message.id,
                 "tool_call_id": proposals[0]["id"] if proposals else calls[0]["id"] if calls else None}}
-        if review_calls:
+        if rejections + 1 >= self.max_rejections:
             # A typed failure is retained by the adapter; nothing is relabelled
             # complete and no rejected input tool gets a durable observation.
             raise DomainOutcomeRejected(assessment["feedback"])

@@ -25,7 +25,7 @@ from tests.test_target_persistence_and_manager import _identity, _ResumeAwareUnd
 
 
 @pytest.mark.parametrize("independent_count", [0, 1, 3])
-def test_decline_resumes_only_independent_objectives(independent_count):
+def test_decline_retains_origin_and_independent_objectives(independent_count):
     from application.deterministic_resolution import DeterministicResolution, ResolutionKind
     from application.target_understanding import StateBoundTargetUnderstanding
     from tests.test_target_framework_agent import _item
@@ -44,10 +44,10 @@ def test_decline_resumes_only_independent_objectives(independent_count):
     proposal = asyncio.run(StateBoundTargetUnderstanding()(
         TurnObservations("No"), state, resolution,
         build_default_capability_registry("tenant-a")))
-    assert len(proposal.commands) == independent_count
-    assert all(not command.dependencies for command in proposal.commands)
-    assert proposal.disposition is (ProposalDisposition.RESOLVED if independent_count
-                                    else ProposalDisposition.CLARIFY)
+    assert len(proposal.commands) == independent_count + 2
+    assert proposal.commands[1].dependencies == (proposal.commands[0].command_id,)
+    assert all(command.kind is not CommandKind.CANCEL_WORK for command in proposal.commands)
+    assert proposal.disposition is ProposalDisposition.RESOLVED
 
 
 def test_resumed_objectives_preserve_dependency_order():
@@ -133,7 +133,8 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
             *([AIMessage(content="", tool_calls=[{"name": "request_user_input",
                 "args": {"question": "Should I cancel it?"}, "id": f"invalid-{index}"}])
                for index in range(2)] if decision == "invalid_followup" else
-              [AIMessage(content="Your cancellation has been completed.")]),
+              [AIMessage(content="The cancellation was declined; no changes were made."
+                         if decision == "deny" else "Your cancellation has been completed.")]),
         ])
         class ObservedDomain(TargetFrameworkAgent):
             contexts = []
@@ -337,7 +338,11 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
             assert second.checkpoint_thread_id == first.checkpoint_thread_id
             if decision == "deny":
                 assert calls == ["read"]
-                assert model.calls == 1
+                assert model.calls == 2
+                assert domain.contexts[-1].trusted_context['action_decisions'][0]['decision'] == 'DECLINED'
+                assert not second.board.results[0].action_receipts
+                assert any(entry['data'].get('artifact', {}).get('resolution', {}).get('status') == 'DECLINED'
+                           for entry in domain.results[-1].working_messages if entry.get('type') == 'tool')
                 return
             assert len([call for call in calls if isinstance(call, tuple)]) == 1, [
                 (result.status.value, result.reason_code) for result in second.board.results]
