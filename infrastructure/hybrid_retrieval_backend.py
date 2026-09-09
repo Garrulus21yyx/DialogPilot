@@ -217,7 +217,7 @@ class PostgresHybridBackend:
             -- The query-local ordinal keeps intermediate aggregation narrow.
             -- It is never exposed or used for ties: restore candidate_id below.
             scoped AS MATERIALIZED (
-                SELECT candidate_id, row_number() OVER () AS ordinal, lexical_terms,
+                SELECT candidate_id, row_number() OVER () AS ordinal,
                        cardinality(lexical_terms)::double precision AS dl
                 FROM retrieval.{table}
                 WHERE tenant_id=%s AND generation_id=%s AND {filters}
@@ -228,11 +228,20 @@ class PostgresHybridBackend:
                        GREATEST(avg(dl), 1.0) AS avgdl
                 FROM scoped
             ),
+            -- Keep corpus statistics over the entire authorized scope, but use
+            -- the existing GIN array index to fetch only matching term arrays.
+            -- Joining scoped preserves all authorization/version predicates.
+            matching AS MATERIALIZED (
+                SELECT s.ordinal, s.dl, d.lexical_terms
+                FROM retrieval.{table} d
+                JOIN scoped s ON s.candidate_id = d.candidate_id
+                WHERE d.lexical_terms && %s::text[]
+            ),
             -- Aggregate within each document: avoid a global grouping of every
             -- matched token occurrence with a wide candidate identity.
             term_frequency AS MATERIALIZED (
                 SELECT d.ordinal, d.dl, matched.token, matched.tf
-                FROM scoped d
+                FROM matching d
                 CROSS JOIN LATERAL (
                     SELECT terms.value AS token, count(*)::double precision AS tf
                     FROM unnest(d.lexical_terms) AS terms(value)
@@ -279,7 +288,7 @@ class PostgresHybridBackend:
         )
         rows = connection.execute(query, (
             list(query_terms), request.tenant_id, request.generation_id,
-            *params, request.lexical_limit,
+            *params, list(query_terms), request.lexical_limit,
         )).fetchall()
         return _rows_to_candidates(rows, request)
 

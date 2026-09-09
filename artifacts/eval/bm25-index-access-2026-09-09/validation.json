@@ -1,0 +1,20 @@
+{
+  "tests": "11 passed in 14.91s",
+  "oracle_combinations": 54,
+  "checks": [
+    "independent scalar scores",
+    "generation and tenant scope",
+    "updated/removed sources in new generations",
+    "query permutation",
+    "TopK prefix",
+    "before-after exact SQL results"
+  ],
+  "api_calls": 0,
+  "deployment": "not performed",
+  "source_sha256": {
+    "infrastructure/hybrid_retrieval_backend.py": "43463d197882ac83a793f38953b0fb07c102532372fb535262358477a1b79b50",
+    "tests/test_bm25_sql_equivalence.py": "32711a3fd57faa94f160b96f530857bf20b171d65f23a22560cf5d9be3a10be3",
+    "scripts/benchmark_bm25_index_access.py": "3e050f346489b0226c5c551a401bbeb7978ebc05042aaad510607f1233ed41f1",
+    "migrations/versions/20260903_0030_knowledge_contextual_bm25.py": "a863baa6abed2834d8f632e6bc2383513ae5d0dd96930cdee59dd4b4b4971767"
+  }
+}
