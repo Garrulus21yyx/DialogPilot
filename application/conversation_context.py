@@ -52,6 +52,11 @@ def conversation_context_payload(turn_context):
                 "envelope against the original user request and sibling outcomes. It is not a business "
                 "tool outage or permission to broaden the user request. Do not resume the rejected "
                 "envelope unchanged or redo already committed operations."
+                " A retryable failure or AGENT_NO_PROGRESS needs your next decision: choose a supported "
+                "alternative, revise only the affected goal, ask for genuinely missing input, or explain "
+                "the blocker. Retryable is not a scheduled retry. Preserve successful sibling results "
+                "and existing waits; do not claim background continuation. Write recovery stays with "
+                "the recorded operation and cannot be replaced with a new submission."
             ),
             "outcomes": [{"work_item_id": item.work_item_id, "owner_agent": item.owner_agent,
                 # Accepted task input, before execution-time injection/defaulting.

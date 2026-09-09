@@ -22,7 +22,7 @@ from application.chat_contracts import StageObservation, StageStatus
 from application.conversation_state import ConversationState
 from application.turn_planning import PlanningUnavailable, TurnPlanningError
 from core.framework_models import ModelInvocationError
-from application.execution_progress import advance_progress, planning_observations, assignment_repairs, PROGRESS_FEEDBACK
+from application.execution_progress import advance_progress, planning_observations, requires_observation, PROGRESS_FEEDBACK
 
 
 class TurnRuntimeError(ValueError):
@@ -57,7 +57,7 @@ class TurnRuntimeResult:
 class TurnRuntime:
     """Coordinate durable turn phases without owning their domain semantics."""
 
-    version = "turn-runtime-v22-operation-scope"
+    version = "turn-runtime-v23-worker-recovery"
 
     def __init__(
         self,
@@ -131,9 +131,7 @@ class TurnRuntime:
     @staticmethod
     def _after_followup(state):
         result = state["managed"]
-        return ("commit_observation" if (result.plan.work is not None and assignment_repairs(result.board)) or (
-                result.plan.observation_work_item_ids and result.board is not None and result.board.complete)
-                else "assemble_response")
+        return "commit_observation" if requires_observation(result.plan, result.board) else "assemble_response"
 
     async def _plan_observation(self, state: TurnGraphState):
         prepared, managed = state["prepared"], state["managed"]

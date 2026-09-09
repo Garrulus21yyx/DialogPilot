@@ -39,7 +39,7 @@ def framework_model(profile, provider_config, *, max_tokens=1024):
     return ChatAnthropic(
         model_name=request["model"], api_key=provider_config["api_key"],
         base_url=provider_config.get("base_url"), max_tokens=request["max_tokens"],
-        thinking=thinking, max_retries=0,
+        thinking=thinking, max_retries=2,
         model_kwargs={"extra_body": extras} if extras else {},
     )
 

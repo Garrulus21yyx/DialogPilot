@@ -2,12 +2,15 @@
 from __future__ import annotations
 
 import time
+import asyncio
+import logging
 from collections import Counter
 from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone
 from typing import Annotated, Awaitable, Callable, Mapping, Protocol, TypedDict
 
 from langgraph.graph import END, START, StateGraph
+from langgraph.errors import NodeCancelledError
 from langgraph.types import Command, Overwrite, Send, interrupt
 
 from application.agent_result import (
@@ -21,6 +24,7 @@ from application.result_board import ResultBoard, ResultBoardSnapshot, current_f
 from application.work_item import ActionSerialization, ControlMode, WorkItem, WorkPlan
 from application.work_control import WorkControlGuard, WorkSuperseded
 from application.conversation_state import PendingApprovalState
+from application.capability_registry import CapabilityEffect
 
 
 class OrchestrationRuntimeError(ValueError):
@@ -446,7 +450,15 @@ class OrchestrationRuntime:
         if not isinstance(state.get("work_plan"), WorkPlan) or state["work_item"] not in state["work_plan"].items:
             raise OrchestrationRuntimeError("worker requires its accepted work plan")
         started = time.perf_counter()
-        update = await self._run_work_item(state)
+        try:
+            update = await self._run_work_item(state)
+        except (OrchestrationRuntimeError, NodeCancelledError):
+            raise  # Broken execution contracts are not ordinary worker outages.
+        except Exception as exc:
+            if state["work_item"].effect is CapabilityEffect.WRITE:
+                # Ledger/checkpoint recovery owns unknown write effects.
+                raise
+            update = {"agent_results": [_worker_failure(state["work_item"], exc)]}
         result = update["agent_results"][0]
         owner = state["work_item"].owner_agent
         self._outcome_counts.setdefault(owner, Counter())[result.status.value] += 1
@@ -489,7 +501,11 @@ class OrchestrationRuntime:
                     f"no domain worker registered for {item.owner_agent}"
                 ) from exc
         try:
-            result = await self._execute_with_evidence(executor, context)
+            if item.control_mode is ControlMode.DIRECT:
+                async with asyncio.timeout(item.timeout_seconds):
+                    result = await self._execute_with_evidence(executor, context)
+            else:
+                result = await self._execute_with_evidence(executor, context)
         except WorkSuperseded:
             result = self._control_guard.superseded_result(item)
         if self._control_guard is not None and not self._control_guard.is_current(
@@ -774,6 +790,20 @@ def _validate_checkpoint(state) -> None:
         raise OrchestrationRuntimeError("checkpoint requires the current work plan contract")
     _agent_results(plan, state.get("agent_results", ()))
     merge_action_decisions(state.get("trusted_context", {}).get("action_decisions", ()))
+
+
+def _worker_failure(item: WorkItem, error: Exception) -> AgentResult:
+    from core.framework_models import ModelInvocationError
+    from core.tracing import exception_chain
+    retryable = isinstance(error, (TimeoutError, ConnectionError)) or (
+        isinstance(error, ModelInvocationError) and error.retryable)
+    logging.getLogger(__name__).exception("Worker failed: %s", item.work_item_id)
+    return AgentResult(item.work_item_id, item.owner_agent,
+        AgentResultStatus.RETRYABLE_FAILURE if retryable else AgentResultStatus.TERMINAL_FAILURE,
+        f"WORKER_EXECUTION_FAILED:{type(error).__name__}", "orchestration-runtime-v1",
+        retryable=retryable, execution_feedback=({"stage": "worker_execution", "status": "failed",
+            "detail": {"error_type": type(error).__name__, "retryable": retryable,
+                       "exception_chain": exception_chain(error)}},))
 
 
 def _closed_outcome(item: WorkItem, result: AgentResult | None) -> AgentResult:

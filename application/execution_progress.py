@@ -70,6 +70,31 @@ def assignment_repairs(board):
                  and result.status is AgentResultStatus.TERMINAL_FAILURE) if board else ()
 
 
+def recovery_observations(board):
+    """Current actionable worker failures; retained history cannot retrigger recovery.
+
+    Write outcomes belong to reconciliation, not semantic replanning. A terminal
+    programming failure is reportable but not an invitation to repeat the worker.
+    """
+    from application.agent_result import AgentResultStatus
+    from application.capability_registry import CapabilityEffect
+    from application.work_item import ControlMode
+    if board is None:
+        return ()
+    results = {result.work_item_id: result for result in board.results}
+    return tuple((item, results[item.work_item_id]) for item in board.work_items
+        if item.work_item_id in results and item.effect is CapabilityEffect.READ
+        and item.control_mode in {ControlMode.DIRECT, ControlMode.DELEGATED}
+        and (results[item.work_item_id].status is AgentResultStatus.RETRYABLE_FAILURE
+             or results[item.work_item_id].status is AgentResultStatus.BLOCKED
+             and results[item.work_item_id].reason_code == "AGENT_NO_PROGRESS"))
+
+
+def requires_observation(plan, board):
+    return bool(plan.work is not None and board is not None and (assignment_repairs(board) or recovery_observations(board)
+        or plan.observation_work_item_ids and board.complete))
+
+
 def planning_observations(board):
     batch = direct_read_observations(board)
     items = {item.work_item_id: item for item, _ in board.outcome_items}
@@ -78,4 +103,8 @@ def planning_observations(board):
         # Attempt IDs/rephrased feedback are not progress on an unchanged scope.
         batch.append(observation_key([item.owner_agent, item.objective],
             [item.allowed_tools, item.allowed_actions], 'assignment_repair'))
+    for item, result in recovery_observations(board):
+        batch.append(observation_key([item.owner_agent, item.objective],
+            [{arg.name: arg.value for arg in item.arguments}, item.allowed_tools, item.allowed_actions],
+            {"status": result.status.value, "reason": result.reason_code}))
     return batch
