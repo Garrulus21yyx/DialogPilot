@@ -199,7 +199,8 @@ def test_preprocessing_change_builds_new_immutable_generation(store):
     assert states[second.generation_id] == "ACTIVE"
 
 
-def test_chunk_strategy_change_builds_a_distinct_generation(store):
+@pytest.mark.parametrize("strategy", ["fixed_tokens", "markdown_headers"])
+def test_chunk_strategy_change_builds_a_distinct_generation(store, strategy):
     knowledge, pool, provider = store
     document = _document("refund", "退款三个工作日到账。")
     knowledge.add_documents((document,))
@@ -208,14 +209,14 @@ def test_chunk_strategy_change_builds_a_distinct_generation(store):
     fixed_store = PostgresKnowledgeStore(
         pool,
         tenant_id="tenant-a",
-        chunk_strategy="fixed_tokens",
+        chunk_strategy=strategy,
         embedding_provider=provider,
     )
     fixed_store.add_documents((document,))
     second = fixed_store.active_generation()
 
     assert second.generation_id != first.generation_id
-    assert fixed_store.index_manifest["chunk_strategy"] == "fixed_tokens"
+    assert fixed_store.index_manifest["chunk_strategy"] == strategy
     assert fixed_store.index_manifest["chunk_max_tokens"] == 512
     assert fixed_store.index_manifest["chunk_overlap_tokens"] == 64
 
@@ -324,3 +325,24 @@ def test_collection_scope_comes_from_selected_manifest(store):
     foreign = PostgresKnowledgeStore(pool, tenant_id='tenant-b', embedding_provider=provider)
     with pytest.raises(KnowledgeSourceContractError):
         foreign.collection_scope(generation)
+
+
+def test_markdown_headers_reach_embedding_and_persisted_projection(store):
+    _, pool, provider = store
+    text = '# 商城\n## 耳机\n试听可退。\n## 咖啡机\n清水可试机。\n'
+    knowledge = PostgresKnowledgeStore(pool, tenant_id='tenant-a',
+        chunk_strategy='markdown_headers', embedding_provider=provider)
+    doc = SourceDocument.create(source_id='sections', title='说明书', content=text, source_type='markdown')
+    knowledge.add_documents((doc,))
+    inputs = provider.document_inputs[-1]
+    assert len(inputs) == 2
+    assert all(not ('试听可退' in s and '清水可试机' in s) for s in inputs)
+    assert any('[SECTION] 商城 > 耳机' in s for s in inputs)
+    generation = knowledge.active_generation()
+    with pool.transaction() as c:
+        rows = c.execute('SELECT section_path, source_span FROM retrieval.knowledge_chunk_search WHERE generation_id=%s ORDER BY source_span->>\'start_char\'',
+                         (generation.generation_id,)).fetchall()
+    assert len(rows) == 2
+    assert {tuple(r[0]) for r in rows} == {('商城','耳机'),('商城','咖啡机')}
+    assert sorted(r[1]['start_char'] for r in rows) == [0, text.index('## 咖啡机')]
+    assert max(r[1]['end_char'] for r in rows) == len(text)

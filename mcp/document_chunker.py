@@ -16,6 +16,7 @@ class ChunkStructureError(ValueError):
 class ChunkStrategy(str, Enum):
     """Bounded chunk strategies supported by the production knowledge owner."""
 
+    MARKDOWN_HEADERS = "markdown_headers"
     FIXED_TOKENS = "fixed_tokens"
     STRUCTURE_AWARE = "structure_aware"
 
@@ -65,6 +66,10 @@ class DocumentChunker:
             return []
         if max_tokens < 1 or overlap_tokens < 0 or overlap_tokens >= max_tokens:
             raise ValueError("chunk token budgets require 0 <= overlap_tokens < max_tokens")
+        if strategy is ChunkStrategy.MARKDOWN_HEADERS:
+            if source_type == "markdown":
+                return self._markdown_sections(text, max_tokens, overlap_tokens)
+            strategy = ChunkStrategy.STRUCTURE_AWARE
         if self._token_estimator.estimate(text) <= max_tokens:
             return [DocumentChunk(
                 text, 0, len(text), 0,
@@ -106,6 +111,45 @@ class DocumentChunker:
 
         if any(self._token_estimator.estimate(chunk.content) > max_tokens for chunk in chunks):
             raise RuntimeError("chunker produced an over-budget chunk")
+        return chunks
+
+    def _markdown_sections(self, text: str, max_tokens: int, overlap_tokens: int) -> List[DocumentChunk]:
+        """Use LangChain headings; project its normalized output onto exact source.
+
+        MarkdownHeaderTextSplitter normalizes whitespace. Its output is never
+        authoritative evidence. A complete ordered character alignment proves
+        boundaries before slicing the untouched source; no fuzzy offset search.
+        """
+        from langchain_text_splitters import MarkdownHeaderTextSplitter
+
+        headers = [("#" * level, f"h{level}") for level in range(1, 7)]
+        documents = MarkdownHeaderTextSplitter(
+            headers_to_split_on=headers, strip_headers=False,
+        ).split_text(text)
+        positions = [i for i, char in enumerate(text) if not char.isspace()]
+        compact = "".join(text[i] for i in positions)
+        cursor = 0
+        sections = []
+        for document in documents:
+            normalized = "".join(char for char in document.page_content if not char.isspace())
+            if not normalized:
+                continue
+            if not compact.startswith(normalized, cursor):
+                raise ChunkStructureError("Markdown splitter output cannot be aligned to source")
+            start = positions[cursor] if cursor else 0
+            path = tuple(document.metadata[key] for _, key in headers if key in document.metadata)
+            sections.append((start, path))
+            cursor += len(normalized)
+        if cursor != len(compact) or not sections:
+            raise ChunkStructureError("Markdown splitter did not preserve complete source content")
+        chunks = []
+        for index, (start, path) in enumerate(sections):
+            end = sections[index + 1][0] if index + 1 < len(sections) else len(text)
+            for child in self.split(text[start:end], max_tokens=max_tokens,
+                                   overlap_tokens=overlap_tokens,
+                                   strategy=ChunkStrategy.STRUCTURE_AWARE, source_type="markdown"):
+                chunks.append(DocumentChunk(child.content, start + child.start_char,
+                                            start + child.end_char, len(chunks), path))
         return chunks
 
     @staticmethod

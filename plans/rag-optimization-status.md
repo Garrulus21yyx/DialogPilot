@@ -6,6 +6,8 @@
 
 ## 当前执行优先级（2026-09-08 最新用户要求：完成主线，禁止偏离）
 
+**E11（2026-09-09）：按用户要求复用官方MarkdownHeaderTextSplitter，新增markdown_headers导入策略；原文连续对齐保留offset，章节内再做预算/原子结构切分，非Markdown保持原行为。40开发题原文审计120/120完整，三份现行手册跨商品chunk8→0，片段8→93；仅包含率，不宣称Recall提升。默认未切换/未重索引全库；后续固定查询与5/2600预算实际检索比较。见docs/rag-markdown-sections-2026-09-09.zh-CN.md。微调暂停，模型API0。相干文件commit/push。**
+
 **E10（2026-09-09）用户改为优先修复BM25性能：已在owner接入既有lexical_terms GIN匹配，仅对scope内匹配片段展开词项，N/avgdl与DF/排序语义不变。12k合成SQL实测rare316→16ms、中文322→21ms；common519→539ms无收益，非原80题复测或线上SLA。新generation/移除来源/多scope标量公式及后端投影测试验证；模型API0，无迁移/embedding/timeout修改。见docs/bm25-index-access-2026-09-09.zh-CN.md。相干commit/push，未部署；随后回归查询与多证据主线。**
 
 **E09诊断已交付（2026-09-09）：80题重放/API0/新CE0，1560对最大879tokens无截断；16题17条遗漏中，cx-09-4实际改写原样返回依赖指代句，另15题缺失证据均排6/7。融合Top5完整42→CE62仍有价值；混合商品chunk与独立相关性排序缺集合覆盖保证，结构child收益尚未验证。SQL确认逐scope词项计算与750ms超时，原隔离库已移除、无历史计划/负载，深层耗时根因待验。5生成失败含2明确内容缺口及3兼容表严格覆盖扣分。见docs/ecommerce-failure-diagnosis-2026-09-09.zh-CN.md；下一步先查询需求保留，再开发结构child/多证据同预算对照；生产未改、微调暂停。相干文件commit/push。**

@@ -1,0 +1,31 @@
+{
+  "scope": "40 development cases, source containment only; no retrieval/rerank/generation run",
+  "budget": {
+    "max_tokens": 512,
+    "overlap_tokens": 64
+  },
+  "results": {
+    "structure_aware": {
+      "all_documents_chunks": 17,
+      "current_policy_chunks": 8,
+      "multiple_product_headings_chunks": 8,
+      "max_product_headings_in_one_chunk": 20,
+      "contained_evidence_units": 120,
+      "evidence_units": 120
+    },
+    "markdown_headers": {
+      "all_documents_chunks": 186,
+      "current_policy_chunks": 93,
+      "multiple_product_headings_chunks": 0,
+      "max_product_headings_in_one_chunk": 1,
+      "contained_evidence_units": 120,
+      "evidence_units": 120
+    }
+  },
+  "api_calls": 0,
+  "hashes": {
+    "data/eval/ecommerce-complex-v2/corpus.json": "d415b2bf4fa885227dd4bb552b8cca5af6e04e5faf8f09efe5541d0fc3e6e5a4",
+    "data/eval/ecommerce-complex-v2/dev.gold.json": "2ed11ef55b7efad189b3fd05d292d7e601cdfce1aeb2aa9ac7a6def848e271ec",
+    "mcp/document_chunker.py": "c5ba3fa3e6422cf16f726070532fe3d56e43ef907a0e12913e3e00c79cd79f52"
+  }
+}
