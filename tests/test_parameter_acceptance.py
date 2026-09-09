@@ -22,6 +22,19 @@ def proposal(command):
     return TurnProposal(ProposalDisposition.RESOLVED, (command,), "TEST")
 
 
+@pytest.mark.parametrize("expanded", [False, True])
+def test_resume_requires_authoritative_envelope_even_when_control_is_active(expanded):
+    state, registry, item, _ = accepted_work(CommandKind.DELEGATE_TASK)
+    state = replace(state, pending_interaction=None)
+    submitted = replace(item, allowed_actions=("order.cancel:v1",)) if expanded else item
+    command = StateBoundTargetUnderstanding._resume_command(1, submitted)
+    with pytest.raises(TurnPlanningError, match="accepted work envelope"):
+        RoutePolicy().accept(proposal(command), state, registry)
+    if not expanded:
+        accepted = RoutePolicy().accept(proposal(command), state, registry, continuation_items=(item,))
+        assert accepted.commands[0].allowed_actions == item.allowed_actions
+
+
 def accepted_work(kind=CommandKind.DIRECT_TOOL):
     registry = build_default_capability_registry("tenant-a")
     stream = WorkstreamState("source", "order_logistics", "order_status", "READY",

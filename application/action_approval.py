@@ -1,7 +1,6 @@
 """Bind a prepared domain action to the conversation's existing approval state."""
 from datetime import datetime, timedelta, timezone
 from dataclasses import replace
-from types import SimpleNamespace
 
 from application.conversation_state import (
     ConversationStateConflict, PendingApprovalState, WorkstreamState, WorkstreamStatus,
@@ -103,7 +102,9 @@ def merge_action_decisions(*groups):
     decisions = {}
     for group in groups:
         for decision in group:
-            prior = decisions.setdefault((decision["approval_id"], decision.get("operation_key")), decision)
+            if not decision.get("operation_key"):
+                raise ConversationStateConflict("approval decision requires its operation key")
+            prior = decisions.setdefault((decision["approval_id"], decision["operation_key"]), decision)
             if prior != decision:
                 raise ConversationStateConflict("approval decision differs across checkpoints")
     return tuple(decisions.values())
@@ -117,15 +118,8 @@ def action_decision_context(previous, pending, resolution):
         ResolutionKind.APPROVAL_DECISION, ResolutionKind.APPROVAL_EXPIRED,
     }:
         return decisions
-    operations = getattr(pending, "operations", None) or (
-        SimpleNamespace(
-            operation_key=getattr(pending, "operation_key", None),
-            action_ref=pending.action_ref,
-            arguments=pending.arguments,
-        ),
-    )
     decisions_for_scope = []
-    for op in operations:
+    for op in pending.operations:
         decision = {
             "approval_id": pending.approval_id,
             "action_ref": op.action_ref,
@@ -134,8 +128,7 @@ def action_decision_context(previous, pending, resolution):
             "decision": ("EXPIRED" if resolution.kind is ResolutionKind.APPROVAL_EXPIRED
                          else "APPROVED" if resolution.approved else "DECLINED"),
         }
-        if op.operation_key is not None:
-            decision["operation_key"] = op.operation_key
+        decision["operation_key"] = op.operation_key
         decisions_for_scope.append(decision)
     return merge_action_decisions(decisions, decisions_for_scope)
 

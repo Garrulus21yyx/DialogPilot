@@ -28,7 +28,8 @@ def test_read_only_open_delegation_keeps_non_skill_tools_on_resume():
     assert original.allowed_skills and not original.allowed_actions
     resumed = StateBoundTargetUnderstanding._resume_command(1, original)
     after = RoutePolicy().accept(TurnProposal(
-        ProposalDisposition.RESOLVED, (resumed,), "test"), state, registry)
+        ProposalDisposition.RESOLVED, (resumed,), "test"), state, registry,
+        continuation_items=plan.work.items)
     assert after.commands[0].allowed_tools == original.allowed_tools
     assert after.commands[0].allowed_actions == original.allowed_actions
 
@@ -50,6 +51,7 @@ def test_resume_rejects_foreign_or_stale_internal_envelope(mismatch):
         "revision": replace(original, control=replace(original.control, revision=original.control.revision + 1)),
     }[mismatch]
     resumed = replace(resumed, resumed_work_item=invalid)
-    with pytest.raises(TurnPlanningError, match="resumed capability envelope"):
+    with pytest.raises(TurnPlanningError, match="accepted work"):
         RoutePolicy().accept(TurnProposal(
-            ProposalDisposition.RESOLVED, (resumed,), "test"), state, registry)
+            ProposalDisposition.RESOLVED, (resumed,), "test"), state, registry,
+            continuation_items=plan.work.items)

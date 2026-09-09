@@ -513,9 +513,8 @@ class TargetConversationManager:
                     in state.consumed_signal_ids else ""),
                 **(
                     {
-                        "approved_operations": [op.view() for grant in state.accepted_approvals
-                            if grant.approval_id == deterministic.signal_id
-                            and grant.version == deterministic.signal_version for op in grant.operations],
+                        "approved_operations": [op.view() for op in state.accepted_approval(
+                            deterministic.signal_id, deterministic.signal_version).operations],
                         "approval_binding": str(deterministic.signal_id),
                         "approval_actor": str(invocation.user_id),
                     }
@@ -760,17 +759,12 @@ class TargetConversationManager:
             deterministic.kind is ResolutionKind.APPROVAL_DECISION
             or deterministic.kind is ResolutionKind.RECONCILE_WORKFLOW
         ) and deterministic.approved:
-            grant = next((grant for grant in state.accepted_approvals
-                          if grant.approval_id == deterministic.signal_id
-                          and grant.version == deterministic.signal_version), None)
+            grant = state.accepted_approval(deterministic.signal_id, deterministic.signal_version)
+            if grant.workstream_id != deterministic.workstream_id:
+                raise ConversationStateConflict("approval scope belongs to another workstream")
             results = {item.operation_key: result for item, result in board.outcome_items
                        if item.approval_binding == deterministic.signal_id}
-            members = (
-                tuple(results.get(op.operation_key) for op in grant.operations)
-                if grant is not None else
-                tuple(result for item, result in board.outcome_items
-                      if item.operation_key == deterministic.operation_key)
-            )
+            members = tuple(results.get(op.operation_key) for op in grant.operations)
             result = next((r for r in members if r is not None and r.status is AgentResultStatus.RECONCILING),
                 next((r for r in members if r is not None and r.reason_code == "WRITE_MANUAL_REVIEW_REQUIRED"), None))
             stream = next(
@@ -779,7 +773,10 @@ class TargetConversationManager:
             )
             if stream.terminal:
                 return state
-            if all(r is not None and r.status is AgentResultStatus.SUCCEEDED for r in members):
+            completed = {item.operation_key for item, outcome in board.outcome_items
+                         if item.approval_binding == grant.approval_id
+                         and board.coverage_for(item, outcome)["task_completed"]}
+            if all(op.operation_key in completed for op in grant.operations):
                 next_state = state.complete_workstream(
                     stream.workstream_id,
                     expected_version=stream.state_version,

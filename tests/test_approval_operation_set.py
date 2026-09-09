@@ -158,7 +158,7 @@ def two_members():
 @pytest.mark.parametrize("statuses", itertools.product(
     ["SUCCEEDED", "TERMINAL_FAILURE", "CANCELLED", "BLOCKED", "RECONCILING"], repeat=2))
 def test_scope_lifecycle_reduces_all_members_without_losing_success(two_members, statuses):
-    from application.agent_result import AgentResult, AgentResultStatus
+    from application.agent_result import AgentResult, AgentResultStatus, ReceiptRef
     from application.result_board import ResultBoardSnapshot
     from application.target_conversation_manager import TargetConversationManager
     from application.deterministic_resolution import DeterministicResolution, ResolutionKind
@@ -168,7 +168,10 @@ def test_scope_lifecycle_reduces_all_members_without_losing_success(two_members,
         approval_version=pending.version, approved=True)
     items = tuple(replace(item, approval_binding=pending.approval_id) for item in prepared_result.prepared_actions)
     results = tuple(AgentResult(item.work_item_id, item.owner_agent, AgentResultStatus(status),
-        "TEST", "test") for item, status in zip(items, statuses))
+        "TEST", "test", action_receipts=tuple(ReceiptRef(
+            f"receipt:{item.operation_key}:{requirement}", item.expected_output_schema,
+            item.operation_key, "COMMITTED", requirement) for requirement in item.requirement_ids)
+        if status == "SUCCEEDED" else ()) for item, status in zip(items, statuses))
     board = ResultBoardSnapshot(results, (), (), (), (), (), True, True, work_items=items)
     resolution = DeterministicResolution(ResolutionKind.APPROVAL_DECISION, "APPROVED", state.fingerprint,
         workstream_id=pending.workstream_id, signal_id=pending.approval_id,
@@ -182,3 +185,35 @@ def test_scope_lifecycle_reduces_all_members_without_losing_success(two_members,
     assert updated.workstreams[-1].status.value == expected
     assert board.results == results  # status projection cannot erase successful members
     assert conversation_state_from_payload(conversation_state_to_payload(updated)) == updated
+
+
+@pytest.mark.parametrize("grant_present", [False, True])
+def test_absent_outcomes_never_complete_an_approval_scope(two_members, grant_present):
+    from application.conversation_state import ConversationStateConflict
+    from application.result_board import ResultBoard
+    from application.target_conversation_manager import TargetConversationManager
+    from application.deterministic_resolution import DeterministicResolution, ResolutionKind
+    from application.work_item import WorkPlan
+    _, _, prepared_result, state = two_members
+    pending = state.pending_approval
+    state = state.consume_approval(approval_id=pending.approval_id,
+        approval_version=pending.version, approved=True)
+    if not grant_present:
+        state = replace(state, accepted_approvals=())
+    items = tuple(replace(item, approval_binding=pending.approval_id) for item in prepared_result.prepared_actions)
+    work = WorkPlan(items, items[0].work_item_id)
+    board = ResultBoard().evaluate(work, ())
+    resolution = DeterministicResolution(ResolutionKind.APPROVAL_DECISION, "APPROVED", state.fingerprint,
+        workstream_id=pending.workstream_id, signal_id=pending.approval_id,
+        signal_version=pending.version, approved=True)
+    transitions = []
+    def apply():
+        return TargetConversationManager._apply_successful_workflows(SimpleNamespace(), state,
+            SimpleNamespace(work=work, transitions=None), board, None, resolution,
+            checkpoint_thread_id="checkpoint", transitions=transitions)
+    if grant_present:
+        assert apply() == state
+    else:
+        with pytest.raises(ConversationStateConflict, match="accepted approval scope"):
+            apply()
+    assert not transitions

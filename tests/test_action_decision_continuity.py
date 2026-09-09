@@ -8,7 +8,7 @@ from langgraph.checkpoint.memory import InMemorySaver
 
 from application.action_approval import action_decision_context, merge_action_decisions
 from application.agent_result import AgentResult, AgentResultStatus, MissingInputSpec
-from application.conversation_state import ConversationStateConflict
+from application.conversation_state import ConversationStateConflict, PendingApprovalState
 from application.deterministic_resolution import ResolutionKind
 from application.orchestration_runtime import OrchestrationRuntime
 from application.work_item import ArgumentValue, WorkControlBinding, WorkPlan
@@ -18,9 +18,16 @@ from tests.test_approval_conversation import domain
 
 
 def decision(kind='DECLINED'):
-    return {'approval_id': 'approval', 'action_ref': 'order.cancel:v1',
+    return {'approval_id': 'approval', 'action_ref': 'order.cancel:v1', 'operation_key': 'operation',
             'arguments': {'order_id': 'DP1234', 'expected_order_version': 1},
             'control_id': 'goal', 'decision': kind}
+
+
+def test_decision_without_operation_identity_is_not_a_supported_checkpoint():
+    legacy = decision()
+    del legacy['operation_key']
+    with pytest.raises(ConversationStateConflict, match='operation key'):
+        merge_action_decisions((legacy,))
 
 
 @pytest.mark.parametrize('kind,approved,expected', [
@@ -29,10 +36,12 @@ def decision(kind='DECLINED'):
     (ResolutionKind.APPROVAL_EXPIRED, False, 'EXPIRED'),
 ])
 def test_decision_is_exact_idempotent_consumed_proposal(kind, approved, expected):
-    pending = SimpleNamespace(approval_id='approval', action_ref='order.cancel:v1',
+    pending = PendingApprovalState(approval_id='approval', version=1, workstream_id='stream',
+        work_item_id='work', action_ref='order.cancel:v1', operation_key='operation',
+        target_entity_ref='DP1234', target_entity_version='1', expires_at='2099-01-01T00:00:00+00:00',
         arguments=(ArgumentValue.create('order_id', 'DP1234'),
                    ArgumentValue.create('expected_order_version', 1)),
-        origin_control=WorkControlBinding('goal', 1))
+        control=WorkControlBinding('goal', 1))
     resolution = SimpleNamespace(kind=kind, approved=approved)
     records = action_decision_context((), pending, resolution)
     assert records == (decision(expected),)

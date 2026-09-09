@@ -198,9 +198,9 @@ class ResultBoard:
         return set(item.requirement_ids).difference(supplied)
 
     @classmethod
-    def _dependency_satisfied(cls, item, result, conflicts, plan: WorkPlan | None = None):
+    def _dependency_satisfied(cls, item, result, conflicts, plan: WorkPlan):
         """A task-ID edge means successful completion, not partial progress."""
-        if plan is not None and plan.policy.dependency_satisfaction is not DependencySatisfaction.SUCCESS_WITH_COVERAGE:
+        if plan.policy.dependency_satisfaction is not DependencySatisfaction.SUCCESS_WITH_COVERAGE:
             raise ResultBoardError("unsupported dependency satisfaction policy")
         return (result.status is AgentResultStatus.SUCCEEDED and not cls._missing(item, result)
                 and not conflicts)

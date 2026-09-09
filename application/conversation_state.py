@@ -765,6 +765,13 @@ class ConversationState:
             pending_interaction=rebound,
         )
 
+    def accepted_approval(self, approval_id: str, version: int) -> AcceptedApprovalState:
+        grant = next((grant for grant in self.accepted_approvals
+                      if grant.approval_id == approval_id and grant.version == version), None)
+        if grant is None:
+            raise ConversationStateConflict("execution requires the accepted approval scope")
+        return grant
+
     def wait_for_approval(self, pending: PendingApprovalState, *, new_workstream: WorkstreamState | None = None) -> "ConversationState":
         if self.pending_approval is not None:
             raise ConversationStateConflict("conversation already has a pending interaction")

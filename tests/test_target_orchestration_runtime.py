@@ -388,6 +388,7 @@ def test_runtime_statistics_preserve_typed_outcomes_without_inventing_quality(st
 
     runtime = OrchestrationRuntime(direct_executor=worker, domain_workers={})
     asyncio.run(runtime._execute_work_item({
+        "work_plan": WorkPlan((item,), item.work_item_id),
         "work_item": item, "current_message": "查询", "facts": (),
         "recent_relevant_turns": (), "evidence_refs": (), "token_budget": 1000,
     }))

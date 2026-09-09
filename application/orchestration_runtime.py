@@ -1,8 +1,6 @@
 """LangGraph parent runtime for direct, single-agent, and multi-agent work."""
 from __future__ import annotations
 
-import hashlib
-import json
 import time
 from collections import Counter
 from dataclasses import dataclass, field, replace
@@ -20,7 +18,7 @@ from application.agent_result import (
     FactRecord,
 )
 from application.result_board import ResultBoard, ResultBoardSnapshot, current_facts
-from application.work_item import ActionSerialization, ControlMode, WorkItem, WorkPlan, WorkPlanPolicy
+from application.work_item import ActionSerialization, ControlMode, WorkItem, WorkPlan
 from application.work_control import WorkControlGuard, WorkSuperseded
 from application.conversation_state import PendingApprovalState
 
@@ -40,27 +38,28 @@ class PlanScopedAgentResult:
         if not str(self.execution_id or "").strip():
             raise OrchestrationRuntimeError("result execution identity is required")
 
-    def __getattr__(self, name):
-        return getattr(self.result, name)
-
-
 def _scope_result(plan: WorkPlan, result: AgentResult) -> PlanScopedAgentResult:
+    if not isinstance(result, AgentResult):
+        raise OrchestrationRuntimeError("worker must return an AgentResult")
     item = next((item for item in plan.items if item.work_item_id == result.work_item_id), None)
-    if item is None:
+    if item is None or item.owner_agent != result.owner_agent:
         raise OrchestrationRuntimeError("result is outside the scoped work plan")
     return PlanScopedAgentResult(_execution_result_id(plan, item), result)
 
 
 def _scope_results(plan: WorkPlan, results) -> list[PlanScopedAgentResult]:
-    return [_scope_result(plan, _as_agent_result(result)) for result in results]
+    return [_scope_result(plan, result) for result in results]
 
 
-def _as_agent_result(result) -> AgentResult:
-    return result.result if isinstance(result, PlanScopedAgentResult) else result
-
-
-def _agent_results(results) -> tuple[AgentResult, ...]:
-    return tuple(_as_agent_result(result) for result in results)
+def _agent_results(plan: WorkPlan, results) -> tuple[AgentResult, ...]:
+    validated = []
+    for record in results:
+        if not isinstance(record, PlanScopedAgentResult):
+            raise OrchestrationRuntimeError("graph results require plan-scoped identities")
+        if record != _scope_result(plan, record.result):
+            raise OrchestrationRuntimeError("result execution identity differs from work plan")
+        validated.append(record.result)
+    return tuple(validated)
 
 
 def _execution_result_id(plan: WorkPlan, item: WorkItem) -> str:
@@ -69,7 +68,8 @@ def _execution_result_id(plan: WorkPlan, item: WorkItem) -> str:
 
 def _checkpoint_outcomes(state):
     """Keep local result IDs paired with the WorkItems from their own graph."""
-    results = {result.work_item_id: _as_agent_result(result) for result in state.get("agent_results", ())}
+    _validate_checkpoint(state)
+    results = {result.work_item_id: result for result in _agent_results(state["work_plan"], state.get("agent_results", ()))}
     return _merge_checkpoint_outcomes(tuple(state.get("retained_outcomes", ())), tuple(
         (item, results.get(item.work_item_id)) for item in state["work_plan"].items))
 
@@ -101,7 +101,9 @@ def _merge_agent_results(left, right):
     merged: dict[str, object] = {}
     order: list[str] = []
     for result in (*tuple(left or ()), *tuple(right or ())):
-        key = result.execution_id if isinstance(result, PlanScopedAgentResult) else f"legacy:{result.work_item_id}"
+        if not isinstance(result, PlanScopedAgentResult):
+            raise OrchestrationRuntimeError("graph results require plan-scoped identities")
+        key = result.execution_id
         prior = merged.get(key)
         if prior is None:
             merged[key] = result
@@ -154,7 +156,7 @@ class ParentGraphState(TypedDict, total=False):
     evidence_refs: tuple[str, ...]
     token_budget: int
     ready_items: tuple[WorkItem, ...]
-    agent_results: Annotated[list[PlanScopedAgentResult | AgentResult], _merge_agent_results]
+    agent_results: Annotated[list[PlanScopedAgentResult], _merge_agent_results]
     facts: tuple[FactRecord, ...]
     board: ResultBoardSnapshot
     trusted_context: Mapping[str, object]
@@ -265,10 +267,11 @@ class OrchestrationRuntime:
         # One conversation approval slot: serialize action-capable workers,
         # while independent read-only work remains parallel.
         plan = state["work_plan"]
+        results = _agent_results(plan, state.get("agent_results", ()))
         if plan.policy.action_serialization is ActionSerialization.NONE:
             return tuple(state.get("ready_items", ()))
         action_busy = any(result.status is AgentResultStatus.WAITING_APPROVAL
-                          for result in state.get("agent_results", ()))
+                          for result in results)
         ready = []
         for item in state.get("ready_items", ()):
             action_capable = bool(item.allowed_actions) or item.control_mode in {
@@ -285,8 +288,8 @@ class OrchestrationRuntime:
         if not ready:
             return "finish"
         results = {
-            result.work_item_id: _as_agent_result(result)
-            for result in state.get("agent_results", ())
+            result.work_item_id: result
+            for result in _agent_results(state["work_plan"], state.get("agent_results", ()))
         }
         return [
             Send("execute_work_item", {
@@ -326,7 +329,7 @@ class OrchestrationRuntime:
         if self._checkpointer is not None and (
             any(
                 item.status in {AgentResultStatus.NEEDS_USER_INPUT, AgentResultStatus.WAITING_APPROVAL}
-                for item in state.get("agent_results", ())
+                for item in _agent_results(state["work_plan"], state.get("agent_results", ()))
             )
             or bool(state.get("interrupt_after_completion"))
         ):
@@ -336,7 +339,7 @@ class OrchestrationRuntime:
     async def _await_resume(self, state: ParentGraphState):
         missing = tuple(
             field
-            for result in state.get("agent_results", ())
+            for result in _agent_results(state["work_plan"], state.get("agent_results", ()))
             if result.status is AgentResultStatus.NEEDS_USER_INPUT
             for field in result.missing_inputs
             if field.required
@@ -365,7 +368,7 @@ class OrchestrationRuntime:
             # Closing an execution wait does not undo completed work or cancel
             # a remote action. Give only unstarted work a terminal outcome so
             # queued items cannot leave the graph in an unfinished state.
-            returned = {result.work_item_id: _as_agent_result(result) for result in state.get("agent_results", ())}
+            returned = {result.work_item_id: result for result in _agent_results(state["work_plan"], state.get("agent_results", ()))}
             retain = bool(resumed.get("retain_wait"))
             results = [_closed_outcome(item, returned.get(item.work_item_id))
                 if item in closed or not retain and item.work_item_id not in returned else returned.get(item.work_item_id)
@@ -376,7 +379,7 @@ class OrchestrationRuntime:
             return {
                 "agent_results": Overwrite(_scope_results(state["work_plan"], results)),
                 "retained_outcomes": retained,
-                "board": self._evaluate({**state, "agent_results": results, "retained_outcomes": retained}),
+                "board": self._evaluate({**state, "agent_results": _scope_results(state["work_plan"], results), "retained_outcomes": retained}),
                 "interrupt_after_completion": retain,
                 "retain_wait": retain,
                 "ready_items": (),
@@ -440,16 +443,17 @@ class OrchestrationRuntime:
         }
 
     async def _execute_work_item(self, state: WorkerState):
+        if not isinstance(state.get("work_plan"), WorkPlan) or state["work_item"] not in state["work_plan"].items:
+            raise OrchestrationRuntimeError("worker requires its accepted work plan")
         started = time.perf_counter()
         update = await self._run_work_item(state)
-        result = _as_agent_result(update["agent_results"][0])
+        result = update["agent_results"][0]
         owner = state["work_item"].owner_agent
         self._outcome_counts.setdefault(owner, Counter())[result.status.value] += 1
         self._elapsed_ms[owner] = (
             self._elapsed_ms.get(owner, 0.0) + (time.perf_counter() - started) * 1000
         )
-        if "work_plan" in state:
-            update = {**update, "agent_results": _scope_results(state["work_plan"], (result,))}
+        update = {**update, "agent_results": _scope_results(state["work_plan"], (result,))}
         return update
 
     async def _run_work_item(self, state: WorkerState):
@@ -585,7 +589,7 @@ class OrchestrationRuntime:
 
     def _evaluate(self, state):
         return self._result_board.evaluate(
-            state["work_plan"], _agent_results(state.get("agent_results", ())),
+            state["work_plan"], _agent_results(state["work_plan"], state.get("agent_results", ())),
             retained_outcomes=tuple(state.get("retained_outcomes", ())))
 
     async def execute(
@@ -626,6 +630,7 @@ class OrchestrationRuntime:
         if self._checkpointer is not None:
             snapshot = await self.graph.aget_state(config)
             if snapshot.values:
+                _validate_checkpoint(snapshot.values)
                 if not _checkpoint_matches_work_plan(
                     snapshot.values.get("work_plan_fingerprint"), work_plan,
                 ):
@@ -668,6 +673,7 @@ class OrchestrationRuntime:
             raise OrchestrationRuntimeError("resume supports only the conversation's two distinct waits")
         config = {"configurable": {"thread_id": thread_id}}
         snapshot = await self.graph.aget_state(config)
+        _validate_checkpoint(snapshot.values)
         if _checkpoint_matches_work_plan(snapshot.values.get("work_plan_fingerprint"), work_plan):
             if set(source_thread_ids).difference(snapshot.values.get("imported_source_threads", ())):
                 raise OrchestrationRuntimeError("checkpoint replay cannot add an unaccepted source")
@@ -742,6 +748,8 @@ class OrchestrationRuntime:
             return
         config = {"configurable": {"thread_id": thread_id}}
         snapshot = await self.graph.aget_state(config)
+        if snapshot.values:
+            _validate_checkpoint(snapshot.values)
         if snapshot.tasks and any(task.interrupts for task in snapshot.tasks):
             result = await self.graph.ainvoke(
                 Command(resume={"cancel": True, "closed_work_items": closed_work_items,
@@ -756,42 +764,16 @@ def _work_plan_fingerprint(plan: WorkPlan) -> str:
 
 
 def _checkpoint_matches_work_plan(stored: object, plan: WorkPlan) -> bool:
-    if stored == plan.fingerprint:
-        return True
-    return stored == _legacy_work_plan_fingerprint(plan) and _legacy_policy_compatible(plan)
+    return stored == plan.fingerprint
 
 
-def _legacy_work_plan_fingerprint(plan: WorkPlan) -> str:
-    raw = json.dumps(
-        {
-            "primary": plan.primary_work_item_id,
-            "items": [item.fingerprint for item in plan.items],
-        },
-        sort_keys=True,
-        separators=(",", ":"),
-    ).encode("utf-8")
-    return "work-plan:v1:" + hashlib.sha256(raw).hexdigest()
-
-
-def _legacy_policy_compatible(plan: WorkPlan) -> bool:
-    default = WorkPlanPolicy.default()
-    comparable = WorkPlanPolicy(
-        plan.policy.dependency_satisfaction,
-        default.action_serialization,
-        plan.policy.missing_dependency_outcome,
-        plan.policy.retained_outcome_scope,
-        plan.policy.partial_delivery,
-    )
-    if comparable != default:
-        return False
-    action_capable = any(
-        item.allowed_actions or item.control_mode in {ControlMode.ACTION, ControlMode.WORKFLOW}
-        for item in plan.items
-    )
-    return (
-        plan.policy.action_serialization is ActionSerialization.ONE_PENDING_ACTION_PER_CONVERSATION
-        if action_capable else True
-    )
+def _validate_checkpoint(state) -> None:
+    from application.action_approval import merge_action_decisions
+    plan = state.get("work_plan")
+    if not isinstance(plan, WorkPlan) or state.get("work_plan_fingerprint") != plan.fingerprint:
+        raise OrchestrationRuntimeError("checkpoint requires the current work plan contract")
+    _agent_results(plan, state.get("agent_results", ()))
+    merge_action_decisions(state.get("trusted_context", {}).get("action_decisions", ()))
 
 
 def _closed_outcome(item: WorkItem, result: AgentResult | None) -> AgentResult:

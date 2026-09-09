@@ -474,6 +474,4 @@ def _coerce_work_plan_policy(value: object) -> WorkPlanPolicy:
             value.retained_outcome_scope,
             value.partial_delivery,
         )
-    if isinstance(value, dict):
-        return WorkPlanPolicy(**value)
     raise WorkItemContractError("work plan policy is invalid")

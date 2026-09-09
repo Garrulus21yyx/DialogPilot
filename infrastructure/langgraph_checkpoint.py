@@ -41,6 +41,12 @@ class TargetCheckpointSerializer(JsonPlusSerializer):
             def inspect_extension(code, encoded):
                 decoded = ormsgpack.unpackb(encoded, ext_hook=inspect_extension,
                                             option=ormsgpack.OPT_NON_STR_KEYS)
+                if (isinstance(decoded, (list, tuple)) and len(decoded) >= 2
+                        and tuple(decoded[:2]) == ("application.work_item", "WorkPlan")
+                        and (len(decoded) != 3 or not isinstance(decoded[2], dict)
+                             or "policy" not in decoded[2])):
+                    contract_errors.append(TargetCheckpointContractError(
+                        "checkpoint requires an explicit WorkPlan policy"))
                 if (isinstance(decoded, (list, tuple)) and len(decoded) >= 3
                         and tuple(decoded[:2]) == ("application.response_assembly", "AssembledResponse")
                         and isinstance(decoded[2], dict) and {

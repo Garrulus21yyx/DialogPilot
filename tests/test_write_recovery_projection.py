@@ -7,7 +7,7 @@ import pytest
 
 from application.agent_result import AgentResult, AgentResultStatus
 from application.chat_contracts import ChatCommand, Completed
-from application.conversation_state import ConversationState, WorkstreamState, WorkstreamStatus
+from application.conversation_state import AcceptedApprovalState, ConversationState, WorkstreamState, WorkstreamStatus
 from application.deterministic_resolution import ResolutionKind
 from application.orchestration_runtime import OrchestrationRuntime
 from application.result_board import ResultBoard
@@ -25,7 +25,22 @@ def manual_result(item):
         execution_feedback=({"stage": "write_recovery", "status": "MANUAL_REVIEW",
             "operation_key": item.operation_key, "ticket_id": "ticket:" + item.operation_key,
             "business_outcome": "UNCONFIRMED", "reason": "RECOVERY_BUDGET_EXHAUSTED",
-            "recovery_attempts": 3},))
+            "recovery_attempts": 3, "last_outcome": None, "outcome_scope": None,
+            "detail": None, "source_ref": None},))
+
+
+@pytest.mark.parametrize("missing", ["last_outcome", "outcome_scope", "detail", "source_ref"])
+def test_recovery_projection_requires_complete_producer_contract(missing):
+    from pydantic import ValidationError
+    from application.business_observation import capture_business_observations
+    item = _item()
+    result = manual_result(item)
+    feedback = dict(result.execution_feedback[0])
+    del feedback[missing]
+    board = ResultBoard().evaluate(WorkPlan((item,), item.work_item_id),
+        (replace(result, execution_feedback=(feedback,)),))
+    with pytest.raises(ValidationError):
+        capture_business_observations(board)
 
 
 @pytest.mark.parametrize("count", [1, 3])
@@ -61,11 +76,14 @@ def test_manager_persists_manual_pause_without_completing_the_workstream():
     state = ConversationState.empty(tenant_id="t", user_id="u", conversation_id="c")
     state = state.start_workstream(WorkstreamState("stream", item.owner_agent, item.action_ref,
         "EXECUTE", WorkstreamStatus.ACTIVE, 1))
+    state = replace(state, accepted_approvals=(AcceptedApprovalState(
+        item.approval_binding, 1, "stream", item.action_ref, item.operation_key,
+        item.aggregate_ref, item.target_entity_version, item.arguments),))
     work = WorkPlan((item,), item.work_item_id)
     board = ResultBoard().evaluate(work, (manual_result(item),))
     plan = SimpleNamespace(work=work, control_mutations=())
     resolution = SimpleNamespace(kind=ResolutionKind.APPROVAL_DECISION, approved=True,
-        operation_key=item.operation_key, signal_id=item.approval_binding, workstream_id="stream")
+        operation_key=item.operation_key, signal_id=item.approval_binding, signal_version=1, workstream_id="stream")
     transitions = []
     next_state = TargetConversationManager._apply_successful_workflows(None, state, plan, board,
         None, resolution, checkpoint_thread_id="thread", transitions=transitions)

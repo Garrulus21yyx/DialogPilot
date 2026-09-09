@@ -344,18 +344,7 @@ class RoutePolicy:
                                  and item.control == original.control), None)
                 if accepted is not None:
                     raise TurnPlanningError("continuation parameters differ from accepted work")
-                if continuation_items:
-                    raise TurnPlanningError("continuation lacks its accepted work envelope")
-                if original is None or (
-                    original.control is None
-                    or original.control.control_id != command.revises_control_id
-                    or original.control.revision != control.revision
-                    or original.work_item_id != command.continuation_of
-                    or original.owner_agent != control.owner_agent
-                    or original.objective != control.objective
-                    or original.registry_fingerprint != registry.fingerprint
-                ):
-                    raise TurnPlanningError("resumed capability envelope differs from active work control")
+                raise TurnPlanningError("continuation lacks its accepted work envelope")
             if (original.control is None
                     or original.control.control_id != command.revises_control_id
                     or original.control.revision != control.revision
