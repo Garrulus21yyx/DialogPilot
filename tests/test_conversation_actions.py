@@ -33,7 +33,7 @@ def provider(*items, text="", **kwargs):
 
 
 @pytest.mark.parametrize("pending,retained", [(False, False), (True, False), (False, True)])
-def test_main_planning_and_composition_share_preparation_approval_contract(monkeypatch, pending, retained):
+def test_each_author_receives_its_own_approval_responsibility(monkeypatch, pending, retained):
     from application.action_approval import ACTION_INTERACTION_CONTRACT, action_presentation_instruction
     from infrastructure.target_domain_outcome import SYSTEM
     from tests.test_target_framework_agent import ScriptedToolModel
@@ -59,8 +59,9 @@ def test_main_planning_and_composition_share_preparation_approval_contract(monke
 
     asyncio.run(run())
     assert len(prompts) == 2
-    assert all(ACTION_INTERACTION_CONTRACT in prompt for prompt in prompts)
-    assert action_presentation_instruction(()) in prompts[0]
+    assert all(ACTION_INTERACTION_CONTRACT not in prompt for prompt in prompts)
+    assert prompts[0].startswith("You are DialogPilot, the customer's ecommerce service assistant.")
+    assert action_presentation_instruction(()) not in prompts[0]
     assert action_presentation_instruction([{}] if pending else []) in prompts[1]
     assert ACTION_INTERACTION_CONTRACT in SYSTEM
     worker, context, _, _ = domain([])
