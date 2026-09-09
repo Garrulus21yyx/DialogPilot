@@ -177,7 +177,15 @@ not silently expanding or shrinking a consumed whole-set grant.
 Delivery: implementation and acceptance changes are one scoped commit on
 `feat/customer-service-target-architecture`; commit/push receipt is recorded in the
 handoff. Unrelated user documentation/archive/evaluation edits are excluded.
-Next: a separately authorized live task22 check of actual user/model behavior.
+User authorized a live task22 check: see
+`plans/tau3-task22-operation-scope-rerun-2026-09-09.md`.
+Initial two-operation preparation/approval/execution succeeded; final ENV=0,
+ACTION=1, ALL=0. Post-completion account reversion was twice treated as response-only,
+including a rejected premature confirmation. Later dialogue expanded reversion to
+the order as well, and the approved extra write diverged from the benchmark target.
+Do not restore end-to-end closure from the initial batch success. Next diagnosis:
+global planning input/capability selection for new changes after completed work,
+and unsupported inability claims in response-only delivery; no further rerun yet.
 
 Migration: TurnRuntime v22 rejects old **unpublished assembled turn checkpoints**
 through the existing version gate; it does not replay business writes. Persisted
