@@ -286,6 +286,10 @@ def _checkpoint_facts(result: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def _outcome_divergence_path(result: Mapping[str, Any]) -> Mapping[str, Any] | None:
+    # Termination-gated rewards are placeholders: no ENV/ACTION assertion ran.
+    # Episode-budget evidence is analyzed independently from business state.
+    if result.get("evaluation_scope") == "termination_gate_only":
+        return None
     env_reward = (result.get("env") or {}).get("reward")
     action_reward = (result.get("action") or {}).get("reward")
     official = result.get("official_reward")

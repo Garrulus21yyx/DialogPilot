@@ -69,7 +69,7 @@ def analyze_run(run_dir: Path) -> Mapping[str, Any]:
         path for path in run_dir.glob("task-*.json")
         if not any(part in path.name for part in ("-trajectory", "-partial-trajectory", "-user-state"))
     )
-    tasks = [analyze_task(path, _trajectory_path(path)) for path in task_paths]
+    tasks = [analyze_task(path, _trajectory_path(path), run_context=manifest) for path in task_paths]
     counts = Counter(
         finding["code"]
         for task in tasks
@@ -101,7 +101,12 @@ def analyze_run(run_dir: Path) -> Mapping[str, Any]:
     }
 
 
-def analyze_task(result_path: Path, trajectory_path: Path | None = None) -> Mapping[str, Any]:
+def analyze_task(
+    result_path: Path,
+    trajectory_path: Path | None = None,
+    *,
+    run_context: Mapping[str, Any] | None = None,
+) -> Mapping[str, Any]:
     result = _load_json(result_path)
     trajectory = _load_json(trajectory_path, default={}) if trajectory_path else {}
     task_id = str(result.get("task_id", _task_id(result_path)))
@@ -115,6 +120,52 @@ def analyze_task(result_path: Path, trajectory_path: Path | None = None) -> Mapp
     failed_expected = [action for action in expected_actions if not action["action_match"]]
     failed_writes = [action for action in failed_expected if action["tool_type"] == "write"]
     actual_writes = [action for action in actual_actions if _is_write(action["name"])]
+
+    step_budget = _step_budget_exhaustion(
+        result, messages, actual_actions, run_context or {},
+    )
+    if step_budget:
+        evidence.append(Evidence(
+            "episode-step-budget", result_path.name,
+            "$.termination|$.evaluation_scope|trajectory:$.messages",
+            "The episode terminated at its configured message-step budget.",
+            step_budget["budget"],
+        ))
+        findings.append(Finding(
+            "EPISODE_STEP_BUDGET_EXHAUSTED", "mechanism", FindingLevel.VERIFIED,
+            "The benchmark stopped before a terminal business outcome because its step budget was exhausted.",
+            "episode_orchestration", ("episode-step-budget",),
+            impact="TASK_BLOCKING",
+        ))
+        if step_budget["replays"]:
+            evidence.append(Evidence(
+                "unchanged-read-replays",
+                trajectory_path.name if trajectory_path else result_path.name,
+                "$.messages[*].tool_calls",
+                "Exact read requests returned identical results more than once without an intervening write.",
+                step_budget["replays"],
+            ))
+            findings.append(Finding(
+                "UNCHANGED_READ_REPLAY", "mechanism", FindingLevel.VERIFIED,
+                "The agent repeated read calls that produced no new observable information.",
+                "agent_read_planning", ("unchanged-read-replays",),
+                impact="PRESENT_DURING_FAILURE",
+            ))
+        if step_budget["causal"]:
+            evidence.append(Evidence(
+                "pending-signal-at-step-limit", result_path.name,
+                step_budget["causal"]["locator"],
+                "A prepared interaction was still waiting when the episode budget was exhausted.",
+                step_budget["causal"]["pending_signal"],
+            ))
+            findings.append(Finding(
+                "REDUNDANT_READ_REPLAY_EXHAUSTED_STEP_BUDGET",
+                "root_cause", FindingLevel.VERIFIED,
+                "Unchanged read replays consumed enough steps to prevent the pending interaction from continuing.",
+                "agent_read_planning",
+                ("episode-step-budget", "unchanged-read-replays", "pending-signal-at-step-limit"),
+                impact="TASK_BLOCKING",
+            ))
 
     if result.get("evaluation_errors"):
         evidence.append(Evidence(
@@ -369,6 +420,117 @@ def _actual_actions(trajectory: Any) -> list[Mapping[str, Any]]:
                 "tool_index": tool_index,
             })
     return actions
+
+
+def _step_budget_exhaustion(
+    result: Mapping[str, Any],
+    messages: Sequence[Mapping[str, Any]],
+    actual_actions: Sequence[Mapping[str, Any]],
+    run_context: Mapping[str, Any],
+) -> Mapping[str, Any] | None:
+    if result.get("termination") != "max_steps" or result.get("evaluation_scope") != "termination_gate_only":
+        return None
+    configured = run_context.get("max_steps")
+    if not isinstance(configured, int) or configured < 1:
+        configured = None
+    replay_groups = _unchanged_read_replays(messages, actual_actions)
+    redundant_calls = sum(group["call_count"] - 1 for group in replay_groups)
+    replay_steps = redundant_calls * 2
+    pending = _last_pending_signal(result)
+    minimum_continuation_steps = 3 if pending else 0
+    required_savings = (
+        max(1, len(messages) + minimum_continuation_steps - configured)
+        if configured is not None else None
+    )
+    causal = (
+        pending is not None
+        and not any(_is_write(action["name"]) for action in actual_actions)
+        and required_savings is not None
+        and replay_steps >= required_savings
+    )
+    return {
+        "budget": {
+            "termination": "max_steps",
+            "evaluation_scope": "termination_gate_only",
+            "configured_max_steps": configured,
+            "trajectory_message_count": len(messages),
+            "minimum_pending_continuation_steps": minimum_continuation_steps,
+            "required_step_savings": required_savings,
+        },
+        "replays": {
+            "groups": replay_groups,
+            "redundant_call_count": redundant_calls,
+            "consumed_message_steps": replay_steps,
+            "intervening_write_count": sum(
+                1 for action in actual_actions if _is_write(action["name"])
+            ),
+        } if replay_groups else {},
+        "causal": {
+            "locator": pending["locator"],
+            "pending_signal": pending["data"],
+        } if causal else None,
+    }
+
+
+def _unchanged_read_replays(
+    messages: Sequence[Mapping[str, Any]],
+    actual_actions: Sequence[Mapping[str, Any]],
+) -> list[Mapping[str, Any]]:
+    response_by_call = {
+        str(message["raw"].get("id")): message["content"]
+        for message in messages
+        if message["role"] == "tool" and message["raw"].get("id")
+    }
+    grouped: dict[str, list[Mapping[str, Any]]] = {}
+    for action in actual_actions:
+        if _is_write(action["name"]):
+            continue
+        signature = json.dumps(
+            {"name": action["name"], "arguments": action["arguments"]},
+            ensure_ascii=False, sort_keys=True, separators=(",", ":"), default=str,
+        )
+        grouped.setdefault(signature, []).append(action)
+    replays = []
+    for signature, calls in sorted(grouped.items()):
+        if len(calls) < 2:
+            continue
+        responses = [response_by_call.get(str(call.get("call_id"))) for call in calls]
+        if any(response is None for response in responses) or len(set(responses)) != 1:
+            continue
+        request = json.loads(signature)
+        replays.append({
+            "tool": request["name"],
+            "arguments_sha256": hashlib.sha256(json.dumps(
+                request["arguments"], ensure_ascii=False, sort_keys=True,
+                separators=(",", ":"), default=str,
+            ).encode()).hexdigest(),
+            "response_sha256": hashlib.sha256(responses[0].encode()).hexdigest(),
+            "call_count": len(calls),
+            "message_indexes": [call["message_index"] for call in calls],
+        })
+    return replays
+
+
+def _last_pending_signal(result: Mapping[str, Any]) -> Mapping[str, Any] | None:
+    records = result.get("target_trace") or []
+    if not isinstance(records, Sequence) or isinstance(records, (str, bytes)):
+        return None
+    for index in range(len(records) - 1, -1, -1):
+        record = records[index]
+        outcome = record.get("outcome") if isinstance(record, Mapping) else None
+        if not isinstance(outcome, Mapping) or outcome.get("kind") not in {"APPROVAL", "FIELDS", "COMPOUND"}:
+            continue
+        if not outcome.get("signal_id"):
+            continue
+        return {
+            "locator": f"$.target_trace[{index}].outcome",
+            "data": {
+                "turn": record.get("turn"),
+                "kind": outcome.get("kind"),
+                "signal_id": outcome.get("signal_id"),
+            },
+        }
+    return None
 
 
 def _messages(trajectory: Any) -> list[Mapping[str, Any]]:

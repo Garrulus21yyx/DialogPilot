@@ -200,6 +200,15 @@ actually accepts the exact scope remains a separate semantic Judge proposition.
 Older runs without these fields retain the conservative `ACTION_RESUME_BLOCKED`
 classification.
 
+Termination-gated runs are evaluated before business-state divergence. A
+`max_steps` placeholder reward is not a database assertion and therefore cannot
+be relabelled as `STATE_OUTCOME_MISMATCH`. For isolated tau3 episodes, the analyzer
+can verify step-budget exhaustion caused by read replay only when identical tool
+names and arguments return byte-identical results, no write occurs, the replayed
+message steps are sufficient to cross the configured limit, and a checkpoint-bound
+interaction is still pending. Artifact evidence stores argument and response hashes,
+counts, and message indexes rather than tool-result bodies.
+
 ## Evaluation authority
 
 | Question | Authority |

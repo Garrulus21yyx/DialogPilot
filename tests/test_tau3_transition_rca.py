@@ -208,3 +208,19 @@ def test_state_pass_with_overall_failure_diverges_at_answer():
 
     assert report["first_divergence"]["phase"] == "ANSWER"
     assert report["first_divergence"]["code"] == "ANSWER_OR_COMMUNICATION_MISMATCH"
+
+
+def test_termination_gate_reward_is_not_relabelled_as_state_failure():
+    report = analyze_required_transitions(
+        {
+            "termination": "max_steps",
+            "evaluation_scope": "termination_gate_only",
+            "env": {"reward": 0, "db_check": None},
+            "action": {"reward": 0, "action_checks": None},
+            "official_reward": 0,
+        },
+        required_writes=[], actual_writes=[], planning_failures=[],
+    )
+
+    assert report["paths"] == []
+    assert report["first_divergence"] is None

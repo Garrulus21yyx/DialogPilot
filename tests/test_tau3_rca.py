@@ -79,6 +79,46 @@ def test_recovered_context_error_is_not_reported_as_task_blocking(tmp_path):
     assert findings["CONTEXT_BUDGET_EXECUTION_FAILURE"]["impact"] == "RECOVERED"
 
 
+def test_unchanged_reads_that_consume_pending_continuation_budget_are_root_cause(tmp_path):
+    result = _write(tmp_path / "task-20.json", {
+        "task_id": "20", "official_reward": 0,
+        "termination": "max_steps", "evaluation_scope": "termination_gate_only",
+        "env": {"reward": 0, "db_check": None},
+        "action": {"reward": 0, "action_checks": None},
+        "target_trace": [{
+            "turn": 3,
+            "outcome": {"kind": "APPROVAL", "signal_id": "approval-1"},
+        }],
+    })
+    messages = [{"role": "assistant", "content": "Hello"}, {"role": "user", "content": "Start"}]
+    for index in range(3):
+        call_id = f"call-{index}"
+        messages.extend([
+            {"role": "assistant", "tool_calls": [{
+                "id": call_id, "name": "get_order_details", "arguments": {"order_id": "W1"},
+            }]},
+            {"id": call_id, "role": "tool", "content": "same-order-state"},
+        ])
+    messages.extend([
+        {"role": "assistant", "content": "Prepared"},
+        {"role": "user", "content": "Use gift card"},
+        {"role": "assistant", "content": "Please approve"},
+    ])
+    trajectory = _write(tmp_path / "task-20-trajectory.json", {"messages": messages})
+
+    report = analyze_task(result, trajectory, run_context={"max_steps": 10})
+
+    findings = {item["code"]: item for item in report["findings"]}
+    assert findings["EPISODE_STEP_BUDGET_EXHAUSTED"]["impact"] == "TASK_BLOCKING"
+    assert findings["UNCHANGED_READ_REPLAY"]["level"] == "VERIFIED"
+    assert findings["REDUNDANT_READ_REPLAY_EXHAUSTED_STEP_BUDGET"]["layer"] == "root_cause"
+    assert report["root_cause_status"] == "VERIFIED"
+    replay = next(item for item in report["evidence"] if item["evidence_id"] == "unchanged-read-replays")
+    assert replay["data"]["redundant_call_count"] == 2
+    assert replay["data"]["consumed_message_steps"] == 4
+    assert report["transition_analysis"]["first_divergence"] is None
+
+
 def test_missing_write_is_linked_to_task_bound_planning_failure(tmp_path):
     result = _write(tmp_path / "task-20.json", {
         "task_id": "20", "official_reward": 0,

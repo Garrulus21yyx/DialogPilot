@@ -1,6 +1,6 @@
 # Tau3 automated RCA closure
 
-Status: implementation complete on synchronized base adbd686; fresh-run validation pending
+Status: fresh-run RCA validated on synchronized base adbd686; task20 product regression open
 
 Goal: turn saved tau3 evaluations into an automated, evidence-backed loop that
 analyzes failures, runs deterministic probes, creates reviewable regression
@@ -33,6 +33,8 @@ Steps:
 9. `done` Rebase onto the complete planning-request budget owner, preserve the
    terminal projection report at that boundary, and propagate its typed evidence
    through planning, trace, and RCA without a second admission authority.
+10. `done` Re-run task20 and add termination-gate/read-replay attribution from
+    authoritative trajectory and pending-interaction evidence.
 
 Validation:
 
@@ -60,6 +62,18 @@ Validation:
 - A real verifier-model run over enriched fixed10 v2 task8/task13 returned
   `UNKNOWN` for both semantic hypotheses with explicit missing evidence. Both
   remained `root_cause_status=OPEN`; no score or root cause was fabricated.
+- Fresh task20 run `tau3-7cbc237738de4b3f8f97a7b1bb415712` did not reproduce
+  `CONTEXT_BUDGET_EXCEEDED`. It terminated at 81 trajectory messages with
+  `max_steps=80` while a compound approval signal remained pending.
+- Deterministic replay analysis found 14 redundant calls across 7 exact read
+  signatures. Each signature returned the same response hash, no write occurred,
+  and the 28 consumed message steps exceed the 4 steps needed to remain within the
+  configured budget and continue the pending interaction. The root cause is
+  `REDUNDANT_READ_REPLAY_EXHAUSTED_STEP_BUDGET`; response verification failures are
+  retained as co-occurring mechanisms rather than promoted as causes.
+- The fresh artifact generated reviewable regression candidate
+  `tau3-4d2b5f707f174217`. It remains a candidate until its business contract and a
+  scope-preserving variant receive explicit review.
 
 Exit criteria:
 
