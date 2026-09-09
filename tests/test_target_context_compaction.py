@@ -127,6 +127,48 @@ def test_summary_failure_never_replaces_original_history():
     asyncio.run(run())
 
 
+@pytest.mark.parametrize("exhausted", [False, True])
+@pytest.mark.parametrize("missing_pin", [False, True])
+def test_summary_trigger_and_unhelpful_summary_never_reject_fitting_input(exhausted, missing_pin, monkeypatch):
+    async def run():
+        pinned, messages, _ = history(3)
+        expected = list(messages)
+        if missing_pin:
+            messages = messages[1:]
+        compact = ContextCompaction(ScriptedToolModel(responses=[]),
+            TargetResultArchive(InMemoryStore()), available_tokens=6000,
+            overhead_tokens=100, pinned_message=pinned, soft_fraction=.3, summary_fraction=.4,
+            max_summary_calls=1)
+        calls = []
+        async def unhelpful(state, runtime):
+            calls.append(1)
+            return {"messages": list(state["messages"])}
+        monkeypatch.setattr(compact.summary, "abefore_model", unhelpful)
+        records = [{"summarized": True}] if exhausted else []
+        for _ in range(3):
+            update = await compact.abefore_model({"messages": messages, "compaction_records": records},
+                                                 SimpleNamespace(context=_context()))
+            records.extend(update["compaction_records"])
+            assert not records[-1]["summary_applied"]
+            assert update["messages"][1:] == expected
+            assert records[-1]["after_tokens"] <= compact.available
+        assert len(calls) == (0 if exhausted else 1)
+    asyncio.run(run())
+
+
+def test_exhausted_summary_budget_still_rejects_actual_overflow():
+    from application.context_budget import ModelContextBudgetExceeded
+    async def run():
+        pinned, messages, _ = history(3)
+        compact = ContextCompaction(ScriptedToolModel(responses=[]),
+            TargetResultArchive(InMemoryStore()), available_tokens=2000,
+            overhead_tokens=100, pinned_message=pinned, max_summary_calls=1)
+        with pytest.raises(ModelContextBudgetExceeded):
+            await compact.abefore_model({"messages": messages, "compaction_records": [{"summarized": True}]},
+                                        SimpleNamespace(context=_context()))
+    asyncio.run(run())
+
+
 @pytest.mark.parametrize("batch_size", [1, 3, 7])
 @pytest.mark.parametrize("overhead", [1600, 2000])
 def test_history_over_agent_budget_can_use_bounded_summary_invocation(batch_size, overhead):
@@ -248,8 +290,8 @@ def test_long_result_can_be_read_without_reexecuting_tool_and_fact_is_complete(m
     review, = captured
     page = next(m for m in review["working_context"] if m.get("tool_call_id") == "page")
     actor_page = next(m for m in visible if isinstance(m, ToolMessage) and m.tool_call_id == "page")
-    assert page["content"] == actor_page.content
-    assert "large detail" in str(page["content"])
+    assert page["content_json"] == json.loads(actor_page.content)
+    assert "large detail" in str(page["content_json"])
     page_call = next(call for m in review["working_context"] for call in m.get("tool_calls", ()) if call["id"] == "page")
     assert page_call["args"]["reference"]
 

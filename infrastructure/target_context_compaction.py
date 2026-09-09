@@ -10,7 +10,6 @@ from copy import deepcopy
 
 from langchain.agents.middleware import AgentMiddleware, AgentState, SummarizationMiddleware, hook_config
 from langchain.agents.middleware.context_editing import ClearToolUsesEdit
-from langchain.agents.middleware.model_call_limit import ModelCallLimitExceededError
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage, messages_to_dict
 from langchain_core.messages.utils import count_tokens_approximately, get_buffer_string
 from langgraph.graph.message import REMOVE_ALL_MESSAGES
@@ -229,6 +228,10 @@ class ContextCompaction(AgentMiddleware):
                 messages[index] = replacement
                 offloaded.append(source.tool_call_id)
         cleared = count(messages)
+        if not any(message.id == self.pinned.id for message in messages):
+            messages.insert(0, self.pinned)
+            cleared = count(messages)
+        edited_messages = messages
         update = None
         if cleared >= self.hard and (cutoff > 0 or cleared > self.available):
             # Admission is per actual invocation, not the uncompressed history.
@@ -241,8 +244,9 @@ class ContextCompaction(AgentMiddleware):
             ensure_fit(protected)
             calls = sum(bool(record["summarized"]) for record in state.get("compaction_records", []))
             if calls >= self.max_summary_calls:
-                raise ModelCallLimitExceededError(calls, calls, self.max_summary_calls, None)
-            update = await summary.abefore_model({**state, "messages": messages}, runtime)
+                ensure_fit(messages)
+            else:
+                update = await summary.abefore_model({**state, "messages": messages}, runtime)
         if update:
             messages = [m for m in update["messages"] if not isinstance(m, RemoveMessage)]
             messages.insert(0, HumanMessage(content=json.dumps({
@@ -252,9 +256,13 @@ class ContextCompaction(AgentMiddleware):
         if not any(message.id == self.pinned.id for message in messages):
             messages.insert(0, self.pinned)
         after = count(messages)
+        if update and after >= cleared:
+            # A trigger asks for editing; it is not an input-capacity limit.
+            # Prefer fitting, clearer originals when the summary saves nothing.
+            ensure_fit(edited_messages)
+            messages = edited_messages
+            after = cleared
         ensure_fit(messages)
-        if update and after >= self.hard and after >= cleared:
-            raise ModelContextBudgetExceeded(after, self.hard)
         return {"messages": [RemoveMessage(id=REMOVE_ALL_MESSAGES), *messages],
                 "compaction_records": [{
                     "before_tokens": count_tokens_approximately(list(original)) + self.overhead,
@@ -263,5 +271,6 @@ class ContextCompaction(AgentMiddleware):
                         {"before": counter(original)[0], "after": counter(messages)[0],
                          "available": counter(messages)[1]}
                         for counter in (self.consumer_budget, consumer_budget) if counter],
-                    "summarized": bool(update), "original_ref": archive_ref,
+                    "summarized": bool(update), "summary_applied": bool(update) and messages is not edited_messages,
+                    "original_ref": archive_ref,
                     "offloaded_tool_calls": offloaded}]}
