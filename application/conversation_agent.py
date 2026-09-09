@@ -346,14 +346,21 @@ class ConversationAgent:
             "registry_fingerprint": registry.fingerprint,
         }
         try:
-            from application.historical_context_budget import fit_historical_payload
-            budgeted = fit_historical_payload(
-                self._context_budget, payload,
+            from application.historical_context_budget import project_historical_payload
+            # Early rejection is only for an irreducible user message. The
+            # provider owns full admission after rendering its native tools and
+            # instructions; application metadata is not a second prompt budget.
+            self._context_budget.fit_payload({"message": observations.raw_text})
+            projected = project_historical_payload(
+                payload,
                 observation_path=('conversation_context', 'business_observations')
                     if any(read['tool_id'] == 'read_conversation_observation' for read in atomic_reads) else (),
-                trim_oldest_paths=("conversation_context.recent_messages",),
+                # Public dialogue has a recent-message window. Completed tool
+                # investigations have a different lifecycle: references, not a
+                # second copy of the child's working memory, even on the next turn.
+                inline_publication_ids=frozenset(),
             )
-            raw = await self._provider.plan(budgeted.payload)
+            raw = await self._provider.plan(projected)
         except GraphBubbleUp:
             raise
         except (ModelContextBudgetExceeded, ProviderContextBudgetExceeded):
@@ -391,7 +398,7 @@ class ConversationAgent:
                 atomic_reads=atomic_reads,
             )
             return replace(proposal, historical_context_view=tuple(
-                budgeted.payload['conversation_context'].get('business_observations', ())))
+                projected['conversation_context'].get('business_observations', ())))
         except ApprovalReplyUnaddressed:
             logger.exception("Current user approval decision was not addressed")
             return TurnProposal(ProposalDisposition.INVALID_PROVIDER_OUTPUT, (),

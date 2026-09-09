@@ -542,7 +542,8 @@ class TargetFrameworkAgent:
         if observations and 'read_conversation_observation' in item.allowed_tools:
             from application.historical_context_budget import fit_historical_payload
             observations = fit_historical_payload(self._context_budget, observations,
-                observation_path=('business_observations',), overhead_tokens=overhead_tokens).payload
+                observation_path=('business_observations',), overhead_tokens=overhead_tokens,
+                inline_publication_ids=frozenset()).payload
         payload = {
             **observations,
             "objective": item.objective,

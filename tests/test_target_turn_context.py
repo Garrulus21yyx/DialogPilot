@@ -51,6 +51,7 @@ class Memory:
         self.calls.append((tenant_id, user_id, conversation_id, current_request_id))
         return SimpleNamespace(state=SimpleNamespace(value="READY"), source_watermark=1, reason_codes=(), context=SimpleNamespace(
             summary="用户正在处理售后问题",
+            summary_covered_until_seq=0,
             recent_messages=[SimpleNamespace(
                 role=SimpleNamespace(value="user"), content="上轮消息",
             )],

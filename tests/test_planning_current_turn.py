@@ -66,8 +66,11 @@ def test_plan_transport_and_budget_receive_same_projection(monkeypatch):
     from langchain_core.messages import AIMessage
     payload = sample('不是')
     captured = {}
-    class Budget:
-        def validate(self, profile, role, request): captured['budget'] = request
+    from core.provider_context_budget import ProviderContextBudget
+    class Budget(ProviderContextBudget):
+        def validate(self, profile, role, request):
+            captured['budget'] = request
+            return super().validate(profile, role, request)
     class Model:
         def bind_tools(self, tools, **kwargs):
             captured['tools'] = tools

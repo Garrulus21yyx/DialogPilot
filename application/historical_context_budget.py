@@ -6,7 +6,22 @@ from dataclasses import replace
 from application.context_budget import ContextBudgetManager, ModelContextBudgetExceeded
 
 
-def fit_historical_payload(budget, payload, *, observation_path, trim_oldest_paths=(), overhead_tokens=0):
+def project_historical_payload(payload, *, observation_path, inline_publication_ids=frozenset()):
+    """Select an archival view independently of any model's capacity.
+
+    This is context selection, not admission. The provider budgets its complete
+    rendered request; no model/schema overhead is guessed at this boundary.
+    """
+    value = copy.deepcopy(dict(payload))
+    for entry, _, owner, key, replacement_key, reference in _source_bodies(value, observation_path):
+        if entry['publication_id'] not in inline_publication_ids:
+            del owner[key]
+            owner[replacement_key] = reference
+    return value
+
+
+def fit_historical_payload(budget, payload, *, observation_path, trim_oldest_paths=(), overhead_tokens=0,
+                           inline_publication_ids=None, token_counter=None, can_trim=None):
     """Externalize largest source bodies only when required by the call budget.
 
     Originals already belong to private Publication storage. References use the
@@ -19,11 +34,39 @@ def fit_historical_payload(budget, payload, *, observation_path, trim_oldest_pat
         budget = ContextBudgetManager(context_window_tokens=budget.available_tokens - overhead_tokens,
                                       reserved_output_tokens=0, protocol_reserve_tokens=0)
     value = copy.deepcopy(dict(payload))
-    original_tokens = budget._estimate(value)
+    original_tokens = (token_counter or budget._estimate)(value)
+    candidates = []
+    externalized = []
+    for entry, savings, owner, key, replacement_key, reference in _source_bodies(value, observation_path):
+        if inline_publication_ids is not None and entry['publication_id'] not in inline_publication_ids:
+            del owner[key]
+            owner[replacement_key] = reference
+            externalized.append(json.dumps(reference['arguments'], sort_keys=True))
+        else:
+            candidates.append((savings, owner, key, replacement_key, reference))
+    candidates.sort(key=lambda row: row[0], reverse=True)
+    while True:
+        try:
+            result = budget.fit_payload(value, token_counter=token_counter)
+            break
+        except ModelContextBudgetExceeded:
+            if not candidates:
+                result = budget.fit_payload(value, trim_oldest_paths=trim_oldest_paths,
+                                            token_counter=token_counter, can_trim=can_trim)
+                break
+            _, owner, key, replacement_key, reference = candidates.pop(0)
+            del owner[key]
+            owner[replacement_key] = reference
+            externalized.append(json.dumps(reference['arguments'], sort_keys=True))
+    return replace(result, report=replace(result.report, original_tokens=original_tokens,
+                                          externalized_items=tuple(externalized)))
+
+
+def _source_bodies(value, observation_path):
+    estimator = ContextBudgetManager()._estimate
     current = value
     for key in observation_path:
         current = current.get(key, {}) if isinstance(current, dict) else {}
-    candidates = []
     for entry in current if isinstance(current, (list, tuple)) else ():
         if (entry.get('status') != 'HISTORICAL' or not entry.get('publication_id')
                 or not entry.get('observation_id')):
@@ -44,22 +87,6 @@ def fit_historical_payload(budget, payload, *, observation_path, trim_oldest_pat
                     'publication_id': entry['publication_id'],
                     'observation_id': entry['observation_id'], 'pointer': pointer}}
             replacement_key = 'value_reference' if key == 'value_json' else key + '_reference'
-            savings = budget._estimate({key: owner[key]}) - budget._estimate({replacement_key: reference})
+            savings = estimator({key: owner[key]}) - estimator({replacement_key: reference})
             if savings > 0:
-                candidates.append((savings, owner, key, replacement_key, reference))
-    candidates.sort(key=lambda row: row[0], reverse=True)
-    externalized = []
-    while True:
-        try:
-            result = budget.fit_payload(value)
-            break
-        except ModelContextBudgetExceeded:
-            if not candidates:
-                result = budget.fit_payload(value, trim_oldest_paths=trim_oldest_paths)
-                break
-            _, owner, key, replacement_key, reference = candidates.pop(0)
-            del owner[key]
-            owner[replacement_key] = reference
-            externalized.append(json.dumps(reference['arguments'], sort_keys=True))
-    return replace(result, report=replace(result.report, original_tokens=original_tokens,
-                                          externalized_items=tuple(externalized)))
+                yield entry, savings, owner, key, replacement_key, reference

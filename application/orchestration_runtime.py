@@ -303,9 +303,14 @@ class OrchestrationRuntime:
                 "recent_relevant_turns": state.get("recent_relevant_turns", ()),
                 "evidence_refs": state.get("evidence_refs", ()),
                 "token_budget": state.get("token_budget", 6000),
-                "facts": current_facts(_merge_facts(state.get("facts", ()),
-                    tuple(fact for _, result in state.get("retained_outcomes", ()) if result
-                          for fact in result.facts),
+                "facts": current_facts(_merge_facts(
+                    tuple(fact for dependency in item.dependencies for fact in results[dependency].facts),
+                    # Direct observations are explicit conversation-level reads
+                    # (e.g. identifying the account before delegation). Domain
+                    # investigations stay local unless a DAG dependency or a
+                    # continuation explicitly carries them into this worker.
+                    tuple(fact for work, result in state.get("retained_outcomes", ())
+                          if result and work.control_mode is ControlMode.DIRECT for fact in result.facts),
                     state.get("continuation_facts", {}).get(item.work_item_id, ()))),
                 "trusted_context": {**state.get("trusted_context", {}), "assignment_view": {
                     "assignments": [{"work_item_id": work.work_item_id, "owner_agent": work.owner_agent,

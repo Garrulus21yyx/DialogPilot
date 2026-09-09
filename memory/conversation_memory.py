@@ -187,6 +187,7 @@ class MemoryContext:
     user_profile:     Dict[str, Any]  # 用户画像：偏好、常用实体
     summary:          str             # 当前会话摘要（压缩后）
     retrieval_hits:   List[MemoryHit] = field(default_factory=list)
+    summary_covered_until_seq: int = 0
 
     @staticmethod
     def _clean(text: str) -> str:
@@ -826,6 +827,7 @@ class MemoryManager:
             user_profile=await self._get_profile(user_id),
             summary=self._build_summary_view(chunks, checkpoint),
             retrieval_hits=[],
+            summary_covered_until_seq=checkpoint.covered_until_seq,
         )
 
     # ── 压缩（防止 context 爆炸）─────────────────────────────────────────────

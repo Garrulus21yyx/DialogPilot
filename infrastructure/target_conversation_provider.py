@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import json
+import logging
+from dataclasses import asdict
 from typing import Mapping
 from jsonschema import ValidationError
 
@@ -9,6 +11,8 @@ from core.model_policy import ModelProfile, ModelRole
 from core.provider_context_budget import DEFAULT_PROVIDER_CONTEXT_BUDGET
 
 from application.conversation_agent import ConversationProviderOutputError
+from application.context_budget import ContextBudgetManager, ModelContextBudgetExceeded
+from application.historical_context_budget import fit_historical_payload
 from application.action_approval import reply_presentation_instruction
 from application.agent_instructions import conversation_instructions
 from application.conversation_actions import planning_actions, action_proposal
@@ -17,9 +21,10 @@ from core.framework_models import invoke_model
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.runnables.config import ensure_config, merge_configs
 
+logger = logging.getLogger(__name__)
 
 class AnthropicConversationPlanningProvider:
-    version = "anthropic-conversation-provider-v29-scoped-planning"
+    version = "anthropic-conversation-provider-v30-complete-context-budget"
 
     def __init__(self, models, *, model_profile: ModelProfile, synthesis_profile: ModelProfile, max_tokens: int = 800, callbacks=()) -> None:
         self._models = models
@@ -98,23 +103,52 @@ class AnthropicConversationPlanningProvider:
             contract, messages = planning_context(model_payload)
         except (ValueError, TypeError, KeyError) as exc:
             raise ConversationProviderOutputError("planning_context_invalid") from exc
-        system += contract
-        request = profile.request(
-            max_tokens=self._max_tokens, system=system,
-            messages=[{"role": "assistant" if message.type == "ai" else "user",
-                       "content": message.content} for message in messages],
-        )
+        tools = [action.tool() for action in actions]
+        def render(value):
+            contract, messages = planning_context(value)
+            request = profile.request(max_tokens=self._max_tokens, system=system + contract,
+                messages=[{"role": "assistant" if message.type == "ai" else "user",
+                           "content": message.content} for message in messages])
+            if tools:
+                request.update(tools=tools, tool_choice={"type": "auto"})
+            return request, messages
+
+        budget = ContextBudgetManager(context_window_tokens=profile.max_context_tokens,
+            reserved_output_tokens=self._max_tokens, protocol_reserve_tokens=0)
+        summary = model_payload.get("conversation_context", {}).get("summary") or {}
+        covered_until = summary.get("covered_until_seq", 0)
+        recent = model_payload.get("conversation_context", {}).get("recent_messages", [])
+        protected_recent = recent[-2:]
+        try:
+            fitted = fit_historical_payload(budget, model_payload,
+                observation_path=("conversation_context", "business_observations")
+                    if any(action.bound.get("tool_id") == "read_conversation_observation" for action in actions) else (),
+                inline_publication_ids=frozenset(),
+                trim_oldest_paths=("conversation_context.recent_messages",),
+                # Do not silently erase an unsummarized restriction or the
+                # immediately preceding exchange to accommodate tool schemas.
+                can_trim=lambda path, message: bool(summary.get("content"))
+                    and 0 < message.get("seq", 0) <= covered_until and message not in protected_recent,
+                token_counter=lambda value: DEFAULT_PROVIDER_CONTEXT_BUDGET.measure(
+                    profile, render(value)[0]).estimated_input_tokens)
+        except ModelContextBudgetExceeded as exc:
+            logger.warning("Planning context cannot fit after archival projection", extra={
+                "context_budget": asdict(DEFAULT_PROVIDER_CONTEXT_BUDGET.measure(profile, render(model_payload)[0])),
+                "required_after_projection": exc.required_tokens, "available_tokens": exc.available_tokens})
+            raise
+        request, messages = render(fitted.payload)
+        system = request["system"]
         model = self._models[role]
         if actions:
-            request["tools"] = [action.tool() for action in actions]
-            request["tool_choice"] = {"type": "auto"}
             model = model.bind_tools(request["tools"], tool_choice="auto")
-        DEFAULT_PROVIDER_CONTEXT_BUDGET.validate(
+        usage = DEFAULT_PROVIDER_CONTEXT_BUDGET.validate(
             profile, role, request,
         )
         try:
             output = await invoke_model(model.ainvoke([SystemMessage(system), *messages], config=merge_configs(ensure_config(), {
                 "callbacks": list(self._callbacks), "run_name": "conversation_actions",
+                "metadata": {"context_budget": asdict(usage),
+                             "context_projection": asdict(fitted.report)},
             })), stage="conversation_actions")
             if output.response_metadata.get("stop_reason") in {"max_tokens", "refusal"}:
                 raise ValueError("planning_output_incomplete")

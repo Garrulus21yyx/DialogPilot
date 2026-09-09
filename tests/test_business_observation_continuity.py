@@ -132,7 +132,9 @@ def test_publication_roundtrip_preserves_private_business_observations(
     pool, identity, service, _ = publication_components
     observation = capture_business_observations(observed_board())[0]
     command = (_final(identity) if kind == 'final' else
-               replace(_interaction(identity), resume_schema={'interaction_kind': kind}))
+               replace(_interaction(identity, pool), resume_schema={'interaction_kind': kind}))
+    if kind == 'FIELDS':
+        command = replace(command, signal_id='fields-signal', signal_version=3)
     if kind == 'final':
         command = replace(command, verifier_status=verifier_status)
     changed = replace(command, business_observations=(observation, observation))

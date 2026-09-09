@@ -87,6 +87,7 @@ class PostgresMemoryProjectionReader:
                     ),
                     user_profile=(context.user_profile if memory_available else {}),
                     summary=(context.summary if memory_available else ""),
+                    summary_covered_until_seq=(context.summary_covered_until_seq if memory_available else 0),
                     retrieval_hits=(
                         context.retrieval_hits if memory_available else []
                     ),

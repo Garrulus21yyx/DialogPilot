@@ -4,7 +4,7 @@ from __future__ import annotations
 import copy
 import json
 from dataclasses import dataclass
-from typing import Any, Mapping, Sequence
+from typing import Any, Callable, Mapping, Sequence
 
 from core.token_estimator import TokenEstimator
 
@@ -62,26 +62,29 @@ class ContextBudgetManager:
         payload: Mapping[str, Any],
         *,
         trim_oldest_paths: Sequence[str] = (),
+        token_counter: Callable[[Mapping[str, Any]], int] | None = None,
+        can_trim: Callable[[str, Any], bool] | None = None,
     ) -> BudgetedPayload:
         """Trim declared chronological lists only; never invent summary content."""
         value = copy.deepcopy(dict(payload))
-        original = self._estimate(value)
+        measure = token_counter or self._estimate
+        original = measure(value)
         removed: list[str] = []
-        while self._estimate(value) > self.available_tokens:
+        while measure(value) > self.available_tokens:
             changed = False
             for path in trim_oldest_paths:
                 items = self._path(value, path)
-                if isinstance(items, list) and items:
+                if isinstance(items, list) and items and (can_trim is None or can_trim(path, items[0])):
                     items.pop(0)
                     removed.append(f"{path}[oldest]")
                     changed = True
                     break
             if not changed:
-                required = self._estimate(value)
+                required = measure(value)
                 raise ModelContextBudgetExceeded(
                     required, self.available_tokens,
                 )
-        final = self._estimate(value)
+        final = measure(value)
         return BudgetedPayload(
             value,
             ContextBuildReport(

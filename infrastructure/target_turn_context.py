@@ -53,10 +53,7 @@ class TargetTurnContextLoader:
                     summary = TargetContextSummary(
                         content,
                         f"conversation-summary:{invocation.conversation_id}:{digest}",
-                        # The legacy MemoryContext does not expose the summary's
-                        # covered range.  Zero means unknown; do not infer it from
-                        # the separate recent-message window.
-                        0,
+                        current.summary_covered_until_seq,
                     )
                 for position, message in enumerate(
                     current.recent_messages[-self._recent_limit:]
@@ -120,7 +117,9 @@ class TargetTurnContextLoader:
             from application.historical_context_budget import fit_historical_payload
             projected = fit_historical_payload(self._historical_context_budget,
                 {'business_observations': list(context.business_observations)},
-                observation_path=('business_observations',))
+                observation_path=('business_observations',),
+                inline_publication_ids=frozenset(entry['publication_id']
+                    for entry in context.business_observations[:1] if entry.get('publication_id')))
             context = replace(context, business_observations=tuple(projected.payload['business_observations']))
 
         needs_history = (

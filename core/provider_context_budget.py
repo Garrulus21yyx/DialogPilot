@@ -52,6 +52,13 @@ class ProviderContextBudget:
         role: ModelRole,
         request: Mapping[str, Any],
     ) -> ProviderContextUsage:
+        usage = self.measure(profile, request)
+        if usage.total_reserved_tokens > profile.max_context_tokens:
+            raise ProviderContextBudgetExceeded(role, usage)
+        return usage
+
+    def measure(self, profile: ModelProfile, request: Mapping[str, Any]) -> ProviderContextUsage:
+        """Count the same complete envelope for allocation and final admission."""
         messages = request.get("messages") or ()
         tools = request.get("tools") or ()
         usage = ProviderContextUsage(
@@ -64,8 +71,6 @@ class ProviderContextBudget:
             output_reserve_tokens=max(0, int(request.get("max_tokens") or 0)),
             max_context_tokens=profile.max_context_tokens,
         )
-        if usage.total_reserved_tokens > profile.max_context_tokens:
-            raise ProviderContextBudgetExceeded(role, usage)
         return usage
 
 
