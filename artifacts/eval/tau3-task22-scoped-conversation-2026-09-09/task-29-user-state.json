@@ -1,0 +1,582 @@
+{
+  "system_messages": [
+    {
+      "role": "system",
+      "content": "# User Simulation Guidelines\nYou are playing the role of a customer contacting a customer service representative. \nYour goal is to simulate realistic customer interactions while following specific scenario instructions.\n\n## Core Principles\n- Generate one message at a time, maintaining natural conversation flow.\n- Strictly follow the scenario instructions you have received.\n- Never make up or hallucinate information not provided in the scenario instructions. Information that is not provided in the scenario instructions should be considered unknown or unavailable.\n- Avoid repeating the exact instructions verbatim. Use paraphrasing and natural language to convey the same information\n- Disclose information progressively. Wait for the agent to ask for specific information before providing it.\n\n## Task Completion\n- The goal is to continue the conversation until the task is complete.\n- If the instruction goal is satisified, generate the '###STOP###' token to end the conversation.\n- If you are transferred to another agent, generate the '###TRANSFER###' token to indicate the transfer.\n- If you find yourself in a situation in which the scenario does not provide enough information for you to continue the conversation, generate the '###OUT-OF-SCOPE###' token to end the conversation.\nRemember: The goal is to create realistic, natural conversations while strictly adhering to the provided instructions and maintaining character consistency.\n\n\n<scenario>\nInstructions:\n\tDomain: retail\n\tReason for call:\n\t\tYou want to exchange your skateboard for a shorter bamboo material one. If several options are available, you want to know all options and their prices, and then choose the most expensive one because you believe price reveals quality. Also, you want to exchange the garden hose you received for the type that is in your pending order. The correct garden hose item id is 5206946487 (do not share this with the agent). If the agent proposes a different item id for the garden hose, tell them that's not the right one and to keep looking in your pending order. You do not want to cancel any orders.\n\tKnown info:\n\t\tYou are Isabella Johansson, and you live in zipcode 32286.\n\tUnknown info:\n\t\tYou do not remember your email address\n\tTask instructions:\n\t\tYou are a chill person but want to get both things done.\n</scenario>",
+      "turn_idx": null,
+      "timestamp": "2026-09-09T09:53:29.596874"
+    }
+  ],
+  "messages": [
+    {
+      "role": "assistant",
+      "content": "Hi! How can I help you today?",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-09T09:53:29.596929",
+      "cost": 0.0,
+      "usage": null,
+      "raw_data": null,
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "user",
+      "content": "Hey there! I’m hoping you can help me with a couple of exchanges. First, I’d like to swap my skateboard for a shorter one made of bamboo. Also, I need to exchange the garden hose I got for the type that’s in my pending order. Can you help me sort both of those out?",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-09T09:53:31.920162",
+      "cost": 0.0,
+      "usage": {
+        "completion_tokens": 68,
+        "prompt_tokens": 479
+      },
+      "raw_data": {
+        "id": "chatcmpl-fbe3ad16-ecf5-4462-b153-549cc575adb4",
+        "created": 1788940411,
+        "model": "deepseek-v4-flash",
+        "object": "chat.completion",
+        "system_fingerprint": null,
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "content": "Hey there! I’m hoping you can help me with a couple of exchanges. First, I’d like to swap my skateboard for a shorter one made of bamboo. Also, I need to exchange the garden hose I got for the type that’s in my pending order. Can you help me sort both of those out?",
+              "role": "assistant",
+              "tool_calls": null,
+              "function_call": null,
+              "provider_specific_fields": {
+                "citations": null,
+                "thinking_blocks": null
+              }
+            }
+          }
+        ],
+        "usage": {
+          "completion_tokens": 68,
+          "prompt_tokens": 479,
+          "total_tokens": 547,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "text_tokens": 68
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 384,
+            "image_tokens": null,
+            "text_tokens": null,
+            "video_tokens": null,
+            "cache_creation_tokens": 0
+          },
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 384,
+          "inference_geo": null,
+          "speed": null
+        }
+      },
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "assistant",
+      "content": "I'd be happy to help you with these exchanges. First, I need to authenticate your identity. Could you please provide me with the email address associated with your account?",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-09T09:53:34.902401",
+      "cost": null,
+      "usage": null,
+      "raw_data": null,
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "user",
+      "content": "I actually don’t remember which email I used for the account. Is there another way you can look me up? I can give you my name and zip code if that helps.",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-09T09:53:36.093659",
+      "cost": 0.0,
+      "usage": {
+        "completion_tokens": 37,
+        "prompt_tokens": 585
+      },
+      "raw_data": {
+        "id": "chatcmpl-29c454a2-a4e7-44f1-a638-d14a4dcc0ae2",
+        "created": 1788940416,
+        "model": "deepseek-v4-flash",
+        "object": "chat.completion",
+        "system_fingerprint": null,
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "content": "I actually don’t remember which email I used for the account. Is there another way you can look me up? I can give you my name and zip code if that helps.",
+              "role": "assistant",
+              "tool_calls": null,
+              "function_call": null,
+              "provider_specific_fields": {
+                "citations": null,
+                "thinking_blocks": null
+              }
+            }
+          }
+        ],
+        "usage": {
+          "completion_tokens": 37,
+          "prompt_tokens": 585,
+          "total_tokens": 622,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "text_tokens": 37
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 512,
+            "image_tokens": null,
+            "text_tokens": null,
+            "video_tokens": null,
+            "cache_creation_tokens": 0
+          },
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "inference_geo": null,
+          "speed": null
+        }
+      },
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "assistant",
+      "content": "No problem! I can look you up by your name and zip code. Could you please provide me with your first name, last name, and zip code?",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-09T09:53:39.369716",
+      "cost": null,
+      "usage": null,
+      "raw_data": null,
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "user",
+      "content": "Sure! My name is Isabella Johansson and my zip code is 32286.",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-09T09:53:40.142940",
+      "cost": 0.0,
+      "usage": {
+        "completion_tokens": 17,
+        "prompt_tokens": 658
+      },
+      "raw_data": {
+        "id": "chatcmpl-5ae83555-9924-4df2-bec7-e86bff9efaf4",
+        "created": 1788940420,
+        "model": "deepseek-v4-flash",
+        "object": "chat.completion",
+        "system_fingerprint": null,
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "content": "Sure! My name is Isabella Johansson and my zip code is 32286.",
+              "role": "assistant",
+              "tool_calls": null,
+              "function_call": null,
+              "provider_specific_fields": {
+                "citations": null,
+                "thinking_blocks": null
+              }
+            }
+          }
+        ],
+        "usage": {
+          "completion_tokens": 17,
+          "prompt_tokens": 658,
+          "total_tokens": 675,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "text_tokens": 17
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 512,
+            "image_tokens": null,
+            "text_tokens": null,
+            "video_tokens": null,
+            "cache_creation_tokens": 0
+          },
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "inference_geo": null,
+          "speed": null
+        }
+      },
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "assistant",
+      "content": "I've located your account, Isabella. Let me review the details of your requests.\n\nI can see you have a few orders. Let me clarify what I found regarding your two exchange requests:\n\n**1. Skateboard exchange:**\nYou mentioned swapping your skateboard for a shorter one made of bamboo. I found a delivered skateboard in order **#W3792453** with these specs:\n- Deck material: **bamboo**\n- Design: plain\n- Length: **31 inch**\n\nWait — this skateboard is *already* made of bamboo. Could you clarify what you'd like to change? You mentioned wanting a \"shorter one made of bamboo.\" The current one is 31 inches and bamboo. Did you want a shorter length, or is there a different change you're looking for?\n\n**2. Garden hose exchange:**\nYou mentioned exchanging the garden hose you got for the type that's in your pending order. I found:\n- A **delivered** garden hose in order **#W7181492**: green, 25ft, rubber\n- A **pending** order **#W2575533** that contains a garden hose: **black, 50ft, vinyl**\n\nSo it sounds like you'd like to exchange the delivered garden hose (green, 25ft, rubber) for the type in your pending order (black, 50ft, vinyl). Is that correct?\n\nLet me also confirm — could you clarify the skateboard request? What exactly would you like the new skateboard to be?",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-09T09:53:51.656370",
+      "cost": null,
+      "usage": null,
+      "raw_data": null,
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "user",
+      "content": "Thanks for checking! For the skateboard, I’m looking for a shorter bamboo one—so if there are any bamboo boards that are shorter than 31 inches, I’d like to know what options you have and their prices. I’m open to seeing all the choices.\n\nAnd yes, for the garden hose, I want to exchange the one I received for the type that’s in my pending order. That sounds right.",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-09T09:53:53.331789",
+      "cost": 0.0,
+      "usage": {
+        "completion_tokens": 89,
+        "prompt_tokens": 991
+      },
+      "raw_data": {
+        "id": "chatcmpl-3b3455a3-cd47-4cc6-b855-2faaaa6a6b42",
+        "created": 1788940433,
+        "model": "deepseek-v4-flash",
+        "object": "chat.completion",
+        "system_fingerprint": null,
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "content": "Thanks for checking! For the skateboard, I’m looking for a shorter bamboo one—so if there are any bamboo boards that are shorter than 31 inches, I’d like to know what options you have and their prices. I’m open to seeing all the choices.\n\nAnd yes, for the garden hose, I want to exchange the one I received for the type that’s in my pending order. That sounds right.",
+              "role": "assistant",
+              "tool_calls": null,
+              "function_call": null,
+              "provider_specific_fields": {
+                "citations": null,
+                "thinking_blocks": null
+              }
+            }
+          }
+        ],
+        "usage": {
+          "completion_tokens": 89,
+          "prompt_tokens": 991,
+          "total_tokens": 1080,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "text_tokens": 89
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 640,
+            "image_tokens": null,
+            "text_tokens": null,
+            "video_tokens": null,
+            "cache_creation_tokens": 0
+          },
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 640,
+          "inference_geo": null,
+          "speed": null
+        }
+      },
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "assistant",
+      "content": "Great news — I found the available bamboo skateboards shorter than 31 inches for you. All available options are 28 inches long:\n\n1. **Bamboo, custom design, 28 inch** — $189.57\n2. **Bamboo, graphic design, 28 inch** — $180.10\n3. **Bamboo, plain design, 28 inch** — $208.60\n\nWhich of these would you like to exchange your current skateboard (bamboo, plain, 31 inch) for? Please let me know your choice.",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-09T09:54:04.787812",
+      "cost": null,
+      "usage": null,
+      "raw_data": null,
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "user",
+      "content": "I’ll go with the most expensive one—the bamboo, plain design, 28 inch for $208.60. That sounds like the best quality to me.\n\nAnd for the garden hose, can you confirm you’re exchanging it for the one in my pending order? I want to make sure it’s the right one.",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-09T09:54:06.083540",
+      "cost": 0.0,
+      "usage": {
+        "completion_tokens": 68,
+        "prompt_tokens": 1203
+      },
+      "raw_data": {
+        "id": "chatcmpl-9e7b8107-9e20-4003-a8f7-85e222842e99",
+        "created": 1788940446,
+        "model": "deepseek-v4-flash",
+        "object": "chat.completion",
+        "system_fingerprint": null,
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "content": "I’ll go with the most expensive one—the bamboo, plain design, 28 inch for $208.60. That sounds like the best quality to me.\n\nAnd for the garden hose, can you confirm you’re exchanging it for the one in my pending order? I want to make sure it’s the right one.",
+              "role": "assistant",
+              "tool_calls": null,
+              "function_call": null,
+              "provider_specific_fields": {
+                "citations": null,
+                "thinking_blocks": null
+              }
+            }
+          }
+        ],
+        "usage": {
+          "completion_tokens": 68,
+          "prompt_tokens": 1203,
+          "total_tokens": 1271,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "text_tokens": 68
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 1024,
+            "image_tokens": null,
+            "text_tokens": null,
+            "video_tokens": null,
+            "cache_creation_tokens": 0
+          },
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 1024,
+          "inference_geo": null,
+          "speed": null
+        }
+      },
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "assistant",
+      "content": "Yes, I can confirm the garden hose exchange. You'll be exchanging the garden hose you received in order #W7181492 (green, 25ft, rubber, $96.35) for the garden hose type in your pending order #W2575533 (black, 50ft, vinyl, $95.08).\n\nHere's a summary of both exchanges:\n1. **Skateboard** (order #W3792453): bamboo/plain/31 inch ($200.80) → bamboo/plain/28 inch ($208.60). Price difference: you pay $7.80.\n2. **Garden hose** (order #W7181492): green/25ft/rubber ($96.35) → black/50ft/vinyl ($95.08). Price difference: you receive $1.27 refund.\n\nTo process these exchanges, I need a payment method to handle the price differences. Your account has a PayPal on file (paypal_3024827). Would you like to use that for both exchanges?",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-09T09:54:13.641930",
+      "cost": null,
+      "usage": null,
+      "raw_data": null,
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "user",
+      "content": "That works for me—please go ahead and use the PayPal on file for both exchanges. Just to double-check, the garden hose you’re exchanging for is the one from my pending order, right? I want to make sure it’s the correct item.",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-09T09:54:14.794067",
+      "cost": 0.0,
+      "usage": {
+        "completion_tokens": 53,
+        "prompt_tokens": 1490
+      },
+      "raw_data": {
+        "id": "chatcmpl-0b135a06-5b32-4828-9774-29fe306e89a0",
+        "created": 1788940454,
+        "model": "deepseek-v4-flash",
+        "object": "chat.completion",
+        "system_fingerprint": null,
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "content": "That works for me—please go ahead and use the PayPal on file for both exchanges. Just to double-check, the garden hose you’re exchanging for is the one from my pending order, right? I want to make sure it’s the correct item.",
+              "role": "assistant",
+              "tool_calls": null,
+              "function_call": null,
+              "provider_specific_fields": {
+                "citations": null,
+                "thinking_blocks": null
+              }
+            }
+          }
+        ],
+        "usage": {
+          "completion_tokens": 53,
+          "prompt_tokens": 1490,
+          "total_tokens": 1543,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "text_tokens": 53
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 1152,
+            "image_tokens": null,
+            "text_tokens": null,
+            "video_tokens": null,
+            "cache_creation_tokens": 0
+          },
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 1152,
+          "inference_geo": null,
+          "speed": null
+        }
+      },
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    }
+  ]
+}

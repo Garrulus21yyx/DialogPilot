@@ -1,5 +1,29 @@
 # Task 22: operation names and reply lifecycle
 
+## Task22 rerun after d8e8933
+
+User requested the original task. Fixed development task22, seed300, max80 steps,
+simulator deepseek-v4-flash/512 output, no completion override, same official tau
+commit as prior operation-contract run. Existing full runner, fresh isolated
+database; no production customer writes. Measure delegated goal completeness,
+approval continuity, actual two-address writes, final reply and official ENV/ACTION/
+ALL independently. Encoder remains disabled as in the baseline. Dirty unrelated
+archive/docs changes remain and are fingerprinted by runner, not silently excluded.
+Output: artifacts/eval/tau3-task22-scoped-conversation-2026-09-09.
+Execution correction: offset22 selected task29, not task22. Detected from manifest
+and simulator content, sent SIGINT to that exact runner; it ended INTERRUPTED /
+SimulationStopped. Preserve the misselected run, exclude it from task22 results.
+Verified get_tasks('train') maps ID22 to offset17. Correct run output:
+artifacts/eval/tau3-task22-scoped-conversation-corrected-2026-09-09; manifest
+confirms task_ids=['22']. Same code/configuration, fresh test environment.
+Completed: EVALUATED/user_stop, ENV=ACTION=ALL=0, evaluation_errors empty.
+No address writes. Turn3 prepared account proposal but approval reply failed
+coverage/terms verification; turns4–5 verification output failed required-field
+schema validation and delivered no-result fallbacks. User withdrew at turn6.
+Full findings in corrected output REPORT.md. Business closure remains OPEN;
+no production changes made during test. Isolated test DBs cleaned by runner;
+all run artifacts including the interrupted selection error retained.
+
 ## Production conversation responsibility narrowing
 
 User requests adoption after the input projection repair. Main planner owns
