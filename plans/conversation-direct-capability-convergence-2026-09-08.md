@@ -2019,3 +2019,11 @@ Independent read-only reviews found no remaining definite blocker in these bound
 structural repairs. See `tau3-ten-task-root-causes-2026-09-09.md` for every task.
 R6 action-feasibility and R7 prose false acceptance remain semantic OPEN items;
 this commit does not attest tau success or all original user outcomes completed.
+
+Delivery: structural repair committed/pushed as d29377d. Subsequent read-only
+official tool inspection sharpens R6: mixed return/exchange on the same delivered
+order is incompatible in either order, not a sequencing-only defect. Existing
+development feasibility probes do not establish reliable conflict resolution;
+some rejected candidates receive impossible recovery advice. Preserve R6/R7 OPEN,
+with no speculative prompt/threshold fix or new paid/business replay. The detailed
+ten-task causal audit records the source and evidence limitations.

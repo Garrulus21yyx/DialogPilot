@@ -15,7 +15,7 @@ No new simulator or paid model run is part of this repair.
 | R3 proposal decision conflated with goal cancellation | Decline/expiry formerly cancel origin/dependency DAG; accepted review used rejection budget | ceaa739 separates exact proposal decisions, explicit goal revision/cancel, and rejection budget; current audit also migrates stale catalog wording and runner metric. | Native model confirmation behavior still requires separate evidence. |
 | R4 cross-turn argument authority duplicated | Replay22 complete address rejected because current message omitted prior address text | a519962 removes generic delegation's duplicate literal-address gate. Domain tools own assembled parameters; direct shortcut remains explicitly bounded. | No fresh tau replay after fix. |
 | R5 context admission differs by consumer | Replay21 actor input fits, reviewer input overflows | ae1504d shared actor/reviewer admission accounts for actual review envelope. | No real model quality claim from context tests. |
-| R6 semantic action feasibility false acceptance | Replay19 review ec0a89a98d1d8bdc sees full objective + policy and accepts exchange-first; 06783c561cf5e61e recommends that order | Actual model judgment error, not missing checkpoint state. Existing preparation/runtime check individual authorization, not arbitrary natural-language future-plan satisfiability. No case-specific order rule added. | OPEN: actual semantic feasibility improvement not established. |
+| R6 semantic action feasibility false acceptance | Replay19 review ec0a89a98d1d8bdc sees full objective + policy and accepts exchange-first; 06783c561cf5e61e recommends that order. Both official tools require delivered and irreversibly replace that order status: the combined request is incompatible in either order. | Actual model judgment error, not missing checkpoint state or merely an incorrect DAG order. Correct behavior is to explain incompatibility and obtain the user's choice before committing either operation. No case-specific order rule added. | OPEN: actual semantic feasibility improvement not established. |
 | R7 final prose false acceptance | Replay22 c85fc4e9b25972cf includes internal drafting prose and explicit prohibition; returns supported/answered true | Model false positive, not proven SDK reasoning-field leakage. Existing author/revision/verifier preserve exact candidate. No regex deletion or fake success. | OPEN: actual generation/verification improvement not established. |
 | R8 runner lifecycle / score attribution | Replay exits143 with stale RUNNING; task30 max_steps triggers official early return before ENV evaluation | Shield/join synchronous simulator, stop bridge, deliver last known tool result and drain actual turn, then close resources. Signals record STOPPING/INTERRUPTED and partial records. Label official termination gate separately. | Cooperative stop only; SIGKILL cannot guarantee finally. Signal origin of old run remains unknown. |
 | R9 checkpoint revision selection differs by entry | New assignment-repair test succeeds but old failed revision keeps request incomplete | Fresh observation graph and resumed graph now share `_unreplaced_outcomes`; original checkpoint stays audit record, effective result scope uses current revision. | Property/integration checks cover correction, failure, waits, replay. |
@@ -34,6 +34,28 @@ No new simulator or paid model run is part of this repair.
 | 28 | Protocol failures, then explicitly narrowed authentication/status assignment and no requested returns. | R1/R2. Local completion cannot attest whole-request fulfillment. |
 | 29 | Protocol rejection from identity turn; no real tools; eventual mutual waiting. | R1 established. Do not invent a refund/exchange-specific cause without execution. |
 | 30 | Return/cancel tools appear in trajectory; repeated confirmations consume rounds; max_steps terminates. | R1/R3 contribute rounds; R8 official gate bypasses actual ENV check. Tool call alone is not receipt/database closure. |
+
+### Feasibility evidence reconciliation
+
+Read-only inspection of the installed official retail environment
+(`/tmp/tau3.asUlWc/src/tau2/domains/retail/tools.py`, exchange lines240/278,
+return lines690/710) establishes both preconditions and effects. Exchange requires
+`delivered` and sets `exchange requested`; return requires `delivered` and sets
+`return requested`. Neither permutation can complete both on the same order.
+Do not report "return first" as a repair, parallelize these writes, modify the
+benchmark database to bypass the preconditions, or equate the reference ACTION
+score with feasibility of all original requests.
+
+Previously captured development probes were also inspected without new API calls:
+`action-feasibility-{actor4,basis4,budget4,captured8,dev4,runtime4}-2026-09-09`.
+The eight abstract dev4 assessments distinguish compatible sequences and mutually
+exclusive transitions, but captured real-decision probes still falsely accept or
+produce invalid structured output. Some rejections themselves propose an invalid
+combined batch. Thus rejecting a candidate alone is not correct recovery evidence.
+The two `action-boundary-feasible2-adopted-2026-09-09` fixtures prepare valid first
+steps; they do not establish real mixed return/exchange conflict detection. These
+are existing development artifacts, not fresh held-out results. Increasing reasoning,
+removing history, or requesting justification has not established a reliable repair.
 
 Only replay19–22 have completed result rows. Replay23 is partial; remaining tasks
 have no replay outcome. Do not turn absence into a zero or use original scores as
