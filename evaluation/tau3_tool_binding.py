@@ -93,7 +93,8 @@ def bind_environment(environment, manager, call):
     agent = AgentDefinition(
         "retail", "v1", tuple(tool.name for tool in official_tools), (),
         "environment-worker-v1", "environment-context-v1", profile,
-        description=environment.get_policy(), timeout_seconds=120, max_model_calls=20,
+        description="Retail service specialist for account and order changes, returns and exchanges. Investigate the complete request and prepare supported changes under the environment policy; simple record or policy queries can use direct tools.",
+        business_policy=environment.get_policy(), timeout_seconds=120, max_model_calls=20,
     )
     return CapabilityRegistryBundle(
         "default", "tau3-retail-v1", (agent,), (), (), tuple(actions),

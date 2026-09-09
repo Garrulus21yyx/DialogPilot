@@ -1,5 +1,17 @@
 # 主／子 Agent 提示词收敛
 
+## 能力卡与政策分离（后续用户请求）
+
+实施及范围内回归完成。发现 description 同时用于路由、执行、回复政策，τ³ 将整份政策塞入该字段。
+合同：description 为简短能力范围；business_policy 为完整执行政策。规划目录只取前者；主 Agent 的独立 business_policies 配置段保留原始政策（直接查询也可能受政策约束）；子执行使用能力范围与政策；回复作者及核验器共享完整政策快照。工具清单和权限仍由原 Registry 字段提供，不在卡片复写。所有现有领域、τ³ 生产者、装配和回复消费者一起迁移，不提供旧字段猜测 fallback。
+验证：字段独立性、政策保真、指纹变化、真实装配传递及既有状态/回复回归。不以特定工具首选作为正确性标准；不重跑业务任务。
+
+结果：最终相关回归 475 项通过（含 PostgreSQL 装配、恢复、HTTP）；独立审查 13 项通过，两组重叠不相加。独立审查确认主 Agent 的直接读取仍需认证等政策，因此完整政策保留在独立配置段，不做摘要或按自然语言猜测适用范围。此次改善为职责与结构清晰，不声称大幅减少政策 Token 或提高真实模型成功率。
+
+另有既有失败：`tests/test_task_attribution.py::test_nested_parallel_workers_export_each_model_and_tool_once` 期望 6 个 generation span、实际 4 个。当前工作树与独立干净基线 0bb3307 均复现；原始广域运行 459 passed / 2 skipped / 1 failed。不属于本次字段分离引入的回归，未改测试或埋点来消除失败。
+
+迁移：business_policy 进入 Registry 指纹，空政策实例的指纹也会变化。旧任务／审批不能静默换指纹继续执行；部署前在旧配置下收尾，或显式重规划并取得新提案的批准。保留已有版本检查，不创建兼容运行时。本文随 `refactor: separate agent capability cards from business policy` 提交；推送结果以交付消息为准。
+
 状态：提示词重组及合同回归完成；真实模型路由泛化未闭环。
 
 ## 原因与边界

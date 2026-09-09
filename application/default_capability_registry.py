@@ -338,12 +338,12 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
 
 def _agent(agent_id, tools, skills, verification_profile):
     descriptions = {
-        "general": "Resolve general ecommerce service objectives using available evidence.",
-        "product_technical": "Resolve product questions using catalog, media and knowledge evidence; do not assume a product category.",
-        "order_logistics": "Resolve order and logistics questions using current business records.",
-        "billing_refund": "Resolve billing and after-sales requests using current records and policy evidence; distinguish returns, exchanges and refunds and only perform available actions.",
-        "account_security": "Assess account security concerns; distinguish user reports from verified facts.",
-        "human_service": "Resolve support case objectives using verified case records.",
+        "general": "General service investigation across knowledge and prior service records when a direct answer or single search is insufficient.",
+        "product_technical": "Product identification and technical questions requiring catalog, image or knowledge evidence to be combined. Investigate the actual product without assuming its category.",
+        "order_logistics": "Investigate order and delivery issues, or prepare order cancellation and shipping-address changes. A simple order lookup can use the direct tool.",
+        "billing_refund": "Investigate payment and after-sales issues, assess refund eligibility and prepare supported refunds. A simple status or policy lookup can use the direct tool; returns and exchanges are distinct operations, not synonyms for a refund.",
+        "account_security": "Investigate reported account-security incidents using account evidence and prepare supported protective action. Routine status reads can use the direct tool.",
+        "human_service": "Prepare a support ticket for a case needing human handling. Answer ordinary questions directly or use the relevant business specialist first when they can resolve the request.",
     }
     principals = {
         "general": "general", "product_technical": "technical",

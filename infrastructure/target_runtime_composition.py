@@ -160,7 +160,7 @@ async def build_target_runtime(
                 result_store=checkpoint_owner.store,
                 result_subject_fence=PostgresConversationDeletionRepository(postgres_pool).fence,
                 registry=registry,
-                system_prompt=agent.description,
+                system_prompt="\n\n".join(part for part in (agent.description, agent.business_policy) if part),
                 skill_executors={"product_identification": product_executor},
                 context_budget=context_budget,
                 control_guard=control_guard,

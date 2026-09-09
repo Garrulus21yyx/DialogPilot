@@ -50,6 +50,8 @@ def test_environment_write_registration_and_observed_receipt(name):
         return SimpleNamespace(content='{"updated": true}', error=False, id="call-1")
     manager = MCPToolManager("test-key", model="test-model")
     registry = bind_environment(environment, manager, call)
+    assert registry.agents[0].business_policy == environment.get_policy()
+    assert registry.agents[0].description != environment.get_policy()
     action, = registry.actions
     assert action.flow_ref is None
     assert action.allowed_tool_ids == (name,)

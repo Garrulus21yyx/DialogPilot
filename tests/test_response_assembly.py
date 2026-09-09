@@ -19,7 +19,7 @@ def test_policy_snapshot_reaches_author_and_verifier_without_extra_calls(direct,
     from application.default_capability_registry import build_default_capability_registry
     registry = build_default_capability_registry("tenant-a")
     registry = replace(registry, agents=tuple(replace(agent,
-        description=f"Policy for {agent.agent_id}: action A prevents subsequent action B.")
+        business_policy=f"Policy for {agent.agent_id}: action A prevents subsequent action B.")
         for agent in registry.agents))
     author_inputs = []
     class Author:
@@ -46,7 +46,8 @@ def test_policy_snapshot_reaches_author_and_verifier_without_extra_calls(direct,
     assert policy["registry_fingerprint"] == registry.fingerprint
     assert policy["bundle_version"] == registry.bundle_version
     assert policy["business_actions"] == list(semantics)
-    assert policy["agents"] == [{"agent_id": agent.agent_id, "description": agent.description}
+    assert policy["agents"] == [{"agent_id": agent.agent_id, "description": agent.description,
+                                 "business_policy": agent.business_policy}
                                 for agent in registry.agents]
     assert all(json.loads(kwargs["context"]) == evidence for _, kwargs in verifier.calls)
     assert all(payload["evidence"] == evidence for payload in author_inputs)
@@ -58,7 +59,7 @@ def test_policy_revision_changes_response_evidence_identity():
     from dataclasses import replace
     from application.default_capability_registry import build_default_capability_registry
     registry = build_default_capability_registry("tenant-a")
-    revised = replace(registry, agents=(replace(registry.agents[0], description="Changed applicability."),
+    revised = replace(registry, agents=(replace(registry.agents[0], business_policy="Changed applicability."),
                                        *registry.agents[1:]))
     responses = [asyncio.run(ResponseAssembler(registry=value, knowledge_verifier=Verifier(True)).assemble(
         None, current_message="Explain policy", response_candidate="Policy explanation."))

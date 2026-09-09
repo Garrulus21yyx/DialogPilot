@@ -1,5 +1,6 @@
 from core.model_policy import ModelProfile
 import asyncio
+import pytest
 from dataclasses import replace
 from types import SimpleNamespace
 
@@ -40,11 +41,11 @@ def _state():
     )
 
 
-def _invoke(understanding, text, *, fields=()):
+def _invoke(understanding, text, *, fields=(), registry=None):
     state = _state()
     observations = TurnObservations(text, fields)
     deterministic = DeterministicResolver().resolve(observations, state)
-    registry = build_default_capability_registry("tenant-a")
+    registry = registry or build_default_capability_registry("tenant-a")
     context = TargetTurnContext()
     context = replace(
         context,
@@ -74,6 +75,26 @@ class Provider:
         if self.error:
             raise self.error
         return self.value
+
+
+@pytest.mark.parametrize("policy", ["", "Policy-only marker: A prevents B.", "规则原文\n" * 200])
+def test_planning_cards_do_not_duplicate_execution_policy(policy):
+    registry = build_default_capability_registry("tenant-a")
+    registry = replace(registry, agents=tuple(replace(agent, business_policy=policy)
+                                             for agent in registry.agents))
+    provider = Provider({"status": "respond", "response": "How can I help?"})
+    _invoke(ConversationAgent(provider), "Hello", registry=registry)
+    cards = provider.calls[0]["domain_capabilities"]
+    assert [card["description"] for card in cards] == [a.description for a in registry.agents]
+    assert all("business_policy" not in card for card in cards)
+    assert all(card["tools"] for card in cards)
+    expected = [{"agent_id": agent.agent_id, "policy": policy} for agent in registry.agents] if policy else []
+    assert provider.calls[0]["business_policies"] == expected
+    from infrastructure.target_model_context import planning_context, CONTRACT_MARKER
+    import json
+    contract, messages = planning_context(provider.calls[0])
+    assert json.loads(contract.split(CONTRACT_MARKER)[1])["business_policies"] == expected
+    assert all("business_policies" not in str(message.content) for message in messages)
 
 
 def test_provider_uses_framework_native_action_output():

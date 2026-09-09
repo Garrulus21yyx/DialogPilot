@@ -472,12 +472,14 @@ def _response_context(board, pending_approval=None, requested_inputs=(), convers
     facts = _current_board_facts(board)
     return {
         # Capability policy is configuration, not a fact inferred from dialogue.
-        # Keep the same complete domain descriptions as global planning: a direct
-        # response can discuss an operation without having dispatched a work item.
+        # Routing cards and execution policy have separate meanings. A direct
+        # reply can discuss an operation without having dispatched a work item,
+        # so author and verifier still need its original policy, not just a card.
         "capability_policy": ({"bundle_version": registry.bundle_version,
             "registry_fingerprint": registry.fingerprint,
             "business_actions": list(action_semantics),
-            "agents": [{"agent_id": agent.agent_id, "description": agent.description}
+            "agents": [{"agent_id": agent.agent_id, "description": agent.description,
+                        "business_policy": agent.business_policy}
                        for agent in registry.agents]} if registry is not None else None),
         "facts": [{"subject_ref": fact.subject_ref, "requirement_id": fact.requirement_id,
                    "source_kind": fact.source_kind.value, "source_ref": fact.source_ref,

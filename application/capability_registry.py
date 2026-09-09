@@ -82,6 +82,9 @@ class AgentDefinition:
     tool_principal: str | None = None
     timeout_seconds: int = 8
     max_model_calls: int = 4
+    # description is the short capability card; policy is execution guidance,
+    # not a second routing description or a source of tool permissions.
+    business_policy: str = ""
 
     @property
     def execution_principal(self) -> str:

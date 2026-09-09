@@ -130,6 +130,9 @@ def test_real_composition_wires_every_domain_to_sdk_and_diagnostics(postgres_dat
     async def run():
         from mcp.tool_manager import Tool
         registry = build_default_capability_registry("tenant-a")
+        registry = replace(registry, agents=tuple(replace(agent,
+            business_policy=f"Original policy for {agent.agent_id}: do not replace with a routing summary.")
+            for agent in registry.agents))
         tool_manager = _manager([])
         async def unused_write(params, context):
             pytest.fail("composition must not execute business operations")
@@ -150,7 +153,9 @@ def test_real_composition_wires_every_domain_to_sdk_and_diagnostics(postgres_dat
             assert runtime.application._turn_runtime._assembler._registry is runtime.registry
             assert {entry['tool_id'] for entry in runtime.application._turn_runtime._assembler._action_semantics} == {
                 tool_id for action in registry.actions for tool_id in action.allowed_tool_ids}
-            for worker in runtime.orchestration._domain_workers.values():
+            for agent_id, worker in runtime.orchestration._domain_workers.items():
+                definition = registry.agent(agent_id)
+                assert worker._system_prompt == definition.description + "\n\n" + definition.business_policy
                 assert worker._callbacks and worker._trace_sink is sink
                 assert worker._model is next(model for profile, _, model in built if profile.model == "actor-test")
                 assert worker._review_model is next(model for profile, _, model in built if profile.model == "review-test")
