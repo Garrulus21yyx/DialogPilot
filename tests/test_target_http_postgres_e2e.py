@@ -280,13 +280,13 @@ class _ScenarioConversationProvider:
     def _response(self, payload):
         self.calls.append(payload)
         message = str(payload["message"])
-        pending = payload.get("pending_approval")
-        if pending is not None and pending.get("typed_decision") is not None:
+        decision = payload.get("current_user_decision")
+        if decision is not None:
             # This fixture's approval utterances agree with its typed controls.
             # Emulate the current planner contract, not a second business goal.
             return {"status": "resolved", "approval_decision": {
-                "approval_id": pending["approval_id"],
-                "decision": "approve" if pending["typed_decision"] else "decline",
+                "approval_id": decision["approval_id"],
+                "decision": decision["decision"],
             }}
         if message == "确认 RF3100 的退回进展":
             return {"status": "resolved", "goals": [{"kind": "refund_status", "order_id": "RF3100"}]}

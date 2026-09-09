@@ -422,7 +422,12 @@ class TargetConversationManager:
             raise ConversationStateConflict("observed execution state is not the committed conversation state")
         deterministic = DeterministicResolution(ResolutionKind.UNRESOLVED, "OBSERVE_EXECUTION", state.fingerprint)
         context = replace(previous.context, observed_execution=board, observation_feedback=progress_feedback)
-        proposal = await self._understanding(previous.observations, state, deterministic,
+        # Observe results of the already interpreted input, not another user
+        # submission. Keep original observations on PreparedTurn for audit;
+        # bound decisions/field submissions belong only to initial admission.
+        observed_input = replace(previous.observations, approval_id=None, approval_decision=None,
+            interaction_id=None, interaction_version=None, interaction_values=())
+        proposal = await self._understanding(observed_input, state, deterministic,
                                              self._registry, context)
         if proposal.historical_context_view is not None:
             context = replace(context, business_observations=proposal.historical_context_view)

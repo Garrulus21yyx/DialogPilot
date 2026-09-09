@@ -143,7 +143,7 @@ def planning_output_schema(supported_goals=None, knowledge_filter_contract=None)
             "approval_decision": {"type": "object", "additionalProperties": False,
                 "required": ["approval_id", "decision"], "properties": {
                     "approval_id": dict(text),
-                    "decision": {"type": "string", "enum": ["approve", "decline"]}}},
+                    "decision": {"type": "string", "enum": ["approve", "decline", "hold"]}}},
             "missing_fields": {
                 "type": "array", "minItems": 1, "uniqueItems": True,
                 "items": {"type": "string", "enum": sorted(_MISSING_FIELDS)},
@@ -152,10 +152,12 @@ def planning_output_schema(supported_goals=None, knowledge_filter_contract=None)
         "oneOf": [
             {"properties": {"status": {"const": "respond"}},
              "required": ["response"], "not": {"anyOf": [
-                 {"required": ["goals"]}, {"required": ["approval_decision"]},
+                 {"required": ["goals"]},
                  {"required": ["missing_fields"]}, {"required": ["input_values"]}]}},
             {"properties": {"status": {"const": "resolved"}},
-             "anyOf": [{"required": ["goals"]}, {"required": ["approval_decision"]}, {"required": ["input_values"]}],
+             "anyOf": [{"required": ["goals"]}, {"required": ["input_values"]},
+                       {"required": ["approval_decision"], "properties": {"approval_decision": {
+                           "properties": {"decision": {"enum": ["approve", "decline"]}}}}}],
              "not": {"required": ["missing_fields"]}},
             {"properties": {"status": {"const": "insufficient_context"}},
              "required": ["missing_fields"], "not": {"anyOf": [{"required": ["goals"]}, {"required": ["approval_decision"]}]}},
@@ -165,7 +167,10 @@ def planning_output_schema(supported_goals=None, knowledge_filter_contract=None)
         "allOf": [{"if": {"properties": {"status": {"enum": ["resolved", "insufficient_context", "out_of_scope"]}}},
                    "then": {"not": {"required": ["response"]}}},
                   {"if": {"properties": {"status": {"enum": ["respond", "insufficient_context", "out_of_scope"]}}},
-                   "then": {"not": {"required": ["input_values"]}}}],
+                   "then": {"not": {"required": ["input_values"]}}},
+                  {"if": {"properties": {"status": {"const": "respond"}}},
+                   "then": {"properties": {"approval_decision": {
+                       "properties": {"decision": {"const": "hold"}}}}}}],
     }
 
 
@@ -174,6 +179,10 @@ logger = logging.getLogger(__name__)
 
 class ConversationProviderOutputError(ValueError):
     """The provider responded, but its transport payload is not usable JSON."""
+
+
+class ApprovalReplyUnaddressed(ValueError):
+    """A current bound user decision was omitted, not a decision to wait."""
 
 
 class ConversationPlanningProvider(Protocol):
@@ -188,7 +197,7 @@ class ConversationPlanningProvider(Protocol):
 class ConversationAgent:
     """Plan one deferred turn, then compile only Registry-backed commands."""
 
-    version = "conversation-agent-v15-domain-owned-parameters"
+    version = "conversation-agent-v16-current-user-decision"
 
     def __init__(
         self,
@@ -236,7 +245,7 @@ class ConversationAgent:
         except (KeyError, TypeError, ValueError, SchemaError) as exc:
             raise PlanningInvariantError("conversation tool catalog is inconsistent") from exc
         payload = {
-            "schema_version": "conversation-plan-request-v2-references",
+            "schema_version": "conversation-plan-request-v3-current-input",
             "knowledge_filter_contract": (turn_context.knowledge_filter_contract or None) if turn_context else None,
             "message": observations.raw_text,
             "deterministic_resolution": {
@@ -257,8 +266,12 @@ class ConversationAgent:
                 "action_ref": state.pending_approval.action_ref,
                 "arguments": {arg.name: arg.value for arg in state.pending_approval.arguments},
                 "control_id": state.pending_approval.origin_control.control_id if state.pending_approval.origin_control else None,
-                "typed_decision": observations.approval_decision,
             } if state.pending_approval else None),
+            "current_user_decision": ({
+                "approval_id": observations.approval_id,
+                "version": state.pending_approval.version,
+                "decision": "approve" if observations.approval_decision else "decline",
+            } if observations.approval_decision is not None and state.pending_approval else None),
             "pending_input": ({
                 "interaction_id": state.pending_interaction.interaction_id,
                 "version": state.pending_interaction.version,
@@ -387,6 +400,10 @@ class ConversationAgent:
             )
             return replace(proposal, historical_context_view=tuple(
                 budgeted.payload['conversation_context'].get('business_observations', ())))
+        except ApprovalReplyUnaddressed:
+            logger.exception("Current user approval decision was not addressed")
+            return TurnProposal(ProposalDisposition.INVALID_PROVIDER_OUTPUT, (),
+                                "APPROVAL_REPLY_UNADDRESSED")
         except (KeyError, TypeError, ValueError, ValidationError):
             logger.exception("Conversation planning semantic contract rejected")
             return TurnProposal(
@@ -415,23 +432,26 @@ class ConversationAgent:
             if (len({(w, f) for w, f, _ in input_values}) != len(input_values)
                     or not {(w, f) for w, f, _ in input_values} <= expected):
                 raise ValueError("input values do not match pending fields")
+        decision = None
+        if observations.approval_decision is not None and state.pending_approval and "approval_decision" not in raw:
+            raise ApprovalReplyUnaddressed("current_user_decision_unaddressed")
+        if "approval_decision" in raw:
+            value = raw["approval_decision"]
+            if (status not in {"resolved", "respond"} or not isinstance(value, Mapping)
+                    or set(value) != {"approval_id", "decision"}
+                    or value["decision"] not in {"approve", "decline", "hold"}
+                    or state.pending_approval is None
+                    or value["approval_id"] != state.pending_approval.approval_id):
+                raise ValueError("approval decision must reference the current pending action")
+            if value["decision"] != "hold":
+                decision = ApprovalDecisionProposal(value["approval_id"], value["decision"] == "approve")
         if status == "respond":
-            if set(raw) != {"status", "response"}:
+            if set(raw) - {"status", "response", "approval_decision"} or decision is not None:
                 raise ValueError("response-only turn cannot contain actions or interactions")
             return TurnProposal(ProposalDisposition.RESPOND, (), "CONVERSATION_RESPONSE",
                                 response_text=raw["response"])
         if "response" in raw:
             raise ValueError("response text requires respond status")
-        decision = None
-        if "approval_decision" in raw:
-            value = raw["approval_decision"]
-            if (status != "resolved" or not isinstance(value, Mapping)
-                    or set(value) != {"approval_id", "decision"}
-                    or value["decision"] not in {"approve", "decline"}
-                    or state.pending_approval is None
-                    or value["approval_id"] != state.pending_approval.approval_id):
-                raise ValueError("approval decision must reference the current pending action")
-            decision = ApprovalDecisionProposal(value["approval_id"], value["decision"] == "approve")
         if status == "out_of_scope":
             return TurnProposal(
                 ProposalDisposition.OUT_OF_SCOPE, (), "SEMANTIC_OUT_OF_SCOPE",
@@ -581,6 +601,8 @@ class ConversationAgent:
                     command, revises_control_id=revises_control_id,
                 )
             commands.append(replace(command, dependencies=dependencies))
+        if not commands and decision is None and not input_values:
+            raise ValueError("held approval requires a response or additional work")
         return TurnProposal(
             ProposalDisposition.RESOLVED, tuple(commands), "CONVERSATION_AGENT_PLAN",
             approval_decision=decision,

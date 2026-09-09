@@ -29,6 +29,8 @@ def context_block(name, value):
 def planning_context(payload):
     value = copy.deepcopy(dict(payload))
     current = value.pop("message")
+    user_inputs = {key: value.pop(key) for key in (
+        "current_user_decision", "supplied_interaction_values") if key in value}
     if not isinstance(current, str):
         raise ValueError("planning_current_request_requires_text")
     contract = {key: value.pop(key) for key in sorted(CONTRACT_FIELDS) if key in value}
@@ -56,6 +58,7 @@ def planning_context(payload):
     tail = HumanMessage(content=[
         context_block("runtime_context", value),
         context_block("current_request", current),
+        *[context_block(key, supplied) for key, supplied in user_inputs.items()],
     ])
     return CONTRACT_MARKER + json.dumps(contract, ensure_ascii=False, sort_keys=True), [background, *messages, tail]
 
@@ -74,7 +77,7 @@ def planning_payload_from_request(request):
         return json.loads(messages[0]["content"])
     contract = json.loads(system.split(CONTRACT_MARKER, 1)[1])
     background = json.loads(messages[0]["content"][0]["text"])
-    runtime, current = [json.loads(block["text"]) for block in messages[-1]["content"]]
+    runtime, current, *user_inputs = [json.loads(block["text"]) for block in messages[-1]["content"]]
     value = copy.deepcopy(runtime["runtime_context"])
     provenance = value.pop("history_provenance")
     history = messages[1:-1]
@@ -89,6 +92,13 @@ def planning_payload_from_request(request):
         value["conversation_context"]["recent_messages"].append({**source, "content": message["content"]})
     value.update(contract)
     value["message"] = current["current_request"]
+    seen = set()
+    for supplied in user_inputs:
+        if (len(supplied) != 1 or not set(supplied) <= {
+                "current_user_decision", "supplied_interaction_values"} or seen.intersection(supplied)):
+            raise ValueError("planning_capture_user_input_invalid")
+        seen.update(supplied)
+        value.update(supplied)
     return value
 
 

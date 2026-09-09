@@ -408,9 +408,8 @@ class TargetFrameworkAgent:
                 "to resolve the actual tradeoff before preparing anything; do not promise later impossible actions. "
                 "The conversation layer presents this exact proposal and collects approval; the runtime then executes it. "
                 "Operation: " + definition.name + ". Use the supplied argument schema and business evidence. "
-                "Do not ask permission to prepare. Execution confirmation belongs to the runtime after this proposal, not to missing-input collection.\n"
-                "Original business operation description (prerequisites and effects apply to execution after approval, not to this preparation call):\n"
-                + definition.description),
+                "Runtime collects execution confirmation for this proposal. "
+                "Business prerequisites and effects are in business_operation_reference under the operation name."),
             args_schema=schema, infer_schema=False, response_format="content_and_artifact",
         )
 
@@ -577,8 +576,18 @@ class TargetFrameworkAgent:
         return delegated_task_content(payload)
 
     def _system(self, context: AgentContextView) -> str:
+        # Keep execution API documentation as reference, not instructions for a
+        # differently named preparation tool. Approval is an execution boundary.
+        action_tools = tuple(tool for ref in context.work_item.allowed_actions
+                             for tool in self._registry.action(ref).allowed_tool_ids)
+        references = {tool.name: tool.description for tool in self._tool_manager.tools_for_agent(
+            self._registry.agent(context.work_item.owner_agent).execution_principal,
+            allowed_tool_ids=action_tools)} if action_tools else {}
         return (
             f"{self._system_prompt}\n\n"
+            "business_operation_reference (execution API prerequisites and effects; "
+            "not the calling protocol for the available preparation tools):\n"
+            f"{json.dumps(references, ensure_ascii=False)}\n\n"
             f"{ACTION_INTERACTION_CONTRACT}\n"
             "The delegated_task section is the current assigned objective and constraints. "
             "source_context is background, runtime_context contains supplied facts and execution state. "

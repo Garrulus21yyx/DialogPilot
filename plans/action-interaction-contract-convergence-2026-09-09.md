@@ -1,6 +1,9 @@
 # Action / interaction contract convergence
 
 Status: IMPLEMENTED; deterministic verification recorded below; semantic closure OPEN.
+Follow-up: [approval continuity repair](approval-continuity-repair-2026-09-09.md)
+corrects current-decision provenance and observation resubmission; this earlier
+implementation is not evidence that model duplicate-confirmation behavior is closed.
 Baseline71bd41d; preserve concurrent archive/pagination and RAG/documentation edits.
 No paid simulations: provider402. Existing fixed-ten artifacts are regression evidence.
 

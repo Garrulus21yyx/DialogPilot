@@ -27,7 +27,10 @@ class NativeProvider(Provider):
         actions = {a.name: a for a in planning_actions(payload)}
         calls = []
         if self.value.get('approval_decision'):
-            calls.append(('review_action', {'decision': self.value['approval_decision']['decision']}))
+            args = {'decision': self.value['approval_decision']['decision']}
+            if self.value.get('response'):
+                args['response'] = self.value['response']
+            calls.append(('review_action', args))
         for goal in self.value.get('goals', ()):
             args = {k: v for k, v in goal.items() if k not in {'kind', 'revises_control_id'}}
             action = actions[goal['kind']]
@@ -43,7 +46,7 @@ class NativeProvider(Provider):
 
 
 @pytest.mark.parametrize("provider_type", [Provider, NativeProvider])
-@pytest.mark.parametrize("decision", [None, "approve", "decline"])
+@pytest.mark.parametrize("decision", [None, "approve", "decline", "hold"])
 @pytest.mark.parametrize("goal", [None, "continue", "revise", "cancel", "fields", "independent"])
 @pytest.mark.parametrize("same_thread", [False, True])
 @pytest.mark.parametrize("typed", [False, True])
@@ -97,12 +100,14 @@ def test_whole_turn_preserves_unaddressed_waits_and_exact_authorization(decision
             value["goals"] = [item]
         if not decision and not goal:
             value = {"status": "insufficient_context", "missing_fields": ["customer_service_goal"]}
+        if decision == "hold" and goal is None:
+            value.update(status="respond", response="I will wait for your decision.")
         from jsonschema import validate
         validate(value, planning_output_schema())
         provider = provider_type(value)
         manager._understanding = CascadedTargetUnderstanding(StateBoundTargetUnderstanding(), ConversationAgent(provider))
         observations = TurnObservations("Complete user reply", **({
-            "approval_id": "approval", "approval_decision": decision == "approve"} if typed and decision else {}))
+            "approval_id": "approval", "approval_decision": decision != "decline"} if typed and decision else {}))
         if typed and decision and goal == "fields":
             observations = replace(observations, raw_text="", interaction_id="input", interaction_version=1,
                 interaction_values=((field.work_item_id, "reply", "blue"),))
@@ -111,7 +116,7 @@ def test_whole_turn_preserves_unaddressed_waits_and_exact_authorization(decision
                 await manager.prepare(_identity("reply"), observations)
             assert store.load(state.tenant_id, state.user_id, state.conversation_id) == state
             return
-        if decision is None and goal == "continue":
+        if decision in {None, "hold"} and goal == "continue":
             with pytest.raises(TurnPlanningError, match="requires an approval decision"):
                 await manager.prepare(_identity("reply"), observations)
             assert store.load(state.tenant_id, state.user_id, state.conversation_id) == state
@@ -135,7 +140,7 @@ def test_whole_turn_preserves_unaddressed_waits_and_exact_authorization(decision
         assert (prepared.state.pending_interaction is None) == (goal == "fields")
         if goal != "fields":
             assert field.control.control_id not in controls and child.control.control_id not in controls
-        assert (prepared.state.pending_approval is None) == bool(decision or goal in {"revise", "cancel", "continue"})
+        assert (prepared.state.pending_approval is None) == bool(decision in {"approve", "decline"} or goal in {"revise", "cancel", "continue"})
         cancelled = {m.control_id for m in prepared.plan.control_mutations}
         if decision == "decline" and goal not in {"revise", "continue", "cancel"}:
             assert origin.control.control_id not in cancelled
@@ -152,7 +157,7 @@ def test_whole_turn_preserves_unaddressed_waits_and_exact_authorization(decision
             revised = next(item for item in items if item.control.control_id == origin.control.control_id)
             assert revised.objective == "Changed objective" and revised.continuation_of is None
         if decision and goal == "fields":
-            assert len(prepared.source_thread_ids) == int(not same_thread)
+            assert len(prepared.source_thread_ids) == int(not same_thread and decision != "hold")
             if typed:
                 resumed = next(item for item in items if item.control.control_id == field.control.control_id)
                 assert {arg.name: arg.value for arg in resumed.arguments}["reply"] == "blue"

@@ -19,7 +19,7 @@ from langchain_core.runnables.config import ensure_config, merge_configs
 
 
 class AnthropicConversationPlanningProvider:
-    version = "anthropic-conversation-provider-v23-prepared-presentation"
+    version = "anthropic-conversation-provider-v24-current-user-decision"
 
     def __init__(self, models, *, model_profile: ModelProfile, synthesis_profile: ModelProfile, max_tokens: int = 800, callbacks=()) -> None:
         self._models = models
@@ -38,9 +38,14 @@ class AnthropicConversationPlanningProvider:
                 "using review_action; it does not require a new preliminary confirmation. "
                 "Action calls are proposals: the application validates the whole batch, executes it, and returns results for the reply. "
                 "Do not describe a lookup instead of calling it. Tool-call preamble is not sent to the user. "
-                "The final current_request section is the current user's verbatim request. "
+                "The current_request section is the current user's verbatim request. "
                 "Native user/assistant messages before it are historical conversation, not new requests. "
                 "conversation_summary is older background; runtime_context is application state, not user assent. "
+                "current_user_decision is this turn's explicit user input bound to the pending proposal, not background. "
+                "supplied_interaction_values are this turn's user-provided answers, not historical observations. "
+                "Address it with review_action in this same batch. Preserve the decision with independent questions; "
+                "hold it only when the accompanying message conditions execution or changes the proposed scope. "
+                "For changed scope also revise the affected goal; for conditional questions perform the needed lookup. "
                 "Resolve references and short replies using history and pending state while preserving the "
                 "current subject, negation, conditions and hypothetical scope. If the user names a new term, "
                 "preserve it when searching or ask for clarification when needed. "

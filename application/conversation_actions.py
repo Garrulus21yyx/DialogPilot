@@ -191,11 +191,15 @@ def planning_actions(payload):
     if payload.get("pending_approval") and not observing:
         actions.append(PlanningAction("review_action",
             "Approve or decline the current prepared action. Approve only explicit assent to its exact unchanged "
-            "arguments now. Questions/conditional assent are not approval. Corrections use a revised goal instead. "
+            "arguments now. Explicit assent with an independent question is approval: include that question's actions "
+            "in the same batch. Hold means wait because the user conditions the decision on an answer or changes "
+            "the parameters; include the requested lookup or revised goal in the same batch. "
             "Decline rejects only this proposal; unchanged remaining goals continue with that decision. "
             "Use cancel_active_work to cancel a whole objective, or a revised goal to change it. "
-            "Pure approval needs no duplicate task. Preserve independent questions.",
-            {"decision": {"type": "string", "enum": ["approve", "decline"]}}, ("decision",),
+            "A current_user_decision must be addressed, not re-collected. Pure approval needs no duplicate task. "
+            "For hold with no other action, provide the customer-facing response; otherwise omit response.",
+            {"decision": {"type": "string", "enum": ["approve", "decline", "hold"]},
+             "response": _TEXT}, ("decision",),
             bound={"approval_id": payload["pending_approval"]["approval_id"]}))
     pending = payload.get("pending_input") if not observing else None
     if pending and pending.get("requested_fields"):
@@ -270,6 +274,11 @@ def action_proposal(actions, calls, text):
         elif action.name == "review_action":
             if "approval_decision" in proposal:
                 raise ValueError("planning_duplicate_approval")
+            response = value.pop("response", None)
+            if response is not None:
+                if value["decision"] != "hold" or len(calls) != 1:
+                    raise ValueError("approval_response_requires_hold_only")
+                proposal.update(status="respond", response=response)
             proposal["approval_decision"] = value
         elif action.name == "supply_input":
             inputs = proposal.setdefault("input_values", [])
