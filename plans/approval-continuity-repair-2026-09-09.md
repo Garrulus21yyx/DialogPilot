@@ -1,7 +1,15 @@
 # Approval continuity repair
 
-Status: implementation and local contract verification complete; no semantic
-closure claimed. Base HEAD: 3eee99f.
+Status: REOPENED by real-model task 22 regression; local checks below are historical
+evidence, not closure. Base HEAD: 3eee99f.
+
+2026-09-09 follow-up: one fixed task 22 attempt on 88bcb85 produced ENV/ACTION/ALL=0
+and no address writes. Approval planning conversion rejected a response/decision/
+batch combination with `approval_response_requires_hold_only`, despite optional
+response being exposed by the tool schema. Public drafting prose also escaped.
+See [run report](tau3-task22-approval-rerun-2026-09-09.md). Reconcile the supported
+decision/text/action algebra across schema and conversion before claiming closure;
+do not respond to this reopening with another isolated example-only patch.
 
 ## Evidence and scope
 
