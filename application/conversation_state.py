@@ -10,6 +10,7 @@ from threading import RLock
 from typing import Protocol
 
 from application.agent_result import ReceiptRef, RequestedField
+from application.approval_operation import ApprovalOperation, ApprovalScope, approval_scope_key
 from application.entity_binding import BindingSource, EntityBinding
 from application.work_item import ArgumentValue, ControlMode, WorkControlBinding, WorkItem
 from core.identity import ConversationId, TenantId, UserId
@@ -31,6 +32,7 @@ class WorkstreamStatus(str, Enum):
     RECONCILING = "RECONCILING"
     COMPLETED = "COMPLETED"
     CANCELLED = "CANCELLED"
+    FAILED = "FAILED"
 
 
 class WorkControlStatus(str, Enum):
@@ -114,7 +116,7 @@ class WorkstreamState:
 
     @property
     def terminal(self) -> bool:
-        return self.status in {WorkstreamStatus.COMPLETED, WorkstreamStatus.CANCELLED}
+        return self.status in {WorkstreamStatus.COMPLETED, WorkstreamStatus.CANCELLED, WorkstreamStatus.FAILED}
 
     def with_slots(
         self,
@@ -221,7 +223,7 @@ class PendingInteractionState:
 
 
 @dataclass(frozen=True)
-class PendingApprovalState:
+class PendingApprovalState(ApprovalScope):
     approval_id: str
     version: int
     workstream_id: str
@@ -237,6 +239,7 @@ class PendingApprovalState:
     suspended_work_items: tuple[WorkItem, ...] = ()
     origin_work_item_id: str | None = None
     control: WorkControlBinding | None = None
+    additional_operations: tuple[ApprovalOperation, ...] = ()
 
     @property
     def origin_control(self) -> WorkControlBinding | None:
@@ -244,6 +247,7 @@ class PendingApprovalState:
                      if item.work_item_id == self.origin_work_item_id), None)
 
     def __post_init__(self) -> None:
+        object.__setattr__(self, "additional_operations", tuple(self.additional_operations))
         _required(
             self.approval_id,
             self.workstream_id,
@@ -282,10 +286,14 @@ class PendingApprovalState:
             raise ConversationStateError("approval expiry is invalid") from exc
         if expires.utcoffset() is None:
             raise ConversationStateError("approval expiry must be timezone-aware")
+        try:
+            approval_scope_key(self.operations)
+        except ValueError as exc:
+            raise ConversationStateError(str(exc)) from exc
 
 
 @dataclass(frozen=True)
-class AcceptedApprovalState:
+class AcceptedApprovalState(ApprovalScope):
     approval_id: str
     version: int
     workstream_id: str
@@ -298,8 +306,10 @@ class AcceptedApprovalState:
     suspended_work_items: tuple[WorkItem, ...] = ()
     origin_work_item_id: str | None = None
     control: WorkControlBinding | None = None
+    additional_operations: tuple[ApprovalOperation, ...] = ()
 
     def __post_init__(self) -> None:
+        object.__setattr__(self, "additional_operations", tuple(self.additional_operations))
         _required(
             self.approval_id,
             self.workstream_id,
@@ -328,6 +338,10 @@ class AcceptedApprovalState:
             for item in self.argument_bindings
         ):
             raise ConversationStateError("accepted binding does not match its argument")
+        try:
+            approval_scope_key(self.operations)
+        except ValueError as exc:
+            raise ConversationStateError(str(exc)) from exc
 
 
 @dataclass(frozen=True)
@@ -476,6 +490,7 @@ class ConversationState:
                 self.pending_approval.target_entity_ref,
                 self.pending_approval.target_entity_version,
                 self.pending_approval.expires_at,
+                *((self.pending_approval.scope_key,) if self.pending_approval.additional_operations else ()),
                 tuple((argument.name, argument.value_json) for argument in self.pending_approval.arguments),
                 self.pending_approval.checkpoint_thread_id,
                 tuple(item.fingerprint for item in self.pending_approval.suspended_work_items),
@@ -500,6 +515,7 @@ class ConversationState:
                     item.approval_id, item.version, item.workstream_id,
                     item.action_ref, item.operation_key, item.target_entity_ref,
                     item.target_entity_version,
+                    *((item.scope_key,) if item.additional_operations else ()),
                     tuple(work.fingerprint for work in item.suspended_work_items),
                     item.origin_work_item_id,
                     (item.control.control_id, item.control.revision) if item.control else None,
@@ -879,6 +895,7 @@ class ConversationState:
                     pending.suspended_work_items,
                     pending.origin_work_item_id,
                     pending.origin_control,
+                    pending.additional_operations,
                 ))
                 if approved else updated.accepted_approvals
             ),
@@ -921,6 +938,11 @@ class ConversationState:
             status=WorkstreamStatus.RECONCILING,
             phase="RECONCILE",
         )
+
+    def fail_workstream(self, workstream_id, *, expected_version):
+        """Retire a settled failed execution scope, not its retained receipts."""
+        return self._transition_workstream(workstream_id, expected_version=expected_version,
+            status=WorkstreamStatus.FAILED, phase="FAILED")
 
     def mark_workstream_manual_review(self, workstream_id, *, expected_version):
         current = self._workstream(workstream_id)

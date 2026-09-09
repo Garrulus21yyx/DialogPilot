@@ -33,7 +33,7 @@ class Verifier:
         from services.answer_verifier import VerificationResult, VerificationStatus, VerificationReasonCode
         from services.claim_verification import AnswerAssessment
         question, answer = args[:2]
-        assessment = AnswerAssessment('fixture', self.passed, True, False,
+        assessment = AnswerAssessment('fixture', self.passed, True,
                                       () if self.passed else ('evidence',))
         return VerificationResult(
             VerificationStatus.PASS if self.passed else VerificationStatus.REJECT,

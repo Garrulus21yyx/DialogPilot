@@ -129,13 +129,16 @@ class InteractionBoundaryMiddleware(AgentMiddleware):
         calls = message.tool_calls if isinstance(message, AIMessage) else ()
         proposals = [call for call in calls if call["name"] in self.action_tools]
         interactions = {"request_user_input": "NEEDS_USER_INPUT", "report_blocked": "BLOCKED"}
-        if len(proposals) > 1 or len(calls) > 1 and any(call["name"] in interactions for call in calls):
+        if len(calls) > 1 and any(call["name"] in interactions for call in calls):
             return None
         if calls and not proposals and not (len(calls) == 1 and calls[0]["name"] in interactions):
             return None
         kind = "PREPARE_ACTION" if proposals else interactions[calls[0]["name"]] if calls else "COMPLETE"
         candidate = ({"tool": proposals[0]["name"], "arguments": proposals[0]["args"]}
                      if proposals else calls[0]["args"] if calls else message.text)
+        if len(proposals) > 1:
+            candidate = {"actions": [{"tool": call["name"], "arguments": call["args"]}
+                                     for call in proposals]}
         return kind, candidate
 
     def review_budget(self, messages, context):
@@ -160,11 +163,6 @@ class InteractionBoundaryMiddleware(AgentMiddleware):
         message = state["messages"][-1]
         calls = message.tool_calls if isinstance(message, AIMessage) else ()
         proposals = [call for call in calls if call["name"] in self.action_tools]
-        if len(proposals) > 1:
-            return {"messages": [ToolMessage(
-                content="No calls in this batch were executed. Prepare one action after completing the checks needed for that choice. A successful preparation ends this segment; the complete remaining objective stays pending for continuation. Do not request a separate execution confirmation.",
-                tool_call_id=call["id"], name=call["name"], status="error") for call in calls],
-                "jump_to": "model"}
         if len(calls) > 1 and any(call["name"] in {"request_user_input", "report_blocked"} for call in calls):
             return {"messages": [ToolMessage(
                 content="No tools in this batch were executed. Make one interaction call, or perform evidence calls first and ask afterwards.",
@@ -188,11 +186,13 @@ class InteractionBoundaryMiddleware(AgentMiddleware):
         if rejections >= self.max_rejections:
             raise DomainOutcomeRejected("domain_outcome_correction_budget_exhausted")
         assessment = None
-        if kind == "PREPARE_ACTION" and "operation_plan" in candidate["arguments"]:
+        if kind == "PREPARE_ACTION":
             from application.operation_plan import OperationPlanError, validate_operation_plan
             try:
-                validate_operation_plan(candidate["arguments"]["operation_plan"],
-                    selected_tool=candidate["tool"], allowed_tools=self.action_tools)
+                for proposal in candidate.get("actions", (candidate,)):
+                    if "operation_plan" in proposal["arguments"]:
+                        validate_operation_plan(proposal["arguments"]["operation_plan"],
+                            selected_tool=proposal["tool"], allowed_tools=self.action_tools)
             except OperationPlanError as exc:
                 assessment = {"accepted": False, "feedback": str(exc), "repair_owner": "domain"}
         if assessment is None:

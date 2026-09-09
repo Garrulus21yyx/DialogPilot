@@ -706,5 +706,5 @@ def _closed_outcome(item: WorkItem, result: AgentResult | None) -> AgentResult:
         return AgentResult(item.work_item_id, item.owner_agent, AgentResultStatus.CANCELLED,
                            "EXECUTION_WAIT_CLOSED", "orchestration-runtime-v1")
     return replace(result, status=AgentResultStatus.CANCELLED, reason_code="APPROVAL_NOT_GRANTED",
-                   pending_action=None, missing_inputs=(), requested_evidence=(),
+                   pending_action=None, additional_actions=(), missing_inputs=(), requested_evidence=(),
                    candidate_response=None, retryable=False)

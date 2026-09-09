@@ -60,7 +60,7 @@ class AssembledResponse:
     def interaction_ready(self) -> bool:
         """Bound question integrity is not an attestation of factual support."""
         return self.verified or (self.verification_status == "NOT_REQUIRED"
-            and self.verification_reason == "BOUND_QUESTION_NO_MODEL_REVIEW"
+            and self.verification_reason in {"BOUND_QUESTION_NO_MODEL_REVIEW", "PREPARED_SCOPE_RENDERED"}
             and bool(self.verified_text_sha256))
 
     def __post_init__(self) -> None:
@@ -71,8 +71,8 @@ class AssembledResponse:
             raise ValueError("response evidence changed after capture")
         if self.verified_text_sha256 and self.verified_text_sha256 != hashlib.sha256(self.text.encode()).hexdigest():
             raise ValueError("answer text changed after verification")
-        if self.approval_operation_key and (not self.verified_text_sha256 or self.verification_status != "PASS"):
-            raise ValueError("approval presentation requires a verified answer")
+        if self.approval_operation_key and not self.interaction_ready:
+            raise ValueError("approval presentation requires a bound interaction")
 
 
 class ConversationComposer(Protocol):
@@ -82,7 +82,7 @@ class ConversationComposer(Protocol):
 class ResponseAssembler:
     """Choose the cheapest valid response path and verify the final candidate."""
 
-    version = "response-assembler-v14-segment-scoped-evidence"
+    version = "response-assembler-v15-prepared-scope-presentation"
 
     def __init__(self, composer: ConversationComposer | None = None, *,
                  knowledge_verifier=None, knowledge_source_validator=None, knowledge_reuse_validator=None,
@@ -121,9 +121,12 @@ class ResponseAssembler:
                 ResponseAssemblyMode.TEMPLATE, (), False, "NOT_CHECKED", response.verification_reason,
                 retryable=response.retryable, diagnostics=response.diagnostics,
                 evidence_sha256=response.evidence_sha256, evidence_json=response.evidence_json)
-        pending = [r.pending_action for r in board.results if r.pending_action]
-        operation_key = pending_approval.operation_key if pending_approval else pending[0].operation_key if len(pending) == 1 else ""
-        if operation_key and response.verified:
+        from application.approval_operation import ApprovalOperation, approval_scope_key
+        pending = [action for r in board.results for action in r.prepared_actions]
+        operation_key = pending_approval.scope_key if pending_approval else approval_scope_key(tuple(
+            ApprovalOperation(a.action_ref, a.operation_key, a.aggregate_ref, a.target_entity_version,
+                a.arguments, a.argument_bindings) for a in pending)) if pending else ""
+        if operation_key and response.interaction_ready:
             response = replace(response, approval_operation_key=operation_key)
         return response
 
@@ -131,6 +134,47 @@ class ResponseAssembler:
                         pending_approval=None, requested_inputs=(), response_candidate=None) -> AssembledResponse:
         from dataclasses import replace
         from application.knowledge_tool_contract import evidence_items, evidence_id, model_evidence, evidence_content_identity
+
+        if pending_approval or any(r.prepared_actions for r in board.results):
+            from application.approval_presentation import render_approval_scope
+            claims = _allowed_claims(board, pending_approval)
+            operations = [claim.value for claim in claims if claim.kind == "PENDING_ACTION"]
+            card = render_approval_scope(operations, locale=self.fallback_locale,
+                                         action_semantics=self._action_semantics, registry=self._registry)
+            # Independent outcomes retain their own response/support path. The
+            # scope card itself is rendered from data, never judged or rewritten.
+            input_ids = {spec.target_work_item_id for spec in requested_inputs}
+            # Strip only interaction proposals, not the facts/receipts in the
+            # same domain result. Preparing a change does not erase a read answer.
+            others = tuple(replace(r, pending_action=None, additional_actions=(), candidate_response=None)
+                if r.prepared_actions or r.work_item_id in input_ids else r
+                for r in board.results if r.facts or r.action_receipts or (
+                    not r.prepared_actions and r.status is not AgentResultStatus.WAITING_APPROVAL
+                    and r.work_item_id not in input_ids))
+            ids = {r.work_item_id for r in others}
+            independent = replace(board, results=others,
+                work_items=tuple(w for w in board.work_items if w.work_item_id in ids))
+            extra = (await self._assemble(independent, current_message=current_message,
+                conversation_context={**(conversation_context or {}), "retained_approval": {
+                    "operations": operations, "status": "AWAITING_DECISION_NOT_EXECUTED",
+                    "presentation": "A runtime confirmation card follows separately. Explain results; do not ask execution approval."}})
+                if others or board.retained_outcomes else None)
+            questions = "\n".join(spec.question_hint.strip() for spec in requested_inputs)
+            # Questions collect data, not grants. Keep them separate and place
+            # the exact, explicit execution scope last so prose cannot extend it.
+            text = system_notice + "\n\n".join(part for part in (
+                extra.text if extra else "",
+                (_message(self.fallback_locale, "另外需要补充的信息（不构成执行批准）：", "Additional information (not execution approval):")
+                 + "\n" + questions) if questions else "", card) if part)
+            evidence = json.dumps(_response_context(board, pending_approval, requested_inputs,
+                conversation_context, registry=self._registry, action_semantics=self._action_semantics),
+                ensure_ascii=False, sort_keys=True)
+            return AssembledResponse(text, ResponseAssemblyMode.TEMPLATE, _evidence_refs(board),
+                bool(extra and extra.composer_used), "NOT_REQUIRED", "PREPARED_SCOPE_RENDERED",
+                verified_text_sha256=hashlib.sha256(text.encode()).hexdigest(),
+                diagnostics=extra.diagnostics if extra else (),
+                evidence_json=evidence, evidence_sha256=hashlib.sha256(evidence.encode()).hexdigest(),
+                knowledge_evidence=extra.knowledge_evidence if extra else ())
 
         if (requested_inputs and pending_approval is None and response_candidate is None
                 and all(r.status is AgentResultStatus.NEEDS_USER_INPUT for r in board.all_results)
@@ -350,8 +394,6 @@ class ResponseAssembler:
                 "Internal tool names, operation keys and raw parameter JSON are not customer explanations. Use supplied facts to explain item references; do not invent names, prices, fees or return instructions.",
                 "COMMITTED receipts establish execution of their recorded actions. Use accompanying write-result facts for returned business state; earlier read observations or assistant messages do not establish non-execution after that action. Do not infer downstream settlement or delivery beyond the returned result.",
                 "Scope each completed or pending action to its own operation and target. You may report a completed operation and ask approval for a different operation in one reply. A new pending proposal does not invalidate an earlier committed result, including when both concern the same target.",
-                *([_APPROVAL_DESCRIPTION_REQUIREMENT]
-                  if any(c.kind == "PENDING_ACTION" for c in claims) else []),
             ],
         }
         if repair_feedback is not None:
@@ -422,25 +464,22 @@ def _allowed_claims(board, pending_approval=None, *, requested_inputs=()) -> tup
     claims = []
     current = _current_board_facts(board)
     if pending_approval:
-        claims.append(AllowedClaim("proposal:" + pending_approval.work_item_id, "PENDING_ACTION",
-            {"action_ref": pending_approval.action_ref,
-             "operation_key": pending_approval.operation_key,
-             "target_entity_ref": pending_approval.target_entity_ref,
-             "arguments": {arg.name: arg.value for arg in pending_approval.arguments},
-             "effect_status": "NOT_EXECUTED"}, ()))
+        for operation in pending_approval.operations:
+            claims.append(AllowedClaim("proposal:" + operation.operation_key, "PENDING_ACTION",
+                {**operation.view(), "effect_status": "NOT_EXECUTED"}, ()))
     for item, result in _outcome_pairs(board):
         if result is None:
             continue
         if result.pending_action and pending_approval is None and result in board.results:
-            action = result.pending_action
-            claims.append(AllowedClaim(
-                f"proposal:{result.work_item_id}", "PENDING_ACTION",
+            for action in result.prepared_actions:
+                claims.append(AllowedClaim(
+                f"proposal:{action.operation_key}", "PENDING_ACTION",
                 {"action_ref": action.action_ref,
                  "operation_key": action.operation_key,
                  "target_entity_ref": action.aggregate_ref,
                  "arguments": {arg.name: arg.value for arg in action.arguments},
                  "effect_status": "NOT_EXECUTED"}, (),
-            ))
+                ))
         claims.append(AllowedClaim(f"outcome:{result.work_item_id}", "WORK_ITEM_OUTCOME",
             {"owner_agent": result.owner_agent, "status": result.status.value,
              "reason_code": result.reason_code}, result.evidence_refs))
@@ -533,12 +572,6 @@ def _evidence_refs(board):
         *(fact.source_ref for fact in _current_board_facts(board)),
         *(receipt.receipt_id for result in getattr(board, "all_results", board.results) for receipt in result.action_receipts),
     ]))
-
-
-_APPROVAL_DESCRIPTION_REQUIREMENT = (
-    "Approval description: explain the pending action's target, material changes and payment terms, "
-    "state that it has not executed, and ask for approval."
-)
 
 
 def _message(locale, chinese, english):

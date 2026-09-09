@@ -24,7 +24,7 @@ class Verifier:
     async def verify(self,question,answer,**kwargs):
         self.calls.append(answer)
         passed=not self.always_reject and '保证退款' not in answer
-        assessment=AnswerAssessment('fixture', passed, True, False, () if passed else ('退款依据',))
+        assessment=AnswerAssessment('fixture', passed, True, () if passed else ('退款依据',))
         result=VerificationResult(VerificationStatus.PASS if passed else VerificationStatus.REJECT,
             passed,not passed,'fixture',VerificationReasonCode.PASSED if passed else VerificationReasonCode.UNGROUNDED,
             assessment=assessment)

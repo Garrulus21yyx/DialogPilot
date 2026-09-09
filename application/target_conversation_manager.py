@@ -513,14 +513,13 @@ class TargetConversationManager:
                     in state.consumed_signal_ids else ""),
                 **(
                     {
-                        "approved_operation_key": str(deterministic.operation_key),
+                        "approved_operations": [op.view() for grant in state.accepted_approvals
+                            if grant.approval_id == deterministic.signal_id
+                            and grant.version == deterministic.signal_version for op in grant.operations],
                         "approval_binding": str(deterministic.signal_id),
-                        "approval_target_version": str(
-                            deterministic.target_entity_version
-                        ),
                         "approval_actor": str(invocation.user_id),
                     }
-                    if deterministic.kind is ResolutionKind.APPROVAL_DECISION
+                    if deterministic.kind in {ResolutionKind.APPROVAL_DECISION, ResolutionKind.RECONCILE_WORKFLOW}
                     and deterministic.approved
                     else {}
                 ),
@@ -761,16 +760,21 @@ class TargetConversationManager:
             deterministic.kind is ResolutionKind.APPROVAL_DECISION
             or deterministic.kind is ResolutionKind.RECONCILE_WORKFLOW
         ) and deterministic.approved:
-            result = next((result for item, result in board.outcome_items
-                           if item.operation_key == deterministic.operation_key
-                           and item.approval_binding == deterministic.signal_id), None)
+            grant = next(grant for grant in state.accepted_approvals
+                         if grant.approval_id == deterministic.signal_id
+                         and grant.version == deterministic.signal_version)
+            results = {item.operation_key: result for item, result in board.outcome_items
+                       if item.approval_binding == deterministic.signal_id}
+            members = tuple(results.get(op.operation_key) for op in grant.operations)
+            result = next((r for r in members if r is not None and r.status is AgentResultStatus.RECONCILING),
+                next((r for r in members if r is not None and r.reason_code == "WRITE_MANUAL_REVIEW_REQUIRED"), None))
             stream = next(
                 item for item in state.workstreams
                 if item.workstream_id == deterministic.workstream_id
             )
-            if stream.status is WorkstreamStatus.COMPLETED:
+            if stream.terminal:
                 return state
-            if result is not None and result.status is AgentResultStatus.SUCCEEDED:
+            if all(r is not None and r.status is AgentResultStatus.SUCCEEDED for r in members):
                 next_state = state.complete_workstream(
                     stream.workstream_id,
                     expected_version=stream.state_version,
@@ -790,6 +794,13 @@ class TargetConversationManager:
                     stream.workstream_id, expected_version=stream.state_version)
                 if next_state is not state:
                     transitions.append(next_state)
+                return next_state
+            settled = {AgentResultStatus.SUCCEEDED, AgentResultStatus.TERMINAL_FAILURE,
+                       AgentResultStatus.CANCELLED, AgentResultStatus.BLOCKED}
+            if all(r is not None and r.status in settled for r in members):
+                next_state = state.fail_workstream(stream.workstream_id,
+                    expected_version=stream.state_version)
+                transitions.append(next_state)
                 return next_state
         if plan.transitions is None:
             return state

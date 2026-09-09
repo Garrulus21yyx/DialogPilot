@@ -188,10 +188,10 @@ def planning_actions(payload):
             action.selections["target"] = choices
     if payload.get("pending_approval") and not observing:
         actions.append(PlanningAction("review_action",
-            "Approve or decline the current prepared action. Approve only explicit assent to its exact unchanged "
+            "Approve or decline the entire current prepared operation set. Approve only explicit assent to all its exact unchanged "
             "arguments now. Explicit assent with an independent question is approval: include that question's actions "
             "in the same batch. Hold means wait because the user conditions the decision on an answer or changes "
-            "the parameters; include the requested lookup or revised goal in the same batch. "
+            "the parameters or selects only a subset; include the requested lookup or revised goal in the same batch. "
             "Decline rejects only this proposal; unchanged remaining goals continue with that decision. "
             "Use cancel_active_work to cancel a whole objective, or a revised goal to change it. "
             "A current_user_decision must be addressed, not re-collected. Pure approval needs no duplicate task. "

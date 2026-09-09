@@ -254,8 +254,7 @@ class ConversationAgent:
             "pending_approval": ({
                 "approval_id": state.pending_approval.approval_id,
                 "version": state.pending_approval.version,
-                "action_ref": state.pending_approval.action_ref,
-                "arguments": {arg.name: arg.value for arg in state.pending_approval.arguments},
+                "operations": [op.view() for op in state.pending_approval.operations],
                 "control_id": state.pending_approval.origin_control.control_id if state.pending_approval.origin_control else None,
             } if state.pending_approval else None),
             "current_user_decision": ({

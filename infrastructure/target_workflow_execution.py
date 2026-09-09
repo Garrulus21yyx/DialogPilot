@@ -125,9 +125,13 @@ class TargetWorkflowExecutor:
         elif (
             item.approval_policy is ApprovalPolicy.EXPLICIT_CONFIRMATION_REQUIRED
             and
-            trusted.get("approved_operation_key") == item.operation_key
-            and trusted.get("approval_binding") == item.approval_binding
-            and trusted.get("approval_target_version") == item.target_entity_version
+            trusted.get("approval_binding") == item.approval_binding
+            and any(op.get("operation_key") == item.operation_key
+                    and op.get("target_entity_ref") == item.aggregate_ref
+                    and op.get("target_entity_version") == item.target_entity_version
+                    and op.get("action_ref") == item.action_ref
+                    and op.get("arguments") == {arg.name: arg.value for arg in item.arguments}
+                    for op in trusted.get("approved_operations", ()))
         ):
             grants[str(item.approval_binding)] = ApprovalGrant(
                 str(item.approval_binding),

@@ -93,8 +93,7 @@ def test_conversation_only_reply_retries_only_undelivered_proposal(published, wi
         "invocation": _identity()}))
     if published:
         supplied = calls[0]["conversation_context"]["retained_approval"]
-        assert supplied["action_ref"] == pending.action_ref
-        assert supplied["arguments"] == {arg.name: arg.value for arg in pending.arguments}
+        assert supplied["operations"] == [op.view() for op in pending.operations]
         assert supplied["status"] == "AWAITING_DECISION_NOT_EXECUTED"
         assert "pending_approval" not in calls[0]
     else:

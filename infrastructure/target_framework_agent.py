@@ -68,7 +68,7 @@ logger = logging.getLogger(__name__)
 class TargetFrameworkAgent:
     """Execute one delegated read goal through a governed framework Agent."""
 
-    version = "target-framework-agent-v10-scoped-operation-schema"
+    version = "target-framework-agent-v11-prepared-operation-set"
 
     def __init__(
         self,
@@ -283,7 +283,7 @@ class TargetFrameworkAgent:
                 reason_code="AGENT_NO_PROGRESS", retryable=False, candidate_response=None)
         if failure is not None and result.pending_action is None:
             result = replace(result, status=failure.status, reason_code=failure.reason_code,
-                retryable=failure.retryable, candidate_response=None, pending_action=None,
+                retryable=failure.retryable, candidate_response=None, pending_action=None, additional_actions=(),
                 missing_inputs=(), assignment_issue=failure.assignment_issue)
         elif failure is not None:
             result = replace(result, candidate_response=None)
@@ -403,13 +403,14 @@ class TargetFrameworkAgent:
             coroutine=propose, name="prepare_" + definition.name,
             description=("Prepare a proposal only; this tool does not execute the business action. "
                 "Call once all required choices are known, before requesting approval. "
-                "For multiple related writes, include operation_plan covering ALL remaining assigned changes, "
+                "Prepare independent ready operations together in one tool batch for one confirmation. "
+                "For later writes not ready in this batch, include operation_plan covering remaining assigned changes, "
                 "with evidence-based preconditions/effects and dependencies. This tool call is the ready current action: "
                 "describe it in current without repeating its tool, target or step ID. Describe later actions in remaining_steps; "
                 "their depends_on may reference current or another remaining step ID. If a prerequisite write is still needed, prepare that action first. "
                 "A single write needs no separate plan. If no feasible ordering exists, use request_user_input "
                 "to resolve the actual tradeoff before preparing anything; do not promise later impossible actions. "
-                "The conversation layer presents this exact proposal and collects approval; the runtime then executes it. "
+                "The conversation layer presents the prepared set and collects approval; the runtime executes each member. "
                 "Operation: " + definition.name + ". Use the supplied argument schema and business evidence. "
                 "Runtime collects execution confirmation for this proposal. "
                 "Business prerequisites and effects are in business_operation_reference under the operation name."),
@@ -569,8 +570,7 @@ class TargetFrameworkAgent:
             "recent_relevant_turns": list(context.recent_relevant_turns),
             "evidence_refs": list(context.evidence_refs),
             "pending_approval": ({
-                "action_ref": context.pending_approval.action_ref,
-                "arguments": {arg.name: arg.value for arg in context.pending_approval.arguments},
+                "operations": [op.view() for op in context.pending_approval.operations],
                 "status": "AWAITING_DECISION_NOT_EXECUTED",
             } if context.pending_approval else None),
         }
@@ -644,7 +644,7 @@ def _adapt_framework_result(
     item = context.work_item
     tool_results = tuple(result for result in observed if isinstance(result, ToolResult))
     skill_results = tuple(result for result in observed if isinstance(result, AgentResult))
-    pending = tuple(result.pending_action for result in skill_results if result.pending_action)
+    pending = tuple(action for result in skill_results for action in result.prepared_actions)
     handback = (accepted_outcome or {}).get("kind")
     facts = merge_facts(
         tuple(fact for fact in context.verified_facts
@@ -681,11 +681,7 @@ def _adapt_framework_result(
         if (outcome := tool_domain_outcome(result)) is not None
         and outcome[0] is not AgentResultStatus.SUCCEEDED
     )
-    if len(pending) > 1:
-        status = AgentResultStatus.BLOCKED
-        reason = "ONE_ACTION_PROPOSAL_PER_STEP_REQUIRED"
-        retryable = False
-    elif pending:
+    if pending:
         status = AgentResultStatus.WAITING_APPROVAL
         reason = "ACTION_PROPOSED"
         retryable = False
@@ -745,7 +741,8 @@ def _adapt_framework_result(
         candidate_response=(None if missing_inputs else candidate_response or next(
             (result.candidate_response for result in skill_results if result.candidate_response), None)),
         retryable=retryable,
-        pending_action=pending[0] if len(pending) == 1 else None,
+        pending_action=pending[0] if pending else None,
+        additional_actions=pending[1:],
     )
 
 

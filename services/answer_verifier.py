@@ -35,7 +35,6 @@ class VerificationReasonCode(str, Enum):
     MODEL_REJECTED = "model_rejected"
     VERIFIER_UNAVAILABLE = "verifier_unavailable"
     INVALID_CONTRACT = "invalid_contract"
-    APPROVAL_REQUIRED = "approval_required"
     POLICY_TERMINAL = "policy_terminal"
 
 
@@ -148,12 +147,7 @@ class AnswerVerifier:
                 context_data = json.loads(context)
             except (ValueError, TypeError):
                 context_data = context
-            # pending_actions contains proposals selected for presentation;
-            # previously shown approvals live in retained_approval instead.
-            approval_required = (isinstance(context_data, dict)
-                                 and bool(context_data.get("pending_actions")))
             evidence = {
-                "approval_required": approval_required,
                 "context": context_data,
                 "knowledge_evidence": knowledge_evidence,
             }
@@ -169,11 +163,9 @@ class AnswerVerifier:
             )
             supported = assessment.supported
             complete = assessment.answered
-            approval_complete = not approval_required or assessment.approval_terms_complete
-            status = VerificationStatus.PASS if supported and complete and approval_complete else VerificationStatus.REJECT
+            status = VerificationStatus.PASS if supported and complete else VerificationStatus.REJECT
             reason_code = (VerificationReasonCode.UNGROUNDED if not supported else
                            VerificationReasonCode.INCOMPLETE if not complete else
-                           VerificationReasonCode.APPROVAL_REQUIRED if not approval_complete else
                            VerificationReasonCode.PASSED)
             return VerificationResult(
                 status=status, grounded=supported,
@@ -181,7 +173,6 @@ class AnswerVerifier:
                 reason="; ".join([
                     *assessment.issues,
                 ]) or (
-                    "approval description or confirmation question is incomplete" if not approval_complete else
                     "answer supported and request addressed"),
                 reason_code=reason_code, assessment=assessment,
             )

@@ -9,7 +9,7 @@ import pytest
 from langchain_core.messages import AIMessage
 from application.agent_result import AgentResult, AgentResultStatus, MissingInputSpec
 from application.conversation_state import PendingApprovalState
-from application.response_assembly import ResponseAssembler, _APPROVAL_DESCRIPTION_REQUIREMENT
+from application.response_assembly import ResponseAssembler
 from core.model_policy import ModelProfile, ModelRole
 from infrastructure.target_conversation_provider import AnthropicConversationPlanningProvider
 from tests.framework_structured_stub import StructuredStub
@@ -52,11 +52,15 @@ def test_selected_approval_presentation_is_independent_of_other_input(has_input,
     verifier = ApprovalVerifier('ANSWERED' if terms_complete else 'MISSING')
     answer = asyncio.run(ResponseAssembler(composer, knowledge_verifier=verifier).assemble(
         board, current_message='Continue', pending_approval=pending, requested_inputs=specs))
-    assert answer.verified is terms_complete
-    evidence = json.loads(verifier.calls[0][1]['context'])
+    assert answer.interaction_ready and not answer.verified
+    evidence = json.loads(answer.evidence_json)
     assert evidence['pending_actions'][0]['effect_status'] == 'NOT_EXECUTED'
-    assert _APPROVAL_DESCRIPTION_REQUIREMENT in composer.calls[0]['response_requirements']
-    assert bool(answer.approval_operation_key) is terms_complete
+    assert answer.approval_operation_key == 'operation'
+    if has_input:
+        assert not composer.calls and not verifier.calls
+        assert 'Which option?' in answer.text
+    else:
+        assert len(composer.calls) == len(verifier.calls) == 1
 
 
 def test_turn_runtime_does_not_drop_persisted_approval_while_asking_for_input():

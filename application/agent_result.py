@@ -187,6 +187,7 @@ class AgentResult:
     # A rejected assignment returns to the conversation planner, not a tool retry.
     # The local attempt is terminal; already observed evidence remains usable.
     assignment_issue: str | None = None
+    additional_actions: tuple[WorkItem, ...] = ()
 
     def __post_init__(self) -> None:
         if self.assignment_issue is not None and (
@@ -195,7 +196,7 @@ class AgentResult:
                                    AgentResultStatus.SUPERSEDED} or self.retryable
         ):
             raise AgentResultContractError("assignment issue requires a nonretryable terminal attempt")
-        for name in ("facts", "evidence_refs", "action_receipts", "missing_inputs",
+        for name in ("facts", "evidence_refs", "action_receipts", "missing_inputs", "additional_actions",
                      "requested_evidence", "state_mutation_proposals", "working_messages",
                      "execution_feedback"):
             object.__setattr__(self, name, tuple(getattr(self, name)))
@@ -211,6 +212,13 @@ class AgentResult:
                 raise AgentResultContractError("pending action requires WAITING_APPROVAL")
             if self.pending_action.effect.value != "WRITE" or self.pending_action.owner_agent != self.owner_agent:
                 raise AgentResultContractError("pending action must be an owned business write")
+        if self.additional_actions and self.pending_action is None:
+            raise AgentResultContractError("additional actions require a prepared scope")
+        for action in self.additional_actions:
+            if action.effect.value != "WRITE" or action.owner_agent != self.owner_agent:
+                raise AgentResultContractError("prepared scope contains an unowned business write")
+        if len({action.operation_key for action in self.prepared_actions}) != len(self.prepared_actions):
+            raise AgentResultContractError("prepared scope contains a duplicate operation")
         if any(item.target_work_item_id != self.work_item_id for item in self.missing_inputs):
             raise AgentResultContractError("missing input targets another work item")
         if any(item.target_work_item_id != self.work_item_id for item in self.requested_evidence):
@@ -234,6 +242,10 @@ class AgentResult:
             raise AgentResultContractError("retryable failure must declare retryable")
         if self.retryable and self.status is not AgentResultStatus.RETRYABLE_FAILURE:
             raise AgentResultContractError("only RETRYABLE_FAILURE may be retried")
+
+    @property
+    def prepared_actions(self):
+        return (self.pending_action, *self.additional_actions) if self.pending_action else ()
 
 
 @dataclass(frozen=True)

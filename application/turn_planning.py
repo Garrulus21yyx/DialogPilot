@@ -572,6 +572,9 @@ class RoutePolicy:
             ), None)
             if grant is None:
                 raise TurnPlanningError("workflow continuation has no accepted approval")
+            operation = next((op for op in grant.operations if op.operation_key == command.operation_key), None)
+            if operation is None:
+                raise TurnPlanningError("workflow continuation is outside the approved operation set")
             if any(work.registry_fingerprint != registry.fingerprint for work in grant.suspended_work_items):
                 raise TurnPlanningError("action continuation uses another registry version")
             origin = next((work for work in grant.suspended_work_items
@@ -582,10 +585,10 @@ class RoutePolicy:
                            for control in state.active_work_controls):
                     raise TurnPlanningError("approved action objective was superseded")
             if (
-                grant.action_ref,
-                grant.operation_key,
-                grant.target_entity_ref,
-                grant.target_entity_version,
+                operation.action_ref,
+                operation.operation_key,
+                operation.target_entity_ref,
+                operation.target_entity_version,
             ) != (
                 command.action_ref,
                 command.operation_key,
@@ -595,7 +598,7 @@ class RoutePolicy:
                 raise TurnPlanningError(
                     "workflow continuation differs from accepted approval"
                 )
-            if command.arguments != grant.arguments or command.argument_bindings != grant.argument_bindings:
+            if command.arguments != operation.arguments or command.argument_bindings != operation.argument_bindings:
                 raise TurnPlanningError(
                     "workflow continuation arguments differ from accepted approval"
                 )

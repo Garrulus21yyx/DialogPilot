@@ -1,6 +1,7 @@
 # Approval scope and delivery convergence
 
-Status: IN_PROGRESS; no business closure asserted. Baseline HEAD 89feac2.
+Status: IMPLEMENTED_AND_CONTRACT_VERIFIED; live business closure not asserted.
+Original diagnosis baseline: 89feac2. Migration baseline: 61a9b88.
 
 ## Evidence and causal model
 
@@ -34,13 +35,13 @@ business result. Its model-side cause is not established.
 
 1. [done] Inspect complete preparation/approval/resume/persistence/publication
    surface; independent audit. Preserve unrelated user edits.
-2. [pending] Implement one coherent operation-scope and progress contract, migrate
+2. [done] Implement one coherent operation-scope and progress contract, migrate
    producers/consumers together. Do not infer prepared parameters from plan prose.
-3. [pending] Remove redundant semantic approval gating where runtime data owns the
+3. [done] Remove redundant semantic approval gating where runtime data owns the
    decision; retain targeted factual verification and typed model errors.
-4. [pending] Verify invariants across multi-action decisions, partial results,
+4. [done] Verify invariants across multi-action decisions, partial results,
    reply-only failure and persistence/resume. No paid/business rerun at this stage.
-5. [pending] Independent review, record remaining uncertainty; commit/push owned
+5. [done] Independent review and remaining uncertainty recorded; deliver owned
    changes only. Business success requires separately authorized live validation.
 
 Non-goals: new runtime, broad prompt rewrite, case22-specific address logic,
@@ -80,7 +81,7 @@ reply path. That fixture has NOT been rewritten or claimed green. An intermediat
 new PostgreSQL test run also exposed test identity reuse across parametrizations;
 isolated conversation IDs fixed the fixture, without production special cases.
 
-## Open scope and next work
+## Historical open scope after recovery-only stage
 
 Batch approval is NOT implemented by this stage. PendingApprovalState, grants,
 continuation commands and publication attestation still bind one operation. The
@@ -107,3 +108,78 @@ require >=1.3.3; do not assume them available in this repository's pinned SDK.
 
 Full work remains IN_PROGRESS. No new tau run, real business write, or claim of
 task22 success was made during this stage.
+
+## Operation-set migration (current work, based on 61a9b88)
+
+The bounded batch is a same-worker, independent **ready set**, not a DAG of
+future writes. All parameters/preconditions must already be known. User-required
+ordering or a dependency on another write stays sequential: prepare the next
+ready action, retain the objective, and reassess after its receipt. No model
+description of `remaining_steps` creates additional permission.
+
+Owners and changes:
+
+- Existing SDK tool batching prepares multiple operations. One existing domain
+  decision reviews the actual set's feasibility; there is no per-member judge.
+- `ApprovalOperation` defines each member; existing Pending/AcceptedApprovalState
+  stores first and additional members and exposes one `operations` contract.
+  Codecs preserve all members and original bindings; one-member state fingerprints
+  remain stable. The group scope hash includes parameters and binding provenance.
+- StateBound understanding expands a consumed set into exact CONTINUE_ACTION
+  commands. RoutePolicy validates membership and unchanged arguments. Continuation
+  observes all members; direct write execution never replans approved parameters.
+- Workflow runtime validates each member's grant against action, target, version,
+  and arguments. Initial execution and reconciliation receive the same grant;
+  each operation retains its existing PostgreSQL ledger and receipt identity.
+- A settled failed set retires as FAILED, distinct from COMPLETED and CANCELLED.
+  Unknown effects remain RECONCILING; manual review remains PAUSED. Successful
+  results/receipts survive either case and remain independently deliverable.
+- Confirmation is a deterministic complete scope card, not free model prose
+  stamped with a scope hash. Nested parameters render as fields/list items, not
+  a tool-name-plus-JSON dump. Registry display names can supply friendlier labels;
+  the default derives readable labels without per-business templates.
+- Independent answers keep their normal support path. Ordinary bound questions
+  appear once alongside the card. Neither a failed independent answer nor an
+  empty judge output erases the prepared scope or its question.
+- Removed `approval_terms_complete` from the live model review schema, parsing,
+  verdict and prompt. Historical evaluation candidates remain historical only.
+  Code checks and actual user consent, not an LLM judge, authorize execution.
+
+Independent review found and drove corrections before delivery: arbitrary-prose
+scope attestation, missing grants on reconciliation, missing settled partial-failure
+state, and old single-member decision projection. Old decision projection is
+read-only and requires the exact original approval/action/arguments; it is not
+an alternate execution engine or permission for later group members.
+
+Validation: the final expanded deterministic/isolated PostgreSQL run passed
+803 tests (one warning) in 133.62 seconds. New generated tests cover 1/2/4-member scopes, every
+member's parameter tampering, executor restart and receipt replay, and the 25
+two-member combinations of success/failure/cancel/block/reconciling. Fresh review
+found an additional same-result facts omission; repaired at the response projection
+by stripping only proposals and preserving facts/receipts, with a `paid` answer
+assertion restored. Final review found no further state loss or blocking transition
+within this bounded scope. No live benchmark score is implied.
+
+Verification scope includes operation sets, native response contract, conversation
+actions/instructions, domain boundary/SDK execution, approval revision/delivery,
+PostgreSQL write recovery, turn runtime/planning, compound approval, state codec,
+manager, publication snapshot, and answer/claim verification. Paid/live tests and
+the separately known stale six-scenario HTTP planner fixture were not used as
+closure evidence. All model judgments in this run are scripted fixtures.
+
+Ordinary questions remain natural model text, not a semantic correctness guarantee.
+They are displayed in a separate data-input section before the final exact scope
+card. A question mentioning another operation cannot add it to the grant. This
+retains the intended no-blanket-judge contract; it does not claim all model wording
+is infallible. Partial-set assent or changed parameters require hold/revision,
+not silently expanding or shrinking a consumed whole-set grant.
+
+Delivery: implementation and acceptance changes are one scoped commit on
+`feat/customer-service-target-architecture`; commit/push receipt is recorded in the
+handoff. Unrelated user documentation/archive/evaluation edits are excluded.
+Next: a separately authorized live task22 check of actual user/model behavior.
+
+Migration: TurnRuntime v22 rejects old **unpublished assembled turn checkpoints**
+through the existing version gate; it does not replay business writes. Persisted
+single-member approvals remain readable through the same operation-set path.
+No checkpoint translation engine, second grant store or fallback runtime is added.

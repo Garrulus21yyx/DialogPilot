@@ -8,7 +8,7 @@ import pytest
 from langchain_core.messages import AIMessage
 
 from application.default_capability_registry import build_default_capability_registry
-from application.response_assembly import ResponseAssembler, _APPROVAL_DESCRIPTION_REQUIREMENT
+from application.response_assembly import ResponseAssembler
 from infrastructure.target_framework_agent import TargetFrameworkAgent
 from mcp.tool_manager import MCPToolManager, Tool
 from tests.test_target_framework_agent import ScriptedToolModel, _item, _context
@@ -83,7 +83,6 @@ class ApprovalVerifier(Verifier):
         self.calls.append((args, kwargs))
         complete = self.approval_status == "ANSWERED"
         model = models({"supported": True, "answered": True,
-                        "approval_terms_complete": complete,
                         "issues": [] if complete else ["Approval terms are incomplete."]},
                        name="submit_claim_checks")[ModelRole.INTENT]
         return await AnswerVerifier(model, model_profile=ModelProfile("test")).verify(*args, **kwargs)
@@ -91,10 +90,10 @@ class ApprovalVerifier(Verifier):
 
 @pytest.mark.parametrize("approval_status", ["ANSWERED", "LIMITATION", "MISSING"])
 @pytest.mark.parametrize("approval_source", ["proposal", "persisted_flow"])
-def test_approval_presentation_requires_original_action_and_verified_answer(approval_status, approval_source):
+def test_approval_presentation_binds_original_scope_without_model_judge(approval_status, approval_source):
     agent, context, _, _ = domain([call("prepare_order_cancel"), AIMessage(content="Pending cancellation.")])
     result = asyncio.run(agent(context))
-    text = "Order DP1234 is paid. Cancellation has not executed. Shall I cancel that order?"
+    text = "Order DP1234 is paid. Cancellation has not executed."
     composer = _Composer(lambda p: "\n".join([(text)]))
     verifier = ApprovalVerifier(approval_status)
     pending = None
@@ -108,25 +107,24 @@ def test_approval_presentation_requires_original_action_and_verified_answer(appr
         result = replace(result, pending_action=None)
     assembled = asyncio.run(ResponseAssembler(composer, knowledge_verifier=verifier).assemble(
         _board(result), current_message="Cancel it and explain its current status", pending_approval=pending))
-    evidence = json.loads(verifier.calls[0][1]["context"])
+    assert len(verifier.calls) == 1  # Independent status answer, not scope completeness.
+    evidence = json.loads(assembled.evidence_json)
     assert evidence["pending_actions"][0]["arguments"] == {"order_id": "DP1234", "expected_order_version": 4}
     assert evidence["pending_actions"][0]["effect_status"] == "NOT_EXECUTED"
-    if approval_status == "ANSWERED":
-        assert assembled.text == text
-        assert assembled.approval_operation_key == operation_key
-        assert assembled.verified_text_sha256
-    else:
-        assert not assembled.approval_operation_key
-        assert not assembled.verified_text_sha256
+    assert "DP1234" in assembled.text
+    assert "paid" in assembled.text
+    assert assembled.approval_operation_key == operation_key
+    assert assembled.interaction_ready and not assembled.verified
+    assert assembled.verification_reason == "PREPARED_SCOPE_RENDERED"
 
 
 def test_pure_confirmation_question_does_not_exempt_embedded_facts():
     from services.claim_verification import make_request, assess
     req = make_request("Cancel?", "It costs $10. Approve?", {"price": 10})
-    out = {"supported": False, "answered": True, "approval_terms_complete": True,
+    out = {"supported": False, "answered": True,
            "issues": ["Price has not been verified."]}
     result = assess(req, out)
-    assert result.approval_terms_complete
+    assert not hasattr(result, "approval_terms_complete")
     assert not result.supported
 
 
@@ -183,7 +181,7 @@ def test_application_publishes_verified_approval_and_can_recover_failed_descript
                 self.questions.append(kwargs)
                 return super().publish_interaction(*args, **kwargs)
         publication = Publication()
-        text = "DP1234 is paid and has not been cancelled. Shall I cancel that order?"
+        text = "DP1234 is paid and has not been cancelled."
         composer = _Composer(lambda p: "\n".join([(text)]))
         verifier = ApprovalVerifier(first_verification)
         app = TargetChatApplication(manager=manager, admission=_Admission(), publication=publication,
@@ -192,32 +190,23 @@ def test_application_publishes_verified_approval_and_can_recover_failed_descript
         command = ChatCommand(user_id="user-a", conv_id=conversation_id, request_id="request-1",
                               message="Cancel DP1234 and explain its status", tenant_id="tenant-a")
         outcome = await app.handle(command)
-        if first_verification != "ANSWERED":
-            assert isinstance(outcome, Completed), outcome
-            assert publication.questions == []
-            saved = store.load("tenant-a", "user-a", conversation_id).pending_approval
-            assert saved is not None
-            if persisted:
-                manager._state_store = PostgresConversationStateStore(pool)
-            verifier.approval_status = "ANSWERED"
-            if reply_only:
-                async def conversational(*args, **kwargs):
-                    return TurnProposal(ProposalDisposition.RESPOND, (), "STATUS_REPLY",
-                        response_text="The cancellation is still waiting.")
-                manager._understanding = conversational
-            outcome = await app.handle(replace(command, request_id="request-2", message="Explain the pending cancellation again"))
-            assert outcome.signal_id == saved.approval_id
-            assert store.load("tenant-a", "user-a", conversation_id).pending_approval == saved
         assert isinstance(outcome, NeedsInput), outcome
         assert len(publication.questions) == 1
         question = publication.questions[0]
-        assert question["challenge"] == text
+        assert "DP1234" in question["challenge"]
+        assert len(verifier.calls) == 1
         assert question["resume_schema"]["properties"]["approval_id"]["const"] == outcome.signal_id
         assert question["expected_state_fingerprint"]
         assert len(calls) == 1
         assert "order.cancel:v1" not in question["challenge"]
         assert "expected_order_version" not in question["challenge"]
-        if first_verification != "ANSWERED" and reply_only:
+        if reply_only:
+            async def conversational(*args, **kwargs):
+                return TurnProposal(ProposalDisposition.RESPOND, (), "STATUS_REPLY",
+                    response_text="The cancellation is still waiting.")
+            manager._understanding = conversational
+            if persisted:
+                manager._state_store = PostgresConversationStateStore(pool)
             status = await app.handle(replace(command, request_id="request-3", message="Is it still waiting?"))
             assert isinstance(status, Completed)
             assert len(publication.questions) == 1

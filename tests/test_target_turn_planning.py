@@ -342,7 +342,7 @@ def test_workflow_continuation_requires_consumed_bound_approval():
         }),),
         "RESUME",
     )
-    with pytest.raises(TurnPlanningError, match="differs from accepted approval"):
+    with pytest.raises(TurnPlanningError, match="outside the approved operation set"):
         RoutePolicy().accept(tampered, approved, registry)
     tampered_arguments = TurnProposal(
         ProposalDisposition.RESOLVED,

@@ -239,8 +239,7 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
                 assert "order_cancel" not in model.bound_tool_names
                 prompt = json.loads(domain._build_prompt(domain.contexts[-1])[1]["text"])["runtime_context"]
                 assert prompt["pending_approval"] == {
-                    "action_ref": pending.action_ref,
-                    "arguments": {arg.name: arg.value for arg in pending.arguments},
+                    "operations": [op.view() for op in pending.operations],
                     "status": "AWAITING_DECISION_NOT_EXECUTED",
                 }
                 if decision == "cancel_both":

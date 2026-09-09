@@ -11,16 +11,16 @@ from tests.framework_structured_stub import models
 
 def fixture():
     return make_request("问", "当前状态未知。", {"status": "unknown", "version": 1}), {
-        "supported": True, "answered": True, "approval_terms_complete": False, "issues": []}
+        "supported": True, "answered": True, "issues": []}
 
 
-@pytest.mark.parametrize("supported,answered,approval", itertools.product([False, True], repeat=3))
-def test_independent_assessment_dimensions(supported, answered, approval):
+@pytest.mark.parametrize("supported,answered", itertools.product([False, True], repeat=2))
+def test_independent_assessment_dimensions(supported, answered):
     request, output = fixture()
-    output.update(supported=supported, answered=answered, approval_terms_complete=approval,
+    output.update(supported=supported, answered=answered,
                   issues=[] if supported and answered else ["具体证据不足或未回答"])
     result = assess(request, output)
-    assert (result.supported, result.answered, result.approval_terms_complete) == (supported, answered, approval)
+    assert (result.supported, result.answered) == (supported, answered)
 
 
 @pytest.mark.parametrize("mutation", [
@@ -58,7 +58,7 @@ def test_question_evidence_is_bound_without_granting_workflow_control(targets):
         {"target_work_item_id": item} for item in targets]}
     result = assess(request, output)
     assert not hasattr(result, "rejected_input_work_items")
-    assert not result.approval_terms_complete
+    assert not hasattr(result, "approval_terms_complete")
     changed = copy.deepcopy(request)
     changed["evidence"]["context"]["requested_inputs"].append({"target_work_item_id": "new"})
     assert not result.matches(**changed)

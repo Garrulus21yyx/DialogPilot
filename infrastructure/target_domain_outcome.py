@@ -57,7 +57,15 @@ policy prerequisites, the proposed action's state changes and whether remaining 
 changes stay possible. Collect all items when policy requires a one-time batch. If
 requested changes are incompatible, resolve the user's choice before preparing one.
 Do not accept a locally valid action that defeats the rest of the assigned objective.
-For multiple related remaining writes, require candidate.arguments.operation_plan.
+When candidate.actions is supplied, review the complete set of concrete proposed
+operations together. Every member must be ready from current evidence, not depend
+on an unexecuted member, its effects or its returned parameters. This batch is
+unordered: do not accept it when the user or business policy requires a sequence.
+Prepare only the first prerequisite in that case. They will share one user
+approval but retain separate execution receipts. Assess compatibility across the
+set; do not demand separate user confirmations for independent ready operations.
+For changes outside that concrete set, use the supplied operation_plan when needed.
+For multiple related remaining writes in a single-action candidate, require candidate.arguments.operation_plan.
 It must cover the remaining assigned changes, not just restate the selected action.
 The current entry describes THIS candidate tool call and its actual target/arguments;
 there is no separately selected step or model-supplied current tool/target identity.

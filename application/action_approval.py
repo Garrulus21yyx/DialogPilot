@@ -25,16 +25,17 @@ ACTION_INTERACTION_CONTRACT = """Action interaction has three stages with distin
    A uniquely resolved target set does not need a separate completeness confirmation.
 2. With those values available, prepare the proposal without executing it.
    Complete checks affecting action choice, compatibility or approval terms first.
-   A worker segment prepares at most one action. Successful preparation ends that
+   A worker segment may prepare a set of concrete, ready actions together.
+   Successful preparation ends that
    segment, not the overall objective. The proposal and unfinished work return to
-   the conversation; later actions are reassessed after the approval decision.
+   the conversation; unprepared later actions are reassessed after the approval decision.
    Use an available preparation action or delegate the complete business objective
    with proposal permission. Do not ask for execution permission before preparation.
    An information-only request permits investigation, not preparing a business change.
-3. Runtime presents the complete proposal and obtains one execution approval,
+3. Runtime presents the complete prepared set and obtains one execution approval,
    including policy-required confirmation of targets, full item list, consequences
    and payment terms. Such pre-execution confirmations belong here, not stage 1.
-   Ask execution approval only for the prepared action selected for presentation,
+   Ask execution approval for all prepared actions selected for presentation,
    not for other requested changes that are merely discussed or still queued.
 A missing-input question must ask only for its missing value/choice; do not add
 confirmation of already resolved targets or permission to proceed. Prior assent
@@ -51,9 +52,8 @@ leaving a state unchanged does not make that state a final user requirement. Bef
 declaring requested changes incompatible or asking the user to choose, consider an
 ordering that satisfies their prerequisites and preserves the requested final
 outcomes. Follow an explicit user ordering; do not silently reorder it. Choose the
-first feasible action only when the evidence supports that ordering; otherwise
-resolve the actual uncertainty. One-action-per-segment is a scheduling limit, not
-evidence that the overall user goals are mutually exclusive.
+first feasible action only when later parameters depend on its result; otherwise
+prepare the ready set together. Resolve actual uncertainty before preparation.
 """
 
 
@@ -102,7 +102,7 @@ def merge_action_decisions(*groups):
     decisions = {}
     for group in groups:
         for decision in group:
-            prior = decisions.setdefault(decision["approval_id"], decision)
+            prior = decisions.setdefault((decision["approval_id"], decision.get("operation_key")), decision)
             if prior != decision:
                 raise ConversationStateConflict("approval decision differs across checkpoints")
     return tuple(decisions.values())
@@ -116,15 +116,16 @@ def action_decision_context(previous, pending, resolution):
         ResolutionKind.APPROVAL_DECISION, ResolutionKind.APPROVAL_EXPIRED,
     }:
         return decisions
-    decision = {
+    decisions_for_scope = tuple({
         "approval_id": pending.approval_id,
-        "action_ref": pending.action_ref,
-        "arguments": {arg.name: arg.value for arg in pending.arguments},
+        "operation_key": op.operation_key,
+        "action_ref": op.action_ref,
+        "arguments": {arg.name: arg.value for arg in op.arguments},
         "control_id": pending.origin_control.control_id if pending.origin_control else None,
         "decision": ("EXPIRED" if resolution.kind is ResolutionKind.APPROVAL_EXPIRED
                      else "APPROVED" if resolution.approved else "DECLINED"),
-    }
-    return merge_action_decisions(decisions, (decision,))
+    } for op in pending.operations)
+    return merge_action_decisions(decisions, decisions_for_scope)
 
 
 def partition_work_revision(suspended, affected_controls):
@@ -178,7 +179,37 @@ def bind_action_approval(state, plan, board, registry, checkpoint_thread_id):
         return state
     result = proposed[0]
     parent = next(item for item in plan.work.items if item.work_item_id == result.work_item_id)
-    action = result.pending_action
+    from application.approval_operation import ApprovalOperation, approval_scope_key
+    actions = result.prepared_actions
+    for prepared in actions:
+        _validate_prepared_action(prepared, parent, registry)
+    action = actions[0]
+    definition = registry.action(action.action_ref)
+    operations = tuple(ApprovalOperation(a.action_ref, a.operation_key, a.aggregate_ref,
+        a.target_entity_version, a.arguments, a.argument_bindings) for a in actions)
+    scope_key = approval_scope_key(operations)
+    stream_id = "action-workstream:" + scope_key
+    stream = WorkstreamState(
+        stream_id, parent.owner_agent, definition.ref, "PREPARED",
+        WorkstreamStatus.WAITING_APPROVAL, 1, action.arguments, definition.flow_ref,
+    )
+    return state.wait_for_approval(PendingApprovalState(
+        action.approval_binding if len(actions) == 1 else "approval:" + scope_key,
+        1, stream_id, action.work_item_id, definition.ref,
+        action.operation_key, action.aggregate_ref, action.target_entity_version,
+        (datetime.now(timezone.utc) + timedelta(minutes=15)).isoformat(),
+        action.arguments, checkpoint_thread_id, action.argument_bindings,
+        suspended_work_items=(parent, *(
+            work for work in plan.work.items if work.work_item_id != parent.work_item_id
+            and work.work_item_id not in finished | waiting
+        )),
+        origin_work_item_id=parent.work_item_id,
+        control=parent.control,
+        additional_operations=operations[1:],
+    ), new_workstream=stream)
+
+
+def _validate_prepared_action(action, parent, registry):
     definition = registry.action(action.action_ref)
     if (action.action_ref not in parent.allowed_actions
             or definition.owner_agent != parent.owner_agent
@@ -193,20 +224,3 @@ def bind_action_approval(state, plan, board, registry, checkpoint_thread_id):
             or action.reconciliation != definition.reconciliation
             or action.approval_policy != definition.approval_policy):
         raise ConversationStateConflict("prepared action differs from its registered envelope")
-    stream_id = "action-workstream:" + action.operation_key
-    stream = WorkstreamState(
-        stream_id, parent.owner_agent, definition.ref, "PREPARED",
-        WorkstreamStatus.WAITING_APPROVAL, 1, action.arguments, definition.flow_ref,
-    )
-    return state.wait_for_approval(PendingApprovalState(
-        action.approval_binding, 1, stream_id, action.work_item_id, definition.ref,
-        action.operation_key, action.aggregate_ref, action.target_entity_version,
-        (datetime.now(timezone.utc) + timedelta(minutes=15)).isoformat(),
-        action.arguments, checkpoint_thread_id, action.argument_bindings,
-        suspended_work_items=(parent, *(
-            work for work in plan.work.items if work.work_item_id != parent.work_item_id
-            and work.work_item_id not in finished | waiting
-        )),
-        origin_work_item_id=parent.work_item_id,
-        control=parent.control,
-    ), new_workstream=stream)

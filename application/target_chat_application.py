@@ -292,7 +292,7 @@ class TargetChatApplication:
                 signal_id=pending.approval_id, signal_version=pending.version) if pending else None))
         assembly = turn_result.assembled
         if pending is not None and assembly is not None and (
-            assembly.approval_operation_key == pending.operation_key
+            assembly.approval_operation_key == pending.scope_key
             and assembly.verified_text_sha256
         ) and (
             managed.state_before.pending_approval is None
@@ -616,7 +616,7 @@ class TargetChatApplication:
             # or approval grant. No interaction publication is recorded, so a new
             # turn can present the same persisted wait without rerunning its work.
             public_response.update(execution="WAITING")
-            if assembly is not None and ((present_approval and not assembly.verified)
+            if assembly is not None and ((present_approval and not assembly.interaction_ready)
                     or (present_input and not assembly.interaction_ready)):
                 public_response["interaction_presentation"] = "UNAVAILABLE"
         published = self._publication.publish(

@@ -208,7 +208,7 @@ def test_verifier_feedback_only_revises_reply_from_same_evidence(invalid_input):
     from services.answer_verifier import AnswerVerifier
     from core.model_policy import ModelProfile, ModelRole
     from tests.framework_structured_stub import models
-    output = {"supported": True, "answered": False, "approval_terms_complete": False,
+    output = {"supported": True, "answered": False,
         "issues": ["There is no missing choice" if invalid_input else "Ask only for the missing choice"]}
     model = models(output, name="submit_claim_checks")[ModelRole.INTENT]
     composer = _Composer("May I proceed?")

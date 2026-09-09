@@ -62,41 +62,34 @@ class StateBoundTargetUnderstanding:
                         else "APPROVAL_DECLINED"
                     ),
                 )
-            action = registry.action(str(deterministic.action_ref))
-            stream = next(
-                item for item in state.workstreams
-                if item.workstream_id == deterministic.workstream_id
-            )
             grant = next(item for item in state.accepted_approvals
                          if item.approval_id == deterministic.signal_id
                          and item.version == deterministic.signal_version)
+            commands = []
+            for index, operation in enumerate(grant.operations):
+                action = registry.action(operation.action_ref)
+                command_id = "continue-approved-workflow" if index == 0 else f"continue-approved-workflow-{index + 1}"
+                commands.append(CommandProposal(command_id, CommandKind.CONTINUE_ACTION,
+                    action.owner_agent, f"Execute explicitly approved action {action.action_id}",
+                    operation.arguments, action.requirement_ids,
+                    flow_ref=action.flow_ref, action_ref=operation.action_ref,
+                    target_entity_ref=operation.target_entity_ref,
+                    target_entity_version=operation.target_entity_version,
+                    approval_binding=deterministic.signal_id,
+                    approval_signal_version=deterministic.signal_version,
+                    operation_key=operation.operation_key, argument_bindings=operation.argument_bindings))
             continuation = ()
             if grant.suspended_work_items:
                 continuation = self._continuations(
                     self._without_field_waits(grant.suspended_work_items, state), state,
                     after="continue-approved-workflow",
                 )
+                continuation = tuple(replace(command, dependencies=tuple(dict.fromkeys((
+                    *command.dependencies, *(action.command_id for action in commands)))))
+                    for command in continuation)
             return TurnProposal(
                 ProposalDisposition.RESOLVED,
-                (CommandProposal(
-                    "continue-approved-workflow",
-                    CommandKind.CONTINUE_ACTION,
-                    action.owner_agent,
-                    f"Execute explicitly approved action {action.action_id}",
-                    tuple(
-                        ArgumentValue.create(name, value)
-                        for name, value in deterministic.arguments
-                    ),
-                    action.requirement_ids,
-                    flow_ref=stream.flow_ref,
-                    action_ref=deterministic.action_ref,
-                    target_entity_ref=deterministic.target_entity_ref,
-                    target_entity_version=deterministic.target_entity_version,
-                    approval_binding=deterministic.signal_id,
-                    approval_signal_version=deterministic.signal_version,
-                    operation_key=deterministic.operation_key,
-                    argument_bindings=deterministic.argument_bindings,
-                ), *continuation),
+                (*commands, *continuation),
                 (
                     "RECONCILIATION_RESUME"
                     if deterministic.kind is ResolutionKind.RECONCILE_WORKFLOW

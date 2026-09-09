@@ -57,7 +57,7 @@ class TurnRuntimeResult:
 class TurnRuntime:
     """Coordinate durable turn phases without owning their domain semantics."""
 
-    version = "turn-runtime-v21-approval-delivery"
+    version = "turn-runtime-v22-operation-scope"
 
     def __init__(
         self,
@@ -195,8 +195,7 @@ class TurnRuntime:
                 state["invocation"], signal_id=pending_input.interaction_id, signal_version=pending_input.version))
         if pending_approval is not None and not present_approval:
             context = {**context, "retained_approval": {
-                "action_ref": pending_approval.action_ref,
-                "arguments": {arg.name: arg.value for arg in pending_approval.arguments},
+                "operations": [op.view() for op in pending_approval.operations],
                 "status": "AWAITING_DECISION_NOT_EXECUTED",
                 "presentation": "Answer this turn without soliciting approval again.",
             }}

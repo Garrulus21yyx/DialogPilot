@@ -59,8 +59,10 @@ def setup(pool, action_ref):
         aggregate_ref=("account:" + user if action_ref == ACTIONS[3] else "order:" + order_id))
     context = replace(_context(item), trusted_context={"tenant_id": tenant, "user_id": user,
         "conv_id": key, "conversation_id": key, "request_id": key,
-        "approved_operation_key": key, "approval_binding": item.approval_binding,
-        "approval_target_version": "1"})
+        "approval_binding": item.approval_binding,
+        "approved_operations": [{"operation_key": key, "action_ref": item.action_ref,
+            "target_entity_ref": item.aggregate_ref, "target_entity_version": "1",
+            "arguments": {arg.name: arg.value for arg in item.arguments}}]})
     manager = MCPToolManager("unused", model="unused")
     for tool in customer_operation_tools(owner):
         manager.register(tool)

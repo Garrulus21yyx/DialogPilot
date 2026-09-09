@@ -15,6 +15,7 @@ from psycopg.types.json import Jsonb
 from pydantic import TypeAdapter
 
 from application.agent_result import FactRecord, RequestedField
+from application.approval_operation import ApprovalOperation
 from application.capability_registry import (
     ActionReconciliationDefinition,
     WriteRecoveryPolicy,
@@ -55,6 +56,7 @@ from core.identity import ConversationId, TenantId, UserId
 _STATE_EVENT = "target.conversation_state.changed.v1"
 _OPERATION_EVENT = "target.write_operation.changed.v1"
 _OPERATION_FACTS = TypeAdapter(tuple[FactRecord, ...])
+_APPROVAL_OPERATIONS = TypeAdapter(tuple[ApprovalOperation, ...])
 
 
 class PostgresConversationStateStore:
@@ -209,12 +211,13 @@ def conversation_state_to_payload(state: ConversationState) -> dict[str, object]
                 **{
                     key: value
                     for key, value in state.pending_approval.__dict__.items()
-                    if key not in {"arguments", "argument_bindings", "suspended_work_items"}
+                    if key not in {"arguments", "argument_bindings", "suspended_work_items", "additional_operations"}
                 },
                 "arguments": [
                     {"name": item.name, "value_json": item.value_json}
                     for item in state.pending_approval.arguments
                 ],
+                "additional_operations": _APPROVAL_OPERATIONS.dump_python(state.pending_approval.additional_operations, mode="json"),
                 "control": dict(state.pending_approval.control.__dict__) if state.pending_approval.control else None,
                 "suspended_work_items": [_work_item_to_payload(work) for work in state.pending_approval.suspended_work_items],
                 "argument_bindings": [
@@ -230,12 +233,13 @@ def conversation_state_to_payload(state: ConversationState) -> dict[str, object]
             {
                 **{
                     key: value for key, value in item.__dict__.items()
-                    if key not in {"arguments", "argument_bindings", "suspended_work_items"}
+                    if key not in {"arguments", "argument_bindings", "suspended_work_items", "additional_operations"}
                 },
                 "arguments": [
                     {"name": arg.name, "value_json": arg.value_json}
                     for arg in item.arguments
                 ],
+                "additional_operations": _APPROVAL_OPERATIONS.dump_python(item.additional_operations, mode="json"),
                 "control": dict(item.control.__dict__) if item.control else None,
                 "suspended_work_items": [_work_item_to_payload(work) for work in item.suspended_work_items],
                 "argument_bindings": [
@@ -347,6 +351,7 @@ def conversation_state_from_payload(raw: Mapping[str, object]) -> ConversationSt
                 tuple(_work_item_from_payload(work) for work in approval_raw.get("suspended_work_items", ())),
                 approval_raw.get("origin_work_item_id"),
                 WorkControlBinding(**approval_raw["control"]) if approval_raw.get("control") else None,
+                _APPROVAL_OPERATIONS.validate_python(approval_raw.get("additional_operations", ())),
             )
             if isinstance(approval_raw, Mapping) else None
         ),
@@ -385,6 +390,7 @@ def conversation_state_from_payload(raw: Mapping[str, object]) -> ConversationSt
                 tuple(_work_item_from_payload(work) for work in item.get("suspended_work_items", ())),
                 item.get("origin_work_item_id"),
                 WorkControlBinding(**item["control"]) if item.get("control") else None,
+                _APPROVAL_OPERATIONS.validate_python(item.get("additional_operations", ())),
             )
             for item in payload.get("accepted_approvals", ())
         ),

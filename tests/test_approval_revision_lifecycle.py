@@ -169,11 +169,14 @@ def test_durable_interaction_can_be_presented_without_new_execution(kind, publis
         assert result["assembled"].text == "Which option?" and captured == []
         assert result["assembled"].approval_operation_key == ""
     else:
-        assert result["assembled"].verified
-        evidence = captured[0]["evidence"]
+        assert result["assembled"].interaction_ready and not result["assembled"].verified
+        assert not captured
+        evidence = json.loads(result["assembled"].evidence_json)
         assert bool(evidence["pending_actions"]) == (kind != "fields")
         assert bool(evidence["requested_inputs"]) == (kind != "approval")
         assert result["assembled"].approval_operation_key == ("operation" if kind != "fields" else "")
+        if kind == "both":
+            assert "Which option?" in result["assembled"].text
     assert managed.board is None and managed.state_after == state
 
 

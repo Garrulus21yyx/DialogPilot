@@ -52,24 +52,10 @@ async def resolved_working_messages(context, archive):
             continue
         resolution = None
         if pending.pending_action is not None:
-            action = pending.pending_action
-            decision = next((value for value in context.trusted_context.get("action_decisions", ())
-                if value["approval_id"] == action.approval_binding
-                and value["decision"] in {"DECLINED", "EXPIRED"}), None)
-            if decision is not None:
-                resolution = {"status": decision["decision"], "operation_key": action.operation_key,
-                              "action_ref": action.action_ref, "arguments": decision["arguments"],
-                              "executed": False, "approval_granted": False}
-            for result in context.dependency_results:
-                receipts = tuple(receipt for receipt in result.action_receipts
-                    if receipt.operation_key == action.operation_key and receipt.effect_status == "COMMITTED"
-                    and receipt.requirement_id in action.requirement_ids)
-                if result.owner_agent == action.owner_agent and result.status is AgentResultStatus.SUCCEEDED and receipts:
-                    resolution = {"status": "COMMITTED", "operation_key": action.operation_key,
-                        "receipts": [receipt.__dict__ for receipt in receipts],
-                        "facts": [json.loads(fact.value_json) for fact in result.facts
-                                  if fact.requirement_id in action.requirement_ids]}
-                    break
+            members = tuple(_action_resolution(action, context) for action in pending.prepared_actions)
+            if all(member is not None for member in members):
+                resolution = members[0] if len(members) == 1 else {
+                    "status": "RESOLVED", "operations": list(members)}
         elif pending.status is AgentResultStatus.NEEDS_USER_INPUT:
             if context.trusted_context.get("resolved_input_signal"):
                 resolution = {"status": "ANSWERED", "reply": context.current_message,
@@ -83,6 +69,29 @@ async def resolved_working_messages(context, archive):
                 "status": "error" if resolution["status"] in {"DECLINED", "EXPIRED"} else "success",
             })
     return messages
+
+
+def _action_resolution(action, context):
+    decision = next((value for value in context.trusted_context.get("action_decisions", ())
+        if (value.get("operation_key") == action.operation_key
+            or ("operation_key" not in value and value["approval_id"] == action.approval_binding
+                and value.get("action_ref") == action.action_ref
+                and value.get("arguments") == {arg.name: arg.value for arg in action.arguments}))
+        and value["decision"] in {"DECLINED", "EXPIRED"}), None)
+    for result in context.dependency_results:
+        receipts = tuple(receipt for receipt in result.action_receipts
+            if receipt.operation_key == action.operation_key and receipt.effect_status == "COMMITTED"
+            and receipt.requirement_id in action.requirement_ids)
+        if result.owner_agent == action.owner_agent and result.status is AgentResultStatus.SUCCEEDED and receipts:
+            return {"status": "COMMITTED", "operation_key": action.operation_key,
+                "receipts": [receipt.__dict__ for receipt in receipts],
+                "facts": [json.loads(fact.value_json) for fact in result.facts
+                          if fact.requirement_id in action.requirement_ids]}
+    if decision is not None:
+        return {"status": decision["decision"], "operation_key": action.operation_key,
+                "action_ref": action.action_ref, "arguments": decision["arguments"],
+                "executed": False, "approval_granted": False}
+    return None
 
 
 def fact_from_tool_result(item, result: ToolResult) -> FactRecord:

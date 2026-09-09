@@ -122,6 +122,7 @@ _TARGET_CHECKPOINT_TYPES = (
     ("application.agent_result", "ReceiptRef"),
     ("application.agent_result", "StateMutationProposal"),
     ("application.agent_result", "AgentResult"),
+    ("application.approval_operation", "ApprovalOperation"),
     ("application.result_board", "ResultBoardSnapshot"),
     ("application.conversation_state", "WorkstreamStatus"),
     ("application.conversation_state", "WorkControlStatus"),
