@@ -557,3 +557,7 @@ E06原始／重放、精确输入快照和审计随G0提交；E02—E05保留其
 2026-09-08 R04/R05融合预注册（HEAD b3ba8e9）：复用depth40固定100query/分路排名，已观察到3个旧融合gold被挤出，均为Dense单路命中（rank9/10/12），新增6个gold。假设：双路累积分偏好可能挤出有用单路候选。只比较两种有界候选：Dense权重.75/BM25 .25的RRF k10；Dense前10＋BM25前10去重，不足20由原RRF补齐。与depth20原基线和depth40均衡基线分别比较；不按gold或领域选参数。固定CE20、final5/2600、已有模型/query/corpus；API0、embedding0、新CE最多4000且优先复用缓存。指标：候选及最终Recall/MRR/nDCG、分域、救回误伤、42组bootstrap，保存每个gold分路及融合排名、挤入挤出候选及分数。开发收益不等于heldout泛化；无稳定收益则不采用，不扩大策略扫描。
 
 2026-09-08融合实验交付：2个预注册方案未胜出，不改生产、不声明RAG关闭；逐gold转换、替换候选、来源/分数、分域、组区间及audit完整保存。本轮精确路径commit/push；下一步为CE候选可见性/排序归因。
+
+2026-09-09 E17成熟BM25扩展验收：选择PostgreSQL License、支持PG18的pg_textsearch 1.4.0；隔离组合镜像确认pgvector 0.8.6/HNSW与BM25共存。Wix新100（排除旧40，50 expert-written+50 simulated）API0：词法中位788.17→2.70ms；融合文章Recall20同83%，完整78→77；同本地CE/pack Recall5 69→68、完整62→61、nDCG .5721→.5648，符合预注册≤2pp质量损失与≥20%提速门槛，但不是排序等价。10租户111670行过滤审计0越权。
+
+E17中文复杂电商未通过：同6287文档/40题/750ms，三种形态（全表BM25；final-generation partial索引；partial＋scope-first materialization）均40/40 POSTGRES_UNAVAILABLE；最后形态完整检索中位约1016ms。第一次/第二次“PURE OK”仅代表案例循环，产物状态审计纠正为失败。根因包含累计历史generation、64+中文unigram/bigram词项和复杂版本/地区/渠道适用性过滤；缩小generation与前置scope仍不足预算，按停止条件不再删词、放宽超时或后验调参。已有PG_FTS_ZH_V1同开发40题40/40可用、wire完整82.5%，故pg_textsearch不全局采用，生产默认不改。后续若实施，应由generation builder拥有per-generation lexical索引，注册表明确英文PG_TEXTSEARCH_BM25_V1/中文PG_FTS_ZH_V1及独立fingerprint；需要CI镜像、生命周期和新鲜授权并发验收。报告 `docs/rag-pg-textsearch-acceptance-2026-09-09.zh-CN.md`；计划 `plans/rag-pg-textsearch-evaluation-2026-09-09.md`；微调仍暂停。

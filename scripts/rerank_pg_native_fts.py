@@ -11,7 +11,7 @@ from scripts.prepare_wixqa_local_index import digest
 from statistics import mean
 
 def main():
- p=argparse.ArgumentParser();p.add_argument('--input',type=Path,required=True);p.add_argument('--split',choices=['dev','heldout'],default='dev');a=p.parse_args();m=json.loads((a.input/'manifest.json').read_text());rows=json.loads((a.input/'cases.json').read_text())
+ p=argparse.ArgumentParser();p.add_argument('--input',type=Path,required=True);p.add_argument('--split',choices=['dev','heldout'],default='dev');p.add_argument('--cases',default='cases.json');p.add_argument('--output-stem',default='rerank');a=p.parse_args();m=json.loads((a.input/'manifest.json').read_text());rows=json.loads((a.input/a.cases).read_text())
  cache=Path('/tmp/dialogpilot-wixqa-full-index-20260908');complete=json.loads((cache/'COMPLETE.json').read_text());assert digest(cache/'chunks.json.gz')==complete['chunks_sha256']
  chunks=json.loads(gzip.decompress((cache/'chunks.json.gz').read_bytes()));bykey={f"{x['source_id']}:{x['start_char']}:{x['end_char']}":x for x in chunks}
  cfg=json.loads(subprocess.check_output(['docker','inspect','dialogpilot-target-v1-test']))[0];e=dict(v.split('=',1) for v in cfg['Config']['Env'] if '=' in v)
@@ -26,9 +26,10 @@ def main():
  out=[];new=0;reused=0
  for i,r in enumerate(rows):
   q=r['case']['query'];union=list(dict.fromkeys(cid for ids in r['fused'].values() for cid in ids));scores={}
+  old_scores=old.get(q,{}).get('scores',{})
   for cid in union:
    item=source[cid];key=f"{item['source_id']}:{item['start_char']}:{item['end_char']}"
-   if key in old[q]['scores']:scores[cid]=old[q]['scores'][key];reused+=1
+   if key in old_scores:scores[cid]=old_scores[key];reused+=1
   missing=[x for x in union if x not in scores]
   values=reranker._score(q,[build_child_retrieval_text(title=source[x]['title'],section_path=(),content=source[x]['text']) for x in missing]) if missing else []
   scores.update(zip(missing,values,strict=True));new+=len(missing);assert all(math.isfinite(v) for v in scores.values())
@@ -38,7 +39,7 @@ def main():
    candidates=[ContextCandidate(chunk_id=x,document_id=source[x]['source_id'],text=source[x]['text'],start_char=source[x]['start_char'],end_char=source[x]['end_char'],title=source[x]['title'],source_checksum=source[x]['source_checksum'],source_revision=m['generation']) for x in ordered]
    pack=ContextPacker().pack(candidates,max_tokens=2600,max_chunks=5)
    arms[arm]={'ce5':measure(ordered[:5],source,set(r['case']['article_ids']),5),'pack5':measure(pack.chunk_ids,source,set(r['case']['article_ids']),5),'ordered':ordered,'packed':list(pack.chunk_ids)}
-  out.append({'case_id':r['case']['group_id'],'scores':scores,'arms':arms});(a.input/'rerank-cases.json').write_text(json.dumps(out,indent=2)+'\n');print(i+1,new,reused,flush=True)
+  out.append({'case_id':r['case']['group_id'],'scores':scores,'arms':arms});(a.input/f'{a.output_stem}-cases.json').write_text(json.dumps(out,indent=2)+'\n');print(i+1,new,reused,flush=True)
  report={'api_calls':0,'new_ce_pairs':new,'reused_ce_pairs':reused,'identity':reranker.identity,'scope':'local CE and ContextPacker only, not ToolMessage or answers','summary':{arm:{stage:{k:mean(r['arms'][arm][stage][k] for r in out) for k in out[0]['arms'][arm][stage]} for stage in ('ce5','pack5')} for arm in arms}}
- (a.input/'rerank-report.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(report))
+ (a.input/f'{a.output_stem}-report.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(report))
 if __name__=='__main__':main()

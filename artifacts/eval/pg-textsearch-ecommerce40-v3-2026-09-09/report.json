@@ -1,0 +1,78 @@
+{
+  "cases": 40,
+  "summary": {
+    "candidate": {
+      "complete_r5": 0.0,
+      "unit_r5": 0.0,
+      "complete_r20": 0.0,
+      "unit_r20": 0.0,
+      "mrr5": 0.0,
+      "ndcg5": 0.0
+    },
+    "rerank": {
+      "complete_r5": 0.0,
+      "unit_r5": 0.0,
+      "complete_r20": 0.0,
+      "unit_r20": 0.0,
+      "mrr5": 0.0,
+      "ndcg5": 0.0
+    },
+    "wire": {
+      "complete_r5": 0.0,
+      "unit_r5": 0.0,
+      "complete_r20": 0.0,
+      "unit_r20": 0.0,
+      "mrr5": 0.0,
+      "ndcg5": 0.0
+    }
+  },
+  "failures": [
+    "cx-01-1",
+    "cx-01-2",
+    "cx-01-3",
+    "cx-01-4",
+    "cx-04-1",
+    "cx-04-2",
+    "cx-04-3",
+    "cx-04-4",
+    "cx-07-1",
+    "cx-07-2",
+    "cx-07-3",
+    "cx-07-4",
+    "cx-10-1",
+    "cx-10-2",
+    "cx-10-3",
+    "cx-10-4",
+    "cx-13-1",
+    "cx-13-2",
+    "cx-13-3",
+    "cx-13-4",
+    "cx-16-1",
+    "cx-16-2",
+    "cx-16-3",
+    "cx-16-4",
+    "cx-19-1",
+    "cx-19-2",
+    "cx-19-3",
+    "cx-19-4",
+    "cx-22-1",
+    "cx-22-2",
+    "cx-22-3",
+    "cx-22-4",
+    "cx-25-1",
+    "cx-25-2",
+    "cx-25-3",
+    "cx-25-4",
+    "cx-28-1",
+    "cx-28-2",
+    "cx-28-3",
+    "cx-28-4"
+  ],
+  "wrong_scope_chunks": 0,
+  "median_full_retrieval_wire_ms": [
+    1016.3706727325916,
+    1016.5423844009638
+  ],
+  "api_calls": 0,
+  "scope": "actual retrieval, local CE, packing, ToolMessage; no answer generation"
+}

@@ -1,0 +1,21 @@
+{
+  "head": "ad0f57af334fa4f75d20c6d1cf50e8c4ced0cbef",
+  "actual_lexical_ranker": "PG_TEXTSEARCH_1_4_0_SIMPLE_PRETOKENIZED",
+  "database_image": "pgvector-0.8.6 + pg_textsearch-1.4.0 + PostgreSQL-18",
+  "cases": 40,
+  "documents": 6287,
+  "api_calls": 0,
+  "statement_timeout_ms": 750,
+  "embedding_counts": {
+    "new_documents": 6978,
+    "document_hits": 4612,
+    "new_queries": 22,
+    "query_hits": 18
+  },
+  "hashes": {
+    "artifacts/eval/ecommerce-complex-v2-scoped-corpus-v2/corpus.json": "264eda8969d454972c586e8b8af903d12489ce199a6b48211d52175449939ed3",
+    "data/eval/ecommerce-complex-v2/dev.inputs.json": "17123a0279b0b69263daee1e6accf35c7465dfad9ec2d0b3bba07719ba35bef3",
+    "artifacts/eval/ecommerce-complex-v2-dev/runtime/pure-cases.jsonl.gz": "72610b6ec8e124ad20400b91f6025f31bb7241e7a6cdbed1df63b2525250920f",
+    "/home/yang/DialogPilot/scripts/run_pg_textsearch_ecommerce_acceptance.py": "c16b17f41d27b63eab65192d6d002996af8374342e8506c653cf86c0c34697eb"
+  }
+}
