@@ -52,7 +52,7 @@ def test_planner_resume_choices_match_persisted_waits_not_active_revisions(has_w
     AgentResultStatus.TERMINAL_FAILURE, AgentResultStatus.CANCELLED, AgentResultStatus.SUPERSEDED])
 @pytest.mark.parametrize("successful_count", [1, 3])
 @pytest.mark.parametrize("compose_fails", [False, True])
-def test_original_task_outcomes_drive_partial_delivery_without_a_second_planner(status, successful_count, compose_fails):
+def test_original_task_outcomes_drive_partial_delivery_when_recovery_is_unavailable(status, successful_count, compose_fails):
     from datetime import datetime, timezone
     from application.agent_result import FactRecord, FactSourceKind, EvidenceRequest
     from application.chat_contracts import ChatCommand, Completed
@@ -87,6 +87,15 @@ def test_original_task_outcomes_drive_partial_delivery_without_a_second_planner(
             (CommandProposal("product", CommandKind.DELEGATE_TASK, "product_technical", "Product goal"),
              *(CommandProposal("order-" + str(i), CommandKind.DELEGATE_TASK, "order_logistics", "Order goal")
                for i in range(successful_count))), "TEST"))
+        initial_understanding = manager._understanding
+        async def understanding(observations, state, deterministic, registry, context):
+            if context.observed_execution is not None:
+                # Recovery planning now exists. An unavailable planner must
+                # still deliver original outcomes, not repeat this static fixture.
+                from application.turn_planning import PlanningUnavailable
+                raise PlanningUnavailable(ProposalDisposition.PROVIDER_FAILURE, "PLANNER_UNAVAILABLE")
+            return await initial_understanding(observations, state, deterministic, registry, context)
+        manager._understanding = understanding
         publication = _Publication()
         turn = TurnRuntime(manager, ResponseAssembler(Author(), knowledge_verifier=Verifier(True), fallback_locale="en"),
             checkpointer=InMemorySaver(serde=target_checkpoint_serializer()))

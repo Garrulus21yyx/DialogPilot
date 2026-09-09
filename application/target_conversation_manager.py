@@ -361,7 +361,7 @@ class TargetConversationManager:
         if planned_state is not state:
             transitions.append(planned_state)
             state = planned_state
-        if state_before.pending_interaction is not None and state.pending_interaction is None:
+        if state_before.pending_interaction is not None and state.pending_interaction != state_before.pending_interaction:
             pending = state_before.pending_interaction
             # Goal acceptance and wait retirement are one owner transition,
             # including semantic references from ordinary, unlabelled messages.
@@ -640,9 +640,8 @@ class TargetConversationManager:
                                 if item.control and item.continuation_of is None}
         approval_closed, _ = partition_work_revision(
             state.pending_approval.suspended_work_items if state.pending_approval else (), affected)
-        input_closed = tuple(item for item in (state.pending_interaction.suspended_work_items
-                            if state.pending_interaction else ())
-                            if item.control and item.control.control_id in cancelled)
+        input_closed, _ = partition_work_revision(
+            state.pending_interaction.suspended_work_items if state.pending_interaction else (), affected)
         candidates = (*approval_closed, *input_closed)
         if thread_id is not None:
             originals = tuple(item for pending in (state.pending_interaction, state.pending_approval)

@@ -217,9 +217,8 @@ class StateBoundTargetUnderstanding:
     def preserve_input_continuations(cls, proposal, state):
         """Retain the pending DAG after a semantic decision about one of its goals.
 
-        Correlation alone never resumes work. Once a command addresses a pending
-        goal, preserve its untouched peers and dependencies. Cancellation closes
-        dependent work, while revision rebinds dependencies to the replacement.
+        Independent unanswered peers stay in ConversationState, not in this
+        execution plan. Only addressed goals and their ready descendants resume.
         """
         pending = state.pending_interaction
         if pending is None or proposal.disposition is not ProposalDisposition.RESOLVED:
@@ -246,8 +245,17 @@ class StateBoundTargetUnderstanding:
         ) for key, item in originals.items() if item.work_item_id in closed and key not in represented)
         ids = {originals[key].work_item_id: command.command_id for key, command in represented.items()
                if command.kind is not CommandKind.CANCEL_WORK}
+        unanswered = {field.target_work_item_id for field in pending.requested_fields}
+        selected = set(ids)
+        while True:
+            expanded = selected | {item.work_item_id for key, item in originals.items()
+                if key not in represented and item.work_item_id not in closed | unanswered
+                and selected.intersection(item.dependencies)}
+            if expanded == selected:
+                break
+            selected = expanded
         untouched = tuple(item for key, item in originals.items()
-                          if key not in represented and item.work_item_id not in closed)
+                          if key not in represented and item.work_item_id in selected)
         continuations = cls._continuations(untouched, state, dependency_commands=ids)
         ids.update({command.continuation_of: command.command_id for command in continuations})
         commands = tuple(replace(command, dependencies=tuple(dict.fromkeys((

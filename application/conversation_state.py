@@ -627,24 +627,36 @@ class ConversationState:
         input_updates = self._input_revision_update(controls)
         if input_updates:
             updates.update(input_updates)
-            targets = dict(self.pending_interaction.workstream_versions)
+            retained = input_updates["pending_interaction"]
+            targets = set(dict(self.pending_interaction.workstream_versions)).difference(
+                dict(retained.workstream_versions) if retained is not None else ())
             updates["resume_bindings"] = tuple(binding for binding in updates.get("resume_bindings", self.resume_bindings)
                                                if binding.workstream_id not in targets)
         return updates
 
     def _input_revision_update(self, controls):
-        """Accepting a pending goal's next revision retires its wait atomically."""
+        """Retire only changed goal branches, preserving independent unanswered work."""
         pending = self.pending_interaction
-        if pending is None or not any(
-            item.control and (controls.get(item.control.control_id) is None
-                or controls[item.control.control_id].binding != item.control
-                or controls[item.control.control_id].terminal)
-            for item in pending.suspended_work_items
-        ):
+        if pending is None:
             return {}
+        affected = {item.control.control_id for item in pending.suspended_work_items
+            if item.control and (controls.get(item.control.control_id) is None
+                or controls[item.control.control_id].binding != item.control
+                or controls[item.control.control_id].terminal)}
+        if not affected:
+            return {}
+        from application.action_approval import partition_work_revision
+        _, retained = partition_work_revision(pending.suspended_work_items, affected)
+        retained_ids = {item.work_item_id for item in retained}
+        fields = tuple(field for field in pending.requested_fields if field.target_work_item_id in retained_ids)
+        targets = {field.target_work_item_id for field in fields}
+        next_pending = replace(pending, version=pending.version + 1,
+            requested_fields=fields, suspended_work_items=retained,
+            workstream_versions=tuple(pair for pair in pending.workstream_versions if pair[0] in targets)
+        ) if fields else None
         signal_id = f"interaction:{pending.interaction_id}:v{pending.version}"
         self._assert_unconsumed(signal_id)
-        return {"pending_interaction": None,
+        return {"pending_interaction": next_pending,
                 "consumed_signal_ids": (*self.consumed_signal_ids, signal_id)}
 
     def _approval_revision_update(self, controls, started_workstreams=()):

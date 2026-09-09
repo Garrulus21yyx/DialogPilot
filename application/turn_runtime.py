@@ -57,7 +57,7 @@ class TurnRuntimeResult:
 class TurnRuntime:
     """Coordinate durable turn phases without owning their domain semantics."""
 
-    version = "turn-runtime-v23-worker-recovery"
+    version = "turn-runtime-v24-scoped-input-revision"
 
     def __init__(
         self,
