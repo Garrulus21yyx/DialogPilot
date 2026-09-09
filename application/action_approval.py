@@ -67,6 +67,21 @@ def action_presentation_instruction(pending_actions):
             "A complete investigation result is not a prepared action or a completed business change.")
 
 
+def reply_presentation_instruction(context):
+    """Author and verifier read the same runtime presentation facts, once."""
+    instruction = action_presentation_instruction(context.get("pending_actions", ()))
+    execution = context.get("turn_execution") or {}
+    if execution.get("continues_after_reply") is False:
+        instruction += (
+            " This turn's execution has ended; no further work is scheduled after this reply. "
+            "Unfinished goals, retryable failures and saved progress are not ongoing execution. "
+            "Describe what completed and what stopped. Ask a needed value or present a selected "
+            "approval when supplied, explaining that continuation requires that input. "
+            "Do not promise autonomous continuation, a later update or a future confirmation. "
+            "A possible next step is not a scheduled action.")
+    return instruction
+
+
 def merge_action_decisions(*groups):
     """A consumed approval has one immutable outcome across checkpoint imports."""
     decisions = {}

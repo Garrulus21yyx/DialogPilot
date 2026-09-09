@@ -68,7 +68,7 @@ logger = logging.getLogger(__name__)
 class TargetFrameworkAgent:
     """Execute one delegated read goal through a governed framework Agent."""
 
-    version = "target-framework-agent-v9-scoped-operation-reference"
+    version = "target-framework-agent-v10-scoped-operation-schema"
 
     def __init__(
         self,
@@ -317,8 +317,11 @@ class TargetFrameworkAgent:
             tools.append(self._skill_tool(skill_id))
         # Conversation state already owns one prepared decision. Read-only
         # assistance remains available; another proposal cannot replace it.
-        for action_ref in (() if context.pending_approval else item.allowed_actions):
-            tools.append(self._action_tool(action_ref))
+        action_refs = () if context.pending_approval else item.allowed_actions
+        preparation_names = tuple("prepare_" + tool_id for ref in action_refs
+                                  for tool_id in self._registry.action(ref).allowed_tool_ids)
+        for action_ref in action_refs:
+            tools.append(self._action_tool(action_ref, preparation_names=preparation_names))
         if not tools:
             raise ValueError("delegated Agent has no executable capability")
         async def read_tool_result(reference: str, runtime: ToolRuntime[AgentContextView, dict],
@@ -366,7 +369,7 @@ class TargetFrameworkAgent:
                 (report_blocked, "report_blocked",
                  "Explain why the objective cannot proceed with available capabilities or evidence. Ends this segment without claiming completion."))]
 
-    def _action_tool(self, action_ref):
+    def _action_tool(self, action_ref, *, preparation_names):
         action = self._registry.action(action_ref)
         if len(action.allowed_tool_ids) != 1:
             raise ValueError("action must pin one write tool")
@@ -375,10 +378,10 @@ class TargetFrameworkAgent:
             allowed_tool_ids=action.allowed_tool_ids,
         )
         schema = json.loads(json.dumps(definition.schema))
-        from application.operation_plan import OPERATION_PLAN_SCHEMA, validate_operation_plan
+        from application.operation_plan import operation_plan_schema, validate_operation_plan
         if "operation_plan" in schema.get("properties", {}):
             raise ValueError("business tool argument conflicts with preparation operation_plan")
-        schema.setdefault("properties", {})["operation_plan"] = OPERATION_PLAN_SCHEMA
+        schema.setdefault("properties", {})["operation_plan"] = operation_plan_schema(preparation_names)
         if action.preparation:
             field = action.preparation.target_version_argument
             schema.get("properties", {}).pop(field, None)

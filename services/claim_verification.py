@@ -119,9 +119,9 @@ async def verify_claims(model, profile, *, question, answer, evidence, max_token
     content = json.dumps(request, ensure_ascii=False)
     system = SYSTEM
     context = evidence.get("context")
-    from application.action_approval import action_presentation_instruction
-    system += "\nPresentation contract: " + action_presentation_instruction(
-        context.get("pending_actions", ()) if isinstance(context, dict) else ())
+    from application.action_approval import reply_presentation_instruction
+    system += "\nPresentation contract: " + reply_presentation_instruction(
+        context if isinstance(context, dict) else {})
     system += ("\nAn execution-confirmation request with no selected prepared action violates this contract: "
                "set answered=false and explain that the reply must not solicit unbound approval. "
                "A false feasibility promise violates supported; do not equate a read-only task's success "

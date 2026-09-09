@@ -61,7 +61,7 @@ def test_each_author_receives_its_own_approval_responsibility(monkeypatch, pendi
     assert len(prompts) == 2
     assert all(ACTION_INTERACTION_CONTRACT not in prompt for prompt in prompts)
     assert prompts[0].startswith("You are DialogPilot, the customer's ecommerce service assistant.")
-    assert action_presentation_instruction(()) not in prompts[0]
+    assert action_presentation_instruction(()) in prompts[0]
     assert action_presentation_instruction([{}] if pending else []) in prompts[1]
     assert ACTION_INTERACTION_CONTRACT in SYSTEM
     worker, context, _, _ = domain([])

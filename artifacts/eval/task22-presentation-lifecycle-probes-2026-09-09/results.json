@@ -1,0 +1,18 @@
+{
+  "scope": "Synthetic component probes using production composer/verifier, no business execution; console-captured results, not full model IO",
+  "generated": [
+    {"id":"terminal","text":"I'm sorry, but I wasn't able to update either address. The address update process failed before any changes could be made, and this failure cannot be retried automatically. No addresses have been changed.","publishable":true},
+    {"id":"retryable","text":"I couldn't check your parcel status this time because the tracking system timed out before returning a result. This is a temporary issue, so it can be retried. Could you provide your tracking number so I can look it up again?","publishable":true},
+    {"id":"choice","text":"Which color would you like?","publishable":true},
+    {"id":"approval","text":"I can prepare a destination change for parcel P9 to 12 Rue des Lilas, Lyon, 69001, France. This change has not been executed yet. Please confirm that you'd like me to proceed.","publishable":true}
+  ],
+  "old_invalid_candidates": [
+    {"id":"old_unbound","text":"Neither address has changed. Would you like me to proceed with updating both?","publishable":false,"reason":"No prepared action; cannot solicit execution confirmation."},
+    {"id":"old_promise","text":"Neither address has changed. I will continue working on both updates and let you know when they are ready for final confirmation.","publishable":false,"reason":"Terminal failure with continues_after_reply=false cannot support autonomous future continuation."}
+  ],
+  "captured_actor_plan_reviews": [
+    {"id":"lock_and_rename","accepted":true,"feedback":""},
+    {"id":"publish_after_label","accepted":true,"feedback":""}
+  ],
+  "limitations": ["Single sample per fixture; no claim of universal semantic accuracy.","Retryable fixture lacked tracking identity and model asks for it; this is not proof of multi-turn parameter retention.","Approval wording says can prepare although proposal is already prepared; no execution claim, but wording remains improvable.","Separate fixed candidates in operation-schema probe omitted plans and were rejected; preserve their raw reviews, including an incorrect ordering explanation."]
+}

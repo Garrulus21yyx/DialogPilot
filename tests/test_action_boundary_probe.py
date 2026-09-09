@@ -22,7 +22,10 @@ def test_fresh_probe_uses_production_wrappers_and_explicit_target(case):
     assert case['arguments']['object_id'] in case['facts']
     for name, description in case['tools'].items():
         tool = by_name['prepare_' + name]
-        assert tool.description.endswith(description)
+        assert 'business_operation_reference' in tool.description
+        assert json.dumps(name, ensure_ascii=False) + ': ' + json.dumps(description, ensure_ascii=False) in worker._system(context)
+        enum = tool.args_schema['properties']['operation_plan']['properties']['remaining_steps']['items']['properties']['tool']['enum']
+        assert enum == sorted('prepare_' + key for key in case['tools'])
         assert description in policy
         assert name not in by_name
     assert {'request_user_input', 'report_blocked'} <= by_name.keys()

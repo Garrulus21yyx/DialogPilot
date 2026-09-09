@@ -5,7 +5,7 @@ from itertools import combinations
 import pytest
 from langchain_core.messages import AIMessage
 
-from application.operation_plan import OperationPlanError, validate_operation_plan
+from application.operation_plan import OperationPlanError, operation_plan_schema, validate_operation_plan
 from tests.test_approval_conversation import domain
 
 
@@ -43,6 +43,39 @@ def test_all_four_node_ordered_dags_keep_current_identity_implicit():
         validate(value)
         assert set(value["current"]) == {"goal", "preconditions", "effects"}
         assert "next_step" not in value
+
+
+@pytest.mark.parametrize("names", [("prepare_a",), ("prepare_a", "prepare_b"),
+                                  ("prepare_order_cancel", "prepare_change_42")])
+def test_model_schema_and_runtime_accept_exact_same_callable_names(names):
+    from jsonschema import Draft202012Validator
+    schema = operation_plan_schema(names)
+    validator = Draft202012Validator(schema)
+    for name in (*names, "unknown", names[0].removeprefix("prepare_")):
+        value = plan(step("a"), step("b", tool=name))
+        assert validator.is_valid(value) is (name in names)
+        if name in names:
+            validate_operation_plan(value, selected_tool=names[0], allowed_tools=names)
+        else:
+            with pytest.raises(OperationPlanError, match="preserving all remaining assigned goals"):
+                validate_operation_plan(value, selected_tool=names[0], allowed_tools=names)
+    # Per-invocation schema generation never mutates another task's scope.
+    assert operation_plan_schema(("prepare_unrelated",)) != schema
+    assert operation_plan_schema(names) == schema
+
+
+def test_wrong_business_name_can_be_repaired_without_losing_remaining_goal():
+    bad = plan(step("a"), step("b", tool="order_cancel", target="DP5678"))
+    fixed = plan(step("a"), step("b", tool="prepare_order_cancel", target="DP5678"))
+    agent, context, model, calls = domain([proposal(bad), proposal(fixed)])
+    tools = agent._tools(context)
+    prepare = next(t for t in tools if t.name == "prepare_order_cancel")
+    enum = prepare.args_schema["properties"]["operation_plan"]["properties"]["remaining_steps"]["items"]["properties"]["tool"]["enum"]
+    assert enum == ["prepare_order_cancel"]
+    result = asyncio.run(agent(context))
+    assert result.pending_action and len(calls) == 1
+    assert model.calls == 2 and model.review_calls == 1
+    assert any("preserving all remaining assigned goals" in str(m) for m in result.working_messages)
 
 
 @pytest.mark.parametrize("value", [
@@ -109,7 +142,7 @@ def test_plan_metadata_does_not_change_operation_identity():
     async def run():
         from langgraph.prebuilt import ToolRuntime
         agent, context, _, calls = domain([])
-        tool = agent._action_tool(context.work_item.allowed_actions[0])
+        tool = agent._action_tool(context.work_item.allowed_actions[0], preparation_names=("prepare_order_cancel",))
         runtime = ToolRuntime(state={}, context=context, config={}, stream_writer=lambda _: None,
                               tool_call_id="same-call", store=None)
         _, plain = await tool.coroutine(runtime=runtime, order_id="DP1234")

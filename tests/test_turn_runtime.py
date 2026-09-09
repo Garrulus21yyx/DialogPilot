@@ -436,7 +436,9 @@ def test_loaded_context_survives_assembly_retry_without_reloading():
         asyncio.run(runtime.execute(_identity(), TurnObservations('不是，查订单 DP1234')))
     asyncio.run(runtime.execute(_identity(), TurnObservations('不是，查订单 DP1234')))
     assert provider.calls == 1
-    assert assembler.contexts == [{**conversation_context_payload(context), "request_completed": True}] * 2
+    assert assembler.contexts == [{**conversation_context_payload(context), "request_completed": True,
+        "turn_execution": {"phase": "REPLY", "continues_after_reply": False,
+                           "waiting_for_input": False, "waiting_for_approval": False}}] * 2
 
 
 @pytest.mark.parametrize("legacy_fields", [

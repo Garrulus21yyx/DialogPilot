@@ -39,10 +39,14 @@ def test_policy_snapshot_reaches_author_and_verifier_without_extra_calls(direct,
         knowledge_verifier=verifier).assemble(
         None if direct else _board(_verified_order_result()), current_message="Can I do both?",
         response_candidate="Both operations are possible." if direct else None,
-        conversation_context={"historical_assistant": "Everything is permitted."}))
+        conversation_context={"historical_assistant": "Everything is permitted.",
+            "turn_execution": {"phase": "REPLY", "continues_after_reply": False,
+                "waiting_for_input": False, "waiting_for_approval": False}}))
     assert result.verified
     evidence = json.loads(result.evidence_json)
     policy = evidence["capability_policy"]
+    assert evidence["turn_execution"] == {"phase": "REPLY", "continues_after_reply": False,
+        "waiting_for_input": False, "waiting_for_approval": False}
     assert policy["registry_fingerprint"] == registry.fingerprint
     assert policy["bundle_version"] == registry.bundle_version
     assert policy["business_actions"] == list(semantics)

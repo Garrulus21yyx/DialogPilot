@@ -93,7 +93,7 @@ def test_preparation_tool_contract_does_not_embed_execution_call_instructions():
     from tests.test_approval_conversation import domain
     agent, context, _, _ = domain([])
     action = context.work_item.allowed_actions[0]
-    tool = agent._action_tool(action)
+    tool = agent._action_tool(action, preparation_names=("prepare_order_cancel",))
     assert "Original business operation description" not in tool.description
     assert "business_operation_reference" in tool.description
     assert '"order_cancel": "Cancel order"' in agent._system(context)

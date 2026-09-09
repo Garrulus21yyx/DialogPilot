@@ -1,0 +1,6 @@
+[
+  {"id":"terminal", "question":"Please update both addresses.", "status":"TERMINAL_FAILURE", "retryable":false, "requested_inputs":[], "pending_actions":[], "goal":"Update account and pending order addresses", "reason":"PREPARATION_FAILED"},
+  {"id":"retryable", "question":"Can you check where my parcel is?", "status":"RETRYABLE_FAILURE", "retryable":true, "requested_inputs":[], "pending_actions":[], "goal":"Query parcel status", "reason":"DEPENDENCY_TIMEOUT"},
+  {"id":"choice", "question":"I want to exchange this for another color.", "status":"NEEDS_USER_INPUT", "retryable":false, "requested_inputs":[{"target_work_item_id":"choice", "field_name":"color", "question_hint":"Which color would you like?"}], "pending_actions":[], "goal":"Exchange product color", "reason":"COLOR_REQUIRED"},
+  {"id":"approval", "question":"Please change the delivery destination.", "status":"WAITING_APPROVAL", "retryable":false, "requested_inputs":[], "pending_actions":[{"action_ref":"change_destination:v1", "objective":"Change delivery destination for parcel P9", "target_entity_ref":"P9", "arguments":{"destination":"12 Rue des Lilas, Lyon, 69001, France"}, "effect_status":"NOT_EXECUTED"}], "goal":"Change delivery destination for parcel P9", "reason":"ACTION_PREPARED"}
+]

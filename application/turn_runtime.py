@@ -170,10 +170,17 @@ class TurnRuntime:
         managed = state["managed"]
         presentation_state = state["presentation_state"]
         board = managed.board
+        # This node leads only to commit and END, not back to execution. An
+        # unfinished objective or durable wait is not a scheduled background job.
+        context = conversation_context_payload(state["prepared"].context) or {}
+        context = {**context, "turn_execution": {
+            "phase": "REPLY", "continues_after_reply": False,
+            "waiting_for_input": managed.state_after.pending_interaction is not None,
+            "waiting_for_approval": managed.state_after.pending_approval is not None,
+        }}
         if managed.plan.response_text is not None and board is None:
             # A conversational reply neither presents nor consumes an existing
             # wait. Verify the model's candidate through the same reply boundary.
-            context = conversation_context_payload(state["prepared"].context) or {}
             context = {**context, "turn_contract": "RESPONSE_ONLY_NO_STATE_CHANGE",
                 "pending_interaction": managed.state_after.pending_interaction is not None,
                 "pending_approval": managed.state_after.pending_approval is not None}
@@ -222,7 +229,6 @@ class TurnRuntime:
                 signal_version=pending_approval.version)))
         if board is None and not questions and not present_approval:
             return {"assembled": None}
-        context = conversation_context_payload(state["prepared"].context)
         context = {**(context or {}), "request_completed": managed.request_completed}
         if managed.plan.route.missing_inputs:
             context["clarification_fields"] = list(managed.plan.route.missing_inputs)

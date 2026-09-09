@@ -82,7 +82,7 @@ class ConversationComposer(Protocol):
 class ResponseAssembler:
     """Choose the cheapest valid response path and verify the final candidate."""
 
-    version = "response-assembler-v12-action-semantics"
+    version = "response-assembler-v13-execution-presentation"
 
     def __init__(self, composer: ConversationComposer | None = None, *,
                  knowledge_verifier=None, knowledge_source_validator=None, knowledge_reuse_validator=None,
@@ -493,6 +493,7 @@ def _response_context(board, pending_approval=None, requested_inputs=(), convers
                      for receipt in result.action_receipts],
         "pending_actions": [c.value for c in claims if c.kind == "PENDING_ACTION"],
         "requested_inputs": _input_context(requested_inputs),
+        "turn_execution": (conversation_context or {}).get("turn_execution"),
         "outcomes": [{"work_item_id": item.work_item_id if item else r.work_item_id,
                       "owner_agent": item.owner_agent if item else r.owner_agent,
                       "objective": item.objective if item else None,
