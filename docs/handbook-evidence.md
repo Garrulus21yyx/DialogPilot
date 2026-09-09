@@ -103,3 +103,9 @@ permalink: /handbook-evidence.html
 - [plans/execution-response-simplification-2026-09-09.md](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/plans/execution-response-simplification-2026-09-09.md)
 
 记录中的803项操作集合检查、264项字段展示检查及12条模型探针各有不同范围，不能相加或当成业务通过率。本次只验证网页构建、链接和浏览器展示，没有重跑这些应用实验。task22最新记录ENV=0/ACTION=1/ALL=0，后续简化尚无新的完整任务分数。
+
+## 8. WorkPlan统一合同：9a50ea1
+
+当前运行合同已核对至9a50ea1，取代旧兼容执行表述。细节见[WorkPlan讲述]({{ "/architecture.html#workplan-contract" | relative_url }})与[源码身份快照]({{ "/assets/handbook/workplan-snapshot.json" | relative_url }})。原89feac2、c91eae2等快照保留其历史范围。
+
+[plans/work-plan-single-contract-2026-09-09.md](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/plans/work-plan-single-contract-2026-09-09.md)记录708组合/97补充检查与另外4个既有测试调用错误，集合重叠、不相加。本次没有重跑应用测试或τ³，历史分数不升级；只更新网页、口述、源码链接和追问。
