@@ -9,7 +9,7 @@ from tests.test_hybrid_retrieval_backends import _knowledge_request,_generation
 from infrastructure.hybrid_retrieval_backend import PostgresHybridBackend
 
 class Capture:
-    def execute(self,q,p): self.query,self.params=q,p;return self
+    def execute(self,q,p,**options): self.query,self.params,self.options=q,p,options;return self
     def fetchall(self):return []
 
 def run(out,baseline):

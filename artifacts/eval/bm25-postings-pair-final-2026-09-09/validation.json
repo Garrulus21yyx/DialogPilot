@@ -1,0 +1,16 @@
+{
+  "sql_sha256": "5a52f3917d214c7c78e667a2f226ed0c848136893fd76eca78344307e64e63cd",
+  "tests_passed": 24,
+  "tests_seconds": 27.22,
+  "test_files": [
+    "test_bm25_sql_equivalence.py",
+    "test_hybrid_retrieval_backends.py",
+    "test_knowledge_applicability.py"
+  ],
+  "paired_query_count": 12,
+  "exact_score_id_order_equal": true,
+  "passed_750ms_checks": 10,
+  "failed_750ms_checks": 2,
+  "api_calls": 0,
+  "performance_closure": false
+}

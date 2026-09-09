@@ -1,0 +1,26 @@
+[
+  {
+    "query": "original",
+    "force_custom_plan": 299.11020398139954,
+    "force_generic_plan": 672.7960351854563,
+    "auto": 283.4050729870796,
+    "auto_prepared_bm25_count": 0,
+    "same_results": true
+  },
+  {
+    "query": "chargeback",
+    "force_custom_plan": 207.07379840314388,
+    "force_generic_plan": 200.12929290533066,
+    "auto": 198.86806420981884,
+    "auto_prepared_bm25_count": 0,
+    "same_results": true
+  },
+  {
+    "query": "fresh_negation",
+    "force_custom_plan": 697.6716239005327,
+    "force_generic_plan": 958.4284145385027,
+    "auto": 687.5614579766989,
+    "auto_prepared_bm25_count": 0,
+    "same_results": true
+  }
+]

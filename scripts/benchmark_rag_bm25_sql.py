@@ -20,8 +20,8 @@ from mcp.source_document import SourceDocument
 
 
 class CaptureSQL:
-    def execute(self,query,params):
-        self.query=query.as_string();self.params=params;return self
+    def execute(self,query,params,**options):
+        self.query=query.as_string();self.params=params;self.options=options;return self
     def fetchall(self):return []
 
 

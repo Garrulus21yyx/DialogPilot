@@ -1,0 +1,37 @@
+{
+  "baseline": "3eee99f",
+  "current_sql_sha256": "9b00f4f5b5cbe0eb7a442767f9e141628cf9dda375a627041933d6a97100b06a",
+  "database": "dialogpilot_wixqa_eval_20260908",
+  "generation": "knowledge-generation-95a4fede15af901f0c3c20e2727070f0",
+  "chunks": 11167,
+  "physical_rows": 149330,
+  "queries": [
+    [
+      "original",
+      "\u6211\u53ea\u95ee2026\u5e746\u67081\u65e5\u8d77\u4e2d\u56fd\u5927\u9646\u5b98\u7f51\u73b0\u884c\u89c4\u5219\uff0c\u4e0d\u95ee\u7ecf\u9500\u5546\u6216\u9999\u6e2f\u6e20\u9053\uff0c\u4e5f\u4e0d\u67e5\u8be2\u5177\u4f53\u8ba2\u5355\u3002\u7b7e\u6536\u7b2c\u516d\u5929\u5df2\u7ec4\u88c5\uff0c\u975e\u8d28\u91cf\u539f\u56e0\uff0c\u600e\u6837\u5224\u65ad\u80fd\u5426\u9000\u8d27\u3001\u4f8b\u5916\u548c\u5bc4\u56de\u8d39\u7528\uff1f"
+    ],
+    [
+      "rare",
+      "zzzxqnonexistent"
+    ],
+    [
+      "chargeback",
+      "chargeback"
+    ],
+    [
+      "common",
+      "the"
+    ],
+    [
+      "fresh_shipping",
+      "How can I update shipping rates for international orders and exclude unsupported destinations?"
+    ],
+    [
+      "fresh_negation",
+      "My customer has not received a refund. Does approval mean the money has arrived?"
+    ]
+  ],
+  "api_calls": 0,
+  "scope": "SQL only; no models, no production timeout/config changes",
+  "repeats": 3
+}

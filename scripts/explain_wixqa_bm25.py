@@ -8,7 +8,7 @@ from infrastructure.hybrid_retrieval_backend import PostgresHybridBackend
 from application.hybrid_retrieval import HybridRetrievalRequest,KnowledgeSearchScope,RetrievalCorpus
 
 class Capture:
- def execute(self,query,params):self.query,self.params=query,params;return self
+ def execute(self,query,params,**options):self.query,self.params,self.options=query,params,options;return self
  def fetchall(self):return []
 
 def main():

@@ -214,8 +214,8 @@ class PostgresHybridBackend:
             WITH query_terms AS (
                 SELECT token FROM unnest(%s::text[]) AS token
             ),
-            -- The query-local ordinal keeps intermediate aggregation narrow.
-            -- It is never exposed or used for ties: restore candidate_id below.
+            -- Carry the stable candidate key through scoring: restoring keys
+            -- through an underestimated scoped CTE can become a quadratic join.
             scoped AS MATERIALIZED (
                 SELECT candidate_id, row_number() OVER () AS ordinal,
                        cardinality(lexical_terms)::double precision AS dl
@@ -228,24 +228,33 @@ class PostgresHybridBackend:
                        GREATEST(avg(dl), 1.0) AS avgdl
                 FROM scoped
             ),
-            -- Keep corpus statistics over the entire authorized scope, but use
-            -- the existing GIN array index to fetch only matching term arrays.
-            -- Joining scoped preserves all authorization/version predicates.
+            -- Materialize the term-match set independently of the underestimated
+            -- applicability join. Resolve the query array once as an InitPlan;
+            -- the GIN operation unions postings without rescanning each document
+            -- for each query term or repeating broad per-term bitmap scans.
+            term_hits AS MATERIALIZED (
+                SELECT candidate_id
+                FROM retrieval.{table}
+                WHERE tenant_id=%s AND generation_id=%s
+                  AND lexical_terms && ARRAY(SELECT token FROM query_terms)
+            ),
+            -- Scope remains authoritative, including the population for N/avgdl.
+            -- Hydrate term arrays only for matching, authorized candidates.
             matching AS MATERIALIZED (
-                SELECT s.ordinal, s.dl, d.lexical_terms
-                FROM retrieval.{table} d
-                JOIN scoped s ON s.candidate_id = d.candidate_id
-                WHERE d.lexical_terms && %s::text[]
+                SELECT s.candidate_id, s.ordinal, s.dl, d.lexical_terms
+                FROM term_hits h
+                JOIN scoped s ON s.candidate_id = h.candidate_id
+                JOIN retrieval.{table} d ON d.candidate_id = h.candidate_id
             ),
             -- Aggregate within each document: avoid a global grouping of every
             -- matched token occurrence with a wide candidate identity.
             term_frequency AS MATERIALIZED (
-                SELECT d.ordinal, d.dl, matched.token, matched.tf
+                SELECT d.candidate_id, d.ordinal, d.dl, matched.token, matched.tf
                 FROM matching d
                 CROSS JOIN LATERAL (
                     SELECT terms.value AS token, count(*)::double precision AS tf
                     FROM unnest(d.lexical_terms) AS terms(value)
-                    JOIN query_terms q ON q.token = terms.value
+                    WHERE terms.value = ANY(%s::text[])
                     GROUP BY terms.value
                 ) matched
             ),
@@ -255,7 +264,9 @@ class PostgresHybridBackend:
                 GROUP BY token
             ),
             scores AS (
-                SELECT tf.ordinal,
+                -- Each ordinal belongs to exactly one candidate. Carry its key
+                -- as an aggregate instead of rejoining the scope after scoring.
+                SELECT min(tf.candidate_id) AS candidate_id,
                        sum(
                            ln(1.0 + (stats.n - ts.df + 0.5) / (ts.df + 0.5))
                            * (tf.tf * 2.2)
@@ -270,8 +281,8 @@ class PostgresHybridBackend:
             SELECT tf.candidate_id, d.{source_column}, d.{revision_column},
                    d.provenance_sha256, tf.score, d.{freshness_column}
             FROM (
-                SELECT scoped.candidate_id, scores.score
-                FROM scores JOIN scoped USING (ordinal)
+                SELECT scores.candidate_id, scores.score
+                FROM scores
                 ORDER BY score DESC, candidate_id
                 LIMIT %s
             ) tf
@@ -286,10 +297,14 @@ class PostgresHybridBackend:
             freshness_column=sql.Identifier(freshness_column),
             filters=filters,
         )
+        # Query term cardinalities vary widely. Plan this statement with its
+        # actual array so PostgreSQL can hash membership; a generic prepared
+        # plan can turn the same filter into a linear array scan per token.
         rows = connection.execute(query, (
             list(query_terms), request.tenant_id, request.generation_id,
-            *params, list(query_terms), request.lexical_limit,
-        )).fetchall()
+            *params, request.tenant_id, request.generation_id,
+            list(query_terms), request.lexical_limit,
+        ), prepare=False).fetchall()
         return _rows_to_candidates(rows, request)
 
 
