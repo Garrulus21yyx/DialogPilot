@@ -15,6 +15,7 @@ from application.capability_registry import (
     FlowDefinition,
     SkillDefinition,
     ToolDefinition,
+    ResultField,
     VerificationProfile,
 )
 
@@ -45,6 +46,11 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
         _tool(
             "order_cancel", "order.cancel_action", CapabilityRisk.HIGH,
             profile.ref, write=True,
+            output_schema_version="order-cancel-result-v1",
+            result_fields=(
+                ResultField(('order_id',), '订单', 'Order'),
+                ResultField(('status',), '记录状态', 'Recorded status'),
+            ),
         ),
         _tool(
             "shipping_address_change_status", "order.shipping_address_state",
@@ -53,12 +59,27 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
         _tool(
             "shipping_address_change", "order.shipping_address_action",
             CapabilityRisk.HIGH, profile.ref, write=True,
+            output_schema_version="shipping-address-change-result-v1",
+            result_fields=(
+                ResultField(('order_id',), '订单', 'Order'),
+                ResultField(('new_address',), '修改后的收货地址', 'Updated shipping address'),
+                ResultField(('status',), '记录状态', 'Recorded status'),
+            ),
         ),
         _tool("refund_status", "refund.current_state", CapabilityRisk.MEDIUM, profile.ref),
         _tool("refund_eligibility_check", "refund.eligibility", CapabilityRisk.MEDIUM, profile.ref),
         _tool(
             "refund_request_create", "refund.request_action", CapabilityRisk.HIGH,
             profile.ref, write=True,
+            output_schema_version="refund-request-result-v1",
+            result_fields=(
+                ResultField(('refund_id',), '退款申请', 'Refund request'),
+                ResultField(('order_id',), '订单', 'Order'),
+                ResultField(('status',), '申请记录状态', 'Recorded request status'),
+                ResultField(('amount_minor',), '退款申请金额（不代表到账）',
+                            'Requested refund amount (not settlement)', 'money',
+                            scale=100, currency_path=('currency',)),
+            ),
         ),
         _tool(
             "support_ticket_create", "support.handoff_action", CapabilityRisk.HIGH,
@@ -374,13 +395,14 @@ def _skill(
     )
 
 
-def _tool(tool_id, authority, risk, verification_profile, *, write=False):
+def _tool(tool_id, authority, risk, verification_profile, *, write=False, result_fields=(),
+          output_schema_version=None):
     effect = CapabilityEffect.WRITE if write else CapabilityEffect.READ
     return ToolDefinition(
         tool_id,
         "v1",
         f"{tool_id}-input-v1",
-        f"{tool_id}-output-v1",
+        output_schema_version or f"{tool_id}-output-v1",
         effect,
         risk,
         authority,
@@ -388,6 +410,7 @@ def _tool(tool_id, authority, risk, verification_profile, *, write=False):
         f"{tool_id}-receipt-v1" if write else "",
         ("tenant_id", "user_id", "conversation_id"),
         ("order_id",) if "refund" in tool_id or "order" in tool_id else (),
+        result_fields=result_fields,
     )
 
 

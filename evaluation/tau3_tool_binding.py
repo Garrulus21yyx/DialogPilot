@@ -25,11 +25,13 @@ def bind_environment(environment, manager, call):
     status_tool = "observed_operation_status"
 
     def register(name, description, schema, handler, *, write=False):
+        from evaluation.retail_result_fields import FIELDS
         authority = "environment." + name
         manager.register(Tool(
             name, description, handler, schema, allowed_agents=("retail",),
             authority=authority, read_only=not write, requires_approval=write,
             risk=ToolRisk.HIGH if write else ToolRisk.LOW,
+            output_schema_version="environment-output-v1",
             receipt_schema_version=receipt_schema if write else "",
             timeout_s=60,
         ))
@@ -38,6 +40,7 @@ def bind_environment(environment, manager, call):
             CapabilityEffect.WRITE if write else CapabilityEffect.READ,
             CapabilityRisk.HIGH if write else CapabilityRisk.LOW,
             authority, profile, receipt_schema if write else "",
+            result_fields=FIELDS.get(name, ()),
         ))
         requirements.append(FactRequirement(
             authority, authority, (), None,

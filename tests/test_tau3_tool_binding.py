@@ -7,6 +7,36 @@ from evaluation.tau3_tool_binding import bind_environment
 from mcp.tool_manager import MCPToolManager
 
 
+@pytest.mark.parametrize('name', ['modify_user_address', 'modify_pending_order_address',
+    'exchange_delivered_order_items', 'cancel_pending_order', 'return_delivered_order_items'])
+def test_registered_public_result_view_uses_executed_tool_schema(name):
+    from application.result_field_presentation import result_fields_text
+    from infrastructure.target_agent_result_adapter import fact_from_tool_result
+    definition = SimpleNamespace(name=name, openai_schema={'function': {
+        'name': name, 'description': 'Write an environment record.',
+        'parameters': {'type': 'object', 'properties': {}}}})
+    environment = SimpleNamespace(get_tools=lambda: [definition], get_policy=lambda: 'Policy',
+        tools=SimpleNamespace(tool_type=lambda _: SimpleNamespace(value='write')))
+    async def call(tool, arguments):
+        return SimpleNamespace(content='{"order_id":"O1","status":"exchange requested",'
+            '"exchange_price_difference":-13.46,"private":"not public",'
+            '"address":{"address1":"10 Main St","address2":"","city":"New York",'
+            '"state":"NY","zip":"10001","country":"USA"}}', error=False, id='call-1')
+    manager = MCPToolManager('test-key', model='test-model')
+    registry = bind_environment(environment, manager, call)
+    result = asyncio.run(manager.execute_for_agent(name, {}, agent_type='retail',
+        context={'business_operation_key': 'op'}, approved=True, allowed_tool_ids=(name,)))
+    assert result.success
+    assert result.output_schema_version == registry.tool(name).output_schema_version
+    fact = fact_from_tool_result(SimpleNamespace(aggregate_ref='O1'), result)
+    text = result_fields_text(fact, registry, locale='en')
+    assert text and 'not public' not in text
+    if name == 'exchange_delivered_order_items':
+        assert 'Refund 13.46 USD' in text and 'Additional charge' not in text
+    if 'address' in name:
+        assert all(piece in text for piece in ['10 Main St', 'New York', 'NY', '10001', 'USA'])
+
+
 @pytest.mark.parametrize("write", [False, True])
 def test_rejected_request_keeps_endpoint_feedback_without_transport_retry_or_circuit_failure(write):
     from mcp.tool_manager import ToolCallStatus, ToolEffectStatus

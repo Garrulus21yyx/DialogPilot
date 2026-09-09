@@ -82,7 +82,7 @@ class ConversationComposer(Protocol):
 class ResponseAssembler:
     """Choose the cheapest valid response path and verify the final candidate."""
 
-    version = "response-assembler-v16-execution-status-presentation"
+    version = "response-assembler-v17-tool-owned-result-presentation"
 
     def __init__(self, composer: ConversationComposer | None = None, *,
                  knowledge_verifier=None, knowledge_source_validator=None, knowledge_reuse_validator=None,
@@ -140,7 +140,7 @@ class ResponseAssembler:
                 and not (conversation_context or {}).get("retained_approval")):
             from application.execution_presentation import execution_status_text
             status_text = execution_status_text(board, locale=self.fallback_locale,
-                                                action_semantics=self._action_semantics)
+                                                action_semantics=self._action_semantics, registry=self._registry)
             if status_text:
                 text = system_notice + status_text
                 evidence = json.dumps(_response_context(board, conversation_context=conversation_context,

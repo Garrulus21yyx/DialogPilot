@@ -40,6 +40,25 @@ class ApprovalPolicy(str, Enum):
 
 
 @dataclass(frozen=True)
+class ResultField:
+    """Tool-owned public output projection, never inferred from a field name."""
+    path: tuple[str, ...]
+    label: str
+    label_en: str
+    format: str = "text"
+    currency: str = ""
+    scale: int = 1
+    currency_path: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        _required(self.label, self.label_en, *self.path)
+        if not self.path or self.format not in {"text", "money", "charge_delta"}:
+            raise CapabilityRegistryError("unsupported result field")
+        if self.scale < 1 or (self.format != "text" and not (self.currency or self.currency_path)):
+            raise CapabilityRegistryError("money result needs currency and positive scale")
+
+
+@dataclass(frozen=True)
 class ToolDefinition:
     tool_id: str
     version: str
@@ -52,6 +71,7 @@ class ToolDefinition:
     receipt_schema_version: str = ""
     inject_identity_fields: tuple[str, ...] = ()
     concurrency_key_fields: tuple[str, ...] = ()
+    result_fields: tuple[ResultField, ...] = ()
 
     def __post_init__(self) -> None:
         _required(

@@ -1,9 +1,10 @@
-"""Presentation of action-only outcomes; no new execution or fact authority."""
+"""Present action receipts and tool-owned public fields, without new inference."""
 from application.agent_result import AgentResultStatus
+from application.result_field_presentation import result_fields_text
 from application.work_item import ControlMode
 
 
-def execution_status_text(board, *, locale, action_semantics=()):
+def execution_status_text(board, *, locale, action_semantics=(), registry=None):
     """Return a status summary only when every task is an actual action.
 
     A delegated investigation, unanswered read, missing result or conflict needs
@@ -15,17 +16,25 @@ def execution_status_text(board, *, locale, action_semantics=()):
         return None
     labels = {row['action_ref']: row.get('display_name') for row in action_semantics}
     lines = []
-    for item, result in pairs:
-        if (result is None or item.control_mode is not ControlMode.ACTION
+    # Matching evidence alone does not prove that another goal is redundant.
+    # Independent explanations must not disappear behind a receipt summary.
+    for index, (item, result) in enumerate(pairs, start=1):
+        if (result is None or item.control_mode not in {ControlMode.ACTION, ControlMode.WORKFLOW}
                 or not item.action_ref or not item.operation_key
-                or result.prepared_actions or result.requested_evidence):
+                or result.prepared_actions or result.requested_evidence or result.missing_inputs):
             return None
-        # Facts may contain additional answers/amounts; status-only rendering
-        # must not silently drop them. Use the existing explanatory path.
-        if result.facts or result.candidate_response:
+        fields = [result_fields_text(fact, registry, locale=locale) for fact in result.facts]
+        if any(text is None for text in fields):
+            return None
+        if result.candidate_response and not fields:
             return None
         receipts = [r for r in result.action_receipts if r.operation_key == item.operation_key]
         if len(receipts) != len(result.action_receipts):
+            return None
+        if any(not any(fact.source_ref == receipt.receipt_id
+                       and fact.requirement_id == receipt.requirement_id for receipt in receipts)
+               for fact in result.facts):
+            # A previously read order is not the result of this submitted action.
             return None
         if receipts and all(r.effect_status == 'COMMITTED' for r in receipts):
             status = '操作已提交。' if locale == 'zh-CN' else 'The operation was committed.'
@@ -43,6 +52,7 @@ def execution_status_text(board, *, locale, action_semantics=()):
         title = labels.get(item.action_ref)
         if not title:
             # No invented business label and no internal action/operation IDs.
-            title = f'操作 {len(lines) + 1}' if locale == 'zh-CN' else f'Operation {len(lines) + 1}'
+            title = f'操作 {index}' if locale == 'zh-CN' else f'Operation {index}'
         lines.append(f'{title}: {status}')
+        lines.extend(dict.fromkeys(fields))
     return '\n'.join(lines)
