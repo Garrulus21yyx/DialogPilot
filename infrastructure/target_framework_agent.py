@@ -68,7 +68,7 @@ logger = logging.getLogger(__name__)
 class TargetFrameworkAgent:
     """Execute one delegated read goal through a governed framework Agent."""
 
-    version = "target-framework-agent-v6-assignment-repair"
+    version = "target-framework-agent-v7-operation-plan"
 
     def __init__(
         self,
@@ -375,6 +375,10 @@ class TargetFrameworkAgent:
             allowed_tool_ids=action.allowed_tool_ids,
         )
         schema = json.loads(json.dumps(definition.schema))
+        from application.operation_plan import OPERATION_PLAN_SCHEMA, validate_operation_plan
+        if "operation_plan" in schema.get("properties", {}):
+            raise ValueError("business tool argument conflicts with preparation operation_plan")
+        schema.setdefault("properties", {})["operation_plan"] = OPERATION_PLAN_SCHEMA
         if action.preparation:
             field = action.preparation.target_version_argument
             schema.get("properties", {}).pop(field, None)
@@ -382,6 +386,11 @@ class TargetFrameworkAgent:
         preparation = TargetActionPreparation(self._registry, self._tool_manager, self._control_guard)
 
         async def propose(runtime: ToolRuntime, **arguments):
+            if "operation_plan" in arguments:
+                plan = arguments.pop("operation_plan")
+                validate_operation_plan(plan, selected_tool="prepare_" + definition.name,
+                    allowed_tools={"prepare_" + tool for ref in runtime.context.work_item.allowed_actions
+                                   for tool in self._registry.action(ref).allowed_tool_ids})
             result = await preparation.prepare(runtime.context, action.ref, arguments, runtime.tool_call_id)
             feedback = ("Action prepared, NOT executed. This worker segment ends here. The conversation layer explains this proposal and manages approval, bound to these exact parameters. The complete remaining objective is retained for continuation; other operations have not been performed."
                         if result.pending_action else result.reason_code)
@@ -391,6 +400,10 @@ class TargetFrameworkAgent:
             coroutine=propose, name="prepare_" + definition.name,
             description=("Prepare a proposal only; this tool does not execute the business action. "
                 "Call once all required choices are known, before requesting approval. "
+                "For multiple related writes, include operation_plan covering ALL remaining assigned changes, "
+                "with evidence-based preconditions/effects and dependencies. Select a ready next_step matching this tool. "
+                "A single write needs no separate plan. If no feasible ordering exists, use request_user_input "
+                "to resolve the actual tradeoff before preparing anything; do not promise later impossible actions. "
                 "The conversation layer presents this exact proposal and collects approval; the runtime then executes it. "
                 "Operation: " + definition.name + ". Use the supplied argument schema and business evidence. "
                 "Do not ask permission to prepare. Execution confirmation belongs to the runtime after this proposal, not to missing-input collection.\n"
@@ -576,6 +589,13 @@ class TargetFrameworkAgent:
             "The current message and other conversation topics are context, not additional objectives. Do not take over another task in that message. "
             "Select from the provided read-only tools, reusable skills and registered action proposals as needed. "
             "Tools named prepare_* prepare proposals; the actual write APIs described in business policy are not exposed here. "
+            "Before preparing related writes, construct operation_plan for the complete remaining assigned goal. "
+            "Simulate each operation's effects on its target against later prerequisites using business evidence, "
+            "not just the user's mention order. Acyclic does not mean feasible. If all orders defeat a remaining "
+            "goal, explain the incompatibility through request_user_input and obtain a choice first. "
+            "This is not action approval. Do not force a choice when independent targets or a valid ordering satisfy all goals. "
+            "The plan is a proposal kept in working history, not a queue: only the selected step is prepared. "
+            "After execution, use receipts and current evidence to re-evaluate remaining steps, not replay the old plan. "
             "Business policy requiring confirmation before execution still applies: runtime enforces it after preparation. "
             "Resolve missing choices and checks affecting action selection, compatibility or approval terms before preparing an action. Once these are resolved, use the action proposal directly rather than asking for preliminary confirmation. Successful preparation ends this segment; the conversation layer explains the proposal and retains unresolved work. Independent unanswered questions remain pending, not completed. Never claim that a proposal has already executed. "
             "When pending_approval is supplied, the conversation already owns that exact decision. Answer the current question without preparing it again. A reminder that approval is still needed belongs in your normal answer, not request_user_input. Use request_user_input only for genuinely missing information or choices needed to answer the current question, never as a substitute for the existing approval. "

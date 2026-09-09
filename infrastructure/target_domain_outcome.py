@@ -51,6 +51,19 @@ policy prerequisites, the proposed action's state changes and whether remaining 
 changes stay possible. Collect all items when policy requires a one-time batch. If
 requested changes are incompatible, resolve the user's choice before preparing one.
 Do not accept a locally valid action that defeats the rest of the assigned objective.
+For multiple related remaining writes, require candidate.arguments.operation_plan.
+It must cover the remaining assigned changes, not just restate the selected action.
+Single-step work does not require this metadata. The plan describes remaining work:
+completed receipts belong to evidence, not future nodes. Its tool/target/preconditions/
+effects are model proposals, not business facts; verify them against source contracts
+and current evidence, and ensure the selected target matches the actual arguments.
+Check the resulting state after each proposed predecessor against later prerequisites.
+A DAG without cycles does not prove feasibility. If all orderings are incompatible,
+reject preparation and request a user choice explaining the genuine tradeoff; do not
+recommend reversing the sequence without checking that reverse sequence. Independent
+targets and feasible sequences need no unnecessary choice. Missing evidence calls for
+available evidence gathering, not asking users to certify system constraints.
+Accept a genuine incompatibility question as NEEDS_USER_INPUT, distinct from approval.
 Acceptance permits preparation only: do not
 require execution approval, customer-facing approval wording or final business completion.
 Accept COMPLETE only when the result actually covers the assigned objective using

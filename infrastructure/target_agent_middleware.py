@@ -180,13 +180,23 @@ class InteractionBoundaryMiddleware(AgentMiddleware):
                          for entry in state.get("outcome_feedback", ()))
         if rejections >= self.max_rejections:
             raise DomainOutcomeRejected("domain_outcome_correction_budget_exhausted")
-        assessment = await self.review.assess(context=runtime.context,
-            messages=state["messages"], kind=kind, candidate=candidate)
+        assessment = None
+        if kind == "PREPARE_ACTION" and "operation_plan" in candidate["arguments"]:
+            from application.operation_plan import OperationPlanError, validate_operation_plan
+            try:
+                validate_operation_plan(candidate["arguments"]["operation_plan"],
+                    selected_tool=candidate["tool"], allowed_tools=self.action_tools)
+            except OperationPlanError as exc:
+                assessment = {"accepted": False, "feedback": str(exc), "repair_owner": "domain"}
+        if assessment is None:
+            assessment = await self.review.assess(context=runtime.context,
+                messages=state["messages"], kind=kind, candidate=candidate)
+            review_calls += 1
         if not assessment["accepted"] and assessment.get("repair_owner") == "conversation":
             from infrastructure.target_domain_outcome import DomainAssignmentRejected
             raise DomainAssignmentRejected(assessment["feedback"])
         feedback = [*state.get("outcome_feedback", ()), {"kind": kind, **assessment}]
-        update = {"outcome_review_calls": review_calls + 1, "outcome_feedback": feedback,
+        update = {"outcome_review_calls": review_calls, "outcome_feedback": feedback,
                   "accepted_outcome": {}}
         if assessment["accepted"]:
             return {**update, "accepted_outcome": {"kind": kind, "message_id": message.id,

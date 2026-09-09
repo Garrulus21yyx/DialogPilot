@@ -88,3 +88,9 @@ including queued final-result delivery before aclose, actual async cleanup, thre
 join and official termination-gate labelling. These tests do not invoke the user
 simulator/model and do not produce new official task scores. Independent reviewers
 checked assignment and shutdown owners separately; semantic R6/R7 remain OPEN.
+
+R6 implementation follow-up: `domain-operation-plan-2026-09-09.md` records the
+user-approved domain-local remaining-operation DAG proposal. It joins the existing
+prepare/review boundary, not a new scheduler or mandatory global planner. Graph
+structure is checked in code; full-goal feasibility is still semantic. Local SDK
+tests do not change the historical ten-task scores or close the model-error item.
