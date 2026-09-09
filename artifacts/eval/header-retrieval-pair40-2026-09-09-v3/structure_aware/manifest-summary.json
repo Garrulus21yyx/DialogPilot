@@ -1,0 +1,82 @@
+{
+  "scope": "Pure RAG: no planning, business, generation or publication",
+  "scenario": "basic",
+  "documents": 6287,
+  "cases": 40,
+  "knowledge_filter_contract": {
+    "catalog_id": "ecommerce-complex-v2",
+    "sales_channels": {
+      "dealer": "经销商购买渠道",
+      "overseas": "海外直营购买渠道",
+      "store": "线下特约门店购买渠道",
+      "web": "中国大陆或香港官网购买渠道"
+    }
+  },
+  "query_options": {},
+  "forbidden_sources": {},
+  "withdrawn_sources": [],
+  "case_definitions": [],
+  "filter_catalog": {
+    "catalog_id": "ecommerce-complex-v2",
+    "sales_channels": {
+      "dealer": "经销商购买渠道",
+      "overseas": "海外直营购买渠道",
+      "store": "线下特约门店购买渠道",
+      "web": "中国大陆或香港官网购买渠道"
+    }
+  },
+  "generation": {
+    "generation_id": "knowledge-generation-0204bbda0183577963f60f0573e4c8bb",
+    "corpus": "KNOWLEDGE",
+    "backend_id": "POSTGRES_PG_BM25_ZH_V1",
+    "backend_fingerprint": "POSTGRES_PGVECTOR_PG_BM25_ZH_V1",
+    "schema_version": "retrieval-v1",
+    "source_watermark": "6b774ba268863e6fb2186331e4911309e3d27a6a2dabbcd0771268efc337d442",
+    "embedding_model": "BAAI/bge-m3",
+    "embedding_dimension": 1024,
+    "embedding_model_digest": "b5e0ce3470abf5ef3831aa1bd5553b486803e83251590ab7ff35a117cf6aad38",
+    "distance_metric": "COSINE",
+    "vector_extension_version": "0.8.6",
+    "index_method": "HNSW",
+    "index_params_json": "{\"ef_construction\":64,\"m\":16}",
+    "chinese_tokenizer": "ascii-cjk-unigram-bigram-v1",
+    "lexical_ranker": "PG_BM25_ZH_V1",
+    "manifest_hash": "e21c81e5b7b258fbe34f58528e54f68979918ea4955eeb56eb022f9c7a85d939",
+    "state": "ACTIVE",
+    "embedding_provider": "dialogpilot-sentence-transformers-5.7.0-local-bge-m3-v1",
+    "embedding_provider_kind": "MODEL",
+    "embedding_model_version": "5617a9f61b028005a4858fdac845db406aefb181",
+    "embedding_document_preprocessing": "raw-text-unmodified+model-tokenizer+no-prompt+l2-normalized-v1",
+    "embedding_query_preprocessing": "raw-text-unmodified+model-tokenizer+no-prompt+l2-normalized-v1"
+  },
+  "embedding_profile": {
+    "provider": "dialogpilot-sentence-transformers-5.7.0-local-bge-m3-v1",
+    "provider_kind": "MODEL",
+    "model": "BAAI/bge-m3",
+    "model_version": "5617a9f61b028005a4858fdac845db406aefb181",
+    "dimension": 1024,
+    "model_digest": "b5e0ce3470abf5ef3831aa1bd5553b486803e83251590ab7ff35a117cf6aad38",
+    "document_preprocessing": "raw-text-unmodified+model-tokenizer+no-prompt+l2-normalized-v1",
+    "query_preprocessing": "raw-text-unmodified+model-tokenizer+no-prompt+l2-normalized-v1"
+  },
+  "reranker_profile": {
+    "model": "deepseek-v4-flash",
+    "reasoning": "none",
+    "min_completion_tokens": 0,
+    "max_context_tokens": 32768
+  },
+  "generation_profile": {
+    "model": "deepseek-v4-pro",
+    "reasoning": "none",
+    "min_completion_tokens": 0,
+    "max_context_tokens": 32768
+  },
+  "max_api_calls": 0,
+  "sdk_retries": 0,
+  "fixed_query_override": {},
+  "source_documents_reference": {
+    "input": "artifacts/eval/ecommerce-complex-v2-scoped-corpus-v2/corpus.json",
+    "runtime_documents_sha256": "8261d5a76dcdd9de4ebf3bf73f9364236f1a8b147f524157598cbeb845ce798c"
+  },
+  "full_local_manifest_sha256": "68bbfc3ca88d4b3bbaeda316051bbbd04dabc430671b9a5e33ac8d7e38cbc778"
+}

@@ -55,8 +55,10 @@ def test_capture_and_retrieval_share_one_identical_transform():
     asyncio.run(check())
 
 
-def test_scope_pair_preserves_query_budget_and_snapshot(tmp_path):
+@pytest.mark.parametrize('filtered_only', [False, True])
+def test_scope_pair_preserves_query_budget_and_snapshot(tmp_path, filtered_only):
     import asyncio
+    from datetime import datetime, timezone
     from types import SimpleNamespace
     from evaluation.ecommerce_pure_rag import run
     calls=[]
@@ -67,8 +69,16 @@ def test_scope_pair_preserves_query_budget_and_snapshot(tmp_path):
         async def standalone(self,query,history):return query,None
     path=tmp_path/'inputs.json'
     path.write_text(json.dumps([{'id':'x','message':'我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道','history':[]}]))
+    snapshot=datetime(2026,9,10,tzinfo=timezone.utc)
     asyncio.run(run(inputs=path,output=tmp_path,retrieve=retrieve,client=SimpleNamespace(calls=[]),policy=None,
-        source=SimpleNamespace(records=[]),reranker=SimpleNamespace(records=[],version='test'),transformer=Transformer(),scope_pair=True))
+        source=SimpleNamespace(records=[]),reranker=SimpleNamespace(records=[],version='test'),transformer=Transformer(),scope_pair=True,
+        only_scope_filtered=filtered_only,as_of=snapshot))
+    assert all(options['as_of']==snapshot for _,options in calls)
+    if filtered_only:
+        assert len(calls)==1
+        assert calls[0][1]['applicable_channel']=='web'
+        assert calls[0][1]['applicable_region']=='CN'
+        return
     a,b=calls
     assert a[0]==b[0]
     assert a[1]['history']==b[1]['history']

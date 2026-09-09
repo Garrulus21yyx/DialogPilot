@@ -1,0 +1,84 @@
+{
+  "cases": 40,
+  "groups": 10,
+  "summary": {
+    "structure_aware": {
+      "candidate": {
+        "complete_r5": 0.575,
+        "unit_r5": 0.8333333333333334,
+        "complete_r20": 1.0,
+        "unit_r20": 1.0,
+        "mrr5": 0.85,
+        "ndcg5": 0.7748005963349425
+      },
+      "rerank": {
+        "complete_r5": 0.825,
+        "unit_r5": 0.9416666666666667,
+        "complete_r20": 1.0,
+        "unit_r20": 1.0,
+        "mrr5": 0.9583333333333334,
+        "ndcg5": 0.8965460757507111
+      },
+      "wire": {
+        "complete_r5": 0.825,
+        "unit_r5": 0.9416666666666667,
+        "complete_r20": 0.825,
+        "unit_r20": 0.9416666666666667,
+        "mrr5": 0.9583333333333334,
+        "ndcg5": 0.8965460757507111
+      },
+      "failures": [],
+      "wrong_scope_chunks": 0,
+      "rerank_fallbacks": 0,
+      "rerank_pairs": 800
+    },
+    "markdown_headers": {
+      "candidate": {
+        "complete_r5": 0.7,
+        "unit_r5": 0.875,
+        "complete_r20": 1.0,
+        "unit_r20": 1.0,
+        "mrr5": 0.9395833333333334,
+        "ndcg5": 0.8667973495891396
+      },
+      "rerank": {
+        "complete_r5": 0.925,
+        "unit_r5": 0.9666666666666666,
+        "complete_r20": 1.0,
+        "unit_r20": 1.0,
+        "mrr5": 0.9583333333333334,
+        "ndcg5": 0.9520986435751215
+      },
+      "wire": {
+        "complete_r5": 0.925,
+        "unit_r5": 0.9666666666666666,
+        "complete_r20": 0.925,
+        "unit_r20": 0.9666666666666666,
+        "mrr5": 0.9583333333333334,
+        "ndcg5": 0.9520986435751215
+      },
+      "failures": [],
+      "wrong_scope_chunks": 0,
+      "rerank_fallbacks": 0,
+      "rerank_pairs": 800
+    }
+  },
+  "rescued": [
+    "cx-22-1",
+    "cx-22-2",
+    "cx-22-3",
+    "cx-22-4"
+  ],
+  "hurt": [],
+  "group_bootstrap_95": [
+    0.0,
+    0.3
+  ],
+  "partial_coverage_regressions": [
+    "cx-01-1"
+  ],
+  "note": "Consumed synthetic dev; actual PG retrieval/CE/wire, no generation. nDCG uses strategy-specific chunk relevance; complete source evidence is primary.",
+  "query_and_scope_equivalence": true,
+  "source_span_audit": true,
+  "api_calls": 0
+}

@@ -1,0 +1,69 @@
+2026-09-09 03:57:59,344 [INFO] sentence_transformers.base.model: Loading SentenceTransformer model from /home/yang/.cache/huggingface/hub/models--BAAI--bge-m3/snapshots/5617a9f61b028005a4858fdac845db406aefb181.
+/home/yang/DialogPilot/infrastructure/bge_m3_embedding.py:145: FutureWarning: The `get_sentence_embedding_dimension` method has been renamed to `get_embedding_dimension`.
+  dimension = self._model.get_sentence_embedding_dimension()
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade  -> 20260902_0001, Create platform namespaces and immutable migration ledger.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0001 -> 20260902_0002, Create immutable conversation, admission and publication facts.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0002 -> 20260902_0003, Create start/resume outboxes for inbound-first admission.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0003 -> 20260902_0004, Add canonical publication evidence, delivery lifecycle and send outbox.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0004 -> 20260902_0005, Reserved revision after direct PostgreSQL ResponseDelivery initialization.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0005 -> 20260902_0006, Create event projection outbox, watermarks and deletion epoch fence.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0006 -> 20260902_0007, Bind the approved data-location registry artifact.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0007 -> 20260902_0008, Add audited conversation close state for M1 query projections.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0008 -> 20260902_0009, Install the retrieval write-approved data-location overlay.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0009 -> 20260902_0010, Add the corpus-scoped retrieval generation and search schema.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0010 -> 20260902_0011, Make PG_FTS_ZH_V1 tsvector a database-owned generated projection.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0011 -> 20260902_0012, Add immutable Knowledge SourceRevision v0 and generation manifests.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0012 -> 20260902_0013, Add canonical retrieval projection outbox and deletion fences.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0013 -> 20260902_0014, Harden canonical projection event identity and owner-reference enqueue checks.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0014 -> 20260902_0015, Make the retrieval runtime role read-only over rebuildable search projections.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0015 -> 20260902_0016, Add direct-ingest SourceRevision provenance fields.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0016 -> 20260902_0017, Add the durable M1 compatibility invocation execution outbox.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0017 -> 20260902_0018, Add canonical thread-summary chunks and checkpoints.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0018 -> 20260902_0019, Add rebuild generations to thread-summary ownership.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0019 -> 20260902_0020, Add canonical ServiceEpisode revisions and current-head CAS.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0020 -> 20260902_0021, Finalize direct ServiceEpisode retrieval for fresh installations.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0021 -> 20260902_0022, Add PostgreSQL-owned versioned user memory facts.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0022 -> 20260902_0023, Add PostgreSQL-owned local media assets and turn bindings.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0023 -> 20260902_0024, Add PostgreSQL-owned handoff tickets, events and delivery outbox.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0024 -> 20260902_0025, Add PostgreSQL-owned customer commitments and versioned events.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0025 -> 20260902_0026, Add a bounded local persistence surface for sanitized application spans.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0026 -> 20260903_0027, Pin provider and document/query preprocessing in retrieval generations.
+INFO  [alembic.runtime.migration] Running upgrade 20260903_0027 -> 20260903_0028, Preserve canonical ServiceEpisode entity scope for dense projection.
+INFO  [alembic.runtime.migration] Running upgrade 20260903_0028 -> 20260903_0029, Add the conversation-scoped active-flow CAS aggregate.
+INFO  [alembic.runtime.migration] Running upgrade 20260903_0029 -> 20260903_0030, Add contextual Knowledge retrieval text, BM25 terms, and metadata filters.
+INFO  [alembic.runtime.migration] Running upgrade 20260903_0030 -> 20260903_0031, Let v1 Knowledge revisions distinguish retrieval-affecting metadata.
+INFO  [alembic.runtime.migration] Running upgrade 20260903_0031 -> 20260905_0032, Move the immutable AgentBundle registry to the platform database.
+INFO  [alembic.runtime.migration] Running upgrade 20260905_0032 -> 20260905_0033, Move ecommerce business state to tenant-scoped PostgreSQL tables.
+INFO  [alembic.runtime.migration] Running upgrade 20260905_0033 -> 20260905_0034, Move quality observations and intent feedback audit to PostgreSQL.
+INFO  [alembic.runtime.migration] Running upgrade 20260905_0034 -> 20260905_0035, Retire the unused pre-Target flow aggregate (destructive, forward-only).
+INFO  [alembic.runtime.migration] Running upgrade 20260905_0035 -> 20260906_0036, Knowledge applicability and monotonic revision withdrawal (forward-only).
+INFO  [alembic.runtime.migration] Running upgrade 20260906_0036 -> 20260908_0037, Retain Target run attempt failures in the existing execution outbox.
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/scripts/run_header_retrieval_pair.py", line 75, in <module>
+    if __name__=='__main__':asyncio.run(main())
+                            ~~~~~~~~~~~^^^^^^^^
+  File "/home/yang/miniconda3/lib/python3.13/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/yang/miniconda3/lib/python3.13/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/yang/miniconda3/lib/python3.13/asyncio/base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/yang/DialogPilot/scripts/run_header_retrieval_pair.py", line 69, in main
+    await calibration.evaluate(args,base+name)
+  File "/home/yang/DialogPilot/scripts/run_rag_tool_calibration.py", line 155, in evaluate
+    revisions.extend(store.import_documents(documents[start:start+batch]).revisions)
+                     ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/postgres_knowledge_store.py", line 262, in import_documents
+    create_generation_hnsw_index(connection, generation)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/hybrid_retrieval_backend.py", line 355, in create_generation_hnsw_index
+    connection.execute(query)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/psycopg/connection.py", line 300, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.DiskFull: could not resize shared memory segment "/PostgreSQL.604525554" to 63999616 bytes: No space left on device

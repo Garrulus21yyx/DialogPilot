@@ -53,10 +53,12 @@ def scope_fixture_options(case):
     return {'applicable_region':'CN','applicable_channel':'web'}
 
 
-async def run(*, inputs, output, retrieve, client, policy, source, reranker, transformer, scope_pair=False):
+async def run(*, inputs, output, retrieve, client, policy, source, reranker, transformer, scope_pair=False, only_scope_filtered=False, as_of=None):
     cases = json.loads(Path(inputs).read_text())
     from datetime import datetime, timezone
-    evaluation_time=datetime.now(timezone.utc)
+    evaluation_time=as_of or datetime.now(timezone.utc)
+    if only_scope_filtered and not scope_pair:
+        raise ValueError("filtered-only requires scope pair contract")
     rows = []
     for case in cases:
         history = [f'{role}: {text}' for role, text in case['history']]
@@ -65,6 +67,8 @@ async def run(*, inputs, output, retrieve, client, policy, source, reranker, tra
         rewrite_calls = client.calls[before:]
         concat = '\n'.join([*history, 'user: '+case['message']]) if history else case['message']
         arms=[('scope_unfiltered',rewritten),('scope_filtered',rewritten)] if scope_pair else [('history_concat', concat), ('standalone_raw', rewritten)]
+        if only_scope_filtered:
+            arms=[('scope_filtered', rewritten)]
         known_scope=scope_fixture_options(case) if scope_pair else {}
         for arm, query in arms:
             scope={'as_of':evaluation_time} if scope_pair else {}

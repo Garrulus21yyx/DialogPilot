@@ -1,0 +1,14 @@
+{
+  "test_command": "PYTHONPATH=. .venv/bin/python -m pytest -q tests/test_ecommerce_pure_rag.py tests/test_markdown_header_chunks.py",
+  "passed": 18,
+  "paired_query_scope_and_budget_audit": true,
+  "source_span_audit": true,
+  "executed_manifest_hashes_match": true,
+  "hashes": {
+    "scripts/run_header_retrieval_pair.py": "f5db781b50b9e82315e5b58ac00e2354fe8a9556e9bc212acce9456969ab0d4b",
+    "scripts/score_header_retrieval_pair.py": "6356ec4ab4f1077da32fdd81501edd398093d465da02c7c5836df02542f6a446",
+    "evaluation/ecommerce_pure_rag.py": "c36a1375da1d52d54fb6c65519324e31781c46f4ce461ae5ac4b91c14e760111",
+    "tests/test_ecommerce_pure_rag.py": "7d24e86b2f28513cfdce961b3661b974f4daba52671355e34224912c7b359015",
+    "data/eval/ecommerce-complex-v2/dev.gold.json": "2ed11ef55b7efad189b3fd05d292d7e601cdfce1aeb2aa9ac7a6def848e271ec"
+  }
+}

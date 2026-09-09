@@ -1,0 +1,15 @@
+{
+  "scope": "partial markdown corpus imported before interruption",
+  "generation_chunks": 3650,
+  "applicable_chunks": 3257,
+  "baseline_explain_execution_ms": 725.894,
+  "baseline_matching_nested_loop_ms": 633.615,
+  "rejected_materialized_variant_ms": [
+    2726.602,
+    2400.196
+  ],
+  "rejected_variant_last_run_after_analyze": true,
+  "retained_plan": "sql-partial-plan.json contains rejected variant final plan; original timing from captured command output",
+  "production_change_retained": false,
+  "note": "Full first-arm failure is 40/40 SQL timeout at 750ms; this partial diagnostic is not that deleted full database."
+}
