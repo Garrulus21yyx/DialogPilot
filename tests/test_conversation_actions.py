@@ -47,7 +47,7 @@ def test_main_planning_and_composition_share_preparation_approval_contract(monke
         return generate(self, messages, *args, **kwargs)
 
     monkeypatch.setattr(ScriptedToolModel, "_generate", capture)
-    p, models = provider(("respond", {"response": "Which payment method would you like to use?"}))
+    p, models = provider(text="Which payment method would you like to use?")
 
     async def run():
         await p.plan(payload())
@@ -87,7 +87,8 @@ def test_state_product_exposes_only_available_actions(approval, pending, active,
     assert ("supply_input" in actions) == pending
     assert ("continue_active_work" in actions) == resumable
     assert ("cancel_active_work" in actions) == active
-    assert {"knowledge_search", "delegate_task", "unsupported_request"} <= actions.keys()
+    assert {"knowledge_search", "delegate_task"} <= actions.keys()
+    assert not {"respond", "unsupported_request"} & actions.keys()
     assert "order_status" not in actions  # Domain discovery remains available.
     assert "submit_turn_plan" not in actions
     for action in actions.values():
@@ -209,7 +210,7 @@ def test_native_dependencies_reach_existing_task_graph_without_replanning():
 
 
 def test_plain_reply_and_query_preamble_use_different_paths():
-    p, _ = provider(("respond", {"response": "不客气"}), text="I should thank the user.")
+    p, _ = provider(text="不客气")
     assert asyncio.run(p.plan(payload())) == {"status": "respond", "response": "不客气"}
     p, _ = provider(("knowledge_search", {"query": "退货政策"}), text="我来查询")
     assert "response" not in asyncio.run(p.plan(payload()))

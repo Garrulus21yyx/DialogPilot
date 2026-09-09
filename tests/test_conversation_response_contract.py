@@ -29,8 +29,7 @@ class NativePublicProvider(Provider):
     async def plan(self, payload):
         from tests.test_conversation_actions import provider
         self.calls.append(payload)
-        native, _ = provider(('respond', {'response': self.value['response']}),
-                             text='I need to authenticate the user first. Let me ask.')
+        native, _ = provider(text=self.value['response'])
         return await native.plan(payload)
 
 

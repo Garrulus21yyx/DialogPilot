@@ -19,14 +19,13 @@ from tests.test_approval_conversation import ApprovalVerifier
 
 @pytest.mark.parametrize('content', ['Which color?', '已准备好方案，是否继续？',
     [{'type': 'thinking', 'thinking': 'private analysis'}, {'type': 'text', 'text': 'Visible answer.'}]])
-def test_sdk_public_answer_uses_one_flat_field_not_working_text(content):
-    model = StructuredStub(responses=[AIMessage(content=content, tool_calls=[
-        {'name': 'respond', 'args': {'response': 'Which color?'}, 'id': 'public'}])])
+def test_sdk_public_answer_uses_native_text_not_reasoning(content):
+    model = StructuredStub(responses=[AIMessage(content=content)])
     provider = AnthropicConversationPlanningProvider({ModelRole.SYNTHESIS: model},
         model_profile=ModelProfile('test'), synthesis_profile=ModelProfile('test'))
     result = asyncio.run(provider.compose({'evidence': {}, 'current_message': 'Help'}))
-    assert result == 'Which color?'
-    assert model.bound_tool_names == ['respond']
+    assert result == (content if isinstance(content, str) else 'Visible answer.')
+    assert not model.bound_tool_names
 
 
 @pytest.mark.parametrize('message', [AIMessage(content=''),

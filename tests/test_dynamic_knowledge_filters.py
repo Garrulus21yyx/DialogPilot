@@ -152,8 +152,7 @@ def test_provider_uses_the_context_directory_in_actual_model_schema(monkeypatch)
         def bind_tools(self, tools, **kwargs):
             captured.extend(tools)
             return self
-    model = Model(responses=[AIMessage(content='', tool_calls=[
-        {'name':'respond','args':{'response':'ok'},'id':'public'}])])
+    model = Model(responses=[AIMessage(content='ok')])
     provider=module.AnthropicConversationPlanningProvider({ModelRole.INTENT: model},
         model_profile=ModelProfile('model-a'),synthesis_profile=ModelProfile('model-a'))
     asyncio.run(provider.plan({'message':'经销商购买退货条件','supported_goals':['general_qa'], 'knowledge_filter_contract':B}))

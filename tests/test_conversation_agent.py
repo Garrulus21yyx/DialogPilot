@@ -79,12 +79,12 @@ class Provider:
 def test_provider_uses_framework_native_action_output():
     from tests.framework_structured_stub import action_models
     provider = AnthropicConversationPlanningProvider(
-        action_models(("unsupported_request", {})),
+        action_models(text="That capability is unavailable."),
         model_profile=ModelProfile("model-a"), synthesis_profile=ModelProfile("model-a"),
     )
 
     assert asyncio.run(provider.plan({"message": "unsupported"})) == {
-        "status": "out_of_scope",
+        "status": "respond", "response": "That capability is unavailable.",
     }
 
 
@@ -815,9 +815,9 @@ def test_plain_text_never_becomes_a_legacy_executable_plan():
     provider = AnthropicConversationPlanningProvider(
         models(text='```json\n{"status":"out_of_scope"}\n```'), model_profile=ModelProfile("model-test"), synthesis_profile=ModelProfile("model-test"),
     )
-    with pytest.raises(ConversationProviderOutputError, match="planning_requires_action"):
-        asyncio.run(provider.plan({"message": "hello"}))
-    # Prose is neither an executable plan nor an implicit public answer.
+    result = asyncio.run(provider.plan({"message": "hello"}))
+    assert result == {'status': 'respond', 'response': '```json\n{"status":"out_of_scope"}\n```'}
+    # Text is never parsed into actions, even when it resembles executable JSON.
 
 
 def test_malformed_provider_transport_is_not_reported_as_an_outage():

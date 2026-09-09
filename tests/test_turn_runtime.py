@@ -285,7 +285,7 @@ def test_bound_question_survives_postgres_reopen_without_author_call(postgres_da
     assert composer.calls == 0
 
 
-@pytest.mark.parametrize("old_version", ["turn-runtime-v7-result-owned-delivery", "turn-runtime-v11-observation-progress", "turn-runtime-v12-policy-evidence", "turn-runtime-v13-action-semantics", "turn-runtime-v17-assignment-repair", "turn-runtime-v18-implicit-current-action"])
+@pytest.mark.parametrize("old_version", ["turn-runtime-v7-result-owned-delivery", "turn-runtime-v11-observation-progress", "turn-runtime-v12-policy-evidence", "turn-runtime-v13-action-semantics", "turn-runtime-v17-assignment-repair", "turn-runtime-v18-implicit-current-action", "turn-runtime-v19-explicit-public-response"])
 def test_unpublished_prior_lifecycle_checkpoint_is_not_reinterpreted_as_new_execution(old_version):
     from application.turn_runtime import TurnCheckpointVersionError
     executor = _Executor()

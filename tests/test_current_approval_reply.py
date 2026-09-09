@@ -77,7 +77,7 @@ def test_hold_can_reply_without_recreating_an_approval_or_task(text):
     data = payload()
     data["pending_approval"] = {"approval_id": "approval"}
     raw = action_proposal(planning_actions(data), calls(
-        ("review_action", {"decision": "hold"}), ("respond", {"response": text})), "")
+        ("review_action", {"decision": "hold"})), text)
     validate(raw, planning_output_schema())
     state, _, _ = pending_state(False)
     original = state.fingerprint

@@ -28,16 +28,14 @@ def test_batch_product_and_permutation_preserves_authority(decision, work, answe
             'input': ('supply_input', {'values': {'field_1': 'blue'}}),
             'delegate': ('delegate_task', {'target_agent': 'order_logistics',
                 'objective': 'Investigate another item', 'allow_action_proposals': False})}[work])
-    if answer:
-        parts.append(('respond', {'response': answer}))
     original = deepcopy(data)
     baseline = None
     for batch in permutations(calls(*parts)):
         if not work and decision in {None, 'hold'} and answer is None:
             with pytest.raises((ValueError, ValidationError)):
-                action_proposal(planning_actions(data), batch, 'Private analysis')
+                action_proposal(planning_actions(data), batch, '')
             continue
-        result = action_proposal(planning_actions(data), batch, 'Private analysis')
+        result = action_proposal(planning_actions(data), batch, answer or '')
         validate(result, planning_output_schema())
         if baseline is None:
             baseline = result
@@ -61,13 +59,11 @@ def test_text_does_not_reduce_existing_read_capacity():
         ('bind_read_goals', {'bindings': [{'atomic_call': 1, 'goal_id': 'first'}]}))
     actions = planning_actions(data)
     before = action_proposal(actions, batch, '')
-    reply = {'name': 'respond', 'id': 'public', 'args': {'response': 'All done!'}}
-    for position in range(len(batch) + 1):
-        assert action_proposal(actions, [*batch[:position], reply, *batch[position:]], '') == before
+    assert action_proposal(actions, batch, 'All done!') == before
 
 
 @pytest.mark.parametrize('part', [
-    ('respond', {'response': 'Hello'}), ('review_action', {'decision': 'approve'})])
+    ('review_action', {'decision': 'approve'})])
 def test_duplicate_terminals_are_not_last_writer_wins(part):
     data = {**payload(), 'pending_approval': {'approval_id': 'a'}}
     with pytest.raises(ValueError, match='planning_duplicate'):
@@ -88,18 +84,38 @@ def test_decision_schema_has_no_hidden_text_condition(decision):
     [{'type': 'thinking', 'thinking': 'private reasoning'},
      {'type': 'text', 'text': 'I should ask for an email.'}],
 ])
-def test_sdk_preamble_never_becomes_public_text(stage, preamble):
-    p, models = provider(('respond', {'response': 'What is your email?'}))
+def test_sdk_reasoning_is_not_final_text(stage, preamble):
+    p, models = provider(text='What is your email?')
     for model in models.values():
-        model.responses[0] = AIMessage(content=preamble,
-            tool_calls=model.responses[0].tool_calls)
+        model.responses[0] = AIMessage(content=[
+            {'type': 'thinking', 'thinking': str(preamble)},
+            {'type': 'text', 'text': 'What is your email?'}])
     result = asyncio.run(getattr(p, stage)(payload()))
     assert (result['response'] if stage == 'plan' else result) == 'What is your email?'
     assert sum(m.calls for m in models.values()) == 1
 
 
 @pytest.mark.parametrize('stage', ['plan', 'compose'])
-def test_no_implicit_text_publication_fallback(stage):
-    p, _ = provider(text='I should reply. Hello!')
-    with pytest.raises(ConversationProviderOutputError, match='planning_requires_action'):
+def test_native_text_terminal_needs_no_response_tool(stage):
+    p, _ = provider(text='Hello!')
+    result = asyncio.run(getattr(p, stage)(payload()))
+    assert (result['response'] if stage == 'plan' else result) == 'Hello!'
+
+
+@pytest.mark.parametrize('stage', ['plan', 'compose'])
+@pytest.mark.parametrize('failure', ['invalid_args', 'retired_tool', 'refusal', 'max_tokens', 'reasoning_only'])
+def test_valid_looking_text_never_masks_invalid_or_incomplete_protocol(stage, failure):
+    p, models = provider(text='What is your email?')
+    kwargs = {'content': 'What is your email?'}
+    if failure == 'invalid_args':
+        kwargs['invalid_tool_calls'] = [{'name': 'knowledge_search', 'args': '{bad', 'id': 'x', 'error': 'parse'}]
+    elif failure == 'retired_tool':
+        kwargs['tool_calls'] = [{'name': 'respond', 'args': {'response': 'Hello'}, 'id': 'x'}]
+    elif failure == 'reasoning_only':
+        kwargs['content'] = [{'type': 'thinking', 'thinking': 'Need an email.'}]
+    else:
+        kwargs['response_metadata'] = {'stop_reason': failure}
+    for model in models.values():
+        model.responses[0] = AIMessage(**kwargs)
+    with pytest.raises(ConversationProviderOutputError):
         asyncio.run(getattr(p, stage)(payload()))

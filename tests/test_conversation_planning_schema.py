@@ -27,8 +27,8 @@ def test_missing_fields_and_goal_meanings_have_one_owner():
 
 
 @pytest.mark.parametrize("calls,text,value", [
-    ([("unsupported_request", {})], "", {"status": "out_of_scope"}),
-    ([("respond", {"response": "Which order?"})], "Private draft", {"status": "respond", "response": "Which order?"}),
+    ([], "I cannot perform that operation.", {"status": "respond", "response": "I cannot perform that operation."}),
+    ([], "Which order?", {"status": "respond", "response": "Which order?"}),
     ([("knowledge_search", {"query": "退货政策"})], "", {"status": "resolved", "goals": [
         {"kind": "general_qa", "resolved_query": "退货政策"}]}),
 ])

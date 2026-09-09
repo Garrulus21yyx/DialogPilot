@@ -35,7 +35,7 @@ from application.work_item import ArgumentValue
 # The compiler owns both the supported vocabulary and its planning meaning.
 _GOAL_DESCRIPTIONS = {
     "atomic_read": "Execute one registered read tool using its native parameter schema; this does not authorize a business write.",
-    "delegate_task": "Delegate the user's full requested domain outcome, including conditions and limits, using target_agent and objective. Prerequisite lookup or authentication is a step, not a replacement for that outcome. The domain chooses its available tools; this does not authorize an unavailable action.",
+    "delegate_task": "Delegate a requested outcome that requires domain investigation or business-change preparation, including conditions and limits, using target_agent and objective. Conversation itself is handled directly in text, not delegated: there must be domain work left to do. Prerequisite lookup or authentication is a step, not a replacement for that outcome. The domain chooses its available tools; this does not authorize an unavailable action.",
     "cancel_active_work": "Cancel one active conversation objective using its revises_control_id; this does not cancel an order.",
     "continue_active_work": "Continue an unchanged objective listed in resumable_work using its control_id as revises_control_id. An active control alone is not a resume entry. The runtime restores accepted tools and arguments; do not reconstruct them. Pending approval still requires an approval decision. For a changed scope use delegate_task with revises_control_id instead.",
     "general_qa": "Retrieve policy or FAQ evidence, including shipping, address-change rules, coupons and general procedures; performs no business action.",

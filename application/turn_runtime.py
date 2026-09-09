@@ -57,7 +57,7 @@ class TurnRuntimeResult:
 class TurnRuntime:
     """Coordinate durable turn phases without owning their domain semantics."""
 
-    version = "turn-runtime-v19-explicit-public-response"
+    version = "turn-runtime-v20-native-messages"
 
     def __init__(
         self,

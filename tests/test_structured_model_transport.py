@@ -10,7 +10,8 @@ from langchain_core.messages import HumanMessage
 
 
 @pytest.mark.parametrize('stage', ['plan', 'compose'])
-def test_public_text_is_sdk_tool_argument_not_provider_working_content(monkeypatch, stage):
+@pytest.mark.parametrize('catalog', [[], ['general_qa']])
+def test_public_text_is_native_sdk_text_separate_from_reasoning(monkeypatch, stage, catalog):
     from core.model_policy import ModelRole
     from infrastructure.target_conversation_provider import AnthropicConversationPlanningProvider
     import langchain_anthropic.chat_models as integration
@@ -23,10 +24,8 @@ def test_public_text_is_sdk_tool_argument_not_provider_working_content(monkeypat
             'id': 'msg-public', 'type': 'message', 'role': 'assistant', 'model': body['model'],
             'content': [
                 {'type': 'thinking', 'thinking': 'Private reasoning', 'signature': 'test-signature'},
-                {'type': 'text', 'text': 'I need to authenticate the user first. Let me ask.'},
-                {'type': 'tool_use', 'id': 'public', 'name': 'respond',
-                 'input': {'response': 'What is your account email?'}}],
-            'stop_reason': 'tool_use', 'stop_sequence': None,
+                {'type': 'text', 'text': 'What is your account email?'}],
+            'stop_reason': 'end_turn', 'stop_sequence': None,
             'usage': {'input_tokens': 12, 'output_tokens': 8}})
 
     async def run():
@@ -36,14 +35,15 @@ def test_public_text_is_sdk_tool_argument_not_provider_working_content(monkeypat
             model = framework_model(profile, {'api_key': 'test-key', 'base_url': 'https://example.invalid'})
             provider = AnthropicConversationPlanningProvider({ModelRole.INTENT: model, ModelRole.SYNTHESIS: model},
                 model_profile=profile, synthesis_profile=profile)
-            result = await getattr(provider, stage)({'message': 'Help', 'evidence': {}})
+            result = await getattr(provider, stage)({'message': 'Help', 'evidence': {}, 'supported_goals': catalog})
             assert (result['response'] if stage == 'plan' else result) == 'What is your account email?'
     asyncio.run(run())
     body, = requests
-    assert body['tool_choice'] == {'type': 'any'}
-    tool = next(tool for tool in body['tools'] if tool['name'] == 'respond')
-    assert tool['input_schema']['required'] == ['response']
-    assert set(tool['input_schema']['properties']) == {'response'}
+    if stage == 'plan' and catalog:
+        assert body['tool_choice'] == {'type': 'auto'}
+        assert all(tool['name'] != 'respond' for tool in body['tools'])
+    else:
+        assert 'tools' not in body and 'tool_choice' not in body
 
 
 @pytest.mark.parametrize("effort", list(ReasoningEffort))
@@ -96,9 +96,8 @@ def test_production_planner_sdk_wire_preserves_history_sections_and_cache_prefix
         body = json.loads(request.content); requests.append(body)
         return httpx.Response(200, json={
             'id': 'msg-test', 'type': 'message', 'role': 'assistant', 'model': body['model'],
-            'content': [{'type': 'tool_use', 'id': 'call-plan', 'name': 'unsupported_request',
-                         'input': {}}],
-            'stop_reason': 'tool_use', 'stop_sequence': None,
+            'content': [{'type': 'text', 'text': 'What would you like to know?'}],
+            'stop_reason': 'end_turn', 'stop_sequence': None,
             'usage': {'input_tokens': 12, 'output_tokens': 8, 'cache_read_input_tokens': 100},
         })
 
@@ -117,7 +116,7 @@ def test_production_planner_sdk_wire_preserves_history_sections_and_cache_prefix
                         'recent_messages': [{'role': 'user', 'content': 'some examples of alerts', 'seq': 1},
                                             {'role': 'assistant', 'content': 'long alerts explanation', 'seq': 2}]}}
                 payloads.append(payload)
-                assert await provider.plan(payload) == {'status': 'out_of_scope'}
+                assert await provider.plan(payload) == {'status': 'respond', 'response': 'What would you like to know?'}
     asyncio.run(run())
     first, second = requests
     assert first['system'] == second['system']
@@ -132,11 +131,7 @@ def test_production_planner_sdk_wire_preserves_history_sections_and_cache_prefix
         assert len(tail) == 2
         assert json.loads(tail[-1]['text']) == {'current_request': payload['message']}
         assert planning_payload_from_request(captured['request']) == {k: v for k, v in payload.items() if k != 'supported_goals'}
-        if effort is ReasoningEffort.NONE:
-            assert body['tool_choice'] == {'type': 'any'}
-        else:
-            # Installed SDK normalizes forced choice away with thinking enabled.
-            assert 'tool_choice' not in body
+        assert body['tool_choice'] == {'type': 'auto'}
         assert all(tool['name'] != 'submit_turn_plan' for tool in body['tools'])
         assert captured['usage']['input_token_details']['cache_read'] == 100
         assert 'cache_control' not in json.dumps(body)

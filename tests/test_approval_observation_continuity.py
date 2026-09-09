@@ -43,8 +43,8 @@ def test_held_approval_read_observation_replies_without_reconsuming_current_inpu
                         ("review_action", {"decision": "hold"}),
                         ("order_lookup", {"order_id": "DP1234"})), "")
                 assert "review_action" not in {action.name for action in actions}
-                return action_proposal(actions, calls(("respond", {"response":
-                    "The order has shipped. The cancellation remains unapproved."})), "Private draft")
+                return action_proposal(actions, [],
+                    "The order has shipped. The cancellation remains unapproved.")
 
         catalog = ({"owner_agent": "order_logistics", "tool_id": "order_lookup",
                     "description": "Read the order's current state.",
