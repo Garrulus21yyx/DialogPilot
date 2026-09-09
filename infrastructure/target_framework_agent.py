@@ -68,7 +68,7 @@ logger = logging.getLogger(__name__)
 class TargetFrameworkAgent:
     """Execute one delegated read goal through a governed framework Agent."""
 
-    version = "target-framework-agent-v8-implicit-current-action"
+    version = "target-framework-agent-v9-scoped-operation-reference"
 
     def __init__(
         self,

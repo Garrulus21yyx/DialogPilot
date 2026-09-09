@@ -35,7 +35,8 @@ Existing TaskGraph, PendingApproval and framework checkpoints remain authoritati
 2. done: converge tool presentation and pending decision/extra-input handling.
 3. done: generated decision matrix, resume/publication regression checks,
    independent fresh-context review.
-4. in_progress: record implementation vs verified scope, commit and push scoped files.
+4. done: implementation and evidence committed/pushed as dd6b238; producer-version
+   metadata and this delivery record accompany the final follow-up commit.
 
 No paid model or tau rerun in this change. Local scripted models establish contract
 properties, not actual model accuracy. Current reference practices: LangChain HITL
