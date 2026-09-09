@@ -119,5 +119,7 @@ original full snapshots plus valid choice/retained-approval controls before adop
 it is not an established repair and is not implemented here. Existing deterministic
 approval binding remains authoritative; natural-language review cannot grant writes.
 
-Delivery: scope changes ready for isolated commit/push; unrelated dirty archive and
-RAG work excluded. Full task closure and confirmation-quality claims remain blocked.
+Delivery: implementation, tests and all probe/task evidence committed and pushed as
+`ad2e4d0`. An isolated Git index excluded unrelated dirty archive/RAG edits, including
+archive-only hunks in the shared framework-agent file. This status attestation is
+delivered separately. Full task closure and confirmation-quality claims remain blocked.
