@@ -1,0 +1,9 @@
+{
+  "historical_database": "dialogpilot_rag_dev_379db6005bda",
+  "original_database_still_exists": false,
+  "historical_timeout_evidence": "artifacts/eval/ecommerce-complex-v2-scope-pair120-v4/database-timeouts.json",
+  "confirmed_mechanism": "PG_BM25_ZH_V1 materializes scoped documents then expands lexical_terms per document for each request; lexical timeout invalidates shared transaction and returns UNAVAILABLE.",
+  "unresolved": "No original execution plan or contemporaneous CPU/IO/lock telemetry; cannot attribute historical slow events exclusively to SQL plan versus load.",
+  "production_settings_changed": false,
+  "new_SQL_experiment": false
+}

@@ -1,0 +1,7551 @@
+[
+  {
+    "id": "cx-02-1",
+    "topic": "降噪耳机",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。耳机拆封试听了，不是质量问题，退货条件、卫生例外和费用怎么算？",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-02:u0",
+        "quote": "降噪耳机签收七日内可申请试用退货，但须保持主机无划痕且配件完整。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-02:u1",
+        "quote": "降噪耳机主机拆封不等于卫生耗材可退；已启封的一次性入耳套不退，质量故障需单独审核。",
+        "fusion_rank": 4,
+        "rerank_rank": 2,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-02:u2",
+        "quote": "降噪耳机试用退货按订单中主机分摊实付额退款，已启封耗材的分摊金额扣除，寄回运费由买家承担。",
+        "fusion_rank": 7,
+        "rerank_rank": 6,
+        "visible": false
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-02:u0"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-02:u1"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": false,
+    "rerank_query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。耳机拆封试听了，不是质量问题，退货条件、卫生例外和费用怎么算？",
+    "variants": [
+      [
+        "raw",
+        "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。耳机拆封试听了，不是质量问题，退货条件、卫生例外和费用怎么算？",
+        1.0
+      ]
+    ],
+    "rewrite_fallback": true,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-02-2",
+    "topic": "降噪耳机",
+    "query": "2026年6月1日起中国大陆官网现行规则，降噪耳机拆封试听，非质量问题，退货条件、卫生例外和费用怎么算？",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-02:u0",
+        "quote": "降噪耳机签收七日内可申请试用退货，但须保持主机无划痕且配件完整。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-02:u1",
+        "quote": "降噪耳机主机拆封不等于卫生耗材可退；已启封的一次性入耳套不退，质量故障需单独审核。",
+        "fusion_rank": 2,
+        "rerank_rank": 4,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-02:u2",
+        "quote": "降噪耳机试用退货按订单中主机分摊实付额退款，已启封耗材的分摊金额扣除，寄回运费由买家承担。",
+        "fusion_rank": 8,
+        "rerank_rank": 3,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-02:u0"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:2",
+        "start": 814,
+        "end": 1715,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-02:u2"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-02:u1"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，降噪耳机拆封试听，非质量问题，退货条件、卫生例外和费用怎么算？",
+    "variants": [
+      [
+        "raw",
+        "不是，我问的是降噪耳机，按刚才提到的现行渠道，把条件、例外和处理步骤一起说清楚。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，降噪耳机拆封试听，非质量问题，退货条件、卫生例外和费用怎么算？",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-02-3",
+    "topic": "降噪耳机",
+    "query": "2026年6月1日起中国大陆官网现行规则，耳机拆封试听非质量问题，退货条件、卫生例外和费用怎么算（假设情形）",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-02:u0",
+        "quote": "降噪耳机签收七日内可申请试用退货，但须保持主机无划痕且配件完整。",
+        "fusion_rank": 1,
+        "rerank_rank": 2,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-02:u1",
+        "quote": "降噪耳机主机拆封不等于卫生耗材可退；已启封的一次性入耳套不退，质量故障需单独审核。",
+        "fusion_rank": 2,
+        "rerank_rank": 4,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-02:u2",
+        "quote": "降噪耳机试用退货按订单中主机分摊实付额退款，已启封耗材的分摊金额扣除，寄回运费由买家承担。",
+        "fusion_rank": 8,
+        "rerank_rank": 5,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-02:u0"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-02:u1"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:2",
+        "start": 814,
+        "end": 1715,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-02:u2"
+        ]
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，耳机拆封试听非质量问题，退货条件、卫生例外和费用怎么算（假设情形）",
+    "variants": [
+      [
+        "raw",
+        "以上只是我的假设，并不表示实际发生。请按这些假设说明适用条件、例外及处理办法。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，耳机拆封试听非质量问题，退货条件、卫生例外和费用怎么算（假设情形）",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-02-4",
+    "topic": "降噪耳机",
+    "query": "2026年6月1日起中国大陆官网现行规则，耳机拆封试听非质量问题，退货条件、卫生例外和费用，需核实的条件、相关例外和后续处理步骤",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-02:u0",
+        "quote": "降噪耳机签收七日内可申请试用退货，但须保持主机无划痕且配件完整。",
+        "fusion_rank": 3,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-02:u1",
+        "quote": "降噪耳机主机拆封不等于卫生耗材可退；已启封的一次性入耳套不退，质量故障需单独审核。",
+        "fusion_rank": 1,
+        "rerank_rank": 4,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-02:u2",
+        "quote": "降噪耳机试用退货按订单中主机分摊实付额退款，已启封耗材的分摊金额扣除，寄回运费由买家承担。",
+        "fusion_rank": 7,
+        "rerank_rank": 6,
+        "visible": false
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-02:u0"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-02:u1"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": false,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，耳机拆封试听非质量问题，退货条件、卫生例外和费用，需核实的条件、相关例外和后续处理步骤",
+    "variants": [
+      [
+        "raw",
+        "如果我还不能确认是否满足这些前提，请列出需要核实的条件、相关例外和后续处理步骤，不要直接认定我符合条件。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，耳机拆封试听非质量问题，退货条件、卫生例外和费用，需核实的条件、相关例外和后续处理步骤",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-03-1",
+    "topic": "咖啡机",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。咖啡机已通水但没有加入咖啡粉，退货规则、试机例外和寄回前步骤是什么？",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-03:u0",
+        "quote": "咖啡机签收十五日内的试用退货须保留包装，使用清水测试不视为制作饮品。",
+        "fusion_rank": 1,
+        "rerank_rank": 2,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-03:u1",
+        "quote": "咖啡机加入咖啡粉或奶液后不适用普通试用退货；出厂漏水可凭试机视频申请质量审核。",
+        "fusion_rank": 4,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-03:u2",
+        "quote": "咖啡机寄回前必须排空水箱并晾干，取得退货单号后寄回；质量审核通过的标准运费由店铺承担。",
+        "fusion_rank": 5,
+        "rerank_rank": 5,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-03:u1"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-03:u0"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:2",
+        "start": 814,
+        "end": 1715,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-03:u2"
+        ]
+      }
+    ],
+    "full": true,
+    "rerank_query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。咖啡机已通水但没有加入咖啡粉，退货规则、试机例外和寄回前步骤是什么？",
+    "variants": [
+      [
+        "raw",
+        "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。咖啡机已通水但没有加入咖啡粉，退货规则、试机例外和寄回前步骤是什么？",
+        1.0
+      ]
+    ],
+    "rewrite_fallback": true,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-03-2",
+    "topic": "咖啡机",
+    "query": "2026年6月1日起中国大陆官网现行规则，咖啡机已通水但没有加入咖啡粉，退货规则、试机例外和寄回前步骤是什么？",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-03:u0",
+        "quote": "咖啡机签收十五日内的试用退货须保留包装，使用清水测试不视为制作饮品。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-03:u1",
+        "quote": "咖啡机加入咖啡粉或奶液后不适用普通试用退货；出厂漏水可凭试机视频申请质量审核。",
+        "fusion_rank": 3,
+        "rerank_rank": 3,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-03:u2",
+        "quote": "咖啡机寄回前必须排空水箱并晾干，取得退货单号后寄回；质量审核通过的标准运费由店铺承担。",
+        "fusion_rank": 5,
+        "rerank_rank": 5,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-03:u0"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-03:u1"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:2",
+        "start": 814,
+        "end": 1715,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-03:u2"
+        ]
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，咖啡机已通水但没有加入咖啡粉，退货规则、试机例外和寄回前步骤是什么？",
+    "variants": [
+      [
+        "raw",
+        "不是，我问的是咖啡机，按刚才提到的现行渠道，把条件、例外和处理步骤一起说清楚。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，咖啡机已通水但没有加入咖啡粉，退货规则、试机例外和寄回前步骤是什么？",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-03-3",
+    "topic": "咖啡机",
+    "query": "2026年6月1日起中国大陆官网现行规则，咖啡机已通水但没有加入咖啡粉（假设情形），退货规则、试机例外和寄回前步骤的适用条件、例外及处理办法",
+    "status": "UNAVAILABLE",
+    "detail_code": "POSTGRES_UNAVAILABLE"
+  },
+  {
+    "id": "cx-03-4",
+    "topic": "咖啡机",
+    "query": "2026年6月1日起中国大陆官网现行规则，咖啡机已通水但没有加入咖啡粉，退货规则、试机例外和寄回前步骤，需要核实的条件、相关例外和后续处理步骤",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-03:u0",
+        "quote": "咖啡机签收十五日内的试用退货须保留包装，使用清水测试不视为制作饮品。",
+        "fusion_rank": 3,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-03:u1",
+        "quote": "咖啡机加入咖啡粉或奶液后不适用普通试用退货；出厂漏水可凭试机视频申请质量审核。",
+        "fusion_rank": 2,
+        "rerank_rank": 3,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-03:u2",
+        "quote": "咖啡机寄回前必须排空水箱并晾干，取得退货单号后寄回；质量审核通过的标准运费由店铺承担。",
+        "fusion_rank": 4,
+        "rerank_rank": 5,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-03:u0"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-03:u1"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:2",
+        "start": 814,
+        "end": 1715,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-03:u2"
+        ]
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，咖啡机已通水但没有加入咖啡粉，退货规则、试机例外和寄回前步骤，需要核实的条件、相关例外和后续处理步骤",
+    "variants": [
+      [
+        "raw",
+        "如果我还不能确认是否满足这些前提，请列出需要核实的条件、相关例外和后续处理步骤，不要直接认定我符合条件。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，咖啡机已通水但没有加入咖啡粉，退货规则、试机例外和寄回前步骤，需要核实的条件、相关例外和后续处理步骤",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-05-1",
+    "topic": "礼品卡",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。礼品卡用过一部分，余额可否退到银行卡、什么情况例外、该提供什么？",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-05:u0",
+        "quote": "礼品卡未使用时可由原购买账号申请原路退款；部分消费后的余额不支持提现。",
+        "fusion_rank": 1,
+        "rerank_rank": 2,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-05:u1",
+        "quote": "礼品卡因重复扣款发生的差错不属于余额提现，须按支付差错审核处理。",
+        "fusion_rank": 5,
+        "rerank_rank": 3,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-05:u2",
+        "quote": "礼品卡支付差错申请须提供原交易流水和重复扣款记录；处理前不能承诺退回个人指定银行卡。",
+        "fusion_rank": 10,
+        "rerank_rank": 6,
+        "visible": false
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-05:u0"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-05:u1"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": false,
+    "rerank_query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。礼品卡用过一部分，余额可否退到银行卡、什么情况例外、该提供什么？",
+    "variants": [
+      [
+        "raw",
+        "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。礼品卡用过一部分，余额可否退到银行卡、什么情况例外、该提供什么？",
+        1.0
+      ]
+    ],
+    "rewrite_fallback": true,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-05-2",
+    "topic": "礼品卡",
+    "query": "2026年6月1日起中国大陆官网现行规则，礼品卡用过一部分，余额可否退到银行卡、什么情况例外、该提供什么？条件、例外和处理步骤",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-05:u0",
+        "quote": "礼品卡未使用时可由原购买账号申请原路退款；部分消费后的余额不支持提现。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-05:u1",
+        "quote": "礼品卡因重复扣款发生的差错不属于余额提现，须按支付差错审核处理。",
+        "fusion_rank": 3,
+        "rerank_rank": 4,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-05:u2",
+        "quote": "礼品卡支付差错申请须提供原交易流水和重复扣款记录；处理前不能承诺退回个人指定银行卡。",
+        "fusion_rank": 11,
+        "rerank_rank": 6,
+        "visible": false
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-05:u0"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-05:u1"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": false,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，礼品卡用过一部分，余额可否退到银行卡、什么情况例外、该提供什么？条件、例外和处理步骤",
+    "variants": [
+      [
+        "raw",
+        "不是，我问的是礼品卡，按刚才提到的现行渠道，把条件、例外和处理步骤一起说清楚。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，礼品卡用过一部分，余额可否退到银行卡、什么情况例外、该提供什么？条件、例外和处理步骤",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-05-3",
+    "topic": "礼品卡",
+    "query": "2026年6月1日起中国大陆官网现行规则，礼品卡用过一部分，余额可否退到银行卡、什么情况例外、该提供什么？以上只是假设，并不表示实际发生，请按这些假设说明适用条件、例外及处理办法。",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-05:u0",
+        "quote": "礼品卡未使用时可由原购买账号申请原路退款；部分消费后的余额不支持提现。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-05:u1",
+        "quote": "礼品卡因重复扣款发生的差错不属于余额提现，须按支付差错审核处理。",
+        "fusion_rank": 2,
+        "rerank_rank": 3,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-05:u2",
+        "quote": "礼品卡支付差错申请须提供原交易流水和重复扣款记录；处理前不能承诺退回个人指定银行卡。",
+        "fusion_rank": 10,
+        "rerank_rank": 6,
+        "visible": false
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-05:u0"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-05:u1"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": false,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，礼品卡用过一部分，余额可否退到银行卡、什么情况例外、该提供什么？以上只是假设，并不表示实际发生，请按这些假设说明适用条件、例外及处理办法。",
+    "variants": [
+      [
+        "raw",
+        "以上只是我的假设，并不表示实际发生。请按这些假设说明适用条件、例外及处理办法。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，礼品卡用过一部分，余额可否退到银行卡、什么情况例外、该提供什么？以上只是假设，并不表示实际发生，请按这些假设说明适用条件、例外及处理办法。",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-05-4",
+    "topic": "礼品卡",
+    "query": "2026年6月1日起中国大陆官网现行规则，礼品卡用过一部分，余额可否退到银行卡、什么情况例外、该提供什么？如果还不能确认是否满足这些前提，请列出需要核实的条件、相关例外和后续处理步骤，不要直接认定我符合条件。",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-05:u0",
+        "quote": "礼品卡未使用时可由原购买账号申请原路退款；部分消费后的余额不支持提现。",
+        "fusion_rank": 2,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-05:u1",
+        "quote": "礼品卡因重复扣款发生的差错不属于余额提现，须按支付差错审核处理。",
+        "fusion_rank": 3,
+        "rerank_rank": 4,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-05:u2",
+        "quote": "礼品卡支付差错申请须提供原交易流水和重复扣款记录；处理前不能承诺退回个人指定银行卡。",
+        "fusion_rank": 6,
+        "rerank_rank": 6,
+        "visible": false
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-05:u0"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-05:u1"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": false,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，礼品卡用过一部分，余额可否退到银行卡、什么情况例外、该提供什么？如果还不能确认是否满足这些前提，请列出需要核实的条件、相关例外和后续处理步骤，不要直接认定我符合条件。",
+    "variants": [
+      [
+        "raw",
+        "如果我还不能确认是否满足这些前提，请列出需要核实的条件、相关例外和后续处理步骤，不要直接认定我符合条件。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，礼品卡用过一部分，余额可否退到银行卡、什么情况例外、该提供什么？如果还不能确认是否满足这些前提，请列出需要核实的条件、相关例外和后续处理步骤，不要直接认定我符合条件。",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-06-1",
+    "topic": "投影仪延保",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。今天买延保，之前进水的故障是否覆盖，起保日期和申请材料是什么？",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-06:u0",
+        "quote": "投影仪延保从原厂保修结束次日开始，购买延保当天不改变原厂保修期限。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-06:u1",
+        "quote": "投影仪延保不覆盖人为进水和购买延保前已经存在的故障；自然电路故障须经检测确认。",
+        "fusion_rank": 4,
+        "rerank_rank": 2,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-06:u2",
+        "quote": "投影仪延保申请须提供购机凭证、延保凭证和故障检测结果，寄送检测前需取得受理编号。",
+        "fusion_rank": 2,
+        "rerank_rank": 5,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-06:u0"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-06:u1"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:2",
+        "start": 1606,
+        "end": 1760,
+        "section_count": 2,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-06:u2"
+        ]
+      }
+    ],
+    "full": true,
+    "rerank_query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。今天买延保，之前进水的故障是否覆盖，起保日期和申请材料是什么？",
+    "variants": [
+      [
+        "raw",
+        "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。今天买延保，之前进水的故障是否覆盖，起保日期和申请材料是什么？",
+        1.0
+      ]
+    ],
+    "rewrite_fallback": true,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-06-2",
+    "topic": "投影仪延保",
+    "query": "2026年6月1日起中国大陆官网现行规则，投影仪延保，进水故障是否覆盖，起保日期，申请材料，条件、例外和处理步骤",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-06:u0",
+        "quote": "投影仪延保从原厂保修结束次日开始，购买延保当天不改变原厂保修期限。",
+        "fusion_rank": 2,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-06:u1",
+        "quote": "投影仪延保不覆盖人为进水和购买延保前已经存在的故障；自然电路故障须经检测确认。",
+        "fusion_rank": 3,
+        "rerank_rank": 4,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-06:u2",
+        "quote": "投影仪延保申请须提供购机凭证、延保凭证和故障检测结果，寄送检测前需取得受理编号。",
+        "fusion_rank": 1,
+        "rerank_rank": 2,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-06:u0"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:2",
+        "start": 1606,
+        "end": 1760,
+        "section_count": 2,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-06:u2"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-06:u1"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，投影仪延保，进水故障是否覆盖，起保日期，申请材料，条件、例外和处理步骤",
+    "variants": [
+      [
+        "raw",
+        "不是，我问的是投影仪延保，按刚才提到的现行渠道，把条件、例外和处理步骤一起说清楚。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，投影仪延保，进水故障是否覆盖，起保日期，申请材料，条件、例外和处理步骤",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-06-3",
+    "topic": "投影仪延保",
+    "query": "2026年6月1日起中国大陆官网现行规则，假设今天购买延保，之前进水的故障是否覆盖，起保日期和申请材料是什么，适用条件、例外及处理办法",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-06:u0",
+        "quote": "投影仪延保从原厂保修结束次日开始，购买延保当天不改变原厂保修期限。",
+        "fusion_rank": 2,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-06:u1",
+        "quote": "投影仪延保不覆盖人为进水和购买延保前已经存在的故障；自然电路故障须经检测确认。",
+        "fusion_rank": 1,
+        "rerank_rank": 3,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-06:u2",
+        "quote": "投影仪延保申请须提供购机凭证、延保凭证和故障检测结果，寄送检测前需取得受理编号。",
+        "fusion_rank": 3,
+        "rerank_rank": 6,
+        "visible": false
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-06:u0"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-06:u1"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": false,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，假设今天购买延保，之前进水的故障是否覆盖，起保日期和申请材料是什么，适用条件、例外及处理办法",
+    "variants": [
+      [
+        "raw",
+        "以上只是我的假设，并不表示实际发生。请按这些假设说明适用条件、例外及处理办法。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，假设今天购买延保，之前进水的故障是否覆盖，起保日期和申请材料是什么，适用条件、例外及处理办法",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-06-4",
+    "topic": "投影仪延保",
+    "query": "2026年6月1日起中国大陆官网现行规则，延保覆盖进水故障的前提条件、需要核实的条件、相关例外和后续处理步骤，不涉及经销商或香港渠道，不查询具体订单",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-06:u0",
+        "quote": "投影仪延保从原厂保修结束次日开始，购买延保当天不改变原厂保修期限。",
+        "fusion_rank": 2,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-06:u1",
+        "quote": "投影仪延保不覆盖人为进水和购买延保前已经存在的故障；自然电路故障须经检测确认。",
+        "fusion_rank": 1,
+        "rerank_rank": 4,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-06:u2",
+        "quote": "投影仪延保申请须提供购机凭证、延保凭证和故障检测结果，寄送检测前需取得受理编号。",
+        "fusion_rank": 4,
+        "rerank_rank": 6,
+        "visible": false
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-06:u0"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-06:u1"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": false,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，延保覆盖进水故障的前提条件、需要核实的条件、相关例外和后续处理步骤，不涉及经销商或香港渠道，不查询具体订单",
+    "variants": [
+      [
+        "raw",
+        "如果我还不能确认是否满足这些前提，请列出需要核实的条件、相关例外和后续处理步骤，不要直接认定我符合条件。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，延保覆盖进水故障的前提条件、需要核实的条件、相关例外和后续处理步骤，不涉及经销商或香港渠道，不查询具体订单",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-08-1",
+    "topic": "人体工学椅",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。椅子试坐十天但包装丢了，退货条件、质量例外和包装费用如何确定？",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-08:u0",
+        "quote": "人体工学椅试用期为签收后十四日，普通试用退货要求保留原包装且无明显污损。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-08:u1",
+        "quote": "人体工学椅气杆故障经审核确认后可按质量流程处理，不以保留原包装作为质量申请前提。",
+        "fusion_rank": 5,
+        "rerank_rank": 4,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-08:u2",
+        "quote": "人体工学椅无原包装的质量退货需先申请替代包装方案；店铺确认方案后承担标准包装及运输费用。",
+        "fusion_rank": 2,
+        "rerank_rank": 7,
+        "visible": false
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-08:u0"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-08:u1"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": false,
+    "rerank_query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。椅子试坐十天但包装丢了，退货条件、质量例外和包装费用如何确定？",
+    "variants": [
+      [
+        "raw",
+        "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。椅子试坐十天但包装丢了，退货条件、质量例外和包装费用如何确定？",
+        1.0
+      ]
+    ],
+    "rewrite_fallback": true,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-08-2",
+    "topic": "人体工学椅",
+    "query": "2026年6月1日起中国大陆官网现行规则，人体工学椅，试坐十天但包装丢失，退货条件、质量例外和包装费用如何确定，处理步骤",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-08:u0",
+        "quote": "人体工学椅试用期为签收后十四日，普通试用退货要求保留原包装且无明显污损。",
+        "fusion_rank": 2,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-08:u1",
+        "quote": "人体工学椅气杆故障经审核确认后可按质量流程处理，不以保留原包装作为质量申请前提。",
+        "fusion_rank": 3,
+        "rerank_rank": 3,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-08:u2",
+        "quote": "人体工学椅无原包装的质量退货需先申请替代包装方案；店铺确认方案后承担标准包装及运输费用。",
+        "fusion_rank": 1,
+        "rerank_rank": 5,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-08:u0"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-08:u1"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:2",
+        "start": 1606,
+        "end": 1760,
+        "section_count": 2,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-08:u2"
+        ]
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，人体工学椅，试坐十天但包装丢失，退货条件、质量例外和包装费用如何确定，处理步骤",
+    "variants": [
+      [
+        "raw",
+        "不是，我问的是人体工学椅，按刚才提到的现行渠道，把条件、例外和处理步骤一起说清楚。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，人体工学椅，试坐十天但包装丢失，退货条件、质量例外和包装费用如何确定，处理步骤",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-08-3",
+    "topic": "人体工学椅",
+    "query": "2026年6月1日起中国大陆官网现行规则，椅子试坐十天但包装丢了，退货条件、质量例外和包装费用如何确定？假设情况，说明适用条件、例外及处理办法",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-08:u0",
+        "quote": "人体工学椅试用期为签收后十四日，普通试用退货要求保留原包装且无明显污损。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-08:u1",
+        "quote": "人体工学椅气杆故障经审核确认后可按质量流程处理，不以保留原包装作为质量申请前提。",
+        "fusion_rank": 3,
+        "rerank_rank": 4,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-08:u2",
+        "quote": "人体工学椅无原包装的质量退货需先申请替代包装方案；店铺确认方案后承担标准包装及运输费用。",
+        "fusion_rank": 5,
+        "rerank_rank": 7,
+        "visible": false
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-08:u0"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-08:u1"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": false,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，椅子试坐十天但包装丢了，退货条件、质量例外和包装费用如何确定？假设情况，说明适用条件、例外及处理办法",
+    "variants": [
+      [
+        "raw",
+        "以上只是我的假设，并不表示实际发生。请按这些假设说明适用条件、例外及处理办法。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，椅子试坐十天但包装丢了，退货条件、质量例外和包装费用如何确定？假设情况，说明适用条件、例外及处理办法",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-08-4",
+    "topic": "人体工学椅",
+    "query": "2026年6月1日起中国大陆官网现行规则，椅子试坐十天但包装丢了，退货条件、质量例外和包装费用如何确定，需要核实的条件、相关例外和后续处理步骤",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-08:u0",
+        "quote": "人体工学椅试用期为签收后十四日，普通试用退货要求保留原包装且无明显污损。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-08:u1",
+        "quote": "人体工学椅气杆故障经审核确认后可按质量流程处理，不以保留原包装作为质量申请前提。",
+        "fusion_rank": 3,
+        "rerank_rank": 4,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-08:u2",
+        "quote": "人体工学椅无原包装的质量退货需先申请替代包装方案；店铺确认方案后承担标准包装及运输费用。",
+        "fusion_rank": 4,
+        "rerank_rank": 7,
+        "visible": false
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-08:u0"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-08:u1"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": false,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，椅子试坐十天但包装丢了，退货条件、质量例外和包装费用如何确定，需要核实的条件、相关例外和后续处理步骤",
+    "variants": [
+      [
+        "raw",
+        "如果我还不能确认是否满足这些前提，请列出需要核实的条件、相关例外和后续处理步骤，不要直接认定我符合条件。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，椅子试坐十天但包装丢了，退货条件、质量例外和包装费用如何确定，需要核实的条件、相关例外和后续处理步骤",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-09-1",
+    "topic": "组合洗护套装",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。组合装只退一瓶，退款按什么价格、赠品怎么处理、运费谁承担？",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-09:u0",
+        "quote": "组合洗护套装允许未启封单品部分退货，退款按订单中该单品分摊的实付金额计算。",
+        "fusion_rank": 1,
+        "rerank_rank": 2,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-09:u1",
+        "quote": "组合洗护套装退货后不满足赠品门槛的须退回未使用赠品；赠品已使用时按下单时明确的赠品计价扣减。",
+        "fusion_rank": 3,
+        "rerank_rank": 5,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-09:u2",
+        "quote": "组合洗护套装非质量部分退货的标准寄回运费由买家承担，不能按单品零售标价申请退款。",
+        "fusion_rank": 2,
+        "rerank_rank": 1,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-09:u2"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-09:u0"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:2",
+        "start": 814,
+        "end": 1715,
+        "section_count": 16,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-09:u1"
+        ]
+      }
+    ],
+    "full": true,
+    "rerank_query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。组合装只退一瓶，退款按什么价格、赠品怎么处理、运费谁承担？",
+    "variants": [
+      [
+        "raw",
+        "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。组合装只退一瓶，退款按什么价格、赠品怎么处理、运费谁承担？",
+        1.0
+      ]
+    ],
+    "rewrite_fallback": true,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-09-2",
+    "topic": "组合洗护套装",
+    "query": "2026年6月1日起中国大陆官网现行规则，组合洗护套装只退一瓶，退款按什么价格、赠品怎么处理、运费谁承担，条件、例外和处理步骤",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-09:u0",
+        "quote": "组合洗护套装允许未启封单品部分退货，退款按订单中该单品分摊的实付金额计算。",
+        "fusion_rank": 4,
+        "rerank_rank": 3,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-09:u1",
+        "quote": "组合洗护套装退货后不满足赠品门槛的须退回未使用赠品；赠品已使用时按下单时明确的赠品计价扣减。",
+        "fusion_rank": 2,
+        "rerank_rank": 2,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-09:u2",
+        "quote": "组合洗护套装非质量部分退货的标准寄回运费由买家承担，不能按单品零售标价申请退款。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-09:u2"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-09:u1"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-09:u0"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-09:u1"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，组合洗护套装只退一瓶，退款按什么价格、赠品怎么处理、运费谁承担，条件、例外和处理步骤",
+    "variants": [
+      [
+        "raw",
+        "不是，我问的是组合洗护套装，按刚才提到的现行渠道，把条件、例外和处理步骤一起说清楚。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，组合洗护套装只退一瓶，退款按什么价格、赠品怎么处理、运费谁承担，条件、例外和处理步骤",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-09-3",
+    "topic": "组合洗护套装",
+    "query": "2026年6月1日起中国大陆官网现行规则，组合装只退一瓶，退款按什么价格、赠品怎么处理、运费谁承担？适用条件、例外及处理办法",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-09:u0",
+        "quote": "组合洗护套装允许未启封单品部分退货，退款按订单中该单品分摊的实付金额计算。",
+        "fusion_rank": 2,
+        "rerank_rank": 2,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-09:u1",
+        "quote": "组合洗护套装退货后不满足赠品门槛的须退回未使用赠品；赠品已使用时按下单时明确的赠品计价扣减。",
+        "fusion_rank": 1,
+        "rerank_rank": 4,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-09:u2",
+        "quote": "组合洗护套装非质量部分退货的标准寄回运费由买家承担，不能按单品零售标价申请退款。",
+        "fusion_rank": 4,
+        "rerank_rank": 1,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-09:u2"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-09:u0"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-09:u1"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-09:u1"
+        ]
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，组合装只退一瓶，退款按什么价格、赠品怎么处理、运费谁承担？适用条件、例外及处理办法",
+    "variants": [
+      [
+        "raw",
+        "以上只是我的假设，并不表示实际发生。请按这些假设说明适用条件、例外及处理办法。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，组合装只退一瓶，退款按什么价格、赠品怎么处理、运费谁承担？适用条件、例外及处理办法",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-09-4",
+    "topic": "组合洗护套装",
+    "query": "如果我还不能确认是否满足这些前提，请列出需要核实的条件、相关例外和后续处理步骤，不要直接认定我符合条件。",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-09:u0",
+        "quote": "组合洗护套装允许未启封单品部分退货，退款按订单中该单品分摊的实付金额计算。",
+        "fusion_rank": 11,
+        "rerank_rank": 8,
+        "visible": false
+      },
+      {
+        "unit_id": "cx-09:u1",
+        "quote": "组合洗护套装退货后不满足赠品门槛的须退回未使用赠品；赠品已使用时按下单时明确的赠品计价扣减。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-09:u2",
+        "quote": "组合洗护套装非质量部分退货的标准寄回运费由买家承担，不能按单品零售标价申请退款。",
+        "fusion_rank": 2,
+        "rerank_rank": 13,
+        "visible": false
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-09:u1"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-09:u1"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "wix:937738820624272cc17b15057139f11c7604cabf4823790d1f392125fd6de274",
+        "start": 12526,
+        "end": 14570,
+        "section_count": 0,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": false,
+    "rerank_query": "如果我还不能确认是否满足这些前提，请列出需要核实的条件、相关例外和后续处理步骤，不要直接认定我符合条件。",
+    "variants": [
+      [
+        "raw",
+        "如果我还不能确认是否满足这些前提，请列出需要核实的条件、相关例外和后续处理步骤，不要直接认定我符合条件。",
+        1.0
+      ]
+    ],
+    "rewrite_fallback": true,
+    "unchanged_with_history": true
+  },
+  {
+    "id": "cx-11-1",
+    "topic": "路由器R72",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。R72写Wi-Fi 6却连不上6GHz，频段、组网限制和设置顺序分别是什么？",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-11:u0",
+        "quote": "路由器R72支持2.4GHz和5GHz，不支持6GHz；Wi-Fi 6是协议名称，不等同于6GHz频段。",
+        "fusion_rank": 3,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-11:u1",
+        "quote": "路由器R72仅与同系列R72或R73进行有线回程组网，不能因品牌相同就认定任意型号可混组。",
+        "fusion_rank": 2,
+        "rerank_rank": 2,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-11:u2",
+        "quote": "路由器R72组网先升级两端固件，再用网线连接主节点LAN口与子节点WAN口，等待配对完成后再调整位置。",
+        "fusion_rank": 4,
+        "rerank_rank": 3,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-11:u0"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-11:u1"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-11:u2"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。R72写Wi-Fi 6却连不上6GHz，频段、组网限制和设置顺序分别是什么？",
+    "variants": [
+      [
+        "raw",
+        "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。R72写Wi-Fi 6却连不上6GHz，频段、组网限制和设置顺序分别是什么？",
+        1.0
+      ]
+    ],
+    "rewrite_fallback": true,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-11-2",
+    "topic": "路由器R72",
+    "query": "2026年6月1日起中国大陆官网现行规则，路由器R72，Wi-Fi 6连不上6GHz，频段、组网限制和设置顺序，条件、例外和处理步骤",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-11:u0",
+        "quote": "路由器R72支持2.4GHz和5GHz，不支持6GHz；Wi-Fi 6是协议名称，不等同于6GHz频段。",
+        "fusion_rank": 3,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-11:u1",
+        "quote": "路由器R72仅与同系列R72或R73进行有线回程组网，不能因品牌相同就认定任意型号可混组。",
+        "fusion_rank": 1,
+        "rerank_rank": 3,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-11:u2",
+        "quote": "路由器R72组网先升级两端固件，再用网线连接主节点LAN口与子节点WAN口，等待配对完成后再调整位置。",
+        "fusion_rank": 2,
+        "rerank_rank": 4,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-11:u0"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-11:u1"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-11:u2"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，路由器R72，Wi-Fi 6连不上6GHz，频段、组网限制和设置顺序，条件、例外和处理步骤",
+    "variants": [
+      [
+        "raw",
+        "不是，我问的是路由器R72，按刚才提到的现行渠道，把条件、例外和处理步骤一起说清楚。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，路由器R72，Wi-Fi 6连不上6GHz，频段、组网限制和设置顺序，条件、例外和处理步骤",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-11-3",
+    "topic": "路由器R72",
+    "query": "2026年6月1日起中国大陆官网现行规则，R72写Wi-Fi 6却连不上6GHz，频段、组网限制和设置顺序，假设适用条件、例外及处理办法",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-11:u0",
+        "quote": "路由器R72支持2.4GHz和5GHz，不支持6GHz；Wi-Fi 6是协议名称，不等同于6GHz频段。",
+        "fusion_rank": 3,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-11:u1",
+        "quote": "路由器R72仅与同系列R72或R73进行有线回程组网，不能因品牌相同就认定任意型号可混组。",
+        "fusion_rank": 2,
+        "rerank_rank": 3,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-11:u2",
+        "quote": "路由器R72组网先升级两端固件，再用网线连接主节点LAN口与子节点WAN口，等待配对完成后再调整位置。",
+        "fusion_rank": 4,
+        "rerank_rank": 4,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-11:u0"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-11:u1"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-11:u2"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，R72写Wi-Fi 6却连不上6GHz，频段、组网限制和设置顺序，假设适用条件、例外及处理办法",
+    "variants": [
+      [
+        "raw",
+        "以上只是我的假设，并不表示实际发生。请按这些假设说明适用条件、例外及处理办法。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，R72写Wi-Fi 6却连不上6GHz，频段、组网限制和设置顺序，假设适用条件、例外及处理办法",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-11-4",
+    "topic": "路由器R72",
+    "query": "2026年6月1日起中国大陆官网现行规则，R72写Wi-Fi 6却连不上6GHz，频段、组网限制和设置顺序分别是什么？如果还不能确认是否满足这些前提，请列出需要核实的条件、相关例外和后续处理步骤，不要直接认定我符合条件。",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-11:u0",
+        "quote": "路由器R72支持2.4GHz和5GHz，不支持6GHz；Wi-Fi 6是协议名称，不等同于6GHz频段。",
+        "fusion_rank": 4,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-11:u1",
+        "quote": "路由器R72仅与同系列R72或R73进行有线回程组网，不能因品牌相同就认定任意型号可混组。",
+        "fusion_rank": 2,
+        "rerank_rank": 2,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-11:u2",
+        "quote": "路由器R72组网先升级两端固件，再用网线连接主节点LAN口与子节点WAN口，等待配对完成后再调整位置。",
+        "fusion_rank": 1,
+        "rerank_rank": 4,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-11:u0"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-11:u1"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-11:u2"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，R72写Wi-Fi 6却连不上6GHz，频段、组网限制和设置顺序分别是什么？如果还不能确认是否满足这些前提，请列出需要核实的条件、相关例外和后续处理步骤，不要直接认定我符合条件。",
+    "variants": [
+      [
+        "raw",
+        "如果我还不能确认是否满足这些前提，请列出需要核实的条件、相关例外和后续处理步骤，不要直接认定我符合条件。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，R72写Wi-Fi 6却连不上6GHz，频段、组网限制和设置顺序分别是什么？如果还不能确认是否满足这些前提，请列出需要核实的条件、相关例外和后续处理步骤，不要直接认定我符合条件。",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-12-1",
+    "topic": "门锁L82",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。L82应急USB能否给电池充电，电池类型限制是什么，开门后要怎么做？",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-12:u0",
+        "quote": "门锁L82外部USB只提供临时应急电源，不给内部电池充电。",
+        "fusion_rank": 3,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-12:u1",
+        "quote": "门锁L82电池仓仅适配四节同品牌新碱性电池，不得混用新旧电池或充电锂电池。",
+        "fusion_rank": 1,
+        "rerank_rank": 3,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-12:u2",
+        "quote": "门锁L82应急开门后先拔掉外部供电，再更换全部电池并测试一次开关锁，不能长期依赖应急线供电。",
+        "fusion_rank": 2,
+        "rerank_rank": 2,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-12:u0"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-12:u2"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-12:u1"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。L82应急USB能否给电池充电，电池类型限制是什么，开门后要怎么做？",
+    "variants": [
+      [
+        "raw",
+        "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。L82应急USB能否给电池充电，电池类型限制是什么，开门后要怎么做？",
+        1.0
+      ]
+    ],
+    "rewrite_fallback": true,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-12-2",
+    "topic": "门锁L82",
+    "query": "2026年6月1日起中国大陆官网现行规则，门锁L82，电池充电条件、电池类型限制、开门后处理步骤，不问经销商或香港渠道，不查询具体订单",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-12:u0",
+        "quote": "门锁L82外部USB只提供临时应急电源，不给内部电池充电。",
+        "fusion_rank": 3,
+        "rerank_rank": 2,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-12:u1",
+        "quote": "门锁L82电池仓仅适配四节同品牌新碱性电池，不得混用新旧电池或充电锂电池。",
+        "fusion_rank": 2,
+        "rerank_rank": 4,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-12:u2",
+        "quote": "门锁L82应急开门后先拔掉外部供电，再更换全部电池并测试一次开关锁，不能长期依赖应急线供电。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-12:u2"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-12:u0"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-12:u1"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，门锁L82，电池充电条件、电池类型限制、开门后处理步骤，不问经销商或香港渠道，不查询具体订单",
+    "variants": [
+      [
+        "raw",
+        "不是，我问的是门锁L82，按刚才提到的现行渠道，把条件、例外和处理步骤一起说清楚。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，门锁L82，电池充电条件、电池类型限制、开门后处理步骤，不问经销商或香港渠道，不查询具体订单",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-12-3",
+    "topic": "门锁L82",
+    "query": "2026年6月1日起中国大陆官网现行规则，L82应急USB给电池充电的适用条件、例外及处理办法（假设性说明，非实际发生）",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-12:u0",
+        "quote": "门锁L82外部USB只提供临时应急电源，不给内部电池充电。",
+        "fusion_rank": 3,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-12:u1",
+        "quote": "门锁L82电池仓仅适配四节同品牌新碱性电池，不得混用新旧电池或充电锂电池。",
+        "fusion_rank": 2,
+        "rerank_rank": 4,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-12:u2",
+        "quote": "门锁L82应急开门后先拔掉外部供电，再更换全部电池并测试一次开关锁，不能长期依赖应急线供电。",
+        "fusion_rank": 1,
+        "rerank_rank": 2,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-12:u0"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-12:u2"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-12:u1"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，L82应急USB给电池充电的适用条件、例外及处理办法（假设性说明，非实际发生）",
+    "variants": [
+      [
+        "raw",
+        "以上只是我的假设，并不表示实际发生。请按这些假设说明适用条件、例外及处理办法。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，L82应急USB给电池充电的适用条件、例外及处理办法（假设性说明，非实际发生）",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-12-4",
+    "topic": "门锁L82",
+    "query": "2026年6月1日起中国大陆官网现行规则，L82应急USB给电池充电，电池类型限制，开门后做法，需要核实的条件、相关例外和后续处理步骤",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-12:u0",
+        "quote": "门锁L82外部USB只提供临时应急电源，不给内部电池充电。",
+        "fusion_rank": 5,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-12:u1",
+        "quote": "门锁L82电池仓仅适配四节同品牌新碱性电池，不得混用新旧电池或充电锂电池。",
+        "fusion_rank": 3,
+        "rerank_rank": 3,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-12:u2",
+        "quote": "门锁L82应急开门后先拔掉外部供电，再更换全部电池并测试一次开关锁，不能长期依赖应急线供电。",
+        "fusion_rank": 1,
+        "rerank_rank": 2,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-12:u0"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-12:u2"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-12:u1"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，L82应急USB给电池充电，电池类型限制，开门后做法，需要核实的条件、相关例外和后续处理步骤",
+    "variants": [
+      [
+        "raw",
+        "如果我还不能确认是否满足这些前提，请列出需要核实的条件、相关例外和后续处理步骤，不要直接认定我符合条件。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，L82应急USB给电池充电，电池类型限制，开门后做法，需要核实的条件、相关例外和后续处理步骤",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-14-1",
+    "topic": "电子书E64",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。E64登录过账号但未买内容，试用退货条件、内容费用例外及寄回步骤是什么？",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-14:u0",
+        "quote": "电子书E64签收十四日内可试用退货，登录账号本身不取消试用资格。",
+        "fusion_rank": 1,
+        "rerank_rank": 2,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-14:u1",
+        "quote": "电子书E64下载的付费内容不随硬件退货自动退款；是否存在内容费用须依据实际购买情况，不能由登录推断。",
+        "fusion_rank": 3,
+        "rerank_rank": 3,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-14:u2",
+        "quote": "电子书E64退回前应备份个人文件、退出账号并恢复出厂设置，硬件退款按分摊实付金额处理。",
+        "fusion_rank": 2,
+        "rerank_rank": 1,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-14:u2"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-14:u0"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-14:u1"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:2",
+        "start": 814,
+        "end": 1715,
+        "section_count": 16,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。E64登录过账号但未买内容，试用退货条件、内容费用例外及寄回步骤是什么？",
+    "variants": [
+      [
+        "raw",
+        "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。E64登录过账号但未买内容，试用退货条件、内容费用例外及寄回步骤是什么？",
+        1.0
+      ]
+    ],
+    "rewrite_fallback": true,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-14-2",
+    "topic": "电子书E64",
+    "query": "2026年6月1日起中国大陆官网现行规则，电子书E64，试用退货条件、内容费用例外及寄回步骤是什么？",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-14:u0",
+        "quote": "电子书E64签收十四日内可试用退货，登录账号本身不取消试用资格。",
+        "fusion_rank": 2,
+        "rerank_rank": 2,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-14:u1",
+        "quote": "电子书E64下载的付费内容不随硬件退货自动退款；是否存在内容费用须依据实际购买情况，不能由登录推断。",
+        "fusion_rank": 1,
+        "rerank_rank": 3,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-14:u2",
+        "quote": "电子书E64退回前应备份个人文件、退出账号并恢复出厂设置，硬件退款按分摊实付金额处理。",
+        "fusion_rank": 3,
+        "rerank_rank": 1,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-14:u2"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-14:u0"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-14:u1"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，电子书E64，试用退货条件、内容费用例外及寄回步骤是什么？",
+    "variants": [
+      [
+        "raw",
+        "不是，我问的是电子书E64，按刚才提到的现行渠道，把条件、例外和处理步骤一起说清楚。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，电子书E64，试用退货条件、内容费用例外及寄回步骤是什么？",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-14-3",
+    "topic": "电子书E64",
+    "query": "2026年6月1日起中国大陆官网现行规则，E64登录过账号但未买内容，试用退货条件、内容费用例外及寄回步骤是什么？",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-14:u0",
+        "quote": "电子书E64签收十四日内可试用退货，登录账号本身不取消试用资格。",
+        "fusion_rank": 2,
+        "rerank_rank": 2,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-14:u1",
+        "quote": "电子书E64下载的付费内容不随硬件退货自动退款；是否存在内容费用须依据实际购买情况，不能由登录推断。",
+        "fusion_rank": 1,
+        "rerank_rank": 3,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-14:u2",
+        "quote": "电子书E64退回前应备份个人文件、退出账号并恢复出厂设置，硬件退款按分摊实付金额处理。",
+        "fusion_rank": 3,
+        "rerank_rank": 1,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-14:u2"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-14:u0"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-14:u1"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，E64登录过账号但未买内容，试用退货条件、内容费用例外及寄回步骤是什么？",
+    "variants": [
+      [
+        "raw",
+        "以上只是我的假设，并不表示实际发生。请按这些假设说明适用条件、例外及处理办法。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，E64登录过账号但未买内容，试用退货条件、内容费用例外及寄回步骤是什么？",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-14-4",
+    "topic": "电子书E64",
+    "query": "2026年6月1日起中国大陆官网现行规则，E64登录过账号但未买内容，试用退货条件、内容费用例外及寄回步骤，需要核实的条件、相关例外和后续处理步骤",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-14:u0",
+        "quote": "电子书E64签收十四日内可试用退货，登录账号本身不取消试用资格。",
+        "fusion_rank": 2,
+        "rerank_rank": 2,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-14:u1",
+        "quote": "电子书E64下载的付费内容不随硬件退货自动退款；是否存在内容费用须依据实际购买情况，不能由登录推断。",
+        "fusion_rank": 3,
+        "rerank_rank": 3,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-14:u2",
+        "quote": "电子书E64退回前应备份个人文件、退出账号并恢复出厂设置，硬件退款按分摊实付金额处理。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-14:u2"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-14:u0"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-14:u1"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，E64登录过账号但未买内容，试用退货条件、内容费用例外及寄回步骤，需要核实的条件、相关例外和后续处理步骤",
+    "variants": [
+      [
+        "raw",
+        "如果我还不能确认是否满足这些前提，请列出需要核实的条件、相关例外和后续处理步骤，不要直接认定我符合条件。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，E64登录过账号但未买内容，试用退货条件、内容费用例外及寄回步骤，需要核实的条件、相关例外和后续处理步骤",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-15-1",
+    "topic": "加湿器H62",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。H62想加消毒液杀菌，水箱和香薰盒如何区分、什么不能加以及清洁步骤？",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-15:u0",
+        "quote": "加湿器H62水箱只加入清洁水，不得加入香精、消毒液或含油液体。",
+        "fusion_rank": 3,
+        "rerank_rank": 3,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-15:u1",
+        "quote": "加湿器H62独立香薰盒仅可按指定用量加入适配香薰液，香薰盒可加液不代表水箱允许加液。",
+        "fusion_rank": 2,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-15:u2",
+        "quote": "加湿器H62清洁前断电，倒空余水后擦拭水箱并晾干，不得将带电底座浸入水中。",
+        "fusion_rank": 1,
+        "rerank_rank": 2,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-15:u1"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-15:u2"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-15:u0"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。H62想加消毒液杀菌，水箱和香薰盒如何区分、什么不能加以及清洁步骤？",
+    "variants": [
+      [
+        "raw",
+        "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。H62想加消毒液杀菌，水箱和香薰盒如何区分、什么不能加以及清洁步骤？",
+        1.0
+      ]
+    ],
+    "rewrite_fallback": true,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-15-2",
+    "topic": "加湿器H62",
+    "query": "2026年6月1日起中国大陆官网现行规则，加湿器H62，水箱和香薰盒如何区分、什么不能加以及清洁步骤，条件、例外和处理步骤",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-15:u0",
+        "quote": "加湿器H62水箱只加入清洁水，不得加入香精、消毒液或含油液体。",
+        "fusion_rank": 3,
+        "rerank_rank": 2,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-15:u1",
+        "quote": "加湿器H62独立香薰盒仅可按指定用量加入适配香薰液，香薰盒可加液不代表水箱允许加液。",
+        "fusion_rank": 1,
+        "rerank_rank": 3,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-15:u2",
+        "quote": "加湿器H62清洁前断电，倒空余水后擦拭水箱并晾干，不得将带电底座浸入水中。",
+        "fusion_rank": 2,
+        "rerank_rank": 1,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-15:u2"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-15:u0"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-15:u1"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，加湿器H62，水箱和香薰盒如何区分、什么不能加以及清洁步骤，条件、例外和处理步骤",
+    "variants": [
+      [
+        "raw",
+        "不是，我问的是加湿器H62，按刚才提到的现行渠道，把条件、例外和处理步骤一起说清楚。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，加湿器H62，水箱和香薰盒如何区分、什么不能加以及清洁步骤，条件、例外和处理步骤",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-15-3",
+    "topic": "加湿器H62",
+    "query": "2026年6月1日起中国大陆官网现行规则，H62加消毒液杀菌，水箱和香薰盒如何区分、什么不能加以及清洁步骤，适用条件、例外及处理办法",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-15:u0",
+        "quote": "加湿器H62水箱只加入清洁水，不得加入香精、消毒液或含油液体。",
+        "fusion_rank": 4,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-15:u1",
+        "quote": "加湿器H62独立香薰盒仅可按指定用量加入适配香薰液，香薰盒可加液不代表水箱允许加液。",
+        "fusion_rank": 1,
+        "rerank_rank": 3,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-15:u2",
+        "quote": "加湿器H62清洁前断电，倒空余水后擦拭水箱并晾干，不得将带电底座浸入水中。",
+        "fusion_rank": 2,
+        "rerank_rank": 2,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-15:u0"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-15:u2"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-15:u1"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，H62加消毒液杀菌，水箱和香薰盒如何区分、什么不能加以及清洁步骤，适用条件、例外及处理办法",
+    "variants": [
+      [
+        "raw",
+        "以上只是我的假设，并不表示实际发生。请按这些假设说明适用条件、例外及处理办法。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，H62加消毒液杀菌，水箱和香薰盒如何区分、什么不能加以及清洁步骤，适用条件、例外及处理办法",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-15-4",
+    "topic": "加湿器H62",
+    "query": "2026年6月1日起中国大陆官网现行规则，H62加消毒液杀菌，水箱和香薰盒如何区分、什么不能加以及清洁步骤，需要核实的条件、相关例外和后续处理步骤",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-15:u0",
+        "quote": "加湿器H62水箱只加入清洁水，不得加入香精、消毒液或含油液体。",
+        "fusion_rank": 4,
+        "rerank_rank": 3,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-15:u1",
+        "quote": "加湿器H62独立香薰盒仅可按指定用量加入适配香薰液，香薰盒可加液不代表水箱允许加液。",
+        "fusion_rank": 2,
+        "rerank_rank": 2,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-15:u2",
+        "quote": "加湿器H62清洁前断电，倒空余水后擦拭水箱并晾干，不得将带电底座浸入水中。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-15:u2"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-15:u1"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-15:u0"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，H62加消毒液杀菌，水箱和香薰盒如何区分、什么不能加以及清洁步骤，需要核实的条件、相关例外和后续处理步骤",
+    "variants": [
+      [
+        "raw",
+        "如果我还不能确认是否满足这些前提，请列出需要核实的条件、相关例外和后续处理步骤，不要直接认定我符合条件。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，H62加消毒液杀菌，水箱和香薰盒如何区分、什么不能加以及清洁步骤，需要核实的条件、相关例外和后续处理步骤",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-17-1",
+    "topic": "风扇F69",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。F69想明早自动开机，定时功能、断电限制以及能用的操作是什么？",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-17:u0",
+        "quote": "风扇F69内置定时只支持延时关机，不支持预约开机。",
+        "fusion_rank": 3,
+        "rerank_rank": 2,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-17:u1",
+        "quote": "风扇F69断电后原定时设置清除，恢复供电不会自动恢复运行；智能插座通电不能代替开机操作。",
+        "fusion_rank": 5,
+        "rerank_rank": 3,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-17:u2",
+        "quote": "风扇F69需先手动开机，再按定时键选择关机时长；取消定时须切换至定时指示灯熄灭。",
+        "fusion_rank": 2,
+        "rerank_rank": 1,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-17:u2"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-17:u0"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-17:u1"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。F69想明早自动开机，定时功能、断电限制以及能用的操作是什么？",
+    "variants": [
+      [
+        "raw",
+        "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。F69想明早自动开机，定时功能、断电限制以及能用的操作是什么？",
+        1.0
+      ]
+    ],
+    "rewrite_fallback": true,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-17-2",
+    "topic": "风扇F69",
+    "query": "2026年6月1日起中国大陆官网现行规则，风扇F69，定时功能、断电限制以及能用的操作，条件、例外和处理步骤",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-17:u0",
+        "quote": "风扇F69内置定时只支持延时关机，不支持预约开机。",
+        "fusion_rank": 5,
+        "rerank_rank": 2,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-17:u1",
+        "quote": "风扇F69断电后原定时设置清除，恢复供电不会自动恢复运行；智能插座通电不能代替开机操作。",
+        "fusion_rank": 1,
+        "rerank_rank": 4,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-17:u2",
+        "quote": "风扇F69需先手动开机，再按定时键选择关机时长；取消定时须切换至定时指示灯熄灭。",
+        "fusion_rank": 2,
+        "rerank_rank": 1,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-17:u2"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-17:u0"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-17:u1"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，风扇F69，定时功能、断电限制以及能用的操作，条件、例外和处理步骤",
+    "variants": [
+      [
+        "raw",
+        "不是，我问的是风扇F69，按刚才提到的现行渠道，把条件、例外和处理步骤一起说清楚。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，风扇F69，定时功能、断电限制以及能用的操作，条件、例外和处理步骤",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-17-3",
+    "topic": "风扇F69",
+    "query": "2026年6月1日起中国大陆官网现行规则，F69想明早自动开机，定时功能、断电限制以及能用的操作是什么？适用条件、例外及处理办法（假设性说明）",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-17:u0",
+        "quote": "风扇F69内置定时只支持延时关机，不支持预约开机。",
+        "fusion_rank": 6,
+        "rerank_rank": 2,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-17:u1",
+        "quote": "风扇F69断电后原定时设置清除，恢复供电不会自动恢复运行；智能插座通电不能代替开机操作。",
+        "fusion_rank": 1,
+        "rerank_rank": 3,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-17:u2",
+        "quote": "风扇F69需先手动开机，再按定时键选择关机时长；取消定时须切换至定时指示灯熄灭。",
+        "fusion_rank": 3,
+        "rerank_rank": 1,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-17:u2"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-17:u0"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-17:u1"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，F69想明早自动开机，定时功能、断电限制以及能用的操作是什么？适用条件、例外及处理办法（假设性说明）",
+    "variants": [
+      [
+        "raw",
+        "以上只是我的假设，并不表示实际发生。请按这些假设说明适用条件、例外及处理办法。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，F69想明早自动开机，定时功能、断电限制以及能用的操作是什么？适用条件、例外及处理办法（假设性说明）",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-17-4",
+    "topic": "风扇F69",
+    "query": "2026年6月1日起中国大陆官网现行规则，F69定时开机功能，需要核实的条件、相关例外和后续处理步骤",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-17:u0",
+        "quote": "风扇F69内置定时只支持延时关机，不支持预约开机。",
+        "fusion_rank": 3,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-17:u1",
+        "quote": "风扇F69断电后原定时设置清除，恢复供电不会自动恢复运行；智能插座通电不能代替开机操作。",
+        "fusion_rank": 7,
+        "rerank_rank": 5,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-17:u2",
+        "quote": "风扇F69需先手动开机，再按定时键选择关机时长；取消定时须切换至定时指示灯熄灭。",
+        "fusion_rank": 1,
+        "rerank_rank": 2,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-17:u0"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-17:u2"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-17:u1"
+        ]
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，F69定时开机功能，需要核实的条件、相关例外和后续处理步骤",
+    "variants": [
+      [
+        "raw",
+        "如果我还不能确认是否满足这些前提，请列出需要核实的条件、相关例外和后续处理步骤，不要直接认定我符合条件。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，F69定时开机功能，需要核实的条件、相关例外和后续处理步骤",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-18-1",
+    "topic": "墨盒I82",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。I82外观像旧墨盒，P84能用吗、适配表怎么看、安装前确认什么？",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-18:u0",
+        "quote": "墨盒I82兼容表：P82支持，P83支持，P84不支持；外观相同不能作为兼容依据。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-18:u1",
+        "quote": "墨盒I82的地区编码须与打印机地区一致，同系列但不同地区编码也可能不识别。",
+        "fusion_rank": 4,
+        "rerank_rank": 4,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-18:u2",
+        "quote": "墨盒I82安装前核对机身型号和墨盒地区编码，移除运输封条后装入对应槽位，不强行改装触点。",
+        "fusion_rank": 5,
+        "rerank_rank": 3,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-18:u0"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-18:u0"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-18:u2"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-18:u1"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。I82外观像旧墨盒，P84能用吗、适配表怎么看、安装前确认什么？",
+    "variants": [
+      [
+        "raw",
+        "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。I82外观像旧墨盒，P84能用吗、适配表怎么看、安装前确认什么？",
+        1.0
+      ]
+    ],
+    "rewrite_fallback": true,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-18-2",
+    "topic": "墨盒I82",
+    "query": "2026年6月1日起中国大陆官网现行规则，墨盒I82，条件、例外和处理步骤",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-18:u0",
+        "quote": "墨盒I82兼容表：P82支持，P83支持，P84不支持；外观相同不能作为兼容依据。",
+        "fusion_rank": 3,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-18:u1",
+        "quote": "墨盒I82的地区编码须与打印机地区一致，同系列但不同地区编码也可能不识别。",
+        "fusion_rank": 4,
+        "rerank_rank": 3,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-18:u2",
+        "quote": "墨盒I82安装前核对机身型号和墨盒地区编码，移除运输封条后装入对应槽位，不强行改装触点。",
+        "fusion_rank": 1,
+        "rerank_rank": 4,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-18:u0"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-18:u0"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-18:u1"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-18:u2"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，墨盒I82，条件、例外和处理步骤",
+    "variants": [
+      [
+        "raw",
+        "不是，我问的是墨盒I82，按刚才提到的现行渠道，把条件、例外和处理步骤一起说清楚。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，墨盒I82，条件、例外和处理步骤",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-18-3",
+    "topic": "墨盒I82",
+    "query": "2026年6月1日起中国大陆官网现行规则，假设I82外观像旧墨盒，P84能用吗、适配表怎么看、安装前确认什么？适用条件、例外及处理办法",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-18:u0",
+        "quote": "墨盒I82兼容表：P82支持，P83支持，P84不支持；外观相同不能作为兼容依据。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-18:u1",
+        "quote": "墨盒I82的地区编码须与打印机地区一致，同系列但不同地区编码也可能不识别。",
+        "fusion_rank": 3,
+        "rerank_rank": 4,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-18:u2",
+        "quote": "墨盒I82安装前核对机身型号和墨盒地区编码，移除运输封条后装入对应槽位，不强行改装触点。",
+        "fusion_rank": 4,
+        "rerank_rank": 3,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-18:u0"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-18:u0"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-18:u2"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-18:u1"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，假设I82外观像旧墨盒，P84能用吗、适配表怎么看、安装前确认什么？适用条件、例外及处理办法",
+    "variants": [
+      [
+        "raw",
+        "以上只是我的假设，并不表示实际发生。请按这些假设说明适用条件、例外及处理办法。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，假设I82外观像旧墨盒，P84能用吗、适配表怎么看、安装前确认什么？适用条件、例外及处理办法",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-18-4",
+    "topic": "墨盒I82",
+    "query": "2026年6月1日起中国大陆官网现行规则，I82外观像旧墨盒，P84能用吗、适配表怎么看、安装前确认什么？如果还不能确认是否满足这些前提，请列出需要核实的条件、相关例外和后续处理步骤，不要直接认定符合条件。",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-18:u0",
+        "quote": "墨盒I82兼容表：P82支持，P83支持，P84不支持；外观相同不能作为兼容依据。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-18:u1",
+        "quote": "墨盒I82的地区编码须与打印机地区一致，同系列但不同地区编码也可能不识别。",
+        "fusion_rank": 6,
+        "rerank_rank": 4,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-18:u2",
+        "quote": "墨盒I82安装前核对机身型号和墨盒地区编码，移除运输封条后装入对应槽位，不强行改装触点。",
+        "fusion_rank": 2,
+        "rerank_rank": 3,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-18:u0"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-18:u0"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-18:u2"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-18:u1"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，I82外观像旧墨盒，P84能用吗、适配表怎么看、安装前确认什么？如果还不能确认是否满足这些前提，请列出需要核实的条件、相关例外和后续处理步骤，不要直接认定符合条件。",
+    "variants": [
+      [
+        "raw",
+        "如果我还不能确认是否满足这些前提，请列出需要核实的条件、相关例外和后续处理步骤，不要直接认定我符合条件。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，I82外观像旧墨盒，P84能用吗、适配表怎么看、安装前确认什么？如果还不能确认是否满足这些前提，请列出需要核实的条件、相关例外和后续处理步骤，不要直接认定符合条件。",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-20-1",
+    "topic": "相机C71",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。C71防水为什么不能直接潜水、防水壳有什么限制、入水前怎样检查？",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-20:u0",
+        "quote": "相机C71裸机仅支持防泼溅，不支持浸泡或潜水拍摄。",
+        "fusion_rank": 4,
+        "rerank_rank": 4,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-20:u1",
+        "quote": "相机C71潜水需使用专用壳，壳体额定深度三十米仅适用于密封圈完好且锁扣完全闭合的情况。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-20:u2",
+        "quote": "相机C71下水前应检查密封圈无沙粒裂纹并做空壳测试，发现渗水停止使用，不能凭防泼溅标识判断潜水安全。",
+        "fusion_rank": 2,
+        "rerank_rank": 2,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-20:u1"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-20:u2"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": []
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-20:u0"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。C71防水为什么不能直接潜水、防水壳有什么限制、入水前怎样检查？",
+    "variants": [
+      [
+        "raw",
+        "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。C71防水为什么不能直接潜水、防水壳有什么限制、入水前怎样检查？",
+        1.0
+      ]
+    ],
+    "rewrite_fallback": true,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-20-2",
+    "topic": "相机C71",
+    "query": "2026年6月1日起中国大陆官网现行规则，相机C71防水为什么不能直接潜水、防水壳有什么限制、入水前怎样检查，条件、例外和处理步骤",
+    "status": "UNAVAILABLE",
+    "detail_code": "POSTGRES_UNAVAILABLE"
+  },
+  {
+    "id": "cx-20-3",
+    "topic": "相机C71",
+    "query": "2026年6月1日起中国大陆官网现行规则下，假设C71防水不能直接潜水、防水壳有限制、入水前需检查，适用条件、例外及处理办法是什么？",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-20:u0",
+        "quote": "相机C71裸机仅支持防泼溅，不支持浸泡或潜水拍摄。",
+        "fusion_rank": 5,
+        "rerank_rank": 4,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-20:u1",
+        "quote": "相机C71潜水需使用专用壳，壳体额定深度三十米仅适用于密封圈完好且锁扣完全闭合的情况。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-20:u2",
+        "quote": "相机C71下水前应检查密封圈无沙粒裂纹并做空壳测试，发现渗水停止使用，不能凭防泼溅标识判断潜水安全。",
+        "fusion_rank": 3,
+        "rerank_rank": 2,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-20:u1"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-20:u2"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": []
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-20:u0"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则下，假设C71防水不能直接潜水、防水壳有限制、入水前需检查，适用条件、例外及处理办法是什么？",
+    "variants": [
+      [
+        "raw",
+        "以上只是我的假设，并不表示实际发生。请按这些假设说明适用条件、例外及处理办法。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则下，假设C71防水不能直接潜水、防水壳有限制、入水前需检查，适用条件、例外及处理办法是什么？",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-20-4",
+    "topic": "相机C71",
+    "query": "2026年6月1日起中国大陆官网现行规则：C71防水不能直接潜水的原因、防水壳限制、入水前检查方法；若无法确认是否满足前提，需核实的条件、相关例外和后续处理步骤",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-20:u0",
+        "quote": "相机C71裸机仅支持防泼溅，不支持浸泡或潜水拍摄。",
+        "fusion_rank": 6,
+        "rerank_rank": 5,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-20:u1",
+        "quote": "相机C71潜水需使用专用壳，壳体额定深度三十米仅适用于密封圈完好且锁扣完全闭合的情况。",
+        "fusion_rank": 1,
+        "rerank_rank": 3,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-20:u2",
+        "quote": "相机C71下水前应检查密封圈无沙粒裂纹并做空壳测试，发现渗水停止使用，不能凭防泼溅标识判断潜水安全。",
+        "fusion_rank": 3,
+        "rerank_rank": 1,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-20:u2"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": true,
+        "covered_units": []
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-20:u1"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-20:u0"
+        ]
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则：C71防水不能直接潜水的原因、防水壳限制、入水前检查方法；若无法确认是否满足前提，需核实的条件、相关例外和后续处理步骤",
+    "variants": [
+      [
+        "raw",
+        "如果我还不能确认是否满足这些前提，请列出需要核实的条件、相关例外和后续处理步骤，不要直接认定我符合条件。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则：C71防水不能直接潜水的原因、防水壳限制、入水前检查方法；若无法确认是否满足前提，需核实的条件、相关例外和后续处理步骤",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-21-1",
+    "topic": "手环B68",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。B68十天未同步，早期记录还在吗、容量限制和后续同步应注意什么？",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-21:u0",
+        "quote": "手环B68可离线保存最近七天运动记录，超过七天未同步时最早一天记录被循环覆盖。",
+        "fusion_rank": 4,
+        "rerank_rank": 3,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-21:u1",
+        "quote": "手环B68恢复出厂设置会清除尚未同步的记录；手机端已同步记录不会因手环重置自动删除。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-21:u2",
+        "quote": "手环B68应先连接原绑定账号完成同步再考虑重置，已被覆盖的本地记录不能承诺通过再次同步恢复。",
+        "fusion_rank": 3,
+        "rerank_rank": 2,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-21:u1"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-21:u2"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-21:u0"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。B68十天未同步，早期记录还在吗、容量限制和后续同步应注意什么？",
+    "variants": [
+      [
+        "raw",
+        "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。B68十天未同步，早期记录还在吗、容量限制和后续同步应注意什么？",
+        1.0
+      ]
+    ],
+    "rewrite_fallback": true,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-21-2",
+    "topic": "手环B68",
+    "query": "手环B68，2026年6月1日起中国大陆官网现行规则，十天未同步，早期记录是否还在、容量限制和后续同步注意事项，条件、例外和处理步骤",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-21:u0",
+        "quote": "手环B68可离线保存最近七天运动记录，超过七天未同步时最早一天记录被循环覆盖。",
+        "fusion_rank": 2,
+        "rerank_rank": 3,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-21:u1",
+        "quote": "手环B68恢复出厂设置会清除尚未同步的记录；手机端已同步记录不会因手环重置自动删除。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-21:u2",
+        "quote": "手环B68应先连接原绑定账号完成同步再考虑重置，已被覆盖的本地记录不能承诺通过再次同步恢复。",
+        "fusion_rank": 3,
+        "rerank_rank": 2,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-21:u1"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-21:u2"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-21:u0"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "手环B68，2026年6月1日起中国大陆官网现行规则，十天未同步，早期记录是否还在、容量限制和后续同步注意事项，条件、例外和处理步骤",
+    "variants": [
+      [
+        "raw",
+        "不是，我问的是手环B68，按刚才提到的现行渠道，把条件、例外和处理步骤一起说清楚。",
+        0.25
+      ],
+      [
+        "standalone",
+        "手环B68，2026年6月1日起中国大陆官网现行规则，十天未同步，早期记录是否还在、容量限制和后续同步注意事项，条件、例外和处理步骤",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-21-3",
+    "topic": "手环B68",
+    "query": "2026年6月1日起中国大陆官网现行规则，B68十天未同步，早期记录是否还在、容量限制及后续同步注意事项的适用条件、例外及处理办法（假设情形）",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-21:u0",
+        "quote": "手环B68可离线保存最近七天运动记录，超过七天未同步时最早一天记录被循环覆盖。",
+        "fusion_rank": 6,
+        "rerank_rank": 4,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-21:u1",
+        "quote": "手环B68恢复出厂设置会清除尚未同步的记录；手机端已同步记录不会因手环重置自动删除。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-21:u2",
+        "quote": "手环B68应先连接原绑定账号完成同步再考虑重置，已被覆盖的本地记录不能承诺通过再次同步恢复。",
+        "fusion_rank": 4,
+        "rerank_rank": 2,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-21:u1"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-21:u2"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-21:u0"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，B68十天未同步，早期记录是否还在、容量限制及后续同步注意事项的适用条件、例外及处理办法（假设情形）",
+    "variants": [
+      [
+        "raw",
+        "以上只是我的假设，并不表示实际发生。请按这些假设说明适用条件、例外及处理办法。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，B68十天未同步，早期记录是否还在、容量限制及后续同步注意事项的适用条件、例外及处理办法（假设情形）",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-21-4",
+    "topic": "手环B68",
+    "query": "2026年6月1日起中国大陆官网现行规则，B68十天未同步，早期记录是否还在、容量限制和后续同步注意事项，需核实的条件、相关例外和后续处理步骤",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-21:u0",
+        "quote": "手环B68可离线保存最近七天运动记录，超过七天未同步时最早一天记录被循环覆盖。",
+        "fusion_rank": 5,
+        "rerank_rank": 4,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-21:u1",
+        "quote": "手环B68恢复出厂设置会清除尚未同步的记录；手机端已同步记录不会因手环重置自动删除。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-21:u2",
+        "quote": "手环B68应先连接原绑定账号完成同步再考虑重置，已被覆盖的本地记录不能承诺通过再次同步恢复。",
+        "fusion_rank": 3,
+        "rerank_rank": 2,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-21:u1"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-21:u2"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-21:u0"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:1",
+        "start": 1831,
+        "end": 2897,
+        "section_count": 11,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，B68十天未同步，早期记录是否还在、容量限制和后续同步注意事项，需核实的条件、相关例外和后续处理步骤",
+    "variants": [
+      [
+        "raw",
+        "如果我还不能确认是否满足这些前提，请列出需要核实的条件、相关例外和后续处理步骤，不要直接认定我符合条件。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，B68十天未同步，早期记录是否还在、容量限制和后续同步注意事项，需核实的条件、相关例外和后续处理步骤",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-23-1",
+    "topic": "扫描仪S81",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。S81扫描有条纹，校准前提、校准卡限制和操作顺序是什么？",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-23:u0",
+        "quote": "扫描仪S81校准前需清洁扫描玻璃并确认玻璃完全干燥。",
+        "fusion_rank": 5,
+        "rerank_rank": 5,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-23:u1",
+        "quote": "扫描仪S81仅使用随附或同型号校准卡，普通白纸不能保证校准精度。",
+        "fusion_rank": 1,
+        "rerank_rank": 2,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-23:u2",
+        "quote": "扫描仪S81放入校准卡后在设置中选择校准，等待完成提示再取卡；若条纹仍存在应保留样张申请检测。",
+        "fusion_rank": 2,
+        "rerank_rank": 1,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-23:u2"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-23:u1"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:2",
+        "start": 814,
+        "end": 1715,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-23:u2"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-23:u0"
+        ]
+      }
+    ],
+    "full": true,
+    "rerank_query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。S81扫描有条纹，校准前提、校准卡限制和操作顺序是什么？",
+    "variants": [
+      [
+        "raw",
+        "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。S81扫描有条纹，校准前提、校准卡限制和操作顺序是什么？",
+        1.0
+      ]
+    ],
+    "rewrite_fallback": true,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-23-2",
+    "topic": "扫描仪S81",
+    "query": "2026年6月1日起中国大陆官网现行规则，扫描仪S81，校准前提、校准卡限制和操作顺序是什么？",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-23:u0",
+        "quote": "扫描仪S81校准前需清洁扫描玻璃并确认玻璃完全干燥。",
+        "fusion_rank": 3,
+        "rerank_rank": 4,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-23:u1",
+        "quote": "扫描仪S81仅使用随附或同型号校准卡，普通白纸不能保证校准精度。",
+        "fusion_rank": 1,
+        "rerank_rank": 2,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-23:u2",
+        "quote": "扫描仪S81放入校准卡后在设置中选择校准，等待完成提示再取卡；若条纹仍存在应保留样张申请检测。",
+        "fusion_rank": 2,
+        "rerank_rank": 1,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-23:u2"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-23:u1"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:2",
+        "start": 814,
+        "end": 1715,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-23:u2"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-23:u0"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，扫描仪S81，校准前提、校准卡限制和操作顺序是什么？",
+    "variants": [
+      [
+        "raw",
+        "不是，我问的是扫描仪S81，按刚才提到的现行渠道，把条件、例外和处理步骤一起说清楚。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，扫描仪S81，校准前提、校准卡限制和操作顺序是什么？",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-23-3",
+    "topic": "扫描仪S81",
+    "query": "2026年6月1日起中国大陆官网现行规则，S81扫描有条纹，校准前提、校准卡限制和操作顺序的适用条件、例外及处理办法（假设情形）",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-23:u0",
+        "quote": "扫描仪S81校准前需清洁扫描玻璃并确认玻璃完全干燥。",
+        "fusion_rank": 7,
+        "rerank_rank": 3,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-23:u1",
+        "quote": "扫描仪S81仅使用随附或同型号校准卡，普通白纸不能保证校准精度。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-23:u2",
+        "quote": "扫描仪S81放入校准卡后在设置中选择校准，等待完成提示再取卡；若条纹仍存在应保留样张申请检测。",
+        "fusion_rank": 3,
+        "rerank_rank": 2,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-23:u1"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-23:u2"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-23:u0"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:2",
+        "start": 814,
+        "end": 1715,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-23:u2"
+        ]
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，S81扫描有条纹，校准前提、校准卡限制和操作顺序的适用条件、例外及处理办法（假设情形）",
+    "variants": [
+      [
+        "raw",
+        "以上只是我的假设，并不表示实际发生。请按这些假设说明适用条件、例外及处理办法。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，S81扫描有条纹，校准前提、校准卡限制和操作顺序的适用条件、例外及处理办法（假设情形）",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-23-4",
+    "topic": "扫描仪S81",
+    "query": "2026年6月1日起中国大陆官网现行规则，S81扫描有条纹，校准前提、校准卡限制和操作顺序，需要核实的条件、相关例外和后续处理步骤",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-23:u0",
+        "quote": "扫描仪S81校准前需清洁扫描玻璃并确认玻璃完全干燥。",
+        "fusion_rank": 8,
+        "rerank_rank": 4,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-23:u1",
+        "quote": "扫描仪S81仅使用随附或同型号校准卡，普通白纸不能保证校准精度。",
+        "fusion_rank": 2,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-23:u2",
+        "quote": "扫描仪S81放入校准卡后在设置中选择校准，等待完成提示再取卡；若条纹仍存在应保留样张申请检测。",
+        "fusion_rank": 1,
+        "rerank_rank": 2,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-23:u1"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-23:u2"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:2",
+        "start": 814,
+        "end": 1715,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-23:u2"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-23:u0"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，S81扫描有条纹，校准前提、校准卡限制和操作顺序，需要核实的条件、相关例外和后续处理步骤",
+    "variants": [
+      [
+        "raw",
+        "如果我还不能确认是否满足这些前提，请列出需要核实的条件、相关例外和后续处理步骤，不要直接认定我符合条件。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，S81扫描有条纹，校准前提、校准卡限制和操作顺序，需要核实的条件、相关例外和后续处理步骤",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-24-1",
+    "topic": "键盘K86",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。K86仍连旧平板，新电脑搜不到，连接数量限制和换设备步骤是什么？",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-24:u0",
+        "quote": "键盘K86同一蓝牙通道同时只连接一台设备，切换设备前先断开旧连接。",
+        "fusion_rank": 5,
+        "rerank_rank": 3,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-24:u1",
+        "quote": "键盘K86有三个记忆通道，但记住三台不代表同一通道可同时向三台输入；有线模式不能执行蓝牙配对。",
+        "fusion_rank": 1,
+        "rerank_rank": 2,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-24:u2",
+        "quote": "键盘K86拨到蓝牙模式并选择目标通道，长按配对键三秒至闪烁，再在新设备列表选择K86并完成配对。",
+        "fusion_rank": 7,
+        "rerank_rank": 5,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": []
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-24:u1"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-24:u0"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:2",
+        "start": 814,
+        "end": 1715,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-24:u2"
+        ]
+      }
+    ],
+    "full": true,
+    "rerank_query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。K86仍连旧平板，新电脑搜不到，连接数量限制和换设备步骤是什么？",
+    "variants": [
+      [
+        "raw",
+        "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。K86仍连旧平板，新电脑搜不到，连接数量限制和换设备步骤是什么？",
+        1.0
+      ]
+    ],
+    "rewrite_fallback": true,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-24-2",
+    "topic": "键盘K86",
+    "query": "2026年6月1日起中国大陆官网现行规则，键盘K86，连接数量限制和换设备步骤，条件、例外和处理步骤",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-24:u0",
+        "quote": "键盘K86同一蓝牙通道同时只连接一台设备，切换设备前先断开旧连接。",
+        "fusion_rank": 4,
+        "rerank_rank": 3,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-24:u1",
+        "quote": "键盘K86有三个记忆通道，但记住三台不代表同一通道可同时向三台输入；有线模式不能执行蓝牙配对。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-24:u2",
+        "quote": "键盘K86拨到蓝牙模式并选择目标通道，长按配对键三秒至闪烁，再在新设备列表选择K86并完成配对。",
+        "fusion_rank": 7,
+        "rerank_rank": 5,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-24:u1"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": []
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-24:u0"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:2",
+        "start": 814,
+        "end": 1715,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-24:u2"
+        ]
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，键盘K86，连接数量限制和换设备步骤，条件、例外和处理步骤",
+    "variants": [
+      [
+        "raw",
+        "不是，我问的是键盘K86，按刚才提到的现行渠道，把条件、例外和处理步骤一起说清楚。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，键盘K86，连接数量限制和换设备步骤，条件、例外和处理步骤",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-24-3",
+    "topic": "键盘K86",
+    "query": "2026年6月1日起中国大陆官网现行规则，K86仍连旧平板，新电脑搜不到，连接数量限制和换设备步骤是什么？适用条件、例外及处理办法（假设情况）",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-24:u0",
+        "quote": "键盘K86同一蓝牙通道同时只连接一台设备，切换设备前先断开旧连接。",
+        "fusion_rank": 5,
+        "rerank_rank": 4,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-24:u1",
+        "quote": "键盘K86有三个记忆通道，但记住三台不代表同一通道可同时向三台输入；有线模式不能执行蓝牙配对。",
+        "fusion_rank": 1,
+        "rerank_rank": 2,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-24:u2",
+        "quote": "键盘K86拨到蓝牙模式并选择目标通道，长按配对键三秒至闪烁，再在新设备列表选择K86并完成配对。",
+        "fusion_rank": 7,
+        "rerank_rank": 5,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": []
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-24:u1"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-24:u0"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:2",
+        "start": 814,
+        "end": 1715,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-24:u2"
+        ]
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，K86仍连旧平板，新电脑搜不到，连接数量限制和换设备步骤是什么？适用条件、例外及处理办法（假设情况）",
+    "variants": [
+      [
+        "raw",
+        "以上只是我的假设，并不表示实际发生。请按这些假设说明适用条件、例外及处理办法。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，K86仍连旧平板，新电脑搜不到，连接数量限制和换设备步骤是什么？适用条件、例外及处理办法（假设情况）",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-24-4",
+    "topic": "键盘K86",
+    "query": "2026年6月1日起中国大陆官网现行规则，K86连接数量限制和换设备步骤，需要核实的条件、相关例外和后续处理步骤",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-24:u0",
+        "quote": "键盘K86同一蓝牙通道同时只连接一台设备，切换设备前先断开旧连接。",
+        "fusion_rank": 7,
+        "rerank_rank": 3,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-24:u1",
+        "quote": "键盘K86有三个记忆通道，但记住三台不代表同一通道可同时向三台输入；有线模式不能执行蓝牙配对。",
+        "fusion_rank": 3,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-24:u2",
+        "quote": "键盘K86拨到蓝牙模式并选择目标通道，长按配对键三秒至闪烁，再在新设备列表选择K86并完成配对。",
+        "fusion_rank": 6,
+        "rerank_rank": 5,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-24:u1"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": []
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-24:u0"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:2",
+        "start": 814,
+        "end": 1715,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-24:u2"
+        ]
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，K86连接数量限制和换设备步骤，需要核实的条件、相关例外和后续处理步骤",
+    "variants": [
+      [
+        "raw",
+        "如果我还不能确认是否满足这些前提，请列出需要核实的条件、相关例外和后续处理步骤，不要直接认定我符合条件。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，K86连接数量限制和换设备步骤，需要核实的条件、相关例外和后续处理步骤",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-26-1",
+    "topic": "机械秤T78",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。T78放地毯上不准，使用条件、归零的限制和正确步骤是什么？",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-26:u0",
+        "quote": "机械秤T78应放在坚硬水平的地面，厚地毯会影响称量读数。",
+        "fusion_rank": 5,
+        "rerank_rank": 4,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-26:u1",
+        "quote": "机械秤T78归零只校正空载指针，不能补偿柔软地面造成的受力变化。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-26:u2",
+        "quote": "机械秤T78移至硬地面后先空载调零，再平稳站上称量；不同地面读数不能直接解释为体重变化。",
+        "fusion_rank": 7,
+        "rerank_rank": 5,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-26:u1"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-26:u0"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:2",
+        "start": 814,
+        "end": 1715,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-26:u2"
+        ]
+      }
+    ],
+    "full": true,
+    "rerank_query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。T78放地毯上不准，使用条件、归零的限制和正确步骤是什么？",
+    "variants": [
+      [
+        "raw",
+        "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。T78放地毯上不准，使用条件、归零的限制和正确步骤是什么？",
+        1.0
+      ]
+    ],
+    "rewrite_fallback": true,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-26-2",
+    "topic": "机械秤T78",
+    "query": "2026年6月1日起中国大陆官网现行规则，机械秤T78，使用条件、例外和处理步骤是什么？",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-26:u0",
+        "quote": "机械秤T78应放在坚硬水平的地面，厚地毯会影响称量读数。",
+        "fusion_rank": 2,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-26:u1",
+        "quote": "机械秤T78归零只校正空载指针，不能补偿柔软地面造成的受力变化。",
+        "fusion_rank": 1,
+        "rerank_rank": 2,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-26:u2",
+        "quote": "机械秤T78移至硬地面后先空载调零，再平稳站上称量；不同地面读数不能直接解释为体重变化。",
+        "fusion_rank": 6,
+        "rerank_rank": 3,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-26:u0"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-26:u1"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:2",
+        "start": 814,
+        "end": 1715,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-26:u2"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，机械秤T78，使用条件、例外和处理步骤是什么？",
+    "variants": [
+      [
+        "raw",
+        "不是，我问的是机械秤T78，按刚才提到的现行渠道，把条件、例外和处理步骤一起说清楚。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，机械秤T78，使用条件、例外和处理步骤是什么？",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-26-3",
+    "topic": "机械秤T78",
+    "query": "2026年6月1日起中国大陆官网现行规则，T78放地毯上不准，使用条件、归零的限制和正确步骤是什么？假设情况下的适用条件、例外及处理办法",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-26:u0",
+        "quote": "机械秤T78应放在坚硬水平的地面，厚地毯会影响称量读数。",
+        "fusion_rank": 6,
+        "rerank_rank": 3,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-26:u1",
+        "quote": "机械秤T78归零只校正空载指针，不能补偿柔软地面造成的受力变化。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-26:u2",
+        "quote": "机械秤T78移至硬地面后先空载调零，再平稳站上称量；不同地面读数不能直接解释为体重变化。",
+        "fusion_rank": 8,
+        "rerank_rank": 5,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-26:u1"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-26:u0"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:2",
+        "start": 814,
+        "end": 1715,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-26:u2"
+        ]
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，T78放地毯上不准，使用条件、归零的限制和正确步骤是什么？假设情况下的适用条件、例外及处理办法",
+    "variants": [
+      [
+        "raw",
+        "以上只是我的假设，并不表示实际发生。请按这些假设说明适用条件、例外及处理办法。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，T78放地毯上不准，使用条件、归零的限制和正确步骤是什么？假设情况下的适用条件、例外及处理办法",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-26-4",
+    "topic": "机械秤T78",
+    "query": "2026年6月1日起中国大陆官网现行规则，T78放地毯上不准，使用条件、归零的限制和正确步骤，需要核实的条件、相关例外和后续处理步骤",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-26:u0",
+        "quote": "机械秤T78应放在坚硬水平的地面，厚地毯会影响称量读数。",
+        "fusion_rank": 7,
+        "rerank_rank": 4,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-26:u1",
+        "quote": "机械秤T78归零只校正空载指针，不能补偿柔软地面造成的受力变化。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-26:u2",
+        "quote": "机械秤T78移至硬地面后先空载调零，再平稳站上称量；不同地面读数不能直接解释为体重变化。",
+        "fusion_rank": 6,
+        "rerank_rank": 5,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-26:u1"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-26:u0"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:2",
+        "start": 814,
+        "end": 1715,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-26:u2"
+        ]
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，T78放地毯上不准，使用条件、归零的限制和正确步骤，需要核实的条件、相关例外和后续处理步骤",
+    "variants": [
+      [
+        "raw",
+        "如果我还不能确认是否满足这些前提，请列出需要核实的条件、相关例外和后续处理步骤，不要直接认定我符合条件。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，T78放地毯上不准，使用条件、归零的限制和正确步骤，需要核实的条件、相关例外和后续处理步骤",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-27-1",
+    "topic": "温控杯U75",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。U75杯体底座都想泡水，哪些可洗、接口限制和清洁顺序是什么？",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-27:u0",
+        "quote": "温控杯U75杯体可擦洗后晾干，底座不得浸水。",
+        "fusion_rank": 6,
+        "rerank_rank": 2,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-27:u1",
+        "quote": "温控杯U75杯底电触点潮湿时不能放回通电底座；防溅接口不代表可以冲洗带电底座。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-27:u2",
+        "quote": "温控杯U75清洁前先断开底座电源，移开杯体擦洗，确认杯底及触点完全干燥后再恢复使用。",
+        "fusion_rank": 5,
+        "rerank_rank": 3,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-27:u1"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-27:u0"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:2",
+        "start": 814,
+        "end": 1715,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-27:u2"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。U75杯体底座都想泡水，哪些可洗、接口限制和清洁顺序是什么？",
+    "variants": [
+      [
+        "raw",
+        "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。U75杯体底座都想泡水，哪些可洗、接口限制和清洁顺序是什么？",
+        1.0
+      ]
+    ],
+    "rewrite_fallback": true,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-27-2",
+    "topic": "温控杯U75",
+    "query": "2026年6月1日起中国大陆官网现行规则，温控杯U75杯体底座都想泡水，哪些可洗、接口限制和清洁顺序是什么？条件、例外和处理步骤",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-27:u0",
+        "quote": "温控杯U75杯体可擦洗后晾干，底座不得浸水。",
+        "fusion_rank": 2,
+        "rerank_rank": 2,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-27:u1",
+        "quote": "温控杯U75杯底电触点潮湿时不能放回通电底座；防溅接口不代表可以冲洗带电底座。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-27:u2",
+        "quote": "温控杯U75清洁前先断开底座电源，移开杯体擦洗，确认杯底及触点完全干燥后再恢复使用。",
+        "fusion_rank": 6,
+        "rerank_rank": 3,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-27:u1"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-27:u0"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:2",
+        "start": 814,
+        "end": 1715,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-27:u2"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，温控杯U75杯体底座都想泡水，哪些可洗、接口限制和清洁顺序是什么？条件、例外和处理步骤",
+    "variants": [
+      [
+        "raw",
+        "不是，我问的是温控杯U75，按刚才提到的现行渠道，把条件、例外和处理步骤一起说清楚。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，温控杯U75杯体底座都想泡水，哪些可洗、接口限制和清洁顺序是什么？条件、例外和处理步骤",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-27-3",
+    "topic": "温控杯U75",
+    "query": "2026年6月1日起中国大陆官网现行规则，假设U75杯体底座都想泡水，哪些可洗、接口限制和清洁顺序是什么？适用条件、例外及处理办法",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-27:u0",
+        "quote": "温控杯U75杯体可擦洗后晾干，底座不得浸水。",
+        "fusion_rank": 6,
+        "rerank_rank": 2,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-27:u1",
+        "quote": "温控杯U75杯底电触点潮湿时不能放回通电底座；防溅接口不代表可以冲洗带电底座。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-27:u2",
+        "quote": "温控杯U75清洁前先断开底座电源，移开杯体擦洗，确认杯底及触点完全干燥后再恢复使用。",
+        "fusion_rank": 7,
+        "rerank_rank": 4,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-27:u1"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-27:u0"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:2",
+        "start": 814,
+        "end": 1715,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-27:u2"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，假设U75杯体底座都想泡水，哪些可洗、接口限制和清洁顺序是什么？适用条件、例外及处理办法",
+    "variants": [
+      [
+        "raw",
+        "以上只是我的假设，并不表示实际发生。请按这些假设说明适用条件、例外及处理办法。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，假设U75杯体底座都想泡水，哪些可洗、接口限制和清洁顺序是什么？适用条件、例外及处理办法",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-27-4",
+    "topic": "温控杯U75",
+    "query": "2026年6月1日起中国大陆官网现行规则，U75杯体底座泡水清洗，可洗部件、接口限制、清洁顺序，需要核实的条件、相关例外和后续处理步骤",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-27:u0",
+        "quote": "温控杯U75杯体可擦洗后晾干，底座不得浸水。",
+        "fusion_rank": 7,
+        "rerank_rank": 2,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-27:u1",
+        "quote": "温控杯U75杯底电触点潮湿时不能放回通电底座；防溅接口不代表可以冲洗带电底座。",
+        "fusion_rank": 4,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-27:u2",
+        "quote": "温控杯U75清洁前先断开底座电源，移开杯体擦洗，确认杯底及触点完全干燥后再恢复使用。",
+        "fusion_rank": 5,
+        "rerank_rank": 3,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-27:u1"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-27:u0"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:2",
+        "start": 814,
+        "end": 1715,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-27:u2"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，U75杯体底座泡水清洗，可洗部件、接口限制、清洁顺序，需要核实的条件、相关例外和后续处理步骤",
+    "variants": [
+      [
+        "raw",
+        "如果我还不能确认是否满足这些前提，请列出需要核实的条件、相关例外和后续处理步骤，不要直接认定我符合条件。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，U75杯体底座泡水清洗，可洗部件、接口限制、清洁顺序，需要核实的条件、相关例外和后续处理步骤",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-29-1",
+    "topic": "无人机D87",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。D87换桨能混装A和B吗、更换前提和锁紧步骤是什么？",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-29:u0",
+        "quote": "无人机D87更换螺旋桨前应关机并断开电池。",
+        "fusion_rank": 6,
+        "rerank_rank": 6,
+        "visible": false
+      },
+      {
+        "unit_id": "cx-29:u1",
+        "quote": "无人机D87的A桨与A机臂、B桨与B机臂对应，不得混装相反标记或不同规格桨叶。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-29:u2",
+        "quote": "无人机D87按标记装入后旋紧锁扣，轻拉确认固定，再检查各桨无裂纹且转动不干涉，完成检查后才接电。",
+        "fusion_rank": 7,
+        "rerank_rank": 5,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-29:u1"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-29:u1"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:2",
+        "start": 814,
+        "end": 1715,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-29:u2"
+        ]
+      }
+    ],
+    "full": false,
+    "rerank_query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。D87换桨能混装A和B吗、更换前提和锁紧步骤是什么？",
+    "variants": [
+      [
+        "raw",
+        "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。D87换桨能混装A和B吗、更换前提和锁紧步骤是什么？",
+        1.0
+      ]
+    ],
+    "rewrite_fallback": true,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-29-2",
+    "topic": "无人机D87",
+    "query": "2026年6月1日起中国大陆官网现行规则，无人机D87换桨能混装A和B吗、更换前提和锁紧步骤是什么？",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-29:u0",
+        "quote": "无人机D87更换螺旋桨前应关机并断开电池。",
+        "fusion_rank": 4,
+        "rerank_rank": 5,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-29:u1",
+        "quote": "无人机D87的A桨与A机臂、B桨与B机臂对应，不得混装相反标记或不同规格桨叶。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-29:u2",
+        "quote": "无人机D87按标记装入后旋紧锁扣，轻拉确认固定，再检查各桨无裂纹且转动不干涉，完成检查后才接电。",
+        "fusion_rank": 7,
+        "rerank_rank": 6,
+        "visible": false
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-29:u1"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-29:u1"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-29:u0"
+        ]
+      }
+    ],
+    "full": false,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，无人机D87换桨能混装A和B吗、更换前提和锁紧步骤是什么？",
+    "variants": [
+      [
+        "raw",
+        "不是，我问的是无人机D87，按刚才提到的现行渠道，把条件、例外和处理步骤一起说清楚。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，无人机D87换桨能混装A和B吗、更换前提和锁紧步骤是什么？",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-29-3",
+    "topic": "无人机D87",
+    "query": "2026年6月1日起中国大陆官网现行规则，假设D87换桨混装A和B、更换前提、锁紧步骤，说明适用条件、例外及处理办法",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-29:u0",
+        "quote": "无人机D87更换螺旋桨前应关机并断开电池。",
+        "fusion_rank": 7,
+        "rerank_rank": 5,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-29:u1",
+        "quote": "无人机D87的A桨与A机臂、B桨与B机臂对应，不得混装相反标记或不同规格桨叶。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-29:u2",
+        "quote": "无人机D87按标记装入后旋紧锁扣，轻拉确认固定，再检查各桨无裂纹且转动不干涉，完成检查后才接电。",
+        "fusion_rank": 8,
+        "rerank_rank": 7,
+        "visible": false
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-29:u1"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-29:u1"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-29:u0"
+        ]
+      }
+    ],
+    "full": false,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，假设D87换桨混装A和B、更换前提、锁紧步骤，说明适用条件、例外及处理办法",
+    "variants": [
+      [
+        "raw",
+        "以上只是我的假设，并不表示实际发生。请按这些假设说明适用条件、例外及处理办法。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，假设D87换桨混装A和B、更换前提、锁紧步骤，说明适用条件、例外及处理办法",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-29-4",
+    "topic": "无人机D87",
+    "query": "2026年6月1日起中国大陆官网现行规则，D87换桨混装A和B的前提条件、需要核实的条件、相关例外和后续处理步骤",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-29:u0",
+        "quote": "无人机D87更换螺旋桨前应关机并断开电池。",
+        "fusion_rank": 8,
+        "rerank_rank": 3,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-29:u1",
+        "quote": "无人机D87的A桨与A机臂、B桨与B机臂对应，不得混装相反标记或不同规格桨叶。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-29:u2",
+        "quote": "无人机D87按标记装入后旋紧锁扣，轻拉确认固定，再检查各桨无裂纹且转动不干涉，完成检查后才接电。",
+        "fusion_rank": 5,
+        "rerank_rank": 6,
+        "visible": false
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-29:u1"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-29:u0"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-29:u1"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:2",
+        "start": 0,
+        "end": 931,
+        "section_count": 16,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": false,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，D87换桨混装A和B的前提条件、需要核实的条件、相关例外和后续处理步骤",
+    "variants": [
+      [
+        "raw",
+        "如果我还不能确认是否满足这些前提，请列出需要核实的条件、相关例外和后续处理步骤，不要直接认定我符合条件。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，D87换桨混装A和B的前提条件、需要核实的条件、相关例外和后续处理步骤",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-30-1",
+    "topic": "光伏充电板P96",
+    "query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。P96接口插得上就能给电源充电吗、电压例外和接线前步骤是什么？",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-30:u0",
+        "quote": "光伏充电板P96仅适配输入电压范围覆盖十八至二十四伏且接口极性一致的储能电源。",
+        "fusion_rank": 6,
+        "rerank_rank": 3,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-30:u1",
+        "quote": "光伏充电板P96插头外形一致不证明电压和极性兼容，串联两块后开路电压可能超出单块适配范围。",
+        "fusion_rank": 5,
+        "rerank_rank": 2,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-30:u2",
+        "quote": "光伏充电板P96接线前核对电源输入铭牌与极性，先遮挡面板再连接，禁止未经核算直接串联接入。",
+        "fusion_rank": 7,
+        "rerank_rank": 4,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": []
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-30:u1"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-30:u0"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:2",
+        "start": 814,
+        "end": 1715,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-30:u2"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。P96接口插得上就能给电源充电吗、电压例外和接线前步骤是什么？",
+    "variants": [
+      [
+        "raw",
+        "我只问2026年6月1日起中国大陆官网现行规则，不问经销商或香港渠道，也不查询具体订单。P96接口插得上就能给电源充电吗、电压例外和接线前步骤是什么？",
+        1.0
+      ]
+    ],
+    "rewrite_fallback": true,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-30-2",
+    "topic": "光伏充电板P96",
+    "query": "2026年6月1日起中国大陆官网现行规则，光伏充电板P96，P96接口插得上就能给电源充电吗、电压例外和接线前步骤是什么？",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-30:u0",
+        "quote": "光伏充电板P96仅适配输入电压范围覆盖十八至二十四伏且接口极性一致的储能电源。",
+        "fusion_rank": 3,
+        "rerank_rank": 4,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-30:u1",
+        "quote": "光伏充电板P96插头外形一致不证明电压和极性兼容，串联两块后开路电压可能超出单块适配范围。",
+        "fusion_rank": 1,
+        "rerank_rank": 1,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-30:u2",
+        "quote": "光伏充电板P96接线前核对电源输入铭牌与极性，先遮挡面板再连接，禁止未经核算直接串联接入。",
+        "fusion_rank": 7,
+        "rerank_rank": 3,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-30:u1"
+        ]
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": []
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:2",
+        "start": 814,
+        "end": 1715,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-30:u2"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-30:u0"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，光伏充电板P96，P96接口插得上就能给电源充电吗、电压例外和接线前步骤是什么？",
+    "variants": [
+      [
+        "raw",
+        "不是，我问的是光伏充电板P96，按刚才提到的现行渠道，把条件、例外和处理步骤一起说清楚。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，光伏充电板P96，P96接口插得上就能给电源充电吗、电压例外和接线前步骤是什么？",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-30-3",
+    "topic": "光伏充电板P96",
+    "query": "2026年6月1日起中国大陆官网现行规则：P96接口插得上就能给电源充电吗、电压例外和接线前步骤是什么？适用条件、例外及处理办法（假设情况）",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-30:u0",
+        "quote": "光伏充电板P96仅适配输入电压范围覆盖十八至二十四伏且接口极性一致的储能电源。",
+        "fusion_rank": 6,
+        "rerank_rank": 3,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-30:u1",
+        "quote": "光伏充电板P96插头外形一致不证明电压和极性兼容，串联两块后开路电压可能超出单块适配范围。",
+        "fusion_rank": 2,
+        "rerank_rank": 2,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-30:u2",
+        "quote": "光伏充电板P96接线前核对电源输入铭牌与极性，先遮挡面板再连接，禁止未经核算直接串联接入。",
+        "fusion_rank": 8,
+        "rerank_rank": 5,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": []
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-30:u1"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-30:u0"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": false,
+        "covered_units": []
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:2",
+        "start": 814,
+        "end": 1715,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-30:u2"
+        ]
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则：P96接口插得上就能给电源充电吗、电压例外和接线前步骤是什么？适用条件、例外及处理办法（假设情况）",
+    "variants": [
+      [
+        "raw",
+        "以上只是我的假设，并不表示实际发生。请按这些假设说明适用条件、例外及处理办法。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则：P96接口插得上就能给电源充电吗、电压例外和接线前步骤是什么？适用条件、例外及处理办法（假设情况）",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  },
+  {
+    "id": "cx-30-4",
+    "topic": "光伏充电板P96",
+    "query": "2026年6月1日起中国大陆官网现行规则，P96接口插得上就能给电源充电吗、电压例外和接线前步骤是什么？需要核实的条件、相关例外和后续处理步骤，不要直接认定我符合条件",
+    "status": "OK",
+    "units": [
+      {
+        "unit_id": "cx-30:u0",
+        "quote": "光伏充电板P96仅适配输入电压范围覆盖十八至二十四伏且接口极性一致的储能电源。",
+        "fusion_rank": 7,
+        "rerank_rank": 3,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-30:u1",
+        "quote": "光伏充电板P96插头外形一致不证明电压和极性兼容，串联两块后开路电压可能超出单块适配范围。",
+        "fusion_rank": 1,
+        "rerank_rank": 2,
+        "visible": true
+      },
+      {
+        "unit_id": "cx-30:u2",
+        "quote": "光伏充电板P96接线前核对电源输入铭牌与极性，先遮挡面板再连接，禁止未经核算直接串联接入。",
+        "fusion_rank": 6,
+        "rerank_rank": 4,
+        "visible": true
+      }
+    ],
+    "top5": [
+      {
+        "rank": 1,
+        "source_id": "complex:current:1",
+        "start": 0,
+        "end": 1021,
+        "section_count": 11,
+        "has_target_topic": true,
+        "covered_units": []
+      },
+      {
+        "rank": 2,
+        "source_id": "complex:current:1",
+        "start": 913,
+        "end": 1942,
+        "section_count": 12,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-30:u1"
+        ]
+      },
+      {
+        "rank": 3,
+        "source_id": "complex:current:0",
+        "start": 823,
+        "end": 1405,
+        "section_count": 13,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-30:u0"
+        ]
+      },
+      {
+        "rank": 4,
+        "source_id": "complex:current:2",
+        "start": 814,
+        "end": 1715,
+        "section_count": 16,
+        "has_target_topic": true,
+        "covered_units": [
+          "cx-30:u2"
+        ]
+      },
+      {
+        "rank": 5,
+        "source_id": "complex:current:0",
+        "start": 0,
+        "end": 954,
+        "section_count": 20,
+        "has_target_topic": false,
+        "covered_units": []
+      }
+    ],
+    "full": true,
+    "rerank_query": "2026年6月1日起中国大陆官网现行规则，P96接口插得上就能给电源充电吗、电压例外和接线前步骤是什么？需要核实的条件、相关例外和后续处理步骤，不要直接认定我符合条件",
+    "variants": [
+      [
+        "raw",
+        "如果我还不能确认是否满足这些前提，请列出需要核实的条件、相关例外和后续处理步骤，不要直接认定我符合条件。",
+        0.25
+      ],
+      [
+        "standalone",
+        "2026年6月1日起中国大陆官网现行规则，P96接口插得上就能给电源充电吗、电压例外和接线前步骤是什么？需要核实的条件、相关例外和后续处理步骤，不要直接认定我符合条件",
+        0.7499999999999999
+      ]
+    ],
+    "rewrite_fallback": false,
+    "unchanged_with_history": false
+  }
+]

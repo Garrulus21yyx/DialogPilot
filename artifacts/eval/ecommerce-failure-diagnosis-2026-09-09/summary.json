@@ -1,0 +1,23 @@
+{
+  "counts": {
+    "ok_no_reranker_fallback": 78,
+    "rerank_loss": 16,
+    "complete_fusion_top5": 42,
+    "missing_units": 17,
+    "lost_after_fusion_top5": 7,
+    "no_gold_slots_in_failed_top5": 44,
+    "duplicate_gold_slots_in_failed_top5": 5,
+    "complete_wire": 62,
+    "upstream_failure": 2
+  },
+  "missing_best_ce_ranks": {
+    "6": 11,
+    "7": 4,
+    "8": 1,
+    "13": 1
+  },
+  "input_sha256": "b4a40b2baf9efb4a29867fe001d235c85818535db271e0b4743f689b10f0b7c0",
+  "API_calls": 0,
+  "new_CE": 0,
+  "scope": "frozen already-consumed80; ranking membership diagnosis, not strategy gain"
+}
