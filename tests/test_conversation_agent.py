@@ -809,14 +809,15 @@ def test_cascade_uses_planner_when_no_state_or_encoder_path_resolves():
 
 
 def test_plain_text_never_becomes_a_legacy_executable_plan():
+    import pytest
+    from application.conversation_agent import ConversationProviderOutputError
     from tests.framework_structured_stub import models
     provider = AnthropicConversationPlanningProvider(
         models(text='```json\n{"status":"out_of_scope"}\n```'), model_profile=ModelProfile("model-test"), synthesis_profile=ModelProfile("model-test"),
     )
-    result = asyncio.run(provider.plan({"message": "hello"}))
-    assert result['status'] == 'respond' and 'goals' not in result
-    # Final reply verification owns whether this is appropriate public text;
-    # the planning transport must not parse prose as an executable legacy plan.
+    with pytest.raises(ConversationProviderOutputError, match="planning_requires_action"):
+        asyncio.run(provider.plan({"message": "hello"}))
+    # Prose is neither an executable plan nor an implicit public answer.
 
 
 def test_malformed_provider_transport_is_not_reported_as_an_outage():

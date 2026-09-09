@@ -44,9 +44,9 @@ def test_official_handler_exports_model_tool_hierarchy_and_masked_content(struct
         spans = exporter.get_finished_spans()
         assert spans
         generations = [span for span in spans if span.attributes.get("langfuse.observation.type") == "generation"]
-        assert len(generations) == 3  # Two actor calls and one goal assessment.
+        assert len(generations) == 2  # Two actor calls; no ordinary-handback judge.
         assert sum("proposed_outcome" in str(span.attributes.get("langfuse.observation.input", ""))
-                   for span in generations) == 1
+                   for span in generations) == 0
         assert any(span.attributes.get("langfuse.observation.type") == "tool" for span in spans)
         assert any(span.name == "product_technical_agent" and span.attributes.get("langfuse.observation.type") == "agent"
                    for span in spans)
@@ -102,7 +102,10 @@ def test_conversation_failure_keeps_generation_and_diagnostic_in_same_trace():
         assert len({s.context.trace_id for s in spans}) == 1
         assert 'candidate' in str(generations[0].attributes)
         assert failures[0].attributes['langfuse.observation.level'] == 'ERROR'
-        assert result.diagnostics[0].detail['exception_chain'][-1]['type'] == 'ConversationProviderOutputError'
+        chain = result.diagnostics[0].detail['exception_chain']
+        assert chain[0]['type'] == 'ConversationProviderOutputError'
+        assert chain[-1]['type'] == 'ValueError'
+        assert chain[-1]['message'] == 'planning_action_unavailable'
     finally:
         client.shutdown()
 

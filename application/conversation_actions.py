@@ -71,6 +71,18 @@ def _selector(choices, description):
     return {"type": "string", "enum": list(choices), "description": description}
 
 
+def public_response_action():
+    """The sole model-selected public text channel, separate from working prose."""
+    return PlanningAction("respond",
+        "Write the final customer-facing reply or clarification, addressing the user directly. "
+        "Put only that reply in response, never analysis or drafting instructions. "
+        "This does not authorize, execute, or cancel anything. When combined with work or an "
+        "approval decision that changes state, execution outcomes determine the final reply; "
+        "this preliminary text is not published. Use at most once per batch.",
+        {"response": {**_TEXT, "description": "Only the words intended for the customer."}},
+        ("response",))
+
+
 def _entity_choices(payload, field_name):
     candidates = []
     for group in payload.get("entity_bindings", ()):
@@ -116,7 +128,7 @@ def planning_actions(payload):
                              "description": "Other goal_id names whose results are prerequisites; omit for independent work."}}
     if active:
         common["revises"] = _selector(active, "Only for correcting/replacing an existing objective: " + active_description)
-    actions = []
+    actions = [public_response_action()]
 
     def goal(name, kind, properties=None, required=(), description=None, selections=None):
         selection = {"revises": active} if active else {}
@@ -197,9 +209,9 @@ def planning_actions(payload):
             "Decline rejects only this proposal; unchanged remaining goals continue with that decision. "
             "Use cancel_active_work to cancel a whole objective, or a revised goal to change it. "
             "A current_user_decision must be addressed, not re-collected. Pure approval needs no duplicate task. "
-            "For hold with no other action, provide the customer-facing response; otherwise omit response.",
-            {"decision": {"type": "string", "enum": ["approve", "decline", "hold"]},
-             "response": _TEXT}, ("decision",),
+            "For hold with no other work, also call respond to answer or clarify. "
+            "Customer wording belongs to respond, not this decision.",
+            {"decision": {"type": "string", "enum": ["approve", "decline", "hold"]}}, ("decision",),
             bound={"approval_id": payload["pending_approval"]["approval_id"]}))
     pending = payload.get("pending_input") if not observing else None
     if pending and pending.get("requested_fields"):
@@ -212,7 +224,8 @@ def planning_actions(payload):
                             "description": str(item)} for key, item in fields.items()}}}, ("values",),
             bound={"fields": fields}))
     actions.append(PlanningAction("unsupported_request",
-        "The requested objective is outside the available capabilities; missing identifiers alone are not out of scope.", {}))
+        "The requested objective is outside the available capabilities; missing identifiers alone are not out of scope. "
+        "Use this terminal action alone; the runtime presents the unsupported-capability notice.", {}))
     catalog = payload.get("atomic_reads", ())
     counts = Counter(item["tool_id"] for item in catalog)
     names = {action.name for action in actions} | {"bind_read_goals"}
@@ -245,13 +258,14 @@ def planning_actions(payload):
 def action_proposal(actions, calls, text):
     """Validate a whole SDK call batch before producing any executable proposal."""
     if not calls:
-        if not text.strip():
-            raise ValueError("planning_requires_action_or_text")
-        return {"status": "respond", "response": text.strip()}
-    if len(calls) > 7 or len({call["id"] for call in calls}) != len(calls):
+        # Free text (including SDK text blocks) is working commentary, not an
+        # implicit public answer. Keep it in the model trace, never parse prose.
+        raise ValueError("planning_requires_action")
+    if len(calls) > 8 or len({call["id"] for call in calls}) != len(calls):
         raise ValueError("planning_action_batch_invalid")
     by_name = {action.name: action for action in actions}
     proposal = {"status": "resolved"}
+    response = None
     atomic_goals, read_bindings = [], None
     for call in calls:
         if call["name"] not in by_name:
@@ -274,12 +288,11 @@ def action_proposal(actions, calls, text):
         elif action.name == "review_action":
             if "approval_decision" in proposal:
                 raise ValueError("planning_duplicate_approval")
-            response = value.pop("response", None)
-            if response is not None:
-                if value["decision"] != "hold" or len(calls) != 1:
-                    raise ValueError("approval_response_requires_hold_only")
-                proposal.update(status="respond", response=response)
             proposal["approval_decision"] = value
+        elif action.name == "respond":
+            if response is not None:
+                raise ValueError("planning_duplicate_response")
+            response = value["response"].strip()
         elif action.name == "supply_input":
             inputs = proposal.setdefault("input_values", [])
             for key, answer in value["values"].items():
@@ -296,7 +309,13 @@ def action_proposal(actions, calls, text):
             raise ValueError("planning_invalid_read_binding")
         seen.add(index)
         atomic_goals[index - 1].update({key: val for key, val in binding.items() if key != "atomic_call"})
-    if len(calls) - int(read_bindings is not None) > 6:
+    if len(calls) - int(read_bindings is not None) - int(response is not None) > 6:
         raise ValueError("planning_action_batch_invalid")
+    decision = proposal.get("approval_decision", {}).get("decision")
+    if response is not None and not (proposal.get("goals") or proposal.get("input_values")
+                                     or decision in {"approve", "decline"}):
+        proposal.update(status="respond", response=response)
+    # Any action/control transition owns the turn. Its final text comes from
+    # resulting facts, receipts or waiting state, never a pre-execution promise.
     Draft202012Validator(planning_output_schema()).validate(proposal)
     return proposal

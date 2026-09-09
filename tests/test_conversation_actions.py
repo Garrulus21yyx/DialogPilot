@@ -47,7 +47,7 @@ def test_main_planning_and_composition_share_preparation_approval_contract(monke
         return generate(self, messages, *args, **kwargs)
 
     monkeypatch.setattr(ScriptedToolModel, "_generate", capture)
-    p, models = provider(text="Which payment method would you like to use?")
+    p, models = provider(("respond", {"response": "Which payment method would you like to use?"}))
 
     async def run():
         await p.plan(payload())
@@ -209,7 +209,7 @@ def test_native_dependencies_reach_existing_task_graph_without_replanning():
 
 
 def test_plain_reply_and_query_preamble_use_different_paths():
-    p, _ = provider(text="不客气")
+    p, _ = provider(("respond", {"response": "不客气"}), text="I should thank the user.")
     assert asyncio.run(p.plan(payload())) == {"status": "respond", "response": "不客气"}
     p, _ = provider(("knowledge_search", {"query": "退货政策"}), text="我来查询")
     assert "response" not in asyncio.run(p.plan(payload()))

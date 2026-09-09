@@ -25,6 +25,15 @@ from tests.test_parameter_acceptance import accepted_work
 from tests.test_target_chat_cutover import _Admission, _Publication
 
 
+class NativePublicProvider(Provider):
+    async def plan(self, payload):
+        from tests.test_conversation_actions import provider
+        self.calls.append(payload)
+        native, _ = provider(('respond', {'response': self.value['response']}),
+                             text='I need to authenticate the user first. Let me ask.')
+        return await native.plan(payload)
+
+
 @pytest.mark.parametrize("text", [prefix + body + suffix for prefix, body, suffix in product(
     ("", " ", "\n"), ("You're welcome.", "不客气。", "🙂", "A\nB"), ("", "\t"))])
 def test_response_algebra_and_checkpoint_roundtrip(text):
@@ -88,7 +97,8 @@ def test_planner_text_reuses_verification_without_a_second_author(passed):
 
 @pytest.mark.parametrize("waiting", ["none", "input", "approval"])
 @pytest.mark.parametrize("kind", [CommandKind.DIRECT_TOOL, CommandKind.DELEGATE_TASK])
-def test_full_reply_preserves_wait_and_replays_without_model_or_work(waiting, kind):
+@pytest.mark.parametrize("provider_type", [Provider, NativePublicProvider])
+def test_full_reply_preserves_wait_and_replays_without_model_or_work(waiting, kind, provider_type):
     from application.chat_contracts import ChatCommand, Completed
     async def run():
         state, registry, _, _ = accepted_work(kind)
@@ -101,7 +111,7 @@ def test_full_reply_preserves_wait_and_replays_without_model_or_work(waiting, ki
                             user_id=state.user_id, conversation_id=state.conversation_id)
         store = InMemoryConversationStateStore()
         store._states[("tenant-a", "user-a", "conversation-a")] = state
-        provider = Provider({"status": "respond", "response": "You are welcome."})
+        provider = provider_type({"status": "respond", "response": "You are welcome."})
         async def forbidden(context):
             pytest.fail("response-only turn executed work")
         manager = TargetConversationManager(state_store=store, registry=registry,
@@ -160,7 +170,8 @@ def test_semantic_field_values_use_existing_binding_and_accepted_envelope(kind, 
     assert store.load(state.tenant_id, state.user_id, state.conversation_id) == state  # preparation is not commit
 
 
-def test_response_checkpoint_survives_postgres_reopen_before_publication(postgres_database_url):
+@pytest.mark.parametrize("provider_type", [Provider, NativePublicProvider])
+def test_response_checkpoint_survives_postgres_reopen_before_publication(postgres_database_url, provider_type):
     from uuid import uuid4
     from application.chat_contracts import ChatCommand, Completed
     from application.default_capability_registry import build_default_capability_registry
@@ -172,7 +183,7 @@ def test_response_checkpoint_survives_postgres_reopen_before_publication(postgre
 
     async def run():
         PostgresMigrationRunner(postgres_database_url).upgrade()
-        provider = Provider({"status": "respond", "response": "You are welcome."})
+        provider = provider_type({"status": "respond", "response": "You are welcome."})
         verifier = Verifier(True)
         registry = build_default_capability_registry("tenant-a")
         conv = "response-" + uuid4().hex
@@ -207,6 +218,36 @@ def test_response_checkpoint_survives_postgres_reopen_before_publication(postgre
                     assert len(provider.calls) == len(verifier.calls) == 1
             finally:
                 pool.close()
+    asyncio.run(run())
+
+
+def test_unpublished_implicit_response_cannot_bypass_new_public_channel():
+    from application.chat_contracts import ChatCommand, Failed
+    from application.default_capability_registry import build_default_capability_registry
+
+    async def run():
+        provider = Provider({'status': 'respond', 'response': 'I should ask the user. Hello.'})
+        async def forbidden(_):
+            pytest.fail('version rejection must not execute or retry business work')
+        registry = build_default_capability_registry('tenant-a')
+        manager = TargetConversationManager(state_store=InMemoryConversationStateStore(), registry=registry,
+            understanding=CascadedTargetUnderstanding(StateBoundTargetUnderstanding(), ConversationAgent(provider)),
+            orchestration=OrchestrationRuntime(direct_executor=forbidden, domain_workers={}))
+        publication = _Publication()
+        runtime = TurnRuntime(manager, ResponseAssembler(knowledge_verifier=Verifier(True)),
+            checkpointer=InMemorySaver(serde=target_checkpoint_serializer()))
+        identity = IdentityFactory().create_invocation(tenant_id='tenant-a', user_id='user-a',
+            conversation_id='old-unpublished', request_id='one')
+        await runtime.execute(identity, TurnObservations('Hi'))
+        await runtime.graph.aupdate_state({'configurable': {'thread_id': 'turn:' + str(identity.invocation_key)}},
+            {'runtime_version': 'turn-runtime-v18-implicit-current-action'})
+        app = TargetChatApplication(manager=manager, admission=_Admission(), publication=publication,
+            bundle_version=registry.bundle_version, turn_runtime=runtime)
+        result = await app.handle(ChatCommand('Hi', 'user-a', 'tenant-a', 'old-unpublished', 'one'))
+        assert isinstance(result, Failed)
+        assert result.code == 'turn_checkpoint_version_unsupported'
+        assert len(provider.calls) == 1
+        assert publication.responses == {}
     asyncio.run(run())
 
 

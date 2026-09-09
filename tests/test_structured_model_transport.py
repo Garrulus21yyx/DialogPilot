@@ -9,6 +9,43 @@ from core.structured_model import structured_call
 from langchain_core.messages import HumanMessage
 
 
+@pytest.mark.parametrize('stage', ['plan', 'compose'])
+def test_public_text_is_sdk_tool_argument_not_provider_working_content(monkeypatch, stage):
+    from core.model_policy import ModelRole
+    from infrastructure.target_conversation_provider import AnthropicConversationPlanningProvider
+    import langchain_anthropic.chat_models as integration
+    requests = []
+
+    async def handler(request):
+        body = json.loads(request.content)
+        requests.append(body)
+        return httpx.Response(200, json={
+            'id': 'msg-public', 'type': 'message', 'role': 'assistant', 'model': body['model'],
+            'content': [
+                {'type': 'thinking', 'thinking': 'Private reasoning', 'signature': 'test-signature'},
+                {'type': 'text', 'text': 'I need to authenticate the user first. Let me ask.'},
+                {'type': 'tool_use', 'id': 'public', 'name': 'respond',
+                 'input': {'response': 'What is your account email?'}}],
+            'stop_reason': 'tool_use', 'stop_sequence': None,
+            'usage': {'input_tokens': 12, 'output_tokens': 8}})
+
+    async def run():
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as transport:
+            monkeypatch.setattr(integration, '_get_default_async_httpx_client', lambda **_: transport)
+            profile = ModelProfile('deepseek-v4-flash', ReasoningEffort.NONE, 'deepseek')
+            model = framework_model(profile, {'api_key': 'test-key', 'base_url': 'https://example.invalid'})
+            provider = AnthropicConversationPlanningProvider({ModelRole.INTENT: model, ModelRole.SYNTHESIS: model},
+                model_profile=profile, synthesis_profile=profile)
+            result = await getattr(provider, stage)({'message': 'Help', 'evidence': {}})
+            assert (result['response'] if stage == 'plan' else result) == 'What is your account email?'
+    asyncio.run(run())
+    body, = requests
+    assert body['tool_choice'] == {'type': 'any'}
+    tool = next(tool for tool in body['tools'] if tool['name'] == 'respond')
+    assert tool['input_schema']['required'] == ['response']
+    assert set(tool['input_schema']['properties']) == {'response'}
+
+
 @pytest.mark.parametrize("effort", list(ReasoningEffort))
 def test_sdk_transport_preserves_policy_and_parses_complete_result(monkeypatch, effort):
     import langchain_anthropic.chat_models as integration
@@ -95,7 +132,11 @@ def test_production_planner_sdk_wire_preserves_history_sections_and_cache_prefix
         assert len(tail) == 2
         assert json.loads(tail[-1]['text']) == {'current_request': payload['message']}
         assert planning_payload_from_request(captured['request']) == {k: v for k, v in payload.items() if k != 'supported_goals'}
-        assert body['tool_choice'] == {'type': 'auto'}
+        if effort is ReasoningEffort.NONE:
+            assert body['tool_choice'] == {'type': 'any'}
+        else:
+            # Installed SDK normalizes forced choice away with thinking enabled.
+            assert 'tool_choice' not in body
         assert all(tool['name'] != 'submit_turn_plan' for tool in body['tools'])
         assert captured['usage']['input_token_details']['cache_read'] == 100
         assert 'cache_control' not in json.dumps(body)

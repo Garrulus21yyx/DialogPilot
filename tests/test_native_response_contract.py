@@ -19,13 +19,14 @@ from tests.test_approval_conversation import ApprovalVerifier
 
 @pytest.mark.parametrize('content', ['Which color?', '已准备好方案，是否继续？',
     [{'type': 'thinking', 'thinking': 'private analysis'}, {'type': 'text', 'text': 'Visible answer.'}]])
-def test_sdk_native_text_has_no_output_tool_or_json_envelope(content):
-    model = StructuredStub(responses=[AIMessage(content=content)])
+def test_sdk_public_answer_uses_one_flat_field_not_working_text(content):
+    model = StructuredStub(responses=[AIMessage(content=content, tool_calls=[
+        {'name': 'respond', 'args': {'response': 'Which color?'}, 'id': 'public'}])])
     provider = AnthropicConversationPlanningProvider({ModelRole.SYNTHESIS: model},
         model_profile=ModelProfile('test'), synthesis_profile=ModelProfile('test'))
     result = asyncio.run(provider.compose({'evidence': {}, 'current_message': 'Help'}))
-    assert isinstance(result, str) and result
-    assert 'private analysis' not in result
+    assert result == 'Which color?'
+    assert model.bound_tool_names == ['respond']
 
 
 @pytest.mark.parametrize('message', [AIMessage(content=''),
@@ -76,9 +77,10 @@ def test_turn_runtime_does_not_drop_persisted_approval_while_asking_for_input():
     result = asyncio.run(runtime._assemble_response({'managed': managed, 'observations': NS(raw_text='Wait'),
         'presentation_state': managed.state_before,
         'prepared': NS(context=TargetTurnContext())}))
-    assert not composer.calls[0]['evidence']['pending_actions']
-    assert composer.calls[0]['evidence']['user_context']['retained_approval']
-    assert result['assembled'].verified
+    # The existing bound-question fast path needs neither rewrite nor re-approval.
+    assert not composer.calls
+    assert managed.state_after.pending_approval is pending
+    assert result['assembled'].interaction_ready
     assert result['assembled'].approval_operation_key == ''
 
 

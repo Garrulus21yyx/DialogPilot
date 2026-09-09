@@ -263,10 +263,20 @@ class _ScenarioConversationProvider:
         if committed:
             texts.append("请求已提交。")
         texts.extend(spec["question_hint"] for spec in payload['evidence']["requested_inputs"])
-        return "\n".join(texts) or "请补充所需信息。"
+        from tests.test_conversation_actions import provider
+        native, _ = provider(('respond', {'response': "\n".join(texts) or "请补充所需信息。"}),
+                             text='Private draft: I should explain these results.')
+        return await native.compose(payload)
 
     async def plan(self, payload):
         response = self._response(payload)
+        if response.get('approval_decision'):
+            from tests.test_conversation_actions import provider
+            native, _ = provider(
+                ('respond', {'response': 'Pre-execution acknowledgement, not the result.'}),
+                ('review_action', {'decision': response['approval_decision']['decision']}),
+                text='Private approval analysis')
+            return await native.plan(payload)
         for goal in response.get("goals", ()):
             for field in ("order_id", "asset_id"):
                 if field not in goal:

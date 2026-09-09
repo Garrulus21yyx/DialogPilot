@@ -564,13 +564,14 @@ def test_target_chat_publishes_one_typed_interaction_and_resumes_exact_work_item
         calls = 0
         async def compose(self, payload):
             self.calls += 1
-            if fail_first and self.calls == 1:
+            question = bool(payload['evidence']['requested_inputs'])
+            if fail_first and question:
                 from core.framework_models import ModelInvocationError
                 raise ModelInvocationError("compose", TimeoutError("injected failure"))
-            question = bool(payload['evidence']['requested_inputs'])
             if question:
                 return "\n".join([('请提供订单核验信息。')])
             return "\n".join([('请提供订单核验信息。' if question else '订单 DP1234 当前状态为已发货。')])
+    composer = Composer()
     application = TargetChatApplication(
         manager=TargetConversationManager(
             state_store=state_store,
@@ -584,7 +585,7 @@ def test_target_chat_publishes_one_typed_interaction_and_resumes_exact_work_item
         admission=_Admission(),
         publication=_Publication(),
         bundle_version=registry.bundle_version,
-        response_assembler=ResponseAssembler(Composer(), knowledge_verifier=Verifier(True)),
+        response_assembler=ResponseAssembler(composer, knowledge_verifier=Verifier(True)),
         identity_factory=IdentityFactory(lambda: "generated"),
     )
 
@@ -593,16 +594,9 @@ def test_target_chat_publishes_one_typed_interaction_and_resumes_exact_work_item
         "request-input-1",
     )))
 
-    if fail_first:
-        assert isinstance(first, Completed)
-        assert first.response["execution"] == "WAITING"
-        assert first.response["interaction_presentation"] == "UNAVAILABLE"
-        assert not first.response["task_completed"]
-        assert not first.response["verified"]
-        assert first.stages
-    else:
-        assert isinstance(first, NeedsInput)
-        assert first.kind == "FIELDS"
+    assert isinstance(first, NeedsInput)
+    assert first.kind == "FIELDS"
+    assert composer.calls == 0  # The bound question does not depend on an author.
     state = state_store.load(
         "tenant-a", "user-a", "conversation-input",
     )

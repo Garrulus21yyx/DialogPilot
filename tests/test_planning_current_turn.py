@@ -74,7 +74,8 @@ def test_plan_transport_and_budget_receive_same_projection(monkeypatch):
             return self
         async def ainvoke(self, messages, **kwargs):
             captured['call'] = {'system': messages[0].content, 'messages': messages[1:]}
-            return AIMessage(content='What would you like to know?')
+            return AIMessage(content='', tool_calls=[{'name': 'respond',
+                'args': {'response': 'What would you like to know?'}, 'id': 'response'}])
     monkeypatch.setattr(module, 'DEFAULT_PROVIDER_CONTEXT_BUDGET', Budget())
     provider = AnthropicConversationPlanningProvider({ModelRole.INTENT: Model()},
         model_profile=ModelProfile('test'), synthesis_profile=ModelProfile('test'))

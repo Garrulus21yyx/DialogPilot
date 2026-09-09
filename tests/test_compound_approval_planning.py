@@ -28,9 +28,9 @@ class NativeProvider(Provider):
         calls = []
         if self.value.get('approval_decision'):
             args = {'decision': self.value['approval_decision']['decision']}
-            if self.value.get('response'):
-                args['response'] = self.value['response']
             calls.append(('review_action', args))
+        if self.value.get('response'):
+            calls.append(('respond', {'response': self.value['response']}))
         for goal in self.value.get('goals', ()):
             args = {k: v for k, v in goal.items() if k not in {'kind', 'revises_control_id'}}
             action = actions[goal['kind']]
@@ -40,7 +40,13 @@ class NativeProvider(Provider):
                                      if bound['revises_control_id'] == goal['revises_control_id'])
             calls.append((goal['kind'], args))
         profile = ModelProfile('test')
-        model = AnthropicConversationPlanningProvider(action_models(*calls, text='' if calls else 'Please clarify.'),
+        if not calls:
+            calls.append(('respond', {'response': 'Please clarify.'}))
+        elif not self.value.get('response'):
+            # Acknowledgement never changes approval/work semantics or publishes
+            # an execution claim before the resulting receipt exists.
+            calls.append(('respond', {'response': 'Pre-execution acknowledgement.'}))
+        model = AnthropicConversationPlanningProvider(action_models(*calls),
             model_profile=profile, synthesis_profile=profile)
         return await model.plan(payload)
 

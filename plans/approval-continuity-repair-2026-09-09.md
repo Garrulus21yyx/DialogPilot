@@ -3,6 +3,11 @@
 Status: REOPENED by real-model task 22 regression; local checks below are historical
 evidence, not closure. Base HEAD: 3eee99f.
 
+Implementation follow-up: [approval/public-output convergence](approval-public-output-convergence-2026-09-09.md)
+replaces the overloaded review response with one explicit public channel and
+audits its consumers and checkpoint compatibility. Prior task22 failure remains
+historical evidence; no fresh business-success claim is made by that local repair.
+
 2026-09-09 follow-up: one fixed task 22 attempt on 88bcb85 produced ENV/ACTION/ALL=0
 and no address writes. Approval planning conversion rejected a response/decision/
 batch combination with `approval_response_requires_hold_only`, despite optional
