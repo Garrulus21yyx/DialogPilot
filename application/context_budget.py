@@ -9,16 +9,6 @@ from typing import Any, Callable, Mapping, Sequence
 from core.token_estimator import TokenEstimator
 
 
-class ModelContextBudgetExceeded(ValueError):
-    def __init__(self, required_tokens: int, available_tokens: int) -> None:
-        self.required_tokens = required_tokens
-        self.available_tokens = available_tokens
-        super().__init__(
-            f"model context requires {required_tokens} tokens; "
-            f"available input budget is {available_tokens}"
-        )
-
-
 @dataclass(frozen=True)
 class ContextBuildReport:
     policy_version: str
@@ -27,6 +17,25 @@ class ContextBuildReport:
     available_tokens: int
     removed_items: tuple[str, ...] = ()
     externalized_items: tuple[str, ...] = ()
+
+
+class ModelContextBudgetExceeded(ValueError):
+    def __init__(
+        self,
+        required_tokens: int,
+        available_tokens: int,
+        *,
+        payload: Mapping[str, Any] | None = None,
+        report: ContextBuildReport | None = None,
+    ) -> None:
+        self.required_tokens = required_tokens
+        self.available_tokens = available_tokens
+        self.payload = payload
+        self.report = report
+        super().__init__(
+            f"model context requires {required_tokens} tokens; "
+            f"available input budget is {available_tokens}"
+        )
 
 
 @dataclass(frozen=True)
@@ -81,8 +90,14 @@ class ContextBudgetManager:
                     break
             if not changed:
                 required = measure(value)
+                report = ContextBuildReport(
+                    self.version, original, required, self.available_tokens,
+                    tuple(removed), (),
+                )
                 raise ModelContextBudgetExceeded(
                     required, self.available_tokens,
+                    payload=value,
+                    report=report,
                 )
         final = measure(value)
         return BudgetedPayload(

@@ -8,7 +8,7 @@ from langchain_core.messages import AIMessage
 from application.context_budget import ContextBudgetManager, ModelContextBudgetExceeded
 from application.historical_context_budget import fit_historical_payload
 from core.model_policy import ModelProfile, ModelRole
-from core.provider_context_budget import ProviderContextBudget
+from core.provider_context_budget import ProviderContextBudget, ProviderContextBudgetExceeded
 from infrastructure.target_conversation_provider import AnthropicConversationPlanningProvider
 from infrastructure.target_model_context import planning_payload_from_request
 from tests.test_historical_context_budget import historical
@@ -158,8 +158,10 @@ def test_oversized_mandatory_request_never_reaches_model():
     profile = ModelProfile("test", max_context_tokens=2048)
     provider = AnthropicConversationPlanningProvider({ModelRole.INTENT: model},
         model_profile=profile, synthesis_profile=profile, max_tokens=800)
-    with pytest.raises(ModelContextBudgetExceeded):
+    with pytest.raises(ProviderContextBudgetExceeded) as failure:
         asyncio.run(provider.plan({"message": "current user restriction " * 1000, "supported_goals": []}))
+    assert failure.value.usage.total_reserved_tokens > profile.max_context_tokens
+    assert failure.value.context_projection["final_tokens"] > failure.value.context_projection["available_tokens"]
     assert not model.calls
 
 
@@ -177,8 +179,9 @@ def test_budget_trims_only_summarized_history_preserving_recent_exchange(covered
                                 {"role": "assistant", "seq": 10, "content": "Do you mean size M?"}]}}
     original = copy.deepcopy(value)
     if not covered:
-        with pytest.raises(ModelContextBudgetExceeded):
+        with pytest.raises(ProviderContextBudgetExceeded) as failure:
             asyncio.run(provider.plan(value))
+        assert failure.value.context_projection["removed_items"] == ()
         assert not model.calls
     else:
         asyncio.run(provider.plan(value))

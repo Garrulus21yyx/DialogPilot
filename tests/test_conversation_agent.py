@@ -92,14 +92,32 @@ def test_provider_budget_failure_preserves_component_accounting_through_planning
         max_context_tokens=32768,
     )
     proposal, state, registry = _invoke(ConversationAgent(
-        Provider(error=ProviderContextBudgetExceeded(ModelRole.INTENT, usage)),
+        Provider(error=ProviderContextBudgetExceeded(
+            ModelRole.INTENT,
+            usage,
+            context_projection={
+                "policy_version": "model-context-budget-v1",
+                "original_tokens": 34000,
+                "final_tokens": 32320,
+                "available_tokens": 31968,
+                "removed_items": ("conversation_context.recent_messages[oldest]",),
+                "externalized_items": ("archived-observation",),
+            },
+        )),
     ), "Approve the prepared change")
 
     assert proposal.reason_code == "CONTEXT_BUDGET_EXCEEDED"
     assert proposal.failure_detail["boundary"] == "provider_request"
     assert proposal.failure_detail["required_tokens"] == usage.total_reserved_tokens
     assert proposal.failure_detail["provider_usage"]["tool_schema_tokens"] == 3100
-    assert proposal.failure_detail["payload_fit"]["final_tokens"] > 0
+    assert proposal.failure_detail["payload_fit"] == {
+        "policy_version": "model-context-budget-v1",
+        "original_tokens": 34000,
+        "final_tokens": 32320,
+        "available_tokens": 31968,
+        "removed_item_count": 1,
+        "externalized_item_count": 1,
+    }
     validated = RoutePolicy().accept(proposal, state, registry)
     with pytest.raises(PlanningUnavailable) as failure:
         TurnPlanCompiler().compile(

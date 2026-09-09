@@ -30,9 +30,16 @@ class ProviderContextUsage:
 
 
 class ProviderContextBudgetExceeded(RuntimeError):
-    def __init__(self, role: ModelRole, usage: ProviderContextUsage):
+    def __init__(
+        self,
+        role: ModelRole,
+        usage: ProviderContextUsage,
+        *,
+        context_projection: Mapping[str, Any] | None = None,
+    ):
         self.role = role
         self.usage = usage
+        self.context_projection = dict(context_projection or {})
         super().__init__(
             f"provider context budget exceeded for {role.value}: "
             f"required={usage.total_reserved_tokens}, "

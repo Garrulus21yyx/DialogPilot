@@ -8,7 +8,10 @@ from typing import Mapping
 from jsonschema import ValidationError
 
 from core.model_policy import ModelProfile, ModelRole
-from core.provider_context_budget import DEFAULT_PROVIDER_CONTEXT_BUDGET
+from core.provider_context_budget import (
+    DEFAULT_PROVIDER_CONTEXT_BUDGET,
+    ProviderContextBudgetExceeded,
+)
 
 from application.conversation_agent import ConversationProviderOutputError
 from application.context_budget import ContextBudgetManager, ModelContextBudgetExceeded
@@ -132,10 +135,16 @@ class AnthropicConversationPlanningProvider:
                 token_counter=lambda value: DEFAULT_PROVIDER_CONTEXT_BUDGET.measure(
                     profile, render(value)[0]).estimated_input_tokens)
         except ModelContextBudgetExceeded as exc:
+            failed_payload = exc.payload if exc.payload is not None else model_payload
+            usage = DEFAULT_PROVIDER_CONTEXT_BUDGET.measure(profile, render(failed_payload)[0])
             logger.warning("Planning context cannot fit after archival projection", extra={
-                "context_budget": asdict(DEFAULT_PROVIDER_CONTEXT_BUDGET.measure(profile, render(model_payload)[0])),
+                "context_budget": asdict(usage),
                 "required_after_projection": exc.required_tokens, "available_tokens": exc.available_tokens})
-            raise
+            raise ProviderContextBudgetExceeded(
+                role,
+                usage,
+                context_projection=asdict(exc.report) if exc.report is not None else None,
+            ) from exc
         request, messages = render(fitted.payload)
         system = request["system"]
         model = self._models[role]

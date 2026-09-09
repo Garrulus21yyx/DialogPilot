@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from application.conversation_context import conversation_context_payload as _conversation_context_payload
 
-from dataclasses import replace
+from dataclasses import asdict, replace
 import logging
 from typing import Mapping, Protocol
 from langgraph.errors import GraphBubbleUp
@@ -376,7 +376,7 @@ class ConversationAgent:
                 ProposalDisposition.PROVIDER_FAILURE, (),
                 "CONTEXT_BUDGET_EXCEEDED",
                 failure_detail=self._budget_failure_detail(
-                    exc, payload, observations, state, budgeted=budgeted,
+                    exc, payload, observations, state,
                 ),
             )
         except ConversationProviderOutputError:
@@ -422,7 +422,7 @@ class ConversationAgent:
             )
 
     def _budget_failure_detail(
-        self, exc, payload, observations, state, *, budgeted=None,
+        self, exc, payload, observations, state,
     ):
         components = {
             key: self._context_budget.estimate_payload({key: value})
@@ -467,15 +467,19 @@ class ConversationAgent:
                 "total_reserved_tokens": usage.total_reserved_tokens,
                 "max_context_tokens": usage.max_context_tokens,
             }
-        if budgeted is not None:
-            report = budgeted.report
+        report = (
+            exc.context_projection
+            if isinstance(exc, ProviderContextBudgetExceeded)
+            else asdict(exc.report) if exc.report is not None else None
+        )
+        if report:
             detail["payload_fit"] = {
-                "policy_version": report.policy_version,
-                "original_tokens": report.original_tokens,
-                "final_tokens": report.final_tokens,
-                "available_tokens": report.available_tokens,
-                "removed_item_count": len(report.removed_items),
-                "externalized_item_count": len(report.externalized_items),
+                "policy_version": report["policy_version"],
+                "original_tokens": report["original_tokens"],
+                "final_tokens": report["final_tokens"],
+                "available_tokens": report["available_tokens"],
+                "removed_item_count": len(report.get("removed_items", ())),
+                "externalized_item_count": len(report.get("externalized_items", ())),
             }
         return detail
 

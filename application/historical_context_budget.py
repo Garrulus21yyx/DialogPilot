@@ -51,8 +51,21 @@ def fit_historical_payload(budget, payload, *, observation_path, trim_oldest_pat
             break
         except ModelContextBudgetExceeded:
             if not candidates:
-                result = budget.fit_payload(value, trim_oldest_paths=trim_oldest_paths,
-                                            token_counter=token_counter, can_trim=can_trim)
+                try:
+                    result = budget.fit_payload(value, trim_oldest_paths=trim_oldest_paths,
+                                                token_counter=token_counter, can_trim=can_trim)
+                except ModelContextBudgetExceeded as exc:
+                    report = replace(
+                        exc.report,
+                        original_tokens=original_tokens,
+                        externalized_items=tuple(externalized),
+                    ) if exc.report is not None else None
+                    raise ModelContextBudgetExceeded(
+                        exc.required_tokens,
+                        exc.available_tokens,
+                        payload=exc.payload,
+                        report=report,
+                    ) from exc
                 break
             _, owner, key, replacement_key, reference = candidates.pop(0)
             del owner[key]
