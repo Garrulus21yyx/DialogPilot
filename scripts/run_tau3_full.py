@@ -127,7 +127,7 @@ async def run(args):
                 "max_domain_outcome_rejections_per_segment": InteractionBoundaryMiddleware.max_rejections,
                 "domain_outcome_review_profile": policy.profile(ModelRole.VERIFIER).to_dict(),
                 "domain_outcome_review_max_tokens": policy.profile(ModelRole.VERIFIER).request(max_tokens=4096)["max_tokens"],
-                "domain_outcome_review_scope": ["COMPLETE", "NEEDS_USER_INPUT", "BLOCKED", "PREPARE_ACTION"],
+                "domain_outcome_review_scope": ["PREPARE_ACTION"],
                 "model_context_budget": 64000, "worker_profile": profile.to_dict(),
                 "user_model": args.user_model, "seed": 300,
                 "user_thinking": "disabled",
