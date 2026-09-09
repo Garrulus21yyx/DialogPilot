@@ -60,3 +60,10 @@ review found no further definite execution-owner blocker; cycle exception IDs we
 also removed from diagnostic chains and covered by a canary test. `git diff
 --check` passed. No paid model/held-out semantic evaluation: multi-goal coverage,
 correct effects, target binding and conflict recognition remain model judgments.
+
+User-authorized ten-task regression subsequently attempted; see
+`tau3-operation-plan-ten-rerun-2026-09-09.md`. Only19/20 have complete scoring;
+21 is partial and the provider's HTTP402 prevents the remaining runs. Task19
+eventually chooses a compatible action but has repeated asks/prose failures;
+20 regresses with no modification. This does not close semantic R6/R7 or prove
+the new plan improves performance. No runtime changes were made during the run.
