@@ -1,0 +1,72 @@
+{
+  "cases": 80,
+  "rule_families": 20,
+  "outcomes": {
+    "incomplete_or_unsupported": 19,
+    "full_supported_correct": 57,
+    "upstream_failure": 2,
+    "appropriate_abstention": 1,
+    "false_abstention": 1
+  },
+  "strict_full_supported_accuracy": 0.7125,
+  "complete_visible_evidence": 62,
+  "unsupported_business_addition_ids": [
+    "cx-06-4"
+  ],
+  "false_insufficiency_ids": [
+    "cx-11-4"
+  ],
+  "ambiguous_expression_ids": [
+    "cx-29-1",
+    "cx-29-2",
+    "cx-29-3",
+    "cx-29-4"
+  ],
+  "appropriate_insufficiency_ids": [
+    "cx-08-3",
+    "cx-08-4",
+    "cx-09-4"
+  ],
+  "failures_with_complete_evidence": [
+    "cx-03-4",
+    "cx-11-4",
+    "cx-18-1",
+    "cx-18-3",
+    "cx-18-4"
+  ],
+  "category_outcomes": {
+    "direct": {
+      "incomplete_or_unsupported": 5,
+      "full_supported_correct": 15
+    },
+    "correction": {
+      "full_supported_correct": 17,
+      "incomplete_or_unsupported": 2,
+      "upstream_failure": 1
+    },
+    "hypothetical": {
+      "full_supported_correct": 14,
+      "upstream_failure": 1,
+      "incomplete_or_unsupported": 5
+    },
+    "missing_conditions": {
+      "incomplete_or_unsupported": 7,
+      "appropriate_abstention": 1,
+      "false_abstention": 1,
+      "full_supported_correct": 11
+    }
+  },
+  "citation_id_checks": {
+    "valid": 253,
+    "total": 253,
+    "not_semantic_accuracy": true
+  },
+  "api_calls": 81,
+  "usage": {
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 72192,
+    "input_tokens": 285570,
+    "output_tokens": 19712
+  },
+  "review_scope": "Assistant semantic review; synthetic consumed regression set; no independent human review or official benchmark; not Agent/Flow/publication E2E."
+}

@@ -1,0 +1,1207 @@
+{
+  "reviewer": "current Codex assistant; not independent human review",
+  "method": "Read all final texts against source clauses, actual visible evidence and user context; accept paraphrases. Literal coverage was used only to locate evidence, not to grade answer semantics.",
+  "rubric": "All three pre-existing required clauses complete, scenario preserved, no unsupported claim; upstream and abstention remain in denominator. P82/P83 omissions separately explained.",
+  "cases": [
+    {
+      "id": "cx-02-1",
+      "required_units_fully_covered": [
+        true,
+        true,
+        false
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "必要费用或处理步骤未进入可见证据，答案只复述已知条款，遗漏部分未说明。"
+    },
+    {
+      "id": "cx-02-2",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-02-3",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-02-4",
+      "required_units_fully_covered": [
+        true,
+        true,
+        false
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "必要费用或处理步骤未进入可见证据，答案只复述已知条款，遗漏部分未说明。"
+    },
+    {
+      "id": "cx-03-1",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-03-2",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-03-3",
+      "required_units_fully_covered": [
+        false,
+        false,
+        false
+      ],
+      "scenario_preserved": null,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": false,
+      "note": "沿用已冻结检索UNAVAILABLE，未调用生成，未冒充知识不存在。"
+    },
+    {
+      "id": "cx-03-4",
+      "required_units_fully_covered": [
+        false,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "漏掉清水测试不视为制作饮品；这是历史用户已通水但未加入咖啡粉的必要边界，其他条件/例外/寄回步骤保留。"
+    },
+    {
+      "id": "cx-05-1",
+      "required_units_fully_covered": [
+        true,
+        true,
+        false
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "必要费用或处理步骤未进入可见证据，答案只复述已知条款，遗漏部分未说明。"
+    },
+    {
+      "id": "cx-05-2",
+      "required_units_fully_covered": [
+        true,
+        true,
+        false
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "必要费用或处理步骤未进入可见证据，答案只复述已知条款，遗漏部分未说明。"
+    },
+    {
+      "id": "cx-05-3",
+      "required_units_fully_covered": [
+        true,
+        true,
+        false
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "必要费用或处理步骤未进入可见证据，答案只复述已知条款，遗漏部分未说明。"
+    },
+    {
+      "id": "cx-05-4",
+      "required_units_fully_covered": [
+        true,
+        true,
+        false
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "必要费用或处理步骤未进入可见证据，答案只复述已知条款，遗漏部分未说明。"
+    },
+    {
+      "id": "cx-06-1",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-06-2",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-06-3",
+      "required_units_fully_covered": [
+        true,
+        true,
+        false
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "必要费用或处理步骤未进入可见证据，答案只复述已知条款，遗漏部分未说明。"
+    },
+    {
+      "id": "cx-06-4",
+      "required_units_fully_covered": [
+        true,
+        true,
+        false
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": true,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "缺申请材料和受理编号；另将自然电路故障须检测扩成只有自然电路故障才可能覆盖，原文未穷尽所有可保故障。"
+    },
+    {
+      "id": "cx-08-1",
+      "required_units_fully_covered": [
+        true,
+        true,
+        false
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "必要费用或处理步骤未进入可见证据，答案只复述已知条款，遗漏部分未说明。"
+    },
+    {
+      "id": "cx-08-2",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-08-3",
+      "required_units_fully_covered": [
+        true,
+        true,
+        false
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": true,
+      "citation_semantics_reviewed": true,
+      "note": "条件/质量例外正确；对当前可见资料缺包装费用的说明合理，但未完成原请求。试坐十天的应用按本轮假设理解，未说实际已经申请成功。"
+    },
+    {
+      "id": "cx-08-4",
+      "required_units_fully_covered": [
+        true,
+        true,
+        false
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": true,
+      "citation_semantics_reviewed": true,
+      "note": "正确说明当前资料没有包装费用细则；有限回答可接受，但必要三部分未全部回答。"
+    },
+    {
+      "id": "cx-09-1",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-09-2",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-09-3",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-09-4",
+      "required_units_fully_covered": [
+        false,
+        true,
+        false
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": true,
+      "citation_semantics_reviewed": false,
+      "note": "仅赠品条款可见，拒绝猜退款计价和运费是合理的；仍非完整答案，且拒答文本较长。"
+    },
+    {
+      "id": "cx-11-1",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-11-2",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-11-3",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-11-4",
+      "required_units_fully_covered": [
+        false,
+        false,
+        false
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": true,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": false,
+      "note": "三条来源均完整可见，答案却称没有前提、例外和步骤；历史已明确R72、频段/组网/设置需求，属于错误拒答及错误的证据不足说明。"
+    },
+    {
+      "id": "cx-12-1",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-12-2",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-12-3",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-12-4",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-14-1",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-14-2",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-14-3",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-14-4",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-15-1",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-15-2",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-15-3",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-15-4",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "购买日期条件有手册首段原文支持，不计幻觉；初步进度中对日期的怀疑已撤销。"
+    },
+    {
+      "id": "cx-17-1",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-17-2",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-17-3",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-17-4",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-18-1",
+      "required_units_fully_covered": [
+        false,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "正确回答P84不支持，但遗漏兼容表P82/P83支持；按预先三条款完整口径u0不完整，不把它说成P84回答错误。"
+    },
+    {
+      "id": "cx-18-2",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-18-3",
+      "required_units_fully_covered": [
+        false,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "P84回答正确，兼容表P82/P83支持遗漏；严格三条款口径失败，非反向兼容幻觉。"
+    },
+    {
+      "id": "cx-18-4",
+      "required_units_fully_covered": [
+        false,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "P84及地区/步骤正确，兼容表P82/P83支持遗漏；正文E1等是模型局部别名，结构化引用已映射，展示需保持映射。"
+    },
+    {
+      "id": "cx-20-1",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-20-2",
+      "required_units_fully_covered": [
+        false,
+        false,
+        false
+      ],
+      "scenario_preserved": null,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": false,
+      "note": "沿用已冻结检索UNAVAILABLE，未调用生成，未冒充知识不存在。"
+    },
+    {
+      "id": "cx-20-3",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-20-4",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "三条款完整；购买日期由手册首段支持。正文局部E1等别名需展示映射。"
+    },
+    {
+      "id": "cx-21-1",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-21-2",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-21-3",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-21-4",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-23-1",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-23-2",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-23-3",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-23-4",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-24-1",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-24-2",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-24-3",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-24-4",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-26-1",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "结合用户自述地毯上不准理解，正确要求硬水平地面；不据此推定所有未知地毯材料的误差数值。"
+    },
+    {
+      "id": "cx-26-2",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-26-3",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-26-4",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-27-1",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-27-2",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-27-3",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-27-4",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-29-1",
+      "required_units_fully_covered": [
+        false,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": true,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "缺更换前关机断电。A/B对应关系正确，但追加A桨和B桨不能混装可能被理解为不能在同一机体正确配对安装，单列歧义风险。"
+    },
+    {
+      "id": "cx-29-2",
+      "required_units_fully_covered": [
+        true,
+        true,
+        false
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": true,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "缺锁紧/轻拉/裂纹/干涉检查步骤；A/B不能混装表述有范围歧义。"
+    },
+    {
+      "id": "cx-29-3",
+      "required_units_fully_covered": [
+        true,
+        true,
+        false
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": true,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "缺锁紧/轻拉/裂纹/干涉检查步骤；A/B不能混装表述有范围歧义。"
+    },
+    {
+      "id": "cx-29-4",
+      "required_units_fully_covered": [
+        true,
+        true,
+        false
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": true,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "已说明A对A/B对B与关机断电；缺锁紧检查，随后不可混装A/B有范围歧义。"
+    },
+    {
+      "id": "cx-30-1",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-30-2",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    },
+    {
+      "id": "cx-30-3",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "串联限制结合后文禁止未经核算直接串联理解；保留电压/极性与遮挡后接线，不判为全面禁止经核算串联。"
+    },
+    {
+      "id": "cx-30-4",
+      "required_units_fully_covered": [
+        true,
+        true,
+        true
+      ],
+      "scenario_preserved": true,
+      "unsupported_business_addition": false,
+      "false_insufficiency": false,
+      "ambiguous_scope_expression": false,
+      "appropriate_insufficiency": false,
+      "citation_semantics_reviewed": true,
+      "note": "逐句核对三条必要来源，条件/否定/顺序保留；一般规则式回答未将用户假设或未知前提确认为实际业务事实。"
+    }
+  ]
+}

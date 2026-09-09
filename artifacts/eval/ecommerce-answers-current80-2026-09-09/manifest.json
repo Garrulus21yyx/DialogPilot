@@ -1,0 +1,18 @@
+{
+  "head": "595c16657604963f4edbf74ad02f7dd4a35155b2",
+  "model_profile": {
+    "model": "deepseek-v4-flash",
+    "reasoning": "none",
+    "min_completion_tokens": 0,
+    "max_context_tokens": 32768
+  },
+  "scope": "one current retrieval arm, generation replay only; no reference/gold passed to model",
+  "api_cap": 156,
+  "hashes": {
+    "data/eval/ecommerce-complex-v2/heldout.inputs.json": "82062fcdbea02e2fe9b7f2c9f072085869d81beaadc5a0f2a8c7f713cc2bda1e",
+    "artifacts/eval/ecommerce-complex-v2-scope-pair120-v4/runtime/pure-cases.jsonl.gz": "b4a40b2baf9efb4a29867fe001d235c85818535db271e0b4743f689b10f0b7c0",
+    "/home/yang/DialogPilot/scripts/run_ecommerce_answer_eval.py": "64eb931c7fe693f108b2edebcde99e67d8879ff21f53befba4831e37690592b0",
+    "mcp/grounded_answer_generator.py": "378a961b662630c173b1f5f831fbe6ae1fb1343e0871a1fa92f28f4fd14f7561",
+    "core/provider_context_budget.py": "1b8cb152448f2306e5fda3ddd92bd1063d9f7b5283401330cb5b3068369f8775"
+  }
+}
