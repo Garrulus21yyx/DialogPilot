@@ -10,7 +10,7 @@ from evaluation.tau3_causal_probes import probe_report
 from evaluation.tau3_gate import compare_and_gate
 from evaluation.tau3_langfuse_scores import publish_scores
 from evaluation.tau3_langfuse_evidence import enrich_from_langfuse
-from evaluation.tau3_llm_judge import judge_report
+from evaluation.tau3_llm_judge import evidence_packet, judge_report
 from evaluation.tau3_regression import generate_candidates, promote_candidates
 
 
@@ -143,6 +143,7 @@ def test_regression_requires_review_and_gate_blocks_recurrence():
     failed = _report([_task(findings=[_finding("MISSING_REQUIRED_WRITE", "TASK_BLOCKING")])])
     candidates = generate_candidates(failed)
     candidate_id = candidates["candidates"][0]["candidate_id"]
+    assert candidates["candidates"][0]["diagnosis"]["root_cause_status"] == "OPEN"
     with pytest.raises(ValueError, match="missing review fields"):
         promote_candidates(candidates, {"reviews": [{"candidate_id": candidate_id, "decision": "APPROVE"}]})
     suite = promote_candidates(candidates, {"reviews": [{
@@ -278,6 +279,30 @@ def test_llm_judge_supports_hypothesis_but_cannot_verify_root_cause():
 
     assert result["tasks"][0]["llm_judge"]["judgments"][0]["verdict"] == "SUPPORTS"
     assert result["tasks"][0]["root_cause_status"] == "OPEN"
+
+
+def test_llm_judge_packet_excludes_runtime_causal_candidates():
+    task = _task(findings=[
+        {
+            "code": "ACTION_RESUME_BLOCKED", "layer": "causal_candidate",
+            "level": "SUPPORTED", "summary": "runtime boundary",
+            "owner_candidate": "context_admission", "evidence_ids": ["lineage"],
+            "missing_evidence": [], "impact": "CAUSAL_CANDIDATE",
+        },
+        {
+            "code": "APPROVAL_RESPONSE_MATCHES_PENDING_ACTION", "layer": "hypothesis",
+            "level": "SUPPORTED", "summary": "semantic edge", "owner_candidate": None,
+            "evidence_ids": ["lineage"], "missing_evidence": [],
+            "impact": "CAUSAL_CANDIDATE",
+        },
+    ])
+    task["evidence"] = [{"evidence_id": "lineage", "summary": "bounded", "data": {}}]
+
+    packet = evidence_packet(task)
+
+    assert [item["finding_code"] for item in packet["hypotheses"]] == [
+        "APPROVAL_RESPONSE_MATCHES_PENDING_ACTION",
+    ]
 
 
 def test_llm_judge_isolates_hallucinated_evidence_reference():

@@ -10,6 +10,8 @@ Offline analysis and gating do not invoke a model or require Langfuse credential
 ```text
 tau3 run artifacts
   -> analyze objective evidence
+  -> normalize required transition paths and first divergence
+  -> cluster failures by phase/code/owner
   -> fetch optional Langfuse evidence
   -> run causal probes
   -> judge bounded semantic hypotheses (optional)
@@ -189,6 +191,41 @@ accepted-plan evidence. Missing checkpoint history leaves causal hypotheses open
 
 This split prevents a fluent Judge explanation from replacing database state or
 turning correlation into a verified root cause.
+
+## Required-transition model
+
+Every required business write is evaluated against the same bounded algebra:
+
+```text
+OBJECTIVE -> PLAN -> WORK_ITEM -> ACTION_PREPARED -> APPROVAL
+          -> EXECUTION -> RECEIPT -> STATE -> ANSWER
+```
+
+Only transitions required by the task contract are enforced. Read ordering and
+equivalent successful tool trajectories are not fixed: an ACTION-reference miss
+with a passing ENV state is not a runtime divergence. Each failed path reports one
+`first_divergence` with phase, typed code, candidate owner, missing evidence and
+next probe. Run reports aggregate those records into `failure_clusters`; regression
+candidates retain the diagnosis alongside independently reviewed success contracts.
+
+Runtime causality is recorded as `causal_candidate` and remains outside the LLM
+Judge. Semantic propositions are separate `hypothesis` findings, for example
+whether an approval response matches a pending action. Only those propositions
+are sent to the Judge.
+
+Deterministic evidence decides planning artifacts, tools, receipts and state.
+The LLM Judge is used only for semantic edges such as whether a user response
+accepts an approval scope or whether a final answer communicates required facts.
+It cannot promote `root_cause_status`.
+
+This separation follows current trace-evaluation practice: OpenAI trace grading
+assigns structured labels to end-to-end agent traces, while LangSmith separates
+final-response, trajectory, and isolated step evaluation. DialogPilot adds the
+domain-specific required-transition path because side effects, approvals and
+receipts have authoritative owners that a generic trajectory grader cannot infer.
+See [OpenAI trace grading](https://developers.openai.com/api/docs/guides/trace-grading)
+and [LangSmith complex-agent evaluation](https://docs.langchain.com/langsmith/evaluate-complex-agent)
+(reviewed 2026-09-09).
 
 ## Evidence semantics
 

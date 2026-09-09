@@ -15,6 +15,8 @@ from pathlib import Path
 import re
 from typing import Any, Mapping, Sequence
 
+from evaluation.tau3_transition_rca import analyze_required_transitions
+
 
 class FindingLevel(str, Enum):
     OBSERVED = "OBSERVED"
@@ -75,6 +77,7 @@ def analyze_run(run_dir: Path) -> Mapping[str, Any]:
         if finding["layer"] in {"violation", "mechanism"}
     )
     unbound = _unbound_run_errors(run_dir / "application-errors.log")
+    failure_clusters = _failure_clusters(tasks)
     return {
         "schema_version": "dialogpilot-tau3-rca-v1",
         "run": {
@@ -87,6 +90,7 @@ def analyze_run(run_dir: Path) -> Mapping[str, Any]:
             "task_count": len(tasks),
         },
         "finding_counts": dict(sorted(counts.items())),
+        "failure_clusters": failure_clusters,
         "tasks": tasks,
         "unbound_run_evidence": unbound,
         "limitations": [
@@ -105,7 +109,9 @@ def analyze_task(result_path: Path, trajectory_path: Path | None = None) -> Mapp
     findings: list[Finding] = []
 
     expected_actions = _expected_actions(result)
+    expected_writes = [action for action in expected_actions if action["tool_type"] == "write"]
     actual_actions = _actual_actions(trajectory)
+    messages = _messages(trajectory)
     failed_expected = [action for action in expected_actions if not action["action_match"]]
     failed_writes = [action for action in failed_expected if action["tool_type"] == "write"]
     actual_writes = [action for action in actual_actions if _is_write(action["name"])]
@@ -152,6 +158,7 @@ def analyze_task(result_path: Path, trajectory_path: Path | None = None) -> Mapp
         expected_action = expected["action"]
         same_tool = [actual for actual in actual_writes if actual["name"] == expected_action["name"]]
         evidence_id = f"expected-write-{index}"
+        expected["failure_evidence_id"] = evidence_id
         if not same_tool:
             evidence.append(Evidence(
                 evidence_id, result_path.name, "$.action.action_checks",
@@ -255,62 +262,23 @@ def analyze_task(result_path: Path, trajectory_path: Path | None = None) -> Mapp
             impact="RECOVERED" if _business_checks_pass(result) else "PRESENT_DURING_FAILURE",
         ))
 
-    write_intent_turn = _write_intent_planning_failure(result, planning_failures)
-    if failed_writes and not actual_writes and write_intent_turn:
-        evidence.append(Evidence(
-            "write-intent-turn-plan", result_path.name, write_intent_turn["locator"],
-            "The execution-request turn retained only a read-only accepted plan before planning failed.",
-            write_intent_turn["data"],
-        ))
-        findings.append(Finding(
-            "WRITE_OMITTED_AFTER_PLANNING_FAILURE", "hypothesis", FindingLevel.SUPPORTED,
-            "A task-bound planning protocol failure followed a read-only accepted plan; the required write never entered the visible plan or receipt path.",
-            "conversation_planning", (
-                "write-intent-turn-plan", "planning-stage-failures",
-                *(f"expected-write-{index}" for index in range(len(failed_writes))),
-            ),
-            (
-                "The bounded user message needs semantic confirmation that it requests the expected write.",
-                "The retained artifact is a checkpoint projection, not the full checkpoint transition history.",
-            ),
-            "Export the sanitized checkpoint history before teardown and join plan, pending action, approval, and receipt by control/work-item IDs.",
-            impact="CAUSAL_CANDIDATE",
-        ))
-
-    pending_action = _pending_action_before_planning_failure(
-        result, failed_writes, planning_failures,
+    transition_analysis = analyze_required_transitions(
+        result, required_writes=expected_writes, actual_writes=actual_writes,
+        planning_failures=planning_failures, conversation_messages=messages,
     )
-    if failed_writes and not actual_writes and pending_action:
+    for item in transition_analysis["evidence"]:
         evidence.append(Evidence(
-            "checkpoint-pending-action", result_path.name,
-            pending_action["checkpoint_locator"],
-            "The checkpoint chain retained the expected pending action and approval binding but no receipt.",
-            pending_action["checkpoint_data"],
+            item["evidence_id"], result_path.name, item["locator"],
+            item["summary"], item["data"],
         ))
-        evidence.append(Evidence(
-            "approval-response-planning-failure", result_path.name,
-            pending_action["turn_locator"],
-            "The next task turn supplied an approval-like response and failed in planning.",
-            pending_action["turn_data"],
-        ))
+    for item in transition_analysis["hypotheses"]:
         findings.append(Finding(
-            "PENDING_ACTION_NOT_RESUMED_AFTER_PLANNING_FAILURE",
-            "hypothesis", FindingLevel.SUPPORTED,
-            "A checkpointed pending action was followed by an approval-like user turn, but planning failed before any write receipt was committed.",
-            "conversation_planning", (
-                "checkpoint-pending-action", "approval-response-planning-failure",
-                "planning-stage-failures",
-                *(f"expected-write-{index}" for index in range(len(failed_writes))),
-            ),
-            (
-                "The approval-like user text needs semantic confirmation against the checkpointed pending action.",
-                "A normalized checkpoint transition is needed to prove the exact first owner that rejected resume.",
-            ),
-            "Replay the approval turn with checkpoint/config token accounting and inspect whether resume binding is admitted before planner invocation.",
+            item["code"], item["layer"], FindingLevel.SUPPORTED,
+            item["summary"], item["owner_candidate"], tuple(item["evidence_ids"]),
+            tuple(item["missing_evidence"]), item["next_probe"],
             impact="CAUSAL_CANDIDATE",
         ))
 
-    messages = _messages(trajectory)
     revisions = [message for message in messages if message["role"] == "user" and _is_revision(message["content"])]
     domain_rejections = _find_scalar_matches(result.get("target_trace", []), "DOMAIN_OUTCOME_REJECTED")
     if revisions and domain_rejections and failed_writes and not actual_writes:
@@ -370,6 +338,7 @@ def analyze_task(result_path: Path, trajectory_path: Path | None = None) -> Mapp
         },
         "langfuse_session_id": result.get("langfuse_session_id"),
         "outcome": _outcome(result),
+        "transition_analysis": transition_analysis,
         "root_cause_status": root_cause_status,
         "evidence": [asdict(item) for item in evidence],
         "findings": [_finding_dict(item) for item in findings],
@@ -469,47 +438,6 @@ def _target_stage_failures(result: Mapping[str, Any]) -> list[Mapping[str, Any]]
     return failures
 
 
-def _write_intent_planning_failure(
-    result: Mapping[str, Any], planning_failures: Sequence[Mapping[str, Any]],
-) -> Mapping[str, Any] | None:
-    failed_turns = {
-        item.get("turn") for item in planning_failures
-        if item.get("code") == "CONVERSATION_PROVIDER_OUTPUT_INVALID"
-    }
-    for trace_index, record in enumerate(result.get("target_trace") or []):
-        if not isinstance(record, Mapping) or record.get("turn") not in failed_turns:
-            continue
-        outcome = record.get("outcome")
-        response = outcome.get("response") if isinstance(outcome, Mapping) else None
-        evaluation = response.get("evaluation_trace") if isinstance(response, Mapping) else None
-        if not isinstance(evaluation, Mapping):
-            continue
-        consumption = evaluation.get("consumption") or {}
-        work_items = consumption.get("work_items") or []
-        modes = {str(item.get("control_mode") or "") for item in work_items if isinstance(item, Mapping)}
-        side_effect = evaluation.get("state_side_effect") or {}
-        receipts = side_effect.get("committed_receipt_refs") or []
-        if receipts or modes.intersection({"ACTION", "WORKFLOW"}):
-            continue
-        artifact = evaluation.get("artifact") or {}
-        return {
-            "locator": f"$.target_trace[{trace_index}]",
-            "data": {
-                "turn": record.get("turn"),
-                "user_input": str(record.get("input") or "")[:800],
-                "plan_id": artifact.get("plan_id"),
-                "route_mode": artifact.get("route_mode"),
-                "work_items": [{
-                    "work_item_id": item.get("work_item_id"),
-                    "control_mode": item.get("control_mode"),
-                    "allowed_tools": list(item.get("allowed_tools") or []),
-                } for item in work_items if isinstance(item, Mapping)],
-                "committed_receipt_refs": list(receipts),
-            },
-        }
-    return None
-
-
 def _exception_types(detail: Mapping[str, Any]) -> list[str]:
     chain = detail.get("exception_chain") or []
     if not isinstance(chain, Sequence) or isinstance(chain, (str, bytes)):
@@ -518,82 +446,6 @@ def _exception_types(detail: Mapping[str, Any]) -> list[str]:
         str(item.get("type")) for item in chain
         if isinstance(item, Mapping) and item.get("type")
     ))[:8]
-
-
-def _pending_action_before_planning_failure(
-    result: Mapping[str, Any], failed_writes: Sequence[Mapping[str, Any]],
-    planning_failures: Sequence[Mapping[str, Any]],
-) -> Mapping[str, Any] | None:
-    projection = result.get("checkpoint_projection") or {}
-    if projection.get("status") != "AVAILABLE" or not planning_failures:
-        return None
-    expected_names = {
-        str(item.get("action", {}).get("name") or "") for item in failed_writes
-    }
-    snapshots = projection.get("snapshots") or []
-    pending_matches = []
-    approval_ids = set()
-    operation_keys = set()
-    receipt_ids = set()
-    for snapshot_index, snapshot in enumerate(snapshots):
-        if not isinstance(snapshot, Mapping):
-            continue
-        for item in snapshot.get("lineage") or []:
-            if not isinstance(item, Mapping):
-                continue
-            field = item.get("field")
-            value = item.get("value")
-            if field == "allowed_tools" and isinstance(value, list):
-                matched = sorted(expected_names.intersection(str(tool) for tool in value))
-                if matched:
-                    pending_matches.append({
-                        "snapshot_index": snapshot_index,
-                        "sequence": snapshot.get("sequence"),
-                        "thread_id": snapshot.get("thread_id"),
-                        "checkpoint_id": snapshot.get("checkpoint_id"),
-                        "path": item.get("path"),
-                        "expected_tools": matched,
-                    })
-            elif field == "approval_id" and value:
-                approval_ids.add(str(value))
-            elif field == "operation_key" and value:
-                operation_keys.add(str(value))
-            elif field == "receipt_id" and value:
-                receipt_ids.add(str(value))
-    if not pending_matches or receipt_ids:
-        return None
-    first_failure = min(
-        (item for item in planning_failures if isinstance(item.get("turn"), int)),
-        key=lambda item: item["turn"], default=None,
-    )
-    if first_failure is None:
-        return None
-    failed_turn = next((
-        (index, record) for index, record in enumerate(result.get("target_trace") or [])
-        if isinstance(record, Mapping) and record.get("turn") == first_failure["turn"]
-    ), None)
-    if failed_turn is None:
-        return None
-    trace_index, record = failed_turn
-    first_match = min(pending_matches, key=lambda item: item["sequence"] or 0)
-    return {
-        "checkpoint_locator": (
-            f"$.checkpoint_projection.snapshots[{first_match['snapshot_index']}]"
-        ),
-        "checkpoint_data": {
-            "pending_action": first_match,
-            "approval_ids": sorted(approval_ids)[:10],
-            "operation_keys": sorted(operation_keys)[:10],
-            "receipt_ids": [],
-        },
-        "turn_locator": f"$.target_trace[{trace_index}]",
-        "turn_data": {
-            "turn": record.get("turn"),
-            "user_input": str(record.get("input") or "")[:800],
-            "failed_stage": first_failure["stage"],
-            "failure_code": first_failure["code"],
-        },
-    }
 
 
 def _provider_error(result: Mapping[str, Any]) -> Mapping[str, Any] | None:
@@ -681,6 +533,33 @@ def _finding_dict(item: Finding) -> Mapping[str, Any]:
     data = asdict(item)
     data["level"] = item.level.value
     return data
+
+
+def _failure_clusters(tasks: Sequence[Mapping[str, Any]]) -> list[Mapping[str, Any]]:
+    clusters: dict[tuple[str, str, str], list[str]] = {}
+    for task in tasks:
+        divergence = (task.get("transition_analysis") or {}).get("first_divergence")
+        if not isinstance(divergence, Mapping):
+            continue
+        key = (
+            str(divergence.get("phase") or "UNKNOWN"),
+            str(divergence.get("code") or "UNKNOWN"),
+            str(divergence.get("owner_candidate") or "unassigned"),
+        )
+        clusters.setdefault(key, []).append(str(task["task_id"]))
+    return [
+        {
+            "phase": phase, "code": code, "owner_candidate": owner,
+            "case_count": len(task_ids), "task_ids": sorted(task_ids, key=_task_sort_key),
+        }
+        for (phase, code, owner), task_ids in sorted(
+            clusters.items(), key=lambda item: (-len(item[1]), item[0]),
+        )
+    ]
+
+
+def _task_sort_key(task_id: str) -> tuple[int, Any]:
+    return (0, int(task_id)) if task_id.isdigit() else (1, task_id)
 
 
 def _load_json(path: Path | None, default: Any = None) -> Any:

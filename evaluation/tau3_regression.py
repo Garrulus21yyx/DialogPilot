@@ -39,6 +39,12 @@ def generate_candidates(report: Mapping[str, Any]) -> Mapping[str, Any]:
             "status": "CANDIDATE",
             "source": source,
             "failure_codes": blocking_codes,
+            "diagnosis": {
+                "root_cause_status": task.get("root_cause_status", "OPEN"),
+                "first_divergence": (
+                    task.get("transition_analysis", {}).get("first_divergence")
+                ),
+            },
             "suggested_contract": suggested_contract,
             "review_required": [
                 "Confirm that the official expected action is a business invariant.",

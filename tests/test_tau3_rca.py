@@ -113,13 +113,15 @@ def test_missing_write_is_linked_to_task_bound_planning_failure(tmp_path):
 
     findings = {item["code"]: item for item in report["findings"]}
     assert findings["PLANNING_STAGE_FAILURE"]["level"] == "VERIFIED"
-    hypothesis = findings["WRITE_OMITTED_AFTER_PLANNING_FAILURE"]
+    hypothesis = findings["ACTION_NOT_PREPARED_AFTER_PLANNING_FAILURE"]
     assert hypothesis["level"] == "SUPPORTED"
+    assert hypothesis["layer"] == "causal_candidate"
     assert hypothesis["owner_candidate"] == "conversation_planning"
+    assert findings["FAILED_TURN_REQUESTS_REQUIRED_ACTION"]["layer"] == "hypothesis"
     assert report["root_cause_status"] == "OPEN"
-    plan = next(item for item in report["evidence"] if item["evidence_id"] == "write-intent-turn-plan")
-    assert plan["data"]["work_items"][0]["allowed_tools"] == ["calculate"]
-    assert plan["data"]["committed_receipt_refs"] == []
+    path = report["transition_analysis"]["paths"][0]
+    assert path["first_divergence"]["phase"] == "PLAN"
+    assert [item["phase"] for item in path["transitions"]] == report["transition_analysis"]["phase_order"]
 
 
 def test_recovered_planning_failure_is_not_reported_as_task_blocking(tmp_path):
@@ -139,7 +141,7 @@ def test_recovered_planning_failure_is_not_reported_as_task_blocking(tmp_path):
 
     findings = {item["code"]: item for item in report["findings"]}
     assert findings["PLANNING_STAGE_FAILURE"]["impact"] == "RECOVERED"
-    assert "WRITE_OMITTED_AFTER_PLANNING_FAILURE" not in findings
+    assert not report["transition_analysis"]["paths"]
 
 
 def test_checkpoint_links_pending_action_to_failed_approval_turn(tmp_path):
@@ -149,14 +151,19 @@ def test_checkpoint_links_pending_action_to_failed_approval_turn(tmp_path):
         "action": {"reward": 0, "action_checks": [
             _failed_write("modify_pending_order_items", {"order_id": "W1"})
         ]},
-        "target_trace": [{
-            "turn": 5,
-            "input": "Yes, I approve those changes. Please go ahead.",
-            "outcome": {"stages": [{
-                "stage": "planning", "status": "failed",
-                "detail": {"code": "CONTEXT_BUDGET_EXCEEDED"},
-            }]},
-        }],
+        "target_trace": [
+            {"turn": 4, "outcome": {
+                "kind": "APPROVAL", "signal_id": "approval-1",
+            }},
+            {
+                "turn": 5,
+                "input": "Yes, I approve those changes. Please go ahead.",
+                "outcome": {"stages": [{
+                    "stage": "planning", "status": "failed",
+                    "detail": {"code": "CONTEXT_BUDGET_EXCEEDED"},
+                }]},
+            },
+        ],
         "checkpoint_projection": {
             "status": "AVAILABLE",
             "snapshots": [{
@@ -176,15 +183,18 @@ def test_checkpoint_links_pending_action_to_failed_approval_turn(tmp_path):
     report = analyze_task(result)
 
     findings = {item["code"]: item for item in report["findings"]}
-    hypothesis = findings["PENDING_ACTION_NOT_RESUMED_AFTER_PLANNING_FAILURE"]
+    hypothesis = findings["ACTION_RESUME_BLOCKED"]
     assert hypothesis["level"] == "SUPPORTED"
-    assert hypothesis["owner_candidate"] == "conversation_planning"
+    assert hypothesis["layer"] == "causal_candidate"
+    assert hypothesis["owner_candidate"] == "context_admission"
+    assert findings["APPROVAL_RESPONSE_MATCHES_PENDING_ACTION"]["layer"] == "hypothesis"
     checkpoint = next(
         item for item in report["evidence"]
-        if item["evidence_id"] == "checkpoint-pending-action"
+        if item["evidence_id"] == "transition-0-lineage"
     )
     assert checkpoint["data"]["approval_ids"] == ["approval-1"]
     assert checkpoint["data"]["receipt_ids"] == []
+    assert report["transition_analysis"]["first_divergence"]["phase"] == "APPROVAL"
     assert report["root_cause_status"] == "OPEN"
 
 
@@ -224,4 +234,26 @@ def test_run_does_not_assign_unkeyed_batch_errors_to_tasks(tmp_path):
         "code": "CONTEXT_BUDGET_EXCEEDED", "count": 1,
         "source": "application-errors.log", "binding": "RUN_ONLY",
         "note": "Not attributed to a task because the log line lacks a stable task/turn/trace join key.",
+    }]
+
+
+def test_run_clusters_first_divergences_by_phase_code_and_owner(tmp_path):
+    _write(tmp_path / "manifest.json", {"status": "EVALUATED"})
+    for task_id in ("1", "2"):
+        _write(tmp_path / f"task-{task_id}.json", {
+            "task_id": task_id, "official_reward": 0,
+            "env": {"reward": 0},
+            "action": {"reward": 0, "action_checks": [
+                _failed_write("modify_order", {"id": task_id})
+            ]},
+        })
+
+    report = analyze_run(tmp_path)
+
+    assert report["failure_clusters"] == [{
+        "phase": "ACTION_PREPARED",
+        "code": "REQUIRED_ACTION_NOT_PREPARED",
+        "owner_candidate": "task_planning",
+        "case_count": 2,
+        "task_ids": ["1", "2"],
     }]
