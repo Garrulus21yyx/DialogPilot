@@ -111,6 +111,12 @@
       "working_tree_modified": false
     },
     {
+      "path": "application/execution_progress.py",
+      "sha256": "166703dd442e4a1092e7aaf575c6a1bb43e87849dc5174af35e6a6b14871b06c",
+      "committed_sha256": "166703dd442e4a1092e7aaf575c6a1bb43e87849dc5174af35e6a6b14871b06c",
+      "source_scope": "framework/backend supplement; committed version only"
+    },
+    {
       "path": "application/handoff_runtime.py",
       "sha256": "2f2ea80773868099917ee6929bece858eefb1eca83c27badc330d6cd5c23f659",
       "committed_sha256": "2f2ea80773868099917ee6929bece858eefb1eca83c27badc330d6cd5c23f659",
@@ -293,6 +299,12 @@
       "working_tree_modified": false
     },
     {
+      "path": "core/auth.py",
+      "sha256": "a663266d94d1651f25bcc0f34ac8f4ba8510ddfa1cc0bd9f235290a907ec3526",
+      "committed_sha256": "a663266d94d1651f25bcc0f34ac8f4ba8510ddfa1cc0bd9f235290a907ec3526",
+      "source_scope": "framework/backend supplement; committed version only"
+    },
+    {
       "path": "core/framework_models.py",
       "sha256": "72e698917b59908643b206fad83fe3287fef0f8271668409e67197fe54fec115",
       "committed_sha256": "72e698917b59908643b206fad83fe3287fef0f8271668409e67197fe54fec115",
@@ -403,6 +415,12 @@
       "committed_sha256": "5873a78d4994204efa3bcdb966e6b2cda56860513fca03d22f75b0984f863f31",
       "working_tree_sha256": "5873a78d4994204efa3bcdb966e6b2cda56860513fca03d22f75b0984f863f31",
       "working_tree_modified": false
+    },
+    {
+      "path": "docs/rag-bm25-planner-diagnosis-2026-09-09.zh-CN.md",
+      "sha256": "c6048b32546749ac86637a011af6b871b94930f7295cd0f09a9aa21a5e77d3c3",
+      "committed_sha256": "c6048b32546749ac86637a011af6b871b94930f7295cd0f09a9aa21a5e77d3c3",
+      "source_scope": "framework/backend supplement; committed version only"
     },
     {
       "path": "docs/rag-header-retrieval-pair-2026-09-09.zh-CN.md",
@@ -545,6 +563,12 @@
       "working_tree_modified": false
     },
     {
+      "path": "infrastructure/postgres_admission.py",
+      "sha256": "e47dfa29a2cea8bd72014214948a0a0a4bba5121477b7c6a6eb1b4156d56c7d9",
+      "committed_sha256": "e47dfa29a2cea8bd72014214948a0a0a4bba5121477b7c6a6eb1b4156d56c7d9",
+      "source_scope": "framework/backend supplement; committed version only"
+    },
+    {
       "path": "infrastructure/postgres_commitment_service.py",
       "sha256": "ebf15b10d59bf922759672a8bf2ea29f1e2d91924e74dac52d0d475125c5b952",
       "committed_sha256": "ebf15b10d59bf922759672a8bf2ea29f1e2d91924e74dac52d0d475125c5b952",
@@ -571,6 +595,12 @@
       "committed_sha256": "761c92614cca0674d36a3df8ff083512a35f7cea78b2afb358f49d316beb53d1",
       "working_tree_sha256": "761c92614cca0674d36a3df8ff083512a35f7cea78b2afb358f49d316beb53d1",
       "working_tree_modified": false
+    },
+    {
+      "path": "infrastructure/postgres_projection.py",
+      "sha256": "b57614e430de9ffa6a2ae73e98de9c021b3b59e2db66ceb5286ef4256730bee0",
+      "committed_sha256": "b57614e430de9ffa6a2ae73e98de9c021b3b59e2db66ceb5286ef4256730bee0",
+      "source_scope": "framework/backend supplement; committed version only"
     },
     {
       "path": "infrastructure/postgres_response_delivery.py",
@@ -755,6 +785,12 @@
       "working_tree_modified": false
     },
     {
+      "path": "memory/conversation_memory.py",
+      "sha256": "5b58261a1dd74597dbe07e66e530a21b23d7fd7110244fae4656917c3e5ea1c1",
+      "committed_sha256": "5b58261a1dd74597dbe07e66e530a21b23d7fd7110244fae4656917c3e5ea1c1",
+      "source_scope": "framework/backend supplement; committed version only"
+    },
+    {
       "path": "plans/rag-optimization-status.md",
       "sha256": "342f590792bb5c9215998aabd7671eee1a0b2b8740bfbb6c67bae5d171e27c6d",
       "committed_sha256": "342f590792bb5c9215998aabd7671eee1a0b2b8740bfbb6c67bae5d171e27c6d",
@@ -767,6 +803,12 @@
       "committed_sha256": "429c6a2f5d1d244e8a3e49d7a185ee97fe5e39e676666df8c1cb1a3e5730de67",
       "working_tree_sha256": "429c6a2f5d1d244e8a3e49d7a185ee97fe5e39e676666df8c1cb1a3e5730de67",
       "working_tree_modified": false
+    },
+    {
+      "path": "scripts/rehearse_x_t01_restore.py",
+      "sha256": "444d089851f5a3efc2e7a57a6a7d855c43b2663de617540d8d5907a0e69dc8ac",
+      "committed_sha256": "444d089851f5a3efc2e7a57a6a7d855c43b2663de617540d8d5907a0e69dc8ac",
+      "source_scope": "framework/backend supplement; committed version only"
     },
     {
       "path": "scripts/report_ecommerce_complex.py",
@@ -788,6 +830,12 @@
       "committed_sha256": "523631a17e703ae0a2413a9d86a3f587a7aea1d84b2c48603bf2dc89d01b6ace",
       "working_tree_sha256": "523631a17e703ae0a2413a9d86a3f587a7aea1d84b2c48603bf2dc89d01b6ace",
       "working_tree_modified": false
+    },
+    {
+      "path": "scripts/run_postgres_migrations.py",
+      "sha256": "147cf4c7699674700ebd4d69e2275213110d4b231aeb16f3bd17d0fff8d0a9cc",
+      "committed_sha256": "147cf4c7699674700ebd4d69e2275213110d4b231aeb16f3bd17d0fff8d0a9cc",
+      "source_scope": "framework/backend supplement; committed version only"
     },
     {
       "path": "scripts/run_tau3_full.py",
@@ -905,5 +953,6 @@
       "snapshot": "assets/handbook/evidence/artifacts__eval__tau3-task22-scoped-conversation-corrected-2026-09-09__REPORT.md.txt",
       "sha256": "085a7c5dc06c636dd90b2e1c513b05e9a1b3f678b2edcf93f12039f77ad69631"
     }
-  ]
+  ],
+  "supplement_checked_at": "2026-09-09T08:48:34.762028+00:00"
 }

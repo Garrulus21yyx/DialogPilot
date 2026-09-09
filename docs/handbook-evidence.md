@@ -78,4 +78,8 @@ permalink: /handbook-evidence.html
 
 写作颗粒度参考用户提供的[Affordance Runtime追问页](https://garrulus21yyx.github.io/affordance-runtime/interview-playbook.html)：短答后展开机制、追问和源码定位。这里只借用阅读组织，不迁移其DOM、Monitor、AndroidWorld或PydanticAI主运行时结论到DialogPilot。
 
-手册有92个详细追问，经典知识解释用于帮助完整口述；实际是否启用、指标高低、API默认以源码快照与报告为准。简历页保留单独标注的模拟写作版本，不混入本页实测表。
+手册有120个详细追问，经典知识解释用于帮助完整口述；实际是否启用、指标高低、API默认以源码快照与报告为准。简历页保留单独标注的模拟写作版本，不混入本页实测表。
+
+## 5. 框架与后端专题补充
+
+新增Q93—Q120覆盖LangChain/LangGraph基础、观察进展与硬预算、FastAPI异步/生命周期/鉴权、Redis缓存与事务、PostgreSQL锁/幂等/Outbox/索引/慢SQL。原理与源码一起解释；缓存雪崩方案、分布式锁和生产限流等候选知识不冒充已部署功能。源码仍固定89feac2，补充文件身份已加入manifest。

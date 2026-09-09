@@ -1,6 +1,6 @@
 # DialogPilot 面试追问：原理、源码与技术取舍
 
-> 2026-09-09 校准，源码冻结于 `89feac2`；已同步主 Agent 职责、原生回复、审批展示与最新评测。新增 Q81—Q92，同时修订原有答案。每题先练短答，再展开具体机制和失败边界。Encoder 当前默认关闭；效果数据必须附split与报告；模拟简历数字不在本页充当实测。配套：[架构]({{ '/architecture.html' | relative_url }}) · [RAG专题]({{ '/rag-study.html' | relative_url }}) · [项目讲述]({{ '/project-pitch.html' | relative_url }}) · [来源]({{ '/handbook-evidence.html' | relative_url }})。
+> 2026-09-09 校准，源码冻结于 `89feac2`；已同步主 Agent 职责、原生回复、审批展示与最新评测。Q81—Q92解释架构调整；Q93—Q120补齐框架、防循环和后端原理，同时修订原有答案。每题先练短答，再展开具体机制和失败边界。Encoder 当前默认关闭；效果数据必须附split与报告；模拟简历数字不在本页充当实测。配套：[架构]({{ '/architecture.html' | relative_url }}) · [RAG专题]({{ '/rag-study.html' | relative_url }}) · [项目讲述]({{ '/project-pitch.html' | relative_url }}) · [来源]({{ '/handbook-evidence.html' | relative_url }})。
 
 ## 1. 项目定位与架构防守
 
@@ -188,7 +188,7 @@
 
 **短答：**有界预算是最后防线，项目还用进展middleware和证据请求去重防止没有新事实的循环。
 
-**展开：**工作图对NEEDS_EVIDENCE记录已经请求的requirement/provider；补充后事实未变化就返回缺证据状态。Worker有AgentProgressMiddleware、模型/工具调用限制和timeout。它们解决不同问题：重复调用、状态不变、资源耗尽和外部慢响应。具体比较字段要以middleware代码为准，不套用GUI项目的Monitor/推理升级名称。
+**展开：**工作图对NEEDS_EVIDENCE记录已经请求的requirement/provider；补充后事实未变化就返回缺证据状态。Worker有AgentProgressMiddleware、模型/工具调用限制和timeout。它们解决不同问题：重复调用、状态不变、资源耗尽和外部慢响应。实际按观察身份统计：连续两轮无新观察提示调整，提示后仍无进展结束当前段；成功知识按证据项而非query改写判定新颖性。具体例子见Q99—Q102，不套用GUI项目的Monitor/推理升级名称。
 
 **继续追问：**相同工具参数不总是重复错误，例如对账可能合法；要结合效果和阶段。源码：[infrastructure/target_agent_middleware.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/target_agent_middleware.py)、[application/orchestration_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/orchestration_runtime.py)。
 
@@ -759,3 +759,5 @@
 **展开：**已挂起工作仍经过已有fingerprint检查。上线应排空或明确迁移相关工作，审批ID和操作绑定不可随意重绑。此次并未重写checkpoint格式，也没有添加第二套执行器。网页同步只发布解释材料，不代表开发代码已部署，更不代表已经完成状态迁移或确认质量验收。
 
 **继续追问：**判断是否完成需要分别看实现提交、部署版本、迁移状态和独立任务结果，不能只看GitHub页面更新。 源码与证据：[docs/conversation-responsibility-boundary.md](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/docs/conversation-responsibility-boundary.md)、[application/capability_registry.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/capability_registry.py)。
+
+{% include framework-backend-handbook.md %}

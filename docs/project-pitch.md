@@ -6,7 +6,7 @@ permalink: /project-pitch.html
 
 # DialogPilot 项目讲述与完整简历
 
-> 本页与2026-09-09源码手册配套（89feac2）。先用事实版讲项目，再从92个追问中展开。末尾模拟简历为写作练习，不能与真实报告混用。入口：[架构]({{ '/architecture.html' | relative_url }}) · [追问]({{ '/interview-guide.html' | relative_url }}) · [RAG]({{ '/rag-study.html' | relative_url }}) · [证据]({{ '/handbook-evidence.html' | relative_url }})。
+> 本页与2026-09-09源码手册配套（89feac2）。先用事实版讲项目，再从120个追问中展开。末尾模拟简历为写作练习，不能与真实报告混用。入口：[架构]({{ '/architecture.html' | relative_url }}) · [追问]({{ '/interview-guide.html' | relative_url }}) · [RAG]({{ '/rag-study.html' | relative_url }}) · [证据]({{ '/handbook-evidence.html' | relative_url }})。
 
 ## 30秒开场
 

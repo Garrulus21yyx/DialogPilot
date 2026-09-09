@@ -4,6 +4,8 @@
 
 ## 快速导航
 
+框架原理、防循环和后端准备见[LangChain / LangGraph / FastAPI / Redis / SQL专题]({{ '/framework-backend.html' | relative_url }})。
+
 先读本页把调用链串起来，再用[详细面试追问]({{ '/interview-guide.html' | relative_url }})练原理、取舍与反问，最后用[项目讲述与简历]({{ '/project-pitch.html' | relative_url }})组织开场。RAG 专题见[离线在线与评测手册]({{ '/rag-study.html' | relative_url }})，外部依据见[来源与证据]({{ '/handbook-evidence.html' | relative_url }})。
 
 本文有意区分三层：模型负责判断要做什么；应用合同决定什么可以执行；持久业务记录决定实际上发生了什么。会说“退款完成”的模型、已跑完的图、数据库中的退款回执是三个不同事实。
