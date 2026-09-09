@@ -1,0 +1,21 @@
+{
+  "head": "14ce43e8126972a6c966082944c623646ceeafe8",
+  "api_cap": 0,
+  "sql_timeout_ms": 750,
+  "quality_only": false,
+  "actual_rankers": [
+    "PG_BM25_ZH_V1",
+    "PG_FTS_ZH_V1"
+  ],
+  "adapter_note": "Native arm overrides only BM25 execution slot; index fingerprint and recorded bm25 route label remain baseline in isolated experiment.",
+  "cases": 40,
+  "fixed_as_of": "2026-09-10T00:00:00+00:00",
+  "hashes": {
+    "artifacts/eval/ecommerce-complex-v2-scoped-corpus-v2/corpus.json": "264eda8969d454972c586e8b8af903d12489ce199a6b48211d52175449939ed3",
+    "data/eval/ecommerce-complex-v2/dev.inputs.json": "17123a0279b0b69263daee1e6accf35c7465dfad9ec2d0b3bba07719ba35bef3",
+    "artifacts/eval/ecommerce-complex-v2-dev/runtime/pure-cases.jsonl.gz": "72610b6ec8e124ad20400b91f6025f31bb7241e7a6cdbed1df63b2525250920f",
+    "/home/yang/DialogPilot/scripts/run_native_fts_ecommerce_acceptance.py": "a768c451ba31152393e462fd3ca755ca755f695d67892ec132fda88f2ce0aa97",
+    "mcp/document_chunker.py": "c5ba3fa3e6422cf16f726070532fe3d56e43ef907a0e12913e3e00c79cd79f52",
+    "infrastructure/hybrid_retrieval_backend.py": "5a52f3917d214c7c78e667a2f226ed0c848136893fd76eca78344307e64e63cd"
+  }
+}

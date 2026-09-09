@@ -1,0 +1,22 @@
+{
+  "cases_per_arm": 40,
+  "tests_passed": 25,
+  "api_calls": 0,
+  "same_query_history_scope_budget": true,
+  "wire_offsets_checked_by_scorer": true,
+  "historical_E12_5s_wire_exact_same_cases": 40,
+  "historical_comparison_not_current_paired_baseline": true,
+  "timing_ms": {
+    "bm25": {
+      "median_full_retrieval_wire": 1026.0324096307158
+    },
+    "native": {
+      "median_full_retrieval_wire": 1188.7767082080245
+    }
+  },
+  "decision": "do_not_switch_global_default_due_to_Wix_regression",
+  "script_hashes": {
+    "scripts/run_native_fts_ecommerce_acceptance.py": "a768c451ba31152393e462fd3ca755ca755f695d67892ec132fda88f2ce0aa97",
+    "scripts/score_native_fts_ecommerce_acceptance.py": "4cdc9d315781681b7e768984ff3f68e8c0a0f165674ff1721df1db11d3bca5ae"
+  }
+}

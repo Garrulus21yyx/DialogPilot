@@ -9,3 +9,7 @@ Wix复用E15脚本加split参数，20题两臂SQL各3次、750ms检查、共享C
 状态in_progress：输入和现存缓存核验；pending运行/计分/决定采用；pending测试、文档、commit/push。微调暂停，业务Agent和答案生成不跑。
 
 Wix20已执行：与E15 dev组无重叠。SQL中位757→566ms，但p95 817→1016ms；750ms超时11→5。精排打包文章Recall67.5→60%、完整12→11、nDCG .533→.471。违反质量门槛，采用判定已为不切换；继续完成电商组以交付完整验收，不再调参寻找通过。169对新CE、404对复用、API0。
+
+## 完成
+
+中文40×两臂执行完成：BM25全部POSTGRES_UNAVAILABLE，窗口日志40条BM25超时；原生40OK，wire完整33/40、条款113/120、nDCG .8965，错误scope0、CEfallback0。40份wire与历史E12 structure_aware/5000ms逐份完全一致，仅历史回归参考不作同预算配对收益。总新本地文档向量6978、查询52；中文CE800，API0。两组结果分开报告，Wix门槛失败，最终不切换全局默认。25测试、来源位置及query/scope/budget审计通过。Wix已d46d617推送，中文产物与最终文档本次精确路径commit/push。实验执行done，采用rejected，R09性能未关闭。
