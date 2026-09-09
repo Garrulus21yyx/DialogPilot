@@ -32,8 +32,9 @@ def provider(*items, text="", **kwargs):
     return AnthropicConversationPlanningProvider(models, model_profile=profile, synthesis_profile=profile), models
 
 
-def test_main_planning_and_composition_share_preparation_approval_contract(monkeypatch):
-    from application.action_approval import ACTION_INTERACTION_CONTRACT
+@pytest.mark.parametrize("pending,retained", [(False, False), (True, False), (False, True)])
+def test_main_planning_and_composition_share_preparation_approval_contract(monkeypatch, pending, retained):
+    from application.action_approval import ACTION_INTERACTION_CONTRACT, action_presentation_instruction
     from infrastructure.target_domain_outcome import SYSTEM
     from tests.test_target_framework_agent import ScriptedToolModel
     from tests.test_approval_conversation import domain
@@ -52,11 +53,15 @@ def test_main_planning_and_composition_share_preparation_approval_contract(monke
         await p.plan(payload())
         assert models[ModelRole.SYNTHESIS].calls == 0
         await p.compose({"current_message": "Help with this change.",
-                         "evidence": {"pending_actions": [], "requested_inputs": []}})
+                         "evidence": {"pending_actions": [{"operation_key": "prepared"}] if pending else [],
+                                      "requested_inputs": [], "user_context": {
+                                          "retained_approval": {"operation_key": "old"} if retained else None}}})
 
     asyncio.run(run())
     assert len(prompts) == 2
     assert all(ACTION_INTERACTION_CONTRACT in prompt for prompt in prompts)
+    assert action_presentation_instruction(()) in prompts[0]
+    assert action_presentation_instruction([{}] if pending else []) in prompts[1]
     assert ACTION_INTERACTION_CONTRACT in SYSTEM
     worker, context, _, _ = domain([])
     assert ACTION_INTERACTION_CONTRACT in worker._system(context)

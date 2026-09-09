@@ -68,7 +68,7 @@ logger = logging.getLogger(__name__)
 class TargetFrameworkAgent:
     """Execute one delegated read goal through a governed framework Agent."""
 
-    version = "target-framework-agent-v7-operation-plan"
+    version = "target-framework-agent-v8-implicit-current-action"
 
     def __init__(
         self,
@@ -401,7 +401,9 @@ class TargetFrameworkAgent:
             description=("Prepare a proposal only; this tool does not execute the business action. "
                 "Call once all required choices are known, before requesting approval. "
                 "For multiple related writes, include operation_plan covering ALL remaining assigned changes, "
-                "with evidence-based preconditions/effects and dependencies. Select a ready next_step matching this tool. "
+                "with evidence-based preconditions/effects and dependencies. This tool call is the ready current action: "
+                "describe it in current without repeating its tool, target or step ID. Describe later actions in remaining_steps; "
+                "their depends_on may reference current or another remaining step ID. If a prerequisite write is still needed, prepare that action first. "
                 "A single write needs no separate plan. If no feasible ordering exists, use request_user_input "
                 "to resolve the actual tradeoff before preparing anything; do not promise later impossible actions. "
                 "The conversation layer presents this exact proposal and collects approval; the runtime then executes it. "

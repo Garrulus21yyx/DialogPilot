@@ -164,6 +164,10 @@ def test_durable_interaction_can_be_presented_without_new_execution(kind, publis
         "prepared": SimpleNamespace(context=None), "observations": SimpleNamespace(raw_text="What next?")}))
     if published:
         assert result["assembled"] is None and captured == []
+    elif kind == "fields":
+        assert result["assembled"].interaction_ready and not result["assembled"].verified
+        assert result["assembled"].text == "Which option?" and captured == []
+        assert result["assembled"].approval_operation_key == ""
     else:
         assert result["assembled"].verified
         evidence = captured[0]["evidence"]

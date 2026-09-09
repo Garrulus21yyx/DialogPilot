@@ -9,8 +9,11 @@ OPERATION_PLAN_SCHEMA = {
     "type": "object", "additionalProperties": False,
     "description": "Remaining related writes covering the assigned goal. Not execution permission.",
     "properties": {
-        "next_step": TEXT,
-        "steps": {"type": "array", "minItems": 1, "items": {
+        "current": {"type": "object", "additionalProperties": False,
+            "description": "This tool call is the ready current action; its tool and target come from the call, not this plan. Future dependencies may reference current.",
+            "properties": {key: TEXT for key in ("goal", "preconditions", "effects")},
+            "required": ["goal", "preconditions", "effects"]},
+        "remaining_steps": {"type": "array", "items": {
             "type": "object", "additionalProperties": False,
             "properties": {**{key: TEXT for key in (
                 "id", "tool", "target", "goal", "preconditions", "effects")},
@@ -18,7 +21,7 @@ OPERATION_PLAN_SCHEMA = {
             "required": ["id", "tool", "target", "goal", "preconditions", "effects", "depends_on"],
         }},
     },
-    "required": ["next_step", "steps"],
+    "required": ["current", "remaining_steps"],
 }
 
 
@@ -33,24 +36,21 @@ def validate_operation_plan(plan, *, selected_tool, allowed_tools):
         # jsonschema.message includes the rejected instance. Keep diagnostics
         # structural; tool arguments may contain private business information.
         raise OperationPlanError("operation_plan schema violation: " + errors[0].validator)
-    steps = {step["id"]: step for step in plan["steps"]}
-    if len(steps) != len(plan["steps"]):
+    if selected_tool not in allowed_tools:
+        raise OperationPlanError("current action exceeds assigned capabilities")
+    steps = {step["id"]: step for step in plan["remaining_steps"]}
+    if "current" in steps or len(steps) != len(plan["remaining_steps"]):
         raise OperationPlanError("operation_plan step IDs must be unique")
     if any(step["tool"] not in allowed_tools for step in steps.values()):
         raise OperationPlanError("operation_plan exceeds assigned action capabilities")
-    if any(set(step["depends_on"]) - steps.keys() for step in steps.values()):
+    if any(set(step["depends_on"]) - (steps.keys() | {"current"}) for step in steps.values()):
         raise OperationPlanError("operation_plan has an unknown dependency")
     cyclic = False
     try:
-        tuple(TopologicalSorter({key: step["depends_on"] for key, step in steps.items()}).static_order())
+        tuple(TopologicalSorter({"current": (), **{key: step["depends_on"] for key, step in steps.items()}}).static_order())
     except CycleError:
         cyclic = True
     if cyclic:
         # The library exception carries model-supplied node IDs; retain the
         # typed structural diagnosis without exporting the rejected graph.
         raise OperationPlanError("operation_plan contains a cycle")
-    selected = steps.get(plan["next_step"])
-    if selected is None or selected["tool"] != selected_tool:
-        raise OperationPlanError("operation_plan next_step must match the proposed tool")
-    if selected["depends_on"]:
-        raise OperationPlanError("operation_plan next_step has unfinished prerequisites")

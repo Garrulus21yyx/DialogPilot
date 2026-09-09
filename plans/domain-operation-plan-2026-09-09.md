@@ -1,5 +1,10 @@
 # Domain operation planning
 
+Historical v7 implementation record. The active contract is superseded by
+`action-interaction-contract-convergence-2026-09-09.md`: current action identity is
+the tool call; metadata uses current/remaining_steps, without next_step. The
+historical 256 readiness checks below describe v7, not current acceptance evidence.
+
 Status: implementation complete; local verification recorded below; semantic
 closure OPEN. Extends R6 in the ten-task causal audit; does not close R7.
 

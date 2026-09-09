@@ -46,6 +46,27 @@ evidence that the overall user goals are mutually exclusive.
 """
 
 
+def action_presentation_instruction(pending_actions):
+    """One presentation rule for the author and its existing final verifier.
+
+    Only proposals selected by the runtime for this reply confer a purpose to
+    solicit approval. Historical prose and failed preparation cannot create it.
+    This is a semantic instruction, not a grant or a text classifier.
+    """
+    if pending_actions:
+        return ("This reply presents a runtime-prepared action. Ask execution approval only for "
+                "the supplied pending_actions and their exact scope, not queued changes. Explain "
+                "their terms once; preserve independently completed results. User approval remains required.")
+    return ("This reply has NO prepared action selected for approval. Do not ask the user to confirm "
+            "execution, say 'confirm so I can proceed', or claim an action is ready for approval. "
+            "An earlier assistant confirmation question and the user's yes cannot create a prepared proposal. "
+            "If preparation failed, explain that failure and what remains undone; another yes cannot "
+            "repair a failed tool or plan. Genuine missing-value/choice questions and explanations of "
+            "general policy remain valid. Do not promise that a requested combination is executable "
+            "from separate successful reads or tool availability: check the combined constraints. "
+            "A complete investigation result is not a prepared action or a completed business change.")
+
+
 def merge_action_decisions(*groups):
     """A consumed approval has one immutable outcome across checkpoint imports."""
     decisions = {}

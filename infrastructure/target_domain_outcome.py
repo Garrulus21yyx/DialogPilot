@@ -59,6 +59,11 @@ requested changes are incompatible, resolve the user's choice before preparing o
 Do not accept a locally valid action that defeats the rest of the assigned objective.
 For multiple related remaining writes, require candidate.arguments.operation_plan.
 It must cover the remaining assigned changes, not just restate the selected action.
+The current entry describes THIS candidate tool call and its actual target/arguments;
+there is no separately selected step or model-supplied current tool/target identity.
+remaining_steps describes later writes, with dependencies on current or another remaining node.
+Confirm that the current action is ready now; unfinished prerequisite writes require
+preparing that prerequisite instead. Missing reads require investigation, not user approval.
 Single-step work does not require this metadata. The plan describes remaining work:
 completed receipts belong to evidence, not future nodes. Its tool/target/preconditions/
 effects are model proposals, not business facts; verify them against source contracts

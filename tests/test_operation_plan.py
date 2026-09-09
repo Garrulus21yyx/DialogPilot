@@ -16,7 +16,10 @@ def step(ident, dependencies=(), tool="prepare_order_cancel", target="DP1234"):
 
 
 def plan(*steps, selected="a"):
-    return {"next_step": selected, "steps": list(steps)}
+    current = next((s for s in steps if s["id"] == selected), {})
+    return {"current": {k: current[k] for k in ("goal", "preconditions", "effects") if k in current},
+            "remaining_steps": [{**s, "depends_on": ["current" if d == selected else d for d in s["depends_on"]]}
+                                for s in steps if s is not current]}
 
 
 def proposal(value):
@@ -29,26 +32,23 @@ def validate(value):
                             allowed_tools={"prepare_order_cancel"})
 
 
-def test_all_four_node_ordered_dags_select_only_ready_nodes():
+def test_all_four_node_ordered_dags_keep_current_identity_implicit():
     edges = tuple(combinations("abcd", 2))
     for mask in range(1 << len(edges)):
         dependencies = {ident: [] for ident in "abcd"}
         for index, (before, after) in enumerate(edges):
             if mask & (1 << index):
                 dependencies[after].append(before)
-        for selected in "abcd":
-            value = plan(*(step(i, dependencies[i]) for i in "abcd"), selected=selected)
-            if dependencies[selected]:
-                with pytest.raises(OperationPlanError, match="unfinished"):
-                    validate(value)
-            else:
-                validate(value)
+        value = plan(*(step(i, dependencies[i]) for i in "abcd"))
+        validate(value)
+        assert set(value["current"]) == {"goal", "preconditions", "effects"}
+        assert "next_step" not in value
 
 
 @pytest.mark.parametrize("value", [
-    None, {}, plan(), plan(step("a"), step("a")),
-    plan(step("a", ("missing",))), plan(step("a", ("b",)), step("b", ("a",))),
-    plan(step("a", tool="prepare_unassigned")), plan(step("a"), selected="missing"),
+    None, {}, plan(), plan(step("a"), step("b"), step("b")),
+    plan(step("a"), step("b", ("missing",))), plan(step("a"), step("b", ("c",)), step("c", ("b",))),
+    plan(step("a"), step("b", tool="prepare_unassigned")), plan(step("a"), selected="missing"),
     plan({**step("a"), "effects": " "}),
 ])
 def test_invalid_plan_never_reaches_preparation_or_semantic_review(value):
@@ -91,7 +91,7 @@ def test_semantic_conflict_asks_choice_without_approval_or_preparation():
     result = asyncio.run(agent(context))
     assert result.status.value == "NEEDS_USER_INPUT"
     assert result.pending_action is None and not result.action_receipts and not calls
-    assert result.missing_inputs and model.calls == model.review_calls == 2
+    assert result.missing_inputs and model.calls == 2 and model.review_calls == 1
 
 
 def test_missing_multi_action_plan_can_be_corrected_in_existing_review():
@@ -119,10 +119,14 @@ def test_plan_metadata_does_not_change_operation_identity():
     asyncio.run(run())
 
 
-def test_selected_step_must_be_the_current_tool_even_if_both_tools_are_allowed():
-    with pytest.raises(OperationPlanError, match="match"):
-        validate_operation_plan(plan(step("a", tool="prepare_other")),
-            selected_tool="prepare_order_cancel", allowed_tools={"prepare_order_cancel", "prepare_other"})
+def test_current_tool_cannot_be_redefined_in_metadata():
+    value = plan(step("a"))
+    value["current"]["tool"] = "prepare_other"
+    with pytest.raises(OperationPlanError, match="schema"):
+        validate(value)
+    with pytest.raises(OperationPlanError, match="capabilities"):
+        validate_operation_plan(plan(step("a")), selected_tool="prepare_other",
+                                allowed_tools={"prepare_order_cancel"})
 
 
 def test_invalid_plan_diagnostic_does_not_echo_business_values(caplog):
@@ -142,7 +146,7 @@ def test_invalid_plan_diagnostic_does_not_echo_business_values(caplog):
 
 def test_cycle_diagnostic_does_not_export_model_supplied_node_ids():
     from core.tracing import exception_chain
-    value = plan(step("CANARY_PRIVATE_ID", ("CANARY_PRIVATE_ID",)), selected="CANARY_PRIVATE_ID")
+    value = plan(step("a"), step("CANARY_PRIVATE_ID", ("CANARY_PRIVATE_ID",)))
     with pytest.raises(OperationPlanError) as caught:
         validate(value)
     assert "CANARY_PRIVATE_ID" not in str(exception_chain(caught.value))

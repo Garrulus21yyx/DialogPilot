@@ -145,7 +145,7 @@ def _manager(executor, *, checkpointer=None, context_provider=None):
     )
 
 
-def test_question_author_failure_preserves_wait_and_replays_safe_response_without_work():
+def test_question_bypasses_unavailable_author_and_replays_bound_response_without_work():
     from tests.test_target_chat_cutover import _MissingThenReadExecutor
     executor = _MissingThenReadExecutor()
     checkpoint = InMemorySaver(serde=target_checkpoint_serializer())
@@ -174,10 +174,10 @@ def test_question_author_failure_preserves_wait_and_replays_safe_response_withou
     asyncio.run(run())
     assert manager.prepare_calls == manager.execute_calls == 1
     assert len(executor.calls) == 1
-    assert composer.calls == 1
+    assert composer.calls == 0
 
 
-def test_checkpoint_does_not_make_exhausted_question_review_retryable():
+def test_question_does_not_invoke_or_retry_a_rejecting_reviewer():
     from tests.test_target_chat_cutover import _MissingThenReadExecutor
     checkpoint = InMemorySaver(serde=target_checkpoint_serializer())
     class Composer:
@@ -192,10 +192,10 @@ def test_checkpoint_does_not_make_exhausted_question_review_retryable():
     assert result.managed.state_after.pending_interaction is not None
     assert not result.assembled.verified
     assert not result.assembled.retryable
-    assert result.assembled.verification_reason == 'ungrounded'
-    assert result.assembled.diagnostics[0].stage == 'answer_verification'
-    assert result.assembled.diagnostics[0].detail['code'] == 'ungrounded'
-    assert composer.calls == 2
+    assert result.assembled.interaction_ready
+    assert result.assembled.verification_reason == 'BOUND_QUESTION_NO_MODEL_REVIEW'
+    assert result.assembled.diagnostics == ()
+    assert composer.calls == 0
 
 
 @pytest.mark.parametrize('optional_count', [0, 1, 3])
@@ -217,11 +217,11 @@ def test_question_presentation_uses_exact_persisted_bindings_not_optional_hints(
     composer = Composer()
     runtime = TurnRuntime(_manager(Executor()), ResponseAssembler(composer, knowledge_verifier=Verifier(True)))
     result = asyncio.run(runtime.execute(_identity(), TurnObservations('查询订单 DP1234')))
-    claims = composer.payload['evidence']['requested_inputs']
     fields = result.managed.state_after.pending_interaction.requested_fields
-    assert {(c['target_work_item_id'], c['field_name']) for c in claims} == {
-        (f.target_work_item_id, f.field_name) for f in fields}
-    assert len(claims) == 1 and result.assembled.verified
+    assert composer.payload is None
+    assert len(fields) == 1 and result.assembled.interaction_ready
+    assert fields[0].question_hint in result.assembled.text
+    assert 'Optional information' not in result.assembled.text
 
 
 def test_checkpoint_allowlist_is_closed_over_registered_dataclass_field_types():
@@ -248,7 +248,7 @@ def test_checkpoint_allowlist_is_closed_over_registered_dataclass_field_types():
     assert not missing, f'Nested checkpoint types are not registered: {sorted(missing)}'
 
 
-def test_question_failure_survives_postgres_checkpoint_reopen(postgres_database_url):
+def test_bound_question_survives_postgres_reopen_without_author_call(postgres_database_url):
     from infrastructure.langgraph_checkpoint import AsyncPostgresCheckpointOwner
     from tests.test_target_chat_cutover import _MissingThenReadExecutor
     from uuid import uuid4
@@ -270,7 +270,8 @@ def test_question_failure_survives_postgres_checkpoint_reopen(postgres_database_
             runtime = TurnRuntime(manager, ResponseAssembler(composer, knowledge_verifier=Verifier(True)),
                                   checkpointer=checkpoint)
             first = await runtime.execute(identity, TurnObservations('查询订单 DP1234'))
-            assert first.assembled.retryable and not first.assembled.verified
+            assert first.assembled.interaction_ready and not first.assembled.verified
+            assert not first.assembled.retryable
             snapshot = await runtime.graph.aget_state({'configurable': {'thread_id': 'turn:' + str(identity.invocation_key)}})
             pending = snapshot.values['managed'].state_after.pending_interaction
         async with AsyncPostgresCheckpointOwner(postgres_database_url) as checkpoint:
@@ -281,10 +282,10 @@ def test_question_failure_survives_postgres_checkpoint_reopen(postgres_database_
             assert result.assembled == first.assembled
     asyncio.run(run())
     assert manager.prepare_calls == manager.execute_calls == len(executor.calls) == 1
-    assert composer.calls == 1
+    assert composer.calls == 0
 
 
-@pytest.mark.parametrize("old_version", ["turn-runtime-v7-result-owned-delivery", "turn-runtime-v11-observation-progress", "turn-runtime-v12-policy-evidence", "turn-runtime-v13-action-semantics"])
+@pytest.mark.parametrize("old_version", ["turn-runtime-v7-result-owned-delivery", "turn-runtime-v11-observation-progress", "turn-runtime-v12-policy-evidence", "turn-runtime-v13-action-semantics", "turn-runtime-v17-assignment-repair"])
 def test_unpublished_prior_lifecycle_checkpoint_is_not_reinterpreted_as_new_execution(old_version):
     from application.turn_runtime import TurnCheckpointVersionError
     executor = _Executor()

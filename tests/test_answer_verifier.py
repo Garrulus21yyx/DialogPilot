@@ -70,6 +70,8 @@ def test_approval_readiness_is_part_of_the_single_verification_verdict(pending, 
     system = requests[0]['system']
     assert ('Current turn includes an accepted information request.' in system) is fields
     assert ('Current turn: approve the prepared action.' in system) is pending
+    from application.action_approval import action_presentation_instruction
+    assert action_presentation_instruction([{}] if pending else []) in system
     assert 'missing information, not execution approval' not in system
     if pending and not terms and supported and answered:
         assert result.reason_code is VerificationReasonCode.APPROVAL_REQUIRED

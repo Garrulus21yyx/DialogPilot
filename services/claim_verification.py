@@ -119,6 +119,14 @@ async def verify_claims(model, profile, *, question, answer, evidence, max_token
     content = json.dumps(request, ensure_ascii=False)
     system = SYSTEM
     context = evidence.get("context")
+    from application.action_approval import action_presentation_instruction
+    system += "\nPresentation contract: " + action_presentation_instruction(
+        context.get("pending_actions", ()) if isinstance(context, dict) else ())
+    system += ("\nAn execution-confirmation request with no selected prepared action violates this contract: "
+               "set answered=false and explain that the reply must not solicit unbound approval. "
+               "A false feasibility promise violates supported; do not equate a read-only task's success "
+               "with feasibility of remaining writes. Judge meaning, not keywords: missing-value and "
+               "genuine alternative-choice questions are allowed. Revise wording only; do not invent a prepared action.")
     if isinstance(context, dict) and context.get("requested_inputs"):
         system += ("\nCurrent turn includes an accepted information request. "
                    "Judge the actual answer, NOT permission wording inside a question hint. "

@@ -95,6 +95,42 @@ def test_shared_tool_has_distinct_host_bound_owners():
     assert all(a.schema == SCHEMA for a in reads)
 
 
+@pytest.mark.parametrize("count", range(1, 7))
+def test_every_accepted_native_batch_compiles_and_dispatches_all_reads(count):
+    from application.orchestration_runtime import OrchestrationRuntime
+    from application.result_board import ResultBoard
+    registry, tools, catalog, payload, observed = fixture()
+    arguments = [{"goal_id": f"customer-{i}", "depends_on": "business-value"} for i in range(count)]
+    raw = action_proposal(planning_actions(payload), calls(*[("find_customer", a) for a in arguments]), "")
+
+    class Provider:
+        async def plan(self, payload):
+            return raw
+
+    state, observations = _state(), TurnObservations("Look up these customer records")
+    proposal = asyncio.run(ConversationAgent(Provider(), tool_catalog=catalog).plan(
+        observations, state, DeterministicResolver().resolve(observations, state), registry))
+    identity = IdentityFactory(lambda: "batch-test").create_invocation(
+        tenant_id="tenant-a", user_id="user-a", conversation_id="conversation-a", request_id="batch")
+    plan = TurnPlanCompiler().compile(RoutePolicy().accept(proposal, state, registry), state, registry, identity)
+    assert len(plan.work.items) == count
+    runtime = OrchestrationRuntime(direct_executor=TargetToolExecutor(tools, registry=registry), domain_workers={})
+    board = ResultBoard().evaluate(plan.work, ())
+    sent = runtime._dispatch({"ready_items": board.ready_items, "work_plan": plan.work,
+                              "trusted_context": _context(plan.work.items[0]).trusted_context})
+    assert len(sent) == count
+    assert all(item.dependencies == () for item in plan.work.items)
+    results = asyncio.run(_execute_batch(runtime, sent))
+    assert all(r.status.value == "SUCCEEDED" for r in results)
+    assert sorted(observed, key=lambda a: a["goal_id"]) == arguments
+
+
+async def _execute_batch(runtime, sent):
+    # Exercise the same worker inputs produced by the LangGraph Send boundary.
+    updates = await asyncio.gather(*(runtime._execute_work_item(send.arg) for send in sent))
+    return [update["agent_results"][0] for update in updates]
+
+
 def test_read_dependency_metadata_does_not_rewrite_business_arguments():
     _, _, _, payload, _ = fixture()
     actions = planning_actions(payload)

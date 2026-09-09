@@ -131,7 +131,9 @@ def planning_output_schema(supported_goals=None, knowledge_filter_contract=None)
             "status": {"type": "string", "enum": [
                 "resolved", "respond", "insufficient_context", "out_of_scope",
             ]},
-            "goals": {"type": "array", "minItems": 1, "maxItems": 4, "items": goal},
+            # These are compiled work proposals, including native reads, not a
+            # count of user intentions or simultaneous executions.
+            "goals": {"type": "array", "minItems": 1, "items": goal},
             "response": dict(text),
             "input_values": {"type": "array", "minItems": 1, "items": {
                 "type": "object", "additionalProperties": False,
@@ -444,7 +446,7 @@ class ConversationAgent:
         if status != "resolved":
             raise ValueError("unsupported semantic status")
         goals = raw.get("goals", [])
-        if not isinstance(goals, list) or not (1 <= len(goals) <= 4 or (decision or input_values) and not goals and "goals" not in raw):
+        if not isinstance(goals, list) or not (goals or (decision or input_values) and "goals" not in raw):
             raise ValueError("semantic goals are invalid")
         goal_ids = tuple(
             str(value.get("goal_id") or f"semantic-{index}")
