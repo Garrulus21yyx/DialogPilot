@@ -1,4 +1,4 @@
-from core.model_policy import ModelProfile
+from core.model_policy import ModelProfile, ModelRole
 import asyncio
 import pytest
 from dataclasses import replace
@@ -28,8 +28,13 @@ from application.turn_planning import (
     RoutePolicy,
     TurnPlanCompiler,
     TurnProposal,
+    PlanningUnavailable,
 )
 from core.identity import IdentityFactory
+from core.provider_context_budget import (
+    ProviderContextBudgetExceeded,
+    ProviderContextUsage,
+)
 from infrastructure.target_conversation_provider import (
     AnthropicConversationPlanningProvider,
 )
@@ -75,6 +80,36 @@ class Provider:
         if self.error:
             raise self.error
         return self.value
+
+
+def test_provider_budget_failure_preserves_component_accounting_through_planning_contract():
+    usage = ProviderContextUsage(
+        system_tokens=1200,
+        message_tokens=28000,
+        tool_schema_tokens=3100,
+        protocol_tokens=20,
+        output_reserve_tokens=800,
+        max_context_tokens=32768,
+    )
+    proposal, state, registry = _invoke(ConversationAgent(
+        Provider(error=ProviderContextBudgetExceeded(ModelRole.INTENT, usage)),
+    ), "Approve the prepared change")
+
+    assert proposal.reason_code == "CONTEXT_BUDGET_EXCEEDED"
+    assert proposal.failure_detail["boundary"] == "provider_request"
+    assert proposal.failure_detail["required_tokens"] == usage.total_reserved_tokens
+    assert proposal.failure_detail["provider_usage"]["tool_schema_tokens"] == 3100
+    assert proposal.failure_detail["payload_fit"]["final_tokens"] > 0
+    validated = RoutePolicy().accept(proposal, state, registry)
+    with pytest.raises(PlanningUnavailable) as failure:
+        TurnPlanCompiler().compile(
+            validated, state, registry,
+            IdentityFactory().create_invocation(
+                tenant_id="tenant-a", user_id="user-a",
+                conversation_id="conversation-a", request_id="budget",
+            ),
+        )
+    assert failure.value.detail["provider_usage"]["total_reserved_tokens"] == 33120
 
 
 @pytest.mark.parametrize("policy", ["", "Policy-only marker: A prevents B.", "规则原文\n" * 200])

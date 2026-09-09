@@ -363,10 +363,21 @@ class ConversationAgent:
             raw = await self._provider.plan(projected)
         except GraphBubbleUp:
             raise
-        except (ModelContextBudgetExceeded, ProviderContextBudgetExceeded):
+        except ModelContextBudgetExceeded as exc:
             return TurnProposal(
                 ProposalDisposition.PROVIDER_FAILURE, (),
                 "CONTEXT_BUDGET_EXCEEDED",
+                failure_detail=self._budget_failure_detail(
+                    exc, payload, observations, state,
+                ),
+            )
+        except ProviderContextBudgetExceeded as exc:
+            return TurnProposal(
+                ProposalDisposition.PROVIDER_FAILURE, (),
+                "CONTEXT_BUDGET_EXCEEDED",
+                failure_detail=self._budget_failure_detail(
+                    exc, payload, observations, state, budgeted=budgeted,
+                ),
             )
         except ConversationProviderOutputError:
             logger.exception("Conversation planning output protocol rejected")
@@ -409,6 +420,64 @@ class ConversationAgent:
                 ProposalDisposition.INVALID_PROVIDER_OUTPUT, (),
                 "CONVERSATION_PROVIDER_OUTPUT_INVALID",
             )
+
+    def _budget_failure_detail(
+        self, exc, payload, observations, state, *, budgeted=None,
+    ):
+        components = {
+            key: self._context_budget.estimate_payload({key: value})
+            for key, value in payload.items()
+        }
+        approval = state.pending_approval
+        detail = {
+            "schema_version": "conversation-context-admission-v1",
+            "boundary": (
+                "provider_request" if isinstance(exc, ProviderContextBudgetExceeded)
+                else "planning_payload"
+            ),
+            "required_tokens": (
+                exc.usage.total_reserved_tokens
+                if isinstance(exc, ProviderContextBudgetExceeded)
+                else exc.required_tokens
+            ),
+            "available_tokens": (
+                exc.usage.max_context_tokens
+                if isinstance(exc, ProviderContextBudgetExceeded)
+                else exc.available_tokens
+            ),
+            "payload_component_tokens": components,
+            "pending_approval_present": approval is not None,
+            "pending_approval_id": approval.approval_id if approval is not None else None,
+            "explicit_approval_decision_present": observations.approval_decision is not None,
+            "approval_binding_status": (
+                "SEMANTIC_RESOLUTION_NOT_REACHED"
+                if approval is not None and observations.approval_decision is None
+                else "NOT_APPLICABLE"
+            ),
+        }
+        if isinstance(exc, ProviderContextBudgetExceeded):
+            usage = exc.usage
+            detail["provider_usage"] = {
+                "system_tokens": usage.system_tokens,
+                "message_tokens": usage.message_tokens,
+                "tool_schema_tokens": usage.tool_schema_tokens,
+                "protocol_tokens": usage.protocol_tokens,
+                "output_reserve_tokens": usage.output_reserve_tokens,
+                "estimated_input_tokens": usage.estimated_input_tokens,
+                "total_reserved_tokens": usage.total_reserved_tokens,
+                "max_context_tokens": usage.max_context_tokens,
+            }
+        if budgeted is not None:
+            report = budgeted.report
+            detail["payload_fit"] = {
+                "policy_version": report.policy_version,
+                "original_tokens": report.original_tokens,
+                "final_tokens": report.final_tokens,
+                "available_tokens": report.available_tokens,
+                "removed_item_count": len(report.removed_items),
+                "externalized_item_count": len(report.externalized_items),
+            }
+        return detail
 
     def _validate_and_compile(
         self, raw, observations, state, registry, turn_context, resolved_items, *, atomic_reads=(),

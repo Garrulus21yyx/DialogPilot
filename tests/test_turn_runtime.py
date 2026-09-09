@@ -104,6 +104,47 @@ def test_conversation_only_reply_retries_only_undelivered_proposal(published, wi
     assert after.pending_approval is pending
 
 
+def test_prepare_failure_emits_structured_trace_sink_observation():
+    from types import SimpleNamespace
+    from application.turn_planning import PlanningUnavailable
+
+    class Manager:
+        async def prepare(self, *_args, **_kwargs):
+            raise PlanningUnavailable(
+                ProposalDisposition.PROVIDER_FAILURE,
+                "CONTEXT_BUDGET_EXCEEDED",
+                {"boundary": "provider_request", "required_tokens": 33120},
+            )
+
+    class Sink:
+        def __init__(self):
+            self.records = []
+
+        def record_failure(self, diagnostic):
+            self.records.append(diagnostic)
+
+    sink = Sink()
+    runtime = TurnRuntime(Manager(), SimpleNamespace(), trace_sink=sink)
+    state = {
+        "invocation": _identity(),
+        "observations": TurnObservations("approve"),
+        "execution_context": {},
+        "preparation_options": {},
+    }
+    with pytest.raises(PlanningUnavailable):
+        asyncio.run(runtime._prepare_turn(state))
+
+    assert sink.records == [{
+        "stage": "planning",
+        "status": "failed",
+        "detail": {
+            "boundary": "provider_request",
+            "required_tokens": 33120,
+            "code": "CONTEXT_BUDGET_EXCEEDED",
+        },
+    }]
+
+
 class _OrderUnderstanding:
     async def __call__(self, *_args, **_kwargs):
         return TurnProposal(

@@ -179,6 +179,24 @@ but it never manufactures owner, revision, proposal, receipt, or error facts.
 `target_trace` is the task-level result projection used for stage failures and
 accepted-plan evidence. Missing checkpoint history leaves causal hypotheses open.
 
+Planning context admission failures use
+`schema_version=conversation-context-admission-v1`. The planning owner records
+whether rejection occurred while fitting the planning payload or after the provider
+request added system instructions and tool schemas. The record contains only token
+counts and bound runtime identifiers: `required_tokens`, `available_tokens`,
+per-payload-component estimates, provider system/message/tool/protocol/output
+counts, compaction counts, pending approval ID, and `approval_binding_status`.
+The same detail is projected into `StageObservation` and a Langfuse failure
+observation. It contains no conversation or tool-result bodies.
+
+When a pending approval has
+`approval_binding_status=SEMANTIC_RESOLUTION_NOT_REACHED`, the transition analyzer
+can deterministically locate the runtime boundary as
+`APPROVAL_RESOLUTION_BLOCKED_BY_CONTEXT_ADMISSION`. Whether the user's prose
+actually accepts the exact scope remains a separate semantic Judge proposition.
+Older runs without these fields retain the conservative `ACTION_RESUME_BLOCKED`
+classification.
+
 ## Evaluation authority
 
 | Question | Authority |

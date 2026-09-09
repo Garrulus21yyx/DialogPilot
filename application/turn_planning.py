@@ -5,6 +5,7 @@ import hashlib
 import json
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any, Mapping
 
 from application.authority_policy import RequirementEffect
 from application.capability_registry import (
@@ -39,10 +40,11 @@ class PlanningInvariantError(RuntimeError):
 class PlanningUnavailable(RuntimeError):
     """Understanding failed; there is no user clarification or executable plan."""
 
-    def __init__(self, disposition, reason_code):
+    def __init__(self, disposition, reason_code, detail: Mapping[str, Any] | None = None):
         super().__init__(reason_code)
         self.disposition = disposition
         self.reason_code = reason_code
+        self.detail = dict(detail or {})
 
 
 class CommandKind(str, Enum):
@@ -182,6 +184,7 @@ class TurnProposal:
     # Program-produced input projection, never parsed from the model's commands.
     # Manager carries it into PreparedTurn.context; it grants no execution rights.
     historical_context_view: tuple[dict, ...] | None = None
+    failure_detail: Mapping[str, Any] | None = None
 
     def __post_init__(self) -> None:
         if self.disposition is ProposalDisposition.RESPOND:
@@ -197,6 +200,11 @@ class TurnProposal:
             raise TurnPlanningError("resolved proposal requires commands or an approval decision")
         if self.disposition is not ProposalDisposition.RESOLVED and (self.commands or self.approval_decision):
             raise TurnPlanningError("terminal proposal cannot carry commands")
+        if self.failure_detail is not None and self.disposition not in {
+            ProposalDisposition.PROVIDER_FAILURE,
+            ProposalDisposition.INVALID_PROVIDER_OUTPUT,
+        }:
+            raise TurnPlanningError("only failed proposals carry failure detail")
 
 
 @dataclass(frozen=True)
@@ -221,6 +229,7 @@ class ValidatedCommandPlan:
     registry_fingerprint: str
     policy_version: str
     response_text: str | None = None
+    failure_detail: Mapping[str, Any] | None = None
 
 
 class RoutePolicy:
@@ -278,6 +287,7 @@ class RoutePolicy:
                 registry.fingerprint,
                 self.version,
                 response_text=proposal.response_text,
+                failure_detail=proposal.failure_detail,
             )
         command_ids = {item.command_id for item in proposal.commands}
         if len(command_ids) != len(proposal.commands):
@@ -754,7 +764,9 @@ class TurnPlanCompiler:
             raise PlanningInvariantError("validated command uses another registry bundle")
         if validated.disposition in {ProposalDisposition.PROVIDER_FAILURE,
                                      ProposalDisposition.INVALID_PROVIDER_OUTPUT}:
-            raise PlanningUnavailable(validated.disposition, validated.reason_code)
+            raise PlanningUnavailable(
+                validated.disposition, validated.reason_code, validated.failure_detail,
+            )
         if validated.disposition is not ProposalDisposition.RESOLVED:
             route = RouteDecision(
                 RouteMode.RESPONSE if validated.disposition is ProposalDisposition.RESPOND

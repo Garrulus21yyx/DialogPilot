@@ -1,6 +1,7 @@
 """Checkpointed turn phases over the existing conversation and WorkPlan owners."""
 from __future__ import annotations
 from contextlib import nullcontext
+import logging
 from langfuse import propagate_attributes
 
 from dataclasses import dataclass, replace
@@ -23,6 +24,9 @@ from application.conversation_state import ConversationState
 from application.turn_planning import PlanningUnavailable, TurnPlanningError
 from core.framework_models import ModelInvocationError
 from application.execution_progress import advance_progress, planning_observations, requires_observation, PROGRESS_FEEDBACK
+
+
+logger = logging.getLogger(__name__)
 
 
 class TurnRuntimeError(ValueError):
@@ -67,6 +71,7 @@ class TurnRuntime:
         *,
         checkpointer=None,
         interaction_published=None,
+        trace_sink=None,
         max_observation_steps: int = 4,
     ) -> None:
         self._manager = manager
@@ -74,6 +79,7 @@ class TurnRuntime:
         self._callbacks = callbacks
         self._checkpointer = checkpointer
         self._interaction_published = interaction_published
+        self._trace_sink = trace_sink
         if type(max_observation_steps) is not int or max_observation_steps < 1:
             raise TurnRuntimeError("observation budget must be a positive integer")
         self._max_observation_steps = max_observation_steps
@@ -107,11 +113,18 @@ class TurnRuntime:
         return builder.compile(checkpointer=self._checkpointer)
 
     async def _prepare_turn(self, state: TurnGraphState):
-        prepared = await self._manager.prepare(
-            state["invocation"], state["observations"],
-            execution_context=state.get("execution_context", {}),
-            **state.get("preparation_options", {}),
-        )
+        try:
+            prepared = await self._manager.prepare(
+                state["invocation"], state["observations"],
+                execution_context=state.get("execution_context", {}),
+                **state.get("preparation_options", {}),
+            )
+        except PlanningUnavailable as exc:
+            self._record_failure(StageObservation(
+                "planning", StageStatus.FAILED,
+                {**exc.detail, "code": exc.reason_code},
+            ))
+            raise
         return {"prepared": prepared, "presentation_state": prepared.state_before}
 
     async def _execute_work_plan(self, state: TurnGraphState):
@@ -156,9 +169,20 @@ class TurnRuntime:
                         else "OBSERVATION_CANDIDATE_REJECTED" if isinstance(exc, TurnPlanningError)
                         else "OBSERVATION_PROVIDER_FAILURE")
                 failure = StageObservation("planning_observation", StageStatus.FAILED,
-                    {"code": code, "exception_chain": exception_chain(exc)})
+                    {**(exc.detail if isinstance(exc, PlanningUnavailable) else {}), "code": code,
+                     "exception_chain": exception_chain(exc)})
+        self._record_failure(failure)
         return {"managed": replace(managed, diagnostics=(*managed.diagnostics, failure)),
                 "observation_failed": True, "observation_progress": progress}
+
+    def _record_failure(self, failure: StageObservation) -> None:
+        if self._trace_sink is None:
+            return
+        try:
+            self._trace_sink.record_failure(failure.to_dict())
+        except Exception:
+            # Trace export is observational and cannot change turn semantics.
+            logger.exception("Failure trace export failed; preserving the planning failure")
 
     @property
     def supports_resume(self) -> bool:

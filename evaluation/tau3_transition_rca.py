@@ -191,15 +191,33 @@ def _first_divergence(
     if pending and approval_requests and approval_input and failure_turn:
         code = str(failure_turn.get("code") or "")
         owner = "context_admission" if code == "CONTEXT_BUDGET_EXCEEDED" else "conversation_planning"
+        detail = failure_turn.get("detail") or {}
+        binding_blocked = (
+            code == "CONTEXT_BUDGET_EXCEEDED"
+            and detail.get("approval_binding_status") == "SEMANTIC_RESOLUTION_NOT_REACHED"
+        )
         return {
-            "phase": "APPROVAL", "code": "ACTION_RESUME_BLOCKED",
+            "phase": "APPROVAL", "code": (
+                "APPROVAL_RESOLUTION_BLOCKED_BY_CONTEXT_ADMISSION"
+                if binding_blocked else "ACTION_RESUME_BLOCKED"
+            ),
             "owner_candidate": owner,
-            "summary": f"A prepared {name} action reached approval, but the response turn failed before execution.",
-            "missing_evidence": [
+            "summary": (
+                f"Context admission rejected the response turn before semantic approval resolution for prepared {name}."
+                if binding_blocked else
+                f"A prepared {name} action reached approval, but the response turn failed before execution."
+            ),
+            "missing_evidence": ([
+                "Confirm that the user response accepts the projected approval scope.",
+            ] if binding_blocked else [
                 "Confirm that the user response accepts the projected approval scope.",
                 "Confirm the deterministic approval binding before the failing model boundary.",
-            ],
-            "next_probe": "Join approval ID, response decision, resume thread and failing stage; replay that boundary.",
+            ]),
+            "next_probe": (
+                "Inspect the recorded context token components and repair the owning admission boundary."
+                if binding_blocked else
+                "Join approval ID, response decision, resume thread and failing stage; replay that boundary."
+            ),
         }
     if pending:
         return {
@@ -316,7 +334,9 @@ def _semantic_hypothesis(
     divergence: Mapping[str, Any], *, name: str, approval_input: str | None,
     evidence_id: str,
 ) -> Mapping[str, Any] | None:
-    if divergence["code"] == "ACTION_RESUME_BLOCKED" and approval_input:
+    if divergence["code"] in {
+        "ACTION_RESUME_BLOCKED", "APPROVAL_RESOLUTION_BLOCKED_BY_CONTEXT_ADMISSION",
+    } and approval_input:
         return {
             "code": "APPROVAL_RESPONSE_MATCHES_PENDING_ACTION",
             "layer": "hypothesis",

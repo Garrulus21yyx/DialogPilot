@@ -262,6 +262,43 @@ def test_graph_control_signal_is_not_a_run_failure():
     assert store.terminal_value is None
 
 
+def test_planning_failure_projects_context_admission_detail_to_stage_trace():
+    from application.chat_contracts import ChatCommand
+    from application.target_chat_application import TargetChatApplication
+    from application.turn_planning import PlanningUnavailable, ProposalDisposition
+    from core.identity import IdentityFactory
+
+    class Runtime:
+        async def execute(self, *_args, **_kwargs):
+            raise PlanningUnavailable(
+                ProposalDisposition.PROVIDER_FAILURE,
+                "CONTEXT_BUDGET_EXCEEDED",
+                {
+                    "boundary": "provider_request",
+                    "required_tokens": 33120,
+                    "available_tokens": 32768,
+                    "approval_binding_status": "SEMANTIC_RESOLUTION_NOT_REACHED",
+                },
+            )
+
+    application = TargetChatApplication.__new__(TargetChatApplication)
+    application._turn_runtime = Runtime()
+    application._knowledge_context_factory = None
+    identity = IdentityFactory().create_invocation(
+        tenant_id="tenant", user_id="user", conversation_id="conversation",
+        request_id="request",
+    )
+    outcome = asyncio.run(application.execute_admitted(
+        ChatCommand("approve", "user", "tenant", "conversation", "request"), identity,
+    ))
+
+    detail = outcome.stages[0].detail
+    assert detail["code"] == "CONTEXT_BUDGET_EXCEEDED"
+    assert detail["boundary"] == "provider_request"
+    assert detail["required_tokens"] == 33120
+    assert detail["approval_binding_status"] == "SEMANTIC_RESOLUTION_NOT_REACHED"
+
+
 def test_stale_attempt_cannot_commit_after_another_worker_takes_ownership():
     store = _RunStore(_item())
 

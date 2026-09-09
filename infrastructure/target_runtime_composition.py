@@ -247,6 +247,7 @@ async def build_target_runtime(
                 callbacks=(langfuse_sink.callback(),) if langfuse_sink else (),
                 checkpointer=checkpointer,
                 interaction_published=publication.has_interaction,
+                trace_sink=langfuse_sink,
             ),
         )
         run_store = PostgresTargetRunStore(postgres_pool)

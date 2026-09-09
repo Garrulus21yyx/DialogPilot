@@ -433,6 +433,7 @@ def _target_stage_failures(result: Mapping[str, Any]) -> list[Mapping[str, Any]]
                 "stage": str(stage.get("stage") or "unknown"),
                 "code": str(detail.get("code") or "unknown"),
                 "exception_types": _exception_types(detail),
+                "detail": dict(detail),
                 "locator": f"$.target_trace[{trace_index}].outcome.stages[{stage_index}]",
             })
     return failures

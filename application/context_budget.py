@@ -93,6 +93,10 @@ class ContextBudgetManager:
             ),
         )
 
+    def estimate_payload(self, payload: Mapping[str, Any]) -> int:
+        """Return the same deterministic estimate used by admission decisions."""
+        return self._estimate(payload)
+
     def _estimate(self, value: Any) -> int:
         return self._estimator.estimate(json.dumps(
             value, ensure_ascii=False, sort_keys=True,

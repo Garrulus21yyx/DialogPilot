@@ -63,6 +63,45 @@ def test_approval_response_and_context_failure_diverge_at_approval_resume():
     assert semantic["code"] == "APPROVAL_RESPONSE_MATCHES_PENDING_ACTION"
 
 
+def test_context_admission_trace_identifies_pre_binding_approval_failure():
+    report = analyze_required_transitions(
+        {
+            "official_reward": 0.0,
+            "env": {"reward": 0.0},
+            "checkpoint_projection": {"status": "AVAILABLE", "snapshots": [{
+                "sequence": 1, "thread_id": "thread", "lineage": [
+                    {"path": "$.result.pending_action.allowed_tools", "field": "allowed_tools",
+                     "value": ["modify_order"]},
+                    {"path": "$.pending_approval.approval_id", "field": "approval_id",
+                     "value": "approval-1"},
+                ],
+            }]},
+            "target_trace": [
+                {"turn": 4, "outcome": {"kind": "APPROVAL", "signal_id": "approval-1"}},
+                {"turn": 5, "input": "Yes, approve it"},
+            ],
+        },
+        required_writes=[_failed_write()],
+        actual_writes=[],
+        planning_failures=[{
+            "turn": 5,
+            "stage": "planning",
+            "code": "CONTEXT_BUDGET_EXCEEDED",
+            "detail": {
+                "boundary": "provider_request",
+                "approval_binding_status": "SEMANTIC_RESOLUTION_NOT_REACHED",
+            },
+        }],
+    )
+
+    divergence = report["first_divergence"]
+    assert divergence["code"] == "APPROVAL_RESOLUTION_BLOCKED_BY_CONTEXT_ADMISSION"
+    assert divergence["owner_candidate"] == "context_admission"
+    assert "deterministic approval binding" not in " ".join(divergence["missing_evidence"])
+    semantic = next(item for item in report["hypotheses"] if item["layer"] == "hypothesis")
+    assert semantic["code"] == "APPROVAL_RESPONSE_MATCHES_PENDING_ACTION"
+
+
 def test_approval_semantic_evidence_includes_the_preceding_assistant_scope():
     report = analyze_required_transitions(
         {

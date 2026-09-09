@@ -244,7 +244,7 @@ class TargetChatApplication:
                 return Failed("planning_" + exc.disposition.value.lower(), False,
                     str(identity.invocation_key), "The request could not be understood due to a system failure.",
                     stages=(StageObservation("planning", StageStatus.FAILED,
-                        {"code": exc.reason_code}),))
+                        {**exc.detail, "code": exc.reason_code}),))
             if isinstance(exc, DeterministicResolutionError):
                 return Conflict(
                     "INTERACTION_SIGNAL_CONFLICT" if command.interaction_id is not None
