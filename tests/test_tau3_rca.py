@@ -79,6 +79,115 @@ def test_recovered_context_error_is_not_reported_as_task_blocking(tmp_path):
     assert findings["CONTEXT_BUDGET_EXECUTION_FAILURE"]["impact"] == "RECOVERED"
 
 
+def test_missing_write_is_linked_to_task_bound_planning_failure(tmp_path):
+    result = _write(tmp_path / "task-20.json", {
+        "task_id": "20", "official_reward": 0,
+        "env": {"reward": 0},
+        "action": {"reward": 0, "action_checks": [
+            _failed_write("modify_pending_order_items", {"order_id": "W1"})
+        ]},
+        "target_trace": [{
+            "turn": 4,
+            "input": "Go ahead and upgrade all items; I will pay the difference.",
+            "outcome": {
+                "response": {"evaluation_trace": {
+                    "artifact": {"plan_id": "plan-4", "route_mode": "DIRECT"},
+                    "consumption": {"work_items": [{
+                        "work_item_id": "work-calculate", "control_mode": "DIRECT",
+                        "allowed_tools": ["calculate"],
+                    }]},
+                    "state_side_effect": {"committed_receipt_refs": []},
+                }},
+                "stages": [{
+                    "stage": "planning_observation", "status": "failed",
+                    "detail": {
+                        "code": "CONVERSATION_PROVIDER_OUTPUT_INVALID",
+                        "exception_chain": [{"type": "PlanningUnavailable"}],
+                    },
+                }],
+            },
+        }],
+    })
+
+    report = analyze_task(result)
+
+    findings = {item["code"]: item for item in report["findings"]}
+    assert findings["PLANNING_STAGE_FAILURE"]["level"] == "VERIFIED"
+    hypothesis = findings["WRITE_OMITTED_AFTER_PLANNING_FAILURE"]
+    assert hypothesis["level"] == "SUPPORTED"
+    assert hypothesis["owner_candidate"] == "conversation_planning"
+    assert report["root_cause_status"] == "OPEN"
+    plan = next(item for item in report["evidence"] if item["evidence_id"] == "write-intent-turn-plan")
+    assert plan["data"]["work_items"][0]["allowed_tools"] == ["calculate"]
+    assert plan["data"]["committed_receipt_refs"] == []
+
+
+def test_recovered_planning_failure_is_not_reported_as_task_blocking(tmp_path):
+    result = _write(tmp_path / "task-10.json", {
+        "task_id": "10", "official_reward": 1,
+        "env": {"reward": 1}, "action": {"reward": 1, "action_checks": []},
+        "target_trace": [{
+            "turn": 2,
+            "outcome": {"stages": [{
+                "stage": "planning", "status": "failed",
+                "detail": {"code": "CONVERSATION_PROVIDER_OUTPUT_INVALID"},
+            }]},
+        }],
+    })
+
+    report = analyze_task(result)
+
+    findings = {item["code"]: item for item in report["findings"]}
+    assert findings["PLANNING_STAGE_FAILURE"]["impact"] == "RECOVERED"
+    assert "WRITE_OMITTED_AFTER_PLANNING_FAILURE" not in findings
+
+
+def test_checkpoint_links_pending_action_to_failed_approval_turn(tmp_path):
+    result = _write(tmp_path / "task-20.json", {
+        "task_id": "20", "official_reward": 0,
+        "env": {"reward": 0},
+        "action": {"reward": 0, "action_checks": [
+            _failed_write("modify_pending_order_items", {"order_id": "W1"})
+        ]},
+        "target_trace": [{
+            "turn": 5,
+            "input": "Yes, I approve those changes. Please go ahead.",
+            "outcome": {"stages": [{
+                "stage": "planning", "status": "failed",
+                "detail": {"code": "CONTEXT_BUDGET_EXCEEDED"},
+            }]},
+        }],
+        "checkpoint_projection": {
+            "status": "AVAILABLE",
+            "snapshots": [{
+                "sequence": 9, "thread_id": "approval-thread", "checkpoint_id": "cp-9",
+                "lineage": [
+                    {"path": "$.result.pending_action.allowed_tools", "field": "allowed_tools",
+                     "value": ["modify_pending_order_items", "observed_operation_status"]},
+                    {"path": "$.pending_approval.approval_id", "field": "approval_id",
+                     "value": "approval-1"},
+                    {"path": "$.result.pending_action.operation_key", "field": "operation_key",
+                     "value": "operation-1"},
+                ],
+            }],
+        },
+    })
+
+    report = analyze_task(result)
+
+    findings = {item["code"]: item for item in report["findings"]}
+    hypothesis = findings["PENDING_ACTION_NOT_RESUMED_AFTER_PLANNING_FAILURE"]
+    assert hypothesis["level"] == "SUPPORTED"
+    assert hypothesis["owner_candidate"] == "conversation_planning"
+    checkpoint = next(
+        item for item in report["evidence"]
+        if item["evidence_id"] == "checkpoint-pending-action"
+    )
+    assert checkpoint["data"]["approval_ids"] == ["approval-1"]
+    assert checkpoint["data"]["receipt_ids"] == []
+    assert report["root_cause_status"] == "OPEN"
+
+
 def test_scope_revision_is_supported_but_does_not_claim_owner(tmp_path):
     result = _write(tmp_path / "task-8.json", {
         "task_id": "8", "official_reward": 0,

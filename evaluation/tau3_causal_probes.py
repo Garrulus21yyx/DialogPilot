@@ -1,4 +1,4 @@
-"""Deterministic causal probes over the tau3 causal-event trace contract."""
+"""Deterministic causal probes over checkpoint-derived tau3 lineage."""
 from __future__ import annotations
 
 from copy import deepcopy
@@ -14,6 +14,7 @@ LINEAGE_FIELDS = (
     "control_id", "control_revision", "work_item_id", "proposal_id",
     "approval_id", "tool_call_id", "receipt_id", "action_name", "requirement_id",
 )
+_EVIDENCE_ORIGINS = {"CHECKPOINT_PROJECTION", "OWNER_EVENT"}
 
 
 def probe_report(report: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
@@ -21,7 +22,10 @@ def probe_report(report: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
     enriched = deepcopy(report)
     for task in enriched.get("tasks", []):
         result = _load_result(run_dir, task["result_file"])
-        events = task.get("causal_events") or result.get("causal_events") or []
+        events = (
+            task.get("checkpoint_events") or result.get("checkpoint_events")
+            or task.get("causal_events") or result.get("causal_events") or []
+        )
         probes = _validate_events(events, task["task_id"])
         if probes["contract_status"] == "VALID":
             probes["results"] = [
@@ -37,7 +41,7 @@ def probe_report(report: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
             probes["results"] = [{
                 "probe": "causal_lineage",
                 "status": "INCONCLUSIVE",
-                "reason": "The artifact does not contain a valid causal_events lineage.",
+                "reason": "The artifact does not contain normalized checkpoint-transition lineage.",
                 "missing_evidence": probes["errors"],
             }]
         task["causal_probes"] = probes
@@ -48,7 +52,7 @@ def probe_report(report: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
 def _validate_events(events: Any, task_id: str) -> Mapping[str, Any]:
     errors = []
     if not isinstance(events, Sequence) or isinstance(events, (str, bytes)) or not events:
-        errors.append("causal_events is absent or empty")
+        errors.append("normalized checkpoint transition events are absent or empty")
         return {"contract_status": "MISSING", "event_count": 0, "errors": errors}
     previous = -1
     seen_event_ids = set()
@@ -61,8 +65,8 @@ def _validate_events(events: Any, task_id: str) -> Mapping[str, Any]:
             errors.append(f"event[{index}] missing {','.join(missing)}")
         if str(event.get("task_id")) != str(task_id):
             errors.append(f"event[{index}] task_id does not match result")
-        if event.get("evidence_origin") not in (None, "OWNER_EVENT"):
-            errors.append(f"event[{index}] evidence_origin is not OWNER_EVENT")
+        if event.get("evidence_origin") not in _EVIDENCE_ORIGINS:
+            errors.append(f"event[{index}] evidence_origin is not a checkpoint-backed projection")
         sequence = event.get("sequence")
         if not isinstance(sequence, int) or sequence <= previous:
             errors.append(f"event[{index}] sequence is not strictly increasing")

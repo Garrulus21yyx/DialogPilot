@@ -91,6 +91,7 @@ async def run(args):
     from evaluation.tau3_full_adapter import Tau3TargetAgent, ObservedVerifier
     from evaluation.tau3_tool_binding import bind_environment
     from evaluation.tau3_user_diagnostics import SimulatorDiagnostics, simulator_parameters
+    from evaluation.tau3_checkpoint_projection import project_session_checkpoints
 
     values = {**dotenv_values(ROOT / ".env"), **os.environ}
     for key, value in values.items():
@@ -260,6 +261,11 @@ async def run(args):
                         active_agent = None
                         row["target_trace"] = agent.trace
                         if components:
+                            row["checkpoint_projection"] = await project_session_checkpoints(
+                                components.checkpoint_owner.checkpointer,
+                                session_id=agent.conversation_id,
+                                task_id=task.id,
+                            )
                             await components.checkpoint_owner.__aexit__(None, None, None)
                         await memory.close()
                         await tools.llm_client.close()

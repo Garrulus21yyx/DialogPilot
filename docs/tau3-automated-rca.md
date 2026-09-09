@@ -32,8 +32,9 @@ python scripts/tau3_eval_loop.py enrich-langfuse artifacts/eval/<run>/rca.json \
 ```
 
 The enrichment command fetches all traces in each task session, paginates their
-observations, extracts standardized causal metadata, retains at most 80 relevant
-semantic observations per task, and reruns the probes.
+observations, extracts compatible lineage metadata, retains at most 80 relevant
+semantic observations per task, and reruns the probes. Langfuse is an
+observability and semantic-evidence projection; it is not the execution authority.
 
 Use the LLM Judge only after deterministic analysis and Langfuse enrichment:
 
@@ -107,9 +108,18 @@ The publisher writes idempotent `tau3_run_available`, `tau3_business_pass`,
 is unavailable, so provider failures cannot become false business zeroes. Full
 evidence stays in local artifacts.
 
-## Causal event contract
+## Checkpoint lineage contract
 
-Owners emit events into Langfuse observation metadata using the `causal.` prefix:
+The existing LangGraph checkpoint is the authority for graph execution lineage.
+The tau3 runner exports a bounded `checkpoint_projection` before closing the
+checkpointer and deleting its temporary database. It retains checkpoint parentage
+and allowlisted join fields such as plan/work-item/control revisions, approvals,
+tool calls, operation keys, receipts, status and reason codes. It excludes message
+content and arbitrary checkpoint payloads.
+
+Deterministic transition probes may consume normalized `checkpoint_events`
+derived from that projection. Historical Langfuse metadata with the `causal.`
+prefix remains readable for compatibility:
 
 ```json
 {
@@ -119,7 +129,7 @@ Owners emit events into Langfuse observation metadata using the `causal.` prefix
   "causal.task_id": "8",
   "causal.turn_id": "turn-5",
   "causal.owner": "domain_reviewer",
-  "causal.evidence_origin": "OWNER_EVENT",
+  "causal.evidence_origin": "CHECKPOINT_PROJECTION",
   "causal.control_id": "control-exchange-items",
   "causal.control_revision": 2,
   "causal.work_item_id": "work-1",
@@ -133,24 +143,26 @@ Owners emit events into Langfuse observation metadata using the `causal.` prefix
 ```
 
 Required fields are `event_id`, `sequence`, `event_type`, `task_id`, `turn_id`,
-`owner`, and `evidence_origin=OWNER_EVENT`. Sequences are strictly increasing per
-task. Probe event types are `GOAL_REVISED`,
+`owner`, and `evidence_origin=CHECKPOINT_PROJECTION`. Sequences are strictly
+increasing per task. Historical `OWNER_EVENT` artifacts remain accepted, but new
+business runtime instrumentation is not required. Probe event types are `GOAL_REVISED`,
 `WORK_ITEM_RESUMED`, `ACTOR_DECISION`, `OUTCOME_REVIEWED`, `PROPOSAL_CREATED`,
 `ACTION_APPROVED`, `EXECUTION_FAILED`, and `TOOL_COMMITTED`.
 
 `control_id + control_revision` is the authoritative goal version already owned
 by the application. A stale revision or execution error becomes a verified root
-cause only when an owner event proves the violated transition and the objective
+cause only when a checkpoint-backed transition proves the violated transition and the objective
 evaluator independently supplies task-blocking evidence linked by `action_name`,
 `requirement_id`, or an explicit evaluator-owned `causal_impact_link`. Producers
 do not label their own impact. Missing or merely co-occurring evidence yields
 `INCONCLUSIVE`; recovered errors cannot become blocking root causes.
 
-## Instrumentation ownership
+## Projection ownership
 
-Emit one event at the component that owns each transition, not from the RCA job:
+Do not create a second event authority. Project each transition from the checkpoint
+state written by the component that owns it:
 
-| Boundary | Owner event | Required join keys |
+| Boundary | Checkpoint transition | Required join keys |
 | --- | --- | --- |
 | accepted objective changes | `GOAL_REVISED` | control id/revision, turn id |
 | work dispatch/resume | `WORK_ITEM_RESUMED` | control id/revision, work item id |
@@ -159,10 +171,11 @@ Emit one event at the component that owns each transition, not from the RCA job:
 | tool terminal result | `TOOL_COMMITTED` or `EXECUTION_FAILED` | proposal/tool call/receipt ids, reason code |
 | domain review | `OUTCOME_REVIEWED` | control id/revision, work item id, action/requirement |
 
-The runner binds the Langfuse session to the tau3 task. The enrichment job may
-fill `task_id` from that one-to-one binding, but it never manufactures event type,
-owner, revision, proposal, receipt, or error facts. Existing historical traces
-without these events remain analyzable for symptoms and hypotheses only.
+The runner binds the checkpoint and Langfuse session to the tau3 task. The
+projection may normalize names and fill `task_id` from that one-to-one binding,
+but it never manufactures owner, revision, proposal, receipt, or error facts.
+`target_trace` is the task-level result projection used for stage failures and
+accepted-plan evidence. Missing checkpoint history leaves causal hypotheses open.
 
 ## Evaluation authority
 
@@ -170,7 +183,7 @@ without these events remain analyzable for symptoms and hypotheses only.
 | --- | --- |
 | Did the task and side effects succeed? | tau3 ENV and native state assertions |
 | Was a forbidden or required tool transition observed? | rule checker over trajectory/receipts |
-| Where did a typed transition first violate lineage? | deterministic causal probe |
+| Where did a typed transition first violate lineage? | checkpoint projection + deterministic causal probe |
 | Does prose support a semantic hypothesis? | bounded LLM Judge |
 | Is the expected contract correct for future releases? | explicit human review |
 
@@ -182,14 +195,14 @@ turning correlation into a verified root cause.
 - `OBSERVED` records a score, state, or action-reference deviation.
 - `VERIFIED` at the `mechanism` layer records an event that definitely occurred.
 - `SUPPORTED` records a causal candidate and the evidence still needed.
-- `VERIFIED` at the `root_cause` layer requires an owner-bound causal probe.
+- `VERIFIED` at the `root_cause` layer requires a checkpoint-backed causal probe.
 
 Unkeyed batch logs remain `RUN_ONLY`. Evaluator outages remain `EVALUATION_ONLY`.
 Provider failures remain `RUN_BLOCKING` and do not become business zeroes.
 
 The calibrated witnesses are task8 (scope revision), task13 (target set and
 simulator consistency), task19 (recovered context failure plus judge outage), and
-task20 (missing write with context and citation failures).
+task20 (missing write after planning failure, with later verifier/citation failures).
 
 Langfuse integration follows [Scores via API/SDK](https://langfuse.com/docs/evaluation/evaluation-methods/scores-via-sdk),
 [Experiments via SDK](https://langfuse.com/docs/evaluation/experiments/experiments-via-sdk),

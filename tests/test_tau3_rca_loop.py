@@ -123,6 +123,22 @@ def test_probe_rejects_non_owner_causal_claims(tmp_path):
     assert enriched["tasks"][0]["causal_probes"]["contract_status"] == "INVALID"
 
 
+def test_probe_accepts_checkpoint_backed_transition_projection(tmp_path):
+    task = _task()
+    (tmp_path / "task-8.json").write_text(json.dumps({"checkpoint_events": [
+        {"event_id": "cp-e1", "sequence": 1, "event_type": "GOAL_REVISED", "task_id": "8",
+         "turn_id": "t2", "owner": "conversation_state",
+         "evidence_origin": "CHECKPOINT_PROJECTION", "control_id": "goal-1",
+         "control_revision": 2},
+    ]}))
+
+    enriched = probe_report(_report([task]), tmp_path)
+
+    probes = enriched["tasks"][0]["causal_probes"]
+    assert probes["contract_status"] == "VALID"
+    assert probes["results"][0]["status"] == "PASS"
+
+
 def test_regression_requires_review_and_gate_blocks_recurrence():
     failed = _report([_task(findings=[_finding("MISSING_REQUIRED_WRITE", "TASK_BLOCKING")])])
     candidates = generate_candidates(failed)

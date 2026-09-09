@@ -216,6 +216,100 @@ def analyze_task(result_path: Path, trajectory_path: Path | None = None) -> Mapp
             impact="RECOVERED" if _business_checks_pass(result) else "PRESENT_DURING_FAILURE",
         ))
 
+    stage_failures = _target_stage_failures(result)
+    planning_failures = [
+        item for item in stage_failures
+        if item["stage"] in {"planning", "planning_observation"}
+    ]
+    verification_failures = [
+        item for item in stage_failures if item["stage"] == "answer_verification"
+    ]
+    if planning_failures:
+        evidence.append(Evidence(
+            "planning-stage-failures", result_path.name,
+            planning_failures[0]["locator"],
+            "Task-bound checkpoint projections contain failed planning stages.",
+            {"failures": planning_failures[:10]},
+        ))
+        findings.append(Finding(
+            "PLANNING_STAGE_FAILURE", "mechanism", FindingLevel.VERIFIED,
+            "Planning failed under a typed runtime contract for this task.",
+            "conversation_planning", ("planning-stage-failures",),
+            ("A failed stage alone does not prove that it caused the terminal task violation.",),
+            "Join the failed stage to its checkpointed plan transition and terminal outcome.",
+            impact="RECOVERED" if _business_checks_pass(result) else "PRESENT_DURING_FAILURE",
+        ))
+    if verification_failures:
+        evidence.append(Evidence(
+            "answer-verification-stage-failures", result_path.name,
+            verification_failures[0]["locator"],
+            "Task-bound checkpoint projections contain failed answer-verification stages.",
+            {"failures": verification_failures[:10]},
+        ))
+        findings.append(Finding(
+            "ANSWER_VERIFICATION_CONTRACT_FAILURE", "mechanism", FindingLevel.VERIFIED,
+            "Answer verification failed under a typed runtime contract for this task.",
+            "answer_verification", ("answer-verification-stage-failures",),
+            ("This response-stage failure does not establish why a required write was omitted.",),
+            "Replay the verifier with the same checkpointed response and verifier contract.",
+            impact="RECOVERED" if _business_checks_pass(result) else "PRESENT_DURING_FAILURE",
+        ))
+
+    write_intent_turn = _write_intent_planning_failure(result, planning_failures)
+    if failed_writes and not actual_writes and write_intent_turn:
+        evidence.append(Evidence(
+            "write-intent-turn-plan", result_path.name, write_intent_turn["locator"],
+            "The execution-request turn retained only a read-only accepted plan before planning failed.",
+            write_intent_turn["data"],
+        ))
+        findings.append(Finding(
+            "WRITE_OMITTED_AFTER_PLANNING_FAILURE", "hypothesis", FindingLevel.SUPPORTED,
+            "A task-bound planning protocol failure followed a read-only accepted plan; the required write never entered the visible plan or receipt path.",
+            "conversation_planning", (
+                "write-intent-turn-plan", "planning-stage-failures",
+                *(f"expected-write-{index}" for index in range(len(failed_writes))),
+            ),
+            (
+                "The bounded user message needs semantic confirmation that it requests the expected write.",
+                "The retained artifact is a checkpoint projection, not the full checkpoint transition history.",
+            ),
+            "Export the sanitized checkpoint history before teardown and join plan, pending action, approval, and receipt by control/work-item IDs.",
+            impact="CAUSAL_CANDIDATE",
+        ))
+
+    pending_action = _pending_action_before_planning_failure(
+        result, failed_writes, planning_failures,
+    )
+    if failed_writes and not actual_writes and pending_action:
+        evidence.append(Evidence(
+            "checkpoint-pending-action", result_path.name,
+            pending_action["checkpoint_locator"],
+            "The checkpoint chain retained the expected pending action and approval binding but no receipt.",
+            pending_action["checkpoint_data"],
+        ))
+        evidence.append(Evidence(
+            "approval-response-planning-failure", result_path.name,
+            pending_action["turn_locator"],
+            "The next task turn supplied an approval-like response and failed in planning.",
+            pending_action["turn_data"],
+        ))
+        findings.append(Finding(
+            "PENDING_ACTION_NOT_RESUMED_AFTER_PLANNING_FAILURE",
+            "hypothesis", FindingLevel.SUPPORTED,
+            "A checkpointed pending action was followed by an approval-like user turn, but planning failed before any write receipt was committed.",
+            "conversation_planning", (
+                "checkpoint-pending-action", "approval-response-planning-failure",
+                "planning-stage-failures",
+                *(f"expected-write-{index}" for index in range(len(failed_writes))),
+            ),
+            (
+                "The approval-like user text needs semantic confirmation against the checkpointed pending action.",
+                "A normalized checkpoint transition is needed to prove the exact first owner that rejected resume.",
+            ),
+            "Replay the approval turn with checkpoint/config token accounting and inspect whether resume binding is admitted before planner invocation.",
+            impact="CAUSAL_CANDIDATE",
+        ))
+
     messages = _messages(trajectory)
     revisions = [message for message in messages if message["role"] == "user" and _is_revision(message["content"])]
     domain_rejections = _find_scalar_matches(result.get("target_trace", []), "DOMAIN_OUTCOME_REJECTED")
@@ -345,6 +439,161 @@ def _find_scalar_matches(value: Any, needle: str, path: str = "$") -> list[str]:
     elif needle.lower() in str(value).lower():
         matches.append(path)
     return matches
+
+
+def _target_stage_failures(result: Mapping[str, Any]) -> list[Mapping[str, Any]]:
+    failures = []
+    target_trace = result.get("target_trace") or []
+    if not isinstance(target_trace, Sequence) or isinstance(target_trace, (str, bytes)):
+        return failures
+    for trace_index, record in enumerate(target_trace):
+        if not isinstance(record, Mapping):
+            continue
+        outcome = record.get("outcome")
+        if not isinstance(outcome, Mapping):
+            continue
+        stages = outcome.get("stages") or []
+        if not isinstance(stages, Sequence) or isinstance(stages, (str, bytes)):
+            continue
+        for stage_index, stage in enumerate(stages):
+            if not isinstance(stage, Mapping) or stage.get("status") != "failed":
+                continue
+            detail = stage.get("detail") if isinstance(stage.get("detail"), Mapping) else {}
+            failures.append({
+                "turn": record.get("turn"),
+                "stage": str(stage.get("stage") or "unknown"),
+                "code": str(detail.get("code") or "unknown"),
+                "exception_types": _exception_types(detail),
+                "locator": f"$.target_trace[{trace_index}].outcome.stages[{stage_index}]",
+            })
+    return failures
+
+
+def _write_intent_planning_failure(
+    result: Mapping[str, Any], planning_failures: Sequence[Mapping[str, Any]],
+) -> Mapping[str, Any] | None:
+    failed_turns = {
+        item.get("turn") for item in planning_failures
+        if item.get("code") == "CONVERSATION_PROVIDER_OUTPUT_INVALID"
+    }
+    for trace_index, record in enumerate(result.get("target_trace") or []):
+        if not isinstance(record, Mapping) or record.get("turn") not in failed_turns:
+            continue
+        outcome = record.get("outcome")
+        response = outcome.get("response") if isinstance(outcome, Mapping) else None
+        evaluation = response.get("evaluation_trace") if isinstance(response, Mapping) else None
+        if not isinstance(evaluation, Mapping):
+            continue
+        consumption = evaluation.get("consumption") or {}
+        work_items = consumption.get("work_items") or []
+        modes = {str(item.get("control_mode") or "") for item in work_items if isinstance(item, Mapping)}
+        side_effect = evaluation.get("state_side_effect") or {}
+        receipts = side_effect.get("committed_receipt_refs") or []
+        if receipts or modes.intersection({"ACTION", "WORKFLOW"}):
+            continue
+        artifact = evaluation.get("artifact") or {}
+        return {
+            "locator": f"$.target_trace[{trace_index}]",
+            "data": {
+                "turn": record.get("turn"),
+                "user_input": str(record.get("input") or "")[:800],
+                "plan_id": artifact.get("plan_id"),
+                "route_mode": artifact.get("route_mode"),
+                "work_items": [{
+                    "work_item_id": item.get("work_item_id"),
+                    "control_mode": item.get("control_mode"),
+                    "allowed_tools": list(item.get("allowed_tools") or []),
+                } for item in work_items if isinstance(item, Mapping)],
+                "committed_receipt_refs": list(receipts),
+            },
+        }
+    return None
+
+
+def _exception_types(detail: Mapping[str, Any]) -> list[str]:
+    chain = detail.get("exception_chain") or []
+    if not isinstance(chain, Sequence) or isinstance(chain, (str, bytes)):
+        return []
+    return list(dict.fromkeys(
+        str(item.get("type")) for item in chain
+        if isinstance(item, Mapping) and item.get("type")
+    ))[:8]
+
+
+def _pending_action_before_planning_failure(
+    result: Mapping[str, Any], failed_writes: Sequence[Mapping[str, Any]],
+    planning_failures: Sequence[Mapping[str, Any]],
+) -> Mapping[str, Any] | None:
+    projection = result.get("checkpoint_projection") or {}
+    if projection.get("status") != "AVAILABLE" or not planning_failures:
+        return None
+    expected_names = {
+        str(item.get("action", {}).get("name") or "") for item in failed_writes
+    }
+    snapshots = projection.get("snapshots") or []
+    pending_matches = []
+    approval_ids = set()
+    operation_keys = set()
+    receipt_ids = set()
+    for snapshot_index, snapshot in enumerate(snapshots):
+        if not isinstance(snapshot, Mapping):
+            continue
+        for item in snapshot.get("lineage") or []:
+            if not isinstance(item, Mapping):
+                continue
+            field = item.get("field")
+            value = item.get("value")
+            if field == "allowed_tools" and isinstance(value, list):
+                matched = sorted(expected_names.intersection(str(tool) for tool in value))
+                if matched:
+                    pending_matches.append({
+                        "snapshot_index": snapshot_index,
+                        "sequence": snapshot.get("sequence"),
+                        "thread_id": snapshot.get("thread_id"),
+                        "checkpoint_id": snapshot.get("checkpoint_id"),
+                        "path": item.get("path"),
+                        "expected_tools": matched,
+                    })
+            elif field == "approval_id" and value:
+                approval_ids.add(str(value))
+            elif field == "operation_key" and value:
+                operation_keys.add(str(value))
+            elif field == "receipt_id" and value:
+                receipt_ids.add(str(value))
+    if not pending_matches or receipt_ids:
+        return None
+    first_failure = min(
+        (item for item in planning_failures if isinstance(item.get("turn"), int)),
+        key=lambda item: item["turn"], default=None,
+    )
+    if first_failure is None:
+        return None
+    failed_turn = next((
+        (index, record) for index, record in enumerate(result.get("target_trace") or [])
+        if isinstance(record, Mapping) and record.get("turn") == first_failure["turn"]
+    ), None)
+    if failed_turn is None:
+        return None
+    trace_index, record = failed_turn
+    first_match = min(pending_matches, key=lambda item: item["sequence"] or 0)
+    return {
+        "checkpoint_locator": (
+            f"$.checkpoint_projection.snapshots[{first_match['snapshot_index']}]"
+        ),
+        "checkpoint_data": {
+            "pending_action": first_match,
+            "approval_ids": sorted(approval_ids)[:10],
+            "operation_keys": sorted(operation_keys)[:10],
+            "receipt_ids": [],
+        },
+        "turn_locator": f"$.target_trace[{trace_index}]",
+        "turn_data": {
+            "turn": record.get("turn"),
+            "user_input": str(record.get("input") or "")[:800],
+            "failed_stage": first_failure["stage"],
+            "failure_code": first_failure["code"],
+        },
+    }
 
 
 def _provider_error(result: Mapping[str, Any]) -> Mapping[str, Any] | None:
