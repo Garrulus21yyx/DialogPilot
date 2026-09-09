@@ -3,6 +3,52 @@
 Status: operation naming repair verified; reply lifecycle projection implemented;
 confirmation-quality work remains OPEN after fresh task validation.
 
+## Author-only experiment after 7e912f4
+
+User approved trying the author-side repair, not another business rerun. Current
+HEAD 7e912f4; unrelated archive/RAG edits excluded. First retrieve the original
+planner/composer observations and locate the first author of each bad question.
+No inference that Runtime bound a missing field unless the captured state says so.
+
+Hypothesis: composition currently embeds prior assistant prose, business evidence
+and the current interaction in one JSON message. Reuse the existing native-message
+projection boundary to place history before a single current reply task, retaining
+the exact selected/retained proposal and other results. No new state, classifier,
+approval grant, review call or judge-prompt change. Compare original and projected
+author inputs on the two captured failures, same model/output budget: 4 author
+calls initially; at most 4 additional controls if promising (bound missing value,
+retained approval, approved/completed action, independent partial success).
+Judge by inspecting actual output against authoritative scope; keep all outputs.
+Adopt only with positive controls, source-contract tests and independent review.
+Do not infer task success from this component experiment.
+
+Result (author-only, 2026-09-09): captured original author observations
+`cd42cc02de79d3da` (planner) and `51efc55e97af9e7f` (composer) in
+`artifacts/eval/reply-author-scope-2026-09-09/source.json`. The planner already
+received native history plus an explicit no-selected-approval instruction;
+there was no runtime-bound requested-input record. Thus treating that reply as a
+bound missing-state question, or passing it through a new mandatory composer,
+would not be a faithful owner-level repair. Its policy descriptions also contain
+confirmation instructions; their causal contribution is not yet experimentally
+isolated.
+
+Ran two composer calls with the same historical logged evidence, original system,
+current SYNTHESIS model profile and 4096 output budget. The sole variant moves
+history into native user/assistant messages and keeps provenance in the payload.
+Both original JSON and native-history outputs incorrectly describe both address
+changes as prepared, although pending_actions contains only modify_user_address.
+This falsifies native-history projection alone as the proposed repair. No positive
+controls or business rerun were spent after that failed adoption gate. No production
+code, model profile, judge or permissions changed. This is a historical-input
+diagnostic, not validation of every projection in current HEAD.
+
+Remaining status: confirmation quality OPEN. Separate the planner's unprepared
+permission request from the composer's scope expansion; neither is proven solved.
+Next design question is how the existing selected-proposal owner supplies the
+approval presentation without asking free-form generation to infer its scope from
+the larger goal. Preserve ordinary questions and independent outcomes; do not add
+another universal judge or silently grant approval from conversation prose.
+
 ## Active continuation after 09fcb8b
 
 User requests completing the confirmation repair. Reconcile: source HEAD 09fcb8b;
