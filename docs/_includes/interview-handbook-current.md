@@ -1,6 +1,6 @@
 # DialogPilot 面试追问：原理、源码与技术取舍
 
-> 2026-09-09校准至9a50ea1。保留框架、后端、RAG与简历追问，并同步操作集合、策略受众隔离和工具字段展示。每题先练短答，再展开源码与验证边界。Q131—Q134讲结果展示简化；Q135—Q142讲WorkPlan、Compiler、TaskGraph、ResultBoard与LangGraph。
+> 2026-09-09校准至f5fcfa6。保留框架、后端、RAG与简历追问，并同步操作集合、策略受众隔离和工具字段展示。每题先练短答，再展开源码与验证边界。Q131—Q134讲结果展示简化；Q135—Q142讲WorkPlan与框架；Q143—Q148讲子Agent故障和多目标续接。
 
 ## 1. 项目定位与架构防守
 
@@ -26,7 +26,7 @@
 
 **展开：**一个大Agent同时看到账号、订单、政策和写操作，更难追踪哪项需求完成了。主Agent直接处理简单读取，将完整业务修改目标委派给领域Worker，后者调查条件、补齐字段并准备动作，ResultBoard汇总。代价是更多上下文转换、可能重复取证和额外模型调用，所以明确查询允许DIRECT绕过Worker，不是所有请求都启动六个Agent。
 
-**继续追问：**不能仅凭架构复杂声称更强；应与同工具同模型单Agent做任务成功率、成本和遗漏率对照。源码：[application/orchestration_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/orchestration_runtime.py)。
+**继续追问：**不能仅凭架构复杂声称更强；应与同工具同模型单Agent做任务成功率、成本和遗漏率对照。源码：[application/orchestration_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/application/orchestration_runtime.py)。
 
 ### Q4：代码目录为什么分application和infrastructure？
 
@@ -42,7 +42,7 @@
 
 **展开：**Run负责谁持有请求及最终状态；TurnRuntime负责准备、执行、提交进度和组织答复；OrchestrationRuntime按WorkPlan派发；create_agent负责一个领域任务里的下一次工具选择。主图不重新解释工具输出，Worker也不私自修改全会话审批。层数的合理性取决于职责，而不是图越多越好。
 
-**继续追问：**一个简单查询可走DIRECT，成本不等于所有层都各调用一次LLM。源码：[application/turn_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/turn_runtime.py)、[application/target_run.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/target_run.py)。
+**继续追问：**一个简单查询可走DIRECT，成本不等于所有层都各调用一次LLM。源码：[application/turn_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/application/turn_runtime.py)、[application/target_run.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/target_run.py)。
 
 ### Q6：为什么选PostgreSQL＋Redis，没有直接全放Redis？
 
@@ -60,7 +60,7 @@
 
 **展开：**规则精确且便宜，但维护复杂、泛化弱；TF-IDF＋线性分类器适合明确词面和低成本基线；BERT类编码器能学习语义边界但依赖可靠标签；embedding与样例近邻适合增量类别但相似不等于业务可执行；LLM擅长复合需求和上下文，成本与稳定性更难控。级联让简单高置信输入由小模型处理，其余由主Agent理解。
 
-**继续追问：**本项目主路径是带状态的原生动作选择，可选Encoder只分领域且默认关闭。经典候选不是全部在线同时运行。源码：[application/target_understanding.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/target_understanding.py)、[application/target_encoder_understanding.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/target_encoder_understanding.py)。
+**继续追问：**本项目主路径是带状态的原生动作选择，可选Encoder只分领域且默认关闭。经典候选不是全部在线同时运行。源码：[application/target_understanding.py](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/application/target_understanding.py)、[application/target_encoder_understanding.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/target_encoder_understanding.py)。
 
 ### Q8：为什么不用关键词规则完成路由？
 
@@ -68,7 +68,7 @@
 
 **展开：**“不是退款，是问发票”“退款先别办，查一下配送”都有退款词，却不能发起退款。规则适合校验interaction_id、字段类型、目标版本与显式审批信号；自然语言“好”要结合当前等待状态和问题理解。项目StateBound路径处理已绑定的结构化状态，其他表达交给主Agent。
 
-**继续追问：**不用规则是不是完全依赖LLM？权限、状态转移、参数schema仍由确定性程序控制。源码：[application/deterministic_resolution.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/deterministic_resolution.py)、[application/target_understanding.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/target_understanding.py)。
+**继续追问：**不用规则是不是完全依赖LLM？权限、状态转移、参数schema仍由确定性程序控制。源码：[application/deterministic_resolution.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/deterministic_resolution.py)、[application/target_understanding.py](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/application/target_understanding.py)。
 
 ### Q9：TF-IDF、BERT分类和向量近邻有什么区别？
 
@@ -150,7 +150,7 @@
 
 **展开：**工作图initialize后算ready wave，发送execute_work_item，merge_results后继续调度、await_resume或finish。聚合结果使用明确合并逻辑，避免并行更新覆盖。`thread_id`是加载正确checkpoint的关键；恢复同一工作位置还要验证任务控制版本，不能只拿任意thread继续。
 
-**继续追问：**interrupt后可能重新进入节点，之前的副作用不能无保护执行；细节见[官方interrupt](https://docs.langchain.com/oss/python/langgraph/interrupts)。源码：[application/orchestration_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/orchestration_runtime.py)、[infrastructure/langgraph_checkpoint.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/infrastructure/langgraph_checkpoint.py)。
+**继续追问：**interrupt后可能重新进入节点，之前的副作用不能无保护执行；细节见[官方interrupt](https://docs.langchain.com/oss/python/langgraph/interrupts)。源码：[application/orchestration_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/application/orchestration_runtime.py)、[infrastructure/langgraph_checkpoint.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/infrastructure/langgraph_checkpoint.py)。
 
 ### Q19：PydanticAI、直接SDK、其他Agent框架为什么没统一替代？
 
@@ -166,7 +166,7 @@
 
 **展开：**本项目按领域/权限划分Worker，共用框架循环；任务间通过依赖结果和FactRecord传信息。Verifier做表达支持性检查，不扮演全知仲裁。需要比较替代方案时，用同模型预算的单Agent、主从调度和辩论方案测真实完成、成本与误操作，而非以对话长度评价智能程度。
 
-**继续追问：**multiagent的收益主要来自职责隔离和可控协作，不能在没有消融时宣称模型能力必然变强。源码：[application/orchestration_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/orchestration_runtime.py)。
+**继续追问：**multiagent的收益主要来自职责隔离和可控协作，不能在没有消融时宣称模型能力必然变强。源码：[application/orchestration_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/application/orchestration_runtime.py)。
 
 ### Q21：如何防止Worker越权调用别的领域工具？
 
@@ -190,17 +190,15 @@
 
 **展开：**工作图对NEEDS_EVIDENCE记录已经请求的requirement/provider；补充后事实未变化就返回缺证据状态。Worker有AgentProgressMiddleware、模型/工具调用限制和timeout。它们解决不同问题：重复调用、状态不变、资源耗尽和外部慢响应。实际按观察身份统计：连续两轮无新观察提示调整，提示后仍无进展结束当前段；成功知识按证据项而非query改写判定新颖性。具体例子见Q99—Q102，不套用GUI项目的Monitor/推理升级名称。
 
-**继续追问：**相同工具参数不总是重复错误，例如对账可能合法；要结合效果和阶段。源码：[infrastructure/target_agent_middleware.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/infrastructure/target_agent_middleware.py)、[application/orchestration_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/orchestration_runtime.py)。
+**继续追问：**相同工具参数不总是重复错误，例如对账可能合法；要结合效果和阶段。源码：[infrastructure/target_agent_middleware.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/infrastructure/target_agent_middleware.py)、[application/orchestration_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/application/orchestration_runtime.py)。
 
-### Q24：框架默认retry为什么关掉，失败怎么恢复？
+### Q24：SDK重试、Agent重规划和写恢复怎样分工？
 
-**短答：**避免SDK、Agent和Run多层重试相乘，统一暴露可重试模型错误，由已有Run恢复边界处理；业务写另走回执和对账。
+**短答：**SDK处理有界瞬时模型传输重试；可恢复读取故障交给已有主Agent重新决策；写操作沿原回执和对账恢复。
 
-**展开：**framework_model设置max_retries=0，异常携带stage和retryable。归档、预算、模型协议和业务结果未知不能统一“再来一次”。重试模型生成可能安全，重复退款可能不安全；恢复需保留已完成工具结果和旧请求身份。超时后不能根据没有收到回复推断没有提交。
+**展开：**当前framework_model配置max_retries=2，已替代历史的0。没有新增整个Agent重放或middleware重试层。Runtime保留非写故障原因和成功同伴结果，主Agent选择改方案、追问或说明阻塞；retryable不等于安排了重跑。既有观察默认4步并检测停滞，取消和损坏合同不包装成可重试。
 
-**继续追问：**也不是永远不重试，要有错误类型、次数/时间预算、状态恢复点和完整成本统计。源码：[core/framework_models.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/core/framework_models.py)、[application/target_run.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/target_run.py)。
-
-## 4. 上下文、记忆与压缩
+**继续追问：**模型重试次数不等于业务写入尝试次数；未知退款不能用新operation_key重提交。源码：[core/framework_models.py](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/core/framework_models.py)、[application/execution_progress.py](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/application/execution_progress.py)。
 
 ### Q25：上下文管理与记忆管理有什么区别？
 
@@ -464,7 +462,7 @@
 
 **展开：**取消一个退款目标不应该取消独立的产品查询，依赖它的后续则需要关闭。并行任务完成时间不可预测，所以仅在派发时检查一次不够。WorkControlGuard返回superseded状态，让结果板保留明确的生命周期，而非把旧回答当本轮成功。
 
-**继续追问：**取消是停止继续工作，不会自动回滚已提交业务；已执行部分仍需回执和解释。源码：[application/work_control.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/work_control.py)、[application/target_conversation_manager.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/target_conversation_manager.py)。
+**继续追问：**取消是停止继续工作，不会自动回滚已提交业务；已执行部分仍需回执和解释。源码：[application/work_control.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/work_control.py)、[application/target_conversation_manager.py](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/application/target_conversation_manager.py)。
 
 ## 8. 评测、数据与优化闭环
 
@@ -606,7 +604,7 @@
 
 **展开：**经典任务对话系统可用分类头预测intent、序列标注预测slot（BIO标签，CRF是可选结构约束），再由状态跟踪更新已知槽位。LLM能联合输出意图/参数，但同样要处理纠正与过期。项目Encoder只分领域，实体绑定保存source、scope、版本和类型选择，ConversationState维护待补答/审批与活动目标，Policy验证参数。比如订单号与图片编号形似，正则提取只得到候选，不能直接证明它属于用户订单。
 
-**继续追问：**历史里两个订单都相关时应AMBIGUOUS，不能按最近出现者自动批准退款。源码：[application/entity_binding.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/entity_binding.py)、[application/conversation_state.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/conversation_state.py)。
+**继续追问：**历史里两个订单都相关时应AMBIGUOUS，不能按最近出现者自动批准退款。源码：[application/entity_binding.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/entity_binding.py)、[application/conversation_state.py](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/application/conversation_state.py)。
 
 ### Q74：长期记忆检索和知识RAG能共用权重吗？
 
@@ -646,7 +644,7 @@
 
 **展开：**ModelPolicy源码默认INTENT/WORKER/REWRITE/RERANK等为Flash，SYNTHESIS/VERIFIER/JUDGE为Pro，运行环境和实验profile可覆盖。模型是兼容端点上的实际ID，不能因用了Anthropic适配就说一定调用Claude。参数、reasoning设置、输出上限与retry都会影响表现，报告应记录角色profile，而不只写模型系列名。
 
-**继续追问：**更强Verifier也可能与生成模型共错；增加延迟是否值得需要误放行与误拒绝数据。源码：[core/model_policy.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/core/model_policy.py)、[core/framework_models.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/core/framework_models.py)。
+**继续追问：**更强Verifier也可能与生成模型共错；增加延迟是否值得需要误放行与误拒绝数据。源码：[core/model_policy.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/core/model_policy.py)、[core/framework_models.py](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/core/framework_models.py)。
 
 ### Q79：部署、性能和容量你能承诺什么？
 
@@ -688,7 +686,7 @@
 
 **展开：**Provider 接收原生消息，检查截断、refusal 和无效参数后交给 action_proposal。有调用时运行工具对应工作，调用前说明不当业务结果发布；无调用时文本结束本次决策，不自动安排后台工作。旧的回复工具会让“说一句话”和“执行动作”都套成调用，增加理解与协议负担；当前入口没有重新引入它。
 
-**继续追问：**原生文本只代表无需派发新工作，不代表绕过回答边界；也不能用“我去查一下”的文字代替实际读取。 源码与证据：[infrastructure/target_conversation_provider.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/infrastructure/target_conversation_provider.py)、[application/conversation_actions.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/conversation_actions.py)、[application/turn_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/turn_runtime.py)。
+**继续追问：**原生文本只代表无需派发新工作，不代表绕过回答边界；也不能用“我去查一下”的文字代替实际读取。 源码与证据：[infrastructure/target_conversation_provider.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/infrastructure/target_conversation_provider.py)、[application/conversation_actions.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/conversation_actions.py)、[application/turn_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/application/turn_runtime.py)。
 
 ### Q84：用户说“修改账户和订单地址”，为什么不能拆成两个独立动作？
 
@@ -729,7 +727,7 @@
 
 **展开：**TurnRuntime 的回答节点接下来只提交状态并结束，因而显式提供 turn_execution 的 REPLY阶段、等待输入/审批标志和continues_after_reply=false。生成与核验使用同一生命周期信息，避免工具失败后仍说“我会继续处理，请稍候”。这是由运行时给出的执行事实，不应该靠模型猜。
 
-**继续追问：**如果将来支持真正的后台调度，必须由实际调度与持久状态产生该事实，不能仅修改提示词把false改成true。 源码与证据：[application/turn_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/turn_runtime.py)、[application/action_approval.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/action_approval.py)。
+**继续追问：**如果将来支持真正的后台调度，必须由实际调度与持久状态产生该事实，不能仅修改提示词把false改成true。 源码与证据：[application/turn_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/application/turn_runtime.py)、[application/action_approval.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/action_approval.py)。
 
 ### Q89：补充信息、批准动作和批准后继续有什么区别？
 
@@ -737,7 +735,7 @@
 
 **展开：**缺少州名就问州名，不能顺便问“你确认让我修改两处吗”；当前仅准备账户修改时就只展示这一项的目标和后果。用户批准后review_action绑定原审批，不再次准备或收集预批准。用户拒绝一项保留其他独立目标，过期也不等于拒绝。主从职责明确后仍可能生成错误措辞，所以结构授权与语言质量要分别验证。
 
-**继续追问：**已有任务在等待审批时，用户问另一件事不应反复展示原批准请求；这需要同时追踪准备状态与真实发布状态。 源码与证据：[application/action_approval.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/action_approval.py)、[application/turn_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/turn_runtime.py)、[application/conversation_actions.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/conversation_actions.py)。
+**继续追问：**已有任务在等待审批时，用户问另一件事不应反复展示原批准请求；这需要同时追踪准备状态与真实发布状态。 源码与证据：[application/action_approval.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/action_approval.py)、[application/turn_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/application/turn_runtime.py)、[application/conversation_actions.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/conversation_actions.py)。
 
 ### Q90：最近task22到底暴露了什么，怎么讲？
 
@@ -922,7 +920,7 @@
 
 **展开：**Worker返回AgentResult，运行时封装PlanScopedAgentResult。Reducer接受同身份相同重放、拒绝同身份冲突；读取时对照当前WorkPlan检查，再把AgentResult交给Board。跨计划记录即使不撞Reducer键，也不能进入当前结果计算。
 
-**继续追问：**Reducer列表保留首次出现顺序，不是字节级排序保证；要验证完成顺序不改变Board语义。 源码与证据：[application/orchestration_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/orchestration_runtime.py)。
+**继续追问：**Reducer列表保留首次出现顺序，不是字节级排序保证；要验证完成顺序不改变Board语义。 源码与证据：[application/orchestration_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/application/orchestration_runtime.py)。
 
 ### Q139：complete、coverage_complete和task_completed有什么差别？
 
@@ -946,7 +944,7 @@
 
 **展开：**Manager不能从现有结果反推批准集合。每个operation_key都要有对应结果并通过Board覆盖检查；空集合或缺成员不能让all([])变成完成，只有SUCCEEDED标签也不够。未知效果保持对账，已提交成员回执保留。
 
-**继续追问：**一个原批准集合不自动缩成有结果的子集，也不等于跨服务原子事务。 源码与证据：[application/target_conversation_manager.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/target_conversation_manager.py)。
+**继续追问：**一个原批准集合不自动缩成有结果的子集，也不等于跨服务原子事务。 源码与证据：[application/target_conversation_manager.py](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/application/target_conversation_manager.py)。
 
 ### Q142：怎么验证计划作用域和恢复，不只测一个案例？
 
@@ -955,3 +953,53 @@
 **展开：**9a50ea1报告708组合检查、97补充合同检查通过，含PG；集合重叠不能相加。覆盖Reducer组合/重放、25种两成员状态、缺批准/结果、消费后权限扩大、checkpoint往返和旧格式拒绝。扩展检查另有4个既有调用错误，如实保留。
 
 **继续追问：**本轮无新τ³和模型调用，合同通过不宣称业务成功率提升；网页更新也没有重跑这批应用测试。 源码与证据：[plans/work-plan-single-contract-2026-09-09.md](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/plans/work-plan-single-contract-2026-09-09.md)。
+
+## 21. 子Agent故障与多目标续接
+
+### Q143：子Agent报错后，主Agent怎么知道要调整方案？
+
+**短答：**运行时把可处理的非写故障变成明确结果，经已有观察路径送回主Agent。
+
+**展开：**recovery_observations选当前READ的DIRECT/DELEGATED可重试失败或AGENT_NO_PROGRESS；requires_observation由Manager和TurnRuntime共用。原目标、诊断和成功同伴一起进入主Agent上下文，新计划仍经Policy/Compiler。
+
+**继续追问：**Runtime负责事实和执行，主Agent负责改方案或说明阻塞，没有第二个调度器。 源码与验证：[application/execution_progress.py](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/application/execution_progress.py)。
+
+### Q144：重规划会不会再次陷入死循环？
+
+**短答：**复用既有观察预算和进展检查，不新增无限重试。
+
+**展开：**默认max_observation_steps=4；失败观察包含目标、参数/能力与状态原因，换尝试ID不算新进展。重复两轮警告，再重复停止；原因变化可能改变观察键，所以硬预算仍必要。历史retained故障和普通回复不通过新增恢复谓词反复触发。
+
+**继续追问：**进展检测是有限结构信号，不是完整语义保证；SDK max_retries=2是另一个层次。 源码与验证：[application/turn_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/application/turn_runtime.py)。
+
+### Q145：主Agent也失败，或者失败的是写操作怎么办？
+
+**短答：**主规划失败保留已有结果；写故障继续由原操作账本与对账处理。
+
+**展开：**prepare_observation失败或计划不合法会记录阶段诊断，进入已有回答流程。写操作不纳入READ恢复候选；逸出的写基础设施错误继续由原Run接管，不自动新建替代写入。正常等待、取消、终止型错误也不当成重复尝试理由。
+
+**继续追问：**恢复机制能运行不等于模型会选好方案，本轮未跑真实模型任务。 源码与验证：[plans/worker-failure-dispatch-2026-09-09.md](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/plans/worker-failure-dispatch-2026-09-09.md)。
+
+### Q146：修改一个任务为何会把其他待答目标丢掉？
+
+**短答：**原状态更新清掉整组pending_interaction，连独立问题的恢复范围也丢了。
+
+**展开：**ConversationState现在按control变化和依赖分支划分，只移除相关任务，保留其他requested_fields、suspended_work_items和checkpoint关联，更新interaction版本并消费旧signal。理解层同步停止自动重跑全部同伴。
+
+**继续追问：**只在Board保留成功结果还不够，未回答问题及其恢复位置也要保留。 源码与验证：[application/conversation_state.py](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/application/conversation_state.py)。
+
+### Q147：用户补答B时，为什么不会又把A重跑？
+
+**短答：**理解层选择本次明确处理的目标与相关下游，独立未回答任务继续等待。
+
+**展开：**例如A等订单号、B等耳机型号；取消A后B的问题和原checkpoint保留。用户回答型号，仅恢复B及依赖条件允许的下游。Manager对局部interaction变化也处理原checkpoint，WorkPlan保留未替换结果；新计划没出现不等于任务完成。
+
+**继续追问：**取消上游影响依赖执行，不取消无关用户目标；新目标修订仍需原合同接受。 源码与验证：[application/target_understanding.py](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/application/target_understanding.py)。
+
+### Q148：440项测试通过，能说多意图再也不漏了吗？
+
+**短答：**只能说明已接受目标的结构保留通过这些检查，不能证明首次语义理解不漏项。
+
+**展开：**测试枚举三独立目标修改/取消顺序、依赖影响、PostgreSQL状态恢复、局部补答和保留结果；故障238/59项有重叠，440项也不是业务任务样本。没有付费模型或τ³，本轮网页未重跑应用测试。
+
+**继续追问：**首次目标抽取和最终回答覆盖仍需独立语义评测；不要用结构测试数代替准确率。 源码与验证：[plans/objective-conservation-2026-09-09.md](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/plans/objective-conservation-2026-09-09.md)。

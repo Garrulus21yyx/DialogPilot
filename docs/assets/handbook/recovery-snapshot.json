@@ -1,0 +1,55 @@
+{
+  "source_commit": "f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c",
+  "checked_at": "2026-09-09T15:47:52.545145+00:00",
+  "scope": "committed recovery and accepted-objective conservation; historical evidence retains original source versions; unrelated dirty work excluded",
+  "files": [
+    {
+      "path": "application/conversation_state.py",
+      "sha256": "6c0710a3e4a432287ea06d4e06c86533d3003a12f778c925f1d36766b7777c7d"
+    },
+    {
+      "path": "application/conversation_context.py",
+      "sha256": "4a6ca4ca9939e5b158d378201d3f74e755d8e70ff3da928e6b5ef81151ebf933"
+    },
+    {
+      "path": "application/execution_progress.py",
+      "sha256": "35256e7959791dac660faea0b3c4d9448636e1fecac414c4192cd8d75bcc5fe2"
+    },
+    {
+      "path": "application/orchestration_runtime.py",
+      "sha256": "6e6f75d57b20151bbad5dc9f0f4cf357676de649759633d5d4fc781b6527e6ce"
+    },
+    {
+      "path": "application/target_conversation_manager.py",
+      "sha256": "e2e8055dc3ed8a5b4adaeb99e392092d8c1ca25983b508d8661447e2dc47824e"
+    },
+    {
+      "path": "application/target_understanding.py",
+      "sha256": "86ca44fc1efb132272c227f661a4776e0a5c2401d1c262732f8b59ee9c710d6b"
+    },
+    {
+      "path": "application/turn_runtime.py",
+      "sha256": "ddaa56ed495f4873aa09df2ae9c68753e4e85e5f4d342772bbb7aaf0f7ba2c30"
+    },
+    {
+      "path": "core/framework_models.py",
+      "sha256": "32995ecec631b91a45780ad3207c68e5340ca80ee17efc8bad7651959c17e13e"
+    },
+    {
+      "path": "tests/test_worker_failure_dispatch.py",
+      "sha256": "884b00e807984f0a2551b9faed1c02abc8d258c94dea54ee1748c487c3060dc2"
+    },
+    {
+      "path": "tests/test_objective_conservation.py",
+      "sha256": "76963a29612ce440551054d0208acec5bc21ccfba90dc798a68873346f9b0d4d"
+    },
+    {
+      "path": "plans/worker-failure-dispatch-2026-09-09.md",
+      "sha256": "f0f28d7c7bbe8af3a2f8c47feae20aa4555d22b732279ebfaca02ffdeca53643"
+    },
+    {
+      "path": "plans/objective-conservation-2026-09-09.md",
+      "sha256": "2d4aa1ccf53ae7ef2ac55db37eb5998397dd5029858d7d697d4f143d1bfdc212"
+    }
+  ]
+}

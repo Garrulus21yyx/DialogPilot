@@ -8,7 +8,7 @@
 
 **继续追问：**选型看流程是否固定、是否有动态决策、是否需要持久等待和跨任务状态。简单查询可DIRECT，不必套领域Agent。
 
-**项目定位：**[infrastructure/target_framework_agent.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/infrastructure/target_framework_agent.py)、[application/orchestration_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/orchestration_runtime.py)。
+**项目定位：**[infrastructure/target_framework_agent.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/infrastructure/target_framework_agent.py)、[application/orchestration_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/application/orchestration_runtime.py)。
 
 ### Q94：invoke、ainvoke、stream、astream和batch怎么选？
 
@@ -38,7 +38,7 @@
 
 **继续追问：**合并函数的结合性、顺序依赖和重复输入行为需要验证。不是所有状态都要求交换律，但若宣称并行完成顺序无关，就要有对应性质测试。
 
-**项目定位：**[application/orchestration_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/orchestration_runtime.py)、[application/result_board.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/result_board.py)。
+**项目定位：**[application/orchestration_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/application/orchestration_runtime.py)、[application/result_board.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/result_board.py)。
 
 ### Q97：checkpoint、Store和业务数据库为什么不是一回事？
 
@@ -58,7 +58,7 @@
 
 **继续追问：**模型超时和业务写超时不能同处理：前者要保存已完成工具状态，后者可能进入结果未知/对账。并非所有异常都retryable。
 
-**项目定位：**[infrastructure/target_agent_middleware.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/infrastructure/target_agent_middleware.py)、[infrastructure/target_context_compaction.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/infrastructure/target_context_compaction.py)、[core/framework_models.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/core/framework_models.py)。
+**项目定位：**[infrastructure/target_agent_middleware.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/infrastructure/target_agent_middleware.py)、[infrastructure/target_context_compaction.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/infrastructure/target_context_compaction.py)、[core/framework_models.py](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/core/framework_models.py)。
 
 ## 13. 如何防止 Agent 死循环
 
@@ -70,7 +70,7 @@
 
 **继续追问：**这能限制已覆盖的无进展模式，不保证识别所有语义死循环。必须测重复读取、交替读取、改写不变证据、真正新证据和正常审批等待。
 
-**项目定位：**[application/execution_progress.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/execution_progress.py)、[infrastructure/target_agent_middleware.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/infrastructure/target_agent_middleware.py)、[infrastructure/target_framework_agent.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/infrastructure/target_framework_agent.py)。
+**项目定位：**[application/execution_progress.py](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/application/execution_progress.py)、[infrastructure/target_agent_middleware.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/infrastructure/target_agent_middleware.py)、[infrastructure/target_framework_agent.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/infrastructure/target_framework_agent.py)。
 
 ### Q100：“两轮无进展”从哪一轮开始计数？给个例子。
 
@@ -80,7 +80,7 @@
 
 **继续追问：**当前策略基于观察的新颖性，不是完整业务价值评估；很多新但无用的结果仍可能绕过新颖性判断，因此保留硬预算。
 
-**项目定位：**[application/execution_progress.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/execution_progress.py)、[infrastructure/target_agent_middleware.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/infrastructure/target_agent_middleware.py)。
+**项目定位：**[application/execution_progress.py](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/application/execution_progress.py)、[infrastructure/target_agent_middleware.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/infrastructure/target_agent_middleware.py)。
 
 ### Q101：模型换个query或工具返回顺序，怎么避免骗过进展检测？
 
@@ -90,17 +90,17 @@
 
 **继续追问：**同参数但订单状态真正改变可能是新观察。失败处理、对账和新用户明确刷新有不同边界，不能全局禁止重复调用。
 
-**项目定位：**[application/knowledge_tool_contract.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/knowledge_tool_contract.py)、[application/execution_progress.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/execution_progress.py)、[infrastructure/target_agent_middleware.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/infrastructure/target_agent_middleware.py)。
+**项目定位：**[application/knowledge_tool_contract.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/knowledge_tool_contract.py)、[application/execution_progress.py](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/application/execution_progress.py)、[infrastructure/target_agent_middleware.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/infrastructure/target_agent_middleware.py)。
 
 ### Q102：recursion_limit、max_steps和timeout为什么都要？
 
 **短答：**它们分别限制图执行步、模型/工具调用数量和墙钟时间，彼此不能替代。
 
-**展开：**一次图super-step可能包含并行节点，一个模型步骤也可能产生多个工具调用；因此recursion_limit不是LLM次数。工具一直等待时调用数很少但时间超限；大量便宜节点循环可能图步超限。项目把这些异常转成有界失败，并从最后完成的状态保留结果。用户等待输入或审批应持久暂停，不应靠一直轮询占满预算。
+**展开：**一次图super-step可能包含并行节点，一个模型步骤也可能产生多个工具调用；因此recursion_limit不是LLM次数。工具一直等待时调用数很少但时间超限；大量便宜节点循环可能图步超限。非写执行故障按类型记录，取消/框架中断和损坏的执行合同继续传播；写异常由原账本/接管处理。DIRECT受声明timeout约束，领域保留流式状态和自身预算。可恢复读取故障进入现有主Agent观察重规划，默认4步并检查停滞。用户等待输入或审批应持久暂停，不应靠一直轮询占满预算。
 
 **继续追问：**asyncio超时通常通过取消协程生效，不能证明远端写入被撤销；忽略取消的阻塞操作也不能靠async关键字变成可中断。
 
-**项目定位：**[infrastructure/target_framework_agent.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/infrastructure/target_framework_agent.py)、[application/turn_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/turn_runtime.py)、[application/write_workflow.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/write_workflow.py)。
+**项目定位：**[infrastructure/target_framework_agent.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/infrastructure/target_framework_agent.py)、[application/turn_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/application/turn_runtime.py)、[application/write_workflow.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/write_workflow.py)。
 
 ## 14. FastAPI、异步与服务生命周期
 
@@ -290,7 +290,7 @@
 
 ## 17. 官方原理与继续阅读
 
-本专题在2026-09-09核对官方机制；项目实现已核对至9a50ea1，通用机制引用保留原核对日期，通用设计不自动等于项目已实现。
+本专题在2026-09-09核对官方机制；项目实现已核对至f5fcfa6，通用机制引用保留原核对日期，通用设计不自动等于项目已实现。
 
 - [LangChain模型与工具调用](https://docs.langchain.com/oss/python/langchain/models)
 - [LangGraph图、状态与Reducer](https://docs.langchain.com/oss/python/langgraph/graph-api)
@@ -303,3 +303,7 @@ RAG继续读[离线在线、HNSW、权重、Rewrite、精排与评测专题]({{ 
 ## WorkPlan与框架如何连接
 
 [Compiler、WorkPlan、TaskGraph、ResultBoard与LangGraph逐层讲述]({{ "/architecture.html#workplan-contract" | relative_url }})包含三任务执行示例、Reducer身份、四种完成口径、批准记录与恢复检查；[追问Q135—Q142]({{ "/interview-guide.html" | relative_url }})练习为什么没有第二个TaskGraph类、为什么恢复不能补猜任务范围。
+
+## 故障重规划与局部续接
+
+[完整机制与失败分类]({{ "/architecture.html#worker-recovery" | relative_url }})区分SDK传输重试、主Agent重新决策与业务对账；[多目标待答保留]({{ "/architecture.html#objective-conservation" | relative_url }})解释ConversationState、理解层、Manager和checkpoint如何一起保留独立任务。

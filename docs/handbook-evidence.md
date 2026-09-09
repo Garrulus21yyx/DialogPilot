@@ -109,3 +109,9 @@ permalink: /handbook-evidence.html
 当前运行合同已核对至9a50ea1，取代旧兼容执行表述。细节见[WorkPlan讲述]({{ "/architecture.html#workplan-contract" | relative_url }})与[源码身份快照]({{ "/assets/handbook/workplan-snapshot.json" | relative_url }})。原89feac2、c91eae2等快照保留其历史范围。
 
 [plans/work-plan-single-contract-2026-09-09.md](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/plans/work-plan-single-contract-2026-09-09.md)记录708组合/97补充检查与另外4个既有测试调用错误，集合重叠、不相加。本次没有重跑应用测试或τ³，历史分数不升级；只更新网页、口述、源码链接和追问。
+
+## 9. 故障重规划与目标保留：f5fcfa6
+
+运行时核对至f5fcfa6，包括f4bd1db的故障观察接线。见[plans/worker-failure-dispatch-2026-09-09.md](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/plans/worker-failure-dispatch-2026-09-09.md)与[plans/objective-conservation-2026-09-09.md](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/plans/objective-conservation-2026-09-09.md)。源码与文件身份见[增量快照]({{ "/assets/handbook/recovery-snapshot.json" | relative_url }})。
+
+组合238、最终59有重叠；目标保留440项包含PostgreSQL恢复。它们是不同范围的合同验证，不能相加或写成真实任务通过率。本次只更新网站，未重跑模型、应用测试或τ³，也不改变历史RAG数字。旧v23为故障恢复阶段，当前v24拒绝不兼容的旧未发布生命周期checkpoint；没有新兼容执行分支。

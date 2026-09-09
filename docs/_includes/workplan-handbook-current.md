@@ -26,7 +26,7 @@ WorkPlanPolicy固定五项合同：依赖必须成功且覆盖完整；可提案
 
 用户说“查配送，结合订单告诉我退货运费，再查一下耳机兼容性，先别退款”。假设规划明确形成三个任务：A查订单，B解释该订单退货费用并依赖A，C查兼容性且独立。WorkPlan的结构波次是第一波A/C、第二波B，但是否实际启动B还要看ResultBoard。
 
-若A返回SUCCEEDED却缺少它声明的必要订单事实，B仍不能启动；若A成功且覆盖完整，B才就绪。A失败时，B被阻断，但C的有效结果可以先交付。这里依赖的含义是成功加覆盖，不是“上游函数返回了就行”。B、C没有完成时也不能因为主任务A成功就说全部完成。
+若A返回SUCCEEDED却缺少它声明的必要订单事实，B仍不能启动；若A成功且覆盖完整，B才就绪。A失败时，B被阻断，但C的有效结果可以先交付；如果A是可重试READ故障，现有主Agent还可根据失败观察决定改方案，见[失败重规划](#worker-recovery)。这里依赖的含义是成功加覆盖，不是“上游函数返回了就行”。B、C没有完成时也不能因为主任务A成功就说全部完成。
 
 这只是解释任务合同的示例，不是每个输入都固定拆成三个任务；实际计划取决于主Agent原生动作选择与Policy接受结果。业务写入仍需领域准备和批准，依赖DAG本身不授予权限。
 
@@ -53,7 +53,7 @@ Plan指纹包含任务指纹、主任务和policy指纹；因此规则不同也�
 
 ### 恢复为什么不能“根据当前目标补一份任务”
 
-用户补答或批准时，原等待状态可能已经消费；这时必须把已接受的任务范围继续向下传，而不是根据active goal重新推导工具权限。当前来源是持久等待/批准记录，或resolver已确认的任务范围。目标描述、模型自带的resumed envelope都不能自行扩大权限。新目标修订与旧任务恢复是两条明确的状态路径。
+用户补答或批准时，原等待状态可能已经消费；这时必须把已接受的任务范围继续向下传，而不是根据active goal重新推导工具权限。当前来源是持久等待/批准记录，或resolver已确认的任务范围。目标描述、模型自带的resumed envelope都不能自行扩大权限。最新局部修订还保留其他独立待答字段与原checkpoint，不把它们自动放入本次执行计划，见[目标保留](#objective-conservation)。新目标修订与旧任务恢复是两条明确的状态路径。
 
 审批执行与完成投影都读取`ConversationState.accepted_approval`的同一份记录。假设批准集合有两个operation_key，只有一个成功结果，不能因另一个缺失就把集合缩成单项并判完成；空集合也不能通过all([])得到“完成”。Manager逐成员对照结果并使用Board覆盖判断，未知效果保留对账状态。
 
@@ -69,4 +69,4 @@ Plan指纹包含任务指纹、主任务和policy指纹；因此规则不同也�
 
 重点用性质和状态组合验证：不同完成顺序的语义结果一致、重复重放不增结果、同身份冲突拒绝、跨计划结果拒绝、缺批准/缺成员结果不完成、消费等待后权限不扩大、旧checkpoint拒绝。相同结论还要覆盖正常执行、恢复、取消和缓存完成的读取路径。本次网页更新只做文档构建与展示检查，不重复宣称运行了这些应用测试。
 
-源码与验证：[application/turn_planning.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/turn_planning.py)、[application/work_item.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/work_item.py)、[application/result_board.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/result_board.py)、[application/orchestration_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/orchestration_runtime.py)、[application/target_conversation_manager.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/target_conversation_manager.py)、[application/conversation_state.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/conversation_state.py)、[infrastructure/langgraph_checkpoint.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/infrastructure/langgraph_checkpoint.py)、[plans/work-plan-single-contract-2026-09-09.md](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/plans/work-plan-single-contract-2026-09-09.md)、[tests/test_work_plan_execution_contract.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/tests/test_work_plan_execution_contract.py)。
+源码与验证：[application/turn_planning.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/turn_planning.py)、[application/work_item.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/work_item.py)、[application/result_board.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/result_board.py)、[application/orchestration_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/application/orchestration_runtime.py)、[application/target_conversation_manager.py](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/application/target_conversation_manager.py)、[application/conversation_state.py](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/application/conversation_state.py)、[infrastructure/langgraph_checkpoint.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/infrastructure/langgraph_checkpoint.py)、[plans/work-plan-single-contract-2026-09-09.md](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/plans/work-plan-single-contract-2026-09-09.md)、[tests/test_work_plan_execution_contract.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/tests/test_work_plan_execution_contract.py)。

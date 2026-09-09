@@ -1,6 +1,6 @@
 # DialogPilot 架构边界
 
-> 校准日期：2026-09-09。当前实现核对至 `9a50ea1`：统一WorkPlan执行合同与计划作用域结果，保留已准备操作集合、策略隔离和工具字段展示。网页发布只同步手册；开发应用的提交与线上部署分别记录。历史实验保留各自代码与数据身份，未提交工作区差异不冒充已交付能力。
+> 校准日期：2026-09-09。当前实现核对至 `f5fcfa6`：子Agent故障接入有界重规划、独立待答目标局部保留，沿用统一WorkPlan合同与已准备操作集合、策略隔离和工具字段展示。网页发布只同步手册；开发应用的提交与线上部署分别记录。历史实验保留各自代码与数据身份，未提交工作区差异不冒充已交付能力。
 
 ## 快速导航
 
@@ -81,7 +81,11 @@ flowchart TD
   DOMAIN --> SCOPED
   WRITE --> SCOPED
   SCOPED --> BOARD[ResultBoard 覆盖与就绪判定]
-  BOARD --> RESPONSE{ResponseAssembler 选择回答路径}
+  BOARD --> FEEDBACK{当前可恢复读取故障或无进展}
+  FEEDBACK -->|可恢复读取故障| OBS[提交观察 进展检查与预算]
+  OBS -->|允许继续| UNDER
+  OBS -->|耗尽或停滞| RESPONSE
+  FEEDBACK -->|其他结果| RESPONSE{ResponseAssembler 选择回答路径}
   TEXT --> RESPONSE
   RESPONSE --> RENDER[已准备范围卡 或受支持工具结果 代码渲染]
   RESPONSE --> SEMANTIC[知识与混合解释 按需生成和语义核验]
@@ -94,7 +98,7 @@ flowchart TD
 
 `TargetRunCoordinator.handle` 准入请求；`TargetRunWorker` claim/renew/assert_owned，避免失去租约的旧 worker 随意写终态。`TurnRuntime` 使用 checkpointer 保存轮次阶段。`TargetConversationManager` 负责状态解释、接受计划和工作流生命周期。`OrchestrationRuntime` 根据 ResultBoard 的 ready_items 分发 `Send`。领域执行器统一由 `TargetFrameworkAgent` 装配 `create_agent`，直接调用与受控写则走独立执行边界。
 
-源码：[application/target_run.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/target_run.py)、[application/turn_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/turn_runtime.py)、[application/target_conversation_manager.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/target_conversation_manager.py)、[application/orchestration_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/orchestration_runtime.py)。
+源码：[application/target_run.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/target_run.py)、[application/turn_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/application/turn_runtime.py)、[application/target_conversation_manager.py](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/application/target_conversation_manager.py)、[application/orchestration_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/application/orchestration_runtime.py)。
 
 ## 5. 意图、规划、授权为何分开
 
@@ -116,7 +120,7 @@ flowchart TD
 
 这里是“主规划＋领域 Worker＋依赖调度”，不是多个角色自由辩论。每个 Worker 的 `AgentContextView` 包含自己的 WorkItem、用户当前请求、可用事实、相关历史、声明的依赖结果、预算和可信身份。工具集合按领域 principal 与任务 allowed_tools 求交，另可暴露允许的 Skill、动作提案和归档读取。
 
-调度器只派发依赖就绪任务，独立只读任务可以同一波运行。当前一个会话只有一个待审批槽位，因此同波最多放行一个可提案/可写任务，避免互相覆盖审批；一个领域Worker内部可准备多个独立成员，这与同波调度多个可写Worker是不同层。某节点失败，依赖它的任务 BLOCKED；其他独立任务的成功留在 ResultBoard。跨任务事实需要 requirement 匹配，不能把产品信息冒充退款状态。
+调度器只派发依赖就绪任务，独立只读任务可以同一波运行。当前一个会话只有一个待审批槽位，因此同波最多放行一个可提案/可写任务，避免互相覆盖审批；一个领域Worker内部可准备多个独立成员，这与同波调度多个可写Worker是不同层。非写节点故障转为明确结果，依赖它的任务BLOCKED，独立成功保留；当前可重试READ故障或AGENT_NO_PROGRESS经原观察路径交回主Agent决定下一步，写故障仍由账本/对账负责。跨任务事实需要 requirement 匹配，不能把产品信息冒充退款状态。
 
 相关业务修改应作为完整目标委派。例如修改账户地址和待处理订单地址，需要领域 Worker 检查两种操作是否相互影响；不要让主 Agent 先拆成两个假定独立的写任务。领域使用 `operation_plan` 表达剩余目标和依赖，但无环只证明顺序关系，没有证明前置条件、状态效果和最终目标可同时满足。当前段可准备同一领域内多个独立、参数和前提已知的动作，形成一个 ready set 一次展示和批准；有依赖的后续动作获得前序回执后再准备，operation_plan中的未来描述不产生授权。
 
@@ -124,9 +128,11 @@ flowchart TD
 
 [五个概念的完整讲述、执行与恢复示例](#workplan-contract)。
 
-源码：[application/orchestration_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/orchestration_runtime.py)、[application/result_board.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/result_board.py)、[tests/test_target_orchestration_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/tests/test_target_orchestration_runtime.py)。
+源码：[application/orchestration_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/f5fcfa6b276c3e9090223dbb6a4ecc7c5d9a947c/application/orchestration_runtime.py)、[application/result_board.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/application/result_board.py)、[tests/test_target_orchestration_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/9a50ea1391e19517335fe2ff00ecc0c702904197/tests/test_target_orchestration_runtime.py)。
 
 {% include workplan-handbook-current.md %}
+
+{% include recovery-handbook-current.md %}
 
 ## 7. LangChain 与 LangGraph 各用到哪里
 
