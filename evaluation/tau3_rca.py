@@ -9,10 +9,11 @@ from __future__ import annotations
 from collections import Counter
 from dataclasses import asdict, dataclass, field
 from enum import Enum
+import hashlib
 import json
 from pathlib import Path
 import re
-from typing import Any, Iterable, Mapping, Sequence
+from typing import Any, Mapping, Sequence
 
 
 class FindingLevel(str, Enum):
@@ -79,6 +80,8 @@ def analyze_run(run_dir: Path) -> Mapping[str, Any]:
         "run": {
             "path": str(run_dir),
             "status": manifest.get("status"),
+            "started_at": manifest.get("started_at"),
+            "finished_at": manifest.get("finished_at"),
             "project_commit": manifest.get("project_commit"),
             "tracked_worktree_dirty": manifest.get("tracked_worktree_dirty"),
             "task_count": len(tasks),
@@ -142,7 +145,7 @@ def analyze_task(result_path: Path, trajectory_path: Path | None = None) -> Mapp
             "The executed action trajectory does not match the official reference.",
             None, ("official-action-failures",),
             ("Determine whether the reference action is a required business invariant or one valid trajectory.",),
-            impact="OUTCOME_DEVIATION",
+            impact="REFERENCE_DEVIATION",
         ))
 
     for index, expected in enumerate(failed_writes):
@@ -267,6 +270,11 @@ def analyze_task(result_path: Path, trajectory_path: Path | None = None) -> Mapp
         "task_id": task_id,
         "result_file": result_path.name,
         "trajectory_file": trajectory_path.name if trajectory_path and trajectory_path.exists() else None,
+        "artifact_sha256": {
+            "result": _sha256(result_path),
+            "trajectory": _sha256(trajectory_path) if trajectory_path and trajectory_path.exists() else None,
+        },
+        "langfuse_session_id": result.get("langfuse_session_id"),
         "outcome": _outcome(result),
         "root_cause_status": root_cause_status,
         "evidence": [asdict(item) for item in evidence],
@@ -445,3 +453,7 @@ def _trajectory_path(result_path: Path) -> Path | None:
 
 def _task_id(path: Path) -> str:
     return path.stem.removeprefix("task-")
+
+
+def _sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()

@@ -10,7 +10,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from evaluation.tau3_rca import analyze_run
+from evaluation.tau3_rca import analyze_run  # noqa: E402
 
 
 def main() -> None:
