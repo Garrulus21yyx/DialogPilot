@@ -1,10 +1,10 @@
 # DialogPilot 架构边界
 
-> 校准日期：2026-09-09。源码冻结于 `89feac2`，包含 `d8e8933` 主 Agent 职责调整和本轮 task22 结果。本页更新网页，不代表 main 的应用代码同步部署。源码链接固定到该提交；并行工作区的未提交修改单列在[源码快照]({{ '/assets/handbook/source-snapshot.json' | relative_url }})，不作为已交付能力。
+> 校准日期：2026-09-09。当前实现核对至 `c91eae2`：已准备操作集合、对话/领域策略隔离、工具结果确定性展示。网页发布只同步手册；开发应用的提交与线上部署分别记录。历史实验保留各自代码与数据身份，未提交工作区差异不冒充已交付能力。
 
 ## 快速导航
 
-[按简历五条经历串联本页实现、选型和验证]({{ '/project-pitch.html#resume-map' | relative_url }})；已补充61a9b88审批交付修复与操作集合的进行中边界，详见[当前工作]({{ '/project-pitch.html#resume-current-work' | relative_url }})。
+[按简历五条经历串联本页实现、选型和验证]({{ '/project-pitch.html#resume-map' | relative_url }})；已同步操作集合和结果展示简化，详见[当前工作]({{ '/project-pitch.html#resume-current-work' | relative_url }})。
 
 框架原理、防循环和后端准备见[LangChain / LangGraph / FastAPI / Redis / SQL专题]({{ '/framework-backend.html' | relative_url }})。
 
@@ -36,7 +36,7 @@
 | 融合 | Dense/Lexical 启动默认 0.5/0.5，在线受 Bundle/环境覆盖影响 | “当前唯一权重是 0.25/0.75” |
 | 核验效果 | 有 PASS/REJECT/UNKNOWN 合同，也有误通过的开发证据 | “verified=true 就是正确率”“已达生产质量” |
 
-源码：[infrastructure/target_runtime_composition.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/target_runtime_composition.py)、[application/target_encoder_understanding.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/target_encoder_understanding.py)、[infrastructure/target_conversation_provider.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/target_conversation_provider.py)、[infrastructure/postgres_knowledge_store.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/postgres_knowledge_store.py)、[core/rag_policy.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/core/rag_policy.py)。
+源码：[infrastructure/target_runtime_composition.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/target_runtime_composition.py)、[application/target_encoder_understanding.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/target_encoder_understanding.py)、[infrastructure/target_conversation_provider.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/target_conversation_provider.py)、[infrastructure/postgres_knowledge_store.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/postgres_knowledge_store.py)、[core/rag_policy.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/core/rag_policy.py)。
 
 ## 3. 代码库怎么读：目录是分工，不是流水线顺序
 
@@ -79,9 +79,12 @@ flowchart TD
   DIRECT --> BOARD[AgentResult 与 ResultBoard]
   DOMAIN --> BOARD
   WRITE --> BOARD
-  BOARD --> RESPONSE[ResponseAssembler 与 Verifier]
+  BOARD --> RESPONSE{ResponseAssembler 选择回答路径}
   TEXT --> RESPONSE
-  RESPONSE --> PUB[PostgreSQL Publication]
+  RESPONSE --> RENDER[已准备范围卡 或受支持工具结果 代码渲染]
+  RESPONSE --> SEMANTIC[知识与混合解释 按需生成和语义核验]
+  RENDER --> PUB[PostgreSQL Publication]
+  SEMANTIC --> PUB
   PUB --> ACK[响应序号 ACK 断线续取]
 ```
 
@@ -89,7 +92,7 @@ flowchart TD
 
 `TargetRunCoordinator.handle` 准入请求；`TargetRunWorker` claim/renew/assert_owned，避免失去租约的旧 worker 随意写终态。`TurnRuntime` 使用 checkpointer 保存轮次阶段。`TargetConversationManager` 负责状态解释、接受计划和工作流生命周期。`OrchestrationRuntime` 根据 ResultBoard 的 ready_items 分发 `Send`。领域执行器统一由 `TargetFrameworkAgent` 装配 `create_agent`，直接调用与受控写则走独立执行边界。
 
-源码：[application/target_run.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/target_run.py)、[application/turn_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/turn_runtime.py)、[application/target_conversation_manager.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/target_conversation_manager.py)、[application/orchestration_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/orchestration_runtime.py)。
+源码：[application/target_run.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/target_run.py)、[application/turn_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/turn_runtime.py)、[application/target_conversation_manager.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/target_conversation_manager.py)、[application/orchestration_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/orchestration_runtime.py)。
 
 ## 5. 意图、规划、授权为何分开
 
@@ -97,27 +100,27 @@ flowchart TD
 
 可选 TargetDomainEncoder 仍是六领域加 DEFER 的 Transformers 序列分类器，检查模型制品身份、置信度与 margin。示例默认关闭；已有失败候选不能作为线上收益。接受的领域判断也只是进入相同 Policy 的委派提案。
 
-本次核心变化是主规划职责收缩。`planning_actions(payload)` 只暴露本轮可用的读取、知识、委派和状态续接能力；取消订单、修改地址、退款、冻结账户不再是主 Agent 的直接新动作快捷入口。对应业务能力仍存在，由 `delegate_task(target_agent, objective, allow_action_proposals)` 交给领域 Worker。objective 要保留已知信息、条件、否定和相关目标；不能把原请求改写成只查一次前置条件。
+本次核心变化是主规划职责收缩。`planning_actions(payload)` 只暴露本轮可用的读取、知识、委派和状态续接能力；取消订单、修改地址、退款、冻结账户不再是主 Agent 的直接新动作快捷入口。对应业务能力仍存在，由 `delegate_task(target_agent, objective, allow_action_proposals)` 交给领域 Worker。conversation_policy只提供身份、隐私、证据与交互约束，business_policy交给领域执行，避免把执行者规则塞给协调者。objective 要保留已知信息、条件、否定和相关目标；不能把原请求改写成只查一次前置条件。
 
 普通对话与真正的意图澄清使用模型原生文本；有工作时使用原生 tool calls。Provider 经 `bind_tools(..., tool_choice='auto')` 接收调用，`action_proposal` 转成内部提案，Policy 和 Compiler 校验后产生 WorkPlan。没有另造“回复工具”，也没有新增第二个规划模型。工具调用前的说明文字不当作业务结果发布。
 
 主 Agent 仍拿到领域路由卡片和适用业务政策，因为政策也可能约束读取与委派；它不再拿到原始写操作语义目录。领域 Worker 保留操作前置条件、效果和准备工具协议。这是按职责配置可见上下文，不是把业务规则删掉。
 
-已有等待状态走原来的 `review_action`、`supply_input`、`continue_active_work` 等绑定接口：批准当前提案不重新生成提案；拒绝一个动作不等于取消全部目标。只有需要新业务调查或改变范围时，才委派或修订对应工作。
+已有等待状态走原来的 `review_action`、`supply_input`、`continue_active_work` 等绑定接口：批准当前提案不重新生成提案；拒绝当前集合不等于取消其他独立目标；部分同意需要修订或保留等待。只有需要新业务调查或改变范围时，才委派或修订对应工作。
 
-源码：[application/conversation_agent.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/conversation_agent.py)、[application/conversation_actions.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/conversation_actions.py)、[application/agent_instructions.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/agent_instructions.py)、[infrastructure/target_conversation_provider.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/target_conversation_provider.py)、[docs/conversation-responsibility-boundary.md](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/docs/conversation-responsibility-boundary.md)。
+源码：[application/conversation_agent.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/conversation_agent.py)、[application/conversation_actions.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/conversation_actions.py)、[application/agent_instructions.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/agent_instructions.py)、[infrastructure/target_conversation_provider.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/target_conversation_provider.py)、[docs/conversation-responsibility-boundary.md](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/docs/conversation-responsibility-boundary.md)。
 
 ## 6. 多 Agent 具体怎么协作
 
 这里是“主规划＋领域 Worker＋依赖调度”，不是多个角色自由辩论。每个 Worker 的 `AgentContextView` 包含自己的 WorkItem、用户当前请求、可用事实、相关历史、声明的依赖结果、预算和可信身份。工具集合按领域 principal 与任务 allowed_tools 求交，另可暴露允许的 Skill、动作提案和归档读取。
 
-调度器只派发依赖就绪任务，独立只读任务可以同一波运行。当前一个会话只有一个待审批槽位，因此同波最多放行一个可提案/可写任务，避免互相覆盖审批。某节点失败，依赖它的任务 BLOCKED；其他独立任务的成功留在 ResultBoard。跨任务事实需要 requirement 匹配，不能把产品信息冒充退款状态。
+调度器只派发依赖就绪任务，独立只读任务可以同一波运行。当前一个会话只有一个待审批槽位，因此同波最多放行一个可提案/可写任务，避免互相覆盖审批；一个领域Worker内部可准备多个独立成员，这与同波调度多个可写Worker是不同层。某节点失败，依赖它的任务 BLOCKED；其他独立任务的成功留在 ResultBoard。跨任务事实需要 requirement 匹配，不能把产品信息冒充退款状态。
 
-相关业务修改应作为完整目标委派。例如修改账户地址和待处理订单地址，需要领域 Worker 检查两种操作是否相互影响；不要让主 Agent 先拆成两个假定独立的写任务。领域使用 `operation_plan` 表达剩余目标和依赖，但无环只证明顺序关系，没有证明前置条件、状态效果和最终目标可同时满足。每段最多准备一个动作，获得回执后再评估剩余目标。
+相关业务修改应作为完整目标委派。例如修改账户地址和待处理订单地址，需要领域 Worker 检查两种操作是否相互影响；不要让主 Agent 先拆成两个假定独立的写任务。领域使用 `operation_plan` 表达剩余目标和依赖，但无环只证明顺序关系，没有证明前置条件、状态效果和最终目标可同时满足。当前段可准备同一领域内多个独立、参数和前提已知的动作，形成一个 ready set 一次展示和批准；有依赖的后续动作获得前序回执后再准备，operation_plan中的未来描述不产生授权。
 
 工作图对 `NEEDS_EVIDENCE` 有界补充证据，记录已请求的 requirement/provider 组合；若新增事实没有进展就返回类型化缺证据，避免无限“再找一次”。测试对并行结果的全部完成顺序排列进行比较，验证 ResultBoard 不依赖哪个 Worker 先结束。
 
-源码：[application/orchestration_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/orchestration_runtime.py)、[application/result_board.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/result_board.py)、[tests/test_target_orchestration_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/tests/test_target_orchestration_runtime.py)。
+源码：[application/orchestration_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/orchestration_runtime.py)、[application/result_board.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/result_board.py)、[tests/test_target_orchestration_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/tests/test_target_orchestration_runtime.py)。
 
 ## 7. LangChain 与 LangGraph 各用到哪里
 
@@ -127,7 +130,7 @@ Worker middleware 处理工作版本检查、工具结果归档、交互边界�
 
 框架提供恢复设施但不会自动证明退款只执行一次。`interrupt` 恢复涉及节点重入，所以副作用必须在项目写操作边界用幂等标识和回执保护。也不能把 `recursion_limit` 当模型调用预算，两者粒度不同。框架官方机制见[LangGraph persistence](https://docs.langchain.com/oss/python/langgraph/persistence)及[interrupts](https://docs.langchain.com/oss/python/langgraph/interrupts)。
 
-源码：[infrastructure/target_framework_agent.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/target_framework_agent.py)、[infrastructure/target_agent_middleware.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/target_agent_middleware.py)、[infrastructure/langgraph_checkpoint.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/langgraph_checkpoint.py)。
+源码：[infrastructure/target_framework_agent.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/target_framework_agent.py)、[infrastructure/target_agent_middleware.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/target_agent_middleware.py)、[infrastructure/langgraph_checkpoint.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/langgraph_checkpoint.py)。
 
 ## 8. 上下文与记忆不是一个大字符串
 
@@ -143,7 +146,7 @@ Worker middleware 处理工作版本检查、工具结果归档、交互边界�
 
 长期 ServiceEpisode 保存一次服务经历，MemoryFact 保存带来源的用户事实；它们帮助跨会话回忆，不可覆盖实时订单状态。检索历史经历还要检查身份、范围、有效性及删除状态。详细追问见 Q25—Q30。
 
-源码：[infrastructure/target_turn_context.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/target_turn_context.py)、[application/context_budget.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/context_budget.py)、[infrastructure/target_context_compaction.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/target_context_compaction.py)、[infrastructure/target_result_archive.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/target_result_archive.py)、[application/service_episode.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/service_episode.py)。
+源码：[infrastructure/target_turn_context.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/target_turn_context.py)、[application/context_budget.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/context_budget.py)、[infrastructure/target_context_compaction.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/target_context_compaction.py)、[infrastructure/target_result_archive.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/target_result_archive.py)、[application/service_episode.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/service_episode.py)。
 
 ## 9. RAG 的离线在线边界
 
@@ -155,27 +158,34 @@ KnowledgeRetriever 区分 HISTORY 与 RESOLVED：前者允许改写，后者表�
 
 默认示例保留 hash embedding 方便启动；BGE-M3 是明确配置的语义模型路径。Knowledge 使用 PG 内 BM25 SQL，基础 backend 同时支持 ts_rank_cd，两者不要混说。完整原理、权重实验与 HNSW 在[RAG 专题]({{ '/rag-study.html' | relative_url }})。
 
-源码：[infrastructure/postgres_knowledge_store.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/postgres_knowledge_store.py)、[infrastructure/hybrid_retrieval_backend.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/hybrid_retrieval_backend.py)、[application/knowledge_retriever.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/knowledge_retriever.py)、[core/rag_policy.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/core/rag_policy.py)。
+源码：[infrastructure/postgres_knowledge_store.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/postgres_knowledge_store.py)、[infrastructure/hybrid_retrieval_backend.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/hybrid_retrieval_backend.py)、[application/knowledge_retriever.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/knowledge_retriever.py)、[core/rag_policy.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/core/rag_policy.py)。
 
-## 10. Synthesizer、Verifier 和发布各管什么
+## 10. 回答路径怎样简化：代码展示与语义解释
 
-ResponseAssembler 根据结果选择模板、适用的直通路径或 ConversationProvider.compose。Synthesizer 是组织回答的角色，不是重新执行任务的 Agent；Verifier 评估候选是否有据、是否回应需求、审批条款是否完整，Runtime 仍拥有审批和发布的决定权。
+ResponseAssembler按实际结果选择路径，Synthesizer和Verifier按需要参与。确定数据的呈现由代码负责；知识解释和跨结果综合仍需要模型。这样减少重复解释，同时保留同一个Publication出口。
 
-最新设计把同一份回答证据快照传给作者和核验器。`requested_objective` 表示用户想达到什么，`observed_segment` 表示当前 Worker 段实际返回什么，`pending_actions` 只包含本轮选中、已准备的动作，业务回执另列。内部评审 accepted=true 不是业务成功事实，不再混入客户证据。核验器不额外拿一份重复 agent_outcomes 来重新解释同一事实。
+| 当前输出 | 谁组织内容 | 模型核验边界 |
+|---|---|---|
+| 已准备操作的确认清单 | render_approval_scope读取完整、已绑定的操作集合 | 范围卡不经作者或judge；用户明确决定与运行时绑定负责授权 |
+| 受支持的ACTION/WORKFLOW状态及业务字段 | execution_status_text与result_fields_text读取回执、已注册字段 | 不调用作者或judge，标记EXECUTION_STATUS_RENDERED |
+| 普通、已绑定的补充问题 | 现有问题直通路径 | 不额外做普遍语义核验，提问不等于批准 |
+| 知识回答、跨来源解释及其他复杂结果 | 按需compose，再做支持性/需求覆盖与来源检查 | 核验失败可在同一证据上修订一次；不重新执行业务工具 |
 
-以“改账户地址，同时改待处理订单地址”为例：当前只准备了账户地址修改，就只能请求批准该项；订单修改可说明为剩余工作。完整诉求必须被回应，但不能因此把尚未准备的订单修改一起称为“已准备，确认后马上执行”。候选回答要兼顾需求覆盖和准确的审批范围。
+**为什么金额和地址也能直接展示？** ToolDefinition声明result_fields：字段路径、中英文标签、货币与单位比例；FactRecord保留producer、authority、schema版本和原始结果。只有身份与版本匹配、且事实绑定当前操作对应回执时才使用该展示。39900最小货币单位按scale=100显示399；charge_delta的正负方向由工具合同明确声明，不从字段名或模型文字猜。操作已提交也不能写成资金已经到账。
 
-TurnRuntime 在回答阶段写入 `turn_execution.phase=REPLY`、`continues_after_reply=false`，并说明是否等待补充输入或审批。这个节点接下来提交状态并结束当前轮，所以不能把“目标未完成”写成“我正在后台继续”。未来可恢复不等于现在已有后台任务。已展示审批作为 retained_approval 保留，新的旁支问题不应自动再次索取批准。补充61a9b88：未成功发布的审批由approval_presentation_due重新判定是否应展示，不能被普通回复分支吞掉；失败降级保留持久等待，不仅依赖当前ResultBoard。
+**为什么不直接展示任意JSON？** 未注册字段可能是内部信息，也可能缺单位或语义。任何事实不能按已声明字段呈现、回执归属不一致、有缺项/冲突或独立解释目标时，保留原解释路径；相同事实不证明独立目标多余。当前注册覆盖原生退款申请、收货地址、取消订单，以及retail账户/订单地址、换货差额、取消和退货申请状态，未登记的支付/商品变更不冒充通用直出能力。
 
-核验结果绑定具体问题、正文和证据指纹；修改候选或证据后要重新核验。失败可在同一事实快照上修订一次，不重新执行业务工具。普通补充问题有自己的完整性路径；正常事实回答、审批展示、服务提示不能统称为同一种发布合同。
+**审批和独立问题怎样共存？** 准备好的操作集合生成完整确认卡；同一结果中的事实、回执和旁支问答仍保留。附加回答失败不能抹掉操作清单，问题的自然语言也不能扩大集合权限。approval_terms_complete已从在线模型评审合同移除；审批范围完整性由代码生成的清单与精确绑定保证。
 
-这些边界已经进入实现，但模型质量仍未闭环：最新 task22 在成功准备一个账户修改提案后，审批答复被拒绝，后续核验又出现结构化输出不符合 schema；最终未发生写入。既要评估误放行，也要评估误拒绝和流程阻塞，不能把“有 Verifier”说成“批准展示已可靠”。
+需要模型的路径仍让作者与Verifier共享requested_objective、observed_segment、pending_actions及真实回执。conversation_policy进入对话快照；business_policy保留给领域执行。TurnRuntime提供REPLY阶段、continues_after_reply=false与等待状态，避免虚构后台工作。未发布审批仍可恢复展示。
 
-源码：[application/response_assembly.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/response_assembly.py)、[application/turn_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/turn_runtime.py)、[application/action_approval.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/action_approval.py)、[services/answer_verifier.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/services/answer_verifier.py)。
+确定性输出同样绑定正文和证据指纹并经过Publication；EXECUTION_STATUS_RENDERED里的PASS是代码路径状态，不表示曾调用LLM裁判。这里减少的是满足条件时的模型调用，尚无新全任务成本或延迟收益报告。
+
+源码：[application/response_assembly.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/response_assembly.py)、[application/approval_presentation.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/approval_presentation.py)、[application/execution_presentation.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/execution_presentation.py)、[application/result_field_presentation.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/result_field_presentation.py)、[application/capability_registry.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/capability_registry.py)。
 
 ## 11. 写操作、审批与恢复
 
-`TargetActionPreparation` 校验提案是否在任务允许范围，必要时调用只读准备工具获得业务 readiness 和目标版本，再生成 operation_key 与审批绑定。审批针对准备好的动作与参数，用户改变金额、商品或目标版本后不能沿用之前许可。
+`TargetActionPreparation` 校验提案是否在任务允许范围，必要时调用只读准备工具获得业务 readiness 和目标版本，再生成 operation_key 与审批绑定。ApprovalOperation将准备好的动作组合为精确范围：一次批准覆盖清单成员，各自保留operation_key、参数、目标版本、账本与回执。部分同意或参数变更需要保留等待或修订，不能静默增删已消费集合；独立动作允许部分成功，有依赖动作重新准备。
 
 `GovernedWriteRuntime` acquire 操作记录，已 COMMITTED 返回回执；EXECUTING、OUTCOME_UNKNOWN、RECONCILING 先进入对账；待批准则暂停。执行异常不能证明未提交，因此转 OUTCOME_UNKNOWN。业务工具明确报告 NOT_COMMITTED 才有安全重试依据。PostgreSQL ledger 的 CAS 阻止两个执行者同时取得同一状态转移的权利。恢复策略的次数、时间退避和人工复核边界应按固定源码核对，不据此推导恢复率成绩。
 
@@ -185,7 +195,7 @@ TurnRuntime 在回答阶段写入 `turn_execution.phase=REPLY`、`continues_afte
 
 Checkpoint 存图的运行位置，OperationLedger 存业务操作状态，业务系统/沙箱回执证明实际提交；三者不能互换。Publication 存正式答复，response_seq 支持客户端断线续取，ACK 的 delivered/read 单调推进。HTTP 连接断开不能回滚已经提交的退款，也不能靠重新生成一段话代替响应重放。
 
-源码：[infrastructure/target_action_preparation.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/target_action_preparation.py)、[application/write_workflow.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/write_workflow.py)、[infrastructure/target_workflow_execution.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/target_workflow_execution.py)、[infrastructure/postgres_response_delivery.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/postgres_response_delivery.py)。
+源码：[infrastructure/target_action_preparation.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/target_action_preparation.py)、[application/write_workflow.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/write_workflow.py)、[infrastructure/target_workflow_execution.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/target_workflow_execution.py)、[infrastructure/postgres_response_delivery.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/postgres_response_delivery.py)。
 
 ## 12. 多模态、工具、安全与可观测
 
@@ -195,7 +205,7 @@ ToolManager 负责工具注册、schema、领域权限、可信身份注入、�
 
 PostgreSQL span 是本地持久 Trace，Langfuse 是可选 exporter，Prometheus 记录运行指标。Trace 应串起 invocation、work item、模型调用、检索阶段、工具回执、核验和 publication。原始日志不能无差别导出用户敏感数据；脱敏链与可选 exporter 失败不能变成业务是否成功的第二个裁判。
 
-源码：[api/main.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/api/main.py)、[application/media_requirement.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/media_requirement.py)、[infrastructure/tesseract_ocr_provider.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/tesseract_ocr_provider.py)、[infrastructure/deepseek_vision_provider.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/deepseek_vision_provider.py)、[mcp/tool_manager.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/mcp/tool_manager.py)、[infrastructure/postgres_trace_sink.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/postgres_trace_sink.py)、[infrastructure/langfuse_trace_sink.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/langfuse_trace_sink.py)。
+源码：[api/main.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/api/main.py)、[application/media_requirement.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/media_requirement.py)、[infrastructure/tesseract_ocr_provider.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/tesseract_ocr_provider.py)、[infrastructure/deepseek_vision_provider.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/deepseek_vision_provider.py)、[mcp/tool_manager.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/mcp/tool_manager.py)、[infrastructure/postgres_trace_sink.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/postgres_trace_sink.py)、[infrastructure/langfuse_trace_sink.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/langfuse_trace_sink.py)。
 
 ## 13. 评测怎样形成优化闭环
 
@@ -205,7 +215,7 @@ PostgreSQL span 是本地持久 Trace，Langfuse 是可选 exporter，Prometheus
 
 当前报告提供了反例驱动的真实闭环：扩大候选池曾让最终 pack 更差，因此不采用；均衡融合在三个已消费集方向一致，采用为实用默认；复杂中文小库完整证据率 62.5%→77.5%，但全库只有17 chunks，不能证明大库召回。早期扩库6287文档完整覆盖30%→32.5%，双臂均OK的39题没有净增；后来贯通 Metadata 范围，在80题上完整可见覆盖32.5%→77.5%，错误范围来源73→0题。这80题现已消费为回归，不能继续称未见留存。原生FTS候选在另一批Wix20题上最终Recall67.5%→60%，未采用；性能改善与排序质量不能混算。Encoder 未通过独立复核保持关闭。正负结果同时保留，才叫可解释的选型。
 
-完整数字和边界在[RAG 专题]({{ '/rag-study.html' | relative_url }})与[来源记录]({{ '/handbook-evidence.html' | relative_url }})。本轮只更新文档，没有运行新模型实验。最新 task22 在缩小主 Agent 职责后仍为 ENV/ACTION/ALL 均0，且无地址写入：读取和准备成功并没有转化为完整任务成功，审批展示与续接仍需进一步验证。
+完整数字和边界在[RAG 专题]({{ '/rag-study.html' | relative_url }})与[来源记录]({{ '/handbook-evidence.html' | relative_url }})。本轮只更新文档，没有运行新模型实验。最新已记录的操作集合task22回归（7c41b7e）中，初始账户与订单地址修改一次批准后均执行，ACTION=1；后续账户单独恢复两次未被委派，模拟用户后来要求同时恢复订单，最终ENV=0、ALL=0。f85d116随后隔离策略受众，c91eae2简化结果展示，尚无这两项修复后的同任务分数。
 
 ## 14. 怎样完整讲十五分钟
 

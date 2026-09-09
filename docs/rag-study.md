@@ -6,7 +6,7 @@ permalink: /rag-study.html
 
 # DialogPilot RAG 架构边界与评测讲解
 
-> 2026-09-09同步至源码89feac2；最新状态含Metadata、标题切块与原生FTS验收，历史来源仍保留原日期。
+> 2026-09-09运行时核对至c91eae2；检索实验保留原报告版本；最新状态含Metadata、标题切块与原生FTS验收，历史来源仍保留原日期。
 
 > 本文把检索原理、实际代码和项目实验分开讲。当前主线仍有质量缺口，reranker 微调暂停；本文不是新实验，也没有把内部 verified 当作正确答案。回到[完整架构]({{ '/architecture.html' | relative_url }})或[详细追问]({{ '/interview-guide.html' | relative_url }})。
 
@@ -24,7 +24,7 @@ permalink: /rag-study.html
 
 删除和撤回不仅是向量表删行：source 的有效性改变后，缓存中的证据也应失效或在返回/发布前复验。否则数据库已有新政策，缓存仍引用旧政策。原始来源拥有有效性，缓存和检索投影不拥有另一份独立真相。
 
-源码：[infrastructure/postgres_knowledge_store.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/postgres_knowledge_store.py)、[application/knowledge_source.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/knowledge_source.py)、[infrastructure/postgres_knowledge_source.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/postgres_knowledge_source.py)、[application/retrieval_generation_rebuild.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/retrieval_generation_rebuild.py)。
+源码：[infrastructure/postgres_knowledge_store.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/postgres_knowledge_store.py)、[application/knowledge_source.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/knowledge_source.py)、[infrastructure/postgres_knowledge_source.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/postgres_knowledge_source.py)、[application/retrieval_generation_rebuild.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/retrieval_generation_rebuild.py)。
 
 ## 3. 切块怎么选，为什么不是越小越好
 
@@ -34,7 +34,7 @@ permalink: /rag-study.html
 
 父子检索是小块召回、较大父块供生成；有益时能补上下文，但也可能把一个高分 child 扩成大段无关正文，挤掉另一条必要证据。项目做过 parent 内重检索等开发比较，未得到稳定收益的方案不采用。要证明优于 flat，应同数据、同最终5/2600预算，报告完整必要证据和额外噪声，而不是只看文章命中。
 
-源码：[mcp/document_chunker.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/mcp/document_chunker.py)、[mcp/context_packer.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/mcp/context_packer.py)。历史选择记录：[rag-local-selection-results-2026-09-07.zh-CN.md]({{ '/assets/handbook/evidence/docs__rag-local-selection-results-2026-09-07.zh-CN.md.txt' | relative_url }})。
+源码：[mcp/document_chunker.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/mcp/document_chunker.py)、[mcp/context_packer.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/mcp/context_packer.py)。历史选择记录：[rag-local-selection-results-2026-09-07.zh-CN.md]({{ '/assets/handbook/evidence/docs__rag-local-selection-results-2026-09-07.zh-CN.md.txt' | relative_url }})。
 
 ## 4. BM25、FTS 和 Dense 到底是什么
 
@@ -52,7 +52,7 @@ Dense 用编码器将文本变为向量，以 cosine 等距离找语义邻居。
 
 项目有 hash_baseline 与 BGE-M3 两条显式 provider 选择。hash 保证轻量启动和确定性，不应被说成深度语义模型。BGE-M3 可提供多语语义表示；官方支持多种表示方式，不意味着本项目已全部启用 sparse/ColBERT。项目本地语义实验需在 manifest 指明实际 provider、权重版本、维度和预处理。[BGE-M3 官方模型卡](https://huggingface.co/BAAI/bge-m3)。
 
-源码：[infrastructure/hybrid_retrieval_backend.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/hybrid_retrieval_backend.py)、[application/chinese_lexical.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/chinese_lexical.py)、[infrastructure/dense_embedding_factory.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/dense_embedding_factory.py)、[infrastructure/bge_m3_embedding.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/bge_m3_embedding.py)。
+源码：[infrastructure/hybrid_retrieval_backend.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/hybrid_retrieval_backend.py)、[application/chinese_lexical.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/chinese_lexical.py)、[infrastructure/dense_embedding_factory.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/dense_embedding_factory.py)、[infrastructure/bge_m3_embedding.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/bge_m3_embedding.py)。
 
 ## 5. HNSW 是什么，项目到底怎么用
 
@@ -66,7 +66,7 @@ HNSW Recall@K 是“近似返回与精确向量 TopK 的一致性”，RAG Recal
 
 IVFFlat 则先把向量分成若干区域，查询探测部分区域，参数通常看 lists/probes；构建、内存和检索权衡不同。本项目没有完成 HNSW/IVFFlat 的同条件性能竞赛，选择 HNSW 是现有 PG 链路的实现方案，不是宣布它在所有规模更优。
 
-源码：[infrastructure/hybrid_retrieval_backend.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/hybrid_retrieval_backend.py)、[infrastructure/postgres_knowledge_store.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/postgres_knowledge_store.py)。面试中不要承诺未实测的百万向量延迟。
+源码：[infrastructure/hybrid_retrieval_backend.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/hybrid_retrieval_backend.py)、[infrastructure/postgres_knowledge_store.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/postgres_knowledge_store.py)。面试中不要承诺未实测的百万向量延迟。
 
 ## 6. 在线检索每一步的输入输出
 
@@ -80,14 +80,14 @@ IVFFlat 则先把向量分成若干区域，查询探测部分区域，参数通
 → ContextPacker 在 final_k / token 预算下选证据
 → EvidencePack + 实际 ToolMessage
 → Worker/compose 形成答案
-→ 支持性/需求覆盖核验 + 引用/来源复验
+→ 知识解释的支持性/需求覆盖核验 + 引用/来源复验
 ```
 
 `KnowledgeRetriever.retrieve` 先核对模型身份，再处理 query cache、candidate cache、rerank cache 和 pack cache。候选来源不可用、无证据、来源冲突、重复 ID、非法 provenance 都是类型化结果。reranker 若漏 ID、重复 ID 或伪造候选，会回退既有候选顺序并记 fallback。返回最终 pack 前再确认来源仍有效，处理查询期间来源更新的竞争。
 
 系统注入身份和来源范围，模型仅在允许的业务过滤字段中表达条件。授权过滤和软 metadata hint 不同：前者决定是否可读，后者影响排序，不可用“低权重”表示禁止访问。
 
-源码：[application/knowledge_retriever.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/knowledge_retriever.py)、[application/knowledge_tool_contract.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/knowledge_tool_contract.py)、[infrastructure/knowledge_applicability.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/knowledge_applicability.py)。
+源码：[application/knowledge_retriever.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/knowledge_retriever.py)、[application/knowledge_tool_contract.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/knowledge_tool_contract.py)、[infrastructure/knowledge_applicability.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/knowledge_applicability.py)。
 
 ## 7. 为什么选 RRF，权重怎么算
 
@@ -115,7 +115,7 @@ Dense cosine 与 BM25 分数分布不同，不能随意直接相加。RRF 使用
 
 few-shot 也做过无示例、固定、动态检索示例对照。项目报告出现条件污染和无依据 policy_date，候选未采用。学习点是示例帮助格式和思路，也可能把样例事实迁移到用户身上；必须检查完整工具参数，而不只是 query 字符串。
 
-源码：[mcp/query_transformer.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/mcp/query_transformer.py)、[application/knowledge_retriever.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/knowledge_retriever.py)。证据：[ecommerce-pure-rag-2026-09-08.zh-CN.md]({{ '/assets/handbook/evidence/docs__ecommerce-pure-rag-2026-09-08.zh-CN.md.txt' | relative_url }})、[ecommerce-complex-rag-2026-09-08.zh-CN.md]({{ '/assets/handbook/evidence/docs__ecommerce-complex-rag-2026-09-08.zh-CN.md.txt' | relative_url }})、[planning-evidence-selection-2026-09-08.zh-CN.md]({{ '/assets/handbook/evidence/docs__planning-evidence-selection-2026-09-08.zh-CN.md.txt' | relative_url }})。
+源码：[mcp/query_transformer.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/mcp/query_transformer.py)、[application/knowledge_retriever.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/knowledge_retriever.py)。证据：[ecommerce-pure-rag-2026-09-08.zh-CN.md]({{ '/assets/handbook/evidence/docs__ecommerce-pure-rag-2026-09-08.zh-CN.md.txt' | relative_url }})、[ecommerce-complex-rag-2026-09-08.zh-CN.md]({{ '/assets/handbook/evidence/docs__ecommerce-complex-rag-2026-09-08.zh-CN.md.txt' | relative_url }})、[planning-evidence-selection-2026-09-08.zh-CN.md]({{ '/assets/handbook/evidence/docs__planning-evidence-selection-2026-09-08.zh-CN.md.txt' | relative_url }})。
 
 ## 9. 精排、去重、打包为什么仍会丢证据
 
@@ -125,7 +125,7 @@ Bi-encoder 可预计算文档向量，适合大范围召回；cross-encoder 联�
 
 项目历史实验扩大20→80候选时，候选完整覆盖223→244，却使pack完整覆盖208→207；因此没有采用扩大池作为最终修复。父内重检索也出现救回3、误伤7而不采用。这些是特定已消费开发集的负结果，不能推导所有大K或父子检索无效，但能说明本项目没有只挑漂亮数字。
 
-源码：[infrastructure/local_knowledge_reranker.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/local_knowledge_reranker.py)、[infrastructure/knowledge_retriever_adapters.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/knowledge_retriever_adapters.py)、[mcp/context_packer.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/mcp/context_packer.py)。历史台账：[rag-optimization-status.md]({{ '/assets/handbook/evidence/plans__rag-optimization-status.md.txt' | relative_url }})。
+源码：[infrastructure/local_knowledge_reranker.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/local_knowledge_reranker.py)、[infrastructure/knowledge_retriever_adapters.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/knowledge_retriever_adapters.py)、[mcp/context_packer.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/mcp/context_packer.py)。历史台账：[rag-optimization-status.md]({{ '/assets/handbook/evidence/plans__rag-optimization-status.md.txt' | relative_url }})。
 
 ## 10. 三个外部数据集为什么选，怎么适配
 
@@ -194,3 +194,7 @@ scripts/run_tau3_full.py                 真实应用与官方环境交互
 ```
 
 扩库、holdout、重训必须使用新的输出目录并遵守各自计划。当前reranker微调暂停；已有微调40条验收Top5 24/40→24/40，没有收益，不应编成成功优化。项目面试最有说服力的答法是：“我知道哪一级提高了，也知道它没有证明哪一级。”
+
+## 15. 结果展示简化是否意味着删除RAG核验？
+
+没有。c91eae2直接展示的是有注册字段和匹配回执的业务执行结果；政策解释、跨来源推断和多条件回答仍有语义使用问题。审批范围卡也由代码生成，不再让approval_terms_complete裁判范围。将确定的单位换算交回代码，与检查“这条政策是否适用于用户”是两类工作，详见[当前回答路径]({{ "/architecture.html" | relative_url }})。本轮没有改变检索权重、Rewrite、精排默认或外部数据成绩，微调保持暂停。

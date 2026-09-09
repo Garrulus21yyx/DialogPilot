@@ -6,7 +6,7 @@ permalink: /handbook-evidence.html
 
 # DialogPilot 架构边界：来源与证据
 
-> 核查日期2026-09-09，源码冻结于 `89feac2`。主规划职责调整由 `d8e8933` 交付，最新 task22 报告随89feac2保存。网页发布在main/docs，开发应用代码未合并到main。源码链接与[逐文件SHA-256]({{ '/assets/handbook/source-snapshot.json' | relative_url }})固定到该版本；工作区仍在并行修改的文件仅记录身份，不据此新增已实现结论。上一轮快照另存[2026-09-08归档]({{ '/assets/handbook/source-snapshot-2026-09-08.json' | relative_url }})。
+> 核查日期2026-09-09，历史基础源码冻结于 `89feac2`；当前运行时增量已核对至 `c91eae2`。主规划职责调整由 `d8e8933` 交付，最新 task22 报告随89feac2保存。网页发布在main/docs，开发应用代码未合并到main。源码链接与[逐文件SHA-256]({{ '/assets/handbook/source-snapshot.json' | relative_url }})固定到该版本；工作区仍在并行修改的文件仅记录身份，不据此新增已实现结论。上一轮快照另存[2026-09-08归档]({{ '/assets/handbook/source-snapshot-2026-09-08.json' | relative_url }})。
 
 ## 1. 怎样使用证据
 
@@ -42,7 +42,7 @@ permalink: /handbook-evidence.html
 - requested_objective、observed_segment、pending_actions 和 turn_execution 共同描述回答范围；作者与核验使用同一快照。见[回答组装](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/response_assembly.py)。
 - task22 为已消费开发任务，offset17、seed300、80步预算；误选task29的中断不计入。第三轮仅准备账户修改，但审批展示受阻，之后核验schema失败，用户撤回。详见[完整运行结论](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/artifacts/eval/tau3-task22-scoped-conversation-corrected-2026-09-09/REPORT.md)。
 
-源码回归与组件模型探针提供各自范围的证据；本次没有重跑这些实验。未提交的进一步审批发布修改仍在工作区，不能混进89feac2已发布设计。
+源码回归与组件模型探针提供各自范围的证据；本次没有重跑这些实验。该段为89feac2历史结果；后续已提交操作集合和结果简化见第7节。
 
 ### 本次报告原文快照
 
@@ -90,4 +90,16 @@ permalink: /handbook-evidence.html
 
 简历32%/41%沿用此前模拟口径；50题76%本轮在相关报告/summary/manifest范围未找到匹配证据。三套检索与中文80题的实际指标保留各自范围，不因此一并标为模拟。所有对应关系见[简历指标表]({{ '/project-pitch.html#resume-metrics' | relative_url }})。
 
-补充实现固定于[61a9b88](https://github.com/Garrulus21yyx/DialogPilot/commit/61a9b887c5d922e6d7c553507cf01442c5c5c4c8)：未送达审批恢复和失败进度投影。操作集合与确定性批准范围卡属于正在验证的工作区方案，未作为已发布架构。文件身份见[增量快照]({{ '/assets/handbook/resume-alignment-snapshot.json' | relative_url }})。本次没有新跑模型或业务基准。
+补充实现固定于[61a9b88](https://github.com/Garrulus21yyx/DialogPilot/commit/61a9b887c5d922e6d7c553507cf01442c5c5c4c8)：未送达审批恢复和失败进度投影。该次增量记录时操作集合尚未提交；现已由7c41b7e交付，以下第7节取代其进行中状态。文件身份见[增量快照]({{ '/assets/handbook/resume-alignment-snapshot.json' | relative_url }})。本次没有新跑模型或业务基准。
+
+## 7. 当前简化：c91eae2
+
+操作集合7c41b7e、策略隔离f85d116、纯状态633e3a6与公开工具字段c91eae2已逐处同步到架构、口述稿及既有追问，并新增Q131—Q134。源码身份见[简化快照]({{ "/assets/handbook/simplification-snapshot.json" | relative_url }})。原source-snapshot及resume-alignment-snapshot保留其历史日期与工作区状态，不代表当前未提交状态。
+
+- [plans/approval-scope-delivery-convergence-2026-09-09.md](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/plans/approval-scope-delivery-convergence-2026-09-09.md)
+- [plans/tau3-task22-operation-scope-rerun-2026-09-09.md](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/plans/tau3-task22-operation-scope-rerun-2026-09-09.md)
+- [plans/conversation-policy-scope-2026-09-09.md](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/plans/conversation-policy-scope-2026-09-09.md)
+- [plans/verifier-value-probe-2026-09-09.md](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/plans/verifier-value-probe-2026-09-09.md)
+- [plans/execution-response-simplification-2026-09-09.md](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/plans/execution-response-simplification-2026-09-09.md)
+
+记录中的803项操作集合检查、264项字段展示检查及12条模型探针各有不同范围，不能相加或当成业务通过率。本次只验证网页构建、链接和浏览器展示，没有重跑这些应用实验。task22最新记录ENV=0/ACTION=1/ALL=0，后续简化尚无新的完整任务分数。

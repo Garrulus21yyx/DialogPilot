@@ -8,7 +8,7 @@
 
 **继续追问：**选型看流程是否固定、是否有动态决策、是否需要持久等待和跨任务状态。简单查询可DIRECT，不必套领域Agent。
 
-**项目定位：**[infrastructure/target_framework_agent.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/target_framework_agent.py)、[application/orchestration_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/orchestration_runtime.py)。
+**项目定位：**[infrastructure/target_framework_agent.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/target_framework_agent.py)、[application/orchestration_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/orchestration_runtime.py)。
 
 ### Q94：invoke、ainvoke、stream、astream和batch怎么选？
 
@@ -18,7 +18,7 @@
 
 **继续追问：**模型token输出不能直接代表批准或业务完成；客户公开结果仍过Publication边界。不要把私有图状态直接透传。
 
-**项目定位：**[infrastructure/target_conversation_provider.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/target_conversation_provider.py)、[infrastructure/target_framework_agent.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/target_framework_agent.py)。
+**项目定位：**[infrastructure/target_conversation_provider.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/target_conversation_provider.py)、[infrastructure/target_framework_agent.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/target_framework_agent.py)。
 
 ### Q95：bind_tools是否会自动执行工具？StructuredTool和Pydantic各做什么？
 
@@ -28,7 +28,7 @@
 
 **继续追问：**模型知道工具名不构成权限。额外JSON修复也不能自动补造授权字段，参数不完整应返回类型化错误或请求必要信息。
 
-**项目定位：**[application/conversation_actions.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/conversation_actions.py)、[infrastructure/target_framework_agent.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/target_framework_agent.py)、[core/auth.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/core/auth.py)。
+**项目定位：**[application/conversation_actions.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/conversation_actions.py)、[infrastructure/target_framework_agent.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/target_framework_agent.py)、[core/auth.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/core/auth.py)。
 
 ### Q96：State、Reducer、Send和Command如何配合？
 
@@ -38,7 +38,7 @@
 
 **继续追问：**合并函数的结合性、顺序依赖和重复输入行为需要验证。不是所有状态都要求交换律，但若宣称并行完成顺序无关，就要有对应性质测试。
 
-**项目定位：**[application/orchestration_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/orchestration_runtime.py)、[application/result_board.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/result_board.py)。
+**项目定位：**[application/orchestration_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/orchestration_runtime.py)、[application/result_board.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/result_board.py)。
 
 ### Q97：checkpoint、Store和业务数据库为什么不是一回事？
 
@@ -48,7 +48,7 @@
 
 **继续追问：**只修改checkpoint把图标成成功不会真的退款。跨线程记忆也不能覆盖业务系统的最新状态。
 
-**项目定位：**[infrastructure/langgraph_checkpoint.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/langgraph_checkpoint.py)、[application/write_workflow.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/write_workflow.py)、[infrastructure/target_result_archive.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/target_result_archive.py)。
+**项目定位：**[infrastructure/langgraph_checkpoint.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/langgraph_checkpoint.py)、[application/write_workflow.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/write_workflow.py)、[infrastructure/target_result_archive.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/target_result_archive.py)。
 
 ### Q98：Middleware顺序、异常边界和重试为什么重要？
 
@@ -58,7 +58,7 @@
 
 **继续追问：**模型超时和业务写超时不能同处理：前者要保存已完成工具状态，后者可能进入结果未知/对账。并非所有异常都retryable。
 
-**项目定位：**[infrastructure/target_agent_middleware.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/target_agent_middleware.py)、[infrastructure/target_context_compaction.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/target_context_compaction.py)、[core/framework_models.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/core/framework_models.py)。
+**项目定位：**[infrastructure/target_agent_middleware.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/target_agent_middleware.py)、[infrastructure/target_context_compaction.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/target_context_compaction.py)、[core/framework_models.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/core/framework_models.py)。
 
 ## 13. 如何防止 Agent 死循环
 
@@ -70,7 +70,7 @@
 
 **继续追问：**这能限制已覆盖的无进展模式，不保证识别所有语义死循环。必须测重复读取、交替读取、改写不变证据、真正新证据和正常审批等待。
 
-**项目定位：**[application/execution_progress.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/execution_progress.py)、[infrastructure/target_agent_middleware.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/target_agent_middleware.py)、[infrastructure/target_framework_agent.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/target_framework_agent.py)。
+**项目定位：**[application/execution_progress.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/execution_progress.py)、[infrastructure/target_agent_middleware.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/target_agent_middleware.py)、[infrastructure/target_framework_agent.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/target_framework_agent.py)。
 
 ### Q100：“两轮无进展”从哪一轮开始计数？给个例子。
 
@@ -80,7 +80,7 @@
 
 **继续追问：**当前策略基于观察的新颖性，不是完整业务价值评估；很多新但无用的结果仍可能绕过新颖性判断，因此保留硬预算。
 
-**项目定位：**[application/execution_progress.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/execution_progress.py)、[infrastructure/target_agent_middleware.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/target_agent_middleware.py)。
+**项目定位：**[application/execution_progress.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/execution_progress.py)、[infrastructure/target_agent_middleware.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/target_agent_middleware.py)。
 
 ### Q101：模型换个query或工具返回顺序，怎么避免骗过进展检测？
 
@@ -90,7 +90,7 @@
 
 **继续追问：**同参数但订单状态真正改变可能是新观察。失败处理、对账和新用户明确刷新有不同边界，不能全局禁止重复调用。
 
-**项目定位：**[application/knowledge_tool_contract.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/knowledge_tool_contract.py)、[application/execution_progress.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/execution_progress.py)、[infrastructure/target_agent_middleware.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/target_agent_middleware.py)。
+**项目定位：**[application/knowledge_tool_contract.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/knowledge_tool_contract.py)、[application/execution_progress.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/execution_progress.py)、[infrastructure/target_agent_middleware.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/target_agent_middleware.py)。
 
 ### Q102：recursion_limit、max_steps和timeout为什么都要？
 
@@ -100,7 +100,7 @@
 
 **继续追问：**asyncio超时通常通过取消协程生效，不能证明远端写入被撤销；忽略取消的阻塞操作也不能靠async关键字变成可中断。
 
-**项目定位：**[infrastructure/target_framework_agent.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/target_framework_agent.py)、[application/turn_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/turn_runtime.py)、[application/write_workflow.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/write_workflow.py)。
+**项目定位：**[infrastructure/target_framework_agent.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/target_framework_agent.py)、[application/turn_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/turn_runtime.py)、[application/write_workflow.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/write_workflow.py)。
 
 ## 14. FastAPI、异步与服务生命周期
 
@@ -112,7 +112,7 @@
 
 **继续追问：**选框架不是性能保证。真正的瓶颈还可能是模型延迟、同步SQL和数据库池等待，需要分阶段测量。
 
-**项目定位：**[api/main.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/api/main.py)、[application/target_run.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/target_run.py)。
+**项目定位：**[api/main.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/api/main.py)、[application/target_run.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/target_run.py)。
 
 ### Q104：async def真的能提高并发吗，什么时候会阻塞？
 
@@ -122,7 +122,7 @@
 
 **继续追问：**应沿实际调用点确认是否在线程、进程或异步驱动运行。GIL、CPU占用和事件循环延迟是不同问题；不要一律靠增加worker解决。
 
-**项目定位：**[api/main.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/api/main.py)、[infrastructure/retrieval_postgres.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/retrieval_postgres.py)、[memory/conversation_memory.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/memory/conversation_memory.py)。
+**项目定位：**[api/main.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/api/main.py)、[infrastructure/retrieval_postgres.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/retrieval_postgres.py)、[memory/conversation_memory.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/memory/conversation_memory.py)。
 
 ### Q105：lifespan和Depends分别解决什么？
 
@@ -132,7 +132,7 @@
 
 **继续追问：**多进程部署时每个worker有自己的lifespan、连接池和内存缓存，因此总连接数通常随worker数增长。不能把进程内单例当全局唯一业务Owner。
 
-**项目定位：**[api/main.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/api/main.py)、[core/auth.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/core/auth.py)、[infrastructure/target_runtime_composition.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/target_runtime_composition.py)。
+**项目定位：**[api/main.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/api/main.py)、[core/auth.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/core/auth.py)、[infrastructure/target_runtime_composition.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/target_runtime_composition.py)。
 
 ### Q106：JWT、401、403以及CORS分别是什么？
 
@@ -142,7 +142,7 @@
 
 **继续追问：**短期token过期与主动撤销是另一层设计；不能因为使用JWT就声称已有refresh token轮换、单点退出或防重放系统。
 
-**项目定位：**[core/auth.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/core/auth.py)、[api/main.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/api/main.py)。
+**项目定位：**[core/auth.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/core/auth.py)、[api/main.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/api/main.py)。
 
 ### Q107：BackgroundTasks能不能直接跑整个客服Agent任务？
 
@@ -152,7 +152,7 @@
 
 **继续追问：**不必据此宣称项目部署了Celery或Kafka；现有持久工作领取机制和这些系统是可比较选项，不是同名实现。
 
-**项目定位：**[application/target_run.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/target_run.py)、[infrastructure/postgres_target_run.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/postgres_target_run.py)。
+**项目定位：**[application/target_run.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/target_run.py)、[infrastructure/postgres_target_run.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/postgres_target_run.py)。
 
 ### Q108：连接池、超时、限流与背压怎么一起考虑？
 
@@ -162,7 +162,7 @@
 
 **继续追问：**滑动窗口、令牌桶、信号量和有界队列是不同控制方式，属于可选设计；没有部署证据时不要说本项目已做完整生产限流。
 
-**项目定位：**[infrastructure/retrieval_postgres.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/retrieval_postgres.py)、[infrastructure/bounded_retrieval_executor.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/bounded_retrieval_executor.py)、[application/target_run.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/target_run.py)。
+**项目定位：**[infrastructure/retrieval_postgres.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/retrieval_postgres.py)、[infrastructure/bounded_retrieval_executor.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/bounded_retrieval_executor.py)、[application/target_run.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/target_run.py)。
 
 ## 15. Redis、缓存与一致性
 
@@ -174,7 +174,7 @@
 
 **继续追问：**这不是说Redis不能持久化，而是本项目主动选择了数据所有权。RDB/AOF也不自动等价于跨业务工具的事务与确认语义。
 
-**项目定位：**[infrastructure/target_turn_context.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/target_turn_context.py)、[memory/conversation_memory.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/memory/conversation_memory.py)、[infrastructure/postgres_conversation.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/postgres_conversation.py)。
+**项目定位：**[infrastructure/target_turn_context.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/target_turn_context.py)、[memory/conversation_memory.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/memory/conversation_memory.py)、[infrastructure/postgres_conversation.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/postgres_conversation.py)。
 
 ### Q110：缓存穿透、击穿、雪崩怎么区别，怎么处理？
 
@@ -184,7 +184,7 @@
 
 **继续追问：**这些是经典方案，不应仅因项目用了Redis就声称全部实现。回源保护需要成本与负载证据，不能靠超长TTL掩盖数据过期。
 
-**项目定位：**[infrastructure/retrieval_cache.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/retrieval_cache.py)、[application/knowledge_retriever.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/knowledge_retriever.py)。
+**项目定位：**[infrastructure/retrieval_cache.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/retrieval_cache.py)、[application/knowledge_retriever.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/knowledge_retriever.py)。
 
 ### Q111：数据库更新后删缓存就强一致了吗？
 
@@ -194,7 +194,7 @@
 
 **继续追问：**延迟双删是缓解手段，不能证明所有竞争都消失。需要强一致的关键决策应在权威存储和同一合同上完成。
 
-**项目定位：**[infrastructure/target_turn_context.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/target_turn_context.py)、[infrastructure/retrieval_cache.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/retrieval_cache.py)、[infrastructure/postgres_projection.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/postgres_projection.py)。
+**项目定位：**[infrastructure/target_turn_context.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/target_turn_context.py)、[infrastructure/retrieval_cache.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/retrieval_cache.py)、[infrastructure/postgres_projection.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/postgres_projection.py)。
 
 ### Q112：Redis事务、Pipeline、WATCH和Lua有什么差别？
 
@@ -204,7 +204,7 @@
 
 **继续追问：**跨Redis与PostgreSQL没有因为用了Lua就自动原子。业务状态仍由原持久Owner定义，投影操作只是更新缓存。
 
-**项目定位：**[memory/conversation_memory.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/memory/conversation_memory.py)。
+**项目定位：**[memory/conversation_memory.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/memory/conversation_memory.py)。
 
 ### Q113：Redis分布式锁能保证退款只执行一次吗？
 
@@ -214,7 +214,7 @@
 
 **继续追问：**Exactly-once是明确边界内的结果保证，不是部署一个锁就获得的全局性质。不同operation_key是否代表同一业务动作仍需业务合同决定。
 
-**项目定位：**[application/write_workflow.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/write_workflow.py)、[infrastructure/postgres_target_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/postgres_target_runtime.py)。
+**项目定位：**[application/write_workflow.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/write_workflow.py)、[infrastructure/postgres_target_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/postgres_target_runtime.py)。
 
 ## 16. SQL、PostgreSQL与持久任务
 
@@ -226,7 +226,7 @@
 
 **继续追问：**更高隔离级别不解决外部HTTP副作用原子提交。重试整个数据库事务时必须确认其中有没有已经发生的远端写入。
 
-**项目定位：**[infrastructure/postgres_conversation.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/postgres_conversation.py)、[infrastructure/postgres_target_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/postgres_target_runtime.py)。
+**项目定位：**[infrastructure/postgres_conversation.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/postgres_conversation.py)、[infrastructure/postgres_target_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/postgres_target_runtime.py)。
 
 ### Q115：乐观锁CAS和SELECT FOR UPDATE怎么选？
 
@@ -236,7 +236,7 @@
 
 **继续追问：**锁顺序不一致可能死锁；减少事务时长、统一访问顺序并处理数据库报告。不要在应用层无限重试冲突。
 
-**项目定位：**[infrastructure/postgres_target_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/postgres_target_runtime.py)、[infrastructure/postgres_conversation.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/postgres_conversation.py)。
+**项目定位：**[infrastructure/postgres_target_runtime.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/postgres_target_runtime.py)、[infrastructure/postgres_conversation.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/postgres_conversation.py)。
 
 ### Q116：请求幂等、操作幂等、唯一索引分别做什么？
 
@@ -246,7 +246,7 @@
 
 **继续追问：**同key不同参数需要显式处理，不能悄悄复用错误结果。不同key的重复业务意图是否合并属于业务层问题。
 
-**项目定位：**[infrastructure/postgres_admission.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/postgres_admission.py)、[application/write_workflow.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/application/write_workflow.py)。
+**项目定位：**[infrastructure/postgres_admission.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/postgres_admission.py)、[application/write_workflow.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/application/write_workflow.py)。
 
 ### Q117：事务Outbox解决什么，是否保证消息只投递一次？
 
@@ -256,7 +256,7 @@
 
 **继续追问：**Outbox通常解决可靠记录与至少一次交付边界，不自动带来全局严格顺序或跨服务Exactly-once。
 
-**项目定位：**[infrastructure/postgres_admission.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/postgres_admission.py)、[infrastructure/postgres_ticket_service.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/postgres_ticket_service.py)。
+**项目定位：**[infrastructure/postgres_admission.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/postgres_admission.py)、[infrastructure/postgres_ticket_service.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/postgres_ticket_service.py)。
 
 ### Q118：B-tree、GIN、HNSW各适合什么，联合索引怎么考虑？
 
@@ -266,7 +266,7 @@
 
 **继续追问：**创建索引不保证查询使用它，也不保证更快。ANN还需测试近似召回损失和过滤后的结果数量。
 
-**项目定位：**[infrastructure/retrieval_postgres.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/retrieval_postgres.py)、[infrastructure/postgres_knowledge_store.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/postgres_knowledge_store.py)、[infrastructure/postgres_response_delivery.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/postgres_response_delivery.py)。
+**项目定位：**[infrastructure/retrieval_postgres.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/retrieval_postgres.py)、[infrastructure/postgres_knowledge_store.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/postgres_knowledge_store.py)、[infrastructure/postgres_response_delivery.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/postgres_response_delivery.py)。
 
 ### Q119：EXPLAIN ANALYZE怎么看，项目慢SQL怎么定位？
 
@@ -276,7 +276,7 @@
 
 **继续追问：**不要把禁止nested loop、延长timeout、删过滤作为默认修复。先找错误估计、重复工作或真实数据量，再做同结果性能对照。
 
-**项目定位：**[infrastructure/retrieval_postgres.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/retrieval_postgres.py)、[docs/rag-bm25-planner-diagnosis-2026-09-09.zh-CN.md](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/docs/rag-bm25-planner-diagnosis-2026-09-09.zh-CN.md)、[docs/rag-native-fts-acceptance-2026-09-09.zh-CN.md](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/docs/rag-native-fts-acceptance-2026-09-09.zh-CN.md)。
+**项目定位：**[infrastructure/retrieval_postgres.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/retrieval_postgres.py)、[docs/rag-bm25-planner-diagnosis-2026-09-09.zh-CN.md](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/docs/rag-bm25-planner-diagnosis-2026-09-09.zh-CN.md)、[docs/rag-native-fts-acceptance-2026-09-09.zh-CN.md](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/docs/rag-native-fts-acceptance-2026-09-09.zh-CN.md)。
 
 ### Q120：分页、响应序号、迁移和备份恢复有哪些容易追问的点？
 
@@ -286,11 +286,11 @@
 
 **继续追问：**迁移事务也可能造成长锁；线上索引构建、回填和切换要有专门方案，不能把本地空库迁移命令直接当零停机升级。
 
-**项目定位：**[infrastructure/postgres_response_delivery.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/infrastructure/postgres_response_delivery.py)、[scripts/run_postgres_migrations.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/scripts/run_postgres_migrations.py)、[scripts/rehearse_x_t01_restore.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/scripts/rehearse_x_t01_restore.py)。
+**项目定位：**[infrastructure/postgres_response_delivery.py](https://github.com/Garrulus21yyx/DialogPilot/blob/c91eae259f2c3f96a981acbac42a56de0c60b33e/infrastructure/postgres_response_delivery.py)、[scripts/run_postgres_migrations.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/scripts/run_postgres_migrations.py)、[scripts/rehearse_x_t01_restore.py](https://github.com/Garrulus21yyx/DialogPilot/blob/89feac2e63b31113530864814188f0a4a61708bc/scripts/rehearse_x_t01_restore.py)。
 
 ## 17. 官方原理与继续阅读
 
-本专题在2026-09-09核对官方机制；项目实现沿用手册89feac2快照，通用设计不自动等于项目已实现。
+本专题在2026-09-09核对官方机制；项目实现已核对至c91eae2，通用机制引用保留原核对日期，通用设计不自动等于项目已实现。
 
 - [LangChain模型与工具调用](https://docs.langchain.com/oss/python/langchain/models)
 - [LangGraph图、状态与Reducer](https://docs.langchain.com/oss/python/langgraph/graph-api)
