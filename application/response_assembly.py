@@ -82,7 +82,7 @@ class ConversationComposer(Protocol):
 class ResponseAssembler:
     """Choose the cheapest valid response path and verify the final candidate."""
 
-    version = "response-assembler-v15-prepared-scope-presentation"
+    version = "response-assembler-v16-execution-status-presentation"
 
     def __init__(self, composer: ConversationComposer | None = None, *,
                  knowledge_verifier=None, knowledge_source_validator=None, knowledge_reuse_validator=None,
@@ -134,6 +134,22 @@ class ResponseAssembler:
                         pending_approval=None, requested_inputs=(), response_candidate=None) -> AssembledResponse:
         from dataclasses import replace
         from application.knowledge_tool_contract import evidence_items, evidence_id, model_evidence, evidence_content_identity
+
+        if (pending_approval is None and not requested_inputs and response_candidate is None
+                and not (conversation_context or {}).get("clarification_fields")
+                and not (conversation_context or {}).get("retained_approval")):
+            from application.execution_presentation import execution_status_text
+            status_text = execution_status_text(board, locale=self.fallback_locale,
+                                                action_semantics=self._action_semantics)
+            if status_text:
+                text = system_notice + status_text
+                evidence = json.dumps(_response_context(board, conversation_context=conversation_context,
+                    registry=self._registry, action_semantics=self._action_semantics),
+                    ensure_ascii=False, sort_keys=True)
+                return AssembledResponse(text, ResponseAssemblyMode.TEMPLATE, _evidence_refs(board),
+                    False, "PASS", "EXECUTION_STATUS_RENDERED",
+                    verified_text_sha256=hashlib.sha256(text.encode()).hexdigest(),
+                    evidence_sha256=hashlib.sha256(evidence.encode()).hexdigest(), evidence_json=evidence)
 
         if pending_approval or any(r.prepared_actions for r in board.results):
             from application.approval_presentation import render_approval_scope
