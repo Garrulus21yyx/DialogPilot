@@ -1,0 +1,42 @@
+{
+  "case_count": 20,
+  "matching_mismatch_cases": 8,
+  "arms": {
+    "bm25": {
+      "median_query_ms": 757.4427369982004,
+      "empirical_p95_query_ms": 817.0713447034359,
+      "timeouts_750ms": 11,
+      "lexical": {
+        "article_recall_at20_chunks": 0.55,
+        "all_articles_at20_chunks": 0.5,
+        "article_mrr": 0.3934343434343434,
+        "article_ndcg_at5": 0.36309297535714574
+      },
+      "fused": {
+        "article_recall_at20_chunks": 0.75,
+        "all_articles_at20_chunks": 0.7,
+        "article_mrr": 0.4280723443223443,
+        "article_ndcg_at5": 0.4167655963056967
+      }
+    },
+    "native": {
+      "median_query_ms": 566.321762278676,
+      "empirical_p95_query_ms": 1016.2001047283411,
+      "timeouts_750ms": 5,
+      "lexical": {
+        "article_recall_at20_chunks": 0.25,
+        "all_articles_at20_chunks": 0.2,
+        "article_mrr": 0.17329059829059829,
+        "article_ndcg_at5": 0.13631471927654584
+      },
+      "fused": {
+        "article_recall_at20_chunks": 0.675,
+        "all_articles_at20_chunks": 0.65,
+        "article_mrr": 0.26982142857142855,
+        "article_ndcg_at5": 0.31589786519678426
+      }
+    }
+  },
+  "rescued": 0,
+  "harmed": 1
+}

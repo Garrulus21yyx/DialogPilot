@@ -1,0 +1,2435 @@
+[
+  {
+    "case_id": "00df543085642051be0e9bd00a3d3e3f83a6fb495dc9742db72ef972aef0ba41",
+    "scores": {
+      "knowledge-chunk-41d50f8af25ab39754e586136177c712c2cb64432f76d62d7cc2c17e85609aa9": -1.3505859375,
+      "knowledge-chunk-378335dea0f473c1c11e70441db73c82a09c331bd45b004384a8e42c0e1eb0b3": -1.599609375,
+      "knowledge-chunk-477dd6820bca69afa2ea44d26ac2a8b36550be1ca8ccf62fa9598b82705891af": -0.41357421875,
+      "knowledge-chunk-73248ee1338e354eb87cfb644fbdb85e614efcd9689d10053755587e4904fcef": -2.1875,
+      "knowledge-chunk-a22b63393d978bd117378d947fa9046eb8fb6ce60b38865bb2756b064c887209": -2.62109375,
+      "knowledge-chunk-53ead899f9e125609946edbca9294bd8edd96489c5992fcf1ad0aca958ed3ded": -5.08203125,
+      "knowledge-chunk-c0536e3735615e412c33642a1038440b677c6aa3ce7136a0d0351c3a40403bd3": -4.49609375,
+      "knowledge-chunk-f2fde5f324969c6cff868583cac29f963d1b27fa41e089e23f387e327a81f55d": -1.59765625,
+      "knowledge-chunk-4fc249e8c1019b1fb760f528643f035b18092c09c64ff9f16665b69215adad80": -5.765625,
+      "knowledge-chunk-f87bc5988373bcbe1302c6c43a8a95c496e0bfd3152950e1cf74a677d1b43b0c": -3.900390625,
+      "knowledge-chunk-9002b10a1577d07cc0593568085e7a39d21989c424f1cb0ba0e71172a73f48d2": -2.15234375,
+      "knowledge-chunk-f4ca4f0e2a3d6c90a17b9f561a3fefe4220528ee74e3e292a2eb037706daf035": -3.91015625,
+      "knowledge-chunk-728697c23c470ee68b725ce1639e3eced52372bbb325e8a63edb1e413e11b2fa": -3.3984375,
+      "knowledge-chunk-feb09f841925187096f9db7db9410873eaa4cf7bb0d947c639d44d7550fba834": -6.9609375,
+      "knowledge-chunk-19a47d09fd68270764d32c28d990691389cad7b3eb9feb5b6a5f6ccd629e8d6b": -5.8125,
+      "knowledge-chunk-284ef9824fe991538b5097c124930e1cb2d63d45e5430dd851f3ead03d3d4388": -3.84375,
+      "knowledge-chunk-385ddfebcb678d6ed223f505b932d3aa8ef7753771ab9f73d6104c144f6aa483": -4.015625,
+      "knowledge-chunk-851a136e313849c01385212938c082434c2a89d66f02b1e72e77829ab2d75f03": -3.291015625,
+      "knowledge-chunk-716e29dbbb2c0d14a1b9807b95dd5abb9a6e20e4265a9e061684e63ab3748397": -5.171875,
+      "knowledge-chunk-f716473f63dc8f83e95a3c3028e70621b64d3ccebf23e596945f60991157c4c3": -1.9130859375,
+      "knowledge-chunk-0dc2dbc23cdb8424bd823a0c5c9b7dea40c30293ee00fcc03d381af319f1fb6e": -3.810546875,
+      "knowledge-chunk-554f6b9a1e7ce9860794668da77b52302152fb0485f7920550d2d179a63085c8": -7.0703125,
+      "knowledge-chunk-109685e715aaad82d82addd1e17245956e7b2e215067640234c58d9111c6b392": -5.55078125,
+      "knowledge-chunk-514ce523cc8925d9c2224015d7e4bc7ab3954cbc7094c492efb42d2ae63bdbb0": -6.3671875,
+      "knowledge-chunk-1207583f78d17fa495cff004730a775085161f69923f94332d0aa9ca3721b9c3": -5.4609375,
+      "knowledge-chunk-dc5a442cfcf3dd6881195bdb38e53b9d95e102170176bfdb0e02407caf32601c": -2.544921875,
+      "knowledge-chunk-e0685e936bd5f99b9f582cc71ada60f9437db08a807ecc310a84d38985f3ae4b": -6.04296875,
+      "knowledge-chunk-a830e8dfaa3eae038c3330b9f237bcda6f55e79ad343080ff2ad6255ed5ed8d4": -7.14453125,
+      "knowledge-chunk-0cec7bcc829c9d2b5801221282aaebc0b3334248078cf057494ad42741483a69": -6.890625,
+      "knowledge-chunk-760dbb00e2be2907df00027c718b7df6ea5a40d6befa6347a9e217b96f511aca": -6.89453125
+    },
+    "arms": {
+      "bm25": {
+        "ce5": {
+          "article_recall": 0.0,
+          "all_articles": false,
+          "article_mrr": 0,
+          "article_ndcg": 0.0
+        },
+        "pack5": {
+          "article_recall": 0.0,
+          "all_articles": false,
+          "article_mrr": 0,
+          "article_ndcg": 0.0
+        },
+        "ordered": [
+          "knowledge-chunk-477dd6820bca69afa2ea44d26ac2a8b36550be1ca8ccf62fa9598b82705891af",
+          "knowledge-chunk-41d50f8af25ab39754e586136177c712c2cb64432f76d62d7cc2c17e85609aa9",
+          "knowledge-chunk-f2fde5f324969c6cff868583cac29f963d1b27fa41e089e23f387e327a81f55d",
+          "knowledge-chunk-378335dea0f473c1c11e70441db73c82a09c331bd45b004384a8e42c0e1eb0b3",
+          "knowledge-chunk-f716473f63dc8f83e95a3c3028e70621b64d3ccebf23e596945f60991157c4c3",
+          "knowledge-chunk-9002b10a1577d07cc0593568085e7a39d21989c424f1cb0ba0e71172a73f48d2",
+          "knowledge-chunk-73248ee1338e354eb87cfb644fbdb85e614efcd9689d10053755587e4904fcef",
+          "knowledge-chunk-a22b63393d978bd117378d947fa9046eb8fb6ce60b38865bb2756b064c887209",
+          "knowledge-chunk-851a136e313849c01385212938c082434c2a89d66f02b1e72e77829ab2d75f03",
+          "knowledge-chunk-728697c23c470ee68b725ce1639e3eced52372bbb325e8a63edb1e413e11b2fa",
+          "knowledge-chunk-284ef9824fe991538b5097c124930e1cb2d63d45e5430dd851f3ead03d3d4388",
+          "knowledge-chunk-f87bc5988373bcbe1302c6c43a8a95c496e0bfd3152950e1cf74a677d1b43b0c",
+          "knowledge-chunk-f4ca4f0e2a3d6c90a17b9f561a3fefe4220528ee74e3e292a2eb037706daf035",
+          "knowledge-chunk-385ddfebcb678d6ed223f505b932d3aa8ef7753771ab9f73d6104c144f6aa483",
+          "knowledge-chunk-c0536e3735615e412c33642a1038440b677c6aa3ce7136a0d0351c3a40403bd3",
+          "knowledge-chunk-53ead899f9e125609946edbca9294bd8edd96489c5992fcf1ad0aca958ed3ded",
+          "knowledge-chunk-716e29dbbb2c0d14a1b9807b95dd5abb9a6e20e4265a9e061684e63ab3748397",
+          "knowledge-chunk-4fc249e8c1019b1fb760f528643f035b18092c09c64ff9f16665b69215adad80",
+          "knowledge-chunk-19a47d09fd68270764d32c28d990691389cad7b3eb9feb5b6a5f6ccd629e8d6b",
+          "knowledge-chunk-feb09f841925187096f9db7db9410873eaa4cf7bb0d947c639d44d7550fba834"
+        ],
+        "packed": [
+          "knowledge-chunk-477dd6820bca69afa2ea44d26ac2a8b36550be1ca8ccf62fa9598b82705891af",
+          "knowledge-chunk-41d50f8af25ab39754e586136177c712c2cb64432f76d62d7cc2c17e85609aa9",
+          "knowledge-chunk-f2fde5f324969c6cff868583cac29f963d1b27fa41e089e23f387e327a81f55d",
+          "knowledge-chunk-378335dea0f473c1c11e70441db73c82a09c331bd45b004384a8e42c0e1eb0b3",
+          "knowledge-chunk-f716473f63dc8f83e95a3c3028e70621b64d3ccebf23e596945f60991157c4c3"
+        ]
+      },
+      "native": {
+        "ce5": {
+          "article_recall": 0.0,
+          "all_articles": false,
+          "article_mrr": 0,
+          "article_ndcg": 0.0
+        },
+        "pack5": {
+          "article_recall": 0.0,
+          "all_articles": false,
+          "article_mrr": 0,
+          "article_ndcg": 0.0
+        },
+        "ordered": [
+          "knowledge-chunk-477dd6820bca69afa2ea44d26ac2a8b36550be1ca8ccf62fa9598b82705891af",
+          "knowledge-chunk-f2fde5f324969c6cff868583cac29f963d1b27fa41e089e23f387e327a81f55d",
+          "knowledge-chunk-f716473f63dc8f83e95a3c3028e70621b64d3ccebf23e596945f60991157c4c3",
+          "knowledge-chunk-73248ee1338e354eb87cfb644fbdb85e614efcd9689d10053755587e4904fcef",
+          "knowledge-chunk-dc5a442cfcf3dd6881195bdb38e53b9d95e102170176bfdb0e02407caf32601c",
+          "knowledge-chunk-851a136e313849c01385212938c082434c2a89d66f02b1e72e77829ab2d75f03",
+          "knowledge-chunk-0dc2dbc23cdb8424bd823a0c5c9b7dea40c30293ee00fcc03d381af319f1fb6e",
+          "knowledge-chunk-f4ca4f0e2a3d6c90a17b9f561a3fefe4220528ee74e3e292a2eb037706daf035",
+          "knowledge-chunk-53ead899f9e125609946edbca9294bd8edd96489c5992fcf1ad0aca958ed3ded",
+          "knowledge-chunk-1207583f78d17fa495cff004730a775085161f69923f94332d0aa9ca3721b9c3",
+          "knowledge-chunk-109685e715aaad82d82addd1e17245956e7b2e215067640234c58d9111c6b392",
+          "knowledge-chunk-4fc249e8c1019b1fb760f528643f035b18092c09c64ff9f16665b69215adad80",
+          "knowledge-chunk-19a47d09fd68270764d32c28d990691389cad7b3eb9feb5b6a5f6ccd629e8d6b",
+          "knowledge-chunk-e0685e936bd5f99b9f582cc71ada60f9437db08a807ecc310a84d38985f3ae4b",
+          "knowledge-chunk-514ce523cc8925d9c2224015d7e4bc7ab3954cbc7094c492efb42d2ae63bdbb0",
+          "knowledge-chunk-0cec7bcc829c9d2b5801221282aaebc0b3334248078cf057494ad42741483a69",
+          "knowledge-chunk-760dbb00e2be2907df00027c718b7df6ea5a40d6befa6347a9e217b96f511aca",
+          "knowledge-chunk-feb09f841925187096f9db7db9410873eaa4cf7bb0d947c639d44d7550fba834",
+          "knowledge-chunk-554f6b9a1e7ce9860794668da77b52302152fb0485f7920550d2d179a63085c8",
+          "knowledge-chunk-a830e8dfaa3eae038c3330b9f237bcda6f55e79ad343080ff2ad6255ed5ed8d4"
+        ],
+        "packed": [
+          "knowledge-chunk-477dd6820bca69afa2ea44d26ac2a8b36550be1ca8ccf62fa9598b82705891af",
+          "knowledge-chunk-f2fde5f324969c6cff868583cac29f963d1b27fa41e089e23f387e327a81f55d",
+          "knowledge-chunk-f716473f63dc8f83e95a3c3028e70621b64d3ccebf23e596945f60991157c4c3",
+          "knowledge-chunk-73248ee1338e354eb87cfb644fbdb85e614efcd9689d10053755587e4904fcef",
+          "knowledge-chunk-dc5a442cfcf3dd6881195bdb38e53b9d95e102170176bfdb0e02407caf32601c"
+        ]
+      }
+    }
+  },
+  {
+    "case_id": "02482f869032580ceb3ffb3318aec1802e9028083166efcc2878b18828afa05c",
+    "scores": {
+      "knowledge-chunk-c4fd7859fb882c18ee156bdcc46597480d0da3ee346e182f15e7ef51e22a9a2d": 3.28125,
+      "knowledge-chunk-727209fa7129a3a5e870f582b99501eaa142a7b1d00d1b03aab32b74ff630151": 2.8671875,
+      "knowledge-chunk-e65348d281492672b15eb5043553dfc31fe13fee7e75e11bd44a680f681a7847": 3.03515625,
+      "knowledge-chunk-1d85f26eb5fd612aea1ddef6963aed9de821fd015fbba7105f85c0111f78c610": 3.86328125,
+      "knowledge-chunk-f003879a0d10c7000a836816c939d106bc9ca6c7e254e80d784c77e148fbb38c": 4.48046875,
+      "knowledge-chunk-4cd36c65f4b32bea8665c0aea99af3cb594a77cd245b97ff4d94566ecd844cab": 2.427734375,
+      "knowledge-chunk-dcb7ed9cd6c6dbc2b5ae080208633549974c930ec18e12abc48d735ae85c8176": 1.7060546875,
+      "knowledge-chunk-7c1b66e43a1b706fc2ae08c1cedbee3cebf7ac080562060e17e54fdaf70c9b39": 2.921875,
+      "knowledge-chunk-17c60510aa1f60a485284eed04532c26d1ded275ca7d4f6891020165d0296ec3": 4.41796875,
+      "knowledge-chunk-f1f4f881e4005f2801f1ba7bd3e324554f29edd4315c10501cfd476b2f91253d": 1.4921875,
+      "knowledge-chunk-848716123b9d27b2c6d0f787a6fd6d8500fea0de3bbf1bc0b41241c6a2c3ca3a": 3.44921875,
+      "knowledge-chunk-62788dbb7637c8c36d2a22ac1929c91a20b47f641f1ae3a5a4d19cace68df63d": 4.75390625,
+      "knowledge-chunk-73e923cb9ae31f41e3b8922c18d77aede1ccd55983788cce5af6f04b553ce007": 1.146484375,
+      "knowledge-chunk-772f0152e70a3971482a76d843a7625db3005cd17b96bef6d6db52ec388b043f": 3.06640625,
+      "knowledge-chunk-8c0b75222ab9e138cf981a7b8c1d5e8270ede8512a21631af810024ba163c9da": 4.3359375,
+      "knowledge-chunk-297e99d44f37dd738694778410ae9b1fe0c9c37f1d78c537c4e361f99de123e5": 1.373046875,
+      "knowledge-chunk-4ae4746b94b0128751595eacb6c00d56ac6b4efbcce4054b0a4261c44398d2fd": 2.021484375,
+      "knowledge-chunk-99439aa58f6db285167c673ff66d9c16cc23b2cb4c7ecdb1cf602d1feda1353f": 3.5,
+      "knowledge-chunk-6c406b6737f0dacd9a852b99f3eab5f7327f4d72bbdf560eda900cd8bbd7d399": 0.6904296875,
+      "knowledge-chunk-f633a3efcd21597920c0f8a0c4cca01c5acf300170624bc632308ba84ec8d19d": 1.646484375,
+      "knowledge-chunk-bec7efad5d2a379aa0ef8edf798f806e7a5ec44e673080fd098740112e1d0de0": 3.349609375,
+      "knowledge-chunk-58cb9be7fa4938415b6918fbc69308394fa39275f0a4d29485d8e1cccdfbe7a8": 2.0078125,
+      "knowledge-chunk-c4f86392a98f1ad5e02c7245aba31c0a7717469fc1cafa62803e24319aa1e052": 2.416015625,
+      "knowledge-chunk-47bff406f9180c16aca02a23c094c999bfa5f7c6649dbd7f09ffab55f0c2cf0a": 0.81640625,
+      "knowledge-chunk-514ce523cc8925d9c2224015d7e4bc7ab3954cbc7094c492efb42d2ae63bdbb0": -5.4453125,
+      "knowledge-chunk-880d82dfa01e91843e76e0fb08c56a45a5f333a55e1129f5325c92dababbc2f6": 1.9453125,
+      "knowledge-chunk-926b5b34638fed505335714c2868b560e4bafbc673426681a9ae4b760d229f5d": -5.25,
+      "knowledge-chunk-64e237a499242a368a26926301cd8b7ca17793b1b0b3b869fc92f7d70386ec5a": 3.853515625
+    },
+    "arms": {
+      "bm25": {
+        "ce5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 0.25,
+          "article_ndcg": 0.43067655807339306
+        },
+        "pack5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 0.25,
+          "article_ndcg": 0.43067655807339306
+        },
+        "ordered": [
+          "knowledge-chunk-62788dbb7637c8c36d2a22ac1929c91a20b47f641f1ae3a5a4d19cace68df63d",
+          "knowledge-chunk-f003879a0d10c7000a836816c939d106bc9ca6c7e254e80d784c77e148fbb38c",
+          "knowledge-chunk-17c60510aa1f60a485284eed04532c26d1ded275ca7d4f6891020165d0296ec3",
+          "knowledge-chunk-8c0b75222ab9e138cf981a7b8c1d5e8270ede8512a21631af810024ba163c9da",
+          "knowledge-chunk-1d85f26eb5fd612aea1ddef6963aed9de821fd015fbba7105f85c0111f78c610",
+          "knowledge-chunk-99439aa58f6db285167c673ff66d9c16cc23b2cb4c7ecdb1cf602d1feda1353f",
+          "knowledge-chunk-848716123b9d27b2c6d0f787a6fd6d8500fea0de3bbf1bc0b41241c6a2c3ca3a",
+          "knowledge-chunk-c4fd7859fb882c18ee156bdcc46597480d0da3ee346e182f15e7ef51e22a9a2d",
+          "knowledge-chunk-772f0152e70a3971482a76d843a7625db3005cd17b96bef6d6db52ec388b043f",
+          "knowledge-chunk-e65348d281492672b15eb5043553dfc31fe13fee7e75e11bd44a680f681a7847",
+          "knowledge-chunk-7c1b66e43a1b706fc2ae08c1cedbee3cebf7ac080562060e17e54fdaf70c9b39",
+          "knowledge-chunk-727209fa7129a3a5e870f582b99501eaa142a7b1d00d1b03aab32b74ff630151",
+          "knowledge-chunk-4cd36c65f4b32bea8665c0aea99af3cb594a77cd245b97ff4d94566ecd844cab",
+          "knowledge-chunk-4ae4746b94b0128751595eacb6c00d56ac6b4efbcce4054b0a4261c44398d2fd",
+          "knowledge-chunk-dcb7ed9cd6c6dbc2b5ae080208633549974c930ec18e12abc48d735ae85c8176",
+          "knowledge-chunk-f633a3efcd21597920c0f8a0c4cca01c5acf300170624bc632308ba84ec8d19d",
+          "knowledge-chunk-f1f4f881e4005f2801f1ba7bd3e324554f29edd4315c10501cfd476b2f91253d",
+          "knowledge-chunk-297e99d44f37dd738694778410ae9b1fe0c9c37f1d78c537c4e361f99de123e5",
+          "knowledge-chunk-73e923cb9ae31f41e3b8922c18d77aede1ccd55983788cce5af6f04b553ce007",
+          "knowledge-chunk-6c406b6737f0dacd9a852b99f3eab5f7327f4d72bbdf560eda900cd8bbd7d399"
+        ],
+        "packed": [
+          "knowledge-chunk-62788dbb7637c8c36d2a22ac1929c91a20b47f641f1ae3a5a4d19cace68df63d",
+          "knowledge-chunk-f003879a0d10c7000a836816c939d106bc9ca6c7e254e80d784c77e148fbb38c",
+          "knowledge-chunk-17c60510aa1f60a485284eed04532c26d1ded275ca7d4f6891020165d0296ec3",
+          "knowledge-chunk-8c0b75222ab9e138cf981a7b8c1d5e8270ede8512a21631af810024ba163c9da",
+          "knowledge-chunk-1d85f26eb5fd612aea1ddef6963aed9de821fd015fbba7105f85c0111f78c610"
+        ]
+      },
+      "native": {
+        "ce5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 0.3333333333333333,
+          "article_ndcg": 0.5
+        },
+        "pack5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 0.3333333333333333,
+          "article_ndcg": 0.5
+        },
+        "ordered": [
+          "knowledge-chunk-f003879a0d10c7000a836816c939d106bc9ca6c7e254e80d784c77e148fbb38c",
+          "knowledge-chunk-17c60510aa1f60a485284eed04532c26d1ded275ca7d4f6891020165d0296ec3",
+          "knowledge-chunk-8c0b75222ab9e138cf981a7b8c1d5e8270ede8512a21631af810024ba163c9da",
+          "knowledge-chunk-1d85f26eb5fd612aea1ddef6963aed9de821fd015fbba7105f85c0111f78c610",
+          "knowledge-chunk-64e237a499242a368a26926301cd8b7ca17793b1b0b3b869fc92f7d70386ec5a",
+          "knowledge-chunk-99439aa58f6db285167c673ff66d9c16cc23b2cb4c7ecdb1cf602d1feda1353f",
+          "knowledge-chunk-848716123b9d27b2c6d0f787a6fd6d8500fea0de3bbf1bc0b41241c6a2c3ca3a",
+          "knowledge-chunk-bec7efad5d2a379aa0ef8edf798f806e7a5ec44e673080fd098740112e1d0de0",
+          "knowledge-chunk-c4fd7859fb882c18ee156bdcc46597480d0da3ee346e182f15e7ef51e22a9a2d",
+          "knowledge-chunk-772f0152e70a3971482a76d843a7625db3005cd17b96bef6d6db52ec388b043f",
+          "knowledge-chunk-7c1b66e43a1b706fc2ae08c1cedbee3cebf7ac080562060e17e54fdaf70c9b39",
+          "knowledge-chunk-727209fa7129a3a5e870f582b99501eaa142a7b1d00d1b03aab32b74ff630151",
+          "knowledge-chunk-c4f86392a98f1ad5e02c7245aba31c0a7717469fc1cafa62803e24319aa1e052",
+          "knowledge-chunk-58cb9be7fa4938415b6918fbc69308394fa39275f0a4d29485d8e1cccdfbe7a8",
+          "knowledge-chunk-880d82dfa01e91843e76e0fb08c56a45a5f333a55e1129f5325c92dababbc2f6",
+          "knowledge-chunk-dcb7ed9cd6c6dbc2b5ae080208633549974c930ec18e12abc48d735ae85c8176",
+          "knowledge-chunk-f633a3efcd21597920c0f8a0c4cca01c5acf300170624bc632308ba84ec8d19d",
+          "knowledge-chunk-47bff406f9180c16aca02a23c094c999bfa5f7c6649dbd7f09ffab55f0c2cf0a",
+          "knowledge-chunk-926b5b34638fed505335714c2868b560e4bafbc673426681a9ae4b760d229f5d",
+          "knowledge-chunk-514ce523cc8925d9c2224015d7e4bc7ab3954cbc7094c492efb42d2ae63bdbb0"
+        ],
+        "packed": [
+          "knowledge-chunk-f003879a0d10c7000a836816c939d106bc9ca6c7e254e80d784c77e148fbb38c",
+          "knowledge-chunk-17c60510aa1f60a485284eed04532c26d1ded275ca7d4f6891020165d0296ec3",
+          "knowledge-chunk-8c0b75222ab9e138cf981a7b8c1d5e8270ede8512a21631af810024ba163c9da",
+          "knowledge-chunk-1d85f26eb5fd612aea1ddef6963aed9de821fd015fbba7105f85c0111f78c610",
+          "knowledge-chunk-64e237a499242a368a26926301cd8b7ca17793b1b0b3b869fc92f7d70386ec5a"
+        ]
+      }
+    }
+  },
+  {
+    "case_id": "05dc48b29eb2f0de6a90664cc227260358c46812ee57356138af33ea436da18e",
+    "scores": {
+      "knowledge-chunk-28a4fa9a19b86d5515d9170ba11732bd7296c307623bab887f9bd47279d5551b": -0.65234375,
+      "knowledge-chunk-ef37129dd5faf4fc5e30b8947e3d171c0ff76889657ce2216260a98bde9006a6": -2.85546875,
+      "knowledge-chunk-b78fc5d8ad4b784f8bb1276dabce01632b0ef95f56df10286d9c8edadc2a6380": -1.9375,
+      "knowledge-chunk-19402fc1be2388393207ad2cc5cd6a92b450f16a999db4dd690aec3285e1ee69": -1.3212890625,
+      "knowledge-chunk-a6ea65195b93ec794c49a2477102d334f2cbdb09bf3a48a0aab04b3e99c1b84a": -4.765625,
+      "knowledge-chunk-1f843ac2d789d867daf42e101adcb1278a4c03159132d984a6dec2866abda4a8": -2.96484375,
+      "knowledge-chunk-45dd516300e8aa106884793d67672b8fd5a6df2083a362a71fa80643376ddcc1": -8.8125,
+      "knowledge-chunk-21211c0785e194702704b815048843c4cdfeee3c4adfd873e985628bf585da09": -1.2158203125,
+      "knowledge-chunk-f50c46e0230f68d212d35e5e5395b4bf29b71995ea5cf3462adda24f56a5ac22": -1.2529296875,
+      "knowledge-chunk-1ae09b5ffe64f06c127fbf96eb29441f231b400b8645f48e82bfc888aff2e800": -3.09375,
+      "knowledge-chunk-fa0ea800fa7f8480664ccd001102bbdb43e3e3603d54a14ae2a14813c76b43db": -8.109375,
+      "knowledge-chunk-0e39300deb40c0abf61c2065875d37489a3cb3996fc02cd257a88d24caddc090": -5.25,
+      "knowledge-chunk-680359546841e0c51986aab69c9b2b0c0c6d60cbac8a2ab25c8bfaee78fd13ff": -10.9609375,
+      "knowledge-chunk-3942cfeb32235782e0ab078e3603807bf34a1d9fd06896ac5264cb1820a7b5ef": -6.71484375,
+      "knowledge-chunk-ecda13aac67377e0e9b646a4bf1b621df82150b979fae33575f3808d83c19784": -2.08984375,
+      "knowledge-chunk-579e437d9d731552996282f88a198519f72232b77764bc21a945f21bba7f82be": -4.3359375,
+      "knowledge-chunk-e33182b518e06b2a74722debf08e4aea81e848ddb01a3796b6c3876678a2b4ed": -5.47265625,
+      "knowledge-chunk-927fa5d5e7ed09fe5780039da5895300640f35b339793abd0d69dd2df19cf435": -4.03515625,
+      "knowledge-chunk-da726c0e35065908daa767ee3a3556094e6ec3d4b079a20147869e6b3ada858f": -8.265625,
+      "knowledge-chunk-1cccbb39dac5f79c2825c39212342bc77e9494abf9e54aa667185978ec38fcea": -4.640625,
+      "knowledge-chunk-8e0a2c758929b5ac2047e7c6c6c80df0b56989137e7e0c543daf34c7c70cb293": -8.6875,
+      "knowledge-chunk-6f6176f8fb1039910213e839718ba9fce9f92f877642963fc84336d8f35758d3": -7.4609375,
+      "knowledge-chunk-8c0b75222ab9e138cf981a7b8c1d5e8270ede8512a21631af810024ba163c9da": -10.578125,
+      "knowledge-chunk-2ea2465549ea6e0bea19da083c42f4eebba07599917afa6b0cddb7294a183e8d": -5.03515625,
+      "knowledge-chunk-4fe7c6e84a0f423ec800df79abe12c7216e24dea648ac93186da4359bf7cddeb": -5.73828125,
+      "knowledge-chunk-fad63b8db136588ee67a75ec850bf142c01a4ef453ab12dcfbb557889ebd6658": -8.8515625,
+      "knowledge-chunk-6ed4c19420319d2e9a058b8bef96aba76368be58919d94a41b3b6e34a679c037": -8.8203125,
+      "knowledge-chunk-872b7e13c7310c2e1e8c1445d18764b120ce8a1a2d5450a03bd2a056884c3eaa": -9.046875,
+      "knowledge-chunk-78c4239e72f3e6f6bfd59e535c1d5ff1467c5560d4345e61472ea7e6e8b5914c": -8.6953125,
+      "knowledge-chunk-4bd7122073ea8f4081e99a057f2da5d9f2b5c9d7706403ecf1e7706cb8c1b49e": -8.7109375
+    },
+    "arms": {
+      "bm25": {
+        "ce5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 0.25,
+          "article_ndcg": 0.43067655807339306
+        },
+        "pack5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 0.25,
+          "article_ndcg": 0.43067655807339306
+        },
+        "ordered": [
+          "knowledge-chunk-28a4fa9a19b86d5515d9170ba11732bd7296c307623bab887f9bd47279d5551b",
+          "knowledge-chunk-21211c0785e194702704b815048843c4cdfeee3c4adfd873e985628bf585da09",
+          "knowledge-chunk-f50c46e0230f68d212d35e5e5395b4bf29b71995ea5cf3462adda24f56a5ac22",
+          "knowledge-chunk-19402fc1be2388393207ad2cc5cd6a92b450f16a999db4dd690aec3285e1ee69",
+          "knowledge-chunk-b78fc5d8ad4b784f8bb1276dabce01632b0ef95f56df10286d9c8edadc2a6380",
+          "knowledge-chunk-ecda13aac67377e0e9b646a4bf1b621df82150b979fae33575f3808d83c19784",
+          "knowledge-chunk-ef37129dd5faf4fc5e30b8947e3d171c0ff76889657ce2216260a98bde9006a6",
+          "knowledge-chunk-1f843ac2d789d867daf42e101adcb1278a4c03159132d984a6dec2866abda4a8",
+          "knowledge-chunk-1ae09b5ffe64f06c127fbf96eb29441f231b400b8645f48e82bfc888aff2e800",
+          "knowledge-chunk-927fa5d5e7ed09fe5780039da5895300640f35b339793abd0d69dd2df19cf435",
+          "knowledge-chunk-579e437d9d731552996282f88a198519f72232b77764bc21a945f21bba7f82be",
+          "knowledge-chunk-1cccbb39dac5f79c2825c39212342bc77e9494abf9e54aa667185978ec38fcea",
+          "knowledge-chunk-a6ea65195b93ec794c49a2477102d334f2cbdb09bf3a48a0aab04b3e99c1b84a",
+          "knowledge-chunk-0e39300deb40c0abf61c2065875d37489a3cb3996fc02cd257a88d24caddc090",
+          "knowledge-chunk-e33182b518e06b2a74722debf08e4aea81e848ddb01a3796b6c3876678a2b4ed",
+          "knowledge-chunk-3942cfeb32235782e0ab078e3603807bf34a1d9fd06896ac5264cb1820a7b5ef",
+          "knowledge-chunk-fa0ea800fa7f8480664ccd001102bbdb43e3e3603d54a14ae2a14813c76b43db",
+          "knowledge-chunk-da726c0e35065908daa767ee3a3556094e6ec3d4b079a20147869e6b3ada858f",
+          "knowledge-chunk-45dd516300e8aa106884793d67672b8fd5a6df2083a362a71fa80643376ddcc1",
+          "knowledge-chunk-680359546841e0c51986aab69c9b2b0c0c6d60cbac8a2ab25c8bfaee78fd13ff"
+        ],
+        "packed": [
+          "knowledge-chunk-28a4fa9a19b86d5515d9170ba11732bd7296c307623bab887f9bd47279d5551b",
+          "knowledge-chunk-21211c0785e194702704b815048843c4cdfeee3c4adfd873e985628bf585da09",
+          "knowledge-chunk-f50c46e0230f68d212d35e5e5395b4bf29b71995ea5cf3462adda24f56a5ac22",
+          "knowledge-chunk-19402fc1be2388393207ad2cc5cd6a92b450f16a999db4dd690aec3285e1ee69",
+          "knowledge-chunk-b78fc5d8ad4b784f8bb1276dabce01632b0ef95f56df10286d9c8edadc2a6380"
+        ]
+      },
+      "native": {
+        "ce5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 0.3333333333333333,
+          "article_ndcg": 0.5
+        },
+        "pack5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 0.3333333333333333,
+          "article_ndcg": 0.5
+        },
+        "ordered": [
+          "knowledge-chunk-28a4fa9a19b86d5515d9170ba11732bd7296c307623bab887f9bd47279d5551b",
+          "knowledge-chunk-f50c46e0230f68d212d35e5e5395b4bf29b71995ea5cf3462adda24f56a5ac22",
+          "knowledge-chunk-19402fc1be2388393207ad2cc5cd6a92b450f16a999db4dd690aec3285e1ee69",
+          "knowledge-chunk-b78fc5d8ad4b784f8bb1276dabce01632b0ef95f56df10286d9c8edadc2a6380",
+          "knowledge-chunk-ecda13aac67377e0e9b646a4bf1b621df82150b979fae33575f3808d83c19784",
+          "knowledge-chunk-1f843ac2d789d867daf42e101adcb1278a4c03159132d984a6dec2866abda4a8",
+          "knowledge-chunk-1ae09b5ffe64f06c127fbf96eb29441f231b400b8645f48e82bfc888aff2e800",
+          "knowledge-chunk-579e437d9d731552996282f88a198519f72232b77764bc21a945f21bba7f82be",
+          "knowledge-chunk-2ea2465549ea6e0bea19da083c42f4eebba07599917afa6b0cddb7294a183e8d",
+          "knowledge-chunk-0e39300deb40c0abf61c2065875d37489a3cb3996fc02cd257a88d24caddc090",
+          "knowledge-chunk-4fe7c6e84a0f423ec800df79abe12c7216e24dea648ac93186da4359bf7cddeb",
+          "knowledge-chunk-6f6176f8fb1039910213e839718ba9fce9f92f877642963fc84336d8f35758d3",
+          "knowledge-chunk-da726c0e35065908daa767ee3a3556094e6ec3d4b079a20147869e6b3ada858f",
+          "knowledge-chunk-8e0a2c758929b5ac2047e7c6c6c80df0b56989137e7e0c543daf34c7c70cb293",
+          "knowledge-chunk-78c4239e72f3e6f6bfd59e535c1d5ff1467c5560d4345e61472ea7e6e8b5914c",
+          "knowledge-chunk-4bd7122073ea8f4081e99a057f2da5d9f2b5c9d7706403ecf1e7706cb8c1b49e",
+          "knowledge-chunk-6ed4c19420319d2e9a058b8bef96aba76368be58919d94a41b3b6e34a679c037",
+          "knowledge-chunk-fad63b8db136588ee67a75ec850bf142c01a4ef453ab12dcfbb557889ebd6658",
+          "knowledge-chunk-872b7e13c7310c2e1e8c1445d18764b120ce8a1a2d5450a03bd2a056884c3eaa",
+          "knowledge-chunk-8c0b75222ab9e138cf981a7b8c1d5e8270ede8512a21631af810024ba163c9da"
+        ],
+        "packed": [
+          "knowledge-chunk-28a4fa9a19b86d5515d9170ba11732bd7296c307623bab887f9bd47279d5551b",
+          "knowledge-chunk-f50c46e0230f68d212d35e5e5395b4bf29b71995ea5cf3462adda24f56a5ac22",
+          "knowledge-chunk-19402fc1be2388393207ad2cc5cd6a92b450f16a999db4dd690aec3285e1ee69",
+          "knowledge-chunk-b78fc5d8ad4b784f8bb1276dabce01632b0ef95f56df10286d9c8edadc2a6380",
+          "knowledge-chunk-ecda13aac67377e0e9b646a4bf1b621df82150b979fae33575f3808d83c19784"
+        ]
+      }
+    }
+  },
+  {
+    "case_id": "17755497f122ccc44c141325f6d20196e8473d8f45592d26d63704dc479f84be",
+    "scores": {
+      "knowledge-chunk-a197c82fb2cd6af470aa014aa1401401d555a42dd35f5674870bc8a663daa95b": -0.4765625,
+      "knowledge-chunk-3c21f42c8930f7b44c705ba624f985c5656d1a888536e4f183092db6ff8aa12c": -1.9140625,
+      "knowledge-chunk-953beb7ebe406836988435c85fab68859aaf030d32ae0032b1a309c275595da9": -4.8203125,
+      "knowledge-chunk-6a00d122a612c5accc6f4bb71cd6e6af9191fd8255126d74732d9740558018c2": -4.15625,
+      "knowledge-chunk-60032ce6f8ea8fdce3a55b0e573b83f051b6f459b88dbcebeecd34803ed29361": -2.060546875,
+      "knowledge-chunk-7e2faeae6d640da86829d1b439d53558f02dbffd7db8a001989d68f7d0338ed0": -1.14453125,
+      "knowledge-chunk-9d51b3908b9a4aee272a51847a1087212df3123cae2406f9a9e7fdf6323da08b": -6.21484375,
+      "knowledge-chunk-e36737e1fc481100bd6d252c0a6a4b85f56485ae417c7fef21fa7e435fc9a23c": -2.814453125,
+      "knowledge-chunk-1dd2c4efd3e82a8dd1b66b74e9d0eefb2b8dd1422144e8e286beed29f1643d60": -7.23828125,
+      "knowledge-chunk-1e6a32a9802f5a9d8a7b729bd183ef2fa93f19cf81d7eb74b851cf3d5300290f": -1.2548828125,
+      "knowledge-chunk-406b5110b828467522c85bf583345c536ba2a5550ac8dfe181551641b71da1f5": -5.56640625,
+      "knowledge-chunk-c01dcf6f9a92de597683d6461e7f9f8bd0f504cfc4c2201f1f1d80f77f5a4187": -2.560546875,
+      "knowledge-chunk-34c8be48cc7215939e24462f378cb347d8b2de8696357066a7f054dbc57bd8a0": -2.76171875,
+      "knowledge-chunk-50ab365b0e56c9427426520c011b9244125613e7f81a40d1eb8c5a58024aded0": -3.595703125,
+      "knowledge-chunk-6f6176f8fb1039910213e839718ba9fce9f92f877642963fc84336d8f35758d3": -6.33984375,
+      "knowledge-chunk-c257c382dc622cab6a3573e47644095ccf97bae3cbed91d0ed988d396449ad23": -3.265625,
+      "knowledge-chunk-6a45a6dd35014faf8d2570ca74d4c914fe6d67b98576c4bb056b20da1c091dab": -5.30078125,
+      "knowledge-chunk-f8667b8337e4ec88964c0599ac84f56024091a110180203f0fdede15ad7c1fe9": -3.6328125,
+      "knowledge-chunk-49b17a317baecb20acbd8edb251a5494ea85e81de3b2f9b43744851a2d34287a": -3.591796875,
+      "knowledge-chunk-fbf1ecc9a3514078b6d8602bbf27aa0ce5703c86860b13fe2d98cd6acab64911": -4.23046875,
+      "knowledge-chunk-06c981646146b6ec7e1866a4302af282131aec035330d08db4468eb87445ca23": -5.87890625,
+      "knowledge-chunk-fb2ca559d5fc259338828aa559c19a5d857b5ee8b674ddf9139a0d9f207afe78": -4.109375,
+      "knowledge-chunk-2a367b82c5022dbdae52e9965c2c6130611f6083ada0bc06c4d75f5d88a5c448": -5.19140625,
+      "knowledge-chunk-48b16efab645f15f0b0d36812f439174599cb0999b9b5b6efdc192e5c5b356b2": -5.47265625,
+      "knowledge-chunk-4b77b9f8448034a18f87a4698500ab69b70311fbd206411b63ca411db30ec5b4": -6.484375,
+      "knowledge-chunk-75fcae14c733b5de9fa0a325a097ab7cea12602e07d3285de89f044a953c17ad": -5.59765625,
+      "knowledge-chunk-8120809c295186e5bef2c60986868014a55b0ee62ac31fac3d0033953ac44f0e": -7.03515625,
+      "knowledge-chunk-2ea2465549ea6e0bea19da083c42f4eebba07599917afa6b0cddb7294a183e8d": -4.71484375,
+      "knowledge-chunk-6654dc0cc01450aa82172beda1a89e598ca57b54b9f2bbea20c4dd4e4d28dcc9": -6.9609375,
+      "knowledge-chunk-890d70c2a07e0f37fe5398bb81bea79b7cd9220cdb9843f1e5429ea4e8afa125": -5.5390625
+    },
+    "arms": {
+      "bm25": {
+        "ce5": {
+          "article_recall": 0.0,
+          "all_articles": false,
+          "article_mrr": 0,
+          "article_ndcg": 0.0
+        },
+        "pack5": {
+          "article_recall": 0.0,
+          "all_articles": false,
+          "article_mrr": 0,
+          "article_ndcg": 0.0
+        },
+        "ordered": [
+          "knowledge-chunk-a197c82fb2cd6af470aa014aa1401401d555a42dd35f5674870bc8a663daa95b",
+          "knowledge-chunk-7e2faeae6d640da86829d1b439d53558f02dbffd7db8a001989d68f7d0338ed0",
+          "knowledge-chunk-1e6a32a9802f5a9d8a7b729bd183ef2fa93f19cf81d7eb74b851cf3d5300290f",
+          "knowledge-chunk-3c21f42c8930f7b44c705ba624f985c5656d1a888536e4f183092db6ff8aa12c",
+          "knowledge-chunk-60032ce6f8ea8fdce3a55b0e573b83f051b6f459b88dbcebeecd34803ed29361",
+          "knowledge-chunk-c01dcf6f9a92de597683d6461e7f9f8bd0f504cfc4c2201f1f1d80f77f5a4187",
+          "knowledge-chunk-34c8be48cc7215939e24462f378cb347d8b2de8696357066a7f054dbc57bd8a0",
+          "knowledge-chunk-e36737e1fc481100bd6d252c0a6a4b85f56485ae417c7fef21fa7e435fc9a23c",
+          "knowledge-chunk-c257c382dc622cab6a3573e47644095ccf97bae3cbed91d0ed988d396449ad23",
+          "knowledge-chunk-49b17a317baecb20acbd8edb251a5494ea85e81de3b2f9b43744851a2d34287a",
+          "knowledge-chunk-50ab365b0e56c9427426520c011b9244125613e7f81a40d1eb8c5a58024aded0",
+          "knowledge-chunk-f8667b8337e4ec88964c0599ac84f56024091a110180203f0fdede15ad7c1fe9",
+          "knowledge-chunk-6a00d122a612c5accc6f4bb71cd6e6af9191fd8255126d74732d9740558018c2",
+          "knowledge-chunk-fbf1ecc9a3514078b6d8602bbf27aa0ce5703c86860b13fe2d98cd6acab64911",
+          "knowledge-chunk-953beb7ebe406836988435c85fab68859aaf030d32ae0032b1a309c275595da9",
+          "knowledge-chunk-6a45a6dd35014faf8d2570ca74d4c914fe6d67b98576c4bb056b20da1c091dab",
+          "knowledge-chunk-406b5110b828467522c85bf583345c536ba2a5550ac8dfe181551641b71da1f5",
+          "knowledge-chunk-9d51b3908b9a4aee272a51847a1087212df3123cae2406f9a9e7fdf6323da08b",
+          "knowledge-chunk-6f6176f8fb1039910213e839718ba9fce9f92f877642963fc84336d8f35758d3",
+          "knowledge-chunk-1dd2c4efd3e82a8dd1b66b74e9d0eefb2b8dd1422144e8e286beed29f1643d60"
+        ],
+        "packed": [
+          "knowledge-chunk-a197c82fb2cd6af470aa014aa1401401d555a42dd35f5674870bc8a663daa95b",
+          "knowledge-chunk-7e2faeae6d640da86829d1b439d53558f02dbffd7db8a001989d68f7d0338ed0",
+          "knowledge-chunk-1e6a32a9802f5a9d8a7b729bd183ef2fa93f19cf81d7eb74b851cf3d5300290f",
+          "knowledge-chunk-3c21f42c8930f7b44c705ba624f985c5656d1a888536e4f183092db6ff8aa12c",
+          "knowledge-chunk-60032ce6f8ea8fdce3a55b0e573b83f051b6f459b88dbcebeecd34803ed29361"
+        ]
+      },
+      "native": {
+        "ce5": {
+          "article_recall": 0.0,
+          "all_articles": false,
+          "article_mrr": 0,
+          "article_ndcg": 0.0
+        },
+        "pack5": {
+          "article_recall": 0.0,
+          "all_articles": false,
+          "article_mrr": 0,
+          "article_ndcg": 0.0
+        },
+        "ordered": [
+          "knowledge-chunk-7e2faeae6d640da86829d1b439d53558f02dbffd7db8a001989d68f7d0338ed0",
+          "knowledge-chunk-1e6a32a9802f5a9d8a7b729bd183ef2fa93f19cf81d7eb74b851cf3d5300290f",
+          "knowledge-chunk-3c21f42c8930f7b44c705ba624f985c5656d1a888536e4f183092db6ff8aa12c",
+          "knowledge-chunk-e36737e1fc481100bd6d252c0a6a4b85f56485ae417c7fef21fa7e435fc9a23c",
+          "knowledge-chunk-c257c382dc622cab6a3573e47644095ccf97bae3cbed91d0ed988d396449ad23",
+          "knowledge-chunk-49b17a317baecb20acbd8edb251a5494ea85e81de3b2f9b43744851a2d34287a",
+          "knowledge-chunk-50ab365b0e56c9427426520c011b9244125613e7f81a40d1eb8c5a58024aded0",
+          "knowledge-chunk-f8667b8337e4ec88964c0599ac84f56024091a110180203f0fdede15ad7c1fe9",
+          "knowledge-chunk-fb2ca559d5fc259338828aa559c19a5d857b5ee8b674ddf9139a0d9f207afe78",
+          "knowledge-chunk-2ea2465549ea6e0bea19da083c42f4eebba07599917afa6b0cddb7294a183e8d",
+          "knowledge-chunk-953beb7ebe406836988435c85fab68859aaf030d32ae0032b1a309c275595da9",
+          "knowledge-chunk-2a367b82c5022dbdae52e9965c2c6130611f6083ada0bc06c4d75f5d88a5c448",
+          "knowledge-chunk-48b16efab645f15f0b0d36812f439174599cb0999b9b5b6efdc192e5c5b356b2",
+          "knowledge-chunk-890d70c2a07e0f37fe5398bb81bea79b7cd9220cdb9843f1e5429ea4e8afa125",
+          "knowledge-chunk-406b5110b828467522c85bf583345c536ba2a5550ac8dfe181551641b71da1f5",
+          "knowledge-chunk-75fcae14c733b5de9fa0a325a097ab7cea12602e07d3285de89f044a953c17ad",
+          "knowledge-chunk-06c981646146b6ec7e1866a4302af282131aec035330d08db4468eb87445ca23",
+          "knowledge-chunk-4b77b9f8448034a18f87a4698500ab69b70311fbd206411b63ca411db30ec5b4",
+          "knowledge-chunk-6654dc0cc01450aa82172beda1a89e598ca57b54b9f2bbea20c4dd4e4d28dcc9",
+          "knowledge-chunk-8120809c295186e5bef2c60986868014a55b0ee62ac31fac3d0033953ac44f0e"
+        ],
+        "packed": [
+          "knowledge-chunk-7e2faeae6d640da86829d1b439d53558f02dbffd7db8a001989d68f7d0338ed0",
+          "knowledge-chunk-1e6a32a9802f5a9d8a7b729bd183ef2fa93f19cf81d7eb74b851cf3d5300290f",
+          "knowledge-chunk-3c21f42c8930f7b44c705ba624f985c5656d1a888536e4f183092db6ff8aa12c",
+          "knowledge-chunk-e36737e1fc481100bd6d252c0a6a4b85f56485ae417c7fef21fa7e435fc9a23c",
+          "knowledge-chunk-c257c382dc622cab6a3573e47644095ccf97bae3cbed91d0ed988d396449ad23"
+        ]
+      }
+    }
+  },
+  {
+    "case_id": "1b31d5f663fe4cb5e46715fa652704ff82f98d79c5032c0a34e338f75dca40cb",
+    "scores": {
+      "knowledge-chunk-346071538a47faa576c5d7a49297e1c98704e17ca78a0aa13ac18436392ca809": -1.845703125,
+      "knowledge-chunk-b3e7f4e17b329818523c4cff45c316d7513c012707f881a3fab8bd60cce6b2ed": -0.358154296875,
+      "knowledge-chunk-13ec57d9060abb0e59bf007df30c0b0418851522e3eae97f048702d7baed18e8": -1.0703125,
+      "knowledge-chunk-ca8d136cd9764b4bd2cfcc53d3e7dbbe6c546af46d1ec6dec52608d767677849": -5.4453125,
+      "knowledge-chunk-db95d8e12a4db3231258ff1ad03ae1faecc805ac668294db538959150bd29798": -3.150390625,
+      "knowledge-chunk-e510abb966624722ab5ea94d93830fbf9156c065adc1db7ea564f2ea325de773": -0.33154296875,
+      "knowledge-chunk-0de0b9d5685c01a7175d7b7681907ed5f1c53fcd1e090f9c314011870126b88f": 0.59375,
+      "knowledge-chunk-3ff363161942b71b3c7650e6ca407ff0a44eced6adce60e21e195e9d380e70c5": -3.787109375,
+      "knowledge-chunk-63908bfb86a699186de2867eb9f07827cde421a8d74f8b7b9b0e4a1d41ba7c96": -0.276611328125,
+      "knowledge-chunk-8bfc8fb55b08413ed34fa674fe1d511c54a580a73ed4f36c3708144e2f9d0dc7": -4.484375,
+      "knowledge-chunk-d42f95167e019cb07d51a8dc8d2ed6bf157434a5c08495d2e17059a38718d04f": -2.591796875,
+      "knowledge-chunk-d540cd6a5c5c1a903f328d908b6a908d1e9abed66863584b229cc09c6df27f4e": -1.546875,
+      "knowledge-chunk-3b5068ea64d507baad0031b485a2c8a639cd79a83b2fdf4df829060ce4611ccc": 0.88134765625,
+      "knowledge-chunk-ada7a62b563bcb0bb9a44d86500fff0c0a6729dba5f301d1a2b73e91a886cef4": -5.82421875,
+      "knowledge-chunk-34c049a31ead4998b5b9b0ea0347d4e779a5c63806efd13c9e57321e71001de0": -1.3662109375,
+      "knowledge-chunk-408cfb1c7ccb986142ac3459f903f0a264819b440aae79bce2b5d03687f66bde": -5.79296875,
+      "knowledge-chunk-77c0eeee2e573ae7785824f287b9b86470715d504454d91969422f5a0f50355f": -4.76953125,
+      "knowledge-chunk-80e9d63ab884dedb95f93de78818e84a625fac79b213b6a8e5969d215aa807c4": -1.0244140625,
+      "knowledge-chunk-8e3ea9a30efcccd8c3b52f4e03824a10758096242d746a79bc98a91ec66cd1d8": -1.1787109375,
+      "knowledge-chunk-e0db7838fa86100b40a14e8565a8dce0f771b9b940c5c45906b567d2fcabd303": -2.712890625,
+      "knowledge-chunk-8e0a2c758929b5ac2047e7c6c6c80df0b56989137e7e0c543daf34c7c70cb293": -5.87890625,
+      "knowledge-chunk-f16731a1fc0bec4ff3751058b09eb5860475f4e4388d28b6a15016f1d16c7898": -4.28125,
+      "knowledge-chunk-6ed4c19420319d2e9a058b8bef96aba76368be58919d94a41b3b6e34a679c037": -5.1953125,
+      "knowledge-chunk-8c0b75222ab9e138cf981a7b8c1d5e8270ede8512a21631af810024ba163c9da": -5.74609375,
+      "knowledge-chunk-554f6b9a1e7ce9860794668da77b52302152fb0485f7920550d2d179a63085c8": -7.52734375,
+      "knowledge-chunk-7c1b66e43a1b706fc2ae08c1cedbee3cebf7ac080562060e17e54fdaf70c9b39": -6.96484375,
+      "knowledge-chunk-885485849af37abaa5c26d87f2973663ec60eebb3e1e5fb6154bb15c813e2682": -1.62109375,
+      "knowledge-chunk-e041ea885387f5132d77f9247f78b8b5b90b1d06dbc636aa53c0314de175aff0": -2.271484375,
+      "knowledge-chunk-2f7f449efaaf2158e4e97cb62185f00430ce53b56307e0ceedeed410e18e4350": -5.0703125,
+      "knowledge-chunk-47c4613c986cefd93d4da64f262ba6523896e6fc405f8bfae6a9c71a81102713": -7.69921875
+    },
+    "arms": {
+      "bm25": {
+        "ce5": {
+          "article_recall": 0.0,
+          "all_articles": false,
+          "article_mrr": 0,
+          "article_ndcg": 0.0
+        },
+        "pack5": {
+          "article_recall": 0.0,
+          "all_articles": false,
+          "article_mrr": 0,
+          "article_ndcg": 0.0
+        },
+        "ordered": [
+          "knowledge-chunk-3b5068ea64d507baad0031b485a2c8a639cd79a83b2fdf4df829060ce4611ccc",
+          "knowledge-chunk-0de0b9d5685c01a7175d7b7681907ed5f1c53fcd1e090f9c314011870126b88f",
+          "knowledge-chunk-63908bfb86a699186de2867eb9f07827cde421a8d74f8b7b9b0e4a1d41ba7c96",
+          "knowledge-chunk-e510abb966624722ab5ea94d93830fbf9156c065adc1db7ea564f2ea325de773",
+          "knowledge-chunk-b3e7f4e17b329818523c4cff45c316d7513c012707f881a3fab8bd60cce6b2ed",
+          "knowledge-chunk-80e9d63ab884dedb95f93de78818e84a625fac79b213b6a8e5969d215aa807c4",
+          "knowledge-chunk-13ec57d9060abb0e59bf007df30c0b0418851522e3eae97f048702d7baed18e8",
+          "knowledge-chunk-8e3ea9a30efcccd8c3b52f4e03824a10758096242d746a79bc98a91ec66cd1d8",
+          "knowledge-chunk-34c049a31ead4998b5b9b0ea0347d4e779a5c63806efd13c9e57321e71001de0",
+          "knowledge-chunk-d540cd6a5c5c1a903f328d908b6a908d1e9abed66863584b229cc09c6df27f4e",
+          "knowledge-chunk-346071538a47faa576c5d7a49297e1c98704e17ca78a0aa13ac18436392ca809",
+          "knowledge-chunk-d42f95167e019cb07d51a8dc8d2ed6bf157434a5c08495d2e17059a38718d04f",
+          "knowledge-chunk-e0db7838fa86100b40a14e8565a8dce0f771b9b940c5c45906b567d2fcabd303",
+          "knowledge-chunk-db95d8e12a4db3231258ff1ad03ae1faecc805ac668294db538959150bd29798",
+          "knowledge-chunk-3ff363161942b71b3c7650e6ca407ff0a44eced6adce60e21e195e9d380e70c5",
+          "knowledge-chunk-8bfc8fb55b08413ed34fa674fe1d511c54a580a73ed4f36c3708144e2f9d0dc7",
+          "knowledge-chunk-77c0eeee2e573ae7785824f287b9b86470715d504454d91969422f5a0f50355f",
+          "knowledge-chunk-ca8d136cd9764b4bd2cfcc53d3e7dbbe6c546af46d1ec6dec52608d767677849",
+          "knowledge-chunk-408cfb1c7ccb986142ac3459f903f0a264819b440aae79bce2b5d03687f66bde",
+          "knowledge-chunk-ada7a62b563bcb0bb9a44d86500fff0c0a6729dba5f301d1a2b73e91a886cef4"
+        ],
+        "packed": [
+          "knowledge-chunk-3b5068ea64d507baad0031b485a2c8a639cd79a83b2fdf4df829060ce4611ccc",
+          "knowledge-chunk-0de0b9d5685c01a7175d7b7681907ed5f1c53fcd1e090f9c314011870126b88f",
+          "knowledge-chunk-63908bfb86a699186de2867eb9f07827cde421a8d74f8b7b9b0e4a1d41ba7c96",
+          "knowledge-chunk-e510abb966624722ab5ea94d93830fbf9156c065adc1db7ea564f2ea325de773",
+          "knowledge-chunk-b3e7f4e17b329818523c4cff45c316d7513c012707f881a3fab8bd60cce6b2ed"
+        ]
+      },
+      "native": {
+        "ce5": {
+          "article_recall": 0.0,
+          "all_articles": false,
+          "article_mrr": 0,
+          "article_ndcg": 0.0
+        },
+        "pack5": {
+          "article_recall": 0.0,
+          "all_articles": false,
+          "article_mrr": 0,
+          "article_ndcg": 0.0
+        },
+        "ordered": [
+          "knowledge-chunk-80e9d63ab884dedb95f93de78818e84a625fac79b213b6a8e5969d215aa807c4",
+          "knowledge-chunk-13ec57d9060abb0e59bf007df30c0b0418851522e3eae97f048702d7baed18e8",
+          "knowledge-chunk-885485849af37abaa5c26d87f2973663ec60eebb3e1e5fb6154bb15c813e2682",
+          "knowledge-chunk-346071538a47faa576c5d7a49297e1c98704e17ca78a0aa13ac18436392ca809",
+          "knowledge-chunk-e041ea885387f5132d77f9247f78b8b5b90b1d06dbc636aa53c0314de175aff0",
+          "knowledge-chunk-d42f95167e019cb07d51a8dc8d2ed6bf157434a5c08495d2e17059a38718d04f",
+          "knowledge-chunk-e0db7838fa86100b40a14e8565a8dce0f771b9b940c5c45906b567d2fcabd303",
+          "knowledge-chunk-db95d8e12a4db3231258ff1ad03ae1faecc805ac668294db538959150bd29798",
+          "knowledge-chunk-3ff363161942b71b3c7650e6ca407ff0a44eced6adce60e21e195e9d380e70c5",
+          "knowledge-chunk-f16731a1fc0bec4ff3751058b09eb5860475f4e4388d28b6a15016f1d16c7898",
+          "knowledge-chunk-8bfc8fb55b08413ed34fa674fe1d511c54a580a73ed4f36c3708144e2f9d0dc7",
+          "knowledge-chunk-2f7f449efaaf2158e4e97cb62185f00430ce53b56307e0ceedeed410e18e4350",
+          "knowledge-chunk-6ed4c19420319d2e9a058b8bef96aba76368be58919d94a41b3b6e34a679c037",
+          "knowledge-chunk-8c0b75222ab9e138cf981a7b8c1d5e8270ede8512a21631af810024ba163c9da",
+          "knowledge-chunk-408cfb1c7ccb986142ac3459f903f0a264819b440aae79bce2b5d03687f66bde",
+          "knowledge-chunk-ada7a62b563bcb0bb9a44d86500fff0c0a6729dba5f301d1a2b73e91a886cef4",
+          "knowledge-chunk-8e0a2c758929b5ac2047e7c6c6c80df0b56989137e7e0c543daf34c7c70cb293",
+          "knowledge-chunk-7c1b66e43a1b706fc2ae08c1cedbee3cebf7ac080562060e17e54fdaf70c9b39",
+          "knowledge-chunk-554f6b9a1e7ce9860794668da77b52302152fb0485f7920550d2d179a63085c8",
+          "knowledge-chunk-47c4613c986cefd93d4da64f262ba6523896e6fc405f8bfae6a9c71a81102713"
+        ],
+        "packed": [
+          "knowledge-chunk-80e9d63ab884dedb95f93de78818e84a625fac79b213b6a8e5969d215aa807c4",
+          "knowledge-chunk-13ec57d9060abb0e59bf007df30c0b0418851522e3eae97f048702d7baed18e8",
+          "knowledge-chunk-885485849af37abaa5c26d87f2973663ec60eebb3e1e5fb6154bb15c813e2682",
+          "knowledge-chunk-346071538a47faa576c5d7a49297e1c98704e17ca78a0aa13ac18436392ca809",
+          "knowledge-chunk-e041ea885387f5132d77f9247f78b8b5b90b1d06dbc636aa53c0314de175aff0"
+        ]
+      }
+    }
+  },
+  {
+    "case_id": "1e09a597b54ce278470490f06d92545c207a207de0fd12692800f24cfabd5570",
+    "scores": {
+      "knowledge-chunk-9ee5dd2238df645a08f134e7b0edb34d6be78bd4eb088ea930faed66e99cd3ff": 3.369140625,
+      "knowledge-chunk-8cf499bd7bc94a3dbf7ba7d0c4274b811d83c64d75fcee87b7419ab12a6e57ff": 3.05078125,
+      "knowledge-chunk-2150952c2e5d4d1d88d25ca968d2c7ca79303a2f752b81d2a91c09738dacbbc9": 3.408203125,
+      "knowledge-chunk-6881bb73697e1dcf5756f0c9181b208d0983619ad5e0d382a92784faa5db4bb7": 3.32421875,
+      "knowledge-chunk-02ab0d0e417ea11862da1a3b1d57a164d128fc495abad28adcd1987cd6e9c613": 3.1171875,
+      "knowledge-chunk-cf5bf00c4d56949d8b33c6a61f3d99170c408259532ab5608dd92b7ec64c8598": 2.962890625,
+      "knowledge-chunk-7658678cfbb84412b961cc36a68eba4e38ce8234bb7d3b74ad8f97ca6fe4d701": 3.51953125,
+      "knowledge-chunk-6ef6ea6aee8a77877d2be291ebb00ed4c70515c630e838293793766a07b8a5f2": 2.92578125,
+      "knowledge-chunk-2e064064446acb6c22a3a3c0311be23813eb924b07e412626e5b3dccded1558e": 0.7060546875,
+      "knowledge-chunk-2ed0216b8a27565324f0c5a6f7c005cb3a4f47ff707fda05259e19fc5db88215": 1.54296875,
+      "knowledge-chunk-56b377ec7d8d8dba9cf750018b75b8fe026fa3cfe0c93fa4a17d12e312c726ab": 2.109375,
+      "knowledge-chunk-f0598a60c300ed786fc768cfefe1f43a84c6faa25bfd17a8f154864040d33a30": -0.67138671875,
+      "knowledge-chunk-31a3de8dfb0a024522d4ecde8153ea6f13d090d3d377325b640f823343de328d": -2.466796875,
+      "knowledge-chunk-d9e41f3489d237d91bbb7889cd46fafb8a76dd347a78333c7a6a72e84de06c16": -3.419921875,
+      "knowledge-chunk-d31699d1be5e7bc4587c3cd7899d8b2700b1429a46ba1e12bd3a72a757da105f": -4.05859375,
+      "knowledge-chunk-e7517501e0e1188232caa80ac68a4dc49f4f69bd4fad933241fc699223200469": 1.7275390625,
+      "knowledge-chunk-42f71005d6c4e677f6543aa7fc444d5bd276a478f9303e94dd0090940d51461a": -1.015625,
+      "knowledge-chunk-28c230379ea974bd1cdc0218ec3140f065ea33227a987671aa3bf683c4a4c422": 1.53125,
+      "knowledge-chunk-b809d5455923bff5fbb18976ebdc3dd0165dc8a973397df3d1f36879654a3d5d": -0.9453125,
+      "knowledge-chunk-188a5023ed45757abff9287f77e9d5c92e1a4bb34973ff422d02be1375534479": 2.6328125,
+      "knowledge-chunk-06c242ebb37ae14b37da82c41297742d6f07d9e7a2bf25324a1fe80a7372ad51": -5.5546875,
+      "knowledge-chunk-109685e715aaad82d82addd1e17245956e7b2e215067640234c58d9111c6b392": -5.31640625,
+      "knowledge-chunk-85f14cbb08e867cecbcc1ea65fc5b57350df2ccb9accdfbe2eb8473035bd8052": -4.9375,
+      "knowledge-chunk-51d8d1842d4049dc3e8a6c77aae8227f23f4f6e060a888997c0fb7a0985fc922": -4.95703125,
+      "knowledge-chunk-0ee2f2df0f9c0b587bec8a82f21c33f741e82b2e321afe74fca4d82ebc8ac7a5": -6.63671875,
+      "knowledge-chunk-6db1ade32c55df02e08938a13445baf81cfa8a15f90332a03fde868fff35234d": -9.875,
+      "knowledge-chunk-a42c4808018a47a5c896fd25951a0eefd24ba1185c1e27a55fb7cf764d77c4ac": -8.6796875
+    },
+    "arms": {
+      "bm25": {
+        "ce5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 1.0,
+          "article_ndcg": 1.0
+        },
+        "pack5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 1.0,
+          "article_ndcg": 1.0
+        },
+        "ordered": [
+          "knowledge-chunk-7658678cfbb84412b961cc36a68eba4e38ce8234bb7d3b74ad8f97ca6fe4d701",
+          "knowledge-chunk-2150952c2e5d4d1d88d25ca968d2c7ca79303a2f752b81d2a91c09738dacbbc9",
+          "knowledge-chunk-9ee5dd2238df645a08f134e7b0edb34d6be78bd4eb088ea930faed66e99cd3ff",
+          "knowledge-chunk-6881bb73697e1dcf5756f0c9181b208d0983619ad5e0d382a92784faa5db4bb7",
+          "knowledge-chunk-02ab0d0e417ea11862da1a3b1d57a164d128fc495abad28adcd1987cd6e9c613",
+          "knowledge-chunk-8cf499bd7bc94a3dbf7ba7d0c4274b811d83c64d75fcee87b7419ab12a6e57ff",
+          "knowledge-chunk-cf5bf00c4d56949d8b33c6a61f3d99170c408259532ab5608dd92b7ec64c8598",
+          "knowledge-chunk-6ef6ea6aee8a77877d2be291ebb00ed4c70515c630e838293793766a07b8a5f2",
+          "knowledge-chunk-188a5023ed45757abff9287f77e9d5c92e1a4bb34973ff422d02be1375534479",
+          "knowledge-chunk-56b377ec7d8d8dba9cf750018b75b8fe026fa3cfe0c93fa4a17d12e312c726ab",
+          "knowledge-chunk-e7517501e0e1188232caa80ac68a4dc49f4f69bd4fad933241fc699223200469",
+          "knowledge-chunk-2ed0216b8a27565324f0c5a6f7c005cb3a4f47ff707fda05259e19fc5db88215",
+          "knowledge-chunk-28c230379ea974bd1cdc0218ec3140f065ea33227a987671aa3bf683c4a4c422",
+          "knowledge-chunk-2e064064446acb6c22a3a3c0311be23813eb924b07e412626e5b3dccded1558e",
+          "knowledge-chunk-f0598a60c300ed786fc768cfefe1f43a84c6faa25bfd17a8f154864040d33a30",
+          "knowledge-chunk-b809d5455923bff5fbb18976ebdc3dd0165dc8a973397df3d1f36879654a3d5d",
+          "knowledge-chunk-42f71005d6c4e677f6543aa7fc444d5bd276a478f9303e94dd0090940d51461a",
+          "knowledge-chunk-31a3de8dfb0a024522d4ecde8153ea6f13d090d3d377325b640f823343de328d",
+          "knowledge-chunk-d9e41f3489d237d91bbb7889cd46fafb8a76dd347a78333c7a6a72e84de06c16",
+          "knowledge-chunk-d31699d1be5e7bc4587c3cd7899d8b2700b1429a46ba1e12bd3a72a757da105f"
+        ],
+        "packed": [
+          "knowledge-chunk-7658678cfbb84412b961cc36a68eba4e38ce8234bb7d3b74ad8f97ca6fe4d701",
+          "knowledge-chunk-2150952c2e5d4d1d88d25ca968d2c7ca79303a2f752b81d2a91c09738dacbbc9",
+          "knowledge-chunk-9ee5dd2238df645a08f134e7b0edb34d6be78bd4eb088ea930faed66e99cd3ff",
+          "knowledge-chunk-6881bb73697e1dcf5756f0c9181b208d0983619ad5e0d382a92784faa5db4bb7",
+          "knowledge-chunk-02ab0d0e417ea11862da1a3b1d57a164d128fc495abad28adcd1987cd6e9c613"
+        ]
+      },
+      "native": {
+        "ce5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 1.0,
+          "article_ndcg": 1.0
+        },
+        "pack5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 1.0,
+          "article_ndcg": 1.0
+        },
+        "ordered": [
+          "knowledge-chunk-7658678cfbb84412b961cc36a68eba4e38ce8234bb7d3b74ad8f97ca6fe4d701",
+          "knowledge-chunk-2150952c2e5d4d1d88d25ca968d2c7ca79303a2f752b81d2a91c09738dacbbc9",
+          "knowledge-chunk-9ee5dd2238df645a08f134e7b0edb34d6be78bd4eb088ea930faed66e99cd3ff",
+          "knowledge-chunk-6881bb73697e1dcf5756f0c9181b208d0983619ad5e0d382a92784faa5db4bb7",
+          "knowledge-chunk-02ab0d0e417ea11862da1a3b1d57a164d128fc495abad28adcd1987cd6e9c613",
+          "knowledge-chunk-8cf499bd7bc94a3dbf7ba7d0c4274b811d83c64d75fcee87b7419ab12a6e57ff",
+          "knowledge-chunk-cf5bf00c4d56949d8b33c6a61f3d99170c408259532ab5608dd92b7ec64c8598",
+          "knowledge-chunk-56b377ec7d8d8dba9cf750018b75b8fe026fa3cfe0c93fa4a17d12e312c726ab",
+          "knowledge-chunk-2e064064446acb6c22a3a3c0311be23813eb924b07e412626e5b3dccded1558e",
+          "knowledge-chunk-f0598a60c300ed786fc768cfefe1f43a84c6faa25bfd17a8f154864040d33a30",
+          "knowledge-chunk-42f71005d6c4e677f6543aa7fc444d5bd276a478f9303e94dd0090940d51461a",
+          "knowledge-chunk-31a3de8dfb0a024522d4ecde8153ea6f13d090d3d377325b640f823343de328d",
+          "knowledge-chunk-d31699d1be5e7bc4587c3cd7899d8b2700b1429a46ba1e12bd3a72a757da105f",
+          "knowledge-chunk-85f14cbb08e867cecbcc1ea65fc5b57350df2ccb9accdfbe2eb8473035bd8052",
+          "knowledge-chunk-51d8d1842d4049dc3e8a6c77aae8227f23f4f6e060a888997c0fb7a0985fc922",
+          "knowledge-chunk-109685e715aaad82d82addd1e17245956e7b2e215067640234c58d9111c6b392",
+          "knowledge-chunk-06c242ebb37ae14b37da82c41297742d6f07d9e7a2bf25324a1fe80a7372ad51",
+          "knowledge-chunk-0ee2f2df0f9c0b587bec8a82f21c33f741e82b2e321afe74fca4d82ebc8ac7a5",
+          "knowledge-chunk-a42c4808018a47a5c896fd25951a0eefd24ba1185c1e27a55fb7cf764d77c4ac",
+          "knowledge-chunk-6db1ade32c55df02e08938a13445baf81cfa8a15f90332a03fde868fff35234d"
+        ],
+        "packed": [
+          "knowledge-chunk-7658678cfbb84412b961cc36a68eba4e38ce8234bb7d3b74ad8f97ca6fe4d701",
+          "knowledge-chunk-2150952c2e5d4d1d88d25ca968d2c7ca79303a2f752b81d2a91c09738dacbbc9",
+          "knowledge-chunk-9ee5dd2238df645a08f134e7b0edb34d6be78bd4eb088ea930faed66e99cd3ff",
+          "knowledge-chunk-6881bb73697e1dcf5756f0c9181b208d0983619ad5e0d382a92784faa5db4bb7",
+          "knowledge-chunk-02ab0d0e417ea11862da1a3b1d57a164d128fc495abad28adcd1987cd6e9c613"
+        ]
+      }
+    }
+  },
+  {
+    "case_id": "1e0faa735c381c2a97e98cfd19bec92b3cb53b76c4e2a3c9ece21514d1ef2011",
+    "scores": {
+      "knowledge-chunk-97e94c9109808643073790880a3e6b7b03cbdf23b17a8f50886ed667bcdae9c3": -3.376953125,
+      "knowledge-chunk-b5f9bb53f60108f61beaa11f7fe23bc193c905d1a5fa2595a3c6dba57e30339a": -1.8388671875,
+      "knowledge-chunk-2e5b45bebc7bb2e87bcf4c0566d079e6fd55f8ddf84dbc8076d4be369df2a78a": -4.2578125,
+      "knowledge-chunk-b7cd050e3595af3d25c93136a21d0165f85701279498383dd2e7724f4785c4dc": -4.41015625,
+      "knowledge-chunk-dfc292db2d4823e2faeb33cd436c7b812645b9bd576999b4506f32c9609c30e9": -2.994140625,
+      "knowledge-chunk-2cbdb2370ebd05b11401ea2cd852cfc617f0702906504c76e5103b9ff3949502": -7.83203125,
+      "knowledge-chunk-6466dfe41ef46e78f0b6933084f26448c5d5f7775601b71e03aa45de8ffdf505": -3.73046875,
+      "knowledge-chunk-7a8f5b4326cf6e3271ad9d523d06e181f26ad298ab5f0642fad19a863201b95b": -4.4453125,
+      "knowledge-chunk-b7fea2a7b5e744755d468661ab138e88cfb2dd44054d9ce8c748ac481a4b82d8": -3.98828125,
+      "knowledge-chunk-cac855364a9a23ff9165a316343f127bfd9ae07e6fd80764521a4e1466dfb7ee": -6.69921875,
+      "knowledge-chunk-092ed3621c82e3b74307be9a8a7e9a01700db78b24a02440b7c5aab148e8af3f": -4.671875,
+      "knowledge-chunk-f07eea68946ddcd3d148738763b686aae5f502d02f08a5964f7d830453fd13ee": -4.8984375,
+      "knowledge-chunk-31e5b7cc8e786789c39e0a0b0363868034d6a0da919f2a988d2864264b84cc0a": -4.10546875,
+      "knowledge-chunk-3b78141f6018f7c28f54b0d5214c5c7b1af80b534289b48b00a6efaaa7983bf1": -4.4765625,
+      "knowledge-chunk-55f413f42703d39d1289928664fbbb6343bc650f0f525bf94e634843691b7be8": -4.10546875,
+      "knowledge-chunk-8cb1f64da60b32ac5d62991c352b831b3330cb681b2dd89c8fd64b7239455866": -6.23046875,
+      "knowledge-chunk-9cdf0378185548de96823cb5ac7abb3784c99eca1e5155b4252d0f080dc0ae52": -4.8046875,
+      "knowledge-chunk-7e1da0de0e5a9e523a65e70be581ffe12b2040dce9fd17c5bf938918b3a28908": -5.5625,
+      "knowledge-chunk-bb7abc966709e58d6722774f6acf8b9cee2cb3c36a47bc7cb83cbda7583c12b1": -7.453125,
+      "knowledge-chunk-057f938f073fc2facecbc0c81d1fb5ba9d0c2bb7f35b8b40ba854f2e4ac621f1": -4.609375,
+      "knowledge-chunk-c1ba7802c8a32cabbdf08100d8e44028d26a1bde4fffb401dcb9836287b84813": -6.28125,
+      "knowledge-chunk-295ec7857cb9c958ea4d021f6fa0d7c994d75d4a194251b4c5f7e771cd8c656f": -4.64453125,
+      "knowledge-chunk-42e2c9817c83200f7b5836a74ff2d821bb3b195e1fcb6dbc8f4035c2b8e1156d": -5.01953125,
+      "knowledge-chunk-2ef405cc3c39825e4e542702c4d737b2f297e13464078cc59c486f16da9a4415": -5.30078125,
+      "knowledge-chunk-f1f4f881e4005f2801f1ba7bd3e324554f29edd4315c10501cfd476b2f91253d": -5.875,
+      "knowledge-chunk-39b98b4a2fc9825a7c5ef89d6ec5fdb6a88160cbd1c3655bf2f556f573f064fa": -7.66796875,
+      "knowledge-chunk-4169ccc94a8a1059f7eaf1b1b1026d7aab834bedd5d23b712b0cb7213304c8c2": -7.0390625,
+      "knowledge-chunk-1e498c1c5b7a457f226ea5288dae256f08d3b955f0ac36455bfcf75a40ab3d8c": -6.9921875
+    },
+    "arms": {
+      "bm25": {
+        "ce5": {
+          "article_recall": 0.0,
+          "all_articles": false,
+          "article_mrr": 0,
+          "article_ndcg": 0.0
+        },
+        "pack5": {
+          "article_recall": 0.0,
+          "all_articles": false,
+          "article_mrr": 0,
+          "article_ndcg": 0.0
+        },
+        "ordered": [
+          "knowledge-chunk-b5f9bb53f60108f61beaa11f7fe23bc193c905d1a5fa2595a3c6dba57e30339a",
+          "knowledge-chunk-dfc292db2d4823e2faeb33cd436c7b812645b9bd576999b4506f32c9609c30e9",
+          "knowledge-chunk-97e94c9109808643073790880a3e6b7b03cbdf23b17a8f50886ed667bcdae9c3",
+          "knowledge-chunk-6466dfe41ef46e78f0b6933084f26448c5d5f7775601b71e03aa45de8ffdf505",
+          "knowledge-chunk-b7fea2a7b5e744755d468661ab138e88cfb2dd44054d9ce8c748ac481a4b82d8",
+          "knowledge-chunk-31e5b7cc8e786789c39e0a0b0363868034d6a0da919f2a988d2864264b84cc0a",
+          "knowledge-chunk-55f413f42703d39d1289928664fbbb6343bc650f0f525bf94e634843691b7be8",
+          "knowledge-chunk-2e5b45bebc7bb2e87bcf4c0566d079e6fd55f8ddf84dbc8076d4be369df2a78a",
+          "knowledge-chunk-b7cd050e3595af3d25c93136a21d0165f85701279498383dd2e7724f4785c4dc",
+          "knowledge-chunk-7a8f5b4326cf6e3271ad9d523d06e181f26ad298ab5f0642fad19a863201b95b",
+          "knowledge-chunk-3b78141f6018f7c28f54b0d5214c5c7b1af80b534289b48b00a6efaaa7983bf1",
+          "knowledge-chunk-057f938f073fc2facecbc0c81d1fb5ba9d0c2bb7f35b8b40ba854f2e4ac621f1",
+          "knowledge-chunk-092ed3621c82e3b74307be9a8a7e9a01700db78b24a02440b7c5aab148e8af3f",
+          "knowledge-chunk-9cdf0378185548de96823cb5ac7abb3784c99eca1e5155b4252d0f080dc0ae52",
+          "knowledge-chunk-f07eea68946ddcd3d148738763b686aae5f502d02f08a5964f7d830453fd13ee",
+          "knowledge-chunk-7e1da0de0e5a9e523a65e70be581ffe12b2040dce9fd17c5bf938918b3a28908",
+          "knowledge-chunk-8cb1f64da60b32ac5d62991c352b831b3330cb681b2dd89c8fd64b7239455866",
+          "knowledge-chunk-cac855364a9a23ff9165a316343f127bfd9ae07e6fd80764521a4e1466dfb7ee",
+          "knowledge-chunk-bb7abc966709e58d6722774f6acf8b9cee2cb3c36a47bc7cb83cbda7583c12b1",
+          "knowledge-chunk-2cbdb2370ebd05b11401ea2cd852cfc617f0702906504c76e5103b9ff3949502"
+        ],
+        "packed": [
+          "knowledge-chunk-b5f9bb53f60108f61beaa11f7fe23bc193c905d1a5fa2595a3c6dba57e30339a",
+          "knowledge-chunk-dfc292db2d4823e2faeb33cd436c7b812645b9bd576999b4506f32c9609c30e9",
+          "knowledge-chunk-97e94c9109808643073790880a3e6b7b03cbdf23b17a8f50886ed667bcdae9c3",
+          "knowledge-chunk-6466dfe41ef46e78f0b6933084f26448c5d5f7775601b71e03aa45de8ffdf505",
+          "knowledge-chunk-b7fea2a7b5e744755d468661ab138e88cfb2dd44054d9ce8c748ac481a4b82d8"
+        ]
+      },
+      "native": {
+        "ce5": {
+          "article_recall": 0.0,
+          "all_articles": false,
+          "article_mrr": 0,
+          "article_ndcg": 0.0
+        },
+        "pack5": {
+          "article_recall": 0.0,
+          "all_articles": false,
+          "article_mrr": 0,
+          "article_ndcg": 0.0
+        },
+        "ordered": [
+          "knowledge-chunk-b5f9bb53f60108f61beaa11f7fe23bc193c905d1a5fa2595a3c6dba57e30339a",
+          "knowledge-chunk-97e94c9109808643073790880a3e6b7b03cbdf23b17a8f50886ed667bcdae9c3",
+          "knowledge-chunk-6466dfe41ef46e78f0b6933084f26448c5d5f7775601b71e03aa45de8ffdf505",
+          "knowledge-chunk-b7fea2a7b5e744755d468661ab138e88cfb2dd44054d9ce8c748ac481a4b82d8",
+          "knowledge-chunk-31e5b7cc8e786789c39e0a0b0363868034d6a0da919f2a988d2864264b84cc0a",
+          "knowledge-chunk-55f413f42703d39d1289928664fbbb6343bc650f0f525bf94e634843691b7be8",
+          "knowledge-chunk-2e5b45bebc7bb2e87bcf4c0566d079e6fd55f8ddf84dbc8076d4be369df2a78a",
+          "knowledge-chunk-7a8f5b4326cf6e3271ad9d523d06e181f26ad298ab5f0642fad19a863201b95b",
+          "knowledge-chunk-3b78141f6018f7c28f54b0d5214c5c7b1af80b534289b48b00a6efaaa7983bf1",
+          "knowledge-chunk-295ec7857cb9c958ea4d021f6fa0d7c994d75d4a194251b4c5f7e771cd8c656f",
+          "knowledge-chunk-092ed3621c82e3b74307be9a8a7e9a01700db78b24a02440b7c5aab148e8af3f",
+          "knowledge-chunk-42e2c9817c83200f7b5836a74ff2d821bb3b195e1fcb6dbc8f4035c2b8e1156d",
+          "knowledge-chunk-2ef405cc3c39825e4e542702c4d737b2f297e13464078cc59c486f16da9a4415",
+          "knowledge-chunk-7e1da0de0e5a9e523a65e70be581ffe12b2040dce9fd17c5bf938918b3a28908",
+          "knowledge-chunk-f1f4f881e4005f2801f1ba7bd3e324554f29edd4315c10501cfd476b2f91253d",
+          "knowledge-chunk-c1ba7802c8a32cabbdf08100d8e44028d26a1bde4fffb401dcb9836287b84813",
+          "knowledge-chunk-cac855364a9a23ff9165a316343f127bfd9ae07e6fd80764521a4e1466dfb7ee",
+          "knowledge-chunk-1e498c1c5b7a457f226ea5288dae256f08d3b955f0ac36455bfcf75a40ab3d8c",
+          "knowledge-chunk-4169ccc94a8a1059f7eaf1b1b1026d7aab834bedd5d23b712b0cb7213304c8c2",
+          "knowledge-chunk-39b98b4a2fc9825a7c5ef89d6ec5fdb6a88160cbd1c3655bf2f556f573f064fa"
+        ],
+        "packed": [
+          "knowledge-chunk-b5f9bb53f60108f61beaa11f7fe23bc193c905d1a5fa2595a3c6dba57e30339a",
+          "knowledge-chunk-97e94c9109808643073790880a3e6b7b03cbdf23b17a8f50886ed667bcdae9c3",
+          "knowledge-chunk-6466dfe41ef46e78f0b6933084f26448c5d5f7775601b71e03aa45de8ffdf505",
+          "knowledge-chunk-b7fea2a7b5e744755d468661ab138e88cfb2dd44054d9ce8c748ac481a4b82d8",
+          "knowledge-chunk-31e5b7cc8e786789c39e0a0b0363868034d6a0da919f2a988d2864264b84cc0a"
+        ]
+      }
+    }
+  },
+  {
+    "case_id": "1fa0bfe956ba630455a2be39fde089ccfbd1c35805769473ba16c69c630e76fd",
+    "scores": {
+      "knowledge-chunk-2a33fcba468ed7680819b7919ac7ff16d592d70ea64da2bcfc9c58025e2530b1": 3.828125,
+      "knowledge-chunk-5533832b6aa2dbe2ea930c5ac61c9f8fa573ec8a27461ed1c15232b0bb98beef": 2.51171875,
+      "knowledge-chunk-1c5fd8ad34760f551778bfb5ec738954d13007fba2c1cd0dfcc13582c434af2e": 2.642578125,
+      "knowledge-chunk-59c9063e60ec3dd2256e01e9383428cdfb66c596618df7f6c41510bda3d68956": 3.556640625,
+      "knowledge-chunk-159c1e421fecd88bbf525c4615735790218d491d94103671f7a6948382586b48": 3.1640625,
+      "knowledge-chunk-de02b59541da384e9a04f368776f63ab8796a997401beb6733cc6f9419bdabfc": 2.244140625,
+      "knowledge-chunk-32d23b9d8c6724bfadc4052d752b2ef6f69fcdffa95a6f199a46b9a36377affe": 1.99609375,
+      "knowledge-chunk-4b43df474419e805bcdfc71657010c045a289ab8bfa0e0e0025e56fc3dc03e61": 1.9765625,
+      "knowledge-chunk-8f6d1402e5cee6fe9ba3c789bbb23b43215510a67c426b3f47020b9447b9ab94": 0.79736328125,
+      "knowledge-chunk-ffb20671f3498fb039d33838d9c90c2d50264c4fed561dfcf35b6f480f507a39": 1.97265625,
+      "knowledge-chunk-cea300984f31bd59a61c31c57865594d213516c907ff7bc0d82f78b374f14cf8": 1.96484375,
+      "knowledge-chunk-bc5f4ac287a2dfc4f9343cb2ed792d4fe2bc07570a2dcfefb0bcf7125e69e902": 3.486328125,
+      "knowledge-chunk-8db3a9e5193a5e687cf0a47ab28ece2cd3ba20940f5b02f691c7c6e81f3c3b97": 2.955078125,
+      "knowledge-chunk-d6f2eb893206ccca5e7ab84e81e93086909fed7b36f06d959cc7d540b117580b": 2.25,
+      "knowledge-chunk-41767190401646471d9663919aa5b84ed044babb1cd724b182f2a881e7e61d39": 2.455078125,
+      "knowledge-chunk-d3725c3d0836048e031a9dfb7a475a4bcbcfefb8d22184e58634a1356c7ae7f7": -0.5654296875,
+      "knowledge-chunk-b24897a58682d1985f65cbe077863489dedff778f0eed8d307216c9c2e8442a9": 2.091796875,
+      "knowledge-chunk-b303572b10e6e4eeff10130cacfe6a0d1af1ad3b340684fcfa8c5984ebd5a510": 2.1484375,
+      "knowledge-chunk-89acd9478acdd64e8495bbb9cae1964d6f539e003a63e3a21ca3f2e51bc7f660": 1.828125,
+      "knowledge-chunk-ac0fa60a16c418275105c56f052413534103d50d07abc5c3d197e626ded7fde0": 0.59716796875,
+      "knowledge-chunk-5a0845ee6e6993af81cfb4a2441c98f2e383d684f53809ae039b63577331a6e4": -1.9521484375,
+      "knowledge-chunk-46588ea73eb1c13e3ff84cdb240e0247a5a2db0c3aaef5f0388e8f5892dc29a2": -0.4287109375,
+      "knowledge-chunk-c1ba7802c8a32cabbdf08100d8e44028d26a1bde4fffb401dcb9836287b84813": -4.8359375,
+      "knowledge-chunk-0389178942b305dc87b0e728a5c01028762f1a271e25a75b393677b65e638ab3": 1.03515625,
+      "knowledge-chunk-888edd0156468abbfd637e5212c28092cad14f26d9865fb66d689277af7a340e": 2.68359375
+    },
+    "arms": {
+      "bm25": {
+        "ce5": {
+          "article_recall": 0.5,
+          "all_articles": false,
+          "article_mrr": 0.2,
+          "article_ndcg": 0.23719771276929622
+        },
+        "pack5": {
+          "article_recall": 0.5,
+          "all_articles": false,
+          "article_mrr": 0.2,
+          "article_ndcg": 0.23719771276929622
+        },
+        "ordered": [
+          "knowledge-chunk-2a33fcba468ed7680819b7919ac7ff16d592d70ea64da2bcfc9c58025e2530b1",
+          "knowledge-chunk-59c9063e60ec3dd2256e01e9383428cdfb66c596618df7f6c41510bda3d68956",
+          "knowledge-chunk-bc5f4ac287a2dfc4f9343cb2ed792d4fe2bc07570a2dcfefb0bcf7125e69e902",
+          "knowledge-chunk-159c1e421fecd88bbf525c4615735790218d491d94103671f7a6948382586b48",
+          "knowledge-chunk-8db3a9e5193a5e687cf0a47ab28ece2cd3ba20940f5b02f691c7c6e81f3c3b97",
+          "knowledge-chunk-1c5fd8ad34760f551778bfb5ec738954d13007fba2c1cd0dfcc13582c434af2e",
+          "knowledge-chunk-5533832b6aa2dbe2ea930c5ac61c9f8fa573ec8a27461ed1c15232b0bb98beef",
+          "knowledge-chunk-41767190401646471d9663919aa5b84ed044babb1cd724b182f2a881e7e61d39",
+          "knowledge-chunk-d6f2eb893206ccca5e7ab84e81e93086909fed7b36f06d959cc7d540b117580b",
+          "knowledge-chunk-de02b59541da384e9a04f368776f63ab8796a997401beb6733cc6f9419bdabfc",
+          "knowledge-chunk-b303572b10e6e4eeff10130cacfe6a0d1af1ad3b340684fcfa8c5984ebd5a510",
+          "knowledge-chunk-b24897a58682d1985f65cbe077863489dedff778f0eed8d307216c9c2e8442a9",
+          "knowledge-chunk-32d23b9d8c6724bfadc4052d752b2ef6f69fcdffa95a6f199a46b9a36377affe",
+          "knowledge-chunk-4b43df474419e805bcdfc71657010c045a289ab8bfa0e0e0025e56fc3dc03e61",
+          "knowledge-chunk-ffb20671f3498fb039d33838d9c90c2d50264c4fed561dfcf35b6f480f507a39",
+          "knowledge-chunk-cea300984f31bd59a61c31c57865594d213516c907ff7bc0d82f78b374f14cf8",
+          "knowledge-chunk-89acd9478acdd64e8495bbb9cae1964d6f539e003a63e3a21ca3f2e51bc7f660",
+          "knowledge-chunk-8f6d1402e5cee6fe9ba3c789bbb23b43215510a67c426b3f47020b9447b9ab94",
+          "knowledge-chunk-ac0fa60a16c418275105c56f052413534103d50d07abc5c3d197e626ded7fde0",
+          "knowledge-chunk-d3725c3d0836048e031a9dfb7a475a4bcbcfefb8d22184e58634a1356c7ae7f7"
+        ],
+        "packed": [
+          "knowledge-chunk-2a33fcba468ed7680819b7919ac7ff16d592d70ea64da2bcfc9c58025e2530b1",
+          "knowledge-chunk-59c9063e60ec3dd2256e01e9383428cdfb66c596618df7f6c41510bda3d68956",
+          "knowledge-chunk-bc5f4ac287a2dfc4f9343cb2ed792d4fe2bc07570a2dcfefb0bcf7125e69e902",
+          "knowledge-chunk-159c1e421fecd88bbf525c4615735790218d491d94103671f7a6948382586b48",
+          "knowledge-chunk-8db3a9e5193a5e687cf0a47ab28ece2cd3ba20940f5b02f691c7c6e81f3c3b97"
+        ]
+      },
+      "native": {
+        "ce5": {
+          "article_recall": 0.5,
+          "all_articles": false,
+          "article_mrr": 0.25,
+          "article_ndcg": 0.2640681225725909
+        },
+        "pack5": {
+          "article_recall": 0.5,
+          "all_articles": false,
+          "article_mrr": 0.25,
+          "article_ndcg": 0.2640681225725909
+        },
+        "ordered": [
+          "knowledge-chunk-2a33fcba468ed7680819b7919ac7ff16d592d70ea64da2bcfc9c58025e2530b1",
+          "knowledge-chunk-bc5f4ac287a2dfc4f9343cb2ed792d4fe2bc07570a2dcfefb0bcf7125e69e902",
+          "knowledge-chunk-159c1e421fecd88bbf525c4615735790218d491d94103671f7a6948382586b48",
+          "knowledge-chunk-8db3a9e5193a5e687cf0a47ab28ece2cd3ba20940f5b02f691c7c6e81f3c3b97",
+          "knowledge-chunk-888edd0156468abbfd637e5212c28092cad14f26d9865fb66d689277af7a340e",
+          "knowledge-chunk-1c5fd8ad34760f551778bfb5ec738954d13007fba2c1cd0dfcc13582c434af2e",
+          "knowledge-chunk-5533832b6aa2dbe2ea930c5ac61c9f8fa573ec8a27461ed1c15232b0bb98beef",
+          "knowledge-chunk-41767190401646471d9663919aa5b84ed044babb1cd724b182f2a881e7e61d39",
+          "knowledge-chunk-d6f2eb893206ccca5e7ab84e81e93086909fed7b36f06d959cc7d540b117580b",
+          "knowledge-chunk-b303572b10e6e4eeff10130cacfe6a0d1af1ad3b340684fcfa8c5984ebd5a510",
+          "knowledge-chunk-b24897a58682d1985f65cbe077863489dedff778f0eed8d307216c9c2e8442a9",
+          "knowledge-chunk-32d23b9d8c6724bfadc4052d752b2ef6f69fcdffa95a6f199a46b9a36377affe",
+          "knowledge-chunk-4b43df474419e805bcdfc71657010c045a289ab8bfa0e0e0025e56fc3dc03e61",
+          "knowledge-chunk-89acd9478acdd64e8495bbb9cae1964d6f539e003a63e3a21ca3f2e51bc7f660",
+          "knowledge-chunk-0389178942b305dc87b0e728a5c01028762f1a271e25a75b393677b65e638ab3",
+          "knowledge-chunk-8f6d1402e5cee6fe9ba3c789bbb23b43215510a67c426b3f47020b9447b9ab94",
+          "knowledge-chunk-46588ea73eb1c13e3ff84cdb240e0247a5a2db0c3aaef5f0388e8f5892dc29a2",
+          "knowledge-chunk-d3725c3d0836048e031a9dfb7a475a4bcbcfefb8d22184e58634a1356c7ae7f7",
+          "knowledge-chunk-5a0845ee6e6993af81cfb4a2441c98f2e383d684f53809ae039b63577331a6e4",
+          "knowledge-chunk-c1ba7802c8a32cabbdf08100d8e44028d26a1bde4fffb401dcb9836287b84813"
+        ],
+        "packed": [
+          "knowledge-chunk-2a33fcba468ed7680819b7919ac7ff16d592d70ea64da2bcfc9c58025e2530b1",
+          "knowledge-chunk-bc5f4ac287a2dfc4f9343cb2ed792d4fe2bc07570a2dcfefb0bcf7125e69e902",
+          "knowledge-chunk-159c1e421fecd88bbf525c4615735790218d491d94103671f7a6948382586b48",
+          "knowledge-chunk-8db3a9e5193a5e687cf0a47ab28ece2cd3ba20940f5b02f691c7c6e81f3c3b97",
+          "knowledge-chunk-888edd0156468abbfd637e5212c28092cad14f26d9865fb66d689277af7a340e"
+        ]
+      }
+    }
+  },
+  {
+    "case_id": "2316e8060961050c06ce0578602c978fe5607d1978a464c8978cac5451c17b97",
+    "scores": {
+      "knowledge-chunk-8d8f6bee51bd3d2bd35d6e05ec41ba952b7a9d0d5a98cd269d9c1166e67d5484": 2.484375,
+      "knowledge-chunk-79371226edd8a30f19d97cbfd748c3530c11162eabb3fef6abc1bb0ec8d516e3": 2.9609375,
+      "knowledge-chunk-5b9475a4b057def586f46f27fa767ffd52fbfe3e5218ccbbaca0987021375d26": 2.26953125,
+      "knowledge-chunk-c4fd7859fb882c18ee156bdcc46597480d0da3ee346e182f15e7ef51e22a9a2d": 1.72265625,
+      "knowledge-chunk-2177a218ec8d7e6ad2760cabd8cb24686140664ed76efe52989473ae0fb7ca63": 0.004169464111328125,
+      "knowledge-chunk-4cd36c65f4b32bea8665c0aea99af3cb594a77cd245b97ff4d94566ecd844cab": 1.5517578125,
+      "knowledge-chunk-f633a3efcd21597920c0f8a0c4cca01c5acf300170624bc632308ba84ec8d19d": 0.68798828125,
+      "knowledge-chunk-98d266f008199caf83cec36512d5bfd8da66b53fbebbe10862d39570a761cbdf": 3.30078125,
+      "knowledge-chunk-9ca5f7af35a918190ec9e820a620a152ac901152a3870b87699779f827e7ec0b": 1.7734375,
+      "knowledge-chunk-8dfe595478b4ac716f89b7dee1a8d7e8d09a17791cd1c6b69b34ee9ef7299428": 2.810546875,
+      "knowledge-chunk-1d85f26eb5fd612aea1ddef6963aed9de821fd015fbba7105f85c0111f78c610": 0.720703125,
+      "knowledge-chunk-e1acd52d0c66165e9af2c2b4122731d8c5858ad8544c79b9adc42cba148d194e": -1.12109375,
+      "knowledge-chunk-f82aa79c7396c21792363122d99ee309f6d51ecfcfc5d6a6e7b3a75918147086": -1.6220703125,
+      "knowledge-chunk-acb26f0c0d7f2f10916f3fea6e9c2d0726583136814d0d3c6ab8a3e3645f0ea5": -0.87451171875,
+      "knowledge-chunk-99439aa58f6db285167c673ff66d9c16cc23b2cb4c7ecdb1cf602d1feda1353f": -0.137451171875,
+      "knowledge-chunk-5ad02c692a3812ef705b000e700103476d0d91fab6479554ce9ca9e2492272a0": -0.25048828125,
+      "knowledge-chunk-7a68f7357bfe38d82bbea32b7fc4e9360fcb9297848dc2839aad6974c2dcec62": 0.47509765625,
+      "knowledge-chunk-136331ff765874e45a8e6c14c313d1f02b68d5d32be4395a63af63323e8ef458": -0.5244140625,
+      "knowledge-chunk-192a76ed7b0ffc9be4bd356a0b2ef16b4b4403688ceff105d17cc0af2370fe6c": 1.5537109375,
+      "knowledge-chunk-4ae4746b94b0128751595eacb6c00d56ac6b4efbcce4054b0a4261c44398d2fd": -2.302734375,
+      "knowledge-chunk-7c1b66e43a1b706fc2ae08c1cedbee3cebf7ac080562060e17e54fdaf70c9b39": -0.19580078125,
+      "knowledge-chunk-727209fa7129a3a5e870f582b99501eaa142a7b1d00d1b03aab32b74ff630151": 0.87255859375,
+      "knowledge-chunk-8c0b75222ab9e138cf981a7b8c1d5e8270ede8512a21631af810024ba163c9da": -0.4794921875,
+      "knowledge-chunk-109685e715aaad82d82addd1e17245956e7b2e215067640234c58d9111c6b392": -7.51953125,
+      "knowledge-chunk-772f0152e70a3971482a76d843a7625db3005cd17b96bef6d6db52ec388b043f": -2.326171875,
+      "knowledge-chunk-58cb9be7fa4938415b6918fbc69308394fa39275f0a4d29485d8e1cccdfbe7a8": -2.912109375,
+      "knowledge-chunk-6064d68c334855069075292ad39519b83e0acad6a11b80f90e258fe809b60335": -2.912109375,
+      "knowledge-chunk-17c60510aa1f60a485284eed04532c26d1ded275ca7d4f6891020165d0296ec3": -1.1591796875
+    },
+    "arms": {
+      "bm25": {
+        "ce5": {
+          "article_recall": 0.5,
+          "all_articles": false,
+          "article_mrr": 0.5,
+          "article_ndcg": 0.38685280723454163
+        },
+        "pack5": {
+          "article_recall": 0.5,
+          "all_articles": false,
+          "article_mrr": 0.5,
+          "article_ndcg": 0.38685280723454163
+        },
+        "ordered": [
+          "knowledge-chunk-98d266f008199caf83cec36512d5bfd8da66b53fbebbe10862d39570a761cbdf",
+          "knowledge-chunk-79371226edd8a30f19d97cbfd748c3530c11162eabb3fef6abc1bb0ec8d516e3",
+          "knowledge-chunk-8dfe595478b4ac716f89b7dee1a8d7e8d09a17791cd1c6b69b34ee9ef7299428",
+          "knowledge-chunk-8d8f6bee51bd3d2bd35d6e05ec41ba952b7a9d0d5a98cd269d9c1166e67d5484",
+          "knowledge-chunk-5b9475a4b057def586f46f27fa767ffd52fbfe3e5218ccbbaca0987021375d26",
+          "knowledge-chunk-9ca5f7af35a918190ec9e820a620a152ac901152a3870b87699779f827e7ec0b",
+          "knowledge-chunk-c4fd7859fb882c18ee156bdcc46597480d0da3ee346e182f15e7ef51e22a9a2d",
+          "knowledge-chunk-192a76ed7b0ffc9be4bd356a0b2ef16b4b4403688ceff105d17cc0af2370fe6c",
+          "knowledge-chunk-4cd36c65f4b32bea8665c0aea99af3cb594a77cd245b97ff4d94566ecd844cab",
+          "knowledge-chunk-1d85f26eb5fd612aea1ddef6963aed9de821fd015fbba7105f85c0111f78c610",
+          "knowledge-chunk-f633a3efcd21597920c0f8a0c4cca01c5acf300170624bc632308ba84ec8d19d",
+          "knowledge-chunk-7a68f7357bfe38d82bbea32b7fc4e9360fcb9297848dc2839aad6974c2dcec62",
+          "knowledge-chunk-2177a218ec8d7e6ad2760cabd8cb24686140664ed76efe52989473ae0fb7ca63",
+          "knowledge-chunk-99439aa58f6db285167c673ff66d9c16cc23b2cb4c7ecdb1cf602d1feda1353f",
+          "knowledge-chunk-5ad02c692a3812ef705b000e700103476d0d91fab6479554ce9ca9e2492272a0",
+          "knowledge-chunk-136331ff765874e45a8e6c14c313d1f02b68d5d32be4395a63af63323e8ef458",
+          "knowledge-chunk-acb26f0c0d7f2f10916f3fea6e9c2d0726583136814d0d3c6ab8a3e3645f0ea5",
+          "knowledge-chunk-e1acd52d0c66165e9af2c2b4122731d8c5858ad8544c79b9adc42cba148d194e",
+          "knowledge-chunk-f82aa79c7396c21792363122d99ee309f6d51ecfcfc5d6a6e7b3a75918147086",
+          "knowledge-chunk-4ae4746b94b0128751595eacb6c00d56ac6b4efbcce4054b0a4261c44398d2fd"
+        ],
+        "packed": [
+          "knowledge-chunk-98d266f008199caf83cec36512d5bfd8da66b53fbebbe10862d39570a761cbdf",
+          "knowledge-chunk-79371226edd8a30f19d97cbfd748c3530c11162eabb3fef6abc1bb0ec8d516e3",
+          "knowledge-chunk-8dfe595478b4ac716f89b7dee1a8d7e8d09a17791cd1c6b69b34ee9ef7299428",
+          "knowledge-chunk-8d8f6bee51bd3d2bd35d6e05ec41ba952b7a9d0d5a98cd269d9c1166e67d5484",
+          "knowledge-chunk-5b9475a4b057def586f46f27fa767ffd52fbfe3e5218ccbbaca0987021375d26"
+        ]
+      },
+      "native": {
+        "ce5": {
+          "article_recall": 0.5,
+          "all_articles": false,
+          "article_mrr": 0.5,
+          "article_ndcg": 0.38685280723454163
+        },
+        "pack5": {
+          "article_recall": 0.5,
+          "all_articles": false,
+          "article_mrr": 0.5,
+          "article_ndcg": 0.38685280723454163
+        },
+        "ordered": [
+          "knowledge-chunk-98d266f008199caf83cec36512d5bfd8da66b53fbebbe10862d39570a761cbdf",
+          "knowledge-chunk-79371226edd8a30f19d97cbfd748c3530c11162eabb3fef6abc1bb0ec8d516e3",
+          "knowledge-chunk-8dfe595478b4ac716f89b7dee1a8d7e8d09a17791cd1c6b69b34ee9ef7299428",
+          "knowledge-chunk-8d8f6bee51bd3d2bd35d6e05ec41ba952b7a9d0d5a98cd269d9c1166e67d5484",
+          "knowledge-chunk-5b9475a4b057def586f46f27fa767ffd52fbfe3e5218ccbbaca0987021375d26",
+          "knowledge-chunk-9ca5f7af35a918190ec9e820a620a152ac901152a3870b87699779f827e7ec0b",
+          "knowledge-chunk-c4fd7859fb882c18ee156bdcc46597480d0da3ee346e182f15e7ef51e22a9a2d",
+          "knowledge-chunk-4cd36c65f4b32bea8665c0aea99af3cb594a77cd245b97ff4d94566ecd844cab",
+          "knowledge-chunk-727209fa7129a3a5e870f582b99501eaa142a7b1d00d1b03aab32b74ff630151",
+          "knowledge-chunk-1d85f26eb5fd612aea1ddef6963aed9de821fd015fbba7105f85c0111f78c610",
+          "knowledge-chunk-f633a3efcd21597920c0f8a0c4cca01c5acf300170624bc632308ba84ec8d19d",
+          "knowledge-chunk-7a68f7357bfe38d82bbea32b7fc4e9360fcb9297848dc2839aad6974c2dcec62",
+          "knowledge-chunk-99439aa58f6db285167c673ff66d9c16cc23b2cb4c7ecdb1cf602d1feda1353f",
+          "knowledge-chunk-7c1b66e43a1b706fc2ae08c1cedbee3cebf7ac080562060e17e54fdaf70c9b39",
+          "knowledge-chunk-8c0b75222ab9e138cf981a7b8c1d5e8270ede8512a21631af810024ba163c9da",
+          "knowledge-chunk-17c60510aa1f60a485284eed04532c26d1ded275ca7d4f6891020165d0296ec3",
+          "knowledge-chunk-772f0152e70a3971482a76d843a7625db3005cd17b96bef6d6db52ec388b043f",
+          "knowledge-chunk-58cb9be7fa4938415b6918fbc69308394fa39275f0a4d29485d8e1cccdfbe7a8",
+          "knowledge-chunk-6064d68c334855069075292ad39519b83e0acad6a11b80f90e258fe809b60335",
+          "knowledge-chunk-109685e715aaad82d82addd1e17245956e7b2e215067640234c58d9111c6b392"
+        ],
+        "packed": [
+          "knowledge-chunk-98d266f008199caf83cec36512d5bfd8da66b53fbebbe10862d39570a761cbdf",
+          "knowledge-chunk-79371226edd8a30f19d97cbfd748c3530c11162eabb3fef6abc1bb0ec8d516e3",
+          "knowledge-chunk-8dfe595478b4ac716f89b7dee1a8d7e8d09a17791cd1c6b69b34ee9ef7299428",
+          "knowledge-chunk-8d8f6bee51bd3d2bd35d6e05ec41ba952b7a9d0d5a98cd269d9c1166e67d5484",
+          "knowledge-chunk-5b9475a4b057def586f46f27fa767ffd52fbfe3e5218ccbbaca0987021375d26"
+        ]
+      }
+    }
+  },
+  {
+    "case_id": "296946273557b67e4d458085c807d78bb12f0a6e0d31166d01b1659f6cef68f7",
+    "scores": {
+      "knowledge-chunk-e4a0fab7b79700a0b26a7af74f3b1bbeb88c235ac72e6bf7b582fb6fa86c1a63": 4.2734375,
+      "knowledge-chunk-f5812485de9e1bbddafc8f0c745928ef9de59139b934f5c7450e9711cb152420": 2.962890625,
+      "knowledge-chunk-6a016bdd23a33e37647ab334721cf0f8c176540dd46d2042747440435bc6c7f8": 1.52734375,
+      "knowledge-chunk-b52f68dfaa969763c635fb39be45918cf83c836ccd263d5a3f41ab53f3741e7d": 2.54296875,
+      "knowledge-chunk-b4c03661f673b5965fe0b72274e267ed29ee7ac3dcbd42140f9e5f73127d9eee": 1.3798828125,
+      "knowledge-chunk-74cc30cd5a0be42a2233fb6a28a56295d7e0f25d60c460b02e45fe5dfc9bfb77": 1.38671875,
+      "knowledge-chunk-967505010c4eebd45b928746e68bf94b815b87744cc19caabe91f92fef622103": 1.9931640625,
+      "knowledge-chunk-bfc329bbfbcdd13a28a6e0fcdec7e219265d4c0e70b486c0d3448519230cb959": 1.169921875,
+      "knowledge-chunk-8a81c528af458e23b028edc56200b9395901d362d01b2733e43c036bfb5b54f5": 2.091796875,
+      "knowledge-chunk-1a5b68d8e5441583e30dab57800341789c227a1936defb81ed62919f139a67c4": -0.59375,
+      "knowledge-chunk-9e02fff1083714f73750ccbf12be1590895c251e8eabc8910146cb423a341d32": 0.90478515625,
+      "knowledge-chunk-dac3277386dee68659a355940641c111d1ed22231bc93d575c4719c74fbf372a": 1.880859375,
+      "knowledge-chunk-42f84bc3187bbeaa498dbeb61071dbb28ab2738b5a90de46eec557b3ce70731b": -0.5458984375,
+      "knowledge-chunk-b25e35bcd849b7871066ecc77dbe1d1fb70f3870e934efffd52000d85a0725c1": 0.5341796875,
+      "knowledge-chunk-5552ac9c46a2a30050dae52d3f347af6a91a333b89a0a908ef47938bf906faa0": -2.51171875,
+      "knowledge-chunk-ae75efddeec226624043da4b8819412bcfa0c555d51999b90bcf7d751c4cedd0": -3.30078125,
+      "knowledge-chunk-087e342fc0bd59035397a30481c850aa9d780aec924ebb55976ccc9df584c593": -1.9580078125,
+      "knowledge-chunk-2085e71d1d1f3d0e2f2e779eea78e756ff48a4a65da2f13aa5cd871c854f1a1d": 1.3427734375,
+      "knowledge-chunk-f83765044fc6565f5791f52f578c6f80a7d42f6515001863f7f5f90bf5b8955a": -1.775390625,
+      "knowledge-chunk-a93e87bfd6f8b1ebe183cca9463fa561e24f2484569b0a97b0fa405bbd5072ee": -2.3203125,
+      "knowledge-chunk-0dc2dbc23cdb8424bd823a0c5c9b7dea40c30293ee00fcc03d381af319f1fb6e": -3.45703125,
+      "knowledge-chunk-ea0b63d483851e554d3bb24de7fb187d4a5fe67a8085a0564cf7d3c096f0d670": -0.29638671875,
+      "knowledge-chunk-109685e715aaad82d82addd1e17245956e7b2e215067640234c58d9111c6b392": -4.328125,
+      "knowledge-chunk-554f6b9a1e7ce9860794668da77b52302152fb0485f7920550d2d179a63085c8": -5.56640625,
+      "knowledge-chunk-eb759829909152053f449b6ee4572ecc2c3977b914b6be1e44c772478f8b20f0": 0.1055908203125,
+      "knowledge-chunk-35f5acfd68faa20c5c5c0f83467c397a3068aff475322045d7a60b4d75643e77": -1.384765625,
+      "knowledge-chunk-aa303a5003daf7eef0c8367b82fca47938e1e309bdcc744f331778f3e26e2578": -1.5986328125,
+      "knowledge-chunk-c96d334af5531cd4c6ca3c68b173979f6b7ed7c23e4e8cd7280e81c2f199e10b": -1.220703125,
+      "knowledge-chunk-0e155b1f6e3b4b0b739b9b2ac576d6723551d8ee19a1d05d3395709dfefb59fc": -1.833984375,
+      "knowledge-chunk-159e219699879fdd23ea003acb0fad671ef1e4f9c0a6dc545d3ba1ab759e21b2": -2.5
+    },
+    "arms": {
+      "bm25": {
+        "ce5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 1.0,
+          "article_ndcg": 1.0
+        },
+        "pack5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 1.0,
+          "article_ndcg": 1.0
+        },
+        "ordered": [
+          "knowledge-chunk-e4a0fab7b79700a0b26a7af74f3b1bbeb88c235ac72e6bf7b582fb6fa86c1a63",
+          "knowledge-chunk-f5812485de9e1bbddafc8f0c745928ef9de59139b934f5c7450e9711cb152420",
+          "knowledge-chunk-b52f68dfaa969763c635fb39be45918cf83c836ccd263d5a3f41ab53f3741e7d",
+          "knowledge-chunk-8a81c528af458e23b028edc56200b9395901d362d01b2733e43c036bfb5b54f5",
+          "knowledge-chunk-967505010c4eebd45b928746e68bf94b815b87744cc19caabe91f92fef622103",
+          "knowledge-chunk-dac3277386dee68659a355940641c111d1ed22231bc93d575c4719c74fbf372a",
+          "knowledge-chunk-6a016bdd23a33e37647ab334721cf0f8c176540dd46d2042747440435bc6c7f8",
+          "knowledge-chunk-74cc30cd5a0be42a2233fb6a28a56295d7e0f25d60c460b02e45fe5dfc9bfb77",
+          "knowledge-chunk-b4c03661f673b5965fe0b72274e267ed29ee7ac3dcbd42140f9e5f73127d9eee",
+          "knowledge-chunk-2085e71d1d1f3d0e2f2e779eea78e756ff48a4a65da2f13aa5cd871c854f1a1d",
+          "knowledge-chunk-bfc329bbfbcdd13a28a6e0fcdec7e219265d4c0e70b486c0d3448519230cb959",
+          "knowledge-chunk-9e02fff1083714f73750ccbf12be1590895c251e8eabc8910146cb423a341d32",
+          "knowledge-chunk-b25e35bcd849b7871066ecc77dbe1d1fb70f3870e934efffd52000d85a0725c1",
+          "knowledge-chunk-42f84bc3187bbeaa498dbeb61071dbb28ab2738b5a90de46eec557b3ce70731b",
+          "knowledge-chunk-1a5b68d8e5441583e30dab57800341789c227a1936defb81ed62919f139a67c4",
+          "knowledge-chunk-f83765044fc6565f5791f52f578c6f80a7d42f6515001863f7f5f90bf5b8955a",
+          "knowledge-chunk-087e342fc0bd59035397a30481c850aa9d780aec924ebb55976ccc9df584c593",
+          "knowledge-chunk-a93e87bfd6f8b1ebe183cca9463fa561e24f2484569b0a97b0fa405bbd5072ee",
+          "knowledge-chunk-5552ac9c46a2a30050dae52d3f347af6a91a333b89a0a908ef47938bf906faa0",
+          "knowledge-chunk-ae75efddeec226624043da4b8819412bcfa0c555d51999b90bcf7d751c4cedd0"
+        ],
+        "packed": [
+          "knowledge-chunk-e4a0fab7b79700a0b26a7af74f3b1bbeb88c235ac72e6bf7b582fb6fa86c1a63",
+          "knowledge-chunk-f5812485de9e1bbddafc8f0c745928ef9de59139b934f5c7450e9711cb152420",
+          "knowledge-chunk-b52f68dfaa969763c635fb39be45918cf83c836ccd263d5a3f41ab53f3741e7d",
+          "knowledge-chunk-8a81c528af458e23b028edc56200b9395901d362d01b2733e43c036bfb5b54f5",
+          "knowledge-chunk-967505010c4eebd45b928746e68bf94b815b87744cc19caabe91f92fef622103"
+        ]
+      },
+      "native": {
+        "ce5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 1.0,
+          "article_ndcg": 1.0
+        },
+        "pack5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 1.0,
+          "article_ndcg": 1.0
+        },
+        "ordered": [
+          "knowledge-chunk-e4a0fab7b79700a0b26a7af74f3b1bbeb88c235ac72e6bf7b582fb6fa86c1a63",
+          "knowledge-chunk-f5812485de9e1bbddafc8f0c745928ef9de59139b934f5c7450e9711cb152420",
+          "knowledge-chunk-b52f68dfaa969763c635fb39be45918cf83c836ccd263d5a3f41ab53f3741e7d",
+          "knowledge-chunk-dac3277386dee68659a355940641c111d1ed22231bc93d575c4719c74fbf372a",
+          "knowledge-chunk-6a016bdd23a33e37647ab334721cf0f8c176540dd46d2042747440435bc6c7f8",
+          "knowledge-chunk-b4c03661f673b5965fe0b72274e267ed29ee7ac3dcbd42140f9e5f73127d9eee",
+          "knowledge-chunk-b25e35bcd849b7871066ecc77dbe1d1fb70f3870e934efffd52000d85a0725c1",
+          "knowledge-chunk-eb759829909152053f449b6ee4572ecc2c3977b914b6be1e44c772478f8b20f0",
+          "knowledge-chunk-ea0b63d483851e554d3bb24de7fb187d4a5fe67a8085a0564cf7d3c096f0d670",
+          "knowledge-chunk-c96d334af5531cd4c6ca3c68b173979f6b7ed7c23e4e8cd7280e81c2f199e10b",
+          "knowledge-chunk-35f5acfd68faa20c5c5c0f83467c397a3068aff475322045d7a60b4d75643e77",
+          "knowledge-chunk-aa303a5003daf7eef0c8367b82fca47938e1e309bdcc744f331778f3e26e2578",
+          "knowledge-chunk-f83765044fc6565f5791f52f578c6f80a7d42f6515001863f7f5f90bf5b8955a",
+          "knowledge-chunk-0e155b1f6e3b4b0b739b9b2ac576d6723551d8ee19a1d05d3395709dfefb59fc",
+          "knowledge-chunk-a93e87bfd6f8b1ebe183cca9463fa561e24f2484569b0a97b0fa405bbd5072ee",
+          "knowledge-chunk-159e219699879fdd23ea003acb0fad671ef1e4f9c0a6dc545d3ba1ab759e21b2",
+          "knowledge-chunk-5552ac9c46a2a30050dae52d3f347af6a91a333b89a0a908ef47938bf906faa0",
+          "knowledge-chunk-0dc2dbc23cdb8424bd823a0c5c9b7dea40c30293ee00fcc03d381af319f1fb6e",
+          "knowledge-chunk-109685e715aaad82d82addd1e17245956e7b2e215067640234c58d9111c6b392",
+          "knowledge-chunk-554f6b9a1e7ce9860794668da77b52302152fb0485f7920550d2d179a63085c8"
+        ],
+        "packed": [
+          "knowledge-chunk-e4a0fab7b79700a0b26a7af74f3b1bbeb88c235ac72e6bf7b582fb6fa86c1a63",
+          "knowledge-chunk-f5812485de9e1bbddafc8f0c745928ef9de59139b934f5c7450e9711cb152420",
+          "knowledge-chunk-b52f68dfaa969763c635fb39be45918cf83c836ccd263d5a3f41ab53f3741e7d",
+          "knowledge-chunk-dac3277386dee68659a355940641c111d1ed22231bc93d575c4719c74fbf372a",
+          "knowledge-chunk-6a016bdd23a33e37647ab334721cf0f8c176540dd46d2042747440435bc6c7f8"
+        ]
+      }
+    }
+  },
+  {
+    "case_id": "2a7eeebd3ac306d38053fd38c1869da24f0253b7951684619b7a1a03b0ca0994",
+    "scores": {
+      "knowledge-chunk-ecfa6ae14285fa1a3287c346378f1f3fe9b512019304a071eae0ba0d378eee5a": -1.9697265625,
+      "knowledge-chunk-088484d8341586e160e5b7565a043cfbc5fd4c3249693206911b2ef17777aeb4": -3.85546875,
+      "knowledge-chunk-1c729dc29c8102f5afad7cf213ef7583fccbf8e917be15215a9b5ce4c4c55c05": -3.0703125,
+      "knowledge-chunk-a6e232e5ef7ebf1021d2bcb21ce9f188b47069b3a77355a4b2a8a1ca768cd74e": -3.701171875,
+      "knowledge-chunk-54d7ec67bc6f46d4d59b9284910204824ddc4427e48ea25cf9aa789870f5f4ab": -4.78125,
+      "knowledge-chunk-c568a7a02c2751b31669dbac941ac0aa591aa308a6d80a81aebf29700edace90": -3.0546875,
+      "knowledge-chunk-4cddb9dd46e92c68e2c05d936e3d8ee3deed63d51663e84e7469590971a4468a": -4.671875,
+      "knowledge-chunk-d39ea85e8caff242e1713a35ac64c2466a79a4962b9fe12f5f5c4ad0e3f7e653": -2.1171875,
+      "knowledge-chunk-1dd2c4efd3e82a8dd1b66b74e9d0eefb2b8dd1422144e8e286beed29f1643d60": -6.125,
+      "knowledge-chunk-92a4bd83f56e6ee7486a50c770210a664739d96e12cefc8933f42ba0c7b2d00a": -3.564453125,
+      "knowledge-chunk-2eaae6e4c236d902952885873168e42c20b5ef92797105533f4c01084fba5d13": -3.01171875,
+      "knowledge-chunk-4f2ef05e2ac6797047aa0812fa9a87fafa20841653330f05c318c9a33699f1a9": -5.0,
+      "knowledge-chunk-7299da848267eb369706dd51ea05ed1c3d2fb60476b7b257a4955c90c0acee62": -4.04296875,
+      "knowledge-chunk-dc3cc6d82d2884ea624dff997b34c4c1a210ad8e77da6e099a5ebfb9c28b5d3b": -4.23046875,
+      "knowledge-chunk-838467a808f015b837221d9b0a77fb8a75be1539b75e4c35d78b057bc5f857ef": -3.978515625,
+      "knowledge-chunk-f0787416014df9bf0760e46e958e8068c50612530c4e97d432f1e3e2a974f4f2": -6.1328125,
+      "knowledge-chunk-2ebdeddf4133409e8cca8d8939f2f48d35c66928b0beb5d11c66da23c13c054b": -3.828125,
+      "knowledge-chunk-078a59cdcc4146ffa87dcb7852f143808e9f6af0f986c3bf633740609f69d928": -3.6015625,
+      "knowledge-chunk-21b246733c6de06b54ced95094dd86ebe02cbab2a6e94804c3975687629b2f00": -8.0390625,
+      "knowledge-chunk-10d595254bdb7ffbf0715b56e690ab111a0e436c413d762e1c3a41f36a4a85b1": -6.09375,
+      "knowledge-chunk-7c3780fe9714dad294a3107c27abfa8a422b1956e8c4d5cf0b6ea2330dab6cc5": -4.69921875,
+      "knowledge-chunk-49315485375137cd63f80e290010a070aecefd24937a0397620f25760917b47b": -4.578125,
+      "knowledge-chunk-af5346d98a902a67e3eea7d304a5192a18cc25b6c211ecae3b160bf709741d02": -4.06640625,
+      "knowledge-chunk-18de3c834db95b513f683db31ffeb007ce2e6ff4d196288832101bb6818a6792": -3.962890625,
+      "knowledge-chunk-32e9b69a0a1e07d409dbadc1dac42cb4bccd23c2eef921646e7348c512c1186c": -5.45703125,
+      "knowledge-chunk-73ffeb3b3bc8e53e40a255ec0227f7891955314d82af4989795bfd242c79906e": -5.46875,
+      "knowledge-chunk-6912ef05b914830fd55d14f33315d62f9fa6d9c3a20674baba28fd2c11613ea7": -4.125,
+      "knowledge-chunk-7e71fb9e06ce98f468efc04009b42eb655ec916e160e629117b66944ac9a0cdf": -3.943359375,
+      "knowledge-chunk-14d78883250c0902799dc3ed071fa8036ca5b8d19fce0637874ffb495b5c24cf": -4.85546875
+    },
+    "arms": {
+      "bm25": {
+        "ce5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 0.5,
+          "article_ndcg": 0.6309297535714575
+        },
+        "pack5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 0.5,
+          "article_ndcg": 0.6309297535714575
+        },
+        "ordered": [
+          "knowledge-chunk-ecfa6ae14285fa1a3287c346378f1f3fe9b512019304a071eae0ba0d378eee5a",
+          "knowledge-chunk-d39ea85e8caff242e1713a35ac64c2466a79a4962b9fe12f5f5c4ad0e3f7e653",
+          "knowledge-chunk-2eaae6e4c236d902952885873168e42c20b5ef92797105533f4c01084fba5d13",
+          "knowledge-chunk-c568a7a02c2751b31669dbac941ac0aa591aa308a6d80a81aebf29700edace90",
+          "knowledge-chunk-1c729dc29c8102f5afad7cf213ef7583fccbf8e917be15215a9b5ce4c4c55c05",
+          "knowledge-chunk-92a4bd83f56e6ee7486a50c770210a664739d96e12cefc8933f42ba0c7b2d00a",
+          "knowledge-chunk-078a59cdcc4146ffa87dcb7852f143808e9f6af0f986c3bf633740609f69d928",
+          "knowledge-chunk-a6e232e5ef7ebf1021d2bcb21ce9f188b47069b3a77355a4b2a8a1ca768cd74e",
+          "knowledge-chunk-2ebdeddf4133409e8cca8d8939f2f48d35c66928b0beb5d11c66da23c13c054b",
+          "knowledge-chunk-088484d8341586e160e5b7565a043cfbc5fd4c3249693206911b2ef17777aeb4",
+          "knowledge-chunk-838467a808f015b837221d9b0a77fb8a75be1539b75e4c35d78b057bc5f857ef",
+          "knowledge-chunk-7299da848267eb369706dd51ea05ed1c3d2fb60476b7b257a4955c90c0acee62",
+          "knowledge-chunk-dc3cc6d82d2884ea624dff997b34c4c1a210ad8e77da6e099a5ebfb9c28b5d3b",
+          "knowledge-chunk-4cddb9dd46e92c68e2c05d936e3d8ee3deed63d51663e84e7469590971a4468a",
+          "knowledge-chunk-54d7ec67bc6f46d4d59b9284910204824ddc4427e48ea25cf9aa789870f5f4ab",
+          "knowledge-chunk-4f2ef05e2ac6797047aa0812fa9a87fafa20841653330f05c318c9a33699f1a9",
+          "knowledge-chunk-10d595254bdb7ffbf0715b56e690ab111a0e436c413d762e1c3a41f36a4a85b1",
+          "knowledge-chunk-1dd2c4efd3e82a8dd1b66b74e9d0eefb2b8dd1422144e8e286beed29f1643d60",
+          "knowledge-chunk-f0787416014df9bf0760e46e958e8068c50612530c4e97d432f1e3e2a974f4f2",
+          "knowledge-chunk-21b246733c6de06b54ced95094dd86ebe02cbab2a6e94804c3975687629b2f00"
+        ],
+        "packed": [
+          "knowledge-chunk-ecfa6ae14285fa1a3287c346378f1f3fe9b512019304a071eae0ba0d378eee5a",
+          "knowledge-chunk-d39ea85e8caff242e1713a35ac64c2466a79a4962b9fe12f5f5c4ad0e3f7e653",
+          "knowledge-chunk-2eaae6e4c236d902952885873168e42c20b5ef92797105533f4c01084fba5d13",
+          "knowledge-chunk-c568a7a02c2751b31669dbac941ac0aa591aa308a6d80a81aebf29700edace90",
+          "knowledge-chunk-1c729dc29c8102f5afad7cf213ef7583fccbf8e917be15215a9b5ce4c4c55c05"
+        ]
+      },
+      "native": {
+        "ce5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 0.5,
+          "article_ndcg": 0.6309297535714575
+        },
+        "pack5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 0.5,
+          "article_ndcg": 0.6309297535714575
+        },
+        "ordered": [
+          "knowledge-chunk-ecfa6ae14285fa1a3287c346378f1f3fe9b512019304a071eae0ba0d378eee5a",
+          "knowledge-chunk-d39ea85e8caff242e1713a35ac64c2466a79a4962b9fe12f5f5c4ad0e3f7e653",
+          "knowledge-chunk-2eaae6e4c236d902952885873168e42c20b5ef92797105533f4c01084fba5d13",
+          "knowledge-chunk-c568a7a02c2751b31669dbac941ac0aa591aa308a6d80a81aebf29700edace90",
+          "knowledge-chunk-1c729dc29c8102f5afad7cf213ef7583fccbf8e917be15215a9b5ce4c4c55c05",
+          "knowledge-chunk-92a4bd83f56e6ee7486a50c770210a664739d96e12cefc8933f42ba0c7b2d00a",
+          "knowledge-chunk-a6e232e5ef7ebf1021d2bcb21ce9f188b47069b3a77355a4b2a8a1ca768cd74e",
+          "knowledge-chunk-7e71fb9e06ce98f468efc04009b42eb655ec916e160e629117b66944ac9a0cdf",
+          "knowledge-chunk-18de3c834db95b513f683db31ffeb007ce2e6ff4d196288832101bb6818a6792",
+          "knowledge-chunk-838467a808f015b837221d9b0a77fb8a75be1539b75e4c35d78b057bc5f857ef",
+          "knowledge-chunk-7299da848267eb369706dd51ea05ed1c3d2fb60476b7b257a4955c90c0acee62",
+          "knowledge-chunk-af5346d98a902a67e3eea7d304a5192a18cc25b6c211ecae3b160bf709741d02",
+          "knowledge-chunk-6912ef05b914830fd55d14f33315d62f9fa6d9c3a20674baba28fd2c11613ea7",
+          "knowledge-chunk-49315485375137cd63f80e290010a070aecefd24937a0397620f25760917b47b",
+          "knowledge-chunk-7c3780fe9714dad294a3107c27abfa8a422b1956e8c4d5cf0b6ea2330dab6cc5",
+          "knowledge-chunk-14d78883250c0902799dc3ed071fa8036ca5b8d19fce0637874ffb495b5c24cf",
+          "knowledge-chunk-32e9b69a0a1e07d409dbadc1dac42cb4bccd23c2eef921646e7348c512c1186c",
+          "knowledge-chunk-73ffeb3b3bc8e53e40a255ec0227f7891955314d82af4989795bfd242c79906e",
+          "knowledge-chunk-10d595254bdb7ffbf0715b56e690ab111a0e436c413d762e1c3a41f36a4a85b1",
+          "knowledge-chunk-21b246733c6de06b54ced95094dd86ebe02cbab2a6e94804c3975687629b2f00"
+        ],
+        "packed": [
+          "knowledge-chunk-ecfa6ae14285fa1a3287c346378f1f3fe9b512019304a071eae0ba0d378eee5a",
+          "knowledge-chunk-d39ea85e8caff242e1713a35ac64c2466a79a4962b9fe12f5f5c4ad0e3f7e653",
+          "knowledge-chunk-2eaae6e4c236d902952885873168e42c20b5ef92797105533f4c01084fba5d13",
+          "knowledge-chunk-c568a7a02c2751b31669dbac941ac0aa591aa308a6d80a81aebf29700edace90",
+          "knowledge-chunk-1c729dc29c8102f5afad7cf213ef7583fccbf8e917be15215a9b5ce4c4c55c05"
+        ]
+      }
+    }
+  },
+  {
+    "case_id": "2bf423dac354fc657219849f97e6f088c9b4e2191e6b2cf6348ec627ba532840",
+    "scores": {
+      "knowledge-chunk-bc1b6f29058e709a324b6eb58799d806548fbf315aa4ffdc274ae187114a9edd": 4.8984375,
+      "knowledge-chunk-c0851e2886dfbc7472f8066d8309cdbc81dccf74b6f4233e1e2b9f1c3c774d12": 0.8125,
+      "knowledge-chunk-e922b9d4020ee97e8ceb23a9f6f21bf989e64e97d561d88368fd513a391ff297": 5.609375,
+      "knowledge-chunk-145fd1841bb37bf2e7ffc8d3135a92b981144569c8f27876f43f0fbb4e1c3a4f": 4.17578125,
+      "knowledge-chunk-7c680e21cb7baa63a158e354d0cfbcebbefbebaf6fa60f19c0e2240aa78d1de7": -0.461181640625,
+      "knowledge-chunk-85cb9db43b9adfd69c4cd91657f0f7f31348167c4404004e9e55094e88523c94": 5.640625,
+      "knowledge-chunk-f1c9f47423ef6bdc0983106c9a83b896d1b3f1069e6c9a08602430b864fad6b8": 0.74658203125,
+      "knowledge-chunk-14f1110de6e57abb55e9a412dfe402f05679b0fce2f1d056bd24b8150f066a6d": 4.4765625,
+      "knowledge-chunk-3c2fe9d9d9c5a0e140fd4f5dc4ddba314173001bd3506b662a8375843e0c8b8c": 2.076171875,
+      "knowledge-chunk-4e9b48a8d2e10abf2a5e930905874c2752aa1e43d751afec1fc27236808a60ff": 1.21875,
+      "knowledge-chunk-c4935b6d74e4b733c5485af3827fd0cc4343554e08ccb86d82855dd3f8b937c4": -0.66748046875,
+      "knowledge-chunk-d1e51d35854b1c16cda4a6eed4a363d67d703f77b1d1b584a38229ce3db9a5bc": 1.8642578125,
+      "knowledge-chunk-4b6892336e2e0215a6bbfdd9d17888465b93320e0b956c44ae5fb9895080479e": 5.13671875,
+      "knowledge-chunk-b2ed76e1cf274ff01a97634bc0c7897c923739fa63440188901f9f889f9a2ad3": 0.10589599609375,
+      "knowledge-chunk-40cd895c087ce75ee4f203f2009f29d5f1800c4f0ec35309a613becaa0a96d7d": 4.359375,
+      "knowledge-chunk-b73a611b058210f9d4498e7f2f6b6c23cacf93f24742fcbb82516cb967513a5e": 2.833984375,
+      "knowledge-chunk-119523b0ae9504acd369f19b0e183ff61be89b89cda8670cf1114dcaa03c2051": 5.078125,
+      "knowledge-chunk-c1897714baf05db752daa41563d8f7768dc4084bf4ced9619454d0cf34ce454a": -0.1629638671875,
+      "knowledge-chunk-872b7e13c7310c2e1e8c1445d18764b120ce8a1a2d5450a03bd2a056884c3eaa": 2.85546875,
+      "knowledge-chunk-99c717081e2a069c0d8a3f8d5137c2f7ade87ebe1ee6f06d73fc82a8dac1dc81": 2.71484375,
+      "knowledge-chunk-e4fe66704573d5310d960600406a5c9ab3d58e4125dc81704222f98871d3622b": 3.0,
+      "knowledge-chunk-554f6b9a1e7ce9860794668da77b52302152fb0485f7920550d2d179a63085c8": 3.1171875,
+      "knowledge-chunk-56b90c06a05776cecbc859766b5af12a57ac42f97d3c534ff81df5483ae81489": -2.49609375,
+      "knowledge-chunk-aa2572149573f720b74315e04895a59e69ea39a6a57dd1e9fa625c973d262fd5": 0.77392578125,
+      "knowledge-chunk-109685e715aaad82d82addd1e17245956e7b2e215067640234c58d9111c6b392": -0.2138671875,
+      "knowledge-chunk-35237ce6485cc79025ea4bf53f193698c1f68631817bada9366b8f0cc57217b5": 0.80419921875,
+      "knowledge-chunk-15fb7e7948ee3f7bedf82226d5f73f925d55e91750e1ee2b237e02323be62125": -1.9267578125,
+      "knowledge-chunk-a5a8e8b8baaa4b207ddfd33097e7964d7c7a54a3ff39e933e0ca542df9c371c8": 3.58984375,
+      "knowledge-chunk-04c08d27693a2ffbc60a8f8dd288261ece3e57d0700a24f3eaca79973aaf0359": 0.9541015625
+    },
+    "arms": {
+      "bm25": {
+        "ce5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 1.0,
+          "article_ndcg": 1.0
+        },
+        "pack5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 1.0,
+          "article_ndcg": 1.0
+        },
+        "ordered": [
+          "knowledge-chunk-85cb9db43b9adfd69c4cd91657f0f7f31348167c4404004e9e55094e88523c94",
+          "knowledge-chunk-e922b9d4020ee97e8ceb23a9f6f21bf989e64e97d561d88368fd513a391ff297",
+          "knowledge-chunk-4b6892336e2e0215a6bbfdd9d17888465b93320e0b956c44ae5fb9895080479e",
+          "knowledge-chunk-119523b0ae9504acd369f19b0e183ff61be89b89cda8670cf1114dcaa03c2051",
+          "knowledge-chunk-bc1b6f29058e709a324b6eb58799d806548fbf315aa4ffdc274ae187114a9edd",
+          "knowledge-chunk-14f1110de6e57abb55e9a412dfe402f05679b0fce2f1d056bd24b8150f066a6d",
+          "knowledge-chunk-40cd895c087ce75ee4f203f2009f29d5f1800c4f0ec35309a613becaa0a96d7d",
+          "knowledge-chunk-145fd1841bb37bf2e7ffc8d3135a92b981144569c8f27876f43f0fbb4e1c3a4f",
+          "knowledge-chunk-872b7e13c7310c2e1e8c1445d18764b120ce8a1a2d5450a03bd2a056884c3eaa",
+          "knowledge-chunk-b73a611b058210f9d4498e7f2f6b6c23cacf93f24742fcbb82516cb967513a5e",
+          "knowledge-chunk-99c717081e2a069c0d8a3f8d5137c2f7ade87ebe1ee6f06d73fc82a8dac1dc81",
+          "knowledge-chunk-3c2fe9d9d9c5a0e140fd4f5dc4ddba314173001bd3506b662a8375843e0c8b8c",
+          "knowledge-chunk-d1e51d35854b1c16cda4a6eed4a363d67d703f77b1d1b584a38229ce3db9a5bc",
+          "knowledge-chunk-4e9b48a8d2e10abf2a5e930905874c2752aa1e43d751afec1fc27236808a60ff",
+          "knowledge-chunk-c0851e2886dfbc7472f8066d8309cdbc81dccf74b6f4233e1e2b9f1c3c774d12",
+          "knowledge-chunk-f1c9f47423ef6bdc0983106c9a83b896d1b3f1069e6c9a08602430b864fad6b8",
+          "knowledge-chunk-b2ed76e1cf274ff01a97634bc0c7897c923739fa63440188901f9f889f9a2ad3",
+          "knowledge-chunk-c1897714baf05db752daa41563d8f7768dc4084bf4ced9619454d0cf34ce454a",
+          "knowledge-chunk-7c680e21cb7baa63a158e354d0cfbcebbefbebaf6fa60f19c0e2240aa78d1de7",
+          "knowledge-chunk-c4935b6d74e4b733c5485af3827fd0cc4343554e08ccb86d82855dd3f8b937c4"
+        ],
+        "packed": [
+          "knowledge-chunk-85cb9db43b9adfd69c4cd91657f0f7f31348167c4404004e9e55094e88523c94",
+          "knowledge-chunk-e922b9d4020ee97e8ceb23a9f6f21bf989e64e97d561d88368fd513a391ff297",
+          "knowledge-chunk-4b6892336e2e0215a6bbfdd9d17888465b93320e0b956c44ae5fb9895080479e",
+          "knowledge-chunk-119523b0ae9504acd369f19b0e183ff61be89b89cda8670cf1114dcaa03c2051",
+          "knowledge-chunk-bc1b6f29058e709a324b6eb58799d806548fbf315aa4ffdc274ae187114a9edd"
+        ]
+      },
+      "native": {
+        "ce5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 1.0,
+          "article_ndcg": 1.0
+        },
+        "pack5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 1.0,
+          "article_ndcg": 1.0
+        },
+        "ordered": [
+          "knowledge-chunk-85cb9db43b9adfd69c4cd91657f0f7f31348167c4404004e9e55094e88523c94",
+          "knowledge-chunk-e922b9d4020ee97e8ceb23a9f6f21bf989e64e97d561d88368fd513a391ff297",
+          "knowledge-chunk-4b6892336e2e0215a6bbfdd9d17888465b93320e0b956c44ae5fb9895080479e",
+          "knowledge-chunk-119523b0ae9504acd369f19b0e183ff61be89b89cda8670cf1114dcaa03c2051",
+          "knowledge-chunk-bc1b6f29058e709a324b6eb58799d806548fbf315aa4ffdc274ae187114a9edd",
+          "knowledge-chunk-14f1110de6e57abb55e9a412dfe402f05679b0fce2f1d056bd24b8150f066a6d",
+          "knowledge-chunk-40cd895c087ce75ee4f203f2009f29d5f1800c4f0ec35309a613becaa0a96d7d",
+          "knowledge-chunk-145fd1841bb37bf2e7ffc8d3135a92b981144569c8f27876f43f0fbb4e1c3a4f",
+          "knowledge-chunk-a5a8e8b8baaa4b207ddfd33097e7964d7c7a54a3ff39e933e0ca542df9c371c8",
+          "knowledge-chunk-554f6b9a1e7ce9860794668da77b52302152fb0485f7920550d2d179a63085c8",
+          "knowledge-chunk-e4fe66704573d5310d960600406a5c9ab3d58e4125dc81704222f98871d3622b",
+          "knowledge-chunk-b73a611b058210f9d4498e7f2f6b6c23cacf93f24742fcbb82516cb967513a5e",
+          "knowledge-chunk-99c717081e2a069c0d8a3f8d5137c2f7ade87ebe1ee6f06d73fc82a8dac1dc81",
+          "knowledge-chunk-d1e51d35854b1c16cda4a6eed4a363d67d703f77b1d1b584a38229ce3db9a5bc",
+          "knowledge-chunk-04c08d27693a2ffbc60a8f8dd288261ece3e57d0700a24f3eaca79973aaf0359",
+          "knowledge-chunk-35237ce6485cc79025ea4bf53f193698c1f68631817bada9366b8f0cc57217b5",
+          "knowledge-chunk-aa2572149573f720b74315e04895a59e69ea39a6a57dd1e9fa625c973d262fd5",
+          "knowledge-chunk-109685e715aaad82d82addd1e17245956e7b2e215067640234c58d9111c6b392",
+          "knowledge-chunk-15fb7e7948ee3f7bedf82226d5f73f925d55e91750e1ee2b237e02323be62125",
+          "knowledge-chunk-56b90c06a05776cecbc859766b5af12a57ac42f97d3c534ff81df5483ae81489"
+        ],
+        "packed": [
+          "knowledge-chunk-85cb9db43b9adfd69c4cd91657f0f7f31348167c4404004e9e55094e88523c94",
+          "knowledge-chunk-e922b9d4020ee97e8ceb23a9f6f21bf989e64e97d561d88368fd513a391ff297",
+          "knowledge-chunk-4b6892336e2e0215a6bbfdd9d17888465b93320e0b956c44ae5fb9895080479e",
+          "knowledge-chunk-119523b0ae9504acd369f19b0e183ff61be89b89cda8670cf1114dcaa03c2051",
+          "knowledge-chunk-bc1b6f29058e709a324b6eb58799d806548fbf315aa4ffdc274ae187114a9edd"
+        ]
+      }
+    }
+  },
+  {
+    "case_id": "31694e35e8dba470d5104be1d414e3fac379bef20b653998fdf01bd2ee44c968",
+    "scores": {
+      "knowledge-chunk-379d5eb9d1d2d620157ff8e0926956a3e689652a63195861d47ba086cc796e9f": 1.07421875,
+      "knowledge-chunk-1b9022844e13fc007981750cb10a42394af81e4a90a864d0998c04697b79db46": -0.93017578125,
+      "knowledge-chunk-c1527b75d31a97e4db71d2f0deab4ad9950e4d0a8d01474f22456f8fc140b63e": 3.9921875,
+      "knowledge-chunk-3b1ffffc4f091838f402aaf788886cdb16ddb7eb84e4e8b6d140fe7e945c9573": 3.158203125,
+      "knowledge-chunk-62f06c8d16273b8ef9a074b0041819ba308cf35f44c2e6012ee16bb2d592999b": -1.703125,
+      "knowledge-chunk-e85b0b4227f04adf7c02336df37251cacc87d026e0609c3ec6c0ba93ca6c35c1": -2.357421875,
+      "knowledge-chunk-856810462183a9bfb5498e7f4ee8d367c1de8e146c6033266d8fc3bd41c9384c": -0.80224609375,
+      "knowledge-chunk-971aceddc853624e81f7c794a94509a6d26c24eb00452171b4eb27c4fc34b8d7": -5.77734375,
+      "knowledge-chunk-7c1d881eeff40f0dc52a29d32fcb4bd434a54c26ffbc06787758feb9170fba31": -3.38671875,
+      "knowledge-chunk-1f7465d39d6ed415a0229cf6fbdcf372853aab020acb85b3414cc1cfaaec301a": -1.208984375,
+      "knowledge-chunk-3bb2772260d77c76834e9dc3036f5df2ec5554fc382c4ec4717950c3c51ce749": -0.05810546875,
+      "knowledge-chunk-75a284d8df0d52e2effbb80101153a10367df2fd0bcbac0c3b7cf6f145a0860c": -5.14453125,
+      "knowledge-chunk-d73ee762eddfd68987beea91b8ffa9198b0ac3b2d2b9b8e9cf3edeff9e167ff1": -5.8125,
+      "knowledge-chunk-f1e2416bcd2e004484084550143ea416a258e071f4f00bb15759b2ae9d063ba1": -0.240966796875,
+      "knowledge-chunk-06d99c81706222fb582ecbde5df28b3b1c6b370a152dbb439a7a4bc8422bafc6": -3.595703125,
+      "knowledge-chunk-3503d000429513fe4818057f839dd457e551831583e4b167d185ef9a12da9aac": -0.63232421875,
+      "knowledge-chunk-4e68a20acd6c07840bedb8f5034f641858ba81bf490879836bf7cf68867bc446": -0.68017578125,
+      "knowledge-chunk-5193c5b6214880e2ffac56ace518ff88efa3e88ab93b000a5877adfc4cbea347": 1.115234375,
+      "knowledge-chunk-a6b5a64ef6e236324a1ae4132652c0adb3fcbaff4c4c1cb314fc241ca67c1407": -1.5849609375,
+      "knowledge-chunk-83385e261b186388c20e3fa67e26927535a18e08887e00e2a475a0d49e55bf40": -1.19140625,
+      "knowledge-chunk-4f6ac7a15560303e3cd34a4413bdfd4f04fd791a1486f2ef3c600407ab755e49": -2.443359375,
+      "knowledge-chunk-6adb6633498090103b7a1b4c903b4c5c466205cdcf79206d252711477b1393e3": -3.107421875,
+      "knowledge-chunk-a6467b642f43ad9052d58a3951011529beca0d8138ce4745d4deef5c90808688": -5.58984375,
+      "knowledge-chunk-f16731a1fc0bec4ff3751058b09eb5860475f4e4388d28b6a15016f1d16c7898": -7.54296875,
+      "knowledge-chunk-d8da2def16b76ad908b1adb21eb7355fbd350e090a07406abb6440ef74d9437e": -7.30078125,
+      "knowledge-chunk-6b68b8000435a21bf90bf100716c7648742a369a4a7f0190d1035b9893fe1e1d": -6.32421875,
+      "knowledge-chunk-76b63d51333bc86f79c13a39ee5e2b03d04b92f1517ac3b33e1060673b9a1863": -6.046875
+    },
+    "arms": {
+      "bm25": {
+        "ce5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 1.0,
+          "article_ndcg": 1.0
+        },
+        "pack5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 1.0,
+          "article_ndcg": 1.0
+        },
+        "ordered": [
+          "knowledge-chunk-c1527b75d31a97e4db71d2f0deab4ad9950e4d0a8d01474f22456f8fc140b63e",
+          "knowledge-chunk-3b1ffffc4f091838f402aaf788886cdb16ddb7eb84e4e8b6d140fe7e945c9573",
+          "knowledge-chunk-5193c5b6214880e2ffac56ace518ff88efa3e88ab93b000a5877adfc4cbea347",
+          "knowledge-chunk-379d5eb9d1d2d620157ff8e0926956a3e689652a63195861d47ba086cc796e9f",
+          "knowledge-chunk-3bb2772260d77c76834e9dc3036f5df2ec5554fc382c4ec4717950c3c51ce749",
+          "knowledge-chunk-f1e2416bcd2e004484084550143ea416a258e071f4f00bb15759b2ae9d063ba1",
+          "knowledge-chunk-3503d000429513fe4818057f839dd457e551831583e4b167d185ef9a12da9aac",
+          "knowledge-chunk-4e68a20acd6c07840bedb8f5034f641858ba81bf490879836bf7cf68867bc446",
+          "knowledge-chunk-856810462183a9bfb5498e7f4ee8d367c1de8e146c6033266d8fc3bd41c9384c",
+          "knowledge-chunk-1b9022844e13fc007981750cb10a42394af81e4a90a864d0998c04697b79db46",
+          "knowledge-chunk-83385e261b186388c20e3fa67e26927535a18e08887e00e2a475a0d49e55bf40",
+          "knowledge-chunk-1f7465d39d6ed415a0229cf6fbdcf372853aab020acb85b3414cc1cfaaec301a",
+          "knowledge-chunk-a6b5a64ef6e236324a1ae4132652c0adb3fcbaff4c4c1cb314fc241ca67c1407",
+          "knowledge-chunk-62f06c8d16273b8ef9a074b0041819ba308cf35f44c2e6012ee16bb2d592999b",
+          "knowledge-chunk-e85b0b4227f04adf7c02336df37251cacc87d026e0609c3ec6c0ba93ca6c35c1",
+          "knowledge-chunk-7c1d881eeff40f0dc52a29d32fcb4bd434a54c26ffbc06787758feb9170fba31",
+          "knowledge-chunk-06d99c81706222fb582ecbde5df28b3b1c6b370a152dbb439a7a4bc8422bafc6",
+          "knowledge-chunk-75a284d8df0d52e2effbb80101153a10367df2fd0bcbac0c3b7cf6f145a0860c",
+          "knowledge-chunk-971aceddc853624e81f7c794a94509a6d26c24eb00452171b4eb27c4fc34b8d7",
+          "knowledge-chunk-d73ee762eddfd68987beea91b8ffa9198b0ac3b2d2b9b8e9cf3edeff9e167ff1"
+        ],
+        "packed": [
+          "knowledge-chunk-c1527b75d31a97e4db71d2f0deab4ad9950e4d0a8d01474f22456f8fc140b63e",
+          "knowledge-chunk-3b1ffffc4f091838f402aaf788886cdb16ddb7eb84e4e8b6d140fe7e945c9573",
+          "knowledge-chunk-5193c5b6214880e2ffac56ace518ff88efa3e88ab93b000a5877adfc4cbea347",
+          "knowledge-chunk-379d5eb9d1d2d620157ff8e0926956a3e689652a63195861d47ba086cc796e9f",
+          "knowledge-chunk-3bb2772260d77c76834e9dc3036f5df2ec5554fc382c4ec4717950c3c51ce749"
+        ]
+      },
+      "native": {
+        "ce5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 1.0,
+          "article_ndcg": 1.0
+        },
+        "pack5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 1.0,
+          "article_ndcg": 1.0
+        },
+        "ordered": [
+          "knowledge-chunk-c1527b75d31a97e4db71d2f0deab4ad9950e4d0a8d01474f22456f8fc140b63e",
+          "knowledge-chunk-3b1ffffc4f091838f402aaf788886cdb16ddb7eb84e4e8b6d140fe7e945c9573",
+          "knowledge-chunk-379d5eb9d1d2d620157ff8e0926956a3e689652a63195861d47ba086cc796e9f",
+          "knowledge-chunk-f1e2416bcd2e004484084550143ea416a258e071f4f00bb15759b2ae9d063ba1",
+          "knowledge-chunk-3503d000429513fe4818057f839dd457e551831583e4b167d185ef9a12da9aac",
+          "knowledge-chunk-4e68a20acd6c07840bedb8f5034f641858ba81bf490879836bf7cf68867bc446",
+          "knowledge-chunk-1b9022844e13fc007981750cb10a42394af81e4a90a864d0998c04697b79db46",
+          "knowledge-chunk-83385e261b186388c20e3fa67e26927535a18e08887e00e2a475a0d49e55bf40",
+          "knowledge-chunk-1f7465d39d6ed415a0229cf6fbdcf372853aab020acb85b3414cc1cfaaec301a",
+          "knowledge-chunk-62f06c8d16273b8ef9a074b0041819ba308cf35f44c2e6012ee16bb2d592999b",
+          "knowledge-chunk-4f6ac7a15560303e3cd34a4413bdfd4f04fd791a1486f2ef3c600407ab755e49",
+          "knowledge-chunk-6adb6633498090103b7a1b4c903b4c5c466205cdcf79206d252711477b1393e3",
+          "knowledge-chunk-7c1d881eeff40f0dc52a29d32fcb4bd434a54c26ffbc06787758feb9170fba31",
+          "knowledge-chunk-a6467b642f43ad9052d58a3951011529beca0d8138ce4745d4deef5c90808688",
+          "knowledge-chunk-971aceddc853624e81f7c794a94509a6d26c24eb00452171b4eb27c4fc34b8d7",
+          "knowledge-chunk-d73ee762eddfd68987beea91b8ffa9198b0ac3b2d2b9b8e9cf3edeff9e167ff1",
+          "knowledge-chunk-76b63d51333bc86f79c13a39ee5e2b03d04b92f1517ac3b33e1060673b9a1863",
+          "knowledge-chunk-6b68b8000435a21bf90bf100716c7648742a369a4a7f0190d1035b9893fe1e1d",
+          "knowledge-chunk-d8da2def16b76ad908b1adb21eb7355fbd350e090a07406abb6440ef74d9437e",
+          "knowledge-chunk-f16731a1fc0bec4ff3751058b09eb5860475f4e4388d28b6a15016f1d16c7898"
+        ],
+        "packed": [
+          "knowledge-chunk-c1527b75d31a97e4db71d2f0deab4ad9950e4d0a8d01474f22456f8fc140b63e",
+          "knowledge-chunk-3b1ffffc4f091838f402aaf788886cdb16ddb7eb84e4e8b6d140fe7e945c9573",
+          "knowledge-chunk-379d5eb9d1d2d620157ff8e0926956a3e689652a63195861d47ba086cc796e9f",
+          "knowledge-chunk-f1e2416bcd2e004484084550143ea416a258e071f4f00bb15759b2ae9d063ba1",
+          "knowledge-chunk-3503d000429513fe4818057f839dd457e551831583e4b167d185ef9a12da9aac"
+        ]
+      }
+    }
+  },
+  {
+    "case_id": "331fd4068bcf5b0328385a8a590b1cdffda8f3b8f67a410d358672d3bae1c9d2",
+    "scores": {
+      "knowledge-chunk-1a4c224a8e9d67670dd20db1d0a37d4c58eff9cef92809aeb1cf8e60729827f8": -0.28564453125,
+      "knowledge-chunk-6ef2b243edb89d82e71df6a142aca2852be360d0a93ccbf8cce5611bdb613da4": -0.48291015625,
+      "knowledge-chunk-9218b9dd0d75873411b76b097ca866a950c828c60e5cc5bfd7ca43d446bd1ba5": -2.15625,
+      "knowledge-chunk-7f540ff1a8a9d031b7eb02e10d4bdb3f99602b74d3c14cbf82f7db31b4db0bfc": -3.00390625,
+      "knowledge-chunk-28a4fa9a19b86d5515d9170ba11732bd7296c307623bab887f9bd47279d5551b": -1.201171875,
+      "knowledge-chunk-e65348d281492672b15eb5043553dfc31fe13fee7e75e11bd44a680f681a7847": -1.7900390625,
+      "knowledge-chunk-ed413d3f457947301e01933b2dc0d10f5278845b2e2f5dbcedc10a52e8e88c12": -1.4521484375,
+      "knowledge-chunk-db711e05d8f1e28c0c1e4b30ad0a5656086a337cec4fdc5edaf6cab8a45b6222": -2.458984375,
+      "knowledge-chunk-20e22dd71dfbb257fc0ad8247bec28de7876522b39e11133bbe1a8520f02504f": -5.6875,
+      "knowledge-chunk-0d181a0b64efcc6c84ed0629dc411de5a6c1c1a4cafe0fee925847c0153c39e0": -3.046875,
+      "knowledge-chunk-2fc6811bcfd60dc7f6177fecb0d69e78f9a987963e2de520db9e5d40bc62f0f9": -6.3125,
+      "knowledge-chunk-34c6c2e4dfd961a46709074c9114a99d34662873527f415f1a7ac4bff3d4618f": -2.302734375,
+      "knowledge-chunk-284ef9824fe991538b5097c124930e1cb2d63d45e5430dd851f3ead03d3d4388": -3.46484375,
+      "knowledge-chunk-c05824c1c37a6f3cbdd8afd2cb447c14d03ec40d0a4bb6c76e9376353b9c7697": -3.4375,
+      "knowledge-chunk-6bf4668c8cef2eacdccca86f4161e741b17da5fba3c5569e82a4a2a053f98ff3": -5.3125,
+      "knowledge-chunk-d6793c341f63770c7ef1da25c5cb747ab4a7895fe7862c4774cc0b87a5b8df76": -4.14453125,
+      "knowledge-chunk-cac855364a9a23ff9165a316343f127bfd9ae07e6fd80764521a4e1466dfb7ee": -2.607421875,
+      "knowledge-chunk-0c116f80d44c6e1f3dd508874c21f7a9e15650ad54eb5e01225019766ea29f7f": -3.689453125,
+      "knowledge-chunk-4257e5d6cc72996204acf51e4cfa5800440a3f3bed9fd904885f18c6466c4553": -5.578125,
+      "knowledge-chunk-b78fc5d8ad4b784f8bb1276dabce01632b0ef95f56df10286d9c8edadc2a6380": -6.9296875,
+      "knowledge-chunk-e048162361a2078f564b758ccf7f892296f9e2baed0a1171a388f33a4234242a": -2.39453125,
+      "knowledge-chunk-8c0b75222ab9e138cf981a7b8c1d5e8270ede8512a21631af810024ba163c9da": -6.77734375,
+      "knowledge-chunk-7c1b66e43a1b706fc2ae08c1cedbee3cebf7ac080562060e17e54fdaf70c9b39": -5.0390625,
+      "knowledge-chunk-772f0152e70a3971482a76d843a7625db3005cd17b96bef6d6db52ec388b043f": -7.0390625,
+      "knowledge-chunk-bec7efad5d2a379aa0ef8edf798f806e7a5ec44e673080fd098740112e1d0de0": -6.953125,
+      "knowledge-chunk-c4f86392a98f1ad5e02c7245aba31c0a7717469fc1cafa62803e24319aa1e052": -7.4765625,
+      "knowledge-chunk-47bff406f9180c16aca02a23c094c999bfa5f7c6649dbd7f09ffab55f0c2cf0a": -7.421875,
+      "knowledge-chunk-64e237a499242a368a26926301cd8b7ca17793b1b0b3b869fc92f7d70386ec5a": -5.953125,
+      "knowledge-chunk-5433147fe2693ef2f726a7ea59f7d9c23727c75b8631684505119c5bfc800a48": -7.13671875,
+      "knowledge-chunk-727209fa7129a3a5e870f582b99501eaa142a7b1d00d1b03aab32b74ff630151": -6.30859375
+    },
+    "arms": {
+      "bm25": {
+        "ce5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 1.0,
+          "article_ndcg": 1.0
+        },
+        "pack5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 1.0,
+          "article_ndcg": 1.0
+        },
+        "ordered": [
+          "knowledge-chunk-1a4c224a8e9d67670dd20db1d0a37d4c58eff9cef92809aeb1cf8e60729827f8",
+          "knowledge-chunk-6ef2b243edb89d82e71df6a142aca2852be360d0a93ccbf8cce5611bdb613da4",
+          "knowledge-chunk-28a4fa9a19b86d5515d9170ba11732bd7296c307623bab887f9bd47279d5551b",
+          "knowledge-chunk-ed413d3f457947301e01933b2dc0d10f5278845b2e2f5dbcedc10a52e8e88c12",
+          "knowledge-chunk-e65348d281492672b15eb5043553dfc31fe13fee7e75e11bd44a680f681a7847",
+          "knowledge-chunk-9218b9dd0d75873411b76b097ca866a950c828c60e5cc5bfd7ca43d446bd1ba5",
+          "knowledge-chunk-34c6c2e4dfd961a46709074c9114a99d34662873527f415f1a7ac4bff3d4618f",
+          "knowledge-chunk-db711e05d8f1e28c0c1e4b30ad0a5656086a337cec4fdc5edaf6cab8a45b6222",
+          "knowledge-chunk-cac855364a9a23ff9165a316343f127bfd9ae07e6fd80764521a4e1466dfb7ee",
+          "knowledge-chunk-7f540ff1a8a9d031b7eb02e10d4bdb3f99602b74d3c14cbf82f7db31b4db0bfc",
+          "knowledge-chunk-0d181a0b64efcc6c84ed0629dc411de5a6c1c1a4cafe0fee925847c0153c39e0",
+          "knowledge-chunk-c05824c1c37a6f3cbdd8afd2cb447c14d03ec40d0a4bb6c76e9376353b9c7697",
+          "knowledge-chunk-284ef9824fe991538b5097c124930e1cb2d63d45e5430dd851f3ead03d3d4388",
+          "knowledge-chunk-0c116f80d44c6e1f3dd508874c21f7a9e15650ad54eb5e01225019766ea29f7f",
+          "knowledge-chunk-d6793c341f63770c7ef1da25c5cb747ab4a7895fe7862c4774cc0b87a5b8df76",
+          "knowledge-chunk-6bf4668c8cef2eacdccca86f4161e741b17da5fba3c5569e82a4a2a053f98ff3",
+          "knowledge-chunk-4257e5d6cc72996204acf51e4cfa5800440a3f3bed9fd904885f18c6466c4553",
+          "knowledge-chunk-20e22dd71dfbb257fc0ad8247bec28de7876522b39e11133bbe1a8520f02504f",
+          "knowledge-chunk-2fc6811bcfd60dc7f6177fecb0d69e78f9a987963e2de520db9e5d40bc62f0f9",
+          "knowledge-chunk-b78fc5d8ad4b784f8bb1276dabce01632b0ef95f56df10286d9c8edadc2a6380"
+        ],
+        "packed": [
+          "knowledge-chunk-1a4c224a8e9d67670dd20db1d0a37d4c58eff9cef92809aeb1cf8e60729827f8",
+          "knowledge-chunk-6ef2b243edb89d82e71df6a142aca2852be360d0a93ccbf8cce5611bdb613da4",
+          "knowledge-chunk-28a4fa9a19b86d5515d9170ba11732bd7296c307623bab887f9bd47279d5551b",
+          "knowledge-chunk-ed413d3f457947301e01933b2dc0d10f5278845b2e2f5dbcedc10a52e8e88c12",
+          "knowledge-chunk-e65348d281492672b15eb5043553dfc31fe13fee7e75e11bd44a680f681a7847"
+        ]
+      },
+      "native": {
+        "ce5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 1.0,
+          "article_ndcg": 1.0
+        },
+        "pack5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 1.0,
+          "article_ndcg": 1.0
+        },
+        "ordered": [
+          "knowledge-chunk-1a4c224a8e9d67670dd20db1d0a37d4c58eff9cef92809aeb1cf8e60729827f8",
+          "knowledge-chunk-6ef2b243edb89d82e71df6a142aca2852be360d0a93ccbf8cce5611bdb613da4",
+          "knowledge-chunk-28a4fa9a19b86d5515d9170ba11732bd7296c307623bab887f9bd47279d5551b",
+          "knowledge-chunk-e65348d281492672b15eb5043553dfc31fe13fee7e75e11bd44a680f681a7847",
+          "knowledge-chunk-9218b9dd0d75873411b76b097ca866a950c828c60e5cc5bfd7ca43d446bd1ba5",
+          "knowledge-chunk-e048162361a2078f564b758ccf7f892296f9e2baed0a1171a388f33a4234242a",
+          "knowledge-chunk-7f540ff1a8a9d031b7eb02e10d4bdb3f99602b74d3c14cbf82f7db31b4db0bfc",
+          "knowledge-chunk-0d181a0b64efcc6c84ed0629dc411de5a6c1c1a4cafe0fee925847c0153c39e0",
+          "knowledge-chunk-c05824c1c37a6f3cbdd8afd2cb447c14d03ec40d0a4bb6c76e9376353b9c7697",
+          "knowledge-chunk-d6793c341f63770c7ef1da25c5cb747ab4a7895fe7862c4774cc0b87a5b8df76",
+          "knowledge-chunk-7c1b66e43a1b706fc2ae08c1cedbee3cebf7ac080562060e17e54fdaf70c9b39",
+          "knowledge-chunk-6bf4668c8cef2eacdccca86f4161e741b17da5fba3c5569e82a4a2a053f98ff3",
+          "knowledge-chunk-64e237a499242a368a26926301cd8b7ca17793b1b0b3b869fc92f7d70386ec5a",
+          "knowledge-chunk-727209fa7129a3a5e870f582b99501eaa142a7b1d00d1b03aab32b74ff630151",
+          "knowledge-chunk-8c0b75222ab9e138cf981a7b8c1d5e8270ede8512a21631af810024ba163c9da",
+          "knowledge-chunk-bec7efad5d2a379aa0ef8edf798f806e7a5ec44e673080fd098740112e1d0de0",
+          "knowledge-chunk-772f0152e70a3971482a76d843a7625db3005cd17b96bef6d6db52ec388b043f",
+          "knowledge-chunk-5433147fe2693ef2f726a7ea59f7d9c23727c75b8631684505119c5bfc800a48",
+          "knowledge-chunk-47bff406f9180c16aca02a23c094c999bfa5f7c6649dbd7f09ffab55f0c2cf0a",
+          "knowledge-chunk-c4f86392a98f1ad5e02c7245aba31c0a7717469fc1cafa62803e24319aa1e052"
+        ],
+        "packed": [
+          "knowledge-chunk-1a4c224a8e9d67670dd20db1d0a37d4c58eff9cef92809aeb1cf8e60729827f8",
+          "knowledge-chunk-6ef2b243edb89d82e71df6a142aca2852be360d0a93ccbf8cce5611bdb613da4",
+          "knowledge-chunk-28a4fa9a19b86d5515d9170ba11732bd7296c307623bab887f9bd47279d5551b",
+          "knowledge-chunk-e65348d281492672b15eb5043553dfc31fe13fee7e75e11bd44a680f681a7847",
+          "knowledge-chunk-9218b9dd0d75873411b76b097ca866a950c828c60e5cc5bfd7ca43d446bd1ba5"
+        ]
+      }
+    }
+  },
+  {
+    "case_id": "375d9111962f1dc7bd76ed322eba6698f4d34fee6d07fecb87341e0942eb8cfe",
+    "scores": {
+      "knowledge-chunk-ea81edfda3330b2ffff5a7f649d498f84cd31723a36a5a9fe6d75e5031213eca": -0.5166015625,
+      "knowledge-chunk-3f04c22c436ff6e4666001689680d524de7351750b199e9b69716663a5c87c34": -0.0731201171875,
+      "knowledge-chunk-024b00f61b4b05ff06be34ca2489e9348d10608b96bb0d10fe5d3f5405b3d025": -0.49462890625,
+      "knowledge-chunk-37ec98b16d8383db70707ca21a3a45bc922c3002786aacc326d19ae1a3022175": -1.669921875,
+      "knowledge-chunk-f612cb452e9f1887de637857ae2cd0433de5eac2f07cb3cd71283024a3eec1a3": -1.9912109375,
+      "knowledge-chunk-bf0cca26681c3ad736438306eb2d0897c2a50fea0fa6f90162b0368ba3bab95b": -2.802734375,
+      "knowledge-chunk-d7f9b28587bd91c6afd0414d5e72c7163c321790436e60ce028574dd0b084500": 1.40625,
+      "knowledge-chunk-f3c94d3d7f4f021172609e866e6d206c117f435110d735069e39edc9b18ad351": -1.5859375,
+      "knowledge-chunk-6eae5f57c94fc8dbafb215c9c89020890d716d1f7a965240335241c872d954aa": 3.30078125,
+      "knowledge-chunk-98967e85dac52d288c7669cf785c5a0d2cb1deca7fc8b826f3d7f447dae12b6f": -0.423095703125,
+      "knowledge-chunk-fd9a2903244076646747a4b0fb21f54417d093d9336c6f197a2a8900fdecd379": -2.029296875,
+      "knowledge-chunk-8cb17886a18507c68c51501e42f964c93f431960f442856f67a4c6da59dbfa3c": -0.260009765625,
+      "knowledge-chunk-55e099f3ad31577c46a23e9dc94d9cbddd7c18d99993f5663293f37231431e1a": -2.9140625,
+      "knowledge-chunk-9c2827105e2985813b95d74a2d9f2c83ab0a22839c6a83005c12b93b74287437": -1.21875,
+      "knowledge-chunk-2c9951e7ef99ae410b30afa1789e1c7ae52e2b69b56b6eefac95fed1eaf4d435": -2.353515625,
+      "knowledge-chunk-5fb8f2383dc202a8425ab85d071a91b6dd15734ebb403338be9d77f812644f6e": -0.04437255859375,
+      "knowledge-chunk-6696c28e5d5624f4ac45d23bf59c26b0fa7b308f5d93a3f07c1e4cb124306dc1": -3.869140625,
+      "knowledge-chunk-85601f9b77cc87ff14d13b67455783f9fa8c107cdd23f072e89a8901f0b6dedf": -1.015625,
+      "knowledge-chunk-045a8f844806ab84a972f0ddb7999181768d1eff866de36c0ca47c720fc6abf2": -2.140625,
+      "knowledge-chunk-93cf59a25abad6fe59158e00b7fb6dcecb848bc491610c39d0b50ff972b09be2": -1.486328125,
+      "knowledge-chunk-1640483c908e7f2338d296a12ee0f712ef3b1ed0d0e6fff2e60fbf588c7fd49b": -1.9658203125,
+      "knowledge-chunk-ec2e1f060de7f5c1ac25987757318540708df6bd5235360880c17e2b247d60ef": -3.201171875,
+      "knowledge-chunk-7588588a9f7b3cb875de35cf47d7cd52586b6ee8970e04e41156e31204e88d6b": -4.1171875,
+      "knowledge-chunk-8c0b75222ab9e138cf981a7b8c1d5e8270ede8512a21631af810024ba163c9da": -4.58984375,
+      "knowledge-chunk-3472bc42030a77c43cd0dec6031c800c055c5d7fe071170244dfb1034531b3bd": -3.3359375,
+      "knowledge-chunk-39b98b4a2fc9825a7c5ef89d6ec5fdb6a88160cbd1c3655bf2f556f573f064fa": -5.79296875
+    },
+    "arms": {
+      "bm25": {
+        "ce5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 0.25,
+          "article_ndcg": 0.43067655807339306
+        },
+        "pack5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 0.25,
+          "article_ndcg": 0.43067655807339306
+        },
+        "ordered": [
+          "knowledge-chunk-6eae5f57c94fc8dbafb215c9c89020890d716d1f7a965240335241c872d954aa",
+          "knowledge-chunk-d7f9b28587bd91c6afd0414d5e72c7163c321790436e60ce028574dd0b084500",
+          "knowledge-chunk-5fb8f2383dc202a8425ab85d071a91b6dd15734ebb403338be9d77f812644f6e",
+          "knowledge-chunk-3f04c22c436ff6e4666001689680d524de7351750b199e9b69716663a5c87c34",
+          "knowledge-chunk-8cb17886a18507c68c51501e42f964c93f431960f442856f67a4c6da59dbfa3c",
+          "knowledge-chunk-98967e85dac52d288c7669cf785c5a0d2cb1deca7fc8b826f3d7f447dae12b6f",
+          "knowledge-chunk-024b00f61b4b05ff06be34ca2489e9348d10608b96bb0d10fe5d3f5405b3d025",
+          "knowledge-chunk-ea81edfda3330b2ffff5a7f649d498f84cd31723a36a5a9fe6d75e5031213eca",
+          "knowledge-chunk-85601f9b77cc87ff14d13b67455783f9fa8c107cdd23f072e89a8901f0b6dedf",
+          "knowledge-chunk-9c2827105e2985813b95d74a2d9f2c83ab0a22839c6a83005c12b93b74287437",
+          "knowledge-chunk-93cf59a25abad6fe59158e00b7fb6dcecb848bc491610c39d0b50ff972b09be2",
+          "knowledge-chunk-f3c94d3d7f4f021172609e866e6d206c117f435110d735069e39edc9b18ad351",
+          "knowledge-chunk-37ec98b16d8383db70707ca21a3a45bc922c3002786aacc326d19ae1a3022175",
+          "knowledge-chunk-f612cb452e9f1887de637857ae2cd0433de5eac2f07cb3cd71283024a3eec1a3",
+          "knowledge-chunk-fd9a2903244076646747a4b0fb21f54417d093d9336c6f197a2a8900fdecd379",
+          "knowledge-chunk-045a8f844806ab84a972f0ddb7999181768d1eff866de36c0ca47c720fc6abf2",
+          "knowledge-chunk-2c9951e7ef99ae410b30afa1789e1c7ae52e2b69b56b6eefac95fed1eaf4d435",
+          "knowledge-chunk-bf0cca26681c3ad736438306eb2d0897c2a50fea0fa6f90162b0368ba3bab95b",
+          "knowledge-chunk-55e099f3ad31577c46a23e9dc94d9cbddd7c18d99993f5663293f37231431e1a",
+          "knowledge-chunk-6696c28e5d5624f4ac45d23bf59c26b0fa7b308f5d93a3f07c1e4cb124306dc1"
+        ],
+        "packed": [
+          "knowledge-chunk-6eae5f57c94fc8dbafb215c9c89020890d716d1f7a965240335241c872d954aa",
+          "knowledge-chunk-d7f9b28587bd91c6afd0414d5e72c7163c321790436e60ce028574dd0b084500",
+          "knowledge-chunk-5fb8f2383dc202a8425ab85d071a91b6dd15734ebb403338be9d77f812644f6e",
+          "knowledge-chunk-3f04c22c436ff6e4666001689680d524de7351750b199e9b69716663a5c87c34",
+          "knowledge-chunk-8cb17886a18507c68c51501e42f964c93f431960f442856f67a4c6da59dbfa3c"
+        ]
+      },
+      "native": {
+        "ce5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 0.5,
+          "article_ndcg": 0.6309297535714575
+        },
+        "pack5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 0.5,
+          "article_ndcg": 0.6309297535714575
+        },
+        "ordered": [
+          "knowledge-chunk-5fb8f2383dc202a8425ab85d071a91b6dd15734ebb403338be9d77f812644f6e",
+          "knowledge-chunk-3f04c22c436ff6e4666001689680d524de7351750b199e9b69716663a5c87c34",
+          "knowledge-chunk-8cb17886a18507c68c51501e42f964c93f431960f442856f67a4c6da59dbfa3c",
+          "knowledge-chunk-98967e85dac52d288c7669cf785c5a0d2cb1deca7fc8b826f3d7f447dae12b6f",
+          "knowledge-chunk-024b00f61b4b05ff06be34ca2489e9348d10608b96bb0d10fe5d3f5405b3d025",
+          "knowledge-chunk-ea81edfda3330b2ffff5a7f649d498f84cd31723a36a5a9fe6d75e5031213eca",
+          "knowledge-chunk-9c2827105e2985813b95d74a2d9f2c83ab0a22839c6a83005c12b93b74287437",
+          "knowledge-chunk-93cf59a25abad6fe59158e00b7fb6dcecb848bc491610c39d0b50ff972b09be2",
+          "knowledge-chunk-37ec98b16d8383db70707ca21a3a45bc922c3002786aacc326d19ae1a3022175",
+          "knowledge-chunk-1640483c908e7f2338d296a12ee0f712ef3b1ed0d0e6fff2e60fbf588c7fd49b",
+          "knowledge-chunk-f612cb452e9f1887de637857ae2cd0433de5eac2f07cb3cd71283024a3eec1a3",
+          "knowledge-chunk-fd9a2903244076646747a4b0fb21f54417d093d9336c6f197a2a8900fdecd379",
+          "knowledge-chunk-bf0cca26681c3ad736438306eb2d0897c2a50fea0fa6f90162b0368ba3bab95b",
+          "knowledge-chunk-55e099f3ad31577c46a23e9dc94d9cbddd7c18d99993f5663293f37231431e1a",
+          "knowledge-chunk-ec2e1f060de7f5c1ac25987757318540708df6bd5235360880c17e2b247d60ef",
+          "knowledge-chunk-3472bc42030a77c43cd0dec6031c800c055c5d7fe071170244dfb1034531b3bd",
+          "knowledge-chunk-6696c28e5d5624f4ac45d23bf59c26b0fa7b308f5d93a3f07c1e4cb124306dc1",
+          "knowledge-chunk-7588588a9f7b3cb875de35cf47d7cd52586b6ee8970e04e41156e31204e88d6b",
+          "knowledge-chunk-8c0b75222ab9e138cf981a7b8c1d5e8270ede8512a21631af810024ba163c9da",
+          "knowledge-chunk-39b98b4a2fc9825a7c5ef89d6ec5fdb6a88160cbd1c3655bf2f556f573f064fa"
+        ],
+        "packed": [
+          "knowledge-chunk-5fb8f2383dc202a8425ab85d071a91b6dd15734ebb403338be9d77f812644f6e",
+          "knowledge-chunk-3f04c22c436ff6e4666001689680d524de7351750b199e9b69716663a5c87c34",
+          "knowledge-chunk-8cb17886a18507c68c51501e42f964c93f431960f442856f67a4c6da59dbfa3c",
+          "knowledge-chunk-98967e85dac52d288c7669cf785c5a0d2cb1deca7fc8b826f3d7f447dae12b6f",
+          "knowledge-chunk-024b00f61b4b05ff06be34ca2489e9348d10608b96bb0d10fe5d3f5405b3d025"
+        ]
+      }
+    }
+  },
+  {
+    "case_id": "435cc9cd25371790b4e6e0b6b3f6c53d75948a994da013caf18d1b1bec6550ce",
+    "scores": {
+      "knowledge-chunk-231bf0788b10906468c49dd81722f75f5c8f142943b856e2c072ce9164d58ab2": -1.7412109375,
+      "knowledge-chunk-4e91d8aab8d043da73952f47060f085b364426f33fe930438d4b21e724fac532": -1.5751953125,
+      "knowledge-chunk-4c152ae6c403706c6fa4b17e0721d6e8563bb70395779848ad05828262c5a8ea": -3.091796875,
+      "knowledge-chunk-c8094d64fb31d501dac902d9969739d62999f33ae1642465d1cdac32528036ce": -4.01953125,
+      "knowledge-chunk-4b7cf0c7f47269240bec4f019b3f92307a39328ad1a72bc6c356e2d6a02db503": -3.365234375,
+      "knowledge-chunk-fef73321832e9becd883153aed8d59b0f8ae00f7cd310584d8b72ee7bc1811d2": -1.548828125,
+      "knowledge-chunk-4635db69cd45a0fced4c776cec89083be27c15e40d146a7addd8ba2789d64f90": -2.8046875,
+      "knowledge-chunk-0cd9f2953b0bd7b5d00e49110c96b16d570863a6a09d9a646a6eb008cd3ddc06": -0.24560546875,
+      "knowledge-chunk-134032bae5d665c9cb2138688613b368c621a9052a8daed310e0279f2d87f529": -2.078125,
+      "knowledge-chunk-d1da23589c45f2d7f932f76dd26dbc98f2dde0effc548b1b1858a15a8401d614": -3.58203125,
+      "knowledge-chunk-9945c04a735f3e2985d55143a8dc93679e784c8787e9628f9d576cbaaf198a13": -2.69921875,
+      "knowledge-chunk-b43f7d168a6ef5907845720ddc2d0c1cb495bbd6c96ae8208d52dbd1dfb00dea": -3.392578125,
+      "knowledge-chunk-61cb06d9cd20f0891481e9d6b1c7f2bd5eb30dffb0f6b9cd43ecd7f317ed5f7e": -2.51953125,
+      "knowledge-chunk-f188d293a1211d9df9278076455d3629d0794c68f9f0ab55e91ed370603705bb": -2.271484375,
+      "knowledge-chunk-7d5eaa3e363cf525b16cf01e86dbf25bcbd0e8c1492baa02c0f93b8f6792e100": -2.474609375,
+      "knowledge-chunk-bb7abc966709e58d6722774f6acf8b9cee2cb3c36a47bc7cb83cbda7583c12b1": -1.515625,
+      "knowledge-chunk-c085e01991f571745908783397dff3d55a20a3cf1af658b9cbd43bc0d180ef06": -0.5341796875,
+      "knowledge-chunk-b5adbaeb28bc4a0b73ae9926bbcc1d3ba2a7c4d6608d2f6eeb37c28aa75c147f": -3.17578125,
+      "knowledge-chunk-614f4b187928d639c04dab82b7e54c9d29e45d6fc0af9be8f80f6c80ed5139bb": -1.3408203125,
+      "knowledge-chunk-c873743dea0e1d065d0d1ffc04953987ae9248e213930b494820ae55e66db660": -6.00390625,
+      "knowledge-chunk-109685e715aaad82d82addd1e17245956e7b2e215067640234c58d9111c6b392": -6.40625,
+      "knowledge-chunk-4bd7122073ea8f4081e99a057f2da5d9f2b5c9d7706403ecf1e7706cb8c1b49e": -6.16015625,
+      "knowledge-chunk-872b7e13c7310c2e1e8c1445d18764b120ce8a1a2d5450a03bd2a056884c3eaa": -7.4765625,
+      "knowledge-chunk-8c0b75222ab9e138cf981a7b8c1d5e8270ede8512a21631af810024ba163c9da": -8.3359375,
+      "knowledge-chunk-8e0a2c758929b5ac2047e7c6c6c80df0b56989137e7e0c543daf34c7c70cb293": -7.5859375,
+      "knowledge-chunk-1207583f78d17fa495cff004730a775085161f69923f94332d0aa9ca3721b9c3": -6.54296875,
+      "knowledge-chunk-4123d6212596f1485d06294ef94f3b7d2b0993369f872c8e6d20f6f1757037d0": -8.28125,
+      "knowledge-chunk-6f6176f8fb1039910213e839718ba9fce9f92f877642963fc84336d8f35758d3": -6.51171875,
+      "knowledge-chunk-7c1b66e43a1b706fc2ae08c1cedbee3cebf7ac080562060e17e54fdaf70c9b39": -9.078125,
+      "knowledge-chunk-6ed4c19420319d2e9a058b8bef96aba76368be58919d94a41b3b6e34a679c037": -6.80078125
+    },
+    "arms": {
+      "bm25": {
+        "ce5": {
+          "article_recall": 0.0,
+          "all_articles": false,
+          "article_mrr": 0,
+          "article_ndcg": 0.0
+        },
+        "pack5": {
+          "article_recall": 0.0,
+          "all_articles": false,
+          "article_mrr": 0,
+          "article_ndcg": 0.0
+        },
+        "ordered": [
+          "knowledge-chunk-0cd9f2953b0bd7b5d00e49110c96b16d570863a6a09d9a646a6eb008cd3ddc06",
+          "knowledge-chunk-c085e01991f571745908783397dff3d55a20a3cf1af658b9cbd43bc0d180ef06",
+          "knowledge-chunk-614f4b187928d639c04dab82b7e54c9d29e45d6fc0af9be8f80f6c80ed5139bb",
+          "knowledge-chunk-bb7abc966709e58d6722774f6acf8b9cee2cb3c36a47bc7cb83cbda7583c12b1",
+          "knowledge-chunk-fef73321832e9becd883153aed8d59b0f8ae00f7cd310584d8b72ee7bc1811d2",
+          "knowledge-chunk-4e91d8aab8d043da73952f47060f085b364426f33fe930438d4b21e724fac532",
+          "knowledge-chunk-231bf0788b10906468c49dd81722f75f5c8f142943b856e2c072ce9164d58ab2",
+          "knowledge-chunk-134032bae5d665c9cb2138688613b368c621a9052a8daed310e0279f2d87f529",
+          "knowledge-chunk-f188d293a1211d9df9278076455d3629d0794c68f9f0ab55e91ed370603705bb",
+          "knowledge-chunk-7d5eaa3e363cf525b16cf01e86dbf25bcbd0e8c1492baa02c0f93b8f6792e100",
+          "knowledge-chunk-61cb06d9cd20f0891481e9d6b1c7f2bd5eb30dffb0f6b9cd43ecd7f317ed5f7e",
+          "knowledge-chunk-9945c04a735f3e2985d55143a8dc93679e784c8787e9628f9d576cbaaf198a13",
+          "knowledge-chunk-4635db69cd45a0fced4c776cec89083be27c15e40d146a7addd8ba2789d64f90",
+          "knowledge-chunk-4c152ae6c403706c6fa4b17e0721d6e8563bb70395779848ad05828262c5a8ea",
+          "knowledge-chunk-b5adbaeb28bc4a0b73ae9926bbcc1d3ba2a7c4d6608d2f6eeb37c28aa75c147f",
+          "knowledge-chunk-4b7cf0c7f47269240bec4f019b3f92307a39328ad1a72bc6c356e2d6a02db503",
+          "knowledge-chunk-b43f7d168a6ef5907845720ddc2d0c1cb495bbd6c96ae8208d52dbd1dfb00dea",
+          "knowledge-chunk-d1da23589c45f2d7f932f76dd26dbc98f2dde0effc548b1b1858a15a8401d614",
+          "knowledge-chunk-c8094d64fb31d501dac902d9969739d62999f33ae1642465d1cdac32528036ce",
+          "knowledge-chunk-c873743dea0e1d065d0d1ffc04953987ae9248e213930b494820ae55e66db660"
+        ],
+        "packed": [
+          "knowledge-chunk-0cd9f2953b0bd7b5d00e49110c96b16d570863a6a09d9a646a6eb008cd3ddc06",
+          "knowledge-chunk-c085e01991f571745908783397dff3d55a20a3cf1af658b9cbd43bc0d180ef06",
+          "knowledge-chunk-614f4b187928d639c04dab82b7e54c9d29e45d6fc0af9be8f80f6c80ed5139bb",
+          "knowledge-chunk-bb7abc966709e58d6722774f6acf8b9cee2cb3c36a47bc7cb83cbda7583c12b1",
+          "knowledge-chunk-fef73321832e9becd883153aed8d59b0f8ae00f7cd310584d8b72ee7bc1811d2"
+        ]
+      },
+      "native": {
+        "ce5": {
+          "article_recall": 0.0,
+          "all_articles": false,
+          "article_mrr": 0,
+          "article_ndcg": 0.0
+        },
+        "pack5": {
+          "article_recall": 0.0,
+          "all_articles": false,
+          "article_mrr": 0,
+          "article_ndcg": 0.0
+        },
+        "ordered": [
+          "knowledge-chunk-0cd9f2953b0bd7b5d00e49110c96b16d570863a6a09d9a646a6eb008cd3ddc06",
+          "knowledge-chunk-c085e01991f571745908783397dff3d55a20a3cf1af658b9cbd43bc0d180ef06",
+          "knowledge-chunk-fef73321832e9becd883153aed8d59b0f8ae00f7cd310584d8b72ee7bc1811d2",
+          "knowledge-chunk-4e91d8aab8d043da73952f47060f085b364426f33fe930438d4b21e724fac532",
+          "knowledge-chunk-231bf0788b10906468c49dd81722f75f5c8f142943b856e2c072ce9164d58ab2",
+          "knowledge-chunk-f188d293a1211d9df9278076455d3629d0794c68f9f0ab55e91ed370603705bb",
+          "knowledge-chunk-7d5eaa3e363cf525b16cf01e86dbf25bcbd0e8c1492baa02c0f93b8f6792e100",
+          "knowledge-chunk-9945c04a735f3e2985d55143a8dc93679e784c8787e9628f9d576cbaaf198a13",
+          "knowledge-chunk-4c152ae6c403706c6fa4b17e0721d6e8563bb70395779848ad05828262c5a8ea",
+          "knowledge-chunk-d1da23589c45f2d7f932f76dd26dbc98f2dde0effc548b1b1858a15a8401d614",
+          "knowledge-chunk-4bd7122073ea8f4081e99a057f2da5d9f2b5c9d7706403ecf1e7706cb8c1b49e",
+          "knowledge-chunk-109685e715aaad82d82addd1e17245956e7b2e215067640234c58d9111c6b392",
+          "knowledge-chunk-6f6176f8fb1039910213e839718ba9fce9f92f877642963fc84336d8f35758d3",
+          "knowledge-chunk-1207583f78d17fa495cff004730a775085161f69923f94332d0aa9ca3721b9c3",
+          "knowledge-chunk-6ed4c19420319d2e9a058b8bef96aba76368be58919d94a41b3b6e34a679c037",
+          "knowledge-chunk-872b7e13c7310c2e1e8c1445d18764b120ce8a1a2d5450a03bd2a056884c3eaa",
+          "knowledge-chunk-8e0a2c758929b5ac2047e7c6c6c80df0b56989137e7e0c543daf34c7c70cb293",
+          "knowledge-chunk-4123d6212596f1485d06294ef94f3b7d2b0993369f872c8e6d20f6f1757037d0",
+          "knowledge-chunk-8c0b75222ab9e138cf981a7b8c1d5e8270ede8512a21631af810024ba163c9da",
+          "knowledge-chunk-7c1b66e43a1b706fc2ae08c1cedbee3cebf7ac080562060e17e54fdaf70c9b39"
+        ],
+        "packed": [
+          "knowledge-chunk-0cd9f2953b0bd7b5d00e49110c96b16d570863a6a09d9a646a6eb008cd3ddc06",
+          "knowledge-chunk-c085e01991f571745908783397dff3d55a20a3cf1af658b9cbd43bc0d180ef06",
+          "knowledge-chunk-fef73321832e9becd883153aed8d59b0f8ae00f7cd310584d8b72ee7bc1811d2",
+          "knowledge-chunk-4e91d8aab8d043da73952f47060f085b364426f33fe930438d4b21e724fac532",
+          "knowledge-chunk-231bf0788b10906468c49dd81722f75f5c8f142943b856e2c072ce9164d58ab2"
+        ]
+      }
+    }
+  },
+  {
+    "case_id": "43cbdd9ae9bb049d44efc0904d56ac858dc13d7cff84f4debcdedd4cac6f76d7",
+    "scores": {
+      "knowledge-chunk-7735c1787d60eeb3a1ee5c4628b91a329e8ff1c5e946001e8f9669b0cad3a833": 1.22265625,
+      "knowledge-chunk-5e5a0f3b67dc6c69b681d796ec99739fbb7651e50671248601cebe93933ab4cb": 1.306640625,
+      "knowledge-chunk-3ce0ebddfcee5e43af7bd742f9921a6ed5d1a51e6b062f5fbb637d0e253ada4a": 1.693359375,
+      "knowledge-chunk-7804603cd8336af42f45410c901e835bd47a3bf955f722a70660ae1b205251e9": 1.5244140625,
+      "knowledge-chunk-b39e0bd0f6fc75799f93b1f71aa390726b1efa44430e71ba3c1f1caffd2409ee": -1.17578125,
+      "knowledge-chunk-d0a3c851be35ae991b70551b1fb75acf5045eca1c67aa372f5c20e7e001e7708": 1.16796875,
+      "knowledge-chunk-611740ac7dcb8a31757d70239624cc07cac62cb57c6abd6e3b1e3eb672f1370d": -2.734375,
+      "knowledge-chunk-b507b2a80e375939b14ffd8037a7388f4454a22bbdc71fcada3d0a374c7407b5": 0.458251953125,
+      "knowledge-chunk-346437341b6965772a8a7ce127ab839ff702046a94153e9316091758e12493c7": -4.640625,
+      "knowledge-chunk-6f2badbffd6b1b80ad63e097a1b1ac335b1a920196ec816fcac7a35fb78d255a": 0.95947265625,
+      "knowledge-chunk-04965e44433fec9dc53474c5362375d22a008dc2bb4f352a2b365109ed2524e4": -0.0200653076171875,
+      "knowledge-chunk-9d7555ac789df5afc1da7c5068ee8af0ccf2a30e8d5e1bb2fee26e060df3a537": -2.263671875,
+      "knowledge-chunk-e8f5ed38dbc191cf14743f91867dfe45a2a311e28d339094f7d4a0cb4ba43cb9": 0.438232421875,
+      "knowledge-chunk-4cca2c5b22ef7b9591c303bbb947f264eec3315ab57e6f8d0d22c93d2be4b182": 0.75830078125,
+      "knowledge-chunk-69339dc9713570becdaf41ede9037c728b129de3555c97330a952393ce8321b6": -1.892578125,
+      "knowledge-chunk-45dd516300e8aa106884793d67672b8fd5a6df2083a362a71fa80643376ddcc1": -2.419921875,
+      "knowledge-chunk-edd03970e85ce84f82374d1ad1a6d8bf645a279474709bc875a3fdf58a8406bf": 1.1064453125,
+      "knowledge-chunk-615d5d811e6d4a56f8892adca46778b28867f9224c0bdd5a9fec8e0aae243d9a": -1.8017578125,
+      "knowledge-chunk-af1082b9f18291b7c3304ad27a117203d66bc4145c5690006b776f4a5474cf89": 1.6123046875,
+      "knowledge-chunk-3c3b90f04a4682f1710a516bc772cf425171d325a1517f126db432d9a4914dc7": -0.09454345703125,
+      "knowledge-chunk-554f6b9a1e7ce9860794668da77b52302152fb0485f7920550d2d179a63085c8": -2.70703125,
+      "knowledge-chunk-73ffeb3b3bc8e53e40a255ec0227f7891955314d82af4989795bfd242c79906e": 0.0316162109375,
+      "knowledge-chunk-0da53a9bef08db6c24d9c0f5671132b23165053f82a5bdc97ceab07b5a12f5a0": -1.1181640625,
+      "knowledge-chunk-ea0b63d483851e554d3bb24de7fb187d4a5fe67a8085a0564cf7d3c096f0d670": 1.0986328125,
+      "knowledge-chunk-f16731a1fc0bec4ff3751058b09eb5860475f4e4388d28b6a15016f1d16c7898": -2.2265625,
+      "knowledge-chunk-07173763968b30c171dcfd0a5bacafb5a5a3ae9dd128c522aeb480ed96935063": 0.76318359375,
+      "knowledge-chunk-538bbac48624a30776dd59d6464b99032b9470c54ea5590c30f7fab40a8c3474": -1.3330078125,
+      "knowledge-chunk-02c52410cb9c8172d7ba308fd19b670348befc0a3f379153b45154a322cac55e": 0.06768798828125,
+      "knowledge-chunk-9cecbb033c389991d48f553849670dd7defd134e2861085d48f4a7c0ec4643ff": -3.513671875,
+      "knowledge-chunk-14d78883250c0902799dc3ed071fa8036ca5b8d19fce0637874ffb495b5c24cf": -4.50390625
+    },
+    "arms": {
+      "bm25": {
+        "ce5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 1.0,
+          "article_ndcg": 1.0
+        },
+        "pack5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 1.0,
+          "article_ndcg": 1.0
+        },
+        "ordered": [
+          "knowledge-chunk-3ce0ebddfcee5e43af7bd742f9921a6ed5d1a51e6b062f5fbb637d0e253ada4a",
+          "knowledge-chunk-af1082b9f18291b7c3304ad27a117203d66bc4145c5690006b776f4a5474cf89",
+          "knowledge-chunk-7804603cd8336af42f45410c901e835bd47a3bf955f722a70660ae1b205251e9",
+          "knowledge-chunk-5e5a0f3b67dc6c69b681d796ec99739fbb7651e50671248601cebe93933ab4cb",
+          "knowledge-chunk-7735c1787d60eeb3a1ee5c4628b91a329e8ff1c5e946001e8f9669b0cad3a833",
+          "knowledge-chunk-d0a3c851be35ae991b70551b1fb75acf5045eca1c67aa372f5c20e7e001e7708",
+          "knowledge-chunk-edd03970e85ce84f82374d1ad1a6d8bf645a279474709bc875a3fdf58a8406bf",
+          "knowledge-chunk-6f2badbffd6b1b80ad63e097a1b1ac335b1a920196ec816fcac7a35fb78d255a",
+          "knowledge-chunk-4cca2c5b22ef7b9591c303bbb947f264eec3315ab57e6f8d0d22c93d2be4b182",
+          "knowledge-chunk-b507b2a80e375939b14ffd8037a7388f4454a22bbdc71fcada3d0a374c7407b5",
+          "knowledge-chunk-e8f5ed38dbc191cf14743f91867dfe45a2a311e28d339094f7d4a0cb4ba43cb9",
+          "knowledge-chunk-04965e44433fec9dc53474c5362375d22a008dc2bb4f352a2b365109ed2524e4",
+          "knowledge-chunk-3c3b90f04a4682f1710a516bc772cf425171d325a1517f126db432d9a4914dc7",
+          "knowledge-chunk-b39e0bd0f6fc75799f93b1f71aa390726b1efa44430e71ba3c1f1caffd2409ee",
+          "knowledge-chunk-615d5d811e6d4a56f8892adca46778b28867f9224c0bdd5a9fec8e0aae243d9a",
+          "knowledge-chunk-69339dc9713570becdaf41ede9037c728b129de3555c97330a952393ce8321b6",
+          "knowledge-chunk-9d7555ac789df5afc1da7c5068ee8af0ccf2a30e8d5e1bb2fee26e060df3a537",
+          "knowledge-chunk-45dd516300e8aa106884793d67672b8fd5a6df2083a362a71fa80643376ddcc1",
+          "knowledge-chunk-611740ac7dcb8a31757d70239624cc07cac62cb57c6abd6e3b1e3eb672f1370d",
+          "knowledge-chunk-346437341b6965772a8a7ce127ab839ff702046a94153e9316091758e12493c7"
+        ],
+        "packed": [
+          "knowledge-chunk-3ce0ebddfcee5e43af7bd742f9921a6ed5d1a51e6b062f5fbb637d0e253ada4a",
+          "knowledge-chunk-af1082b9f18291b7c3304ad27a117203d66bc4145c5690006b776f4a5474cf89",
+          "knowledge-chunk-7804603cd8336af42f45410c901e835bd47a3bf955f722a70660ae1b205251e9",
+          "knowledge-chunk-5e5a0f3b67dc6c69b681d796ec99739fbb7651e50671248601cebe93933ab4cb",
+          "knowledge-chunk-7735c1787d60eeb3a1ee5c4628b91a329e8ff1c5e946001e8f9669b0cad3a833"
+        ]
+      },
+      "native": {
+        "ce5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 0.3333333333333333,
+          "article_ndcg": 0.5
+        },
+        "pack5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 0.3333333333333333,
+          "article_ndcg": 0.5
+        },
+        "ordered": [
+          "knowledge-chunk-af1082b9f18291b7c3304ad27a117203d66bc4145c5690006b776f4a5474cf89",
+          "knowledge-chunk-7804603cd8336af42f45410c901e835bd47a3bf955f722a70660ae1b205251e9",
+          "knowledge-chunk-5e5a0f3b67dc6c69b681d796ec99739fbb7651e50671248601cebe93933ab4cb",
+          "knowledge-chunk-7735c1787d60eeb3a1ee5c4628b91a329e8ff1c5e946001e8f9669b0cad3a833",
+          "knowledge-chunk-d0a3c851be35ae991b70551b1fb75acf5045eca1c67aa372f5c20e7e001e7708",
+          "knowledge-chunk-edd03970e85ce84f82374d1ad1a6d8bf645a279474709bc875a3fdf58a8406bf",
+          "knowledge-chunk-ea0b63d483851e554d3bb24de7fb187d4a5fe67a8085a0564cf7d3c096f0d670",
+          "knowledge-chunk-6f2badbffd6b1b80ad63e097a1b1ac335b1a920196ec816fcac7a35fb78d255a",
+          "knowledge-chunk-07173763968b30c171dcfd0a5bacafb5a5a3ae9dd128c522aeb480ed96935063",
+          "knowledge-chunk-4cca2c5b22ef7b9591c303bbb947f264eec3315ab57e6f8d0d22c93d2be4b182",
+          "knowledge-chunk-b507b2a80e375939b14ffd8037a7388f4454a22bbdc71fcada3d0a374c7407b5",
+          "knowledge-chunk-e8f5ed38dbc191cf14743f91867dfe45a2a311e28d339094f7d4a0cb4ba43cb9",
+          "knowledge-chunk-02c52410cb9c8172d7ba308fd19b670348befc0a3f379153b45154a322cac55e",
+          "knowledge-chunk-73ffeb3b3bc8e53e40a255ec0227f7891955314d82af4989795bfd242c79906e",
+          "knowledge-chunk-0da53a9bef08db6c24d9c0f5671132b23165053f82a5bdc97ceab07b5a12f5a0",
+          "knowledge-chunk-538bbac48624a30776dd59d6464b99032b9470c54ea5590c30f7fab40a8c3474",
+          "knowledge-chunk-f16731a1fc0bec4ff3751058b09eb5860475f4e4388d28b6a15016f1d16c7898",
+          "knowledge-chunk-554f6b9a1e7ce9860794668da77b52302152fb0485f7920550d2d179a63085c8",
+          "knowledge-chunk-9cecbb033c389991d48f553849670dd7defd134e2861085d48f4a7c0ec4643ff",
+          "knowledge-chunk-14d78883250c0902799dc3ed071fa8036ca5b8d19fce0637874ffb495b5c24cf"
+        ],
+        "packed": [
+          "knowledge-chunk-af1082b9f18291b7c3304ad27a117203d66bc4145c5690006b776f4a5474cf89",
+          "knowledge-chunk-7804603cd8336af42f45410c901e835bd47a3bf955f722a70660ae1b205251e9",
+          "knowledge-chunk-5e5a0f3b67dc6c69b681d796ec99739fbb7651e50671248601cebe93933ab4cb",
+          "knowledge-chunk-7735c1787d60eeb3a1ee5c4628b91a329e8ff1c5e946001e8f9669b0cad3a833",
+          "knowledge-chunk-d0a3c851be35ae991b70551b1fb75acf5045eca1c67aa372f5c20e7e001e7708"
+        ]
+      }
+    }
+  },
+  {
+    "case_id": "4441f2b4b06caf6b504c5cab3cb02665064bdd79bd1f9f3e7659eeaa8f393e80",
+    "scores": {
+      "knowledge-chunk-1d7b379bc6fb3268cf0f8e2706be9317b014486b0252fbf24fdb3de995c2f51d": -3.384765625,
+      "knowledge-chunk-d952d5b9e4049f695b97bdd8abdff48201faee77a941e3b2f131ec3ba83b3276": -0.32763671875,
+      "knowledge-chunk-894b67d9031f66dfc40f8b450bcfda6d16668ac186f6f41ea7ffed69c1a33b06": -0.10662841796875,
+      "knowledge-chunk-5300e77e4c1b7bf2ef796587045951210a3e20bfc64c8ccfffd00cd29428bdd7": 0.95458984375,
+      "knowledge-chunk-3b78141f6018f7c28f54b0d5214c5c7b1af80b534289b48b00a6efaaa7983bf1": -5.6875,
+      "knowledge-chunk-cfa0ebbc71cba9ea5369923a0ec2eb7590a502fd52960ca4e450e4ae191b2827": -3.15625,
+      "knowledge-chunk-2b126a0cf9fbd21fb42f086ef3cf6def6c9d17be809b6f8d3695d008ab9922ab": -2.314453125,
+      "knowledge-chunk-9343bd5452376634ea81849140ccb03c3d312573bea163ef24291d42b359078a": -7.49609375,
+      "knowledge-chunk-9ca5f7af35a918190ec9e820a620a152ac901152a3870b87699779f827e7ec0b": -0.89404296875,
+      "knowledge-chunk-2a507d817627de859d585f60f29c5a719ce1672b814b839a98008cea30861f2f": -5.90234375,
+      "knowledge-chunk-59da578a906b5bbbdf53c9bc30b6bd7146ea9afaf6691cbbff308ff738891a00": -5.7265625,
+      "knowledge-chunk-0b1267eff3ed140c1196440fbda9277ce9c7e0b01a53a2288a926bc512a15a39": -2.419921875,
+      "knowledge-chunk-b52deb78c3917da25b8220f2b7a809e23aa25dbc401390188c8cf410be730d34": -0.007343292236328125,
+      "knowledge-chunk-5433147fe2693ef2f726a7ea59f7d9c23727c75b8631684505119c5bfc800a48": -1.8349609375,
+      "knowledge-chunk-f70afcdbd72bfd9a4f882e5755d6c6ce18f902c32b4c6b21b68ead2d67130080": -1.9345703125,
+      "knowledge-chunk-36cfb8c2a8875b22adb602d8cf845830c4fced05a803ac8f2d3866065c76f9a8": -6.0390625,
+      "knowledge-chunk-6064d68c334855069075292ad39519b83e0acad6a11b80f90e258fe809b60335": -1.2880859375,
+      "knowledge-chunk-33353eff30b9fc6df2818bc8ab57fced958bd6c82d67bca58e1c3be823d88af6": 0.04693603515625,
+      "knowledge-chunk-cb8269cf14791ccd4f0267793c5aa2746558ceb9078747ed057f98755bad499d": -0.8994140625,
+      "knowledge-chunk-6bcf798287ffb41f968b0a9b19d0ffed0ec931c3879c3268f3940d46c7d3248a": 0.06475830078125,
+      "knowledge-chunk-2ef405cc3c39825e4e542702c4d737b2f297e13464078cc59c486f16da9a4415": -0.23046875,
+      "knowledge-chunk-c1ba7802c8a32cabbdf08100d8e44028d26a1bde4fffb401dcb9836287b84813": -5.82421875,
+      "knowledge-chunk-e54082a78d7f3620298d8542e07bd7dd78e81dbd42f4be172dfd80515bdc88d7": -6.15625,
+      "knowledge-chunk-1e498c1c5b7a457f226ea5288dae256f08d3b955f0ac36455bfcf75a40ab3d8c": -6.796875,
+      "knowledge-chunk-5d8569c98e9997db73c05859687342cceb9aa91cd1db12f11e7d58501467d526": -6.70703125,
+      "knowledge-chunk-b1b4ecf6a741bae89fe46924a4e0e7c4dadee59a3e2b5175cf23f78ea441d1b9": -7.01171875,
+      "knowledge-chunk-46588ea73eb1c13e3ff84cdb240e0247a5a2db0c3aaef5f0388e8f5892dc29a2": -5.83203125,
+      "knowledge-chunk-9d0efcb9a9b22f7849ef38a858051be5b2c5075fa5658d10117f33d8297385dc": -9.7578125
+    },
+    "arms": {
+      "bm25": {
+        "ce5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 0.3333333333333333,
+          "article_ndcg": 0.5
+        },
+        "pack5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 0.3333333333333333,
+          "article_ndcg": 0.5
+        },
+        "ordered": [
+          "knowledge-chunk-5300e77e4c1b7bf2ef796587045951210a3e20bfc64c8ccfffd00cd29428bdd7",
+          "knowledge-chunk-6bcf798287ffb41f968b0a9b19d0ffed0ec931c3879c3268f3940d46c7d3248a",
+          "knowledge-chunk-33353eff30b9fc6df2818bc8ab57fced958bd6c82d67bca58e1c3be823d88af6",
+          "knowledge-chunk-b52deb78c3917da25b8220f2b7a809e23aa25dbc401390188c8cf410be730d34",
+          "knowledge-chunk-894b67d9031f66dfc40f8b450bcfda6d16668ac186f6f41ea7ffed69c1a33b06",
+          "knowledge-chunk-d952d5b9e4049f695b97bdd8abdff48201faee77a941e3b2f131ec3ba83b3276",
+          "knowledge-chunk-9ca5f7af35a918190ec9e820a620a152ac901152a3870b87699779f827e7ec0b",
+          "knowledge-chunk-cb8269cf14791ccd4f0267793c5aa2746558ceb9078747ed057f98755bad499d",
+          "knowledge-chunk-6064d68c334855069075292ad39519b83e0acad6a11b80f90e258fe809b60335",
+          "knowledge-chunk-5433147fe2693ef2f726a7ea59f7d9c23727c75b8631684505119c5bfc800a48",
+          "knowledge-chunk-f70afcdbd72bfd9a4f882e5755d6c6ce18f902c32b4c6b21b68ead2d67130080",
+          "knowledge-chunk-2b126a0cf9fbd21fb42f086ef3cf6def6c9d17be809b6f8d3695d008ab9922ab",
+          "knowledge-chunk-0b1267eff3ed140c1196440fbda9277ce9c7e0b01a53a2288a926bc512a15a39",
+          "knowledge-chunk-cfa0ebbc71cba9ea5369923a0ec2eb7590a502fd52960ca4e450e4ae191b2827",
+          "knowledge-chunk-1d7b379bc6fb3268cf0f8e2706be9317b014486b0252fbf24fdb3de995c2f51d",
+          "knowledge-chunk-3b78141f6018f7c28f54b0d5214c5c7b1af80b534289b48b00a6efaaa7983bf1",
+          "knowledge-chunk-59da578a906b5bbbdf53c9bc30b6bd7146ea9afaf6691cbbff308ff738891a00",
+          "knowledge-chunk-2a507d817627de859d585f60f29c5a719ce1672b814b839a98008cea30861f2f",
+          "knowledge-chunk-36cfb8c2a8875b22adb602d8cf845830c4fced05a803ac8f2d3866065c76f9a8",
+          "knowledge-chunk-9343bd5452376634ea81849140ccb03c3d312573bea163ef24291d42b359078a"
+        ],
+        "packed": [
+          "knowledge-chunk-5300e77e4c1b7bf2ef796587045951210a3e20bfc64c8ccfffd00cd29428bdd7",
+          "knowledge-chunk-6bcf798287ffb41f968b0a9b19d0ffed0ec931c3879c3268f3940d46c7d3248a",
+          "knowledge-chunk-33353eff30b9fc6df2818bc8ab57fced958bd6c82d67bca58e1c3be823d88af6",
+          "knowledge-chunk-b52deb78c3917da25b8220f2b7a809e23aa25dbc401390188c8cf410be730d34",
+          "knowledge-chunk-894b67d9031f66dfc40f8b450bcfda6d16668ac186f6f41ea7ffed69c1a33b06"
+        ]
+      },
+      "native": {
+        "ce5": {
+          "article_recall": 0.0,
+          "all_articles": false,
+          "article_mrr": 0,
+          "article_ndcg": 0.0
+        },
+        "pack5": {
+          "article_recall": 0.0,
+          "all_articles": false,
+          "article_mrr": 0,
+          "article_ndcg": 0.0
+        },
+        "ordered": [
+          "knowledge-chunk-5300e77e4c1b7bf2ef796587045951210a3e20bfc64c8ccfffd00cd29428bdd7",
+          "knowledge-chunk-b52deb78c3917da25b8220f2b7a809e23aa25dbc401390188c8cf410be730d34",
+          "knowledge-chunk-894b67d9031f66dfc40f8b450bcfda6d16668ac186f6f41ea7ffed69c1a33b06",
+          "knowledge-chunk-2ef405cc3c39825e4e542702c4d737b2f297e13464078cc59c486f16da9a4415",
+          "knowledge-chunk-d952d5b9e4049f695b97bdd8abdff48201faee77a941e3b2f131ec3ba83b3276",
+          "knowledge-chunk-9ca5f7af35a918190ec9e820a620a152ac901152a3870b87699779f827e7ec0b",
+          "knowledge-chunk-cb8269cf14791ccd4f0267793c5aa2746558ceb9078747ed057f98755bad499d",
+          "knowledge-chunk-6064d68c334855069075292ad39519b83e0acad6a11b80f90e258fe809b60335",
+          "knowledge-chunk-5433147fe2693ef2f726a7ea59f7d9c23727c75b8631684505119c5bfc800a48",
+          "knowledge-chunk-0b1267eff3ed140c1196440fbda9277ce9c7e0b01a53a2288a926bc512a15a39",
+          "knowledge-chunk-cfa0ebbc71cba9ea5369923a0ec2eb7590a502fd52960ca4e450e4ae191b2827",
+          "knowledge-chunk-1d7b379bc6fb3268cf0f8e2706be9317b014486b0252fbf24fdb3de995c2f51d",
+          "knowledge-chunk-59da578a906b5bbbdf53c9bc30b6bd7146ea9afaf6691cbbff308ff738891a00",
+          "knowledge-chunk-c1ba7802c8a32cabbdf08100d8e44028d26a1bde4fffb401dcb9836287b84813",
+          "knowledge-chunk-46588ea73eb1c13e3ff84cdb240e0247a5a2db0c3aaef5f0388e8f5892dc29a2",
+          "knowledge-chunk-e54082a78d7f3620298d8542e07bd7dd78e81dbd42f4be172dfd80515bdc88d7",
+          "knowledge-chunk-5d8569c98e9997db73c05859687342cceb9aa91cd1db12f11e7d58501467d526",
+          "knowledge-chunk-1e498c1c5b7a457f226ea5288dae256f08d3b955f0ac36455bfcf75a40ab3d8c",
+          "knowledge-chunk-b1b4ecf6a741bae89fe46924a4e0e7c4dadee59a3e2b5175cf23f78ea441d1b9",
+          "knowledge-chunk-9d0efcb9a9b22f7849ef38a858051be5b2c5075fa5658d10117f33d8297385dc"
+        ],
+        "packed": [
+          "knowledge-chunk-5300e77e4c1b7bf2ef796587045951210a3e20bfc64c8ccfffd00cd29428bdd7",
+          "knowledge-chunk-b52deb78c3917da25b8220f2b7a809e23aa25dbc401390188c8cf410be730d34",
+          "knowledge-chunk-894b67d9031f66dfc40f8b450bcfda6d16668ac186f6f41ea7ffed69c1a33b06",
+          "knowledge-chunk-2ef405cc3c39825e4e542702c4d737b2f297e13464078cc59c486f16da9a4415",
+          "knowledge-chunk-d952d5b9e4049f695b97bdd8abdff48201faee77a941e3b2f131ec3ba83b3276"
+        ]
+      }
+    }
+  },
+  {
+    "case_id": "44f5a241589e314e629adec2a1d56dd0dcf095cc88e2bcdef5396cf33c336eb2",
+    "scores": {
+      "knowledge-chunk-8653a06807875f5ca2344f60c4ad63ceab762a144817663e49405a1221ea2643": 7.45703125,
+      "knowledge-chunk-f16731a1fc0bec4ff3751058b09eb5860475f4e4388d28b6a15016f1d16c7898": 5.86328125,
+      "knowledge-chunk-8f9c1865f740914311dd59693e87af97759b4ec99c6d6235ec05ee8c343191ce": 4.9921875,
+      "knowledge-chunk-56b90c06a05776cecbc859766b5af12a57ac42f97d3c534ff81df5483ae81489": 6.08984375,
+      "knowledge-chunk-10f6177525a7a60abb9b229a39168d95711b757bc60f82627a2a01fc15ab0a2f": 4.7734375,
+      "knowledge-chunk-c14ce80d957f1e7b1491c0f713ee12ce69b8cb47ad06d32ed80129dede7e52e7": 4.30859375,
+      "knowledge-chunk-5d8569c98e9997db73c05859687342cceb9aa91cd1db12f11e7d58501467d526": 5.58984375,
+      "knowledge-chunk-ad11aee0a78e4f25916d3599440ce4a19b9df9b4433e9e4ecc2ad0cade6de9f6": 3.15625,
+      "knowledge-chunk-3bb2772260d77c76834e9dc3036f5df2ec5554fc382c4ec4717950c3c51ce749": -3.1015625,
+      "knowledge-chunk-2ece9da3637d5e20b9edc96a53fe26e4aaaf95fab6d4aae09f765bdda0ad9f68": 5.65625,
+      "knowledge-chunk-a939aab8808ac8872ea92b566203e9013f7cf0b53a603c7185ac387a675bf8f8": 1.42578125,
+      "knowledge-chunk-658964e98b632850a50985ae640f41e1bb90dbfb824741de2bf78acfd3aec5b1": 1.7158203125,
+      "knowledge-chunk-77a910dc472f8f673f7666424b50f6bbb5186e5a47336fae5fec9fcca68d3369": 4.703125,
+      "knowledge-chunk-9a195aef33cb06ce7cecbcdfe2626adf8d0594797c98516d5581daf725cfccb5": 2.78125,
+      "knowledge-chunk-c2ea30e47dba209faf99f1e8c82a4626f45c39e5b7c058a87f2d7624cc389f84": 2.005859375,
+      "knowledge-chunk-eff601e9bd62911c1cc6566d90454ebb4a751b5b5238ea7b1afcc7f039f65821": -1.9072265625,
+      "knowledge-chunk-35c30c56afc4bc2700447a75e14ad13bf83b4d550935784dd4864081df240df8": 3.763671875,
+      "knowledge-chunk-7ab69fbe850ef677945724562ce1579aa637a0ebb842938a7b8f923c2a9e4363": 1.7216796875,
+      "knowledge-chunk-2363b2eab2d807d4a0312ad05360feb136d3487cd167684dab0f8f84b3c699a1": 3.357421875,
+      "knowledge-chunk-6b68b8000435a21bf90bf100716c7648742a369a4a7f0190d1035b9893fe1e1d": 0.78955078125,
+      "knowledge-chunk-0dc2dbc23cdb8424bd823a0c5c9b7dea40c30293ee00fcc03d381af319f1fb6e": 1.42578125,
+      "knowledge-chunk-6ed4c19420319d2e9a058b8bef96aba76368be58919d94a41b3b6e34a679c037": -2.80859375,
+      "knowledge-chunk-8e0a2c758929b5ac2047e7c6c6c80df0b56989137e7e0c543daf34c7c70cb293": -3.3046875,
+      "knowledge-chunk-1d54d61583ef90563c26771971b33e301d282b2964ff20d4386cd84a5696b8b8": 1.353515625,
+      "knowledge-chunk-554f6b9a1e7ce9860794668da77b52302152fb0485f7920550d2d179a63085c8": -3.3828125,
+      "knowledge-chunk-7c1b66e43a1b706fc2ae08c1cedbee3cebf7ac080562060e17e54fdaf70c9b39": -5.80078125,
+      "knowledge-chunk-8c0b75222ab9e138cf981a7b8c1d5e8270ede8512a21631af810024ba163c9da": -4.87890625
+    },
+    "arms": {
+      "bm25": {
+        "ce5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 1.0,
+          "article_ndcg": 1.0
+        },
+        "pack5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 1.0,
+          "article_ndcg": 1.0
+        },
+        "ordered": [
+          "knowledge-chunk-8653a06807875f5ca2344f60c4ad63ceab762a144817663e49405a1221ea2643",
+          "knowledge-chunk-56b90c06a05776cecbc859766b5af12a57ac42f97d3c534ff81df5483ae81489",
+          "knowledge-chunk-f16731a1fc0bec4ff3751058b09eb5860475f4e4388d28b6a15016f1d16c7898",
+          "knowledge-chunk-2ece9da3637d5e20b9edc96a53fe26e4aaaf95fab6d4aae09f765bdda0ad9f68",
+          "knowledge-chunk-5d8569c98e9997db73c05859687342cceb9aa91cd1db12f11e7d58501467d526",
+          "knowledge-chunk-8f9c1865f740914311dd59693e87af97759b4ec99c6d6235ec05ee8c343191ce",
+          "knowledge-chunk-10f6177525a7a60abb9b229a39168d95711b757bc60f82627a2a01fc15ab0a2f",
+          "knowledge-chunk-77a910dc472f8f673f7666424b50f6bbb5186e5a47336fae5fec9fcca68d3369",
+          "knowledge-chunk-c14ce80d957f1e7b1491c0f713ee12ce69b8cb47ad06d32ed80129dede7e52e7",
+          "knowledge-chunk-35c30c56afc4bc2700447a75e14ad13bf83b4d550935784dd4864081df240df8",
+          "knowledge-chunk-2363b2eab2d807d4a0312ad05360feb136d3487cd167684dab0f8f84b3c699a1",
+          "knowledge-chunk-ad11aee0a78e4f25916d3599440ce4a19b9df9b4433e9e4ecc2ad0cade6de9f6",
+          "knowledge-chunk-9a195aef33cb06ce7cecbcdfe2626adf8d0594797c98516d5581daf725cfccb5",
+          "knowledge-chunk-c2ea30e47dba209faf99f1e8c82a4626f45c39e5b7c058a87f2d7624cc389f84",
+          "knowledge-chunk-7ab69fbe850ef677945724562ce1579aa637a0ebb842938a7b8f923c2a9e4363",
+          "knowledge-chunk-658964e98b632850a50985ae640f41e1bb90dbfb824741de2bf78acfd3aec5b1",
+          "knowledge-chunk-a939aab8808ac8872ea92b566203e9013f7cf0b53a603c7185ac387a675bf8f8",
+          "knowledge-chunk-6b68b8000435a21bf90bf100716c7648742a369a4a7f0190d1035b9893fe1e1d",
+          "knowledge-chunk-eff601e9bd62911c1cc6566d90454ebb4a751b5b5238ea7b1afcc7f039f65821",
+          "knowledge-chunk-3bb2772260d77c76834e9dc3036f5df2ec5554fc382c4ec4717950c3c51ce749"
+        ],
+        "packed": [
+          "knowledge-chunk-8653a06807875f5ca2344f60c4ad63ceab762a144817663e49405a1221ea2643",
+          "knowledge-chunk-56b90c06a05776cecbc859766b5af12a57ac42f97d3c534ff81df5483ae81489",
+          "knowledge-chunk-f16731a1fc0bec4ff3751058b09eb5860475f4e4388d28b6a15016f1d16c7898",
+          "knowledge-chunk-2ece9da3637d5e20b9edc96a53fe26e4aaaf95fab6d4aae09f765bdda0ad9f68",
+          "knowledge-chunk-5d8569c98e9997db73c05859687342cceb9aa91cd1db12f11e7d58501467d526"
+        ]
+      },
+      "native": {
+        "ce5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 1.0,
+          "article_ndcg": 1.0
+        },
+        "pack5": {
+          "article_recall": 1.0,
+          "all_articles": true,
+          "article_mrr": 1.0,
+          "article_ndcg": 1.0
+        },
+        "ordered": [
+          "knowledge-chunk-8653a06807875f5ca2344f60c4ad63ceab762a144817663e49405a1221ea2643",
+          "knowledge-chunk-56b90c06a05776cecbc859766b5af12a57ac42f97d3c534ff81df5483ae81489",
+          "knowledge-chunk-f16731a1fc0bec4ff3751058b09eb5860475f4e4388d28b6a15016f1d16c7898",
+          "knowledge-chunk-2ece9da3637d5e20b9edc96a53fe26e4aaaf95fab6d4aae09f765bdda0ad9f68",
+          "knowledge-chunk-5d8569c98e9997db73c05859687342cceb9aa91cd1db12f11e7d58501467d526",
+          "knowledge-chunk-8f9c1865f740914311dd59693e87af97759b4ec99c6d6235ec05ee8c343191ce",
+          "knowledge-chunk-10f6177525a7a60abb9b229a39168d95711b757bc60f82627a2a01fc15ab0a2f",
+          "knowledge-chunk-77a910dc472f8f673f7666424b50f6bbb5186e5a47336fae5fec9fcca68d3369",
+          "knowledge-chunk-c14ce80d957f1e7b1491c0f713ee12ce69b8cb47ad06d32ed80129dede7e52e7",
+          "knowledge-chunk-35c30c56afc4bc2700447a75e14ad13bf83b4d550935784dd4864081df240df8",
+          "knowledge-chunk-2363b2eab2d807d4a0312ad05360feb136d3487cd167684dab0f8f84b3c699a1",
+          "knowledge-chunk-ad11aee0a78e4f25916d3599440ce4a19b9df9b4433e9e4ecc2ad0cade6de9f6",
+          "knowledge-chunk-0dc2dbc23cdb8424bd823a0c5c9b7dea40c30293ee00fcc03d381af319f1fb6e",
+          "knowledge-chunk-1d54d61583ef90563c26771971b33e301d282b2964ff20d4386cd84a5696b8b8",
+          "knowledge-chunk-6b68b8000435a21bf90bf100716c7648742a369a4a7f0190d1035b9893fe1e1d",
+          "knowledge-chunk-6ed4c19420319d2e9a058b8bef96aba76368be58919d94a41b3b6e34a679c037",
+          "knowledge-chunk-8e0a2c758929b5ac2047e7c6c6c80df0b56989137e7e0c543daf34c7c70cb293",
+          "knowledge-chunk-554f6b9a1e7ce9860794668da77b52302152fb0485f7920550d2d179a63085c8",
+          "knowledge-chunk-8c0b75222ab9e138cf981a7b8c1d5e8270ede8512a21631af810024ba163c9da",
+          "knowledge-chunk-7c1b66e43a1b706fc2ae08c1cedbee3cebf7ac080562060e17e54fdaf70c9b39"
+        ],
+        "packed": [
+          "knowledge-chunk-8653a06807875f5ca2344f60c4ad63ceab762a144817663e49405a1221ea2643",
+          "knowledge-chunk-56b90c06a05776cecbc859766b5af12a57ac42f97d3c534ff81df5483ae81489",
+          "knowledge-chunk-f16731a1fc0bec4ff3751058b09eb5860475f4e4388d28b6a15016f1d16c7898",
+          "knowledge-chunk-2ece9da3637d5e20b9edc96a53fe26e4aaaf95fab6d4aae09f765bdda0ad9f68",
+          "knowledge-chunk-5d8569c98e9997db73c05859687342cceb9aa91cd1db12f11e7d58501467d526"
+        ]
+      }
+    }
+  },
+  {
+    "case_id": "52c4378e25e503980fe1c3ddaee39a736a39cead0da46832448c2dae474c0190",
+    "scores": {
+      "knowledge-chunk-1ada204580caefba7e18874099b9e58b763429e22782f15b3c83826a114e47ef": -6.75,
+      "knowledge-chunk-e7a00138af818347370323dd6bba53046f8741f73981d765aac5273151c052b6": -1.5302734375,
+      "knowledge-chunk-0523545f412acb55d10e7e30606567296a102474e5a02f2751d87b4ae90cf957": -5.31640625,
+      "knowledge-chunk-238517047d952fd1d514c8e6bf8372c83f28dd9b32499e3cb28f111f2454421f": -3.224609375,
+      "knowledge-chunk-1cf76c1d9215241389717481aae5c31ec7910598c09124575cfa26356223e52d": -2.69140625,
+      "knowledge-chunk-8bfc8fb55b08413ed34fa674fe1d511c54a580a73ed4f36c3708144e2f9d0dc7": -9.875,
+      "knowledge-chunk-44b4d9a88dda886586d8419a31209d15065e37dde683a497346fa6af59ace691": -10.140625,
+      "knowledge-chunk-9271e10a39b3c2614ac01f770328f6deb683cf0b208c1d14ded1c37ee11a9059": -2.302734375,
+      "knowledge-chunk-112f501c875ed500964f60e705fb7d1554c62b7dcadfd07cbd81836e11909628": -10.0703125,
+      "knowledge-chunk-2a3233b965ce25698a24f77b33166cc3692c70a2256870723251b727aa0ee8c4": -4.328125,
+      "knowledge-chunk-408cfb1c7ccb986142ac3459f903f0a264819b440aae79bce2b5d03687f66bde": -10.4140625,
+      "knowledge-chunk-6c406b6737f0dacd9a852b99f3eab5f7327f4d72bbdf560eda900cd8bbd7d399": -2.283203125,
+      "knowledge-chunk-3b78141f6018f7c28f54b0d5214c5c7b1af80b534289b48b00a6efaaa7983bf1": -2.61328125,
+      "knowledge-chunk-5f06eb69389de58e46c7f543528c2b2557301990e6bdfcba43183e8c3b867d46": -9.671875,
+      "knowledge-chunk-512ed1482a76b6fd211c5bfb2013ecd7cb43efccb81bb5fc146bd868332465f6": -4.01171875,
+      "knowledge-chunk-652b68592809e875b4eb21bfdcc6e971673bf472dd718b10297d649bc23e013a": -9.84375,
+      "knowledge-chunk-8412cf9d2fc16092f9830fa8f465eef004f168cf13b96637f58dffd54c2444b4": -6.0859375,
+      "knowledge-chunk-e6c758fa9f54ba55633d28abcc36a2701e8ade37ac04c431564235f719a293f7": -10.4453125,
+      "knowledge-chunk-100af66af187b81f5f5a9a50b3a478e42ccb06efe83a2d2e08ab9694ce022c50": -10.375,
+      "knowledge-chunk-df623b7e8a2ee9ffadea7ee2b0b1f9d631b889a29b6d4758161fe0fc4ec129a2": -0.8349609375,
+      "knowledge-chunk-7df981b591cfb22d6eacc0934ec312231f66306ab82427893f97343d0d683120": -3.845703125,
+      "knowledge-chunk-6f6176f8fb1039910213e839718ba9fce9f92f877642963fc84336d8f35758d3": -8.921875,
+      "knowledge-chunk-e786a1c45111a8f14b22aa204a7f46feee09cde42a285a38febcb1ecb6a8c04e": -3.470703125,
+      "knowledge-chunk-c1ba7802c8a32cabbdf08100d8e44028d26a1bde4fffb401dcb9836287b84813": -8.15625,
+      "knowledge-chunk-78c4239e72f3e6f6bfd59e535c1d5ff1467c5560d4345e61472ea7e6e8b5914c": -10.359375,
+      "knowledge-chunk-295ec7857cb9c958ea4d021f6fa0d7c994d75d4a194251b4c5f7e771cd8c656f": -4.19140625,
+      "knowledge-chunk-b1b4ecf6a741bae89fe46924a4e0e7c4dadee59a3e2b5175cf23f78ea441d1b9": -9.3671875,
+      "knowledge-chunk-f92164d5985121b624cb19e51566837f435037e49d3892ead62a58c24337cbf7": -7.11328125,
+      "knowledge-chunk-fad63b8db136588ee67a75ec850bf142c01a4ef453ab12dcfbb557889ebd6658": -9.4921875,
+      "knowledge-chunk-46588ea73eb1c13e3ff84cdb240e0247a5a2db0c3aaef5f0388e8f5892dc29a2": -4.046875,
+      "knowledge-chunk-59da578a906b5bbbdf53c9bc30b6bd7146ea9afaf6691cbbff308ff738891a00": -5.2890625
+    },
+    "arms": {
+      "bm25": {
+        "ce5": {
+          "article_recall": 0.5,
+          "all_articles": false,
+          "article_mrr": 1.0,
+          "article_ndcg": 0.6131471927654584
+        },
+        "pack5": {
+          "article_recall": 0.5,
+          "all_articles": false,
+          "article_mrr": 1.0,
+          "article_ndcg": 0.6131471927654584
+        },
+        "ordered": [
+          "knowledge-chunk-df623b7e8a2ee9ffadea7ee2b0b1f9d631b889a29b6d4758161fe0fc4ec129a2",
+          "knowledge-chunk-e7a00138af818347370323dd6bba53046f8741f73981d765aac5273151c052b6",
+          "knowledge-chunk-6c406b6737f0dacd9a852b99f3eab5f7327f4d72bbdf560eda900cd8bbd7d399",
+          "knowledge-chunk-9271e10a39b3c2614ac01f770328f6deb683cf0b208c1d14ded1c37ee11a9059",
+          "knowledge-chunk-3b78141f6018f7c28f54b0d5214c5c7b1af80b534289b48b00a6efaaa7983bf1",
+          "knowledge-chunk-1cf76c1d9215241389717481aae5c31ec7910598c09124575cfa26356223e52d",
+          "knowledge-chunk-238517047d952fd1d514c8e6bf8372c83f28dd9b32499e3cb28f111f2454421f",
+          "knowledge-chunk-512ed1482a76b6fd211c5bfb2013ecd7cb43efccb81bb5fc146bd868332465f6",
+          "knowledge-chunk-2a3233b965ce25698a24f77b33166cc3692c70a2256870723251b727aa0ee8c4",
+          "knowledge-chunk-0523545f412acb55d10e7e30606567296a102474e5a02f2751d87b4ae90cf957",
+          "knowledge-chunk-8412cf9d2fc16092f9830fa8f465eef004f168cf13b96637f58dffd54c2444b4",
+          "knowledge-chunk-1ada204580caefba7e18874099b9e58b763429e22782f15b3c83826a114e47ef",
+          "knowledge-chunk-5f06eb69389de58e46c7f543528c2b2557301990e6bdfcba43183e8c3b867d46",
+          "knowledge-chunk-652b68592809e875b4eb21bfdcc6e971673bf472dd718b10297d649bc23e013a",
+          "knowledge-chunk-8bfc8fb55b08413ed34fa674fe1d511c54a580a73ed4f36c3708144e2f9d0dc7",
+          "knowledge-chunk-112f501c875ed500964f60e705fb7d1554c62b7dcadfd07cbd81836e11909628",
+          "knowledge-chunk-44b4d9a88dda886586d8419a31209d15065e37dde683a497346fa6af59ace691",
+          "knowledge-chunk-100af66af187b81f5f5a9a50b3a478e42ccb06efe83a2d2e08ab9694ce022c50",
+          "knowledge-chunk-408cfb1c7ccb986142ac3459f903f0a264819b440aae79bce2b5d03687f66bde",
+          "knowledge-chunk-e6c758fa9f54ba55633d28abcc36a2701e8ade37ac04c431564235f719a293f7"
+        ],
+        "packed": [
+          "knowledge-chunk-df623b7e8a2ee9ffadea7ee2b0b1f9d631b889a29b6d4758161fe0fc4ec129a2",
+          "knowledge-chunk-e7a00138af818347370323dd6bba53046f8741f73981d765aac5273151c052b6",
+          "knowledge-chunk-6c406b6737f0dacd9a852b99f3eab5f7327f4d72bbdf560eda900cd8bbd7d399",
+          "knowledge-chunk-9271e10a39b3c2614ac01f770328f6deb683cf0b208c1d14ded1c37ee11a9059",
+          "knowledge-chunk-3b78141f6018f7c28f54b0d5214c5c7b1af80b534289b48b00a6efaaa7983bf1"
+        ]
+      },
+      "native": {
+        "ce5": {
+          "article_recall": 0.0,
+          "all_articles": false,
+          "article_mrr": 0,
+          "article_ndcg": 0.0
+        },
+        "pack5": {
+          "article_recall": 0.0,
+          "all_articles": false,
+          "article_mrr": 0,
+          "article_ndcg": 0.0
+        },
+        "ordered": [
+          "knowledge-chunk-e7a00138af818347370323dd6bba53046f8741f73981d765aac5273151c052b6",
+          "knowledge-chunk-6c406b6737f0dacd9a852b99f3eab5f7327f4d72bbdf560eda900cd8bbd7d399",
+          "knowledge-chunk-9271e10a39b3c2614ac01f770328f6deb683cf0b208c1d14ded1c37ee11a9059",
+          "knowledge-chunk-3b78141f6018f7c28f54b0d5214c5c7b1af80b534289b48b00a6efaaa7983bf1",
+          "knowledge-chunk-1cf76c1d9215241389717481aae5c31ec7910598c09124575cfa26356223e52d",
+          "knowledge-chunk-238517047d952fd1d514c8e6bf8372c83f28dd9b32499e3cb28f111f2454421f",
+          "knowledge-chunk-e786a1c45111a8f14b22aa204a7f46feee09cde42a285a38febcb1ecb6a8c04e",
+          "knowledge-chunk-7df981b591cfb22d6eacc0934ec312231f66306ab82427893f97343d0d683120",
+          "knowledge-chunk-512ed1482a76b6fd211c5bfb2013ecd7cb43efccb81bb5fc146bd868332465f6",
+          "knowledge-chunk-46588ea73eb1c13e3ff84cdb240e0247a5a2db0c3aaef5f0388e8f5892dc29a2",
+          "knowledge-chunk-295ec7857cb9c958ea4d021f6fa0d7c994d75d4a194251b4c5f7e771cd8c656f",
+          "knowledge-chunk-2a3233b965ce25698a24f77b33166cc3692c70a2256870723251b727aa0ee8c4",
+          "knowledge-chunk-59da578a906b5bbbdf53c9bc30b6bd7146ea9afaf6691cbbff308ff738891a00",
+          "knowledge-chunk-8412cf9d2fc16092f9830fa8f465eef004f168cf13b96637f58dffd54c2444b4",
+          "knowledge-chunk-f92164d5985121b624cb19e51566837f435037e49d3892ead62a58c24337cbf7",
+          "knowledge-chunk-c1ba7802c8a32cabbdf08100d8e44028d26a1bde4fffb401dcb9836287b84813",
+          "knowledge-chunk-6f6176f8fb1039910213e839718ba9fce9f92f877642963fc84336d8f35758d3",
+          "knowledge-chunk-b1b4ecf6a741bae89fe46924a4e0e7c4dadee59a3e2b5175cf23f78ea441d1b9",
+          "knowledge-chunk-fad63b8db136588ee67a75ec850bf142c01a4ef453ab12dcfbb557889ebd6658",
+          "knowledge-chunk-78c4239e72f3e6f6bfd59e535c1d5ff1467c5560d4345e61472ea7e6e8b5914c"
+        ],
+        "packed": [
+          "knowledge-chunk-e7a00138af818347370323dd6bba53046f8741f73981d765aac5273151c052b6",
+          "knowledge-chunk-6c406b6737f0dacd9a852b99f3eab5f7327f4d72bbdf560eda900cd8bbd7d399",
+          "knowledge-chunk-9271e10a39b3c2614ac01f770328f6deb683cf0b208c1d14ded1c37ee11a9059",
+          "knowledge-chunk-3b78141f6018f7c28f54b0d5214c5c7b1af80b534289b48b00a6efaaa7983bf1",
+          "knowledge-chunk-1cf76c1d9215241389717481aae5c31ec7910598c09124575cfa26356223e52d"
+        ]
+      }
+    }
+  }
+]

@@ -25,8 +25,8 @@ def metrics(ranking, gold, sources):
 
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True);a=p.parse_args();a.output.mkdir(exist_ok=False)
-    path=Path('artifacts/eval/wixqa-pg-compact-dev20-2026-09-08/cases.jsonl.gz')
+    p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True);p.add_argument('--split',choices=['dev','heldout'],default='dev');a=p.parse_args();a.output.mkdir(exist_ok=False)
+    path=Path(f'artifacts/eval/wixqa-pg-compact-{a.split}20-2026-09-08/cases.jsonl.gz')
     cases=[json.loads(l) for l in gzip.open(path,'rt')]
     cfg=json.loads(subprocess.check_output(['docker','inspect','dialogpilot-target-v1-test']))[0]
     env=dict(v.split('=',1) for v in cfg['Config']['Env'] if '=' in v)
@@ -41,7 +41,7 @@ def main():
         keys={};sources={}
         for cid,sid,prov in rows:
             keys[f"{sid}:{prov['start_char']}:{prov['end_char']}"]=cid;sources[cid]=sid
-        manifest={'baseline_commit':'0c2e40e','database':db,'generation':g,'chunks':len(rows),'cases_sha256':hashlib.sha256(path.read_bytes()).hexdigest(),'backend_sha256':hashlib.sha256(Path('infrastructure/hybrid_retrieval_backend.py').read_bytes()).hexdigest(),'api_calls':0,'new_embeddings':0,'new_reranker_calls':0,'weights':[.5,.5],'rrf_k':10,'route_k':20,'fused_k':20,'repeats':3,'split':'previously consumed Wix dev20','normalization':0}
+        manifest={'baseline_commit':'0c2e40e','database':db,'generation':g,'chunks':len(rows),'cases_sha256':hashlib.sha256(path.read_bytes()).hexdigest(),'backend_sha256':hashlib.sha256(Path('infrastructure/hybrid_retrieval_backend.py').read_bytes()).hexdigest(),'api_calls':0,'new_embeddings':0,'new_reranker_calls':0,'weights':[.5,.5],'rrf_k':10,'route_k':20,'fused_k':20,'repeats':3,'split':f'previously consumed Wix {a.split}20','normalization':0}
         (a.output/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
         for ix,row in enumerate(cases):
             case=row['case'];q=case['query'];gold=case['article_ids']

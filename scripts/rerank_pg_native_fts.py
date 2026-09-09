@@ -11,7 +11,7 @@ from scripts.prepare_wixqa_local_index import digest
 from statistics import mean
 
 def main():
- p=argparse.ArgumentParser();p.add_argument('--input',type=Path,required=True);a=p.parse_args();m=json.loads((a.input/'manifest.json').read_text());rows=json.loads((a.input/'cases.json').read_text())
+ p=argparse.ArgumentParser();p.add_argument('--input',type=Path,required=True);p.add_argument('--split',choices=['dev','heldout'],default='dev');a=p.parse_args();m=json.loads((a.input/'manifest.json').read_text());rows=json.loads((a.input/'cases.json').read_text())
  cache=Path('/tmp/dialogpilot-wixqa-full-index-20260908');complete=json.loads((cache/'COMPLETE.json').read_text());assert digest(cache/'chunks.json.gz')==complete['chunks_sha256']
  chunks=json.loads(gzip.decompress((cache/'chunks.json.gz').read_bytes()));bykey={f"{x['source_id']}:{x['start_char']}:{x['end_char']}":x for x in chunks}
  cfg=json.loads(subprocess.check_output(['docker','inspect','dialogpilot-target-v1-test']))[0];e=dict(v.split('=',1) for v in cfg['Config']['Env'] if '=' in v)
@@ -21,7 +21,7 @@ def main():
   mapping=c.execute('select candidate_id,source_id,source_span from retrieval.knowledge_chunk_search where generation_id=%s',(m['generation'],)).fetchall()
  source={cid:bykey[f"{sid}:{span['start_char']}:{span['end_char']}"] for cid,sid,span in mapping}
  reranker=LocalKnowledgeReranker('/home/yang/.cache/dialogpilot-models/bge-reranker-v2-m3',device='cuda',batch_size=4)
- oldroot=Path('artifacts/eval/wixqa-fixed-dev20-2026-09-08');identity=json.loads((oldroot/'identity.json').read_text());assert identity['reranker']==reranker.identity;assert identity['index']==complete
+ oldroot=Path(f'artifacts/eval/wixqa-fixed-{a.split}20-2026-09-08');identity=json.loads((oldroot/'identity.json').read_text());assert identity['reranker']==reranker.identity;assert identity['index']==complete
  old={r['case']['query']:r for r in (json.loads(l) for l in gzip.open(oldroot/'cases.jsonl.gz','rt'))}
  out=[];new=0;reused=0
  for i,r in enumerate(rows):
