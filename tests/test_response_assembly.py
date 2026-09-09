@@ -19,7 +19,8 @@ def test_policy_snapshot_reaches_author_and_verifier_without_extra_calls(direct,
     from application.default_capability_registry import build_default_capability_registry
     registry = build_default_capability_registry("tenant-a")
     registry = replace(registry, agents=tuple(replace(agent,
-        business_policy=f"Policy for {agent.agent_id}: action A prevents subsequent action B.")
+        business_policy=f"Executor-only instructions for {agent.agent_id}.",
+        conversation_policy=f"Conversation constraints for {agent.agent_id}.")
         for agent in registry.agents))
     author_inputs = []
     class Author:
@@ -51,12 +52,25 @@ def test_policy_snapshot_reaches_author_and_verifier_without_extra_calls(direct,
     assert policy["bundle_version"] == registry.bundle_version
     assert policy["business_actions"] == list(semantics)
     assert policy["agents"] == [{"agent_id": agent.agent_id, "description": agent.description,
-                                 "business_policy": agent.business_policy}
+                                 "conversation_policy": agent.conversation_policy}
                                 for agent in registry.agents]
     assert all(json.loads(kwargs["context"]) == evidence for _, kwargs in verifier.calls)
     assert all(payload["evidence"] == evidence for payload in author_inputs)
+    assert "Executor-only instructions" not in result.evidence_json
     assert len(verifier.calls) == 1 + int(repair)
     assert len(author_inputs) == int(not direct) + int(repair)
+
+
+def test_conversation_policy_changes_are_registry_versioned():
+    from dataclasses import asdict, replace
+    from application.capability_registry import AgentDefinition
+    from application.default_capability_registry import build_default_capability_registry
+    registry = build_default_capability_registry("tenant-a")
+    agent = replace(registry.agents[0], conversation_policy="Only disclose authenticated records.")
+    restored = AgentDefinition(**asdict(agent))
+    assert restored == agent
+    revised = replace(registry, agents=(restored, *registry.agents[1:]))
+    assert revised.fingerprint != registry.fingerprint
 
 
 def test_policy_revision_changes_response_evidence_identity():

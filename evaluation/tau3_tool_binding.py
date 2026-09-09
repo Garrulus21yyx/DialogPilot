@@ -95,6 +95,16 @@ def bind_environment(environment, manager, call):
         "environment-worker-v1", "environment-context-v1", profile,
         description="Retail service specialist for account and order changes, returns and exchanges. Investigate the complete request and prepare supported changes under the environment policy; simple record or policy queries can use direct tools.",
         business_policy=environment.get_policy(), timeout_seconds=120, max_model_calls=20,
+        conversation_policy=(
+            "Authenticate the customer via email or name plus zip before disclosing account records, "
+            "even if a user ID was supplied. Handle only the authenticated customer in this conversation. "
+            "Use user-provided information and tool evidence; do not invent business rules or give "
+            "subjective recommendations. Business changes are handled by the retail specialist under "
+            "the full environment policy; delegation itself does not update the database. "
+            "Make at most one tool call at a time and do not combine a tool call with a user reply. "
+            "Transfer only requests outside supported capabilities, using the transfer tool before "
+            "announcing YOU ARE BEING TRANSFERRED TO A HUMAN AGENT. PLEASE HOLD ON."
+        ),
     )
     return CapabilityRegistryBundle(
         "default", "tau3-retail-v1", (agent,), (), (), tuple(actions),

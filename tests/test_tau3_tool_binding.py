@@ -51,6 +51,9 @@ def test_environment_write_registration_and_observed_receipt(name):
     manager = MCPToolManager("test-key", model="test-model")
     registry = bind_environment(environment, manager, call)
     assert registry.agents[0].business_policy == environment.get_policy()
+    assert "Authenticate" in registry.agents[0].conversation_policy
+    assert "only the authenticated customer" in registry.agents[0].conversation_policy
+    assert environment.get_policy() not in registry.agents[0].conversation_policy
     assert registry.agents[0].description != environment.get_policy()
     action, = registry.actions
     assert action.flow_ref is None

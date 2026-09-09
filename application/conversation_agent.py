@@ -322,10 +322,8 @@ class ConversationAgent:
             ),
             "supported_goals": sorted(_available_goals(registry)),
             "atomic_reads": atomic_reads,
-            # Policies can constrain direct reads as well as specialist writes.
-            # Keep them once as configuration, separate from short routing cards.
-            "business_policies": [{"agent_id": agent.agent_id, "policy": agent.business_policy}
-                                  for agent in registry.agents if agent.business_policy],
+            "conversation_policies": [{"agent_id": agent.agent_id, "policy": agent.conversation_policy}
+                                      for agent in registry.agents if agent.conversation_policy],
             "goal_descriptions": {key: _GOAL_DESCRIPTIONS[key] for key in _available_goals(registry)},
             "domain_capabilities": [
                 {

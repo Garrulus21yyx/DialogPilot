@@ -78,9 +78,11 @@ class Provider:
 
 
 @pytest.mark.parametrize("policy", ["", "Policy-only marker: A prevents B.", "规则原文\n" * 200])
-def test_planning_cards_do_not_duplicate_execution_policy(policy):
+@pytest.mark.parametrize("conversation_policy", ["", "Authenticate before reading personal records."])
+def test_planning_cards_do_not_duplicate_execution_policy(policy, conversation_policy):
     registry = build_default_capability_registry("tenant-a")
-    registry = replace(registry, agents=tuple(replace(agent, business_policy=policy)
+    registry = replace(registry, agents=tuple(replace(agent, business_policy=policy,
+                                             conversation_policy=conversation_policy)
                                              for agent in registry.agents))
     provider = Provider({"status": "respond", "response": "How can I help?"})
     _invoke(ConversationAgent(provider), "Hello", registry=registry)
@@ -88,13 +90,17 @@ def test_planning_cards_do_not_duplicate_execution_policy(policy):
     assert [card["description"] for card in cards] == [a.description for a in registry.agents]
     assert all("business_policy" not in card for card in cards)
     assert all(card["tools"] for card in cards)
-    expected = [{"agent_id": agent.agent_id, "policy": policy} for agent in registry.agents] if policy else []
-    assert provider.calls[0]["business_policies"] == expected
+    expected = [{"agent_id": agent.agent_id, "policy": agent.conversation_policy}
+                for agent in registry.agents if agent.conversation_policy]
+    assert "business_policies" not in provider.calls[0]
+    assert provider.calls[0]["conversation_policies"] == expected
     from infrastructure.target_model_context import planning_context, CONTRACT_MARKER
     import json
     contract, messages = planning_context(provider.calls[0])
-    assert json.loads(contract.split(CONTRACT_MARKER)[1])["business_policies"] == expected
-    assert all("business_policies" not in str(message.content) for message in messages)
+    assert json.loads(contract.split(CONTRACT_MARKER)[1])["conversation_policies"] == expected
+    assert all("conversation_policies" not in str(message.content) for message in messages)
+    if policy:
+        assert policy not in contract
 
 
 def test_provider_uses_framework_native_action_output():

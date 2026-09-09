@@ -16,7 +16,7 @@ CONTRACT_MARKER = "\n\nPlanning capability contract (application configuration):
 CONTRACT_FIELDS = frozenset({
     "supported_goals", "goal_descriptions", "domain_capabilities",
     "knowledge_filter_contract", "missing_fields_schema", "registry_fingerprint",
-    "business_policies",
+    "conversation_policies",
 })
 
 

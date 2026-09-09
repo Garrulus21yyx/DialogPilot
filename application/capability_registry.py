@@ -85,6 +85,9 @@ class AgentDefinition:
     # description is the short capability card; policy is execution guidance,
     # not a second routing description or a source of tool permissions.
     business_policy: str = ""
+    # Explicit conversation-scope constraints (e.g. identity/privacy). Never
+    # inferred from execution prose: callers must author the audience boundary.
+    conversation_policy: str = ""
 
     @property
     def execution_principal(self) -> str:
