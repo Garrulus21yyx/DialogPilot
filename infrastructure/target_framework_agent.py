@@ -58,7 +58,7 @@ from core.framework_models import ModelInvocationError
 from infrastructure.target_action_preparation import TargetActionPreparation
 from application.action_approval import ACTION_INTERACTION_CONTRACT
 from infrastructure.target_domain_outcome import (
-    DomainOutcomeReview, DomainOutcomeRejected, DomainOutcomeReviewUnavailable,
+    DomainOutcomeReview, DomainOutcomeRejected, DomainOutcomeReviewUnavailable, DomainAssignmentRejected,
 )
 from mcp.tool_manager import MCPToolManager, ToolCallStatus, ToolResult
 
@@ -68,7 +68,7 @@ logger = logging.getLogger(__name__)
 class TargetFrameworkAgent:
     """Execute one delegated read goal through a governed framework Agent."""
 
-    version = "target-framework-agent-v5-action-decision-scope"
+    version = "target-framework-agent-v6-assignment-repair"
 
     def __init__(
         self,
@@ -137,7 +137,9 @@ class TargetFrameworkAgent:
         pinned = HumanMessage(content=prompt, id=f"task-context:{item.fingerprint}")
         review = DomainOutcomeReview(self._review_model, callbacks=self._callbacks,
             available_tokens=self._review_available_tokens,
-            business_policy=self._system_prompt, tools=tools)
+            business_policy=self._system_prompt, tools=tools,
+            registered_action_refs=tuple(action.ref for action in self._registry.actions
+                                        if action.owner_agent == item.owner_agent))
         boundary = InteractionBoundaryMiddleware(("prepare_" + tool_id for ref in item.allowed_actions
             for tool_id in self._registry.action(ref).allowed_tool_ids), review=review)
         compaction = ContextCompaction(self._model, self._archive,
@@ -208,6 +210,9 @@ class TargetFrameworkAgent:
                                     retryable=exc.retryable, error=exc)
         except DomainOutcomeRejected as exc:
             failure = self._failure(context, "DOMAIN_OUTCOME_REJECTED", error=exc, stage="domain_outcome")
+        except DomainAssignmentRejected as exc:
+            failure = replace(self._failure(context, "ASSIGNMENT_REPAIR_REQUIRED", error=exc,
+                stage="assignment_review"), assignment_issue=str(exc))
         except DomainOutcomeReviewUnavailable as exc:
             from core.framework_models import retryable_model_error
             failure = self._failure(context, "DOMAIN_OUTCOME_REVIEW_UNAVAILABLE",
@@ -279,7 +284,7 @@ class TargetFrameworkAgent:
         if failure is not None and result.pending_action is None:
             result = replace(result, status=failure.status, reason_code=failure.reason_code,
                 retryable=failure.retryable, candidate_response=None, pending_action=None,
-                missing_inputs=())
+                missing_inputs=(), assignment_issue=failure.assignment_issue)
         elif failure is not None:
             result = replace(result, candidate_response=None)
         working = list(output.get("messages", []))

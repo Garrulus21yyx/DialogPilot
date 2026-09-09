@@ -61,3 +61,21 @@ def direct_read_observations(board):
         batch.append(observation_key([item.owner_agent, item.allowed_tools[0]],
             {arg.name: arg.value for arg in item.arguments}, outcome))
     return batch
+
+
+def assignment_repairs(board):
+    """Unreplaced assignment failures, including work retained across waits."""
+    from application.agent_result import AgentResultStatus
+    return tuple(result for _, result in board.outcome_items if result and result.assignment_issue
+                 and result.status is AgentResultStatus.TERMINAL_FAILURE) if board else ()
+
+
+def planning_observations(board):
+    batch = direct_read_observations(board)
+    items = {item.work_item_id: item for item, _ in board.outcome_items}
+    for result in assignment_repairs(board):
+        item = items[result.work_item_id]
+        # Attempt IDs/rephrased feedback are not progress on an unchanged scope.
+        batch.append(observation_key([item.owner_agent, item.objective],
+            [item.allowed_tools, item.allowed_actions], 'assignment_repair'))
+    return batch

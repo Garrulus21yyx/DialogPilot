@@ -39,3 +39,32 @@ def test_independent_checks_preserve_success_and_typed_failure(failed):
         else:
             assert result[check.value]["reward"] == 1.0
     assert len(result["evaluation_errors"]) == int(failed is not None)
+
+
+@pytest.mark.parametrize('termination,scope', [('user_stop','official_checks'), ('max_steps','termination_gate_only')])
+def test_scoring_exposes_termination_gate_without_relabeling_zero_as_database_failure(termination, scope):
+    simulation = SimpleNamespace(termination_reason=SimpleNamespace(value=termination))
+    result = asyncio.run(score_simulation(simulation, 'task',
+        evaluator=lambda *a, **k: SimpleNamespace(reward=0, model_dump=lambda: {'reward': 0}),
+        evaluations=tuple(Check)))
+    assert result['evaluation_scope'] == scope
+    assert result['env']['reward'] == 0
+
+
+def test_cancelled_simulator_is_joined_before_caller_can_close_dependencies():
+    from threading import Event
+    from scripts.run_tau3_full import joined_thread
+    entered, stop, finished = Event(), Event(), Event()
+    def simulate():
+        entered.set()
+        assert stop.wait(2)
+        finished.set()
+        raise RuntimeError('stopped')
+    async def run():
+        task = asyncio.create_task(joined_thread(simulate, on_cancel=stop.set))
+        await asyncio.to_thread(entered.wait, 2)
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+        assert finished.is_set()
+    asyncio.run(run())

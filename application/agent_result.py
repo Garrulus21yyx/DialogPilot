@@ -184,8 +184,17 @@ class AgentResult:
     working_messages: tuple[dict, ...] = ()
     # Diagnostics survive message compaction; they are not business evidence.
     execution_feedback: tuple[dict, ...] = ()
+    # A rejected assignment returns to the conversation planner, not a tool retry.
+    # The local attempt is terminal; already observed evidence remains usable.
+    assignment_issue: str | None = None
 
     def __post_init__(self) -> None:
+        if self.assignment_issue is not None and (
+            not isinstance(self.assignment_issue, str) or not self.assignment_issue.strip()
+            or self.status not in {AgentResultStatus.TERMINAL_FAILURE, AgentResultStatus.CANCELLED,
+                                   AgentResultStatus.SUPERSEDED} or self.retryable
+        ):
+            raise AgentResultContractError("assignment issue requires a nonretryable terminal attempt")
         for name in ("facts", "evidence_refs", "action_receipts", "missing_inputs",
                      "requested_evidence", "state_mutation_proposals", "working_messages",
                      "execution_feedback"):

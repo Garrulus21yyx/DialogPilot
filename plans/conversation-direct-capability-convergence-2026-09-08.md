@@ -1977,3 +1977,45 @@ this bounded approval/budget/dependency repair. Goal narrowing, semantic false
 acceptance and runner shutdown remain OPEN; no tau or paid model rerun was made.
 Implementation and tests are ready for a scoped commit; this is not whole-request
 closure and does not authorize dependent benchmark claims.
+
+### Whole ten-task causal coverage (active, 2026-09-09)
+
+User requires all original ten tasks and completed replay rows to be mapped to
+mechanisms and current code, not another partial status declaration. Scope is
+historical read-only trace inspection, owner repair and local/property/PostgreSQL
+checks; no tau or paid model rerun. Preserve unrelated working-tree edits.
+
+IN_PROGRESS: reconcile each row's first failure, downstream consequences, prior
+fix and still-reachable cause. Audit operational consumers and model-visible
+contracts as well as application transitions. Preliminary full-source search
+found two missed consumers of ceaa739: run_tau3_full still reads max_review_calls,
+and review_action still describes decline as stopping the objective. These are
+contract migration omissions, not new business-specific causes; update both and
+cover the public catalog/manifest in acceptance. Goal assignment and semantic
+false acceptance remain disputed, not closed by those edits.
+
+Implementation update: the missing owner-correction path is implemented using
+typed assignment_issue and the existing observation graph, not blanket delegated
+replanning. The same handback review sees sibling/retained assignment scope and
+registered actions separately from the current envelope. Assignment failures are
+excluded from approval auto-continuation, stay observable across parallel waits,
+and are consumed by explicit revision. Fresh/resumed execution uses one revision
+selection rule. Existing budgets stop unchanged corrections. Planner failure
+retains independent evidence and typed feedback. Turn/worker versions v17/v6
+require existing explicit treatment of older unpublished graph versions.
+
+Runner update: synchronous simulator/evaluator work is joined before cleanup;
+bridge stop wakes waits, rejects new dispatch, delivers a final known ToolMessage
+and drains actual turn completion. Graceful signals record STOPPING/INTERRUPTED;
+hard kills remain outside guaranteed cleanup. Official truncation scores are
+labelled termination_gate_only, never reported as executed ENV assertions.
+
+Validation: 570 tests passed with PostgreSQL; one existing multiprocessing fork
+warning. Includes assignment repair success/no-progress/provider-failure, typed
+artifact/checkpoint roundtrip, concurrent approval/input/queued work, native-read
+observation and replay, approval dependency matrices and SDK runtime limits.
+Official-adapter environment additionally passed 19 local tests (no model calls).
+Independent read-only reviews found no remaining definite blocker in these bounded
+structural repairs. See `tau3-ten-task-root-causes-2026-09-09.md` for every task.
+R6 action-feasibility and R7 prose false acceptance remain semantic OPEN items;
+this commit does not attest tau success or all original user outcomes completed.

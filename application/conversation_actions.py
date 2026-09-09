@@ -192,8 +192,9 @@ def planning_actions(payload):
         actions.append(PlanningAction("review_action",
             "Approve or decline the current prepared action. Approve only explicit assent to its exact unchanged "
             "arguments now. Questions/conditional assent are not approval. Corrections use a revised goal instead. "
-            "Decline with a replacement/continuing objective also needs that revised/continuation action; "
-            "decline alone stops the old objective. Pure approval needs no duplicate task. Preserve independent questions.",
+            "Decline rejects only this proposal; unchanged remaining goals continue with that decision. "
+            "Use cancel_active_work to cancel a whole objective, or a revised goal to change it. "
+            "Pure approval needs no duplicate task. Preserve independent questions.",
             {"decision": {"type": "string", "enum": ["approve", "decline"]}}, ("decision",),
             bound={"approval_id": payload["pending_approval"]["approval_id"]}))
     pending = payload.get("pending_input") if not observing else None

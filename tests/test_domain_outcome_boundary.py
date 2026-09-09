@@ -27,6 +27,20 @@ def terminal(tool, text, ident="terminal"):
         "args": {"question" if tool == "request_user_input" else "reason": text}}])
 
 
+def test_assignment_error_returns_to_planner_without_local_retry_or_preparation():
+    agent, context, model, calls = domain([call('prepare_order_cancel'), AIMessage(content='must not run')])
+    context = replace(context, trusted_context={**context.trusted_context, 'assignment_view': {
+        'assignments': [{'work_item_id': context.work_item.work_item_id, 'objective': 'Only identify user'}]}})
+    model.outcome_reviews = [{'accepted': False, 'feedback': 'The request includes a return, not only identification.',
+        'repair_owner': 'conversation'}]
+    result = asyncio.run(agent(context))
+    assert result.status.value == 'TERMINAL_FAILURE'
+    assert result.assignment_issue == model.outcome_reviews[0]['feedback']
+    assert not result.retryable and not result.pending_action and not calls
+    assert model.calls == model.review_calls == 1
+    assert result.execution_feedback
+
+
 @pytest.mark.parametrize("candidate", [
     AIMessage(content="Which order would you like to cancel?"),
     terminal("request_user_input", "Should I cancel the order you specified?"),

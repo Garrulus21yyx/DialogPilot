@@ -8,6 +8,7 @@ from __future__ import annotations
 import asyncio
 from dataclasses import asdict
 from queue import Queue
+from threading import Event
 import uuid
 
 from tau2.agent.base_agent import HalfDuplexAgent
@@ -29,6 +30,10 @@ class ObservedVerifier:
         return result
 
 
+class SimulationStopped(RuntimeError):
+    """The bridge is closing; this is not a failed or rolled-back business tool."""
+
+
 class Tau3TargetAgent(HalfDuplexAgent):
     def __init__(self, environment, *, loop, timeout_seconds=180):
         super().__init__(environment.get_tools(), environment.get_policy())
@@ -40,6 +45,9 @@ class Tau3TargetAgent(HalfDuplexAgent):
         self.future = None
         self.trace = []
         self.components = None
+        self._stopped = Event()
+        self._turn_tasks = set()
+        self._draining_result = False
 
     def configure(self, components, pool):
         self.components = components
@@ -48,6 +56,8 @@ class Tau3TargetAgent(HalfDuplexAgent):
         self.conversation_id = "tau3-" + uuid.uuid4().hex
 
     async def call_tool(self, name, arguments):
+        if self._stopped.is_set():
+            raise SimulationStopped("simulation stopped before a new tool request")
         call_id = "tau3-call-" + uuid.uuid4().hex
         result = self.loop.create_future()
         self.pending[call_id] = result
@@ -65,6 +75,8 @@ class Tau3TargetAgent(HalfDuplexAgent):
         return None
 
     def generate_next_message(self, message, state):
+        if self._stopped.is_set():
+            raise SimulationStopped("simulation stopped before a new turn")
         if isinstance(message, (ToolMessage, MultiToolMessage)):
             messages = message.tool_messages if isinstance(message, MultiToolMessage) else [message]
             for result in messages:
@@ -82,6 +94,10 @@ class Tau3TargetAgent(HalfDuplexAgent):
             future.set_result(message)
 
     async def _turn(self, text):
+        if self._stopped.is_set():
+            return
+        task = asyncio.current_task()
+        self._turn_tasks.add(task)
         try:
             self.turn += 1
             state = self.states.load("default", "benchmark-visitor", self.conversation_id)
@@ -128,7 +144,30 @@ class Tau3TargetAgent(HalfDuplexAgent):
             self.events.put(AssistantMessage(role="assistant", content=str(outcome.response["response"])))
         except BaseException as exc:
             self.events.put(exc)
+        finally:
+            self._turn_tasks.discard(task)
 
     def stop(self, message=None, state=None):
-        if self.future is not None and not self.future.done():
-            self.future.cancel()
+        self._stopped.set()
+        self.events.put(SimulationStopped("simulation stopped"))
+        self.loop.call_soon_threadsafe(self._stop_on_loop, message)
+
+    def _stop_on_loop(self, message):
+        # Official finalization can hold the last result after executing a tool.
+        # Deliver it before closing; no new tool can be dispatched during drain.
+        messages = message.tool_messages if isinstance(message, MultiToolMessage) else (
+            [message] if isinstance(message, ToolMessage) else [])
+        for result in messages:
+            if result.id in self.pending:
+                self._draining_result = True
+                self._resolve_tool(result)
+        if not self._draining_result:
+            for task in tuple(self._turn_tasks):
+                task.cancel()
+
+    async def aclose(self):
+        """Wait for actual async cleanup, not just the concurrent future flag."""
+        self.stop()
+        await asyncio.sleep(0)  # apply the queued thread-safe stop request
+        if self._turn_tasks:
+            await asyncio.gather(*tuple(self._turn_tasks), return_exceptions=True)

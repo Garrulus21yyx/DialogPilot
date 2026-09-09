@@ -130,3 +130,65 @@ def test_noncompleted_outcome_delivers_only_committed_text_and_retains_status(ki
         assert agent.trace[0]["outcome"] == __import__("dataclasses").asdict(outcome)
     asyncio.run(run())
     assert queries == [("publication", "default", "benchmark-visitor", "conversation")]
+
+
+def test_close_joins_actual_turn_cleanup_and_wakes_simulator_thread():
+    from threading import Event
+    from tau2.data_model.message import UserMessage
+    from evaluation.tau3_full_adapter import SimulationStopped
+    async def run():
+        entered, cleaned = asyncio.Event(), Event()
+        async def handle(command):
+            entered.set()
+            try:
+                await asyncio.Future()
+            finally:
+                await asyncio.sleep(0)
+                cleaned.set()
+        agent = Tau3TargetAgent(SimpleNamespace(get_tools=lambda: [], get_policy=lambda: "policy"),
+            loop=asyncio.get_running_loop())
+        agent.states = SimpleNamespace(load=lambda *a: SimpleNamespace(pending_interaction=None))
+        agent.conversation_id = "conversation"
+        agent.components = SimpleNamespace(coordinator=SimpleNamespace(handle=handle))
+        running = asyncio.create_task(asyncio.to_thread(agent.generate_next_message,
+            UserMessage(role='user', content='Do the work'), None))
+        await entered.wait()
+        await agent.aclose()
+        assert cleaned.is_set()
+        assert not agent._turn_tasks
+        with pytest.raises(SimulationStopped):
+            await running
+        with pytest.raises(SimulationStopped):
+            await agent.call_tool('new', {})
+        await agent.aclose()  # idempotent
+    asyncio.run(run())
+
+
+def test_final_tool_result_is_delivered_before_shutdown_without_dispatching_more_work():
+    from application.chat_contracts import Completed
+    from tau2.data_model.message import ToolMessage
+    from evaluation.tau3_full_adapter import SimulationStopped
+    async def run():
+        received = []
+        agent = Tau3TargetAgent(SimpleNamespace(get_tools=lambda: [], get_policy=lambda: "policy"),
+            loop=asyncio.get_running_loop())
+        async def handle(command):
+            result = await agent.call_tool('write', {})
+            await asyncio.sleep(0)
+            received.append(result)
+            with pytest.raises(SimulationStopped):
+                await agent.call_tool('another_write', {})
+            return Completed('reply', {'response': 'Completed'})
+        agent.states = SimpleNamespace(load=lambda *a: SimpleNamespace(pending_interaction=None))
+        agent.conversation_id = 'conversation'
+        agent.components = SimpleNamespace(coordinator=SimpleNamespace(handle=handle))
+        turn = asyncio.create_task(agent._turn('Do the work'))
+        event = await asyncio.to_thread(agent.events.get, True, 2)
+        result = ToolMessage(role='tool', id=event.tool_calls[0].id, content='committed')
+        agent.stop(result)
+        await agent.aclose()
+        await turn
+        assert received == [result]
+        assert not agent.pending
+        assert len(agent.trace) == 1
+    asyncio.run(run())

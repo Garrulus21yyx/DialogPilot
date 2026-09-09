@@ -182,6 +182,9 @@ class InteractionBoundaryMiddleware(AgentMiddleware):
             raise DomainOutcomeRejected("domain_outcome_correction_budget_exhausted")
         assessment = await self.review.assess(context=runtime.context,
             messages=state["messages"], kind=kind, candidate=candidate)
+        if not assessment["accepted"] and assessment.get("repair_owner") == "conversation":
+            from infrastructure.target_domain_outcome import DomainAssignmentRejected
+            raise DomainAssignmentRejected(assessment["feedback"])
         feedback = [*state.get("outcome_feedback", ()), {"kind": kind, **assessment}]
         update = {"outcome_review_calls": review_calls + 1, "outcome_feedback": feedback,
                   "accepted_outcome": {}}

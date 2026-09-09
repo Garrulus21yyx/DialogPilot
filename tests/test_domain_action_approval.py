@@ -80,7 +80,7 @@ def test_existing_explicit_approval_retains_only_same_checkpoint_work(waiting_st
         "order:R1", "1", "2099-01-01T00:00:00+00:00", checkpoint_thread_id="thread"))
     item = _item()
     board = SimpleNamespace(results=(SimpleNamespace(work_item_id=item.work_item_id,
-        pending_action=None, status=AgentResultStatus(waiting_status)),))
+        pending_action=None, status=AgentResultStatus(waiting_status), assignment_issue=None),))
     next_state = bind_action_approval(state, SimpleNamespace(work=SimpleNamespace(items=(item,))),
                                       board, None, "thread" if same_thread else "other-thread")
     # Sharing an execution thread does not make unrelated work part of this

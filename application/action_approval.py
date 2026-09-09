@@ -95,7 +95,8 @@ def bind_action_approval(state, plan, board, registry, checkpoint_thread_id):
     if len(proposed) > 1:
         raise ConversationStateConflict("action-capable workers must be serialized before approval")
     finished = {result.work_item_id for result in board.results
-                if result.status.value in {"SUCCEEDED", "CANCELLED", "SUPERSEDED"}}
+                if result.status.value in {"SUCCEEDED", "CANCELLED", "SUPERSEDED"}
+                or result.assignment_issue is not None}
     waiting = {result.work_item_id for result in board.results if result.status.value == "NEEDS_USER_INPUT"}
     if state.pending_interaction:
         waiting.update(work.work_item_id for work in plan.work.items if any(

@@ -49,6 +49,14 @@ def _merge_checkpoint_outcomes(left, right):
     return tuple(outcomes)
 
 
+def _unreplaced_outcomes(previous, plan):
+    """One revision rule for fresh observation graphs and resumed graphs."""
+    return tuple((item, result) for item, result in previous
+        if not any(item == new or (
+            item.control and new.control and item.control.control_id == new.control.control_id
+            and item.control.revision < new.control.revision) for new in plan.items))
+
+
 @dataclass(frozen=True)
 class AgentContextView:
     work_item: WorkItem
@@ -231,7 +239,16 @@ class OrchestrationRuntime:
                     tuple(fact for _, result in state.get("retained_outcomes", ()) if result
                           for fact in result.facts),
                     state.get("continuation_facts", {}).get(item.work_item_id, ()))),
-                "trusted_context": state.get("trusted_context", {}),
+                "trusted_context": {**state.get("trusted_context", {}), "assignment_view": {
+                    "assignments": [{"work_item_id": work.work_item_id, "owner_agent": work.owner_agent,
+                        "objective": work.objective, "allows_action_preparation": bool(work.allowed_actions),
+                        "dependencies": list(work.dependencies),
+                        "status": results[work.work_item_id].status.value if work.work_item_id in results else "PENDING"}
+                        for work in state["work_plan"].items],
+                    "retained_outcomes": [{"work_item_id": work.work_item_id, "owner_agent": work.owner_agent,
+                        "objective": work.objective, "status": result.status.value if result else "PENDING"}
+                        for work, result in state.get("retained_outcomes", ())],
+                }},
                 "pending_approval": state.get("pending_approval"),
                 "dependency_results": tuple(
                     results[dependency]
@@ -310,10 +327,7 @@ class OrchestrationRuntime:
         # A resume executes a subset, but cannot erase other outcomes from the
         # original request. These are checkpoint projections, never runnable work.
         retained = tuple((item, _closed_outcome(item, result) if item in closed else result)
-            for item, result in previous
-            if not any(item == new or (
-                item.control and new.control and item.control.control_id == new.control.control_id
-                and item.control.revision < new.control.revision) for new in plan.items))
+            for item, result in _unreplaced_outcomes(previous, plan))
         preserved = tuple(result for item, result in previous if item in plan.items and result is not None)
         board = self._result_board.evaluate(plan, preserved, retained_outcomes=retained)
         progress = {}
@@ -543,7 +557,7 @@ class OrchestrationRuntime:
             "trusted_context": dict(trusted_context or {}),
             "interrupt_after_completion": bool(interrupt_after_completion),
             "pending_approval": pending_approval,
-            "retained_outcomes": tuple(retained_outcomes),
+            "retained_outcomes": _unreplaced_outcomes(retained_outcomes, work_plan),
             "accepted_observed_outcomes": tuple(retained_outcomes),
         }
         if self._checkpointer is not None:

@@ -121,7 +121,6 @@ def test_observed_read_then_approval_survives_runtime_recreation(postgres_databa
     model = ScriptedToolModel(responses=[
         AIMessage(content="", tool_calls=[{"name": "prepare_order_cancel",
             "args": {"order_id": "DP1234"}, "id": "prepare-cancellation"}]),
-        AIMessage(content="Shall I cancel order DP1234?"),
         AIMessage(content="Your cancellation has been completed."),
     ])
     conversation = "pg-observed-approval-" + uuid4().hex
@@ -180,7 +179,9 @@ def test_observed_read_then_approval_survives_runtime_recreation(postgres_databa
                         replay = await runtime.execute(identity("approval"), approval)
                         assert replay.assembled == result.assembled
                         assert calls.count("write") == 1
-                        assert model.calls == 3
+                        # Preparation ends its segment; the second model call
+                        # happens only after the approved write, not to ask twice.
+                        assert model.calls == 2
             finally:
                 pool.close()
     asyncio.run(run())

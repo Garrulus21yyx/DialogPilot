@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 import json
 import logging
 import os
+import signal
 from pathlib import Path
 import subprocess
 import sys
@@ -41,9 +42,14 @@ async def score_simulation(simulation, task, *, evaluator, evaluations):
     """Independent official checks: a judge outage must not erase DB/action scores."""
     from core.tracing import exception_chain
     scores = {"official_reward": None, "evaluation_errors": {}}
+    termination = getattr(getattr(simulation, "termination_reason", None), "value", None)
+    if termination is not None:
+        scores["evaluation_scope"] = (
+            "official_checks" if termination in {"agent_stop", "user_stop"}
+            else "termination_gate_only")
     for evaluation in evaluations:
         try:
-            reward = await asyncio.to_thread(
+            reward = await joined_thread(
                 evaluator, simulation, task, evaluation_type=evaluation,
                 solo_mode=False, domain="retail", strict_replay=True)
         except Exception as exc:
@@ -56,6 +62,21 @@ async def score_simulation(simulation, task, *, evaluator, evaluations):
             if evaluation.value == "all":
                 scores["official_reward"] = reward.reward
     return scores
+
+
+async def joined_thread(function, *args, on_cancel=None, **kwargs):
+    """Do not close run resources while synchronous SDK work still owns them."""
+    running = asyncio.create_task(asyncio.to_thread(function, *args, **kwargs))
+    try:
+        return await asyncio.shield(running)
+    except asyncio.CancelledError:
+        if on_cancel is not None:
+            on_cancel()
+        try:
+            await asyncio.shield(running)
+        except Exception:
+            pass  # cancellation remains the cause; the thread is now joined
+        raise
 
 
 async def run(args):
@@ -103,7 +124,7 @@ async def run(args):
                 "tau_commit": subprocess.check_output(["git", "-C", str(args.tau_source), "rev-parse", "HEAD"], text=True).strip(),
                 "configuration": "Target production application, one registered retail domain, encoder disabled",
                 "max_steps": args.max_steps, "max_model_calls_per_work_item": 20,
-                "max_domain_outcome_reviews_per_segment": InteractionBoundaryMiddleware.max_review_calls,
+                "max_domain_outcome_rejections_per_segment": InteractionBoundaryMiddleware.max_rejections,
                 "domain_outcome_review_profile": policy.profile(ModelRole.VERIFIER).to_dict(),
                 "domain_outcome_review_max_tokens": policy.profile(ModelRole.VERIFIER).request(max_tokens=4096)["max_tokens"],
                 "domain_outcome_review_scope": ["COMPLETE", "NEEDS_USER_INPUT", "BLOCKED", "PREPARE_ACTION"],
@@ -127,6 +148,19 @@ async def run(args):
     langfuse_sink = None
     user_diagnostics = None
     rows = []
+    stopping = None
+    active_agent = None
+    loop = asyncio.get_running_loop()
+    previous_signals = {sig: signal.getsignal(sig) for sig in (signal.SIGINT, signal.SIGTERM)}
+    def request_stop(sig):
+        nonlocal stopping
+        stopping = sig.name
+        manifest.update(status="STOPPING", stop_signal=stopping)
+        write(args.output / "manifest.json", manifest)
+        if active_agent is not None:
+            active_agent.stop()
+    for sig in previous_signals:
+        loop.add_signal_handler(sig, request_stop, sig)
     try:
         langfuse_sink = LangfuseTraceSink.from_env()
         user_diagnostics = SimulatorDiagnostics(args.output / 'simulator-calls',
@@ -147,8 +181,11 @@ async def run(args):
                         break
                     await asyncio.sleep(.05)
                 for task in tasks:
+                    if stopping:
+                        break
                     environment = get_environment()
                     agent = Tau3TargetAgent(environment, loop=asyncio.get_running_loop())
+                    active_agent = agent
                     tools = MCPToolManager(api_key=values["ANTHROPIC_API_KEY"],
                                            base_url=policy.base_url, model=profile.model)
                     memory = MemoryManager(redis_url="unix://" + str(socket),
@@ -188,7 +225,7 @@ async def run(args):
                         orchestrator = Orchestrator(
                             domain="retail", agent=agent, user=user, environment=environment,
                             task=task, max_steps=args.max_steps, seed=300)
-                        simulation = await asyncio.to_thread(orchestrator.run)
+                        simulation = await joined_thread(orchestrator.run, on_cancel=agent.stop)
                         write(args.output / f"task-{task.id}-trajectory.json", simulation.model_dump())
                         row["termination"] = simulation.termination_reason.value
                         row["simulation_status"] = "COMPLETED"
@@ -196,7 +233,9 @@ async def run(args):
                             evaluator=evaluate_simulation,
                             evaluations=(EvaluationType.ALL, EvaluationType.ENV, EvaluationType.ACTION)))
                         row["status"] = "EVALUATION_INCOMPLETE" if row["evaluation_errors"] else "EVALUATED"
-                    except Exception as exc:
+                    except (Exception, asyncio.CancelledError) as exc:
+                        if isinstance(exc, asyncio.CancelledError):
+                            stopping = "CANCELLED"
                         if orchestrator is not None:
                             row['failure_context'] = {key: str(getattr(orchestrator, key, ''))
                                                       for key in ('step_count', 'from_role', 'to_role')}
@@ -211,13 +250,14 @@ async def run(args):
                         row['error_stack'] = [{'file': frame.filename, 'line': frame.lineno,
                                                'function': frame.name}
                                               for frame in traceback.extract_tb(exc.__traceback__)]
-                        row.update(status="ERROR", error_type=type(exc).__name__,
+                        row.update(status="INTERRUPTED" if stopping else "ERROR", error_type=type(exc).__name__,
                                    error=user_diagnostics.sanitize(str(exc))[:240])
                         from core.tracing import exception_chain
                         row["exception_chain"] = exception_chain(exc)
                     finally:
                         row['simulator_diagnostics'] = await asyncio.to_thread(user_diagnostics.task_summary, task.id)
-                        agent.stop()
+                        await agent.aclose()
+                        active_agent = None
                         row["target_trace"] = agent.trace
                         if components:
                             await components.checkpoint_owner.__aexit__(None, None, None)
@@ -226,10 +266,15 @@ async def run(args):
                     rows.append(row)
                     write(args.output / f"task-{task.id}.json", row)
                     print(json.dumps({key: value for key, value in row.items() if key != "target_trace"}, default=str), flush=True)
+                    if stopping == "CANCELLED":
+                        raise asyncio.CancelledError
             finally:
                 redis.terminate()
                 await asyncio.to_thread(redis.wait)
     finally:
+        for sig, handler in previous_signals.items():
+            loop.remove_signal_handler(sig)
+            signal.signal(sig, handler)
         if user_diagnostics:
             manifest['simulator_trace_flush'] = user_diagnostics.close()
         if langfuse_sink:
@@ -239,7 +284,9 @@ async def run(args):
         # Only the exact database created by this invocation is removed.
         with psycopg.connect(args.database_url, autocommit=True) as connection:
             connection.execute(sql.SQL("DROP DATABASE {} WITH (FORCE)").format(sql.Identifier(db_name)))
-        manifest["status"] = "EVALUATED" if len(rows) == len(tasks) and all(r["status"] == "EVALUATED" for r in rows) else "INCOMPLETE"
+        manifest["status"] = ("INTERRUPTED" if stopping else "EVALUATED"
+            if len(rows) == len(tasks) and all(r["status"] == "EVALUATED" for r in rows) else "INCOMPLETE")
+        manifest["finished_at"] = datetime.now(timezone.utc).isoformat()
         write(args.output / "manifest.json", manifest)
         logger.remove(error_sink)
         logging.getLogger("application").removeHandler(standard_errors)

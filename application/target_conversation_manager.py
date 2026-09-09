@@ -409,10 +409,11 @@ class TargetConversationManager:
         No input/approval signal is consumed again and no history is reloaded.
         """
         from application.turn_planning import PlanningInvariantError
+        from application.execution_progress import assignment_repairs
         board, state = result.board, result.state_after
-        if (result.followup_pending or board is None or not board.complete
-                or not result.plan.observation_work_item_ids):
-            raise PlanningInvariantError("observation requires settled native reads")
+        if (result.followup_pending or board is None or not (assignment_repairs(board) or (
+                board.complete and result.plan.observation_work_item_ids))):
+            raise PlanningInvariantError("observation requires settled reads or rejected assignments")
         if result.plan.plan_id != previous.plan.plan_id:
             raise PlanningInvariantError("observed result belongs to another prepared plan")
         current = self._state_store.load(previous.invocation.tenant_id,
