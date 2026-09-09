@@ -133,7 +133,9 @@ the broader 386-check run also covered framework transport and deployment-facing
 contracts. Independent fresh-context review found no new deterministic blocker in
 the adopted diff. Model diagnostics: 32 calls total, all outputs preserved under
 `artifacts/eval/confirmation-scope-full-context-2026-09-09`; no task writes executed.
-Delivery: scoped commit/push follows, excluding unrelated archive/RAG working tree.
+Delivery: structural repair and diagnostic evidence committed/pushed as `8008a87`,
+excluding unrelated archive/RAG working-tree changes. Confirmation quality remains
+OPEN; delivery does not attest task-22 or general semantic closure.
 
 Baseline HEAD 1408147. Original run: `artifacts/eval/tau3-task22-role-policy-2026-09-09`.
 Langfuse session `tau3-7fe61180eb90477180da9ee851f13cff`:
