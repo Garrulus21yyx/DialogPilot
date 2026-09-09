@@ -23,6 +23,7 @@ def test_conversation_role_precedes_only_relevant_state_instructions(approval, i
     assert "call the appropriate specialist subagent" in prompt
     assert "do not need to collect all fields" in prompt
     assert "does not schedule later work" in prompt
+    assert "do not relabel their status in the objective" in prompt
     assert ("Pending action decision:" in prompt) == approval
     assert ("Pending information:" in prompt) == inputs
     assert ("Existing work:" in prompt) == (active or resume)
@@ -39,6 +40,8 @@ def test_specialist_instructions_match_actual_preparation_tool_exposure(prepare,
     assert prompt.startswith("You are DialogPilot's order_logistics specialist subagent.")
     assert "Domain policy and expertise:\nAssist." in prompt
     assert "request_user_input" in prompt and "report_blocked" in prompt
+    assert "planning description, not a business observation" in prompt
+    assert "alone does not require another lookup" in prompt
     assert (ACTION_INTERACTION_CONTRACT in prompt) == (prepare and not pending)
     assert ("business_operation_reference" in prompt) == (prepare and not pending)
     assert ("Existing pending approval:" in prompt) == pending

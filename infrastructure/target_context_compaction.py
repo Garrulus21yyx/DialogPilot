@@ -20,6 +20,7 @@ from application.context_budget import ModelContextBudgetExceeded
 from infrastructure.target_result_archive import ResultArchiveError, result_pointer
 from core.framework_models import invoke_model
 from core.tracing import exception_chain
+from infrastructure.target_working_sources import SOURCE_INDEX_ID, working_source_index
 
 
 class ResultState(AgentState):
@@ -53,7 +54,8 @@ class ToolResultPersistence(AgentMiddleware):
                         "retryable": isinstance(exc, ResultArchiveError) and exc.retryable}}}})
         result = artifact.get("result", {})
         envelope = {key: result[key] for key in
-                    ("status", "success", "tool_name", "effect_status", "pending_action", "producer_version")
+                    ("status", "success", "tool_name", "effect_status", "pending_action", "producer_version",
+                     "observed_at", "observation_started_at", "query_ref")
                     if key in result}
         from infrastructure.target_agent_middleware import tool_observation_digests, tool_observation_uses_arguments
         pointer = {"schema": artifact["schema"], "reference": reference, "result": envelope,
@@ -260,6 +262,12 @@ class ContextCompaction(AgentMiddleware):
                 update = await summary.abefore_model({**state, "messages": messages}, runtime)
         if update:
             messages = [m for m in update["messages"] if not isinstance(m, RemoveMessage)]
+            # Summary text is lossy. Preserve deterministic navigation to each
+            # obtained source even if the summary model omits every reference.
+            directory = await working_source_index(original, self.archive, runtime.context)
+            messages = [m for m in messages if m.id != SOURCE_INDEX_ID]
+            if directory is not None:
+                messages.append(directory)
             messages.insert(0, HumanMessage(content=json.dumps({
                 "archived_working_history": archive_ref,
                 "read_tool_result": {"reference": archive_ref, "offset": 0},
