@@ -138,8 +138,9 @@ def test_factless_business_outcomes_never_disappear_into_pure_knowledge_generati
                 _board(knowledge, business), current_message='查订单并说明退货政策'))
         assert result.verification_reason == 'KNOWLEDGE_SUPPORT_CHECKED'
         assert len(composer.calls) == 1
-        assert composer.calls[0]['evidence']['outcomes'][1]['status'] == status.value
-        assert verifier.calls[0][1]['agent_outcomes'][1]['status'] == status.value
+        assert composer.calls[0]['evidence']['outcomes'][1]['observed_segment']['status'] == status.value
+        assert json.loads(verifier.calls[0][1]['context'])['outcomes'][1]['observed_segment']['status'] == status.value
+        assert 'agent_outcomes' not in verifier.calls[0][1]
 
 
 def test_successful_direct_knowledge_uses_the_same_conversation_author():

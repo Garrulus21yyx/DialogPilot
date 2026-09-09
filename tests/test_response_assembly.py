@@ -88,6 +88,36 @@ def _board(*results, missing=(), conflicts=(), partial=False):
     )
 
 
+@pytest.mark.parametrize("extra_goals", range(5))
+def test_requested_goal_growth_cannot_expand_prepared_scope(extra_goals):
+    from dataclasses import replace
+    from application.response_assembly import _response_context
+    from tests.test_approval_conversation import domain, call
+    from langchain_core.messages import AIMessage
+    agent, context, _, _ = domain([call("prepare_order_cancel"), AIMessage(content="Pending.")])
+    result = asyncio.run(agent(context))
+    accepted = {"stage": "domain_outcome", "kind": "PREPARE_ACTION", "accepted": True}
+    rejected = {"stage": "tool", "code": "UNAVAILABLE", "accepted": False}
+    result = replace(result, execution_feedback=(accepted, rejected))
+    item = replace(context.work_item, objective="Cancel the order" + "; change another object" * extra_goals)
+    board = replace(_board(result), work_items=(item,))
+    evidence = _response_context(board, conversation_context={
+        "recent_messages": [{"role": "assistant", "content": "Every change is ready."}],
+        "turn_execution": {"continues_after_reply": False}})
+    outcome, = evidence["outcomes"]
+    assert outcome["requested_objective"] == item.objective
+    assert outcome["observed_segment"]["status"] == "WAITING_APPROVAL"
+    assert "status" not in outcome and "objective" not in outcome
+    assert outcome["execution_feedback"] == [rejected]
+    action, = evidence["pending_actions"]
+    assert "objective" not in action
+    assert action["action_ref"] == result.pending_action.action_ref
+    assert action["operation_key"] == result.pending_action.operation_key
+    assert "turn_execution" not in evidence["user_context"]
+    assert evidence["user_context"]["recent_messages"]
+    assert result.execution_feedback == (accepted, rejected)  # diagnostics retained
+
+
 @pytest.mark.parametrize("same_target", [False, True])
 @pytest.mark.parametrize("repeated_local_id", [False, True])
 @pytest.mark.parametrize("copied_receipt", [False, True])
@@ -264,7 +294,7 @@ def test_all_outcomes_reach_the_semantic_check_without_selection_markers(status)
         board, current_message="查订单和另一个任务"))
     context = json.loads(verifier.calls[0][1]["context"])
     assert len(context["outcomes"]) == 2
-    assert context["outcomes"][1]["status"] == status.value
+    assert context["outcomes"][1]["observed_segment"]["status"] == status.value
     assert "unrepresented_outcomes" not in context
     assert not response.verified
 

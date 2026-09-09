@@ -82,7 +82,7 @@ class ConversationComposer(Protocol):
 class ResponseAssembler:
     """Choose the cheapest valid response path and verify the final candidate."""
 
-    version = "response-assembler-v13-execution-presentation"
+    version = "response-assembler-v14-segment-scoped-evidence"
 
     def __init__(self, composer: ConversationComposer | None = None, *,
                  knowledge_verifier=None, knowledge_source_validator=None, knowledge_reuse_validator=None,
@@ -285,13 +285,10 @@ class ResponseAssembler:
             context=json.dumps(evidence_context if evidence_context is not None else
                 _response_context(board, pending_approval, requested_inputs, conversation_context,
                                   registry=self._registry, action_semantics=self._action_semantics), ensure_ascii=False),
-            knowledge_evidence=knowledge_evidence,
-            agent_outcomes=[{"status": result.status.value, "reason": result.reason_code,
-                             "execution_feedback": _failure_feedback(result)}
-                            for result in board.results])
+            knowledge_evidence=knowledge_evidence)
         verdict = await self._knowledge_verifier.verify(
             message, text, context=inputs['context'],
-            knowledge_evidence=inputs['knowledge_evidence'], agent_outcomes=inputs['agent_outcomes'])
+            knowledge_evidence=inputs['knowledge_evidence'])
         if not verdict.matches_request(**inputs):
             raise ValueError("verification does not match final answer and evidence")
         return verdict
@@ -323,7 +320,7 @@ class ResponseAssembler:
                 "NOT_CHECKED", "DETERMINISTIC_ASSEMBLY",
             )
         payload = {
-            "schema_version": "conversation-compose-request-v6-single-context",
+            "schema_version": "conversation-compose-request-v7-segment-scoped-evidence",
             "current_message": current_message,
             # The author consumes the exact context snapshot later verified;
             # do not serialize a second independent copy alongside evidence.
@@ -400,7 +397,9 @@ class ResponseAssembler:
 
 
 def _failure_feedback(result):
-    return list(result.execution_feedback) if result.status not in _SUCCESS else []
+    # Accepted internal reviews describe a model step, not business execution or
+    # approval scope. Keep them in the execution trace, not customer evidence.
+    return [entry for entry in result.execution_feedback if entry.get("accepted") is not True] if result.status not in _SUCCESS else []
 
 
 def _input_context(requested_inputs):
@@ -427,7 +426,7 @@ def _allowed_claims(board, pending_approval=None, *, requested_inputs=()) -> tup
             action = result.pending_action
             claims.append(AllowedClaim(
                 f"proposal:{result.work_item_id}", "PENDING_ACTION",
-                {"action_ref": action.action_ref, "objective": action.objective,
+                {"action_ref": action.action_ref,
                  "operation_key": action.operation_key,
                  "target_entity_ref": action.aggregate_ref,
                  "arguments": {arg.name: arg.value for arg in action.arguments},
@@ -496,10 +495,11 @@ def _response_context(board, pending_approval=None, requested_inputs=(), convers
         "turn_execution": (conversation_context or {}).get("turn_execution"),
         "outcomes": [{"work_item_id": item.work_item_id if item else r.work_item_id,
                       "owner_agent": item.owner_agent if item else r.owner_agent,
-                      "objective": item.objective if item else None,
+                      "requested_objective": item.objective if item else None,
                       "control": asdict(item.control) if item and item.control else None,
-                      "status": r.status.value if r else "NOT_EXECUTED",
-                      "reason_code": r.reason_code if r else "UNRESOLVED_PRIOR_WORK",
+                      "observed_segment": {
+                          "status": r.status.value if r else "NOT_EXECUTED",
+                          "reason_code": r.reason_code if r else "UNRESOLVED_PRIOR_WORK"},
                       "retryable": r.retryable if r else False,
                       "coverage": board.coverage_for(item, r) if item else None,
                       "fact_indexes": [index for index, fact in enumerate(facts)
@@ -513,7 +513,8 @@ def _response_context(board, pending_approval=None, requested_inputs=(), convers
                      "complete": board.complete,
                      "task_completed": board.task_completed and (conversation_context or {}).get("request_completed", True),
                      "partial_delivery_allowed": board.partial_delivery_allowed},
-        "user_context": conversation_context,
+        "user_context": ({key: value for key, value in conversation_context.items()
+                          if key != "turn_execution"} if conversation_context is not None else None),
     }
 
 

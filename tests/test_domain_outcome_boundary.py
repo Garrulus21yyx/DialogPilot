@@ -372,8 +372,8 @@ def test_resume_does_not_erase_other_goal_outcomes(independent_status, reverse, 
         assert len(board.all_results) == 2
         assert calls.count("first") == (2 if reuse_local_id else 1)
         outcomes = _response_context(board)["outcomes"]
-        assert {outcome["objective"] for outcome in outcomes} == {first.objective, second.objective}
-        assert next(outcome for outcome in outcomes if outcome["control"]["control_id"] == "count")["status"] == independent_status
+        assert {outcome["requested_objective"] for outcome in outcomes} == {first.objective, second.objective}
+        assert next(outcome for outcome in outcomes if outcome["control"]["control_id"] == "count")["observed_segment"]["status"] == independent_status
         # Reopening the completed resume uses the same board contract, including
         # retained goals; it cannot collapse back to current-plan-only success.
         again = await runtime().resume(WorkPlan((resumed,), resumed.work_item_id), current_message="Pickup", thread_id="goals")

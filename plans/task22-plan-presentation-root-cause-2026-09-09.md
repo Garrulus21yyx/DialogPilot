@@ -3,7 +3,137 @@
 Status: operation naming repair verified; reply lifecycle projection implemented;
 confirmation-quality work remains OPEN after fresh task validation.
 
+## Active continuation after 09fcb8b
+
+User requests completing the confirmation repair. Reconcile: source HEAD 09fcb8b;
+unrelated dirty archive/RAG work remains excluded. Scope: author/presentation,
+existing assessment contract, its publication/revision/persistence consumers.
+
+Hypothesis: approval scope is conflated with answer coverage. Explicitly assess
+whether a reply requests permission outside the selected proposal, in the same
+existing model call. This is an experimental contract change, not proven by naming
+a new field. No extra online judge, business-specific branch, or keyword filter.
+
+Experiment: download the two full failed verification snapshots from Langfuse;
+retain their exact source inputs. Compare original vs one additional independent
+approval_scope_valid judgment across both failures and positive counterparts
+(plain missing-value question, exact selected-action approval, retained approval
+discussion, ordinary conversation). Same verifier/model/token budget; at most
+16 calls, no business tools. Adopt only if failures are caught and valid replies
+remain allowed. All results retained. Then migrate every assessment consumer and
+test combinations, review fresh-context, and validate the fixed user interaction.
+
+Calibration result: new approval_scope_valid returns true for both full-context
+failures, just like the original assessment. Rejected; no production schema change.
+Next hypothesis is input authority salience, not another output check: derive a
+compact selected-proposal presentation view (exact action description and arguments,
+whether this reply has any selected approval) from the same evidence. Put it at
+the final model-message boundary for author and verifier; retain complete evidence
+for grounding. No new state authority or policy extraction. Test exactly the two
+failed full snapshots with original output schema first (2 calls), then positive
+controls and author output only if the failures are distinguished. This expands
+the diagnostic budget explicitly; it does not retune on held-out data.
+
 ## Evidence and causal model
+
+Continuation experiment result: the appended presentation view also passed both
+invalid replies. Not adopted. These are full *logged* snapshots, with the existing
+Langfuse address redaction preserved, not unredacted production replays.
+
+Next bounded diagnostic: two original-schema/original-input calls with the existing
+DeepSeek verifier profile set to HIGH reasoning (4096 completion floor, 8192 cap).
+No new judge, no production configuration change until measured. This separates
+reasoning configuration from input projection; original snapshots and failure labels
+stay fixed. Official API compatibility checked 2026-09-09:
+https://api-docs.deepseek.com/guides/anthropic_api/ .
+
+Independent review found a concrete projection defect: worker-segment
+WAITING_APPROVAL and accepted internal PREPARE_ACTION review are adjacent to the
+entire two-action objective; an identity-free duplicate is passed as agent_outcomes.
+Test a lossless authority-separated view on the same two failed snapshots (2 calls):
+retain goals/history/facts, distinguish requested objective from observed segment,
+remove accepted internal-review diagnostics and duplicate outer fields. No change
+to the approval owner or selected proposals. Adopt only on a positive author/judge
+comparison, not solely on the cleaner source structure.
+
+Results: authority-separated view catches the over-broad two-action approval but
+still accepts the unprepared confirmation. HIGH reasoning with unchanged original
+inputs/schema catches both, with explicit scope feedback (also flags redacted
+addresses; do not count those incidental flags as success). Next 4 calls: generate
+replies for both snapshots through the existing composer with HIGH reasoning and
+judge two valid controls (missing state; selected account-only approval). Adopt
+role configuration only if generation improves and valid questions remain allowed.
+
+Positive controls passed. Both HIGH composer outputs distinguish the selected
+account-only approval from the queued order update; the information question no
+longer requests execution approval. However that question included an internal
+observation hash citation, so it is not declared a fully valid customer reply.
+Next: evaluate both generated candidates through the existing production verifier
+and its one-revision author path (max 6 calls; no business tool replay). This checks
+successful delivery, not just detection. Record model latency/token cost separately.
+
+HIGH rejected for delivery: one generated reply verification exhausted all 8192
+output tokens in thinking and produced no tool result. Defaults/local settings
+restored to NONE/0, no deployment/budget widening adopted. Full structural review
+also identified the shared domain-review role and history-budget coupling.
+
+Next hypothesis (2 calls then controls only on success): the existing long judge
+prompt mixes many workflow corrections into semantic support assessment. Replace
+it with a concise role/authority/output contract, same original schema and NONE
+model, full logged snapshots. This is a replacement, not additional instructions,
+new fields or another judge. Scope: evidence support, request coverage and exact
+selected approval terms. Do not adopt without positive/negative boundary controls.
+
+Concise instruction result: prepared-scope case rejected, unprepared confirmation
+still passed; do not adopt this as a complete repair. The latter output places
+verdicts before a contradictory issue. Final bounded diagnostic (2 calls): same
+schema fields and concise instruction, serialize issues before verdicts and ask
+for defects first. Tests whether early categorical output is masking examination,
+without adding a reasoning field, model call, or post-hoc substring gate.
+
+Defects-first test detects both intended scope violations, but also emits incidental
+incorrect feedback (it misreads the state question as asking apartment details).
+Therefore test 4 positive controls from the same logged contexts before adoption:
+plain state question, exact account-only approval, honest not-executed explanation,
+ordinary clarification. Same output fields/model; at most 4 calls. The known
+failures remain development cases, not held-out performance claims.
+
+Final diagnostic result: defects-first rejects all four valid controls, including
+the correctly scoped account-only approval. Rejected. No concise/defects-first
+judge prompt, output-schema extension, or reasoning configuration is adopted.
+
+Implemented bounded structural repair:
+- Separate requested objective from observed worker segment for author/reviewer.
+- Pending action projection contains only exact action identity/arguments; the
+  parent goal is not duplicated inside that proposal, including the worker-result
+  (non-persisted approval) branch.
+- Remove accepted internal-review diagnostics and duplicate identity-free outcomes
+  from reply evidence; original execution trace remains intact.
+- Populate retained proposal details before the conversational early-return path,
+  without re-presenting, consuming, or modifying that approval.
+- Author/revision/verifier continue sharing one evidence snapshot and binding.
+
+Verification: 386 checks passed with real PostgreSQL enabled before the final
+pending-objective removal; rerun the affected contracts after that removal.
+One pre-existing test expected a no-freshness-lease order read to be reported as
+current. Reproduced using HEAD response_assembly loaded in memory, then corrected
+the test oracle to assert the dated historical observation (no production change).
+Independent review covered all projection consumers, runtime early return, model
+configuration and checkpoint behavior. Rejected HIGH was reverted everywhere it
+was tried; Compose and role defaults remain unchanged, as do context limits.
+
+Status: structural repair implemented; confirmation semantics NOT CLOSED. Logged
+snapshots are redacted, all failed model experiments retained. No new business
+task was run this continuation; no claim of address updates or task-22 success.
+Next investigation must address authoring from authoritative interaction state,
+not add another online judge, grow this prompt, or retry the same business writes.
+
+Final checks after both proposal producers were aligned: 317 passed with PostgreSQL;
+the broader 386-check run also covered framework transport and deployment-facing
+contracts. Independent fresh-context review found no new deterministic blocker in
+the adopted diff. Model diagnostics: 32 calls total, all outputs preserved under
+`artifacts/eval/confirmation-scope-full-context-2026-09-09`; no task writes executed.
+Delivery: scoped commit/push follows, excluding unrelated archive/RAG working tree.
 
 Baseline HEAD 1408147. Original run: `artifacts/eval/tau3-task22-role-policy-2026-09-09`.
 Langfuse session `tau3-7fe61180eb90477180da9ee851f13cff`:

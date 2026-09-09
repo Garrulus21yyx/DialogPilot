@@ -56,6 +56,41 @@ class _Executor:
         )
 
 
+@pytest.mark.parametrize("published", [False, True])
+def test_conversation_only_reply_reads_retained_proposal_without_representing_it(published):
+    from types import SimpleNamespace
+    from application.target_conversation_manager import TargetTurnContext
+    from application.conversation_state import PendingApprovalState
+    from application.response_assembly import AssembledResponse, ResponseAssemblyMode
+    from tests.test_approval_conversation import domain, call
+    from langchain_core.messages import AIMessage
+    agent, context, _, _ = domain([call("prepare_order_cancel"), AIMessage(content="Pending.")])
+    action = asyncio.run(agent(context)).pending_action
+    pending = PendingApprovalState(action.approval_binding, 1, "flow", action.work_item_id,
+        action.action_ref, action.operation_key, action.aggregate_ref, action.target_entity_version,
+        "2099-01-01T00:00:00+00:00", arguments=action.arguments)
+    calls = []
+    class Assembler:
+        async def assemble(self, *args, **kwargs):
+            calls.append(kwargs)
+            return AssembledResponse("The proposal has not executed.", ResponseAssemblyMode.TEMPLATE,
+                                     (), False, "NOT_REQUIRED", "TEST")
+    runtime = TurnRuntime(SimpleNamespace(), Assembler(), interaction_published=lambda *args, **kwargs: published)
+    after = SimpleNamespace(pending_approval=pending, pending_interaction=None)
+    managed = SimpleNamespace(board=None, state_after=after,
+                              plan=SimpleNamespace(response_text="What would the cancellation affect?"))
+    asyncio.run(runtime._assemble_response({"managed": managed,
+        "prepared": SimpleNamespace(context=TargetTurnContext()),
+        "presentation_state": after, "observations": TurnObservations("What would it affect?"),
+        "invocation": _identity()}))
+    supplied = calls[0]["conversation_context"]["retained_approval"]
+    assert supplied["action_ref"] == pending.action_ref
+    assert supplied["arguments"] == {arg.name: arg.value for arg in pending.arguments}
+    assert supplied["status"] == "AWAITING_DECISION_NOT_EXECUTED"
+    assert "pending_approval" not in calls[0]  # not selected for a new approval
+    assert after.pending_approval is pending
+
+
 class _OrderUnderstanding:
     async def __call__(self, *_args, **_kwargs):
         return TurnProposal(

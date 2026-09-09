@@ -70,6 +70,10 @@ def action_presentation_instruction(pending_actions):
 def reply_presentation_instruction(context):
     """Author and verifier read the same runtime presentation facts, once."""
     instruction = action_presentation_instruction(context.get("pending_actions", ()))
+    instruction += (" Requested objectives describe what the user wants, not what is ready. "
+                    "An outcome's observed_segment describes only the latest worker segment; "
+                    "WAITING_APPROVAL does not mean its entire requested objective is prepared. "
+                    "Only pending_actions identifies the operations presented for approval.")
     execution = context.get("turn_execution") or {}
     if execution.get("continues_after_reply") is False:
         instruction += (

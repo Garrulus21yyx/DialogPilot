@@ -155,11 +155,14 @@ class AnswerVerifier:
             evidence = {
                 "approval_required": approval_required,
                 "context": context_data,
-                "task_plan": task_plan or {},
-                "coverage": coverage,
-                "agent_outcomes": agent_outcomes or [],
                 "knowledge_evidence": knowledge_evidence,
             }
+            # Target supplies one complete response snapshot. Only callers
+            # that actually provide additional evidence need these fields;
+            # empty copies are not a second outcome/coverage authority.
+            evidence.update({name: value for name, value in (
+                ("task_plan", task_plan), ("coverage", coverage),
+                ("agent_outcomes", agent_outcomes)) if value})
             assessment = await verify_claims(
                 self._client, self._model_profile, question=question,
                 answer=answer, evidence=evidence, callbacks=self._callbacks,

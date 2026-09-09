@@ -178,7 +178,24 @@ class TurnRuntime:
             "waiting_for_input": managed.state_after.pending_interaction is not None,
             "waiting_for_approval": managed.state_after.pending_approval is not None,
         }}
-        if managed.plan.response_text is not None and board is None:
+        response_only = managed.plan.response_text is not None and board is None
+        pending_approval = managed.state_after.pending_approval
+        previous_approval = presentation_state.pending_approval
+        present_approval = not response_only and pending_approval is not None and (
+            previous_approval is None or
+            (pending_approval.approval_id, pending_approval.version) !=
+            (previous_approval.approval_id, previous_approval.version) or
+            (self._interaction_published is not None and not self._interaction_published(
+                state["invocation"], signal_id=pending_approval.approval_id,
+                signal_version=pending_approval.version)))
+        if pending_approval is not None and not present_approval:
+            context = {**context, "retained_approval": {
+                "action_ref": pending_approval.action_ref,
+                "arguments": {arg.name: arg.value for arg in pending_approval.arguments},
+                "status": "AWAITING_DECISION_NOT_EXECUTED",
+                "presentation": "Answer this turn without soliciting approval again.",
+            }}
+        if response_only:
             # A conversational reply neither presents nor consumes an existing
             # wait. Verify the model's candidate through the same reply boundary.
             context = {**context, "turn_contract": "RESPONSE_ONLY_NO_STATE_CHANGE",
@@ -218,15 +235,6 @@ class TurnRuntime:
             == "SECURITY_PREEMPTED_NONESSENTIAL_WRITES"
             else ""
         )
-        pending_approval = managed.state_after.pending_approval
-        previous_approval = presentation_state.pending_approval
-        present_approval = pending_approval is not None and (
-            previous_approval is None or
-            (pending_approval.approval_id, pending_approval.version) !=
-            (previous_approval.approval_id, previous_approval.version) or
-            (self._interaction_published is not None and not self._interaction_published(
-                state["invocation"], signal_id=pending_approval.approval_id,
-                signal_version=pending_approval.version)))
         if board is None and not questions and not present_approval:
             return {"assembled": None}
         context = {**(context or {}), "request_completed": managed.request_completed}
@@ -242,13 +250,6 @@ class TurnRuntime:
                 {"stage": observation.stage, "status": observation.status.value,
                  "code": observation.detail["code"]}
                 for observation in managed.diagnostics]}
-        if pending_approval is not None and not present_approval:
-            context = {**(context or {}), "retained_approval": {
-                "action_ref": pending_approval.action_ref,
-                "arguments": {arg.name: arg.value for arg in pending_approval.arguments},
-                "status": "AWAITING_DECISION_NOT_EXECUTED",
-                "presentation": "Already presented; answer this turn without soliciting approval again.",
-            }}
         assembled = await self._assembler.assemble(
             board,
             current_message=state["observations"].raw_text,

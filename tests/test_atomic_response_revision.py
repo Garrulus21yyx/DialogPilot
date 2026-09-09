@@ -50,7 +50,10 @@ def test_second_rejection_falls_back_without_third_revision():
         _board(_verified_order_result()),current_message='查订单状态'))
     assert len(composer.calls)==2 and len(verifier.calls)==2
     assert result.verification_reason=='ungrounded'
-    assert result.text=='订单 DP1234 当前状态为已发货。'
+    # This read fixture has no freshness lease. The immutable fallback reports
+    # its observed state, not a claim that the order is still in that state now.
+    assert '的查询记录中，订单 DP1234 状态为已发货。' in result.text
+    assert '当前状态' not in result.text
 
 
 def test_mismatched_verification_cannot_authorize_candidate_or_revision():

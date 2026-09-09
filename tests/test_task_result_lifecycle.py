@@ -101,7 +101,7 @@ def test_original_task_outcomes_drive_partial_delivery_without_a_second_planner(
         assert len(publication.responses) == 1
         assert len(authored) == 1
         evidence = authored[0]["evidence"]
-        assert [row["status"] for row in evidence["outcomes"]] == [status.value] + ["SUCCEEDED"] * successful_count
+        assert [row["observed_segment"]["status"] for row in evidence["outcomes"]] == [status.value] + ["SUCCEEDED"] * successful_count
         identity = app.identity_for(command)
         snapshot = await turn.graph.aget_state({"configurable": {"thread_id": "turn:" + str(identity.invocation_key)}})
         managed = snapshot.values["managed"]
