@@ -4,6 +4,8 @@
 
 ## 快速导航
 
+[按简历五条经历串联本页实现、选型和验证]({{ '/project-pitch.html#resume-map' | relative_url }})；已补充61a9b88审批交付修复与操作集合的进行中边界，详见[当前工作]({{ '/project-pitch.html#resume-current-work' | relative_url }})。
+
 框架原理、防循环和后端准备见[LangChain / LangGraph / FastAPI / Redis / SQL专题]({{ '/framework-backend.html' | relative_url }})。
 
 先读本页把调用链串起来，再用[详细面试追问]({{ '/interview-guide.html' | relative_url }})练原理、取舍与反问，最后用[项目讲述与简历]({{ '/project-pitch.html' | relative_url }})组织开场。RAG 专题见[离线在线与评测手册]({{ '/rag-study.html' | relative_url }})，外部依据见[来源与证据]({{ '/handbook-evidence.html' | relative_url }})。
@@ -163,7 +165,7 @@ ResponseAssembler 根据结果选择模板、适用的直通路径或 Conversati
 
 以“改账户地址，同时改待处理订单地址”为例：当前只准备了账户地址修改，就只能请求批准该项；订单修改可说明为剩余工作。完整诉求必须被回应，但不能因此把尚未准备的订单修改一起称为“已准备，确认后马上执行”。候选回答要兼顾需求覆盖和准确的审批范围。
 
-TurnRuntime 在回答阶段写入 `turn_execution.phase=REPLY`、`continues_after_reply=false`，并说明是否等待补充输入或审批。这个节点接下来提交状态并结束当前轮，所以不能把“目标未完成”写成“我正在后台继续”。未来可恢复不等于现在已有后台任务。已展示审批作为 retained_approval 保留，新的旁支问题不应自动再次索取批准。
+TurnRuntime 在回答阶段写入 `turn_execution.phase=REPLY`、`continues_after_reply=false`，并说明是否等待补充输入或审批。这个节点接下来提交状态并结束当前轮，所以不能把“目标未完成”写成“我正在后台继续”。未来可恢复不等于现在已有后台任务。已展示审批作为 retained_approval 保留，新的旁支问题不应自动再次索取批准。补充61a9b88：未成功发布的审批由approval_presentation_due重新判定是否应展示，不能被普通回复分支吞掉；失败降级保留持久等待，不仅依赖当前ResultBoard。
 
 核验结果绑定具体问题、正文和证据指纹；修改候选或证据后要重新核验。失败可在同一事实快照上修订一次，不重新执行业务工具。普通补充问题有自己的完整性路径；正常事实回答、审批展示、服务提示不能统称为同一种发布合同。
 

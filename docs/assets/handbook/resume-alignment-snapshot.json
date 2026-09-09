@@ -1,0 +1,38 @@
+{
+  "checked_at": "2026-09-09T09:15:48.649958+00:00",
+  "base_commit": "61a9b887c5d922e6d7c553507cf01442c5c5c4c8",
+  "scope": "resume-to-project crosswalk; committed recovery patch vs ongoing operation-set migration",
+  "files": [
+    {
+      "path": "application/action_approval.py",
+      "committed_sha256": "68e30269fc8ff3d8fc9e282287a6c7855a2ba28cd501191b982cf6a72993dd19",
+      "working_tree_sha256": "42e6fb76a5218500331c0a20609b934e620a490383413079a25808e486aed5ff",
+      "working_tree_modified": true
+    },
+    {
+      "path": "application/response_assembly.py",
+      "committed_sha256": "325af8f865803972b5c410c46a190c72398572bfccb4cb249384f2adce5124c3",
+      "working_tree_sha256": "4d978d81a5f14bb602efe5add2d97e5f4e2e3810470d41cd0774deaf29c07438",
+      "working_tree_modified": true
+    },
+    {
+      "path": "application/target_chat_application.py",
+      "committed_sha256": "7302215846e847d43ea3a5dd727a8dc76530478033f6c02c8c6463c494908e65",
+      "working_tree_sha256": "981ef1a074152b72322248d6657740410382590c75dbdb10faa8b7ff96180a96",
+      "working_tree_modified": true
+    },
+    {
+      "path": "application/turn_runtime.py",
+      "committed_sha256": "d6322b56948b511f4bfbc095e17cead981b1b56825c0e8fc353bdd48edb993c6",
+      "working_tree_sha256": "f8c158cccac5ee9d2b3826e4e3afd0f5f28a6df16fa3adbed912992e471a6272",
+      "working_tree_modified": true
+    },
+    {
+      "path": "plans/approval-scope-delivery-convergence-2026-09-09.md",
+      "committed_sha256": "d8fae85252d3d6245be87e2cca2917406b2aad6a59058f17464202b256da80df",
+      "working_tree_sha256": "f0a78c497e0efd207f88f34fb387fcff0603610af8aa9489f4adcdc24ebe281f",
+      "working_tree_modified": true
+    }
+  ],
+  "ongoing_work_status": "IN_PROGRESS; working-tree design is not a published capability or live quality score"
+}

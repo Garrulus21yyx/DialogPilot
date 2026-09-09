@@ -78,8 +78,16 @@ permalink: /handbook-evidence.html
 
 写作颗粒度参考用户提供的[Affordance Runtime追问页](https://garrulus21yyx.github.io/affordance-runtime/interview-playbook.html)：短答后展开机制、追问和源码定位。这里只借用阅读组织，不迁移其DOM、Monitor、AndroidWorld或PydanticAI主运行时结论到DialogPilot。
 
-手册有120个详细追问，经典知识解释用于帮助完整口述；实际是否启用、指标高低、API默认以源码快照与报告为准。简历页保留单独标注的模拟写作版本，不混入本页实测表。
+手册有130个详细追问，经典知识解释用于帮助完整口述；实际是否启用、指标高低、API默认以源码快照与报告为准。简历页保留单独标注的模拟写作版本，不混入本页实测表。
 
 ## 5. 框架与后端专题补充
 
 新增Q93—Q120覆盖LangChain/LangGraph基础、观察进展与硬预算、FastAPI异步/生命周期/鉴权、Redis缓存与事务、PostgreSQL锁/幂等/Outbox/索引/慢SQL。原理与源码一起解释；缓存雪崩方案、分布式锁和生产限流等候选知识不冒充已部署功能。源码仍固定89feac2，补充文件身份已加入manifest。
+
+## 6. 简历与当前项目的双向校准
+
+已对照用户上传PDF的DialogPilot五条经历，补充逐条口述、源码机制、验证与追问。没有上传PDF或个人联系方式，也没有混入其他项目。旧“100题68%→84%”模拟版本已从讲述页替换为当前PDF主线及逐项证据状态，保留原resume锚点。
+
+简历32%/41%沿用此前模拟口径；50题76%本轮在相关报告/summary/manifest范围未找到匹配证据。三套检索与中文80题的实际指标保留各自范围，不因此一并标为模拟。所有对应关系见[简历指标表]({{ '/project-pitch.html#resume-metrics' | relative_url }})。
+
+补充实现固定于[61a9b88](https://github.com/Garrulus21yyx/DialogPilot/commit/61a9b887c5d922e6d7c553507cf01442c5c5c4c8)：未送达审批恢复和失败进度投影。操作集合与确定性批准范围卡属于正在验证的工作区方案，未作为已发布架构。文件身份见[增量快照]({{ '/assets/handbook/resume-alignment-snapshot.json' | relative_url }})。本次没有新跑模型或业务基准。
