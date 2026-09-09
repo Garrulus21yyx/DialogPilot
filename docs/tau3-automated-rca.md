@@ -12,6 +12,7 @@ tau3 run artifacts
   -> analyze objective evidence
   -> fetch optional Langfuse evidence
   -> run causal probes
+  -> judge bounded semantic hypotheses (optional)
   -> generate regression candidates
   -> review the expected contract
   -> activate regression suite
@@ -26,11 +27,25 @@ Analyze a run and optionally enrich it from Langfuse:
 python scripts/tau3_eval_loop.py analyze artifacts/eval/<run> \
   --output artifacts/eval/<run>/rca.json
 python scripts/tau3_eval_loop.py enrich-langfuse artifacts/eval/<run>/rca.json \
+  --env-file .env \
   --output artifacts/eval/<run>/rca-enriched.json
 ```
 
 The enrichment command fetches all traces in each task session, paginates their
-observations, extracts standardized causal metadata, and reruns the probes.
+observations, extracts standardized causal metadata, retains at most 80 relevant
+semantic observations per task, and reruns the probes.
+
+Use the LLM Judge only after deterministic analysis and Langfuse enrichment:
+
+```bash
+python scripts/tau3_eval_loop.py judge artifacts/eval/<run>/rca-enriched.json \
+  --output artifacts/eval/<run>/rca-judged.json
+```
+
+The Judge can return `SUPPORTS`, `REFUTES`, or `UNKNOWN` for existing semantic
+hypotheses. It must cite evidence from the bounded packet. Invalid output and
+provider outages are isolated per task as `INVALID` or `UNAVAILABLE`; neither
+changes rule scores, causal events, or `root_cause_status`.
 
 Generate regression candidates:
 
@@ -104,25 +119,63 @@ Owners emit events into Langfuse observation metadata using the `causal.` prefix
   "causal.task_id": "8",
   "causal.turn_id": "turn-5",
   "causal.owner": "domain_reviewer",
-  "causal.goal_revision_id": "revision-2",
+  "causal.evidence_origin": "OWNER_EVENT",
+  "causal.control_id": "control-exchange-items",
+  "causal.control_revision": 2,
   "causal.work_item_id": "work-1",
   "causal.proposal_id": "proposal-3",
   "causal.approval_id": "approval-3",
   "causal.tool_call_id": "call-4",
   "causal.receipt_id": "receipt-4",
-  "causal.reason_code": "DOMAIN_OUTCOME_REJECTED",
-  "causal.outcome_impact": "TASK_BLOCKING"
+  "causal.action_name": "exchange_delivered_order_items",
+  "causal.reason_code": "DOMAIN_OUTCOME_REJECTED"
 }
 ```
 
-Required fields are `sequence`, `event_type`, `task_id`, `turn_id`, and `owner`.
-Sequences are strictly increasing per task. Probe event types are `GOAL_REVISED`,
+Required fields are `event_id`, `sequence`, `event_type`, `task_id`, `turn_id`,
+`owner`, and `evidence_origin=OWNER_EVENT`. Sequences are strictly increasing per
+task. Probe event types are `GOAL_REVISED`,
 `WORK_ITEM_RESUMED`, `ACTOR_DECISION`, `OUTCOME_REVIEWED`, `PROPOSAL_CREATED`,
 `ACTION_APPROVED`, `EXECUTION_FAILED`, and `TOOL_COMMITTED`.
 
-A stale revision or execution error becomes a verified root cause only when the
-same lineage carries `outcome_impact=TASK_BLOCKING`. Missing lineage yields
+`control_id + control_revision` is the authoritative goal version already owned
+by the application. A stale revision or execution error becomes a verified root
+cause only when an owner event proves the violated transition and the objective
+evaluator independently supplies task-blocking evidence linked by `action_name`,
+`requirement_id`, or an explicit evaluator-owned `causal_impact_link`. Producers
+do not label their own impact. Missing or merely co-occurring evidence yields
 `INCONCLUSIVE`; recovered errors cannot become blocking root causes.
+
+## Instrumentation ownership
+
+Emit one event at the component that owns each transition, not from the RCA job:
+
+| Boundary | Owner event | Required join keys |
+| --- | --- | --- |
+| accepted objective changes | `GOAL_REVISED` | control id/revision, turn id |
+| work dispatch/resume | `WORK_ITEM_RESUMED` | control id/revision, work item id |
+| action proposal | `PROPOSAL_CREATED` | work item id, proposal id |
+| approval acceptance | `ACTION_APPROVED` | proposal id, approval id |
+| tool terminal result | `TOOL_COMMITTED` or `EXECUTION_FAILED` | proposal/tool call/receipt ids, reason code |
+| domain review | `OUTCOME_REVIEWED` | control id/revision, work item id, action/requirement |
+
+The runner binds the Langfuse session to the tau3 task. The enrichment job may
+fill `task_id` from that one-to-one binding, but it never manufactures event type,
+owner, revision, proposal, receipt, or error facts. Existing historical traces
+without these events remain analyzable for symptoms and hypotheses only.
+
+## Evaluation authority
+
+| Question | Authority |
+| --- | --- |
+| Did the task and side effects succeed? | tau3 ENV and native state assertions |
+| Was a forbidden or required tool transition observed? | rule checker over trajectory/receipts |
+| Where did a typed transition first violate lineage? | deterministic causal probe |
+| Does prose support a semantic hypothesis? | bounded LLM Judge |
+| Is the expected contract correct for future releases? | explicit human review |
+
+This split prevents a fluent Judge explanation from replacing database state or
+turning correlation into a verified root cause.
 
 ## Evidence semantics
 

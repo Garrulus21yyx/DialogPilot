@@ -7,10 +7,12 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 
-REQUIRED_EVENT_FIELDS = ("sequence", "event_type", "task_id", "turn_id", "owner")
+REQUIRED_EVENT_FIELDS = (
+    "event_id", "sequence", "event_type", "task_id", "turn_id", "owner", "evidence_origin",
+)
 LINEAGE_FIELDS = (
-    "goal_revision_id", "work_item_id", "proposal_id", "approval_id",
-    "tool_call_id", "receipt_id",
+    "control_id", "control_revision", "work_item_id", "proposal_id",
+    "approval_id", "tool_call_id", "receipt_id", "action_name", "requirement_id",
 )
 
 
@@ -23,8 +25,8 @@ def probe_report(report: Mapping[str, Any], run_dir: Path) -> Mapping[str, Any]:
         probes = _validate_events(events, task["task_id"])
         if probes["contract_status"] == "VALID":
             probes["results"] = [
-                _goal_revision_probe(events),
-                _approval_execution_probe(events),
+                _goal_revision_probe(events, task),
+                _approval_execution_probe(events, task),
             ]
             for probe in probes["results"]:
                 finding = probe.get("verified_root_cause")
@@ -59,6 +61,8 @@ def _validate_events(events: Any, task_id: str) -> Mapping[str, Any]:
             errors.append(f"event[{index}] missing {','.join(missing)}")
         if str(event.get("task_id")) != str(task_id):
             errors.append(f"event[{index}] task_id does not match result")
+        if event.get("evidence_origin") not in (None, "OWNER_EVENT"):
+            errors.append(f"event[{index}] evidence_origin is not OWNER_EVENT")
         sequence = event.get("sequence")
         if not isinstance(sequence, int) or sequence <= previous:
             errors.append(f"event[{index}] sequence is not strictly increasing")
@@ -80,50 +84,66 @@ def _validate_events(events: Any, task_id: str) -> Mapping[str, Any]:
     }
 
 
-def _goal_revision_probe(events: Sequence[Mapping[str, Any]]) -> Mapping[str, Any]:
-    active_revision = None
+def _goal_revision_probe(
+    events: Sequence[Mapping[str, Any]], task: Mapping[str, Any],
+) -> Mapping[str, Any]:
+    active: tuple[str, int] | None = None
     for event in events:
         if event["event_type"] == "GOAL_REVISED":
-            active_revision = event.get("goal_revision_id")
+            control_id = event.get("control_id")
+            revision = event.get("control_revision")
+            if not control_id or not isinstance(revision, int):
+                return {
+                    "probe": "goal_revision_propagation", "status": "INCONCLUSIVE",
+                    "event_id": event.get("event_id"),
+                    "reason": "GOAL_REVISED omitted the authoritative control binding.",
+                }
+            active = (control_id, revision)
             continue
-        if active_revision and event["event_type"] in {
+        if active and event["event_type"] in {
             "WORK_ITEM_RESUMED", "ACTOR_DECISION", "OUTCOME_REVIEWED", "PROPOSAL_CREATED",
         }:
-            consumed = event.get("goal_revision_id")
-            if consumed and consumed != active_revision:
-                if event.get("outcome_impact") != "TASK_BLOCKING":
+            if event.get("control_id") != active[0]:
+                continue
+            consumed = event.get("control_revision")
+            if isinstance(consumed, int) and consumed != active[1]:
+                blocking = _linked_blocking_evidence(task, event)
+                if not blocking:
                     return {
                         "probe": "goal_revision_propagation",
                         "status": "INCONCLUSIVE",
-                        "expected_revision": active_revision,
+                        "expected_revision": active[1],
                         "consumed_revision": consumed,
                         "event_id": event.get("event_id"),
-                        "reason": "A stale revision was consumed, but terminal outcome impact is not linked.",
+                        "reason": "A stale revision was consumed, but no blocking outcome evidence is linked to it.",
                     }
                 return {
                     "probe": "goal_revision_propagation",
                     "status": "FAIL",
-                    "expected_revision": active_revision,
+                    "expected_revision": active[1],
                     "consumed_revision": consumed,
                     "event_id": event.get("event_id"),
                     "verified_root_cause": _root_finding(
                         "STALE_GOAL_REVISION_CONSUMED", event,
                         "A downstream owner consumed an older goal revision after GOAL_REVISED.",
+                        blocking,
                     ),
                 }
-            if not consumed:
+            if not isinstance(consumed, int):
                 return {
                     "probe": "goal_revision_propagation", "status": "INCONCLUSIVE",
-                    "reason": "A downstream goal consumer omitted goal_revision_id.",
+                    "reason": "A downstream goal consumer omitted control_revision.",
                     "event_id": event.get("event_id"),
                 }
     return {
         "probe": "goal_revision_propagation",
-        "status": "PASS" if active_revision else "NOT_APPLICABLE",
+        "status": "PASS" if active else "NOT_APPLICABLE",
     }
 
 
-def _approval_execution_probe(events: Sequence[Mapping[str, Any]]) -> Mapping[str, Any]:
+def _approval_execution_probe(
+    events: Sequence[Mapping[str, Any]], task: Mapping[str, Any],
+) -> Mapping[str, Any]:
     approvals = [event for event in events if event["event_type"] == "ACTION_APPROVED"]
     for approval in approvals:
         proposal_id = approval.get("proposal_id")
@@ -140,7 +160,8 @@ def _approval_execution_probe(events: Sequence[Mapping[str, Any]]) -> Mapping[st
         if any(event["event_type"] == "TOOL_COMMITTED" for event in downstream):
             continue
         failure = next((event for event in downstream if event["event_type"] == "EXECUTION_FAILED"), None)
-        if failure and failure.get("reason_code") and failure.get("outcome_impact") == "TASK_BLOCKING":
+        blocking = _linked_blocking_evidence(task, failure) if failure else []
+        if failure and failure.get("reason_code") and blocking:
             return {
                 "probe": "approval_to_execution", "status": "FAIL",
                 "proposal_id": proposal_id,
@@ -148,6 +169,7 @@ def _approval_execution_probe(events: Sequence[Mapping[str, Any]]) -> Mapping[st
                 "verified_root_cause": _root_finding(
                     "APPROVED_ACTION_EXECUTION_FAILED", failure,
                     f"The approved proposal failed before commit with {failure['reason_code']}.",
+                    blocking,
                 ),
             }
         if failure and failure.get("reason_code"):
@@ -165,14 +187,51 @@ def _approval_execution_probe(events: Sequence[Mapping[str, Any]]) -> Mapping[st
     return {"probe": "approval_to_execution", "status": "NOT_APPLICABLE"}
 
 
-def _root_finding(code: str, event: Mapping[str, Any], summary: str) -> Mapping[str, Any]:
+def _linked_blocking_evidence(
+    task: Mapping[str, Any], event: Mapping[str, Any],
+) -> list[str]:
+    blocking_ids = set()
+    for finding in task.get("findings", []):
+        if finding.get("impact") == "TASK_BLOCKING":
+            blocking_ids.update(str(item) for item in finding.get("evidence_ids", []))
+    explicit = next((
+        link for link in task.get("causal_impact_links", [])
+        if link.get("event_id") == event.get("event_id")
+    ), {})
+    linked = [
+        str(item) for item in explicit.get("blocking_evidence_ids", [])
+        if str(item) in blocking_ids
+    ]
+    event_action = event.get("action_name")
+    event_requirement = event.get("requirement_id")
+    for evidence in task.get("evidence", []):
+        evidence_id = str(evidence.get("evidence_id"))
+        if evidence_id not in blocking_ids:
+            continue
+        data = evidence.get("data") or {}
+        expected = data.get("expected") or {}
+        if (
+            event_action and expected.get("name") == event_action
+            or event_requirement and data.get("requirement_id") == event_requirement
+        ):
+            linked.append(evidence_id)
+    return list(dict.fromkeys(linked))
+
+
+def _root_finding(
+    code: str,
+    event: Mapping[str, Any],
+    summary: str,
+    blocking_evidence_ids: Sequence[str],
+) -> Mapping[str, Any]:
+    event_id = event.get("event_id") or f"causal-event-{event['sequence']}"
     return {
         "code": code,
         "layer": "root_cause",
         "level": "VERIFIED",
         "summary": summary,
         "owner_candidate": event.get("owner"),
-        "evidence_ids": [event.get("event_id") or f"causal-event-{event['sequence']}"],
+        "evidence_ids": [event_id, *blocking_evidence_ids],
         "missing_evidence": [],
         "next_probe": None,
         "impact": "TASK_BLOCKING",

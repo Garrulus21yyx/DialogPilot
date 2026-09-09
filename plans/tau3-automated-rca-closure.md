@@ -1,6 +1,6 @@
 # Tau3 automated RCA closure
 
-Status: implementation complete; fresh instrumented semantic validation pending
+Status: implementation complete on synchronized base f5fcfa6; fresh-run validation pending
 
 Goal: turn saved tau3 evaluations into an automated, evidence-backed loop that
 analyzes failures, runs deterministic probes, creates reviewable regression
@@ -26,21 +26,36 @@ Steps:
 5. `done` Implement optional Langfuse evidence retrieval and score publication using
    existing session IDs.
 6. `done` Add CLI orchestration, tests, documentation, and real-artifact checks.
+7. `done` Add a bounded semantic evidence slice and structured LLM Judge;
+   judge output may support/refute hypotheses but cannot verify a root cause.
+8. `done` Reconcile causal metadata with the updated runtime's authoritative
+   control revisions and document the remaining owner instrumentation boundary.
 
 Validation:
 
-- 15 focused tests pass through isolated pytest execution; repository-wide pytest
-  collection is unavailable because global conftest imports absent `psycopg_pool`.
+- 20 focused tests pass through the project's native virtual environment.
+- Repository-wide pytest completes with 4243 passed, 653 skipped, and 35 failures
+  in untouched baseline modules/tests. None imports or exercises the new tau3 RCA
+  modules; they remain a pre-existing base-branch acceptance gap.
 - Python compilation and diff whitespace checks pass.
-- Historical fixed10 generates candidates only for task8 and task13; task4/16
-  ACTION deviations remain reference-only.
+- Historical fixed10 v2 generates candidates only for task8 and task13. In v3,
+  both pass; task4's ACTION deviation remains reference-only and task16 is an
+  unavailable run rather than a business failure.
 - Historical operation-plan analysis distinguishes task19 recovered context errors
   from task20's failed write and co-occurring runtime mechanisms.
 - Historical artifacts predate `causal.*` metadata, so probes remain inconclusive.
   A fresh instrumented run is required to validate promotion on real model behavior.
 - Read-only Langfuse validation fetched task13 (24 traces, 558 observations) and
-  task8 (38 traces, 779 observations). Pagination and session binding work; both
-  historical sessions contain zero standardized causal events, as expected.
+  task8 (38 traces, 779 observations). Task8 produced 44 bounded semantic
+  observations. Pagination and session binding work; both historical sessions
+  contain zero standardized causal events, as expected.
+- Owner events now bind the application-owned `control_id + control_revision`.
+  Task impact is independently derived from objective findings; producers cannot
+  self-declare a task-blocking root cause. Co-occurrence is insufficient: the
+  event and blocking evidence must share an action/requirement or evaluator link.
+- A real verifier-model run over enriched fixed10 v2 task8/task13 returned
+  `UNKNOWN` for both semantic hypotheses with explicit missing evidence. Both
+  remained `root_cause_status=OPEN`; no score or root cause was fabricated.
 
 Exit criteria:
 

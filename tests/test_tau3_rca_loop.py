@@ -10,6 +10,7 @@ from evaluation.tau3_causal_probes import probe_report
 from evaluation.tau3_gate import compare_and_gate
 from evaluation.tau3_langfuse_scores import publish_scores
 from evaluation.tau3_langfuse_evidence import enrich_from_langfuse
+from evaluation.tau3_llm_judge import judge_report
 from evaluation.tau3_regression import generate_candidates, promote_candidates
 
 
@@ -30,17 +31,25 @@ def _report(tasks):
 
 
 def _finding(code, impact):
-    return {"code": code, "impact": impact, "layer": "mechanism", "level": "VERIFIED"}
+    return {
+        "code": code, "impact": impact, "layer": "mechanism", "level": "VERIFIED",
+        "evidence_ids": [f"evidence-{code}"],
+    }
 
 
 def test_goal_revision_probe_promotes_first_stale_consumer(tmp_path):
     task = _task(findings=[_finding("MISSING_REQUIRED_WRITE", "TASK_BLOCKING")])
+    task["evidence"] = [{
+        "evidence_id": "evidence-MISSING_REQUIRED_WRITE",
+        "data": {"expected": {"name": "exchange_items"}},
+    }]
     (tmp_path / "task-8.json").write_text(json.dumps({"causal_events": [
         {"event_id": "e1", "sequence": 1, "event_type": "GOAL_REVISED", "task_id": "8",
-         "turn_id": "t2", "owner": "conversation_state", "goal_revision_id": "rev2"},
+         "turn_id": "t2", "owner": "conversation_state", "evidence_origin": "OWNER_EVENT",
+         "control_id": "goal-1", "control_revision": 2},
         {"event_id": "e2", "sequence": 2, "event_type": "OUTCOME_REVIEWED", "task_id": "8",
-         "turn_id": "t2", "owner": "domain_reviewer", "goal_revision_id": "rev1",
-         "outcome_impact": "TASK_BLOCKING"},
+         "turn_id": "t2", "owner": "domain_reviewer", "evidence_origin": "OWNER_EVENT",
+         "control_id": "goal-1", "control_revision": 1, "action_name": "exchange_items"},
     ]}))
 
     enriched = probe_report(_report([task]), tmp_path)
@@ -55,9 +64,33 @@ def test_stale_revision_without_terminal_link_stays_inconclusive(tmp_path):
     task = _task(findings=[_finding("MISSING_REQUIRED_WRITE", "TASK_BLOCKING")])
     (tmp_path / "task-8.json").write_text(json.dumps({"causal_events": [
         {"event_id": "e1", "sequence": 1, "event_type": "GOAL_REVISED", "task_id": "8",
-         "turn_id": "t2", "owner": "conversation_state", "goal_revision_id": "rev2"},
+         "turn_id": "t2", "owner": "conversation_state", "evidence_origin": "OWNER_EVENT",
+         "control_id": "goal-1", "control_revision": 2},
         {"event_id": "e2", "sequence": 2, "event_type": "OUTCOME_REVIEWED", "task_id": "8",
-         "turn_id": "t2", "owner": "domain_reviewer", "goal_revision_id": "rev1"},
+         "turn_id": "t2", "owner": "domain_reviewer", "evidence_origin": "OWNER_EVENT",
+         "control_id": "goal-1", "control_revision": 1},
+    ]}))
+    task["findings"] = []
+
+    enriched = probe_report(_report([task]), tmp_path)
+
+    assert enriched["tasks"][0]["root_cause_status"] == "OPEN"
+    assert enriched["tasks"][0]["causal_probes"]["results"][0]["status"] == "INCONCLUSIVE"
+
+
+def test_stale_revision_with_unrelated_failure_stays_inconclusive(tmp_path):
+    task = _task(findings=[_finding("MISSING_REQUIRED_WRITE", "TASK_BLOCKING")])
+    task["evidence"] = [{
+        "evidence_id": "evidence-MISSING_REQUIRED_WRITE",
+        "data": {"expected": {"name": "return_items"}},
+    }]
+    (tmp_path / "task-8.json").write_text(json.dumps({"causal_events": [
+        {"event_id": "e1", "sequence": 1, "event_type": "GOAL_REVISED", "task_id": "8",
+         "turn_id": "t2", "owner": "conversation_state", "evidence_origin": "OWNER_EVENT",
+         "control_id": "goal-1", "control_revision": 2},
+        {"event_id": "e2", "sequence": 2, "event_type": "OUTCOME_REVIEWED", "task_id": "8",
+         "turn_id": "t2", "owner": "domain_reviewer", "evidence_origin": "OWNER_EVENT",
+         "control_id": "goal-1", "control_revision": 1, "action_name": "exchange_items"},
     ]}))
 
     enriched = probe_report(_report([task]), tmp_path)
@@ -74,6 +107,20 @@ def test_probe_stays_inconclusive_without_causal_lineage(tmp_path):
 
     assert enriched["tasks"][0]["root_cause_status"] == "OPEN"
     assert enriched["tasks"][0]["causal_probes"]["results"][0]["status"] == "INCONCLUSIVE"
+
+
+def test_probe_rejects_non_owner_causal_claims(tmp_path):
+    task = _task(findings=[_finding("MISSING_REQUIRED_WRITE", "TASK_BLOCKING")])
+    (tmp_path / "task-8.json").write_text(json.dumps({"causal_events": [
+        {"event_id": "judge-e1", "sequence": 1, "event_type": "GOAL_REVISED", "task_id": "8",
+         "turn_id": "t2", "owner": "llm_judge", "evidence_origin": "LLM_INFERENCE",
+         "control_id": "goal-1", "control_revision": 2},
+    ]}))
+
+    enriched = probe_report(_report([task]), tmp_path)
+
+    assert enriched["tasks"][0]["root_cause_status"] == "OPEN"
+    assert enriched["tasks"][0]["causal_probes"]["contract_status"] == "INVALID"
 
 
 def test_regression_requires_review_and_gate_blocks_recurrence():
@@ -181,7 +228,8 @@ def test_langfuse_enrichment_extracts_only_standardized_causal_metadata():
                     "causal.event_id": "event-1", "causal.sequence": "2",
                     "causal.event_type": "OUTCOME_REVIEWED", "causal.task_id": "8",
                     "causal.turn_id": "turn-2", "causal.owner": "domain_reviewer",
-                    "causal.goal_revision_id": "rev-1", "private": "not exported",
+                    "causal.evidence_origin": "OWNER_EVENT", "causal.control_id": "goal-1",
+                    "causal.control_revision": "2", "private": "not exported",
                 },
             }], "meta": {"cursor": None}}
     class Client:
@@ -190,5 +238,66 @@ def test_langfuse_enrichment_extracts_only_standardized_causal_metadata():
     enriched = enrich_from_langfuse(_report([_task()]), Client())
 
     task = enriched["tasks"][0]
-    assert task["causal_events"][0]["goal_revision_id"] == "rev-1"
+    assert task["causal_events"][0]["control_revision"] == 2
     assert "private" not in task["langfuse_evidence"]["errors"][0]["join_keys"]
+
+
+def test_llm_judge_supports_hypothesis_but_cannot_verify_root_cause():
+    import asyncio
+    task = _task(findings=[{
+        "code": "GOAL_REVISION_NOT_APPLIED", "layer": "hypothesis", "level": "SUPPORTED",
+        "summary": "old goal may remain", "owner_candidate": "goal_state_transition",
+        "evidence_ids": ["revision"], "missing_evidence": [], "impact": "CAUSAL_CANDIDATE",
+    }])
+    task["evidence"] = [{"evidence_id": "revision", "summary": "user changed scope", "data": {}}]
+    async def judge(packet):
+        return {"judgments": [{
+            "finding_code": "GOAL_REVISION_NOT_APPLIED", "verdict": "SUPPORTS",
+            "first_bad_event_id": None, "owner_candidate": "goal_state_transition",
+            "evidence_ids": ["revision"], "explanation": "The supplied revision supports the hypothesis.",
+            "missing_evidence": ["linked reviewer input"],
+        }]}
+
+    result = asyncio.run(judge_report(_report([task]), judge))
+
+    assert result["tasks"][0]["llm_judge"]["judgments"][0]["verdict"] == "SUPPORTS"
+    assert result["tasks"][0]["root_cause_status"] == "OPEN"
+
+
+def test_llm_judge_isolates_hallucinated_evidence_reference():
+    import asyncio
+    task = _task(findings=[{
+        "code": "GOAL_REVISION_NOT_APPLIED", "layer": "hypothesis", "level": "SUPPORTED",
+        "summary": "old goal may remain", "owner_candidate": None,
+        "evidence_ids": [], "missing_evidence": [], "impact": "CAUSAL_CANDIDATE",
+    }])
+    task["evidence"] = []
+    async def judge(packet):
+        return {"judgments": [{
+            "finding_code": "GOAL_REVISION_NOT_APPLIED", "verdict": "SUPPORTS",
+            "first_bad_event_id": "invented", "owner_candidate": "reviewer",
+            "evidence_ids": ["invented"], "explanation": "unsupported", "missing_evidence": [],
+        }]}
+
+    result = asyncio.run(judge_report(_report([task]), judge))
+
+    assert result["tasks"][0]["llm_judge"]["status"] == "INVALID"
+    assert result["tasks"][0]["root_cause_status"] == "OPEN"
+
+
+def test_llm_judge_outage_does_not_abort_other_evaluators():
+    import asyncio
+    task = _task(findings=[{
+        "code": "GOAL_REVISION_NOT_APPLIED", "layer": "hypothesis", "level": "SUPPORTED",
+        "summary": "old goal may remain", "owner_candidate": None,
+        "evidence_ids": [], "missing_evidence": [], "impact": "CAUSAL_CANDIDATE",
+    }])
+    async def judge(_packet):
+        raise TimeoutError("provider detail must not leak")
+
+    result = asyncio.run(judge_report(_report([task]), judge))
+
+    judged = result["tasks"][0]["llm_judge"]
+    assert judged["status"] == "UNAVAILABLE"
+    assert judged["error_type"] == "TimeoutError"
+    assert result["tasks"][0]["root_cause_status"] == "OPEN"

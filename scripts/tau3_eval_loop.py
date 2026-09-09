@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import argparse
+import asyncio
 import json
+import os
 from pathlib import Path
 import sys
 from typing import Any, Mapping
@@ -15,6 +17,7 @@ from evaluation.tau3_causal_probes import probe_report  # noqa: E402
 from evaluation.tau3_gate import compare_and_gate  # noqa: E402
 from evaluation.tau3_langfuse_scores import publish_scores  # noqa: E402
 from evaluation.tau3_langfuse_evidence import enrich_from_langfuse  # noqa: E402
+from evaluation.tau3_llm_judge import judge_report, structured_judge  # noqa: E402
 from evaluation.tau3_rca import analyze_run  # noqa: E402
 from evaluation.tau3_regression import generate_candidates, promote_candidates  # noqa: E402
 
@@ -33,7 +36,13 @@ def main() -> None:
 
     enrich = subparsers.add_parser("enrich-langfuse", help="Fetch session evidence and causal metadata")
     enrich.add_argument("report", type=Path)
+    enrich.add_argument("--env-file", type=Path, default=ROOT / ".env")
     enrich.add_argument("--output", type=Path)
+
+    judge = subparsers.add_parser("judge", help="Judge semantic hypotheses from bounded evidence")
+    judge.add_argument("report", type=Path)
+    judge.add_argument("--env-file", type=Path, default=ROOT / ".env")
+    judge.add_argument("--output", type=Path)
 
     promote = subparsers.add_parser("promote", help="Promote explicitly reviewed candidates")
     promote.add_argument("candidates", type=Path)
@@ -59,8 +68,29 @@ def main() -> None:
     elif args.command == "candidates":
         result = generate_candidates(_read(args.report))
     elif args.command == "enrich-langfuse":
+        _load_env(args.env_file)
         result = enrich_from_langfuse(_read(args.report))
         result = probe_report(result, Path(result["run"]["path"]))
+    elif args.command == "judge":
+        from core.framework_models import framework_model
+        from core.model_policy import ModelPolicy, ModelRole
+        from infrastructure.langfuse_trace_sink import LangfuseTraceSink
+        values = _load_env(args.env_file)
+        policy = ModelPolicy.from_env(values)
+        model = framework_model(
+            policy.profile(ModelRole.VERIFIER),
+            {"api_key": values["ANTHROPIC_API_KEY"], "base_url": policy.base_url},
+            max_tokens=2048,
+        )
+        langfuse = LangfuseTraceSink.from_env()
+        try:
+            callbacks = (langfuse.callback(),) if langfuse else ()
+            result = asyncio.run(judge_report(
+                _read(args.report), structured_judge(model, callbacks=callbacks),
+            ))
+        finally:
+            if langfuse:
+                langfuse.close()
     elif args.command == "promote":
         result = promote_candidates(_read(args.candidates), _read(args.reviews))
     elif args.command == "gate":
@@ -76,6 +106,15 @@ def main() -> None:
 
 def _read(path: Path) -> Mapping[str, Any]:
     return json.loads(path.read_text())
+
+
+def _load_env(path: Path) -> Mapping[str, Any]:
+    from dotenv import dotenv_values
+    values = {**dotenv_values(path), **os.environ}
+    for key, value in values.items():
+        if key.startswith("LANGFUSE_") and value is not None:
+            os.environ.setdefault(key, str(value))
+    return values
 
 
 def _emit(value: Mapping[str, Any], output: Path | None) -> None:

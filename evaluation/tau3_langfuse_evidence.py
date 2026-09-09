@@ -22,12 +22,14 @@ def enrich_from_langfuse(report: Mapping[str, Any], client=None) -> Mapping[str,
             observations.extend(_trace_observations(client, str(_value(trace, "id"))))
         causal_events = []
         errors = []
+        semantic_observations = []
         for observation in observations:
             metadata = _value(observation, "metadata") or {}
             if not isinstance(metadata, Mapping):
                 metadata = {}
             event = _causal_event(metadata)
             if event:
+                event.setdefault("task_id", str(task["task_id"]))
                 causal_events.append(event)
             level = str(_value(observation, "level") or "").upper()
             if level == "ERROR" or _value(observation, "status_message"):
@@ -39,6 +41,23 @@ def enrich_from_langfuse(report: Mapping[str, Any], client=None) -> Mapping[str,
                     "status_message": str(_value(observation, "status_message") or "")[:240],
                     "join_keys": _join_keys(metadata),
                 })
+            if _semantic_observation(observation, metadata):
+                semantic_observations.append({
+                    "observation_id": _value(observation, "id"),
+                    "trace_id": _value(observation, "trace_id") or _value(observation, "traceId"),
+                    "parent_observation_id": (
+                        _value(observation, "parent_observation_id")
+                        or _value(observation, "parentObservationId")
+                    ),
+                    "name": _value(observation, "name"),
+                    "start_time": str(
+                        _value(observation, "start_time") or _value(observation, "startTime") or ""
+                    ),
+                    "level": level,
+                    "input": _bounded(_value(observation, "input")),
+                    "output": _bounded(_value(observation, "output")),
+                    "join_keys": _join_keys(metadata),
+                })
         causal_events.sort(key=lambda item: item["sequence"])
         task["causal_events"] = causal_events
         task["langfuse_evidence"] = {
@@ -48,6 +67,8 @@ def enrich_from_langfuse(report: Mapping[str, Any], client=None) -> Mapping[str,
             "observation_count": len(observations),
             "causal_event_count": len(causal_events),
             "errors": errors,
+            "semantic_observations": semantic_observations[-80:],
+            "semantic_observations_truncated": max(0, len(semantic_observations) - 80),
         }
     return enriched
 
@@ -95,14 +116,20 @@ def _causal_event(metadata: Mapping[str, Any]) -> Mapping[str, Any] | None:
         "task_id": metadata.get("causal.task_id"),
         "turn_id": metadata.get("causal.turn_id"),
         "owner": metadata.get("causal.owner"),
-        "outcome_impact": metadata.get("causal.outcome_impact"),
+        "evidence_origin": metadata.get("causal.evidence_origin"),
         "reason_code": metadata.get("causal.reason_code"),
     }
     for field in (
-        "goal_revision_id", "work_item_id", "proposal_id", "approval_id",
-        "tool_call_id", "receipt_id",
+        "control_id", "control_revision", "work_item_id", "proposal_id",
+        "approval_id", "tool_call_id", "receipt_id", "action_name", "requirement_id",
     ):
-        event[field] = metadata.get(f"causal.{field}")
+        value = metadata.get(f"causal.{field}")
+        if field == "control_revision" and value not in (None, ""):
+            try:
+                value = int(value)
+            except (TypeError, ValueError):
+                value = None
+        event[field] = value
     return {key: value for key, value in event.items() if value not in (None, "")}
 
 
@@ -111,6 +138,21 @@ def _join_keys(metadata: Mapping[str, Any]) -> Mapping[str, Any]:
         key: value for key, value in metadata.items()
         if str(key).startswith(("causal.", "dialogpilot."))
     }
+
+
+def _semantic_observation(observation: Any, metadata: Mapping[str, Any]) -> bool:
+    name = str(_value(observation, "name") or "").casefold()
+    return bool(metadata.get("causal.event_type")) or any(marker in name for marker in (
+        "assess_domain_outcome", "conversation", "understanding", "planner",
+        "approval", "agent_execution", "compose_response", "verification",
+    )) or str(_value(observation, "level") or "").upper() == "ERROR"
+
+
+def _bounded(value: Any, limit: int = 4000) -> Any:
+    if value is None:
+        return None
+    text = value if isinstance(value, str) else str(value)
+    return text[:limit]
 
 
 def _value(value: Any, name: str) -> Any:
