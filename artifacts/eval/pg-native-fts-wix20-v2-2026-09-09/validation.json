@@ -1,0 +1,31 @@
+{
+  "tests_passed": 25,
+  "all_native_vs_same_match_rankings_equal": true,
+  "case_count": 20,
+  "paired": {
+    "ce5": {
+      "recall_better": 2,
+      "recall_worse": 1,
+      "all_better": 1,
+      "all_worse": 1
+    },
+    "pack5": {
+      "recall_better": 2,
+      "recall_worse": 1,
+      "all_better": 1,
+      "all_worse": 1
+    }
+  },
+  "scripts_sha256": {
+    "scripts/compare_pg_native_fts.py": "e96b80e9e7d82fe62b847b1c461a15331631357f097c19afb3b26d07370073ea",
+    "scripts/compare_pg_fts_match_control.py": "3920f4c8d460540473abb481c9da15412aa7d56436fdc63efa078a3f57e3e53f",
+    "scripts/rerank_pg_native_fts.py": "34296ce0245d0e0b12ccd80fe8c1a79c87ec429436be77a30c7e50b0dbf0d063"
+  },
+  "decision": "promising dev candidate; production unchanged; cross-dataset and heldout validation pending",
+  "tests_seconds": 26.26,
+  "test_files": [
+    "test_pg_native_fts_metrics.py",
+    "test_hybrid_retrieval_backends.py",
+    "test_knowledge_applicability.py"
+  ]
+}

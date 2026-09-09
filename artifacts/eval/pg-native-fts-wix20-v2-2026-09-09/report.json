@@ -1,0 +1,42 @@
+{
+  "case_count": 20,
+  "matching_mismatch_cases": 8,
+  "arms": {
+    "bm25": {
+      "median_query_ms": 729.3699877336621,
+      "empirical_p95_query_ms": 823.8748740404844,
+      "timeouts_750ms": 6,
+      "lexical": {
+        "article_recall_at20_chunks": 0.5083333333333333,
+        "all_articles_at20_chunks": 0.35,
+        "article_mrr": 0.23512896825396826,
+        "article_ndcg_at5": 0.1942948129110663
+      },
+      "fused": {
+        "article_recall_at20_chunks": 0.6166666666666667,
+        "all_articles_at20_chunks": 0.5,
+        "article_mrr": 0.4191666666666667,
+        "article_ndcg_at5": 0.4051810905867628
+      }
+    },
+    "native": {
+      "median_query_ms": 494.4793302565813,
+      "empirical_p95_query_ms": 615.4045034199953,
+      "timeouts_750ms": 0,
+      "lexical": {
+        "article_recall_at20_chunks": 0.25,
+        "all_articles_at20_chunks": 0.2,
+        "article_mrr": 0.13214285714285715,
+        "article_ndcg_at5": 0.11621780785943642
+      },
+      "fused": {
+        "article_recall_at20_chunks": 0.6416666666666667,
+        "all_articles_at20_chunks": 0.55,
+        "article_mrr": 0.352521645021645,
+        "article_ndcg_at5": 0.29759096102354277
+      }
+    }
+  },
+  "rescued": 2,
+  "harmed": 1
+}
