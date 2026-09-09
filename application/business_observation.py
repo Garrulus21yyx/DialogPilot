@@ -55,8 +55,9 @@ def business_observation_context(observations):
                 "its worker returned SUCCEEDED. Recovery observations describe the recorded operation "
                 "only: NOT_COMMITTED is not UNCONFIRMED, and neither grants retry or action approval. "
                 "INVALID entries provide no factual support. NOT_EXPANDED references mean the original "
-                "exists but its body is not visible in this input. Read the reference when the current "
-                "question needs its contents; never infer contents from the reference or treat it as "
+                "exists and only a bounded preview may be visible. A preview is not the complete "
+                "source or a semantic summary; omitted fields are not evidence of absence. Read the "
+                "reference when the question needs further contents; never infer unseen contents or treat it as "
                 "missing historical data. Final wording may rely only on visible source content, "
                 "including any selected historical read outputs supplied in current evidence."
             )}

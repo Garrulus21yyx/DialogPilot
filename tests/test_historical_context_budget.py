@@ -7,7 +7,7 @@ from jsonpointer import resolve_pointer
 
 from application.business_observation import BusinessObservation, capture_business_observations
 from application.context_budget import ContextBudgetManager, ModelContextBudgetExceeded
-from application.historical_context_budget import fit_historical_payload
+from application.historical_context_budget import fit_historical_payload, project_historical_payload
 from infrastructure.conversation_observation_tool import observation_document
 from tests.test_business_observation_continuity import observed_board
 from application.deterministic_resolution import ResolutionKind
@@ -20,6 +20,37 @@ def historical(size=360000):
     original = BusinessObservation.model_validate(data)
     return original, {'status':'HISTORICAL', 'publication_id':'p1',
                       'observation_id':original.observation_id, 'observation':data}
+
+
+@pytest.mark.parametrize('body', ['短内容', '蓝色\\n' * 3000,
+                                 {'items': [{'label': '商品', 'price': 19.25}] * 500},
+                                 ['x' * 1200, {'status': 'complete'}]])
+def test_preview_matches_reader_without_mutating_or_expanding_source(body):
+    _, entry = historical(0)
+    entry['observation']['facts'][0]['value_json'] = json.dumps(
+        body, ensure_ascii=False, sort_keys=True, separators=(',', ':'), allow_nan=False)
+    original = BusinessObservation.model_validate(entry['observation'])
+    entry['observation_id'] = original.observation_id
+    payload = {'history': [entry]}
+    untouched = copy.deepcopy(payload)
+    projected = project_historical_payload(payload, observation_path=('history',))
+    assert payload == untouched
+    assert project_historical_payload(projected, observation_path=('history',)) == projected
+    budget = ContextBudgetManager()
+    assert budget._estimate(projected) <= budget._estimate(payload)
+    assert fit_historical_payload(budget, payload, observation_path=('history',),
+                                  inline_publication_ids=frozenset()).payload == projected
+    fact = projected['history'][0]['observation']['facts'][0]
+    if body == '短内容':
+        assert projected == payload
+    else:
+        ref = fact['value_reference']
+        selected = resolve_pointer(observation_document(original), ref['arguments']['pointer'])
+        content = json.dumps(selected, ensure_ascii=False, sort_keys=True, separators=(',', ':'), allow_nan=False)
+        assert ref['preview'] == content[:400]
+        assert ref['total_characters'] == len(content)
+        assert ref['complete'] is False
+        assert ref['arguments']['observation_id'] == original.observation_id
 
 
 @pytest.mark.parametrize('kind', list(ResolutionKind))
@@ -102,6 +133,10 @@ def test_action_and_recovery_bodies_externalize_without_changing_effect_knowledg
     reference = owner[body + '_reference']['arguments']
     expected = data[path][0]['action'][body] if kind == 'receipt' else data[path][0][body]
     assert resolve_pointer(observation_document(original), reference['pointer']) == expected
+    content = json.dumps(expected, ensure_ascii=False, sort_keys=True, separators=(',', ':'), allow_nan=False)
+    assert owner[body + '_reference']['preview'] == content[:400]
+    assert owner[body + '_reference']['total_characters'] == len(content)
+    assert owner[body + '_reference']['complete'] is False
     assert projected['operation_key'] == 'op1'
     if kind == 'receipt':
         assert projected['effect_status'] == 'COMMITTED' and owner['target_entity_ref'] == 'order:1'

@@ -82,7 +82,12 @@ def _source_bodies(value, observation_path):
         for owner, key, pointer in bodies:
             if key not in owner or owner[key] is None:
                 continue
+            # Match the native reader's JSON rendering, not a model-generated
+            # summary. The original remains in Publication storage unchanged.
+            content = json.dumps(json.loads(owner[key]) if key == 'value_json' else owner[key],
+                                 ensure_ascii=False, sort_keys=True, separators=(',', ':'), allow_nan=False)
             reference = {'status': 'NOT_EXPANDED',
+                'preview': content[:400], 'total_characters': len(content), 'complete': False,
                 'tool': 'read_conversation_observation', 'arguments': {
                     'publication_id': entry['publication_id'],
                     'observation_id': entry['observation_id'], 'pointer': pointer}}

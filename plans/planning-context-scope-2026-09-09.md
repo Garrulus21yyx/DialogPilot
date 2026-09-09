@@ -82,7 +82,8 @@ does not enlarge parent planning, unrelated facts excluded, and oversized mandat
 input does not invoke a model. Existing tests cover latest tool-batch pairing,
 archive paging/scope, summary preservation, checkpoint restore and artifact recovery.
 
-Constructed historical-body measurements (project estimator, NOT provider usage):
+Constructed historical-body measurements before bounded previews (8d142d0;
+project estimator, NOT provider usage; not the follow-up preview footprint):
 
 | Body characters | Before estimated tokens | After reference projection |
 |---:|---:|---:|
@@ -106,3 +107,34 @@ No historical τ³ closure claim. The original failed complete request was not
 retained, so fresh task-level behavior remains separate from these structural
 and persistence proofs. Unrelated dirty documentation/evaluation/archive-reader
 changes are excluded from this delivery.
+
+## Follow-up: bounded archival previews, no additional reporting stage
+
+Inspection after 8d142d0: child result archives already have a 400-character
+preview and paging; historical Publication pointers expose only identity. Repair
+that conversion owner (`historical_context_budget`) for facts, receipt arguments
+and recovery detail together. Preserve originals/IDs; project a bounded preview,
+length and incomplete marker only when the entire pointer is smaller than inline
+content. Preview is navigation, not a semantic summary or complete evidence.
+
+Approval cards and input questions already reuse prepared scope/question text.
+Existing candidate responses remain results, not a new generated report. No new
+LLM stage, archive store or per-result summary is introduced. Old working-history
+summarization retains its existing threshold-driven framework middleware.
+
+Acceptance: canonical preview matches the existing reader, originals unchanged,
+projection idempotent and size-reducing, small values inline, both projection
+entry points agree; regression checks cover approval, input, archive and recovery.
+Implemented: pointers include up to 400 characters of canonical reader content,
+total length and `complete: false`. Savings include that metadata, so short values
+stay inline. The shared observation contract distinguishes previews from complete
+sources. No persistence or authoritative business-result schema changes.
+
+Verification: first run 523 passed / 2 failed due to new fixtures using noncanonical
+fact JSON; corrected fixtures to the existing contract (no production relaxation).
+Final relevant PostgreSQL-enabled suite: **525 passed**, one existing Python fork
+deprecation warning. Clean staged-tree archive/context/approval/response/observation
+suite: **332 passed**. Existing ingress tests explicitly assert zero summary model
+calls during archival reduction and preservation of original tool/result pairs.
+These checks do not establish fresh τ³ completion or global architecture closure.
+Only this follow-up's four files are staged for delivery; unrelated edits excluded.
