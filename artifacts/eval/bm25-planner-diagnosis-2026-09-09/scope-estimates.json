@@ -1,0 +1,38 @@
+[
+  {
+    "stage": "collection",
+    "estimated": 11120,
+    "actual": 11167.0,
+    "ms": 7.735
+  },
+  {
+    "stage": "source_identity_only",
+    "estimated": 11120,
+    "actual": 11167.0,
+    "ms": 9.201
+  },
+  {
+    "stage": "revision_id_only",
+    "estimated": 11120,
+    "actual": 11167.0,
+    "ms": 8.02
+  },
+  {
+    "stage": "revision_identity",
+    "estimated": 2,
+    "actual": 11167.0,
+    "ms": 9.093
+  },
+  {
+    "stage": "identity_and_facets",
+    "estimated": 2,
+    "actual": 11167.0,
+    "ms": 10.347
+  },
+  {
+    "stage": "full_applicability",
+    "estimated": 1,
+    "actual": 11167.0,
+    "ms": 121.239
+  }
+]

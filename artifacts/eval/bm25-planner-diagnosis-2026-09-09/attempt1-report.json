@@ -1,0 +1,403 @@
+[
+  {
+    "query": "ecommerce_raw",
+    "mode": "default",
+    "sql_ms": 2627.236558124423,
+    "explain_ms": 2496.034,
+    "same_rows_scores_order": true,
+    "rows": 20,
+    "nodes": [
+      {
+        "Node Type": "Nested Loop",
+        "Plan Rows": 1,
+        "Actual Rows": 20.0,
+        "Actual Loops": 1,
+        "Actual Total Time": 2495.854,
+        "Total Cost": 19677.3,
+        "Shared Hit Blocks": 209223,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "WindowAgg",
+        "Subplan Name": "CTE scoped",
+        "Plan Rows": 1,
+        "Actual Rows": 11167.0,
+        "Actual Loops": 1,
+        "Actual Total Time": 195.303,
+        "Total Cost": 19656.09,
+        "Shared Hit Blocks": 126435,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "Hash Join",
+        "Plan Rows": 1,
+        "Actual Rows": 11167.0,
+        "Actual Loops": 1,
+        "Actual Total Time": 132.313,
+        "Total Cost": 19656.07,
+        "Shared Hit Blocks": 92795,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "Index Scan",
+        "Relation Name": "knowledge_chunk_search",
+        "Index Name": "knowledge_chunk_search_metadata_idx",
+        "Plan Rows": 11120,
+        "Actual Rows": 11167.0,
+        "Actual Loops": 1,
+        "Actual Total Time": 6.307,
+        "Total Cost": 18562.11,
+        "Rows Removed by Filter": 0,
+        "Shared Hit Blocks": 2643,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "Hash",
+        "Plan Rows": 6229,
+        "Actual Rows": 6221.0,
+        "Actual Loops": 1,
+        "Actual Total Time": 3.706,
+        "Total Cost": 942.15,
+        "Shared Hit Blocks": 802,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "Seq Scan",
+        "Relation Name": "knowledge_source_revisions",
+        "Plan Rows": 6229,
+        "Actual Rows": 6221.0,
+        "Actual Loops": 1,
+        "Actual Total Time": 2.5,
+        "Total Cost": 942.15,
+        "Rows Removed by Filter": 100,
+        "Shared Hit Blocks": 802,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "Nested Loop",
+        "Subplan Name": "SubPlan 1",
+        "Plan Rows": 1,
+        "Actual Rows": 0.0,
+        "Actual Loops": 11167,
+        "Actual Total Time": 0.01,
+        "Total Cost": 17.02,
+        "Shared Hit Blocks": 89350,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "Index Only Scan",
+        "Relation Name": "knowledge_source_manifest_entries",
+        "Index Name": "knowledge_source_manifest_entries_pkey",
+        "Plan Rows": 1,
+        "Actual Rows": 1.0,
+        "Actual Loops": 11167,
+        "Actual Total Time": 0.007,
+        "Total Cost": 8.58,
+        "Shared Hit Blocks": 44682,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "Index Scan",
+        "Relation Name": "knowledge_source_revisions",
+        "Index Name": "knowledge_source_revisions_pkey",
+        "Plan Rows": 1,
+        "Actual Rows": 0.0,
+        "Actual Loops": 11167,
+        "Actual Total Time": 0.003,
+        "Total Cost": 8.43,
+        "Rows Removed by Filter": 1,
+        "Shared Hit Blocks": 44668,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "Aggregate",
+        "Subplan Name": "CTE stats",
+        "Plan Rows": 1,
+        "Actual Rows": 1.0,
+        "Actual Loops": 1,
+        "Actual Total Time": 199.98,
+        "Total Cost": 0.04,
+        "Shared Hit Blocks": 126435,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "CTE Scan",
+        "Plan Rows": 1,
+        "Actual Rows": 11167.0,
+        "Actual Loops": 1,
+        "Actual Total Time": 198.499,
+        "Total Cost": 0.02,
+        "Shared Hit Blocks": 126435,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "Nested Loop",
+        "Subplan Name": "CTE matching",
+        "Plan Rows": 1,
+        "Actual Rows": 1129.0,
+        "Actual Loops": 1,
+        "Actual Total Time": 2219.017,
+        "Total Cost": 8.46,
+        "Shared Hit Blocks": 78308,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "CTE Scan",
+        "Plan Rows": 1,
+        "Actual Rows": 11167.0,
+        "Actual Loops": 1,
+        "Actual Total Time": 1.465,
+        "Total Cost": 0.02,
+        "Shared Hit Blocks": 0,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "Index Scan",
+        "Relation Name": "knowledge_chunk_search",
+        "Index Name": "knowledge_chunk_search_pkey",
+        "Plan Rows": 1,
+        "Actual Rows": 0.1,
+        "Actual Loops": 11167,
+        "Actual Total Time": 0.198,
+        "Total Cost": 8.44,
+        "Rows Removed by Filter": 1,
+        "Shared Hit Blocks": 78308,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "Nested Loop",
+        "Subplan Name": "CTE term_frequency",
+        "Plan Rows": 10,
+        "Actual Rows": 1160.0,
+        "Actual Loops": 1,
+        "Actual Total Time": 2290.622,
+        "Total Cost": 2.23,
+        "Shared Hit Blocks": 82708,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "CTE Scan",
+        "Plan Rows": 1,
+        "Actual Rows": 1129.0,
+        "Actual Loops": 1,
+        "Actual Total Time": 2219.661,
+        "Total Cost": 0.02,
+        "Shared Hit Blocks": 78308,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "Aggregate",
+        "Plan Rows": 10,
+        "Actual Rows": 1.03,
+        "Actual Loops": 1129,
+        "Actual Total Time": 0.062,
+        "Total Cost": 2.11,
+        "Shared Hit Blocks": 4400,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "Hash Join",
+        "Plan Rows": 10,
+        "Actual Rows": 1.33,
+        "Actual Loops": 1129,
+        "Actual Total Time": 0.06,
+        "Total Cost": 1.94,
+        "Shared Hit Blocks": 4400,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "Function Scan",
+        "Plan Rows": 117,
+        "Actual Rows": 117.0,
+        "Actual Loops": 1129,
+        "Actual Total Time": 0.004,
+        "Total Cost": 1.17,
+        "Shared Hit Blocks": 0,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "Hash",
+        "Plan Rows": 10,
+        "Actual Rows": 325.28,
+        "Actual Loops": 1129,
+        "Actual Total Time": 0.049,
+        "Total Cost": 0.1,
+        "Shared Hit Blocks": 4400,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "Function Scan",
+        "Plan Rows": 10,
+        "Actual Rows": 325.28,
+        "Actual Loops": 1129,
+        "Actual Total Time": 0.03,
+        "Total Cost": 0.1,
+        "Shared Hit Blocks": 4400,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "Aggregate",
+        "Subplan Name": "CTE term_stats",
+        "Plan Rows": 10,
+        "Actual Rows": 3.0,
+        "Actual Loops": 1,
+        "Actual Total Time": 2288.714,
+        "Total Cost": 0.38,
+        "Shared Hit Blocks": 82584,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "CTE Scan",
+        "Plan Rows": 10,
+        "Actual Rows": 1160.0,
+        "Actual Loops": 1,
+        "Actual Total Time": 2288.221,
+        "Total Cost": 0.2,
+        "Shared Hit Blocks": 82584,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "Limit",
+        "Plan Rows": 1,
+        "Actual Rows": 20.0,
+        "Actual Loops": 1,
+        "Actual Total Time": 2495.679,
+        "Total Cost": 1.66,
+        "Shared Hit Blocks": 209143,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "Sort",
+        "Plan Rows": 1,
+        "Actual Rows": 20.0,
+        "Actual Loops": 1,
+        "Actual Total Time": 2495.677,
+        "Total Cost": 1.66,
+        "Shared Hit Blocks": 209143,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "Merge Join",
+        "Plan Rows": 1,
+        "Actual Rows": 1129.0,
+        "Actual Loops": 1,
+        "Actual Total Time": 2495.551,
+        "Total Cost": 1.65,
+        "Shared Hit Blocks": 209143,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "Aggregate",
+        "Plan Rows": 10,
+        "Actual Rows": 1129.0,
+        "Actual Loops": 1,
+        "Actual Total Time": 2492.456,
+        "Total Cost": 1.47,
+        "Shared Hit Blocks": 209143,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "Sort",
+        "Plan Rows": 10,
+        "Actual Rows": 1160.0,
+        "Actual Loops": 1,
+        "Actual Total Time": 2492.082,
+        "Total Cost": 0.97,
+        "Shared Hit Blocks": 209143,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "Nested Loop",
+        "Plan Rows": 10,
+        "Actual Rows": 1160.0,
+        "Actual Loops": 1,
+        "Actual Total Time": 2491.875,
+        "Total Cost": 0.78,
+        "Shared Hit Blocks": 209143,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "CTE Scan",
+        "Plan Rows": 1,
+        "Actual Rows": 1.0,
+        "Actual Loops": 1,
+        "Actual Total Time": 199.981,
+        "Total Cost": 0.02,
+        "Shared Hit Blocks": 126435,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "Hash Join",
+        "Plan Rows": 10,
+        "Actual Rows": 1160.0,
+        "Actual Loops": 1,
+        "Actual Total Time": 2291.826,
+        "Total Cost": 0.66,
+        "Shared Hit Blocks": 82708,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "CTE Scan",
+        "Plan Rows": 10,
+        "Actual Rows": 1160.0,
+        "Actual Loops": 1,
+        "Actual Total Time": 2.94,
+        "Total Cost": 0.2,
+        "Shared Hit Blocks": 124,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "Hash",
+        "Plan Rows": 10,
+        "Actual Rows": 3.0,
+        "Actual Loops": 1,
+        "Actual Total Time": 2288.723,
+        "Total Cost": 0.2,
+        "Shared Hit Blocks": 82584,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "CTE Scan",
+        "Plan Rows": 10,
+        "Actual Rows": 3.0,
+        "Actual Loops": 1,
+        "Actual Total Time": 2288.716,
+        "Total Cost": 0.2,
+        "Shared Hit Blocks": 82584,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "Sort",
+        "Plan Rows": 1,
+        "Actual Rows": 11164.0,
+        "Actual Loops": 1,
+        "Actual Total Time": 2.473,
+        "Total Cost": 0.04,
+        "Shared Hit Blocks": 0,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "CTE Scan",
+        "Plan Rows": 1,
+        "Actual Rows": 11167.0,
+        "Actual Loops": 1,
+        "Actual Total Time": 0.673,
+        "Total Cost": 0.02,
+        "Shared Hit Blocks": 0,
+        "Shared Read Blocks": 0
+      },
+      {
+        "Node Type": "Index Scan",
+        "Relation Name": "knowledge_chunk_search",
+        "Index Name": "knowledge_chunk_search_pkey",
+        "Plan Rows": 1,
+        "Actual Rows": 1.0,
+        "Actual Loops": 20,
+        "Actual Total Time": 0.008,
+        "Total Cost": 8.44,
+        "Shared Hit Blocks": 80,
+        "Shared Read Blocks": 0
+      }
+    ]
+  }
+]

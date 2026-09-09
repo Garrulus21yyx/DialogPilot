@@ -1,0 +1,172 @@
+{
+  "database": "dialogpilot_wixqa_eval_20260908",
+  "generation_id": "knowledge-generation-95a4fede15af901f0c3c20e2727070f0",
+  "chunks": 11167,
+  "physical_rows": 149330,
+  "server": "PostgreSQL 18.6 (Debian 18.6-1.pgdg12+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 12.2.0-14+deb12u1) 12.2.0, 64-bit",
+  "indexes": [
+    [
+      "knowledge_chunk_search_pkey",
+      "CREATE UNIQUE INDEX knowledge_chunk_search_pkey ON retrieval.knowledge_chunk_search USING btree (candidate_id)"
+    ],
+    [
+      "knowledge_chunk_search_tenant_id_backend_id_generation_id_s_key",
+      "CREATE UNIQUE INDEX knowledge_chunk_search_tenant_id_backend_id_generation_id_s_key ON retrieval.knowledge_chunk_search USING btree (tenant_id, backend_id, generation_id, source_id, source_revision, source_checksum, source_span)"
+    ],
+    [
+      "knowledge_chunk_search_generation_filter_idx",
+      "CREATE INDEX knowledge_chunk_search_generation_filter_idx ON retrieval.knowledge_chunk_search USING btree (tenant_id, backend_id, generation_id)"
+    ],
+    [
+      "knowledge_chunk_search_acl_idx",
+      "CREATE INDEX knowledge_chunk_search_acl_idx ON retrieval.knowledge_chunk_search USING btree (tenant_id, scope, locale, product, backend_id, generation_id)"
+    ],
+    [
+      "knowledge_chunk_search_search_tsv_gin",
+      "CREATE INDEX knowledge_chunk_search_search_tsv_gin ON retrieval.knowledge_chunk_search USING gin (search_tsv)"
+    ],
+    [
+      "knowledge_chunk_search_lexical_terms_gin",
+      "CREATE INDEX knowledge_chunk_search_lexical_terms_gin ON retrieval.knowledge_chunk_search USING gin (lexical_terms)"
+    ],
+    [
+      "knowledge_chunk_search_metadata_idx",
+      "CREATE INDEX knowledge_chunk_search_metadata_idx ON retrieval.knowledge_chunk_search USING btree (tenant_id, generation_id, source_type, region, product)"
+    ],
+    [
+      "knowledge_hnsw_18dc7cfd7d402db8",
+      "CREATE INDEX knowledge_hnsw_18dc7cfd7d402db8 ON retrieval.knowledge_chunk_search USING hnsw (((embedding)::vector(1024)) vector_cosine_ops) WITH (m='16', ef_construction='64') WHERE ((generation_id = 'knowledge-generation-17696233df71c203e4a2e56247b554f5'::text) AND (embedding IS NOT NULL))"
+    ],
+    [
+      "knowledge_hnsw_cbaf40d5d0f75100",
+      "CREATE INDEX knowledge_hnsw_cbaf40d5d0f75100 ON retrieval.knowledge_chunk_search USING hnsw (((embedding)::vector(1024)) vector_cosine_ops) WITH (m='16', ef_construction='64') WHERE ((generation_id = 'knowledge-generation-cd11d71acce3223f7529730d7c5b3498'::text) AND (embedding IS NOT NULL))"
+    ],
+    [
+      "knowledge_hnsw_44ef192516c8cd65",
+      "CREATE INDEX knowledge_hnsw_44ef192516c8cd65 ON retrieval.knowledge_chunk_search USING hnsw (((embedding)::vector(1024)) vector_cosine_ops) WITH (m='16', ef_construction='64') WHERE ((generation_id = 'knowledge-generation-93d22f87817dd6071b9174b8cbc76cc1'::text) AND (embedding IS NOT NULL))"
+    ],
+    [
+      "knowledge_hnsw_7c2670ec1b2010b7",
+      "CREATE INDEX knowledge_hnsw_7c2670ec1b2010b7 ON retrieval.knowledge_chunk_search USING hnsw (((embedding)::vector(1024)) vector_cosine_ops) WITH (m='16', ef_construction='64') WHERE ((generation_id = 'knowledge-generation-f931b3ba96b97de91b2019efc656f3df'::text) AND (embedding IS NOT NULL))"
+    ],
+    [
+      "knowledge_hnsw_9f227b427efb3c32",
+      "CREATE INDEX knowledge_hnsw_9f227b427efb3c32 ON retrieval.knowledge_chunk_search USING hnsw (((embedding)::vector(1024)) vector_cosine_ops) WITH (m='16', ef_construction='64') WHERE ((generation_id = 'knowledge-generation-b6c2f44b442a37b7ec89bfcdd12f072f'::text) AND (embedding IS NOT NULL))"
+    ],
+    [
+      "knowledge_hnsw_adbd9da793b9a150",
+      "CREATE INDEX knowledge_hnsw_adbd9da793b9a150 ON retrieval.knowledge_chunk_search USING hnsw (((embedding)::vector(1024)) vector_cosine_ops) WITH (m='16', ef_construction='64') WHERE ((generation_id = 'knowledge-generation-93c691e333bbb0892fc7d42e10851ddc'::text) AND (embedding IS NOT NULL))"
+    ],
+    [
+      "knowledge_hnsw_7eb2515eaf4c0908",
+      "CREATE INDEX knowledge_hnsw_7eb2515eaf4c0908 ON retrieval.knowledge_chunk_search USING hnsw (((embedding)::vector(1024)) vector_cosine_ops) WITH (m='16', ef_construction='64') WHERE ((generation_id = 'knowledge-generation-47b9860045b316a5f4ecb0c7b1ae80c6'::text) AND (embedding IS NOT NULL))"
+    ],
+    [
+      "knowledge_hnsw_9951510a65ae4c51",
+      "CREATE INDEX knowledge_hnsw_9951510a65ae4c51 ON retrieval.knowledge_chunk_search USING hnsw (((embedding)::vector(1024)) vector_cosine_ops) WITH (m='16', ef_construction='64') WHERE ((generation_id = 'knowledge-generation-f932f6e6d48b687266e32163278f2e6d'::text) AND (embedding IS NOT NULL))"
+    ],
+    [
+      "knowledge_hnsw_2655ec2181767e39",
+      "CREATE INDEX knowledge_hnsw_2655ec2181767e39 ON retrieval.knowledge_chunk_search USING hnsw (((embedding)::vector(1024)) vector_cosine_ops) WITH (m='16', ef_construction='64') WHERE ((generation_id = 'knowledge-generation-9d54df0229fa3a43439df9fc9495ca93'::text) AND (embedding IS NOT NULL))"
+    ],
+    [
+      "knowledge_hnsw_ada2ebdc59c50d73",
+      "CREATE INDEX knowledge_hnsw_ada2ebdc59c50d73 ON retrieval.knowledge_chunk_search USING hnsw (((embedding)::vector(1024)) vector_cosine_ops) WITH (m='16', ef_construction='64') WHERE ((generation_id = 'knowledge-generation-cf1a634172c6c310b4efaa9a7e5cf09f'::text) AND (embedding IS NOT NULL))"
+    ],
+    [
+      "knowledge_hnsw_8db903c0888c1d8b",
+      "CREATE INDEX knowledge_hnsw_8db903c0888c1d8b ON retrieval.knowledge_chunk_search USING hnsw (((embedding)::vector(1024)) vector_cosine_ops) WITH (m='16', ef_construction='64') WHERE ((generation_id = 'knowledge-generation-619efeb2ad479d9d13bdec51cc729d1f'::text) AND (embedding IS NOT NULL))"
+    ],
+    [
+      "knowledge_hnsw_7d09b0ee6fa0f3da",
+      "CREATE INDEX knowledge_hnsw_7d09b0ee6fa0f3da ON retrieval.knowledge_chunk_search USING hnsw (((embedding)::vector(1024)) vector_cosine_ops) WITH (m='16', ef_construction='64') WHERE ((generation_id = 'knowledge-generation-f33a842e472911d993606027751670d5'::text) AND (embedding IS NOT NULL))"
+    ],
+    [
+      "knowledge_hnsw_0a64b6f163b270a8",
+      "CREATE INDEX knowledge_hnsw_0a64b6f163b270a8 ON retrieval.knowledge_chunk_search USING hnsw (((embedding)::vector(1024)) vector_cosine_ops) WITH (m='16', ef_construction='64') WHERE ((generation_id = 'knowledge-generation-2c5cf18742b63b1ae43e1aa5c431a773'::text) AND (embedding IS NOT NULL))"
+    ],
+    [
+      "knowledge_hnsw_feff4b2ee9b1f714",
+      "CREATE INDEX knowledge_hnsw_feff4b2ee9b1f714 ON retrieval.knowledge_chunk_search USING hnsw (((embedding)::vector(1024)) vector_cosine_ops) WITH (m='16', ef_construction='64') WHERE ((generation_id = 'knowledge-generation-7853b44459fd08d58ee7a013c3db87be'::text) AND (embedding IS NOT NULL))"
+    ],
+    [
+      "knowledge_hnsw_a555ea1d1c3be4a3",
+      "CREATE INDEX knowledge_hnsw_a555ea1d1c3be4a3 ON retrieval.knowledge_chunk_search USING hnsw (((embedding)::vector(1024)) vector_cosine_ops) WITH (m='16', ef_construction='64') WHERE ((generation_id = 'knowledge-generation-3aa58414ed8ffe2fcdc1ea815b082ca8'::text) AND (embedding IS NOT NULL))"
+    ],
+    [
+      "knowledge_hnsw_9147caba9098cb82",
+      "CREATE INDEX knowledge_hnsw_9147caba9098cb82 ON retrieval.knowledge_chunk_search USING hnsw (((embedding)::vector(1024)) vector_cosine_ops) WITH (m='16', ef_construction='64') WHERE ((generation_id = 'knowledge-generation-72a2425faf4a43e5a72c5ed170142a59'::text) AND (embedding IS NOT NULL))"
+    ],
+    [
+      "knowledge_hnsw_f1df0ba4b07d760e",
+      "CREATE INDEX knowledge_hnsw_f1df0ba4b07d760e ON retrieval.knowledge_chunk_search USING hnsw (((embedding)::vector(1024)) vector_cosine_ops) WITH (m='16', ef_construction='64') WHERE ((generation_id = 'knowledge-generation-7754c3f8f16439a3b581fbd77c663a0b'::text) AND (embedding IS NOT NULL))"
+    ],
+    [
+      "knowledge_hnsw_15b95bacc34515fb",
+      "CREATE INDEX knowledge_hnsw_15b95bacc34515fb ON retrieval.knowledge_chunk_search USING hnsw (((embedding)::vector(1024)) vector_cosine_ops) WITH (m='16', ef_construction='64') WHERE ((generation_id = 'knowledge-generation-11febafd1e96c3bef9881c38ac5b6ba3'::text) AND (embedding IS NOT NULL))"
+    ],
+    [
+      "knowledge_hnsw_335b633ca4aaf862",
+      "CREATE INDEX knowledge_hnsw_335b633ca4aaf862 ON retrieval.knowledge_chunk_search USING hnsw (((embedding)::vector(1024)) vector_cosine_ops) WITH (m='16', ef_construction='64') WHERE ((generation_id = 'knowledge-generation-8a1ce8c87d60157a4ca3a949922c7ab6'::text) AND (embedding IS NOT NULL))"
+    ],
+    [
+      "knowledge_hnsw_0a73da91953c35da",
+      "CREATE INDEX knowledge_hnsw_0a73da91953c35da ON retrieval.knowledge_chunk_search USING hnsw (((embedding)::vector(1024)) vector_cosine_ops) WITH (m='16', ef_construction='64') WHERE ((generation_id = 'knowledge-generation-c36477e23870464985a93a9dd8da9a90'::text) AND (embedding IS NOT NULL))"
+    ],
+    [
+      "knowledge_hnsw_56ecd2dd7ba8c24c",
+      "CREATE INDEX knowledge_hnsw_56ecd2dd7ba8c24c ON retrieval.knowledge_chunk_search USING hnsw (((embedding)::vector(1024)) vector_cosine_ops) WITH (m='16', ef_construction='64') WHERE ((generation_id = 'knowledge-generation-e5a05b530d737e433271f942c032c943'::text) AND (embedding IS NOT NULL))"
+    ],
+    [
+      "knowledge_hnsw_2f5eeef8b14d29fc",
+      "CREATE INDEX knowledge_hnsw_2f5eeef8b14d29fc ON retrieval.knowledge_chunk_search USING hnsw (((embedding)::vector(1024)) vector_cosine_ops) WITH (m='16', ef_construction='64') WHERE ((generation_id = 'knowledge-generation-6ba079698983f711020f7f08dab77782'::text) AND (embedding IS NOT NULL))"
+    ],
+    [
+      "knowledge_hnsw_a4136ec0154563d1",
+      "CREATE INDEX knowledge_hnsw_a4136ec0154563d1 ON retrieval.knowledge_chunk_search USING hnsw (((embedding)::vector(1024)) vector_cosine_ops) WITH (m='16', ef_construction='64') WHERE ((generation_id = 'knowledge-generation-661c0cfd60e453c3a7d413f1e3b11809'::text) AND (embedding IS NOT NULL))"
+    ],
+    [
+      "knowledge_hnsw_d517b71bcfe4e6ed",
+      "CREATE INDEX knowledge_hnsw_d517b71bcfe4e6ed ON retrieval.knowledge_chunk_search USING hnsw (((embedding)::vector(1024)) vector_cosine_ops) WITH (m='16', ef_construction='64') WHERE ((generation_id = 'knowledge-generation-fd66dafcd2afd1219b2ef683ffb6f9d7'::text) AND (embedding IS NOT NULL))"
+    ],
+    [
+      "knowledge_hnsw_549d3ba7ab77d9d3",
+      "CREATE INDEX knowledge_hnsw_549d3ba7ab77d9d3 ON retrieval.knowledge_chunk_search USING hnsw (((embedding)::vector(1024)) vector_cosine_ops) WITH (m='16', ef_construction='64') WHERE ((generation_id = 'knowledge-generation-95a4fede15af901f0c3c20e2727070f0'::text) AND (embedding IS NOT NULL))"
+    ],
+    [
+      "knowledge_hnsw_7e3874a2c0cdbf0d",
+      "CREATE INDEX knowledge_hnsw_7e3874a2c0cdbf0d ON retrieval.knowledge_chunk_search USING hnsw (((embedding)::vector(1024)) vector_cosine_ops) WITH (m='16', ef_construction='64') WHERE ((generation_id = 'knowledge-generation-f2fbc09b5a71d5e4478066573dee4984'::text) AND (embedding IS NOT NULL))"
+    ]
+  ],
+  "table_statistics": [
+    [
+      149345,
+      null,
+      "2026-09-08 03:18:28.223099+00:00"
+    ]
+  ],
+  "settings": [
+    [
+      "effective_cache_size",
+      "524288"
+    ],
+    [
+      "plan_cache_mode",
+      "auto"
+    ],
+    [
+      "random_page_cost",
+      "4"
+    ],
+    [
+      "seq_page_cost",
+      "1"
+    ],
+    [
+      "work_mem",
+      "4096"
+    ]
+  ],
+  "scope": "Existing Wix corpus, not deleted E12 ecommerce DB; SQL only, no API or models",
+  "head": "60f1a1b75053e85a57e9034a4a3d4b59fbc5ef65"
+}
