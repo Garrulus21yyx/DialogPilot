@@ -94,7 +94,7 @@ def capture_business_observations(board):
         # Evidence-reader outputs are references to existing historical originals,
         # not new business observations to recursively republish.
         facts = tuple(fact for fact in result.facts if not fact.requirement_id.startswith(("knowledge.", "memory.")))
-        recovery = tuple(WriteRecoveryObservation.model_validate(feedback)
+        recovery = tuple(WriteRecoveryObservation.model_validate(_write_recovery_payload(feedback))
             for feedback in result.execution_feedback
             if item.effect is CapabilityEffect.WRITE and item.operation_key
             and feedback.get("stage") == "write_recovery"
@@ -111,3 +111,14 @@ def capture_business_observations(board):
         if observation not in observations:
             observations.append(observation)
     return tuple(observations)
+
+
+def _write_recovery_payload(feedback):
+    """Normalize legacy recovery diagnostics without changing their meaning."""
+    return {
+        "last_outcome": None,
+        "outcome_scope": None,
+        "detail": None,
+        "source_ref": None,
+        **feedback,
+    }

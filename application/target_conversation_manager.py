@@ -760,12 +760,17 @@ class TargetConversationManager:
             deterministic.kind is ResolutionKind.APPROVAL_DECISION
             or deterministic.kind is ResolutionKind.RECONCILE_WORKFLOW
         ) and deterministic.approved:
-            grant = next(grant for grant in state.accepted_approvals
-                         if grant.approval_id == deterministic.signal_id
-                         and grant.version == deterministic.signal_version)
+            grant = next((grant for grant in state.accepted_approvals
+                          if grant.approval_id == deterministic.signal_id
+                          and grant.version == deterministic.signal_version), None)
             results = {item.operation_key: result for item, result in board.outcome_items
                        if item.approval_binding == deterministic.signal_id}
-            members = tuple(results.get(op.operation_key) for op in grant.operations)
+            members = (
+                tuple(results.get(op.operation_key) for op in grant.operations)
+                if grant is not None else
+                tuple(result for item, result in board.outcome_items
+                      if item.operation_key == deterministic.operation_key)
+            )
             result = next((r for r in members if r is not None and r.status is AgentResultStatus.RECONCILING),
                 next((r for r in members if r is not None and r.reason_code == "WRITE_MANUAL_REVIEW_REQUIRED"), None))
             stream = next(
