@@ -1,5 +1,36 @@
 # Task 22: operation names and reply lifecycle
 
+## Scoped-main-agent trial after 5eaab11
+
+User approved a bounded trial: main agent owns conversation, read-only help and
+delegation; domain owns business investigation and preparation. Existing bound
+approval/input decisions stay supported. First compare historical task22 planner
+input versus narrowed role and omission of raw business_action_semantics. Keep
+business policies, observations, history and available read/delegation tools.
+Remove any business-change shortcut only in the experimental tool list. Two
+initial model calls, same INTENT profile and 4096 output budget, no tool execution.
+If promising, run four controls (ordinary conversation, direct read, bound input,
+bound approval plus independent question). Adoption requires preserving these
+behaviors and reviewing all production consumers; this trial alone is not closure.
+
+Trial result: 6 model calls, no business execution. Historical baseline asks for
+state instead of delegating; scoped-main variant calls delegate_task with both
+requested changes and the correct order. Accompanying prose still says confirm
+details, but existing action_proposal drops prose for an execution-bearing action
+batch; no new filter was introduced. Four synthetic controls: conversation,
+knowledge lookup, and approval plus independent lookup convert successfully.
+Bound color input fails schema validation: model nests field metadata plus value
+where supply_input requires a scalar. Raw capture and typed ValidationError kept.
+No conclusion that the role change caused that error (no matched control baseline).
+No production adoption yet: the continuation acceptance gate did not pass.
+Evidence: scoped_main.py/.jsonl and scoped_controls.py/.jsonl in
+artifacts/eval/reply-author-scope-2026-09-09. Raw business_action_semantics omitted
+only in the scoped trial, other business policies retained. The historical trace
+already exposes no business-write/preparation tool; its tool set is unchanged.
+The result tests responsibility/prompt visibility, not removal of actual write
+permissions. Native role replacement and semantic omission are a combined
+intervention, so their individual causal contribution remains unmeasured.
+
 Status: operation naming repair verified; reply lifecycle projection implemented;
 confirmation-quality work remains OPEN after fresh task validation.
 
