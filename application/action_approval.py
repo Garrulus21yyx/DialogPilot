@@ -7,6 +7,17 @@ from application.conversation_state import (
 )
 
 
+def approval_presentation_due(pending, previous, *, published):
+    """A saved, undelivered proposal remains presentable on conversational turns.
+
+    Publication, not the planner's reply/work choice, owns delivery. A successfully
+    presented proposal is retained context, not a new request for the same assent.
+    """
+    return pending is not None and (
+        previous is None or (pending.approval_id, pending.version) !=
+        (previous.approval_id, previous.version) or published is False)
+
+
 ACTION_INTERACTION_CONTRACT = """Action interaction has three stages with distinct owners:
 1. Resolve the requested targets from the user's constraints and business evidence.
    Ask only for an unresolved value or an actual choice the policy requires the user

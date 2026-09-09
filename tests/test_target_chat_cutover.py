@@ -247,7 +247,8 @@ def test_public_outcomes_preserve_control_when_local_ids_repeat(monkeypatch, ret
         f"prior-{index}" for index in range(retained_count)}
 
 
-def test_one_publication_exposes_both_approval_and_field_bindings():
+@pytest.mark.parametrize("response_only", [False, True])
+def test_one_publication_exposes_both_approval_and_field_bindings(response_only):
     from application.agent_result import RequestedField
     from application.conversation_state import PendingInteractionState
     from tests.test_approval_revision_lifecycle import pending_state
@@ -273,7 +274,7 @@ def test_one_publication_exposes_both_approval_and_field_bindings():
         assembly = await assembler.assemble(_board(_result(origin.work_item_id, origin.owner_agent)),
             current_message="Proceed", pending_approval=state.pending_approval,
             requested_inputs=(MissingInputSpec("reply", other.work_item_id, "INPUT", "string", "Which option?"),))
-        return SimpleNamespace(managed=SimpleNamespace(board=_board(_result(origin.work_item_id, origin.owner_agent)), plan=SimpleNamespace(response_text=None), state_before=replace(state,
+        return SimpleNamespace(managed=SimpleNamespace(board=_board(_result(origin.work_item_id, origin.owner_agent)), plan=SimpleNamespace(response_text="Status" if response_only else None), state_before=replace(state,
             pending_interaction=None, pending_approval=None), state_after=state),
             assembled=assembly)
     application._turn_runtime.execute = execute

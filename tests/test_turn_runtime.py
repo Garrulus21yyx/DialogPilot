@@ -57,10 +57,12 @@ class _Executor:
 
 
 @pytest.mark.parametrize("published", [False, True])
-def test_conversation_only_reply_reads_retained_proposal_without_representing_it(published):
+@pytest.mark.parametrize("with_input", [False, True])
+def test_conversation_only_reply_retries_only_undelivered_proposal(published, with_input):
     from types import SimpleNamespace
     from application.target_conversation_manager import TargetTurnContext
     from application.conversation_state import PendingApprovalState
+    from application.agent_result import MissingInputSpec
     from application.response_assembly import AssembledResponse, ResponseAssemblyMode
     from tests.test_approval_conversation import domain, call
     from langchain_core.messages import AIMessage
@@ -76,18 +78,30 @@ def test_conversation_only_reply_reads_retained_proposal_without_representing_it
             return AssembledResponse("The proposal has not executed.", ResponseAssemblyMode.TEMPLATE,
                                      (), False, "NOT_REQUIRED", "TEST")
     runtime = TurnRuntime(SimpleNamespace(), Assembler(), interaction_published=lambda *args, **kwargs: published)
-    after = SimpleNamespace(pending_approval=pending, pending_interaction=None)
-    managed = SimpleNamespace(board=None, state_after=after,
-                              plan=SimpleNamespace(response_text="What would the cancellation affect?"))
+    field = SimpleNamespace(field_name="color", target_work_item_id="other",
+        value_schema="string", question_hint="Which color?")
+    pending_input = SimpleNamespace(interaction_id="input", version=1,
+        requested_fields=(field,)) if with_input else None
+    after = SimpleNamespace(pending_approval=pending, pending_interaction=pending_input)
+    managed = SimpleNamespace(board=None, state_after=after, request_completed=False, diagnostics=(),
+                              interaction_questions=(MissingInputSpec("color", "other", "INPUT", "string", "Which color?"),),
+                              plan=SimpleNamespace(response_text="What would the cancellation affect?",
+                                  route=SimpleNamespace(reason_code="TEST", missing_inputs=())))
     asyncio.run(runtime._assemble_response({"managed": managed,
         "prepared": SimpleNamespace(context=TargetTurnContext()),
         "presentation_state": after, "observations": TurnObservations("What would it affect?"),
         "invocation": _identity()}))
-    supplied = calls[0]["conversation_context"]["retained_approval"]
-    assert supplied["action_ref"] == pending.action_ref
-    assert supplied["arguments"] == {arg.name: arg.value for arg in pending.arguments}
-    assert supplied["status"] == "AWAITING_DECISION_NOT_EXECUTED"
-    assert "pending_approval" not in calls[0]  # not selected for a new approval
+    if published:
+        supplied = calls[0]["conversation_context"]["retained_approval"]
+        assert supplied["action_ref"] == pending.action_ref
+        assert supplied["arguments"] == {arg.name: arg.value for arg in pending.arguments}
+        assert supplied["status"] == "AWAITING_DECISION_NOT_EXECUTED"
+        assert "pending_approval" not in calls[0]
+    else:
+        assert calls[0]["pending_approval"] is pending
+        assert calls[0]["response_candidate"] is None
+        assert "retained_approval" not in calls[0]["conversation_context"]
+        assert len(calls[0]["requested_inputs"]) == int(with_input)
     assert after.pending_approval is pending
 
 

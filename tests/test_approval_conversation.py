@@ -141,7 +141,9 @@ def test_approval_presentation_cannot_be_attached_to_unverified_or_changed_text(
 
 
 @pytest.mark.parametrize("first_verification", ["ANSWERED", "LIMITATION"])
-def test_application_publishes_verified_approval_and_can_recover_failed_description(first_verification):
+@pytest.mark.parametrize("reply_only", [False, True])
+@pytest.mark.parametrize("persisted", [False, True])
+def test_application_publishes_verified_approval_and_can_recover_failed_description(first_verification, reply_only, persisted, request):
     from application.chat_contracts import ChatCommand, Completed, NeedsInput
     from application.conversation_state import InMemoryConversationStateStore
     from application.orchestration_runtime import OrchestrationRuntime
@@ -152,11 +154,23 @@ def test_application_publishes_verified_approval_and_can_recover_failed_descript
     from langgraph.checkpoint.memory import InMemorySaver
     from tests.test_target_persistence_and_manager import _ResumeAwareUnderstanding
     from tests.test_target_chat_cutover import _Admission, _Publication
+    from uuid import uuid4
+    conversation_id = "approval-delivery-" + uuid4().hex
+
+    pool = None
+    if persisted:
+        from infrastructure.postgres import PostgresMigrationRunner, PostgresPool, PostgresPoolConfig
+        from infrastructure.postgres_target_runtime import PostgresConversationStateStore
+        url = request.getfixturevalue("postgres_database_url")
+        PostgresMigrationRunner(url).upgrade()
+        pool = PostgresPool(PostgresPoolConfig(url, min_size=1, max_size=2))
+        pool.open()
+        request.addfinalizer(pool.close)
 
     async def run():
         agent, _, _, calls = domain([call("prepare_order_cancel"), AIMessage(content="Pending cancellation."),
                                      AIMessage(content="The cancellation is still pending.")])
-        store = InMemoryConversationStateStore()
+        store = PostgresConversationStateStore(pool) if persisted else InMemoryConversationStateStore()
         manager = TargetConversationManager(state_store=store, registry=agent._registry,
             understanding=_ResumeAwareUnderstanding(TurnProposal(ProposalDisposition.RESOLVED,
                 (CommandProposal("open-order", CommandKind.DELEGATE_TASK, "order_logistics",
@@ -175,14 +189,25 @@ def test_application_publishes_verified_approval_and_can_recover_failed_descript
         app = TargetChatApplication(manager=manager, admission=_Admission(), publication=publication,
             bundle_version=agent._registry.bundle_version,
             response_assembler=ResponseAssembler(composer, knowledge_verifier=verifier))
-        command = ChatCommand(user_id="user-a", conv_id="conversation-a", request_id="request-1",
+        command = ChatCommand(user_id="user-a", conv_id=conversation_id, request_id="request-1",
                               message="Cancel DP1234 and explain its status", tenant_id="tenant-a")
         outcome = await app.handle(command)
         if first_verification != "ANSWERED":
             assert isinstance(outcome, Completed), outcome
             assert publication.questions == []
+            saved = store.load("tenant-a", "user-a", conversation_id).pending_approval
+            assert saved is not None
+            if persisted:
+                manager._state_store = PostgresConversationStateStore(pool)
             verifier.approval_status = "ANSWERED"
+            if reply_only:
+                async def conversational(*args, **kwargs):
+                    return TurnProposal(ProposalDisposition.RESPOND, (), "STATUS_REPLY",
+                        response_text="The cancellation is still waiting.")
+                manager._understanding = conversational
             outcome = await app.handle(replace(command, request_id="request-2", message="Explain the pending cancellation again"))
+            assert outcome.signal_id == saved.approval_id
+            assert store.load("tenant-a", "user-a", conversation_id).pending_approval == saved
         assert isinstance(outcome, NeedsInput), outcome
         assert len(publication.questions) == 1
         question = publication.questions[0]
@@ -192,4 +217,9 @@ def test_application_publishes_verified_approval_and_can_recover_failed_descript
         assert len(calls) == 1
         assert "order.cancel:v1" not in question["challenge"]
         assert "expected_order_version" not in question["challenge"]
+        if first_verification != "ANSWERED" and reply_only:
+            status = await app.handle(replace(command, request_id="request-3", message="Is it still waiting?"))
+            assert isinstance(status, Completed)
+            assert len(publication.questions) == 1
+            assert len(calls) == 1
     asyncio.run(run())

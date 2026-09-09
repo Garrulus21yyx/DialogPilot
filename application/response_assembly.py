@@ -113,7 +113,7 @@ class ResponseAssembler:
             system_notice=system_notice, conversation_context=conversation_context, pending_approval=pending_approval,
             requested_inputs=requested_inputs, response_candidate=response_candidate)
         if requested_inputs and not response.interaction_ready:
-            prelude = _render_board(board, locale=self.fallback_locale)
+            prelude = _render_progress(board, pending_approval, conversation_context, locale=self.fallback_locale)
             notice = _message(self.fallback_locale,
                 "暂时无法组织后续问题，已保留处理进度，请稍后重试。",
                 "I could not prepare the follow-up question. Your progress is saved; please try again later.")
@@ -183,8 +183,10 @@ class ResponseAssembler:
                     return candidate
                 if knowledge_facts or knowledge_failure:
                     if not candidate.diagnostics:
-                        return self._knowledge_fallback(board, system_notice, unavailable=True)
-                    return replace(self._knowledge_fallback(board, system_notice, unavailable=True),
+                        return self._knowledge_fallback(board, system_notice, unavailable=True,
+                            pending_approval=pending_approval, conversation_context=conversation_context)
+                    return replace(self._knowledge_fallback(board, system_notice, unavailable=True,
+                        pending_approval=pending_approval, conversation_context=conversation_context),
                         verification_reason=candidate.verification_reason, retryable=candidate.retryable,
                         diagnostics=candidate.diagnostics)
                 return candidate
@@ -197,7 +199,8 @@ class ResponseAssembler:
                 requested_inputs=requested_inputs, knowledge_evidence=evidence)
             if not candidate.composer_used:
                 if not requested_inputs and (knowledge_facts or knowledge_failure):
-                    return replace(self._knowledge_fallback(board, system_notice, unavailable=True),
+                    return replace(self._knowledge_fallback(board, system_notice, unavailable=True,
+                        pending_approval=pending_approval, conversation_context=conversation_context),
                         verification_reason=candidate.verification_reason, retryable=candidate.retryable,
                         diagnostics=candidate.diagnostics)
                 return candidate
@@ -205,9 +208,11 @@ class ResponseAssembler:
                 failed = self._failed(ValueError(verdict.reason), candidate.text, stage,
                                       code=verdict.reason_code.value)
                 if knowledge_facts or knowledge_failure:
-                    safe = self._knowledge_fallback(board, system_notice, unavailable=True)
+                    safe = self._knowledge_fallback(board, system_notice, unavailable=True,
+                        pending_approval=pending_approval, conversation_context=conversation_context)
                 else:
-                    safe = replace(failed, text=system_notice + _render_board(board, locale=self.fallback_locale))
+                    safe = replace(failed, text=system_notice + _render_progress(
+                        board, pending_approval, conversation_context, locale=self.fallback_locale))
                 return replace(safe, verification_reason=failed.verification_reason,
                                verification_status=verdict.status.value.upper(),
                                evidence_sha256=candidate.evidence_sha256, evidence_json=candidate.evidence_json,
@@ -238,9 +243,11 @@ class ResponseAssembler:
                 evidence_sha256=candidate.evidence_sha256, evidence_json=candidate.evidence_json,
                 knowledge_evidence=used)
         except Exception as exc:
-            failed = self._failed(exc, system_notice + _render_board(board, locale=self.fallback_locale), stage)
+            failed = self._failed(exc, system_notice + _render_progress(
+                board, pending_approval, conversation_context, locale=self.fallback_locale), stage)
             if knowledge_facts or knowledge_failure:
-                return replace(self._knowledge_fallback(board, system_notice, unavailable=True),
+                return replace(self._knowledge_fallback(board, system_notice, unavailable=True,
+                    pending_approval=pending_approval, conversation_context=conversation_context),
                     verification_reason=failed.verification_reason, retryable=failed.retryable,
                     diagnostics=failed.diagnostics)
             return failed
@@ -293,7 +300,8 @@ class ResponseAssembler:
             raise ValueError("verification does not match final answer and evidence")
         return verdict
 
-    def _knowledge_fallback(self, board, notice: str, *, unavailable: bool = False) -> AssembledResponse:
+    def _knowledge_fallback(self, board, notice: str, *, unavailable: bool = False,
+                            pending_approval=None, conversation_context=None) -> AssembledResponse:
         text = (_message(self.fallback_locale,
             "知识查询或核验服务暂时不可用，请稍后重试或联系人工客服。",
             "The information or verification service is temporarily unavailable. Please try again later or contact support.") if unavailable else
@@ -302,7 +310,8 @@ class ResponseAssembler:
             "The available information does not support a reliable conclusion. Please provide relevant details or contact support."))
         # A knowledge publication failure only removes knowledge-dependent claims.
         # Committed effects and independently verified state retain their authority.
-        prefix = _render_board(board, locale=self.fallback_locale, knowledge_safe=True)
+        prefix = _render_progress(board, pending_approval, conversation_context,
+            locale=self.fallback_locale, knowledge_safe=True)
         prefix = prefix + "\n" if prefix else ""
         return AssembledResponse(notice + prefix + text, ResponseAssemblyMode.TEMPLATE, (), False,
                                  "NOT_CHECKED", "KNOWLEDGE_SAFE_ABSTENTION")
@@ -312,7 +321,7 @@ class ResponseAssembler:
     ) -> AssembledResponse:
         claims = _allowed_claims(board, pending_approval, requested_inputs=requested_inputs)
         mode = ResponseAssemblyMode.CONVERSATION_COMPOSE if response_candidate is not None or repair_feedback is not None or pending_approval or requested_inputs or (conversation_context or {}).get("clarification_fields") else self._select_mode(board)
-        fallback = _render_board(board, locale=self.fallback_locale)
+        fallback = _render_progress(board, pending_approval, conversation_context, locale=self.fallback_locale)
         if mode is ResponseAssemblyMode.TEMPLATE or self._composer is None and response_candidate is None:
             return AssembledResponse(
                 system_notice + fallback, ResponseAssemblyMode.TEMPLATE,
@@ -536,7 +545,29 @@ def _message(locale, chinese, english):
     return english if locale == "en" else chinese
 
 
-def _render_board(board, *, locale="zh-CN", knowledge_safe=False) -> str:
+def _render_progress(board, pending_approval=None, conversation_context=None, *, locale="zh-CN", knowledge_safe=False):
+    """An expression failure does not erase the conversation's durable wait.
+
+    This is a status notice, not an approval presentation or grant. In particular,
+    do not render raw arguments or claim all requested operations were prepared.
+    """
+    text = _render_board(board, locale=locale, empty_message=False, knowledge_safe=knowledge_safe)
+    context = conversation_context or {}
+    retained = context.get("retained_approval") or {}
+    if pending_approval is not None or retained.get("status") == "AWAITING_DECISION_NOT_EXECUTED":
+        notice = _message(locale,
+            "待确认的操作仍已保存，尚未执行。本次未能完成详细答复；这不会取消待办或表示操作失败。",
+            "The pending operation is saved and has not executed. I could not complete the detailed reply; the pending request has not been cancelled or marked as failed.")
+        return "\n".join(part for part in (text, notice) if part)
+    if context.get("pending_interaction"):
+        notice = _message(locale,
+            "待补充信息的任务仍已保存。本次未能完成详细答复，处理进度未丢失。",
+            "The task waiting for your input is saved. I could not complete the detailed reply; your progress is retained.")
+        return "\n".join(part for part in (text, notice) if part)
+    return text or ("" if knowledge_safe else _message(locale, "本次未能完成答复。", "I could not complete this reply."))
+
+
+def _render_board(board, *, locale="zh-CN", knowledge_safe=False, empty_message=True) -> str:
     from dataclasses import replace
     sections = []
     current = _current_board_facts(board)
@@ -591,7 +622,7 @@ def _render_board(board, *, locale="zh-CN", knowledge_safe=False) -> str:
             rendered.append(_message(locale, "详细答复暂时未能完成核验。",
                 "The detailed reply could not be verified."))
         sections.extend(rendered)
-    return "\n".join(sections) or ("" if knowledge_safe else _message(locale, "暂时没有可发布的结果。", "No result is available yet."))
+    return "\n".join(sections) or ("" if knowledge_safe or not empty_message else _message(locale, "暂时没有可发布的结果。", "No result is available yet."))
 
 
 def _outcome_pairs(board):

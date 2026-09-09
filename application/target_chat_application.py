@@ -284,11 +284,12 @@ class TargetChatApplication:
 
         pending = managed.state_after.pending_approval
         pending_input = managed.state_after.pending_interaction
-        response_only = managed.plan.response_text is not None
-        present_input = not response_only and pending_input is not None and not self._publication.has_interaction(
+        present_input = pending_input is not None and not self._publication.has_interaction(
             identity, signal_id=pending_input.interaction_id, signal_version=pending_input.version)
-        present_approval = not response_only and pending is not None and not self._publication.has_interaction(
-            identity, signal_id=pending.approval_id, signal_version=pending.version)
+        from application.action_approval import approval_presentation_due
+        present_approval = approval_presentation_due(pending, managed.state_before.pending_approval,
+            published=(self._publication.has_interaction(identity,
+                signal_id=pending.approval_id, signal_version=pending.version) if pending else None))
         assembly = turn_result.assembled
         if pending is not None and assembly is not None and (
             assembly.approval_operation_key == pending.operation_key

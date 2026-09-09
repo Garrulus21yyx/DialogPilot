@@ -57,7 +57,7 @@ class TurnRuntimeResult:
 class TurnRuntime:
     """Coordinate durable turn phases without owning their domain semantics."""
 
-    version = "turn-runtime-v20-native-messages"
+    version = "turn-runtime-v21-approval-delivery"
 
     def __init__(
         self,
@@ -181,13 +181,18 @@ class TurnRuntime:
         response_only = managed.plan.response_text is not None and board is None
         pending_approval = managed.state_after.pending_approval
         previous_approval = presentation_state.pending_approval
-        present_approval = not response_only and pending_approval is not None and (
-            previous_approval is None or
-            (pending_approval.approval_id, pending_approval.version) !=
-            (previous_approval.approval_id, previous_approval.version) or
-            (self._interaction_published is not None and not self._interaction_published(
-                state["invocation"], signal_id=pending_approval.approval_id,
-                signal_version=pending_approval.version)))
+        from application.action_approval import approval_presentation_due
+        present_approval = approval_presentation_due(pending_approval, previous_approval,
+            published=(self._interaction_published(state["invocation"],
+                signal_id=pending_approval.approval_id, signal_version=pending_approval.version)
+                if pending_approval is not None and self._interaction_published is not None else None))
+        pending_input = managed.state_after.pending_interaction
+        present_input = pending_input is not None and (
+            presentation_state.pending_interaction is None
+            or (pending_input.interaction_id, pending_input.version) != (
+                presentation_state.pending_interaction.interaction_id, presentation_state.pending_interaction.version)
+            or self._interaction_published is not None and not self._interaction_published(
+                state["invocation"], signal_id=pending_input.interaction_id, signal_version=pending_input.version))
         if pending_approval is not None and not present_approval:
             context = {**context, "retained_approval": {
                 "action_ref": pending_approval.action_ref,
@@ -195,7 +200,7 @@ class TurnRuntime:
                 "status": "AWAITING_DECISION_NOT_EXECUTED",
                 "presentation": "Answer this turn without soliciting approval again.",
             }}
-        if response_only:
+        if response_only and not present_approval and not present_input:
             # A conversational reply neither presents nor consumes an existing
             # wait. Verify the model's candidate through the same reply boundary.
             context = {**context, "turn_contract": "RESPONSE_ONLY_NO_STATE_CHANGE",
@@ -205,15 +210,8 @@ class TurnRuntime:
                 None, current_message=state["observations"].raw_text,
                 conversation_context=context, response_candidate=managed.plan.response_text)
             return {"assembled": assembled}
-        pending_input = managed.state_after.pending_interaction
         questions = ()
-        if (pending_input is not None and (
-                presentation_state.pending_interaction is None
-                or (pending_input.interaction_id, pending_input.version) != (
-                    presentation_state.pending_interaction.interaction_id,
-                    presentation_state.pending_interaction.version)
-                or self._interaction_published is not None and not self._interaction_published(
-                    state["invocation"], signal_id=pending_input.interaction_id, signal_version=pending_input.version))):
+        if present_input:
             candidates = tuple(spec for item, result in (board.outcome_items if board else ())
                 if result is not None and any(item == original for original in pending_input.suspended_work_items)
                 for spec in result.missing_inputs if spec.required) or managed.interaction_questions
@@ -259,7 +257,9 @@ class TurnRuntime:
             # The existing approval stays in ConversationState unchanged.
             pending_approval=pending_approval if present_approval else None,
             requested_inputs=questions,
-            response_candidate=managed.plan.response_text,
+            # An undelivered interaction must be authored from its persisted
+            # scope, not from a planner reply that did not present that scope.
+            response_candidate=None if present_approval or present_input else managed.plan.response_text,
         )
         assembled = replace(assembled, diagnostics=managed.diagnostics + assembled.diagnostics)
         return {"assembled": assembled}
