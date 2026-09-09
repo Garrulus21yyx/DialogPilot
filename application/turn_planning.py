@@ -17,11 +17,13 @@ from application.capability_registry import (
 from application.conversation_state import ConversationState
 from application.entity_binding import BindingStatus, EntityBinding
 from application.work_item import (
+    ActionSerialization,
     ArgumentValue,
     ControlMode,
     WorkControlBinding,
     WorkItem,
     WorkPlan,
+    WorkPlanPolicy,
 )
 from core.identity import InvocationIdentity
 
@@ -787,7 +789,7 @@ class TurnPlanCompiler:
         )
         from application.work_item import WorkItemContractError
         try:
-            work = WorkPlan(items, items[0].work_item_id) if items else None
+            work = WorkPlan(items, items[0].work_item_id, _compile_work_plan_policy(items)) if items else None
         except WorkItemContractError as exc:
             raise TurnPlanningError(f"invalid command dependency plan: {exc}") from exc
         transitions = tuple(
@@ -984,6 +986,17 @@ def _project_mode(items: tuple[WorkItem, ...]) -> RouteMode:
     if len(owners) == 1 and ControlMode.DIRECT not in modes:
         return RouteMode.AGENT_TASK
     return RouteMode.MIXED
+
+
+def _compile_work_plan_policy(items: tuple[WorkItem, ...]) -> WorkPlanPolicy:
+    return WorkPlanPolicy(
+        action_serialization=(
+            ActionSerialization.ONE_PENDING_ACTION_PER_CONVERSATION
+            if any(item.allowed_actions or item.control_mode in {ControlMode.ACTION, ControlMode.WORKFLOW}
+                   for item in items)
+            else ActionSerialization.NONE
+        )
+    )
 
 
 def _risk_rank(value: CapabilityRisk) -> int:

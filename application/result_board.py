@@ -4,7 +4,13 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 
 from application.agent_result import AgentResult, AgentResultStatus, FactRecord, FactSourceKind, merge_facts
-from application.work_item import WorkItem, WorkPlan
+from application.work_item import (
+    DependencySatisfaction,
+    MissingDependencyOutcome,
+    PartialDeliveryPolicy,
+    WorkItem,
+    WorkPlan,
+)
 
 
 class ResultBoardError(ValueError):
@@ -129,13 +135,15 @@ class ResultBoard:
         effective_by_id = dict(by_id)
         # Topological evaluation propagates a failed dependency through the whole
         # graph, independent of plan declaration or worker completion order.
+        if plan.policy.missing_dependency_outcome is not MissingDependencyOutcome.BLOCK:
+            raise ResultBoardError("unsupported missing dependency outcome policy")
         for item in (item for wave in plan.execution_waves() for item in wave):
             if item.work_item_id in by_id:
                 continue
             failed_dependencies = tuple(
                 dependency for dependency in item.dependencies
                 if dependency in effective_by_id and not self._dependency_satisfied(
-                    items[dependency], effective_by_id[dependency], affected[dependency])
+                    items[dependency], effective_by_id[dependency], affected[dependency], plan)
             )
             if failed_dependencies and all(
                 dependency in effective_by_id and effective_by_id[dependency].status in _TERMINAL
@@ -161,7 +169,7 @@ class ResultBoard:
             if item.work_item_id not in effective_by_id
             and all(
                 dependency in effective_by_id
-                and self._dependency_satisfied(items[dependency], effective_by_id[dependency], affected[dependency])
+                and self._dependency_satisfied(items[dependency], effective_by_id[dependency], affected[dependency], plan)
                 for dependency in item.dependencies
             )
         )
@@ -175,6 +183,8 @@ class ResultBoard:
             tuple(effective), all_facts, ready, tuple(blocked), missing, conflicts,
             complete, False, work_items=plan.items, retained_outcomes=retained_outcomes)
         coverage = [snapshot.coverage_for(item, result) for item, result in outcomes]
+        if plan.policy.partial_delivery is not PartialDeliveryPolicy.DELIVERABLE_OUTCOMES_ONLY:
+            raise ResultBoardError("unsupported partial delivery policy")
         return replace(snapshot, partial_delivery_allowed=(
             any(row["deliverable"] for row in coverage)
             and any(not row["task_completed"] for row in coverage)))
@@ -188,8 +198,10 @@ class ResultBoard:
         return set(item.requirement_ids).difference(supplied)
 
     @classmethod
-    def _dependency_satisfied(cls, item, result, conflicts):
+    def _dependency_satisfied(cls, item, result, conflicts, plan: WorkPlan | None = None):
         """A task-ID edge means successful completion, not partial progress."""
+        if plan is not None and plan.policy.dependency_satisfaction is not DependencySatisfaction.SUCCESS_WITH_COVERAGE:
+            raise ResultBoardError("unsupported dependency satisfaction policy")
         return (result.status is AgentResultStatus.SUCCEEDED and not cls._missing(item, result)
                 and not conflicts)
 

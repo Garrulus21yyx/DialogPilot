@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import operator
 import time
 from collections import Counter
 from dataclasses import dataclass, field, replace
@@ -21,7 +20,7 @@ from application.agent_result import (
     FactRecord,
 )
 from application.result_board import ResultBoard, ResultBoardSnapshot, current_facts
-from application.work_item import ControlMode, WorkItem, WorkPlan
+from application.work_item import ActionSerialization, ControlMode, WorkItem, WorkPlan, WorkPlanPolicy
 from application.work_control import WorkControlGuard, WorkSuperseded
 from application.conversation_state import PendingApprovalState
 
@@ -51,10 +50,29 @@ def _merge_checkpoint_outcomes(left, right):
 
 def _unreplaced_outcomes(previous, plan):
     """One revision rule for fresh observation graphs and resumed graphs."""
-    return tuple((item, result) for item, result in previous
-        if not any(item == new or (
-            item.control and new.control and item.control.control_id == new.control.control_id
-            and item.control.revision < new.control.revision) for new in plan.items))
+    return plan.unreplaced_outcomes(previous)
+
+
+def _merge_agent_results(left, right):
+    """Reducer for one plan-bound execution stream.
+
+    LangGraph may replay a completed update after checkpoint recovery. The same
+    result for the same runnable work is idempotent; a different result for that
+    identity is a checkpoint/executor conflict and must not be hidden by order.
+    """
+    merged: dict[str, AgentResult] = {}
+    order: list[str] = []
+    for result in (*tuple(left or ()), *tuple(right or ())):
+        key = result.work_item_id
+        prior = merged.get(key)
+        if prior is None:
+            merged[key] = result
+            order.append(key)
+        elif prior != result:
+            raise OrchestrationRuntimeError(
+                "conflicting results for the same plan-bound work item"
+            )
+    return [merged[key] for key in order]
 
 
 @dataclass(frozen=True)
@@ -98,7 +116,7 @@ class ParentGraphState(TypedDict, total=False):
     evidence_refs: tuple[str, ...]
     token_budget: int
     ready_items: tuple[WorkItem, ...]
-    agent_results: Annotated[list[AgentResult], operator.add]
+    agent_results: Annotated[list[AgentResult], _merge_agent_results]
     facts: tuple[FactRecord, ...]
     board: ResultBoardSnapshot
     trusted_context: Mapping[str, object]
@@ -207,6 +225,9 @@ class OrchestrationRuntime:
     def _ready_wave(state: ParentGraphState):
         # One conversation approval slot: serialize action-capable workers,
         # while independent read-only work remains parallel.
+        plan = state["work_plan"]
+        if plan.policy.action_serialization is ActionSerialization.NONE:
+            return tuple(state.get("ready_items", ()))
         action_busy = any(result.status is AgentResultStatus.WAITING_APPROVAL
                           for result in state.get("agent_results", ()))
         ready = []
@@ -563,8 +584,8 @@ class OrchestrationRuntime:
         if self._checkpointer is not None:
             snapshot = await self.graph.aget_state(config)
             if snapshot.values:
-                if snapshot.values.get("work_plan_fingerprint") != _work_plan_fingerprint(
-                    work_plan
+                if not _checkpoint_matches_work_plan(
+                    snapshot.values.get("work_plan_fingerprint"), work_plan,
                 ):
                     raise OrchestrationRuntimeError(
                         "checkpoint thread is bound to another work plan"
@@ -605,7 +626,7 @@ class OrchestrationRuntime:
             raise OrchestrationRuntimeError("resume supports only the conversation's two distinct waits")
         config = {"configurable": {"thread_id": thread_id}}
         snapshot = await self.graph.aget_state(config)
-        if snapshot.values.get("work_plan_fingerprint") == _work_plan_fingerprint(work_plan):
+        if _checkpoint_matches_work_plan(snapshot.values.get("work_plan_fingerprint"), work_plan):
             if set(source_thread_ids).difference(snapshot.values.get("imported_source_threads", ())):
                 raise OrchestrationRuntimeError("checkpoint replay cannot add an unaccepted source")
             # This continuation was already accepted before its caller stopped.
@@ -689,6 +710,16 @@ class OrchestrationRuntime:
 
 
 def _work_plan_fingerprint(plan: WorkPlan) -> str:
+    return plan.fingerprint
+
+
+def _checkpoint_matches_work_plan(stored: object, plan: WorkPlan) -> bool:
+    if stored == plan.fingerprint:
+        return True
+    return stored == _legacy_work_plan_fingerprint(plan) and _legacy_policy_compatible(plan)
+
+
+def _legacy_work_plan_fingerprint(plan: WorkPlan) -> str:
     raw = json.dumps(
         {
             "primary": plan.primary_work_item_id,
@@ -698,6 +729,27 @@ def _work_plan_fingerprint(plan: WorkPlan) -> str:
         separators=(",", ":"),
     ).encode("utf-8")
     return "work-plan:v1:" + hashlib.sha256(raw).hexdigest()
+
+
+def _legacy_policy_compatible(plan: WorkPlan) -> bool:
+    default = WorkPlanPolicy.default()
+    comparable = WorkPlanPolicy(
+        plan.policy.dependency_satisfaction,
+        default.action_serialization,
+        plan.policy.missing_dependency_outcome,
+        plan.policy.retained_outcome_scope,
+        plan.policy.partial_delivery,
+    )
+    if comparable != default:
+        return False
+    action_capable = any(
+        item.allowed_actions or item.control_mode in {ControlMode.ACTION, ControlMode.WORKFLOW}
+        for item in plan.items
+    )
+    return (
+        plan.policy.action_serialization is ActionSerialization.ONE_PENDING_ACTION_PER_CONVERSATION
+        if action_capable else True
+    )
 
 
 def _closed_outcome(item: WorkItem, result: AgentResult | None) -> AgentResult:

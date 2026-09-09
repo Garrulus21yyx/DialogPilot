@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Iterable
 
@@ -35,6 +35,61 @@ class ControlMode(str, Enum):
     DELEGATED = "DELEGATED"
     WORKFLOW = "WORKFLOW"
     ACTION = "ACTION"
+
+
+class DependencySatisfaction(str, Enum):
+    SUCCESS_WITH_COVERAGE = "SUCCESS_WITH_COVERAGE"
+
+
+class ActionSerialization(str, Enum):
+    NONE = "NONE"
+    ONE_PENDING_ACTION_PER_CONVERSATION = "ONE_PENDING_ACTION_PER_CONVERSATION"
+
+
+class MissingDependencyOutcome(str, Enum):
+    BLOCK = "BLOCK"
+
+
+class RetainedOutcomeScope(str, Enum):
+    CONTROL_REVISION = "CONTROL_REVISION"
+
+
+class PartialDeliveryPolicy(str, Enum):
+    DELIVERABLE_OUTCOMES_ONLY = "DELIVERABLE_OUTCOMES_ONLY"
+
+
+@dataclass(frozen=True)
+class WorkPlanPolicy:
+    """Execution contract fixed by the compiler, not selected by the model."""
+
+    dependency_satisfaction: DependencySatisfaction = DependencySatisfaction.SUCCESS_WITH_COVERAGE
+    action_serialization: ActionSerialization = ActionSerialization.ONE_PENDING_ACTION_PER_CONVERSATION
+    missing_dependency_outcome: MissingDependencyOutcome = MissingDependencyOutcome.BLOCK
+    retained_outcome_scope: RetainedOutcomeScope = RetainedOutcomeScope.CONTROL_REVISION
+    partial_delivery: PartialDeliveryPolicy = PartialDeliveryPolicy.DELIVERABLE_OUTCOMES_ONLY
+
+    @classmethod
+    def default(cls) -> "WorkPlanPolicy":
+        return cls()
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "dependency_satisfaction", DependencySatisfaction(self.dependency_satisfaction))
+        object.__setattr__(self, "action_serialization", ActionSerialization(self.action_serialization))
+        object.__setattr__(self, "missing_dependency_outcome", MissingDependencyOutcome(self.missing_dependency_outcome))
+        object.__setattr__(self, "retained_outcome_scope", RetainedOutcomeScope(self.retained_outcome_scope))
+        object.__setattr__(self, "partial_delivery", PartialDeliveryPolicy(self.partial_delivery))
+
+    @property
+    def fingerprint(self) -> str:
+        payload = {
+            "dependency_satisfaction": self.dependency_satisfaction.value,
+            "action_serialization": self.action_serialization.value,
+            "missing_dependency_outcome": self.missing_dependency_outcome.value,
+            "retained_outcome_scope": self.retained_outcome_scope.value,
+            "partial_delivery": self.partial_delivery.value,
+        }
+        raw = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        return "work-plan-policy:v1:" + hashlib.sha256(raw).hexdigest()
 
 
 @dataclass(frozen=True)
@@ -323,9 +378,11 @@ class WorkItem:
 class WorkPlan:
     items: tuple[WorkItem, ...]
     primary_work_item_id: str
+    policy: WorkPlanPolicy = field(default_factory=WorkPlanPolicy.default)
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "items", tuple(self.items))
+        object.__setattr__(self, "policy", _coerce_work_plan_policy(self.policy))
         if not self.items:
             raise WorkItemContractError("work plan requires items")
         ids = tuple(item.work_item_id for item in self.items)
@@ -336,6 +393,30 @@ class WorkPlan:
         if any(set(item.dependencies).difference(known) for item in self.items):
             raise WorkItemContractError("work item depends on an unknown item")
         self.execution_waves()
+
+    @property
+    def fingerprint(self) -> str:
+        raw = json.dumps(
+            {
+                "primary": self.primary_work_item_id,
+                "items": [item.fingerprint for item in self.items],
+                "policy": self.policy.fingerprint,
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+        return "work-plan:v1:" + hashlib.sha256(raw).hexdigest()
+
+    def unreplaced_outcomes(
+        self,
+        previous: tuple[tuple[WorkItem, object], ...],
+    ) -> tuple[tuple[WorkItem, object], ...]:
+        if self.policy.retained_outcome_scope is not RetainedOutcomeScope.CONTROL_REVISION:
+            raise WorkItemContractError("unsupported retained outcome scope")
+        return tuple((item, result) for item, result in previous
+            if not any(item == new or (
+                item.control and new.control and item.control.control_id == new.control.control_id
+                and item.control.revision < new.control.revision) for new in self.items))
 
     def execution_waves(
         self,
@@ -382,3 +463,17 @@ def _unique(values: object, label: str) -> None:
         raise WorkItemContractError(f"{label} must not contain blank values")
     if len(materialized) != len(set(materialized)):
         raise WorkItemContractError(f"{label} must be unique")
+
+
+def _coerce_work_plan_policy(value: object) -> WorkPlanPolicy:
+    if isinstance(value, WorkPlanPolicy):
+        return WorkPlanPolicy(
+            value.dependency_satisfaction,
+            value.action_serialization,
+            value.missing_dependency_outcome,
+            value.retained_outcome_scope,
+            value.partial_delivery,
+        )
+    if isinstance(value, dict):
+        return WorkPlanPolicy(**value)
+    raise WorkItemContractError("work plan policy is invalid")
