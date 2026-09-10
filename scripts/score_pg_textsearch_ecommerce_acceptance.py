@@ -1,6 +1,7 @@
 """Score pg_textsearch ecommerce evidence with the frozen source-span qrels."""
 from __future__ import annotations
 
+import argparse
 import gzip
 import json
 from pathlib import Path
@@ -9,7 +10,7 @@ from mcp.document_chunker import DocumentChunker
 from scripts.report_ecommerce_complex import covers, metrics
 
 
-ROOT = Path("artifacts/eval/pg-textsearch-ecommerce40-v3-2026-09-09")
+DEFAULT_ROOT = Path("artifacts/eval/pg-textsearch-ecommerce40-v3-2026-09-09")
 GOLD = {
     row["id"]: row
     for row in json.loads(Path("data/eval/ecommerce-complex-v2/dev.gold.json").read_text())
@@ -22,8 +23,8 @@ DOCS = {
 }
 
 
-def main():
-    rows = [json.loads(line) for line in gzip.open(ROOT / "pure-cases.jsonl.gz", "rt")]
+def main(root: Path = DEFAULT_ROOT):
+    rows = [json.loads(line) for line in gzip.open(root / "pure-cases.jsonl.gz", "rt")]
     assert len(rows) == 40 and {row["id"] for row in rows} == set(GOLD)
     universe = []
     for source_id in {
@@ -91,10 +92,12 @@ def main():
         "api_calls": 0,
         "scope": "actual retrieval, local CE, packing, ToolMessage; no answer generation",
     }
-    (ROOT / "scored.json").write_text(json.dumps(scored, ensure_ascii=False, indent=2) + "\n")
-    (ROOT / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
+    (root / "scored.json").write_text(json.dumps(scored, ensure_ascii=False, indent=2) + "\n")
+    (root / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
     print(json.dumps(report, ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--root", type=Path, default=DEFAULT_ROOT)
+    main(parser.parse_args().root)

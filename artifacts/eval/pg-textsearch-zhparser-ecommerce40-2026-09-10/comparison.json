@@ -1,0 +1,101 @@
+{
+  "cases": 40,
+  "baseline": "PG_FTS_ZH_V1",
+  "candidate": "PG_TEXTSEARCH_1_4_0_ZHPARSER_2_3",
+  "stages": {
+    "candidate": {
+      "fts": {
+        "complete_r5": 0.6,
+        "unit_r5": 0.8416666666666666,
+        "complete_r20": 1.0,
+        "unit_r20": 1.0,
+        "mrr5": 0.8625,
+        "ndcg5": 0.7664263477534081
+      },
+      "zhparser_bm25": {
+        "complete_r5": 0.6,
+        "unit_r5": 0.8666666666666666,
+        "complete_r20": 1.0,
+        "unit_r20": 1.0,
+        "mrr5": 0.8875,
+        "ndcg5": 0.8180956858540404
+      },
+      "complete_r5_rescued": [
+        "cx-19-4",
+        "cx-22-1",
+        "cx-28-2"
+      ],
+      "complete_r5_hurt": [
+        "cx-19-1",
+        "cx-25-3",
+        "cx-25-4"
+      ]
+    },
+    "rerank": {
+      "fts": {
+        "complete_r5": 0.825,
+        "unit_r5": 0.9416666666666667,
+        "complete_r20": 1.0,
+        "unit_r20": 1.0,
+        "mrr5": 0.9583333333333334,
+        "ndcg5": 0.8965460757507111
+      },
+      "zhparser_bm25": {
+        "complete_r5": 0.825,
+        "unit_r5": 0.9416666666666667,
+        "complete_r20": 1.0,
+        "unit_r20": 1.0,
+        "mrr5": 0.9583333333333334,
+        "ndcg5": 0.8965460757507111
+      },
+      "complete_r5_rescued": [],
+      "complete_r5_hurt": []
+    },
+    "wire": {
+      "fts": {
+        "complete_r5": 0.825,
+        "unit_r5": 0.9416666666666667,
+        "complete_r20": 0.825,
+        "unit_r20": 0.9416666666666667,
+        "mrr5": 0.9583333333333334,
+        "ndcg5": 0.8965460757507111
+      },
+      "zhparser_bm25": {
+        "complete_r5": 0.825,
+        "unit_r5": 0.9416666666666667,
+        "complete_r20": 0.825,
+        "unit_r20": 0.9416666666666667,
+        "mrr5": 0.9583333333333334,
+        "ndcg5": 0.8965460757507111
+      },
+      "complete_r5_rescued": [],
+      "complete_r5_hurt": []
+    }
+  },
+  "latency": {
+    "scope": "full retrieval through local CE, pack and ToolMessage; separate runs on the same host",
+    "fts_p50_ms": 1188.7767082080245,
+    "fts_p95_ms": 1453.8996629416943,
+    "zhparser_bm25_p50_ms": 353.6674343049526,
+    "zhparser_bm25_p95_ms": 375.48490427434444,
+    "p50_speedup": 3.3612840564307995,
+    "candidate_lexical_p50_ms": 50.21541099995375,
+    "candidate_lexical_p95_ms": 53.73971909284592
+  },
+  "cost": {
+    "api_calls": 0,
+    "index_build_ms": 1429.8335295170546,
+    "index_size_bytes": 5390336,
+    "index_rows": 11590,
+    "query_lexemes": {
+      "query_lexemes_min": 12,
+      "query_lexemes_median": 22.0,
+      "query_lexemes_max": 34
+    }
+  },
+  "decision": {
+    "pre_registered_gate_passed": true,
+    "production_switched": false,
+    "reason": "Consumed development cases; fresh held-out and concurrent authorization/lifecycle acceptance remain required."
+  }
+}

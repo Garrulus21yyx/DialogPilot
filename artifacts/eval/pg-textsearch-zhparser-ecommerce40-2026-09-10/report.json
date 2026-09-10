@@ -1,0 +1,37 @@
+{
+  "cases": 40,
+  "summary": {
+    "candidate": {
+      "complete_r5": 0.6,
+      "unit_r5": 0.8666666666666666,
+      "complete_r20": 1.0,
+      "unit_r20": 1.0,
+      "mrr5": 0.8875,
+      "ndcg5": 0.8180956858540404
+    },
+    "rerank": {
+      "complete_r5": 0.825,
+      "unit_r5": 0.9416666666666667,
+      "complete_r20": 1.0,
+      "unit_r20": 1.0,
+      "mrr5": 0.9583333333333334,
+      "ndcg5": 0.8965460757507111
+    },
+    "wire": {
+      "complete_r5": 0.825,
+      "unit_r5": 0.9416666666666667,
+      "complete_r20": 0.825,
+      "unit_r20": 0.9416666666666667,
+      "mrr5": 0.9583333333333334,
+      "ndcg5": 0.8965460757507111
+    }
+  },
+  "failures": [],
+  "wrong_scope_chunks": 0,
+  "median_full_retrieval_wire_ms": [
+    353.6238633096218,
+    353.71100530028343
+  ],
+  "api_calls": 0,
+  "scope": "actual retrieval, local CE, packing, ToolMessage; no answer generation"
+}

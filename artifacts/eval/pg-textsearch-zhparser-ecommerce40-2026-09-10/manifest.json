@@ -1,0 +1,37 @@
+{
+  "head": "7022eb4a88893b120a698653e1a54dc98872d68e",
+  "actual_lexical_ranker": "PG_TEXTSEARCH_1_4_0_ZHPARSER_2_3",
+  "database_image": "PostgreSQL-18 + pgvector-0.8.6 + pg_textsearch-1.4.0 + zhparser-2.3 + SCWS-1.2.3",
+  "cases": 40,
+  "documents": 6287,
+  "api_calls": 0,
+  "statement_timeout_ms": 750,
+  "embedding_counts": {
+    "new_documents": 6978,
+    "document_hits": 4612,
+    "new_queries": 52,
+    "query_hits": 18
+  },
+  "index": {
+    "name": "retrieval.knowledge_zh_bm25_82051f4eb7b763df974c",
+    "generation_id": "knowledge-generation-11d19bbee51e90d8d331abdad9937b91",
+    "rows": 11590,
+    "build_ms": 1429.8335295170546,
+    "size_bytes": 5390336
+  },
+  "lexical": {
+    "attempts": 70,
+    "ok": 70,
+    "p50_ms": 50.21541099995375,
+    "p95_ms": 53.73971909284592,
+    "query_lexemes_min": 12,
+    "query_lexemes_median": 22.0,
+    "query_lexemes_max": 34
+  },
+  "hashes": {
+    "artifacts/eval/ecommerce-complex-v2-scoped-corpus-v2/corpus.json": "264eda8969d454972c586e8b8af903d12489ce199a6b48211d52175449939ed3",
+    "data/eval/ecommerce-complex-v2/dev.inputs.json": "17123a0279b0b69263daee1e6accf35c7465dfad9ec2d0b3bba07719ba35bef3",
+    "artifacts/eval/ecommerce-complex-v2-dev/runtime/pure-cases.jsonl.gz": "72610b6ec8e124ad20400b91f6025f31bb7241e7a6cdbed1df63b2525250920f",
+    "/home/yang/DialogPilot/scripts/run_pg_textsearch_zhparser_ecommerce_acceptance.py": "83de06e2c76a620be3c42b878c9742538c7f86b2a2faa885e7522c17f32f6ac4"
+  }
+}
