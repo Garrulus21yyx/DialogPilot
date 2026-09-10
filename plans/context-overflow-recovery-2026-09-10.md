@@ -2,6 +2,25 @@
 
 Status: implementation and deterministic boundary validation complete; business closure open.
 
+## Authorized task20 rerun
+
+2026-09-10: user requested the real rerun. Hypothesis: repaired archive/summary/
+model-step recovery lets the original task reach approval and execution without
+archive reread thrashing. Fixed train task20, seed 300, max_steps 80, same configured
+models, no completion-budget override. One attempt, not heldout. Record tool counts,
+repeated reads, context errors, real writes, reply correctness and ALL/ENV/ACTION
+separately. Output: artifacts/eval/tau3-task20-context-recovery-2026-09-10.
+Current worktree hashes are recorded by the runner; pending observability changes
+remain present, so this is a current-chain regression, not an isolated ablation.
+Status: completed, normal user_stop. ALL/ENV/ACTION all 1, DB matched. Four items
+updated once, gift-card charge $71.96. Trajectory 54 messages versus prior 82;
+business calls 22 versus 34; identical-call repetitions 7 versus 19. Remaining
+public internal IDs, stiff approval language and response-review revisions are
+retained in the report. No production edits or prompt changes during the run.
+No recorded context/step terminal error, but this run alone does not prove that
+reactive compaction was triggered. See
+`artifacts/eval/tau3-task20-context-recovery-2026-09-10/report.md`.
+
 ## Causal model
 
 Two distinct failures share an incomplete context lifecycle: planner admission
