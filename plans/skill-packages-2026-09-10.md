@@ -21,7 +21,8 @@ already belong to AgentDefinition. First package: product-upgrade comparison.
 - done: replaced disconnected loader, connected lazy package reads, removed four
   stale role prompts and obsolete prompt-size configuration.
 - done: documentation and tests; 106 passed with real PostgreSQL on 2026-09-10.
-- in_progress: scoped commit/push; unrelated working-tree changes excluded.
+- done: implementation committed and pushed as 5989aed to
+  feat/customer-service-target-architecture; unrelated working-tree changes excluded.
 
 ## Acceptance
 
