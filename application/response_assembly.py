@@ -60,7 +60,7 @@ class AssembledResponse:
     def interaction_ready(self) -> bool:
         """Bound question integrity is not an attestation of factual support."""
         return self.verified or (self.verification_status == "NOT_REQUIRED"
-            and self.verification_reason in {"BOUND_QUESTION_NO_MODEL_REVIEW", "PREPARED_SCOPE_RENDERED"}
+            and self.verification_reason == "BOUND_QUESTION_NO_MODEL_REVIEW"
             and bool(self.verified_text_sha256))
 
     def __post_init__(self) -> None:
@@ -82,7 +82,7 @@ class ConversationComposer(Protocol):
 class ResponseAssembler:
     """Choose the cheapest valid response path and verify the final candidate."""
 
-    version = "response-assembler-v17-tool-owned-result-presentation"
+    version = "response-assembler-v18-unified-approval-presentation"
 
     def __init__(self, composer: ConversationComposer | None = None, *,
                  knowledge_verifier=None, knowledge_source_validator=None, knowledge_reuse_validator=None,
@@ -150,47 +150,6 @@ class ResponseAssembler:
                     False, "PASS", "EXECUTION_STATUS_RENDERED",
                     verified_text_sha256=hashlib.sha256(text.encode()).hexdigest(),
                     evidence_sha256=hashlib.sha256(evidence.encode()).hexdigest(), evidence_json=evidence)
-
-        if pending_approval or any(r.prepared_actions for r in board.results):
-            from application.approval_presentation import render_approval_scope
-            claims = _allowed_claims(board, pending_approval)
-            operations = [claim.value for claim in claims if claim.kind == "PENDING_ACTION"]
-            card = render_approval_scope(operations, locale=self.fallback_locale,
-                                         action_semantics=self._action_semantics, registry=self._registry)
-            # Independent outcomes retain their own response/support path. The
-            # scope card itself is rendered from data, never judged or rewritten.
-            input_ids = {spec.target_work_item_id for spec in requested_inputs}
-            # Strip only interaction proposals, not the facts/receipts in the
-            # same domain result. Preparing a change does not erase a read answer.
-            others = tuple(replace(r, pending_action=None, additional_actions=(), candidate_response=None)
-                if r.prepared_actions or r.work_item_id in input_ids else r
-                for r in board.results if r.facts or r.action_receipts or (
-                    not r.prepared_actions and r.status is not AgentResultStatus.WAITING_APPROVAL
-                    and r.work_item_id not in input_ids))
-            ids = {r.work_item_id for r in others}
-            independent = replace(board, results=others,
-                work_items=tuple(w for w in board.work_items if w.work_item_id in ids))
-            extra = (await self._assemble(independent, current_message=current_message,
-                conversation_context={**(conversation_context or {}), "retained_approval": {
-                    "operations": operations, "status": "AWAITING_DECISION_NOT_EXECUTED",
-                    "presentation": "A runtime confirmation card follows separately. Explain results; do not ask execution approval."}})
-                if others or board.retained_outcomes else None)
-            questions = "\n".join(spec.question_hint.strip() for spec in requested_inputs)
-            # Questions collect data, not grants. Keep them separate and place
-            # the exact, explicit execution scope last so prose cannot extend it.
-            text = system_notice + "\n\n".join(part for part in (
-                extra.text if extra else "",
-                (_message(self.fallback_locale, "另外需要补充的信息（不构成执行批准）：", "Additional information (not execution approval):")
-                 + "\n" + questions) if questions else "", card) if part)
-            evidence = json.dumps(_response_context(board, pending_approval, requested_inputs,
-                conversation_context, registry=self._registry, action_semantics=self._action_semantics),
-                ensure_ascii=False, sort_keys=True)
-            return AssembledResponse(text, ResponseAssemblyMode.TEMPLATE, _evidence_refs(board),
-                bool(extra and extra.composer_used), "NOT_REQUIRED", "PREPARED_SCOPE_RENDERED",
-                verified_text_sha256=hashlib.sha256(text.encode()).hexdigest(),
-                diagnostics=extra.diagnostics if extra else (),
-                evidence_json=evidence, evidence_sha256=hashlib.sha256(evidence.encode()).hexdigest(),
-                knowledge_evidence=extra.knowledge_evidence if extra else ())
 
         if (requested_inputs and pending_approval is None and response_candidate is None
                 and all(r.status is AgentResultStatus.NEEDS_USER_INPUT for r in board.all_results)

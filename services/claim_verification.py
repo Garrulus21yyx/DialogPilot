@@ -95,8 +95,12 @@ Customer citations must identify supplied evidence, not internal function/tool n
 identifiers. Exposing those as citations or dumping internal parameter JSON does not satisfy answered=true.
 Lack of a tool or missing policy detail does not establish that an alternative service channel is
 impossible, nor that an unspecified detail will be provided later. State those limits without inventing policy.
-Approval scope and its confirmation card are owned by the runtime, not by this review.
-Assess independent factual claims and explanations only. Do not require a second confirmation,
+Approval scope is owned by the runtime; pending_actions is the complete selected set.
+The supplied answer is the entire customer reply: no separate confirmation card follows.
+When pending_actions is nonempty, check that it explains the selected changes and material payment terms using supplied facts,
+keeps unprepared work separate, and asks for approval without claiming execution.
+Natural product names/options may express item IDs; internal identifiers need not be repeated.
+Do not require a second confirmation,
 verbatim address components, or preparation of future operations as a condition for answering.
 Previously presented approvals remain unexecuted evidence, but need not be solicited again.
 A field question does not cancel a separately presented approval.

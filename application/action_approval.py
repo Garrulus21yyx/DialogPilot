@@ -85,6 +85,12 @@ def reply_presentation_instruction(context):
                     "An outcome's observed_segment describes only the latest worker segment; "
                     "WAITING_APPROVAL does not mean its entire requested objective is prepared. "
                     "Only pending_actions identifies the operations presented for approval.")
+    if context.get("pending_actions"):
+        instruction += (" Present these operations and independent results in one coherent reply; no separate "
+                        "confirmation card will be appended. Explain item changes using supplied product names "
+                        "and options rather than a list of old/new item IDs. Preserve the exact scope and "
+                        "supported payment terms. Ask once for approval of the selected set, while keeping "
+                        "any independent missing-information question distinct.")
     execution = context.get("turn_execution") or {}
     if execution.get("continues_after_reply") is False:
         instruction += (
@@ -94,6 +100,10 @@ def reply_presentation_instruction(context):
             "approval when supplied, explaining that continuation requires that input. "
             "Do not promise autonomous continuation, a later update or a future confirmation. "
             "A possible next step is not a scheduled action.")
+        if context.get("pending_actions"):
+            instruction += (" Waiting for the selected approval is a normal continuation point, "
+                            "not inability to perform the prepared operation. Explain that it has "
+                            "not executed and can proceed after approval, not that you cannot continue.")
     return instruction
 
 

@@ -65,17 +65,20 @@ def test_every_prepared_member_survives_state_approval_and_compilation(count):
 
 
 @pytest.mark.parametrize("count", [1, 2, 4])
-def test_confirmation_is_complete_without_author_or_semantic_judge(count):
+def test_confirmation_preserves_each_member_in_one_author_and_review(count):
     _, _, result, state = prepared(count)
-    class MustNotCall:
-        async def compose(self, *args, **kwargs):
-            pytest.fail("scope presentation does not need another author")
-        async def verify(self, *args, **kwargs):
-            pytest.fail("scope presentation does not need a semantic judge")
-    response = asyncio.run(ResponseAssembler(MustNotCall(), knowledge_verifier=MustNotCall(),
+    from tests.test_response_assembly import _Composer
+    from tests.test_knowledge_answer_boundary import Verifier
+    composer = _Composer(lambda p: "Cancel orders " + ", ".join(
+        action["arguments"]["order_id"] for action in p["evidence"]["pending_actions"])
+        + "? None has been cancelled yet.")
+    verifier = Verifier(True)
+    response = asyncio.run(ResponseAssembler(composer, knowledge_verifier=verifier,
         fallback_locale="en").assemble(_board(replace(result, facts=())), current_message="please do all",
                                       pending_approval=state.pending_approval))
-    assert response.interaction_ready and not response.verified
+    assert response.interaction_ready and response.verified
+    assert len(composer.calls) == len(verifier.calls) == 1
+    assert len(composer.calls[0]["evidence"]["pending_actions"]) == count
     assert response.approval_operation_key == state.pending_approval.scope_key
     for action in result.prepared_actions:
         assert next(a.value for a in action.arguments if a.name == "order_id") in response.text
@@ -94,16 +97,20 @@ def test_scope_key_changes_with_any_member_parameters():
 
 def test_separate_question_is_not_part_of_the_execution_confirmation():
     from application.agent_result import MissingInputSpec
+    from tests.test_response_assembly import _Composer
+    from tests.test_knowledge_answer_boundary import Verifier
     _, _, result, state = prepared(2)
     question = MissingInputSpec("reply", "other", "INPUT", "string",
         "Which option? Do you also approve order OTHER?")
-    response = asyncio.run(ResponseAssembler(fallback_locale="en").assemble(
+    composer = _Composer("Shall I cancel DP1000 and DP1001? Neither has executed. Separately, which option for OTHER?")
+    response = asyncio.run(ResponseAssembler(composer, knowledge_verifier=Verifier(True), fallback_locale="en").assemble(
         _board(replace(result, facts=())), current_message="continue",
         pending_approval=state.pending_approval, requested_inputs=(question,)))
     assert response.interaction_ready
-    before, card = response.text.split("Please confirm these changes", 1)
-    assert "not execution approval" in before and question.question_hint in before
-    assert "OTHER" not in card
+    evidence = composer.calls[0]["evidence"]
+    assert evidence["requested_inputs"][0]["question_hint"] == question.question_hint
+    assert all(action["arguments"]["order_id"] != "OTHER" for action in evidence["pending_actions"])
+    assert response.text == composer.response
     assert response.approval_operation_key == state.pending_approval.scope_key
 
 

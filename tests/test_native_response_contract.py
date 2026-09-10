@@ -52,15 +52,14 @@ def test_selected_approval_presentation_is_independent_of_other_input(has_input,
     verifier = ApprovalVerifier('ANSWERED' if terms_complete else 'MISSING')
     answer = asyncio.run(ResponseAssembler(composer, knowledge_verifier=verifier).assemble(
         board, current_message='Continue', pending_approval=pending, requested_inputs=specs))
-    assert answer.interaction_ready and not answer.verified
+    assert answer.interaction_ready and answer.verified
     evidence = json.loads(answer.evidence_json)
     assert evidence['pending_actions'][0]['effect_status'] == 'NOT_EXECUTED'
     assert answer.approval_operation_key == 'operation'
-    if has_input:
-        assert not composer.calls and not verifier.calls
-        assert 'Which option?' in answer.text
-    else:
-        assert len(composer.calls) == len(verifier.calls) == 1
+    assert len(composer.calls) == len(verifier.calls) == 1
+    assert composer.calls[0]['evidence'] == evidence
+    assert bool(evidence['requested_inputs']) == has_input
+    assert answer.text == composer.response
 
 
 def test_turn_runtime_does_not_drop_persisted_approval_while_asking_for_input():

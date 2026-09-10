@@ -49,9 +49,10 @@ class TargetCheckpointSerializer(JsonPlusSerializer):
                         "checkpoint requires an explicit WorkPlan policy"))
                 if (isinstance(decoded, (list, tuple)) and len(decoded) >= 3
                         and tuple(decoded[:2]) == ("application.response_assembly", "AssembledResponse")
-                        and isinstance(decoded[2], dict) and {
+                        and isinstance(decoded[2], dict) and ({
                             "used_claim_ids", "rejected_input_work_items", "interaction_feedback",
-                        }.intersection(decoded[2])):
+                        }.intersection(decoded[2]) or
+                            decoded[2].get("verification_reason") == "PREPARED_SCOPE_RENDERED")):
                     contract_errors.append(TargetCheckpointContractError(
                         "legacy response checkpoint requires reply regeneration from retained execution results"))
                 if (isinstance(decoded, (list, tuple)) and len(decoded) >= 2

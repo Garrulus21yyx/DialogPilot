@@ -90,10 +90,10 @@ class ApprovalVerifier(Verifier):
 
 @pytest.mark.parametrize("approval_status", ["ANSWERED", "LIMITATION", "MISSING"])
 @pytest.mark.parametrize("approval_source", ["proposal", "persisted_flow"])
-def test_approval_presentation_binds_original_scope_without_model_judge(approval_status, approval_source):
+def test_approval_presentation_uses_one_complete_scope_snapshot(approval_status, approval_source):
     agent, context, _, _ = domain([call("prepare_order_cancel"), AIMessage(content="Pending cancellation.")])
     result = asyncio.run(agent(context))
-    text = "Order DP1234 is paid. Cancellation has not executed."
+    text = "Order DP1234 is paid. Cancellation has not executed. Shall I cancel it?"
     composer = _Composer(lambda p: "\n".join([(text)]))
     verifier = ApprovalVerifier(approval_status)
     pending = None
@@ -107,15 +107,18 @@ def test_approval_presentation_binds_original_scope_without_model_judge(approval
         result = replace(result, pending_action=None)
     assembled = asyncio.run(ResponseAssembler(composer, knowledge_verifier=verifier).assemble(
         _board(result), current_message="Cancel it and explain its current status", pending_approval=pending))
-    assert len(verifier.calls) == 1  # Independent status answer, not scope completeness.
+    assert len(verifier.calls) == len(composer.calls) == 1
     evidence = json.loads(assembled.evidence_json)
     assert evidence["pending_actions"][0]["arguments"] == {"order_id": "DP1234", "expected_order_version": 4}
     assert evidence["pending_actions"][0]["effect_status"] == "NOT_EXECUTED"
     assert "DP1234" in assembled.text
     assert "paid" in assembled.text
     assert assembled.approval_operation_key == operation_key
-    assert assembled.interaction_ready and not assembled.verified
-    assert assembled.verification_reason == "PREPARED_SCOPE_RENDERED"
+    assert assembled.interaction_ready and assembled.verified
+    assert assembled.verification_reason == "ANSWER_SUPPORT_CHECKED"
+    assert assembled.text == text  # No second author or appended parameter card.
+    assert composer.calls[0]["evidence"] == evidence
+    assert json.loads(verifier.calls[0][1]["context"]) == evidence
 
 
 def test_pure_confirmation_question_does_not_exempt_embedded_facts():
