@@ -61,7 +61,7 @@ async def run(args):
                 "summary_profile": policy.profile(ModelRole.WORKER).to_dict(),
                 "judge_profile": policy.profile(ModelRole.JUDGE).to_dict(),
                 "available_tokens": 4200, "overhead_tokens": 100,
-                "soft_fraction": .70, "summary_fraction": .85,
+                "history_replacement": "sdk_summary_of_original_history", "summary_fraction": .85,
                 "summary_max_tokens": 1024, "judge_max_tokens": 2048,
                 "original_store": "InMemoryStore; not persistence/restart evidence",
                 "load": "synthetic repeated read-only working notes until 90% budget",

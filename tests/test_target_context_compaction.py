@@ -63,7 +63,7 @@ def test_sdk_summary_preserves_entire_latest_batch_and_pinned_goal(batch_size, t
         archive = TargetResultArchive(InMemoryStore())
         model = ScriptedToolModel(responses=[AIMessage(content="Old checks completed; no writes authorized.")])
         middleware = ContextCompaction(model, archive, available_tokens=4200,
-            overhead_tokens=100, pinned_message=pinned, soft_fraction=.5, summary_fraction=.65)
+            overhead_tokens=100, pinned_message=pinned, summary_fraction=.65)
         update = await middleware.abefore_model({"messages": messages}, SimpleNamespace(context=_context()))
         assert update["compaction_records"][0]["summarized"]
         kept = update["messages"]
@@ -77,7 +77,7 @@ def test_sdk_summary_preserves_entire_latest_batch_and_pinned_goal(batch_size, t
     asyncio.run(run())
 
 
-def test_result_index_remains_complete_when_sdk_clears_old_messages():
+def test_result_index_remains_complete_when_sdk_summarizes_old_messages():
     async def run():
         context = _context()
         archive = TargetResultArchive(InMemoryStore())
@@ -98,7 +98,7 @@ def test_result_index_remains_complete_when_sdk_clears_old_messages():
             originals[call_id] = artifact
         compact = ContextCompaction(ScriptedToolModel(responses=[AIMessage(content="Historical checks retained by reference.")]),
             archive, available_tokens=6000, overhead_tokens=100, pinned_message=pinned,
-            soft_fraction=.4, summary_fraction=.8)
+            summary_fraction=.4)
         update = await compact.abefore_model({"messages": messages, "tool_observations": records},
                                             SimpleNamespace(context=context))
         assert update["compaction_records"][0]["after_tokens"] < update["compaction_records"][0]["before_tokens"]
@@ -118,7 +118,7 @@ def test_summary_failure_never_replaces_original_history():
         archive = TargetResultArchive(InMemoryStore())
         middleware = ContextCompaction(Unavailable(responses=[]), archive,
             available_tokens=4200, overhead_tokens=100, pinned_message=pinned,
-            soft_fraction=.5, summary_fraction=.65)
+            summary_fraction=.65)
         from core.framework_models import ModelInvocationError
         with pytest.raises(ModelInvocationError, match="context_summary:TimeoutError"):
             await middleware.abefore_model({"messages": messages}, SimpleNamespace(context=_context()))
@@ -137,7 +137,7 @@ def test_summary_trigger_and_unhelpful_summary_never_reject_fitting_input(exhaus
             messages = messages[1:]
         compact = ContextCompaction(ScriptedToolModel(responses=[]),
             TargetResultArchive(InMemoryStore()), available_tokens=6000,
-            overhead_tokens=100, pinned_message=pinned, soft_fraction=.3, summary_fraction=.4,
+            overhead_tokens=100, pinned_message=pinned, summary_fraction=.4,
             max_summary_calls=1)
         calls = []
         async def unhelpful(state, runtime):

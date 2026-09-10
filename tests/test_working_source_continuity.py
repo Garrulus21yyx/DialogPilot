@@ -46,7 +46,7 @@ def test_summary_without_references_and_continuation_keep_original_source_naviga
         model = ScriptedToolModel(responses=[AIMessage(content='Checks completed. No source references.'),
                                             AIMessage(content='Older checks completed.')])
         compact = ContextCompaction(model, archive, available_tokens=6000, overhead_tokens=100,
-                                    pinned_message=pinned, soft_fraction=.5, summary_fraction=.65)
+                                    pinned_message=pinned, summary_fraction=.65)
         update = await compact.abefore_model({'messages': messages}, SimpleNamespace(context=context))
         assert update['compaction_records'][0]['summary_applied']
         assert messages_to_dict(messages) == before
