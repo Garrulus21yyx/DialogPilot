@@ -8,6 +8,9 @@ from langgraph.store.base import BaseStore
 from application.conversation_projection import ConversationSubject
 
 
+MAX_RESULT_PAGE_CHARS = 4000
+
+
 class ResultArchiveError(ValueError):
     def __init__(self, message, *, retryable=False):
         super().__init__(message)
@@ -85,8 +88,9 @@ class TargetResultArchive:
         await self._check_subject(context)
         return value
 
-    async def read(self, context, reference: str, offset: int = 0, limit: int = 2000, evidence_id: str | None = None) -> dict:
-        if offset < 0 or not 1 <= limit <= 4000:
+    async def read(self, context, reference: str, offset: int = 0, limit: int | None = None,
+                   evidence_id: str | None = None, *, max_tokens: int | None = None) -> dict:
+        if offset < 0 or (limit is not None and not 1 <= limit <= MAX_RESULT_PAGE_CHARS):
             raise ResultArchiveError("invalid result page")
         value = await self.load(context, reference)
         content = value["content"]
@@ -97,12 +101,35 @@ class TargetResultArchive:
             if selected is None:
                 raise ResultReferenceNotFound("evidence reference is unavailable in this result")
             content = selected["text"]
-        end = min(len(content), offset + limit)
-        return {"reference": reference, "offset": offset, "total_characters": len(content),
+        end = min(len(content), offset + limit) if limit is not None else len(content)
+        if limit is None and max_tokens is None:
+            end = min(end, offset + MAX_RESULT_PAGE_CHARS)
+
+        def page(end):
+            return {"reference": reference, "offset": offset, "total_characters": len(content),
                 "text": content[offset:end], "next_offset": end if end < len(content) else None,
                 "historical": True, **({"evidence_id": evidence_id,
                     "title": selected.get("title", ""), "source": selected["source"],
                     "offset_basis": "evidence_text"} if selected is not None else {})}
+        if max_tokens is not None:
+            from langchain_core.messages import ToolMessage
+            from langchain_core.messages.utils import count_tokens_approximately
+            def size(end):
+                return count_tokens_approximately([ToolMessage(
+                    content=json.dumps(page(end), ensure_ascii=False), tool_call_id="archive-read")])
+            if size(end) <= max_tokens:
+                return page(end)
+            if size(min(len(content), offset + 1)) > max_tokens:
+                raise ResultArchiveError("result read allowance cannot hold an envelope")
+            lo, hi = min(len(content), offset + 1), end
+            while lo < hi:
+                mid = (lo + hi + 1) // 2
+                if size(mid) <= max_tokens:
+                    lo = mid
+                else:
+                    hi = mid - 1
+            end = lo
+        return page(end)
 
 
 def _evidence_view(content: str) -> list[dict]:
@@ -144,7 +171,9 @@ def result_pointer(reference: str, content: str) -> str:
     items = _evidence_view(content)
     navigation = ({"evidence_directory": [
         {"evidence_id": item["evidence_id"], "title": item.get("title", "")[:80],
-         "preview": item["text"][:100], "total_characters": len(item["text"])}
+         "preview": item["text"][:100], "total_characters": len(item["text"]),
+         "read_tool_result": {"reference": reference, "evidence_id": item["evidence_id"],
+                              "offset": 0, "limit": min(MAX_RESULT_PAGE_CHARS, max(1, len(item["text"])))}}
         for item in items],
         "evidence_reading": "Use read_tool_result with reference and evidence_id to read a specific evidence text with its source. Directory previews are incomplete, not sufficient evidence."} if items else {})
     return json.dumps({"result_ref": reference, "total_characters": len(content),

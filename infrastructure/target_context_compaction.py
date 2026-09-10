@@ -17,7 +17,6 @@ from langgraph.types import Command
 
 from application.context_budget import ModelContextBudgetExceeded
 from infrastructure.target_result_archive import ResultArchiveError, result_pointer
-from core.framework_models import invoke_model
 from core.tracing import exception_chain
 from infrastructure.target_working_sources import SOURCE_INDEX_ID, working_source_index
 
@@ -102,16 +101,9 @@ class StrictSummarization(SummarizationMiddleware):
         return min(cutoff, latest)
 
     async def _acreate_summary(self, messages_to_summarize):
-        prompt = self.summary_prompt.format(messages=get_buffer_string(messages_to_summarize))
-        required = count_tokens_approximately([HumanMessage(content=prompt)])
-        if required > self.available_tokens:
-            raise ModelContextBudgetExceeded(required, self.available_tokens)
-        response = await invoke_model(self.model.ainvoke(
-            prompt,
-            config={"run_name": "context_summary", "metadata": {"lc_source": "summarization"}}), stage="context_summary")
-        if not response.text.strip() or response.response_metadata.get("stop_reason") in {"max_tokens", "refusal"}:
-            raise ValueError("summary_incomplete")
-        return response.text.strip()
+        from infrastructure.target_history_summary import summarize_history
+        return await summarize_history(self.model, messages_to_summarize,
+            prompt=self.summary_prompt, available_tokens=self.available_tokens)
 
 
 class ContextCompaction(AgentMiddleware):
@@ -119,11 +111,13 @@ class ContextCompaction(AgentMiddleware):
 
     def __init__(self, model, archive, *, available_tokens, overhead_tokens, pinned_message,
                  summary_fraction=.85, max_summary_calls=4,
-                 consumer_budget=None, post_model_budget=None):
+                 consumer_budget=None, post_model_budget=None,
+                 summary_available_tokens=None):
         if not 0 < summary_fraction < 1:
             raise ValueError("invalid summary threshold")
         self.archive = archive
         self.available = available_tokens
+        self.summary_available = summary_available_tokens or available_tokens
         self.overhead = overhead_tokens
         self.trigger = int(available_tokens * summary_fraction)
         self.pinned = pinned_message
@@ -137,7 +131,7 @@ class ContextCompaction(AgentMiddleware):
 
     def _summarizer(self, counter):
         return StrictSummarization(
-            self.model, available_tokens=self.available,
+            self.model, available_tokens=self.summary_available,
             trigger=("tokens", self.trigger), keep=("tokens", max(1, int(self.available * .25))),
             token_counter=counter, trim_tokens_to_summarize=None,
             summary_prompt=(
@@ -156,6 +150,40 @@ class ContextCompaction(AgentMiddleware):
 
     async def abefore_model(self, state, runtime):
         return await self.admit(state, runtime)
+
+    async def awrap_model_call(self, request, handler):
+        from infrastructure.target_model_recovery import recover_model_request
+        from langchain.agents.middleware.types import ExtendedModelResponse
+
+        working = list(request.messages)
+        records = []
+
+        async def invoke(messages):
+            return await handler(request.override(messages=messages))
+
+        async def shrink(messages, target):
+            nonlocal working
+            compact = ContextCompaction(self.model, self.archive,
+                available_tokens=target, overhead_tokens=self.overhead,
+                pinned_message=self.pinned, max_summary_calls=self.max_summary_calls,
+                consumer_budget=self.consumer_budget,
+                summary_available_tokens=self.summary_available)
+            update = await compact.admit({**request.state, "messages": messages,
+                "compaction_records": [*request.state.get("compaction_records", []), *records]}, request.runtime)
+            if update:
+                working = [m for m in update["messages"] if not isinstance(m, RemoveMessage)]
+                records.extend(update["compaction_records"])
+            return working
+
+        response = await recover_model_request(working, invoke=invoke, shrink=shrink,
+            measure=self.count, available=self.available)
+        if not records:
+            return response
+        # Persist the recovered window in the SAME native model step. Include its
+        # output after RemoveAll so checkpoint continuation cannot lose it.
+        return ExtendedModelResponse(model_response=response, command=Command(update={
+            "messages": [RemoveMessage(id=REMOVE_ALL_MESSAGES), *working, *response.result],
+            "compaction_records": records}))
 
     async def aafter_model(self, state, runtime):
         if self.post_model_budget is None:

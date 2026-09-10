@@ -62,3 +62,28 @@ def test_existing_96_views_and_raw_knowledge_fact_share_evidence_identity():
                             parts.append(p['text']);offset=p['next_offset']
                         assert ''.join(parts)==e['text']
     asyncio.run(run())
+
+def test_directory_requests_use_same_enforced_limit_and_schema():
+    from infrastructure.target_result_archive import MAX_RESULT_PAGE_CHARS
+    from infrastructure.target_framework_agent import TargetFrameworkAgent
+    from application.default_capability_registry import build_default_capability_registry
+    from tests.test_target_framework_agent import ScriptedToolModel,_manager
+    model=ScriptedToolModel(responses=[])
+    agent=TargetFrameworkAgent(model,_manager([]),review_model=model,review_available_tokens=14200,result_store=InMemoryStore(),registry=build_default_capability_registry('tenant-a'),system_prompt='Read.')
+    tool=next(t for t in agent._tools(_context()) if t.name=='read_tool_result')
+    schema=tool.tool_call_schema.model_json_schema()['properties']
+    integer_limit = next(option for option in schema['limit']['anyOf'] if option['type'] == 'integer')
+    assert integer_limit['maximum']==MAX_RESULT_PAGE_CHARS
+    assert integer_limit['minimum']==1 and schema['offset']['minimum']==0
+    assert schema['limit']['default'] is None
+    async def run():
+        archive=TargetResultArchive(InMemoryStore());context=_context()
+        for n in (1,1999,2000,2001,3999,4000,4001,9999):
+            text='x'*n;wire=json.dumps({'status':'OK','evidence':[{'evidence_id':'E','text':text,'source':{}}]})
+            ref=await archive.save(context,{'content':wire})
+            args=json.loads(result_pointer(ref,wire))['evidence_directory'][0]['read_tool_result']
+            assert args['limit']==min(n,MAX_RESULT_PAGE_CHARS)
+            page=await archive.read(context,**args)
+            assert page['text']==text[:MAX_RESULT_PAGE_CHARS]
+            assert page['next_offset']==(MAX_RESULT_PAGE_CHARS if n>MAX_RESULT_PAGE_CHARS else None)
+    asyncio.run(run())

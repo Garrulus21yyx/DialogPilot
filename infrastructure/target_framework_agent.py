@@ -28,7 +28,7 @@ from langgraph.errors import GraphRecursionError
 from langfuse import propagate_attributes
 from langgraph.store.base import BaseStore
 from langchain_core.messages.utils import count_tokens_approximately
-from infrastructure.target_result_archive import TargetResultArchive, ResultArchiveError, result_pointer
+from infrastructure.target_result_archive import TargetResultArchive, ResultArchiveError, result_pointer, MAX_RESULT_PAGE_CHARS
 from infrastructure.target_result_archive import ResultReferenceNotFound
 from infrastructure.target_context_compaction import ToolResultPersistence, ContextCompaction
 
@@ -325,9 +325,17 @@ class TargetFrameworkAgent:
         if not tools:
             raise ValueError("delegated Agent has no executable capability")
         async def read_tool_result(reference: str, runtime: ToolRuntime[AgentContextView, dict],
-                                   offset: int = 0, limit: int = 2000, evidence_id: str | None = None):
+                                   offset: Annotated[int, Field(ge=0)] = 0, limit: Annotated[int | None, Field(ge=1, le=MAX_RESULT_PAGE_CHARS)] = None, evidence_id: str | None = None):
             try:
-                return await self._archive.read(runtime.context, reference, offset, limit, evidence_id)
+                batch = next((message.tool_calls for message in reversed(runtime.state.get("messages", []))
+                              if isinstance(message, AIMessage) and message.tool_calls), ())
+                # Concurrent reads share a working allowance. A single fitting
+                # result need not paginate; N simultaneous reads cannot each
+                # reserve a quarter of the same window.
+                allowance = max(1, (self._context_budget.available_tokens - reader_overhead)
+                                // max(4, 2 * len(batch)))
+                return await self._archive.read(runtime.context, reference, offset, limit, evidence_id,
+                    max_tokens=allowance)
             except ResultReferenceNotFound as exc:
                 raise ToolException(
                     "ARCHIVE_REFERENCE_NOT_FOUND: No matching result or evidence in this task. "
@@ -338,8 +346,9 @@ class TargetFrameworkAgent:
         reader = StructuredTool.from_function(coroutine=read_tool_result,
             name="read_tool_result",
             handle_tool_error=True,
-            description="Read a bounded page of an archived result or working history in this task. This reads the original snapshot, never reruns a business tool. For knowledge evidence, pass evidence_id from evidence_directory to read that item with its source; offset then refers to evidence text. Continue with next_offset when needed.")
+            description="Read an archived result in this task, without rerunning business tools. Omit limit to read the whole result when it fits the working allowance; oversized results return next_offset. Use evidence_id for a relevant knowledge item, or offset/limit for an explicit range. Continue only when required content remains unread.")
         exposed = [*tools, *self._interaction_tools(), reader]
+        reader_overhead = model_overhead_tokens(self._system(context), exposed)
         names = [tool.name for tool in exposed]
         if len(names) != len(set(names)):
             raise ValueError("agent tool names must be unique after action preparation binding")

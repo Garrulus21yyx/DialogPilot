@@ -15,7 +15,8 @@ from core.provider_context_budget import (
 
 from application.conversation_agent import ConversationProviderOutputError
 from application.context_budget import ContextBudgetManager, ModelContextBudgetExceeded
-from application.historical_context_budget import fit_historical_payload
+from infrastructure.target_planning_compaction import fit_planning_context
+from infrastructure.target_model_recovery import recover_model_request
 from application.action_approval import reply_presentation_instruction
 from application.agent_instructions import conversation_instructions
 from application.conversation_actions import planning_actions, action_proposal
@@ -118,22 +119,16 @@ class AnthropicConversationPlanningProvider:
 
         budget = ContextBudgetManager(context_window_tokens=profile.max_context_tokens,
             reserved_output_tokens=self._max_tokens, protocol_reserve_tokens=0)
-        summary = model_payload.get("conversation_context", {}).get("summary") or {}
-        covered_until = summary.get("covered_until_seq", 0)
-        recent = model_payload.get("conversation_context", {}).get("recent_messages", [])
-        protected_recent = recent[-2:]
+        counter = lambda value: DEFAULT_PROVIDER_CONTEXT_BUDGET.measure(
+            profile, render(value)[0]).estimated_input_tokens
+        async def fit(value, target):
+            return await fit_planning_context(ContextBudgetManager(
+                context_window_tokens=target, reserved_output_tokens=0, protocol_reserve_tokens=0), value,
+                token_counter=counter, model=self._models[role],
+                summary_available_tokens=budget.available_tokens,
+                can_read_sources=any(action.bound.get("tool_id") == "read_conversation_observation" for action in actions))
         try:
-            fitted = fit_historical_payload(budget, model_payload,
-                observation_path=("conversation_context", "business_observations")
-                    if any(action.bound.get("tool_id") == "read_conversation_observation" for action in actions) else (),
-                inline_publication_ids=frozenset(),
-                trim_oldest_paths=("conversation_context.recent_messages",),
-                # Do not silently erase an unsummarized restriction or the
-                # immediately preceding exchange to accommodate tool schemas.
-                can_trim=lambda path, message: bool(summary.get("content"))
-                    and 0 < message.get("seq", 0) <= covered_until and message not in protected_recent,
-                token_counter=lambda value: DEFAULT_PROVIDER_CONTEXT_BUDGET.measure(
-                    profile, render(value)[0]).estimated_input_tokens)
+            fitted = await fit(model_payload, budget.available_tokens)
         except ModelContextBudgetExceeded as exc:
             failed_payload = exc.payload if exc.payload is not None else model_payload
             usage = DEFAULT_PROVIDER_CONTEXT_BUDGET.measure(profile, render(failed_payload)[0])
@@ -145,24 +140,33 @@ class AnthropicConversationPlanningProvider:
                 usage,
                 context_projection=asdict(exc.report) if exc.report is not None else None,
             ) from exc
-        request, messages = render(fitted.payload)
-        system = request["system"]
         model = self._models[role]
         if actions:
-            model = model.bind_tools(request["tools"], tool_choice="auto")
-        usage = DEFAULT_PROVIDER_CONTEXT_BUDGET.validate(
-            profile, role, request,
-        )
-        try:
-            output = await invoke_model(model.ainvoke([SystemMessage(system), *messages], config=merge_configs(ensure_config(), {
+            model = model.bind_tools(tools, tool_choice="auto")
+
+        async def call(value):
+            request, messages = render(value)
+            usage = DEFAULT_PROVIDER_CONTEXT_BUDGET.validate(profile, role, request)
+            return await invoke_model(model.ainvoke([SystemMessage(request["system"]), *messages], config=merge_configs(ensure_config(), {
                 "callbacks": list(self._callbacks), "run_name": "conversation_actions",
                 "metadata": {"context_budget": asdict(usage),
                              "context_projection": asdict(fitted.report)},
             })), stage="conversation_actions")
+
+        async def shrink(value, target):
+            nonlocal fitted
+            fitted = await fit(value, target)
+            return fitted.payload
+
+        try:
+            output = await recover_model_request(fitted.payload, invoke=call, shrink=shrink,
+                measure=counter, available=budget.available_tokens)
             if output.response_metadata.get("stop_reason") in {"max_tokens", "refusal"}:
                 raise ValueError("planning_output_incomplete")
             if output.invalid_tool_calls:
                 raise ValueError("planning_tool_arguments_invalid")
             return action_proposal(actions, output.tool_calls, output.text)
+        except ModelContextBudgetExceeded:
+            raise
         except (ValueError, ValidationError) as exc:
             raise ConversationProviderOutputError(str(exc)) from exc
