@@ -36,6 +36,7 @@ httpx==0.28.1              # monitor/performance_monitor.py webhook 告警
 
 # ── 工具 ──────────────────────────────────────────────────────────────────────
 python-dotenv==1.0.1
+PyYAML==6.0.3             # Skill front matter; standard safe YAML parser
 Pillow==11.3.0             # 本地图片尺寸校验与 OCR fixture
 
 jsonschema==4.26.0  # Shared runtime planning/tool contract validation

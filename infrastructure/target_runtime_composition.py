@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from core.framework_models import framework_model
+from core.skill_loader import SkillManager
 
 from application.context_budget import ContextBudgetManager
 from application.capability_registry import CapabilityRegistryBundle
@@ -80,6 +81,7 @@ async def build_target_runtime(
     model_policy: Any,
     provider_config: Mapping[str, Any],
     project_root: Path,
+    skill_manager: SkillManager | None = None,
     knowledge_context_factory=None,
     knowledge_verifier=None,
     knowledge_source_validator=None,
@@ -90,6 +92,9 @@ async def build_target_runtime(
     langfuse_sink=None,
 ) -> TargetRuntimeComponents:
     """Wire the one production Target runtime and enter its checkpoint owner."""
+    if skill_manager is None:
+        skill_manager = SkillManager(os.getenv("DIALOGPILOT_SKILLS_DIR", str(project_root / "skills")))
+        skill_manager.load()
     registry = registry if registry is not None else build_default_capability_registry(
         os.getenv("DEFAULT_TENANT_ID", "default")
     )
@@ -162,6 +167,7 @@ async def build_target_runtime(
                 registry=registry,
                 system_prompt="\n\n".join(part for part in (agent.description, agent.business_policy) if part),
                 skill_executors={"product_identification": product_executor},
+                skill_manager=skill_manager,
                 context_budget=context_budget,
                 control_guard=control_guard,
                 callbacks=(langfuse_sink.callback(),) if langfuse_sink else (),

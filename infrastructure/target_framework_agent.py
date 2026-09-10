@@ -55,6 +55,8 @@ from infrastructure.target_agent_result_adapter import (
 )
 from infrastructure.target_agent_middleware import AgentContextMiddleware, WorkControlMiddleware, InteractionBoundaryMiddleware, AgentProgressMiddleware, ModelInvocationMiddleware, model_overhead_tokens
 from core.framework_models import ModelInvocationError
+from core.skill_loader import SkillManager
+from infrastructure.target_skill_tools import skill_reader
 from infrastructure.target_action_preparation import TargetActionPreparation
 from application.agent_instructions import domain_instructions
 from infrastructure.target_domain_outcome import (
@@ -82,6 +84,7 @@ class TargetFrameworkAgent:
         registry: CapabilityRegistryBundle,
         system_prompt: str,
         skill_executors: Mapping[str, WorkExecutor] | None = None,
+        skill_manager: SkillManager | None = None,
         context_budget: ContextBudgetManager | None = None,
         control_guard: WorkControlGuard | None = None,
         callbacks: tuple = (),
@@ -94,6 +97,7 @@ class TargetFrameworkAgent:
         self._registry = registry
         self._system_prompt = str(system_prompt).strip()
         self._skill_executors = dict(skill_executors or {})
+        self._skill_manager = skill_manager
         self._context_budget = context_budget or ContextBudgetManager()
         self._control_guard = control_guard
         self._callbacks = callbacks
@@ -324,6 +328,9 @@ class TargetFrameworkAgent:
             tools.append(self._action_tool(action_ref, preparation_names=preparation_names))
         if not tools:
             raise ValueError("delegated Agent has no executable capability")
+        packages = self._skill_manager.for_agent(item.owner_agent) if self._skill_manager else ()
+        if packages:
+            tools.append(skill_reader(packages))
         async def read_tool_result(reference: str, runtime: ToolRuntime[AgentContextView, dict],
                                    offset: Annotated[int, Field(ge=0)] = 0, limit: Annotated[int | None, Field(ge=1, le=MAX_RESULT_PAGE_CHARS)] = None, evidence_id: str | None = None):
             try:

@@ -75,6 +75,10 @@ def test_lifespan_wires_memory_budget_to_memory_owner(
             self.tools.append(tool)
             captured.setdefault("registered_tool_names", []).append(tool.name)
 
+        def tools_for_agent(self, agent_type, *, allowed_tool_ids):
+            return tuple(tool for tool in self.tools if tool.name in allowed_tool_ids
+                         and (not tool.allowed_agents or agent_type in tool.allowed_agents))
+
         @property
         def registered_tools(self):
             return tuple(self.tools)
@@ -173,6 +177,8 @@ def test_lifespan_wires_memory_budget_to_memory_owner(
 
     async def exercise_lifespan():
         async with main.lifespan(main.app):
+            assert all(worker._skill_manager is main._skill_manager
+                       for worker in main._target_orchestration._domain_workers.values())
             assert {
                 key: value
                 for key, value in captured["intent"].items()
@@ -204,6 +210,7 @@ def test_lifespan_wires_memory_budget_to_memory_owner(
             assert captured["tool_manager"]["approval_mode"].value == "require_all"
             assert "max_output_chars" not in captured["tool_manager"]
             assert set(captured["registered_tool_names"]) == {
+                "read_conversation_observation",
                 "knowledge_search",
                 "service_episode_search",
                 "support_ticket_list",

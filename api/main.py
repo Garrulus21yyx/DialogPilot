@@ -279,12 +279,9 @@ async def lifespan(app: FastAPI):
     )
     _intent_recognizer = recognizer
 
-    # Skills：启动时从目录加载业务能力说明，并在 Agent 调用 LLM 时动态注入。
+    # One package catalog; domain Agents read selected instructions on demand.
     skills_dir = os.getenv("DIALOGPILOT_SKILLS_DIR", str(pathlib.Path(_ROOT) / "skills"))
-    _skill_manager = SkillManager(
-        root_dir=skills_dir,
-        max_prompt_chars=int(os.getenv("DIALOGPILOT_SKILLS_MAX_PROMPT_CHARS", "5000")),
-    )
+    _skill_manager = SkillManager(root_dir=skills_dir)
     _skill_manager.load()
 
     ticket_webhook_url = os.getenv("TICKET_DISPATCH_WEBHOOK_URL", "").strip()
@@ -565,6 +562,7 @@ async def lifespan(app: FastAPI):
         langfuse_sink=langfuse_sink,
         knowledge_verifier=_answer_verifier,
         project_root=pathlib.Path(_ROOT),
+        skill_manager=_skill_manager,
         knowledge_context_factory=_knowledge_execution_context,
         knowledge_source_validator=_knowledge_store.validate_publication_evidence,
         knowledge_reuse_validator=_knowledge_store.validate_current_evidence,
@@ -1160,7 +1158,10 @@ async def reload_skills(_principal: Principal = Depends(_admin_principal)):
     """运行时重新扫描 Skill 目录，不需要重启服务。"""
     if _skill_manager is None:
         raise HTTPException(503, "Skills 未初始化")
-    _skill_manager.reload()
+    try:
+        _skill_manager.reload()
+    except (ValueError, OSError) as exc:
+        raise HTTPException(422, f"Skill reload rejected: {exc}") from exc
     return _skill_manager.summary()
 
 
