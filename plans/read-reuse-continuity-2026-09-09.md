@@ -85,3 +85,43 @@ Clean staged-only export final run: **213 passed**, same fork warning. A new
 expired-source fixture initially had expiry before observation and was correctly
 rejected; both timestamps now form a valid historical record. No production
 validation was relaxed. Unrelated dirty archive/worker/docs changes are excluded.
+
+## Requested task20 rerun (2026-09-10)
+
+Gap: repeated business reads after summary and payment-choice continuation.
+Hypothesis: deterministic source navigation reduces redundant business rereads
+without enlarging step budget or bypassing freshness/approval.
+One fixed retail train task20 (offset15/count1), seed300, max_steps80,
+user_max_tokens512, no completion override; same disabled Encoder baseline.
+Current HEAD bb0c2bf includes other subsequent changes; manifest hashes and dirty
+state retained, so this is current-chain validation, not an isolated causal ablation.
+Metrics: termination, actual writes, official ENV/ACTION/ALL availability,
+repeated identical read signatures, final reply, and compaction/continuation use.
+Adoption criterion: report actual task outcome, no claim of broad generalization;
+if repeats remain, inspect original inputs rather than change production mid-run.
+Output: artifacts/eval/tau3-task20-source-continuity-2026-09-10. Status: starting.
+
+### Rerun result
+
+Finished one attempt, 2026-09-10 01:01:03–01:04:10 UTC, session
+`tau3-3a44dce6bdea42ea8e4c4cddb74ced1d`. Terminated `max_steps` with 82 trajectory
+messages against the unchanged 80-step limit. Official ALL/ENV/ACTION each return
+0 through the termination gate; their database/action checks are null, not scored
+final-state comparisons. No business write tool was invoked.
+
+34 environment reads: find_user_id_by_name_zip=2, get_user_details=1,
+get_order_details=9, get_product_details=22. There are 19 repeated calls beyond
+the first instance of each exact signature: W9911714 read five times and its four
+product IDs four times each. This is NOT evidence of reduced redundancy.
+Several domain segments hit ToolCallLimitExceededError (26/20, 22/20, 23/20),
+separate from the episode limit. Citation validation also failed. Runtime-owned
+archive reads are not environment calls; these counts do not establish their
+share of the domain limit. The run did not reach the intended payment-choice
+continuation checkpoint, so that part of the hypothesis is unvalidated.
+
+Saved manifest, original trajectory, task result, simulator captures and errors;
+existing offline analyzer produced rca.json. It verifies unchanged-read replay
+and citation failure but keeps root_cause_status OPEN. Do not promote a directory
+fix into behavioral closure: next work is joining model-visible source directory,
+summary, read/paging calls and limit failures for this exact run. No production
+changes or selective retry during this experiment; unrelated dirty files retained.
