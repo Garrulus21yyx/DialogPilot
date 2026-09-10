@@ -24,7 +24,7 @@ as public citations. This item changes presentation, not execution or read reuse
 3. [done] Separate model display evidence and public citations from provenance.
 4. [done] Migrate tests and verify multi-operation, mixed input, failed presentation,
    publication binding and checkpoint behavior. Run no new paid business benchmark.
-5. [in_progress] Record results and limits; commit scoped changes and push.
+5. [done] Record results and limits; commit scoped changes and push.
 
 ## Exit evidence
 
@@ -59,3 +59,6 @@ does not claim all historical workflow/context issues are closed.
 - Files: response assembly, shared approval instructions, provider display
   projection, verifier instructions, checkpoint preflight, focused tests and
   `docs/approval-response-continuity-2026-09-10.md`. Other dirty work is untouched.
+- Delivery: implementation `0941310` pushed to
+  `origin/feat/customer-service-target-architecture`. Next validation is a
+  fixed-input real-model reply replay, not repetition of committed business writes.
