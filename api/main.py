@@ -469,6 +469,7 @@ async def lifespan(app: FastAPI):
 
     _retrieval_cache_client = redis.Redis.from_url(
         os.getenv("REDIS_URL", "redis://redis:6379/0"), decode_responses=False,
+        socket_connect_timeout=2, socket_timeout=2,
     )
     rag_parallel = os.getenv("RAG_RETRIEVAL_PARALLEL", "false").strip().lower()
     if rag_parallel not in {"true", "false"}:
@@ -551,7 +552,10 @@ async def lifespan(app: FastAPI):
     # composition root and still reuses all existing runtime owners.
     from infrastructure.target_runtime_composition import build_target_runtime
 
+    from infrastructure.conversation_context_cache import ConversationContextCache
+    conversation_cache = ConversationContextCache(_retrieval_cache_client)
     target_components = await build_target_runtime(
+        conversation_cache=conversation_cache,
         database_url=database_url,
         postgres_pool=_postgres_pool,
         tool_manager=_tool_manager,
@@ -664,11 +668,15 @@ async def lifespan(app: FastAPI):
             ),
         )
         from infrastructure.target_result_archive import TargetResultArchive
+        async def delete_target_originals(subject):
+            await TargetResultArchive(target_components.checkpoint_owner.store).delete_subject(subject)
+            await conversation_cache.delete_subject(subject)
+
         projection_dispatcher = ConversationProjectionDispatcher(
             outbox=PostgresConversationProjectionOutbox(_postgres_pool),
             deletion=PostgresConversationDeletionRepository(_postgres_pool),
             adapters=projection_adapters,
-            delete_result_originals=TargetResultArchive(target_components.checkpoint_owner.store).delete_subject,
+            delete_result_originals=delete_target_originals,
         )
         _durable_chat_task = asyncio.create_task(
             _run_durable_chat_worker(

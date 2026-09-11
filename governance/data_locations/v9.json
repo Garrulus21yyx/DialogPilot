@@ -1,0 +1,30 @@
+{
+  "schema": "dialogpilot.data-location-registry-overlay.v1",
+  "version": "v9",
+  "approved_by": "conversation-cache-consistency-review",
+  "base_artifact": "v8.json",
+  "contract_catalog_additions": {
+    "delete_adapters": [
+      {"id": "adapter:conversation-cache-delete:v1", "status": "IMPLEMENTED", "evidence": "ConversationContextCache.delete_subject via conversation deletion outbox"}
+    ],
+    "proof_contracts": [
+      {"id": "proof:conversation-cache-consistency:v1", "status": "IMPLEMENTED", "evidence": "tests/test_conversation_context_cache.py"}
+    ],
+    "restore_fences": []
+  },
+  "location_additions": [
+    {
+      "location_id": "location:redis-conversation-context:v1",
+      "owner": "Memory",
+      "schema_version": "target-context-v1",
+      "retention_class": "ephemeral_cache",
+      "readiness": "WRITE_APPROVED",
+      "allowed_producers": ["cached-conversation-reader"],
+      "delete_adapter_id": "adapter:conversation-cache-delete:v1",
+      "proof_contract_id": "proof:conversation-cache-consistency:v1",
+      "restore_fence_id": "restore-fence:pg-deletion-epoch:v1",
+      "allow_subject_create": false
+    }
+  ],
+  "location_updates": []
+}

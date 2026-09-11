@@ -130,6 +130,7 @@ class PostgresAdmissionUnitOfWork:
                 "Application", "TARGET_REQUEST_ACCEPTED", str(identity.request_id),
             )
             accepted_payload = {
+                "inbound_turn_key": str(identity.turn_key),
                 "invocation_key": str(identity.invocation_key),
                 "workflow_run_id": str(identity.workflow_run_id),
                 "runtime_kind": execution_pointer.runtime_kind,

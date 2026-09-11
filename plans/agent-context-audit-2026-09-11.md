@@ -249,6 +249,10 @@ Original audit delivery: document only; pre-existing evaluator changes and artif
 
 ### Verification and delivery evidence
 
+Follow-up: `plans/conversation-cache-consistency.md` describes the version-fenced
+Redis cache added over this canonical PostgreSQL reader. It does not restore the
+legacy Redis window/summary as a Target model-history source.
+
 - New cross-boundary property/adversarial suite: `tests/test_agent_context_contract.py`,
   28 cases, including uncovered windows, sibling context after working-message assembly,
   cross-authority evidence, missing-time consumers, immutable role projections and budget

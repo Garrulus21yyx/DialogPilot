@@ -90,6 +90,7 @@ async def build_target_runtime(
     enable_encoder: bool = True,
     response_locale: str | None = None,
     langfuse_sink=None,
+    conversation_cache=None,
 ) -> TargetRuntimeComponents:
     """Wire the one production Target runtime and enter its checkpoint owner."""
     if skill_manager is None:
@@ -211,13 +212,17 @@ async def build_target_runtime(
         understanding = CascadedTargetUnderstanding(
             StateBoundTargetUnderstanding(), conversation_agent, encoder=encoder,
         )
+        context_reader = PostgresMemoryProjectionReader(postgres_pool)
+        if conversation_cache is not None:
+            from infrastructure.conversation_context_cache import CachedConversationReader
+            context_reader = CachedConversationReader(context_reader, conversation_cache)
         manager = TargetConversationManager(
             state_store=state_store,
             registry=registry,
             understanding=understanding,
             orchestration=orchestration,
             context_provider=TargetTurnContextLoader(
-                PostgresMemoryProjectionReader(postgres_pool), tool_manager,
+                context_reader, tool_manager,
                 evidence_reader=evidence_reader,
                 historical_context_budget=ContextBudgetManager(
                     context_window_tokens=min(conversation_context_budget.available_tokens,
