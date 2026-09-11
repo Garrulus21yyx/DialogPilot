@@ -418,6 +418,28 @@ class WorkPlan:
                 item.control and new.control and item.control.control_id == new.control.control_id
                 and item.control.revision < new.control.revision) for new in self.items))
 
+    def reassignment_sources(self, item, previous):
+        """Investigation inputs of an explicitly revised failed assignment.
+
+        A repaired task may change owner; it does not resume the old worker or
+        inherit its approval. These sources are inputs, not completion outcomes.
+        """
+        from application.agent_result import AgentResultStatus
+        if item not in self.items:
+            raise WorkItemContractError("reassignment input requires a plan member")
+        if item.control is None or item.continuation_of is not None:
+            return ()
+        return tuple(result for original, result in previous
+            if result is not None and result.assignment_issue
+            and result.status is AgentResultStatus.TERMINAL_FAILURE
+            and original.effect is CapabilityEffect.READ
+            and original.control is not None
+            and original.control.control_id == item.control.control_id
+            and original.control.revision + 1 == item.control.revision
+            and original.registry_fingerprint == item.registry_fingerprint
+            and result.work_item_id == original.work_item_id
+            and result.owner_agent == original.owner_agent)
+
     def execution_waves(
         self,
         selected_ids: Iterable[str] | None = None,

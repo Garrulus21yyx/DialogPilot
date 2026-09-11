@@ -370,11 +370,14 @@ class TargetFrameworkAgent:
                     "DOMAIN_INPUT_REQUIRED", "string", question),))
             return question, framework_artifact(result)
 
-        async def report_blocked(reason: Annotated[str, Field(min_length=1)], runtime: ToolRuntime[AgentContextView, dict]):
+        async def report_blocked(reason: Annotated[str, Field(min_length=1)], runtime: ToolRuntime[AgentContextView, dict],
+                                 needs_reassignment: bool = False):
             item = runtime.context.work_item
             result = AgentResult(item.work_item_id, item.owner_agent,
-                AgentResultStatus.BLOCKED, "DOMAIN_OBJECTIVE_BLOCKED", "domain-interaction-v1",
-                candidate_response=reason)
+                AgentResultStatus.TERMINAL_FAILURE if needs_reassignment else AgentResultStatus.BLOCKED,
+                "DOMAIN_ASSIGNMENT_REPAIR_REQUIRED" if needs_reassignment else "DOMAIN_OBJECTIVE_BLOCKED",
+                "domain-interaction-v1", candidate_response=reason,
+                assignment_issue=reason if needs_reassignment else None)
             return reason, framework_artifact(result)
 
         return [StructuredTool.from_function(coroutine=handler, name=name,
@@ -383,7 +386,7 @@ class TargetFrameworkAgent:
                 (request_user_input, "request_user_input",
                  "Ask only for unresolved information or choices the user must supply. Do not ask the user to repeat a stated request or combine a missing choice with permission to execute. Approval of prepared parameters belongs to the runtime, not this tool. Supply the concise customer-facing question, without promises, policy explanations or claims of completed actions. A single question is published without rewriting; runtime binds the answer. Ends this segment."),
                 (report_blocked, "report_blocked",
-                 "Explain why the objective cannot proceed with available capabilities or evidence. Ends this segment without claiming completion."))]
+                 "Explain why the objective cannot proceed. Set needs_reassignment only when another domain capability or a revised task assignment is needed; explain what is missing so the conversation planner can reassign the remaining work. Leave it false for a final business restriction or user refusal. Missing user information belongs to request_user_input; unknown write outcomes belong to runtime reconciliation. Ends this segment without claiming completion."))]
 
     def _action_tool(self, action_ref, *, preparation_names):
         action = self._registry.action(action_ref)
@@ -663,7 +666,13 @@ def _adapt_framework_result(
     skill_results = tuple(result for result in observed if isinstance(result, AgentResult))
     pending = tuple(action for result in skill_results for action in result.prepared_actions)
     handback = (accepted_outcome or {}).get("kind")
+    reassignment = next((result for result in skill_results
+                         if result.assignment_issue and result.producer_version == "domain-interaction-v1"), None)
     facts = merge_facts(
+        # Explicit assignment handback forwards its authorized investigation
+        # inputs with original provenance, including facts from earlier owners.
+        # The terminal handback cannot claim task completion from these facts.
+        context.verified_facts if reassignment is not None else (),
         tuple(fact for fact in context.verified_facts
               if fact.requirement_id in allowed_authorities.values()
               and (not item.requirement_ids or fact.requirement_id in item.requirement_ids)),
@@ -709,6 +718,10 @@ def _adapt_framework_result(
     elif missing_inputs and handback == "NEEDS_USER_INPUT":
         status = AgentResultStatus.NEEDS_USER_INPUT
         reason = "FRAMEWORK_AGENT_NEEDS_USER_INPUT"
+        retryable = False
+    elif reassignment is not None and handback == "BLOCKED":
+        status = AgentResultStatus.TERMINAL_FAILURE
+        reason = reassignment.reason_code
         retryable = False
     elif any(result.status is AgentResultStatus.BLOCKED for result in skill_results) and handback == "BLOCKED":
         status = AgentResultStatus.BLOCKED
@@ -760,6 +773,8 @@ def _adapt_framework_result(
         retryable=retryable,
         pending_action=pending[0] if pending else None,
         additional_actions=pending[1:],
+        assignment_issue=(reassignment.assignment_issue if reassignment is not None
+                          and reason == reassignment.reason_code else None),
     )
 
 

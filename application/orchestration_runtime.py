@@ -295,6 +295,7 @@ class OrchestrationRuntime:
             result.work_item_id: result
             for result in _agent_results(state["work_plan"], state.get("agent_results", ()))
         }
+        now = datetime.now(timezone.utc)
         return [
             Send("execute_work_item", {
                 "work_item": item,
@@ -305,6 +306,9 @@ class OrchestrationRuntime:
                 "token_budget": state.get("token_budget", 6000),
                 "facts": current_facts(_merge_facts(
                     tuple(fact for dependency in item.dependencies for fact in results[dependency].facts),
+                    tuple(fact for source in state["work_plan"].reassignment_sources(
+                        item, state.get("accepted_observed_outcomes", ())) for fact in source.facts
+                        if fact.valid_until is None or fact.valid_until > now),
                     # Direct observations are explicit conversation-level reads
                     # (e.g. identifying the account before delegation). Domain
                     # investigations stay local unless a DAG dependency or a
