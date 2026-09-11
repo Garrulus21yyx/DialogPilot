@@ -166,6 +166,12 @@ class _CountingManager:
         self.prepare_calls = 0
         self.execute_calls = 0
 
+    def accept_before_execution(self, prepared):
+        return self.manager.accept_before_execution(prepared)
+
+    async def bind_execution(self, prepared):
+        return await self.manager.bind_execution(prepared)
+
     async def prepare(self, *args, **kwargs):
         self.prepare_calls += 1
         return await self.manager.prepare(*args, **kwargs)

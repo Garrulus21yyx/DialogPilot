@@ -81,10 +81,13 @@ def test_existing_explicit_approval_retains_only_same_checkpoint_work(waiting_st
     item = _item()
     board = SimpleNamespace(results=(SimpleNamespace(work_item_id=item.work_item_id,
         pending_action=None, status=AgentResultStatus(waiting_status), assignment_issue=None),))
-    next_state = bind_action_approval(state, SimpleNamespace(work=SimpleNamespace(items=(item,))),
-                                      board, None, "thread" if same_thread else "other-thread")
-    # Thread identity alone does not grant a new continuation ownership.
-    assert next_state is state
+    from application.conversation_state import ConversationStateConflict
+    if same_thread and waiting_status != "NEEDS_USER_INPUT":
+        with pytest.raises(ConversationStateConflict, match="accepted current goals"):
+            bind_action_approval(state, SimpleNamespace(work=SimpleNamespace(items=(item,))), board, None, "thread")
+    else:
+        assert bind_action_approval(state, SimpleNamespace(work=SimpleNamespace(items=(item,))),
+                                    board, None, "thread" if same_thread else "other-thread") is state
 
 
 @pytest.mark.parametrize("decision", ["approve", "deny", "supersede", "ask_first", "ask_twice", "clarify_during_approval", "cancel_both", "invalid_followup", "simultaneous_approve_first", "simultaneous_fields_first"])
@@ -234,6 +237,11 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
                     assert answered.state_after.pending_approval == pending
                     assert calls == ["read"]
             if decision in {"clarify_during_approval", "cancel_both"}:
+                # Explanation is read-only delegation, not a new operation
+                # proposal competing for the occupied approval slot.
+                manager._understanding.initial = TurnProposal(ProposalDisposition.RESOLVED,
+                    (CommandProposal("explain", CommandKind.DELEGATE_TASK, owner.agent_id,
+                                     "Explain the pending cancellation"),), "EXPLAIN")
                 question = await manager.handle(_identity("ask-about-approval"), TurnObservations(
                     "Before confirming, can you explain?"))
                 clarification = question.state_after.pending_interaction

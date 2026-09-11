@@ -1644,6 +1644,14 @@ async def register_agent_bundle(
 async def _run_durable_chat_worker(
     coordinator, projection_dispatcher, retrieval_projector, stop: asyncio.Event,
 ) -> None:
+    async with asyncio.TaskGroup() as group:
+        group.create_task(coordinator.serve(stop,
+            concurrency=int(os.getenv("TARGET_RUN_CONCURRENCY", "4")),
+            poll_seconds=max(0.05, float(os.getenv("DIALOGPILOT_DURABLE_CHAT_POLL_SECONDS", "1")))))
+        group.create_task(_run_durable_chat_projections(projection_dispatcher, retrieval_projector, stop))
+
+
+async def _run_durable_chat_projections(projection_dispatcher, retrieval_projector, stop):
     from application.conversation_projection import ProjectionName
 
     poll_seconds = max(
@@ -1652,7 +1660,7 @@ async def _run_durable_chat_worker(
     lease_seconds = int(os.getenv("DIALOGPILOT_PROJECTION_LEASE_SECONDS", "30"))
     while not stop.is_set():
         try:
-            work_count = await coordinator.pump_once()
+            work_count = 0
             now = datetime.now(timezone.utc)
             for name in ProjectionName:
                 results = await projection_dispatcher.dispatch_once_async(

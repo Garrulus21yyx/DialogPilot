@@ -178,16 +178,18 @@ def bind_action_approval(state, plan, board, registry, checkpoint_thread_id):
         # A prepared explicit action already owns this turn's decision. Queue
         # unfinished domain objectives behind it, without replacing its grant.
         pending = state.pending_approval
-        if pending.checkpoint_thread_id != checkpoint_thread_id or not any(
-            work.control is not None and work.control == pending.origin_control for work in plan.work.items
-        ):
+        if pending.checkpoint_thread_id != checkpoint_thread_id:
             return state
+        if proposed:
+            raise ConversationStateConflict("an occupied approval slot cannot accept another prepared action")
         additions = tuple(work for work in plan.work.items
                           if work.work_item_id not in finished | waiting and not any(
                               work == original or work.control is not None and work.control == original.control
                               for original in pending.suspended_work_items))
         if not additions:
             return state
+        if any(not state.accepts_work(work) for work in additions):
+            raise ConversationStateConflict("approval queue requires accepted current goals")
         return replace(state, version=state.version + 1, pending_approval=replace(
             pending, suspended_work_items=(*pending.suspended_work_items, *additions)))
     if not proposed:

@@ -98,6 +98,8 @@ class PostgresPublicationService:
             """, scope).fetchone()
             if conversation is None:
                 raise PublicationNotFoundError("conversation scope does not exist")
+            from application.run_execution import fence_transaction
+            fence_transaction(connection, executing=True)
             existing = self._by_id(connection, publication_id)
             if existing is not None:
                 return self._replay(existing, fingerprint)

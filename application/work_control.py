@@ -46,6 +46,8 @@ class WorkControlGuard:
         self._state_store = state_store
 
     def is_current(self, item: WorkItem, trusted_context) -> bool:
+        from application.run_execution import check_execution_sync
+        check_execution_sync()
         if item.control is None:
             raise ValueError("Target work item lacks a control binding")
         state = self._state_store.load(

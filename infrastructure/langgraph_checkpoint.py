@@ -1,7 +1,7 @@
 """Lifecycle owner for LangGraph's PostgreSQL execution checkpoints."""
 from __future__ import annotations
 
-from contextlib import AbstractContextManager, AsyncExitStack
+from contextlib import AbstractContextManager, AsyncExitStack, asynccontextmanager
 from langgraph.store.postgres.aio import AsyncPostgresStore
 
 from psycopg import Connection
@@ -149,6 +149,11 @@ _TARGET_CHECKPOINT_TYPES = (
     ("application.conversation_state", "ResumeBinding"),
     ("application.conversation_state", "ConversationState"),
     ("application.turn_planning", "RouteMode"),
+    ("application.turn_planning", "CommandKind"),
+    ("application.turn_planning", "ProposalDisposition"),
+    ("application.turn_planning", "ApprovalDecisionProposal"),
+    ("application.turn_planning", "CommandProposal"),
+    ("application.turn_planning", "TurnProposal"),
     ("application.turn_planning", "MutationApplyStage"),
     ("application.turn_planning", "WorkControlMutation"),
     ("application.turn_planning", "FlowMutation"),
@@ -206,6 +211,25 @@ class PostgresCheckpointOwner(AbstractContextManager):
             self._connection = None
 
 
+class RunFencedAsyncPostgresSaver(AsyncPostgresSaver):
+    """Keep SDK checkpoint IO; fence each DB transaction with the current Run lease.
+
+    The pinned SDK serializes access in _cursor. The transaction holds its Run
+    row lock only during checkpoint IO, never across a model or tool call.
+    """
+    @asynccontextmanager
+    async def _cursor(self, *, pipeline=False):
+        async with super()._cursor(pipeline=False) as cursor:
+            from application.run_execution import fence_checkpoint, has_run_owner
+            if not has_run_owner():
+                # SDK setup and administrative inspection have no executing Run.
+                yield cursor
+                return
+            async with cursor.connection.transaction():
+                await fence_checkpoint(cursor)
+                yield cursor
+
+
 class AsyncPostgresCheckpointOwner:
     """Async checkpoint lifecycle for graphs invoked through ``ainvoke``."""
 
@@ -227,7 +251,7 @@ class AsyncPostgresCheckpointOwner:
         await self._context.__aenter__()
         try:
             self.checkpointer = await self._context.enter_async_context(
-                AsyncPostgresSaver.from_conn_string(self._database_url, serde=target_checkpoint_serializer()))
+                RunFencedAsyncPostgresSaver.from_conn_string(self._database_url, serde=target_checkpoint_serializer()))
             self.store = await self._context.enter_async_context(
                 AsyncPostgresStore.from_conn_string(self._database_url, ttl={
                     "default_ttl": self._result_ttl, "refresh_on_read": True, "omit_expired": True,

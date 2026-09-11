@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import logging
 from langgraph.errors import GraphBubbleUp
 from dataclasses import dataclass, replace
 from datetime import datetime, timedelta, timezone
@@ -20,7 +21,7 @@ from core.identity import IdentityContractError, InvocationKey, WorkflowRunId
 from core.capacity_metrics import decisions, wait_seconds
 
 
-class TargetRunClaimLost(RuntimeError):
+class TargetRunClaimLost(GraphBubbleUp):
     pass
 
 
@@ -41,6 +42,8 @@ class TargetRunItem:
     claimed_by: str
     admitted_at: datetime
     selected_failure: Failed | None = None
+    failure_count: int = 0
+    execution_started_at: datetime | None = None
 
 
 @dataclass(frozen=True)
@@ -51,6 +54,10 @@ class TargetRunTerminal:
 
 
 class TargetRunStore(Protocol):
+    def acquire_execution(self, item: TargetRunItem, *, worker_id: str) -> bool: ...
+
+    def defer(self, item: TargetRunItem, *, worker_id: str) -> None: ...
+
     def claim(
         self, *, worker_id: str, lease_seconds: int, limit: int = 1,
         invocation_key: InvocationKey | None = None,
@@ -128,6 +135,9 @@ class TargetRunWorker:
         )
         outcomes: list[ChatOutcome] = []
         for item in items:
+            from application.run_execution import bind_run_execution, ExecutionDeferred
+            ownership = bind_run_execution(self._store, item, worker_id)
+            ownership.__enter__()
             if item.attempt == 1:
                 wait_seconds.labels("target_queue").observe(max(0,
                     (datetime.now(timezone.utc) - item.admitted_at).total_seconds()))
@@ -143,7 +153,7 @@ class TargetRunWorker:
                 try:
                     if item.selected_failure is not None:
                         outcome = item.selected_failure
-                    elif item.attempt == 1 and (
+                    elif item.execution_started_at is None and (
                         datetime.now(timezone.utc) - item.admitted_at
                     ).total_seconds() > self._max_queue_wait_seconds:
                         # Only work that has never started expires here. A
@@ -153,7 +163,7 @@ class TargetRunWorker:
                             stages=(StageObservation("run_queue", StageStatus.FAILED,
                                 {"code": "RUN_QUEUE_EXPIRED"}),))
                         decisions.labels("target_queue", "expired").inc()
-                    elif item.attempt > self._max_attempts:
+                    elif item.failure_count >= self._max_attempts:
                         outcome = Failed("run_attempt_budget_exhausted", False,
                             str(item.invocation_key), "Execution stopped; saved operation records require review.",
                             stages=(StageObservation("run_retry", StageStatus.FAILED, {
@@ -173,13 +183,15 @@ class TargetRunWorker:
                             "code": type(exc).__name__, "exception_chain": exception_chain(exc),
                         }),))
                 await guard()
-                if isinstance(outcome, Failed) and outcome.retryable and item.attempt >= self._max_attempts:
+                if isinstance(outcome, Failed) and outcome.retryable and item.failure_count + 1 >= self._max_attempts:
                     outcome = replace(outcome, retryable=False, stages=(*outcome.stages,
                         StageObservation("run_retry", StageStatus.FAILED, {
                             "code": "RUN_ATTEMPT_BUDGET_EXHAUSTED", "attempt": item.attempt,
                             "max_attempts": self._max_attempts,
                         })))
                 if isinstance(outcome, Failed) and outcome.retryable:
+                    stop.set()
+                    await heartbeat
                     await asyncio.to_thread(
                         self._store.release,
                         item,
@@ -192,8 +204,12 @@ class TargetRunWorker:
                         await asyncio.to_thread(self._store.select_failure,
                             item, worker_id=worker_id, failure=outcome)
                     if isinstance(outcome, Failed) and self._finalize_failure is not None:
+                        from application.run_execution import acquire_execution
+                        await acquire_execution()
                         outcome = await self._finalize_failure(item, outcome)
                         await guard()
+                    stop.set()
+                    await heartbeat
                     await asyncio.to_thread(
                         self._store.complete,
                         item,
@@ -201,9 +217,16 @@ class TargetRunWorker:
                         terminal=terminal_from_outcome(outcome),
                     )
                 outcomes.append(outcome)
-            finally:
+            except ExecutionDeferred:
                 stop.set()
                 await heartbeat
+                await asyncio.to_thread(self._store.defer, item, worker_id=worker_id)
+            finally:
+                stop.set()
+                try:
+                    await heartbeat
+                finally:
+                    ownership.__exit__(None, None, None)
         return tuple(outcomes)
 
     async def _heartbeat(
@@ -308,6 +331,30 @@ class TargetRunCoordinator:
         )
         outcomes = await self.worker.run_once(worker_id=self.worker_id)
         return len(dispatched) + len(outcomes)
+
+    async def serve(self, stop: asyncio.Event, *, concurrency: int, poll_seconds: float):
+        """Bounded existing Run workers; a long execution does not block admission/planning."""
+        if concurrency < 2 or poll_seconds <= 0:
+            raise ValueError("dynamic turns need at least two worker slots and a positive poll interval")
+
+        async def consume():
+            while not stop.is_set():
+                try:
+                    count = await self.pump_once()
+                except TargetRunClaimLost:
+                    count = 0
+                except Exception:
+                    logging.getLogger(__name__).exception("durable Run worker failed")
+                    count = 0
+                if not count:
+                    try:
+                        await asyncio.wait_for(stop.wait(), poll_seconds)
+                    except TimeoutError:
+                        pass
+
+        async with asyncio.TaskGroup() as group:
+            for _ in range(concurrency):
+                group.create_task(consume())
 
     async def _execute(
         self, item: TargetRunItem, guard: ExecutionGuard,

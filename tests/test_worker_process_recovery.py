@@ -2,6 +2,7 @@
 import asyncio
 from datetime import datetime, timezone
 import multiprocessing
+import time
 from dataclasses import replace
 from typing import TypedDict
 
@@ -10,6 +11,7 @@ import pytest
 from application.agent_result import AgentResultStatus
 from application.chat_contracts import Completed
 from application.target_run import TargetRunWorker, TargetRunClaimLost, TargetRunTerminal
+from application.run_execution import acquire_execution, bind_run_execution
 from application.default_capability_registry import build_default_capability_registry
 from infrastructure.postgres import PostgresPool, PostgresPoolConfig
 from infrastructure.postgres_target_run import PostgresTargetRunStore
@@ -40,21 +42,29 @@ def _saved_work_graph(saver):
 
 
 def _crashing_worker(url, pipe, after_write):
+    pipe.send("process_started")
     pool = PostgresPool(PostgresPoolConfig(url, max_size=2))
     pool.open()
+    pipe.send("pool_opened")
     try:
         registry, item, context, manager, scope = setup(pool, ACTIONS[0])
+        pipe.send("business_prepared")
         identity = IdentityFactory().create_invocation(tenant_id=str(scope.tenant_id),
             user_id=str(scope.user_id), conversation_id=str(scope.conversation_id),
             request_id=context.trusted_context["request_id"])
         _admit_and_bind(pool, identity=identity, message="申请退款")
-        claim = PostgresTargetRunStore(pool).claim(worker_id="worker-a", lease_seconds=10)[0]
+        store = PostgresTargetRunStore(pool)
+        claim = store.claim(worker_id="worker-a", lease_seconds=10)[0]
+        assert store.acquire_execution(claim, worker_id="worker-a")
+        pipe.send("execution_acquired")
         with PostgresCheckpointOwner(url, setup=True) as saver:
             _saved_work_graph(saver).invoke({"item": item, "trusted": dict(context.trusted_context)},
                 {"configurable": {"thread_id": str(claim.run_id)}})
+        pipe.send("checkpoint_saved")
         receipt = None
         if after_write:
-            result = asyncio.run(TargetWorkflowExecutor(pool, manager, registry=registry)(context))
+            with bind_run_execution(store, claim, "worker-a"):
+                result = asyncio.run(TargetWorkflowExecutor(pool, manager, registry=registry)(context))
             assert result.status is AgentResultStatus.SUCCEEDED
             receipt = result.action_receipts[0].receipt_id
         pipe.send((claim, receipt))
@@ -72,8 +82,15 @@ def test_process_kill_reclaims_without_duplicate_refund(target_run_components, a
     process = ctx.Process(target=_crashing_worker, args=(pool.config.database_url, child, after_write))
     process.start()
     try:
-        assert parent.poll(20), "worker did not reach crash boundary"
-        stale, receipt = parent.recv()
+        deadline, stage = time.monotonic() + 20, "spawn_pending"
+        while True:
+            assert parent.poll(max(0, deadline - time.monotonic())), (
+                f"worker did not reach crash boundary; last stage={stage}; exitcode={process.exitcode}")
+            message = parent.recv()
+            if not isinstance(message, str):
+                stale, receipt = message
+                break
+            stage = message
         assert PostgresTargetRunStore(pool).claim(worker_id="worker-b", lease_seconds=3) == ()
         process.terminate()
         process.join(5)
@@ -99,6 +116,7 @@ def test_process_kill_reclaims_without_duplicate_refund(target_run_components, a
         registry = build_default_capability_registry(stale.tenant_id)
         async def execute(item, guard):
             await guard()
+            await acquire_execution()
             result = await TargetWorkflowExecutor(pool, tools, registry=registry)(context)
             assert result.status is AgentResultStatus.SUCCEEDED
             if receipt:

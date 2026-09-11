@@ -86,6 +86,132 @@ def _admit_and_bind(pool, suffix="one", *, identity=None, message="查一下订�
     return identity
 
 
+@pytest.mark.parametrize("reverse", [False, True])
+def test_execution_owner_is_unique_while_planning_remains_claimable(target_run_components, reverse):
+    pool = target_run_components
+    ids = [IdentityFactory().create_invocation(tenant_id="tenant", user_id="user",
+        conversation_id="same", request_id=f"request-{i}") for i in range(3)]
+    for identity in ids:
+        _admit_and_bind(pool, identity=identity)
+    store = PostgresTargetRunStore(pool)
+    items = [store.claim(worker_id=f"worker-{i}", lease_seconds=60, invocation_key=identity.invocation_key)[0]
+             for i, identity in enumerate(ids[:2])]
+    if reverse:
+        items.reverse()
+    with ThreadPoolExecutor(2) as workers:
+        decisions = list(workers.map(lambda item: store.acquire_execution(item, worker_id=item.claimed_by), items))
+    assert sorted(decisions) == [False, True]
+    owner, waiter = items[decisions.index(True)], items[decisions.index(False)]
+    store.defer(waiter, worker_id=waiter.claimed_by)
+    assert store.claim(worker_id="waiter", lease_seconds=60, invocation_key=waiter.invocation_key) == ()
+    correction, = store.claim(worker_id="correction", lease_seconds=60, invocation_key=ids[2].invocation_key)
+    assert correction.failure_count == 0
+    # Expiration does not hand an unknown effect to an unrelated waiting Run.
+    with pool.transaction() as connection:
+        connection.execute("UPDATE dialogpilot_app.compatibility_execution_outbox SET lease_until=now()-interval '1 second' WHERE workflow_run_id=%s",
+                           (str(owner.run_id),))
+    assert store.claim(worker_id="waiter", lease_seconds=60, invocation_key=waiter.invocation_key) == ()
+    recovered, = store.claim(worker_id="recovery", lease_seconds=60, invocation_key=owner.invocation_key)
+    assert recovered.execution_started_at is not None
+    assert store.acquire_execution(recovered, worker_id="recovery")
+    with pytest.raises(TargetRunClaimLost):
+        store.acquire_execution(owner, worker_id=owner.claimed_by)
+    store.complete(recovered, worker_id="recovery", terminal=TargetRunTerminal("COMPLETED", {}, "reply"))
+    resumed, = store.claim(worker_id="waiter", lease_seconds=60, invocation_key=waiter.invocation_key)
+    assert resumed.failure_count == 0 and resumed.attempt == waiter.attempt + 1
+    assert store.acquire_execution(resumed, worker_id="waiter")
+
+
+def test_native_checkpoint_is_fenced_after_run_takeover(target_run_components, postgres_database_url):
+    from infrastructure.langgraph_checkpoint import RunFencedAsyncPostgresSaver
+    from application.run_execution import bind_run_execution
+    from langgraph.graph import StateGraph, START, END
+    from typing import TypedDict
+    pool = target_run_components
+    identity = _admit_and_bind(pool)
+    store = PostgresTargetRunStore(pool)
+    item, = store.claim(worker_id="old", lease_seconds=60)
+    class State(TypedDict):
+        value: int
+    async def run():
+        async with RunFencedAsyncPostgresSaver.from_conn_string(postgres_database_url) as saver:
+            await saver.setup()
+            graph = StateGraph(State).add_node("advance", lambda state: {"value": state["value"] + 1})
+            graph.add_edge(START, "advance").add_edge("advance", END)
+            runnable = graph.compile(checkpointer=saver)
+            config = {"configurable": {"thread_id": "fenced-checkpoint"}}
+            with bind_run_execution(store, item, "old"):
+                assert (await runnable.ainvoke({"value": 1}, config))["value"] == 2
+            with pool.transaction() as connection:
+                connection.execute("UPDATE dialogpilot_app.compatibility_execution_outbox SET lease_until=now()-interval '1 second' WHERE workflow_run_id=%s", (str(item.run_id),))
+            store.claim(worker_id="new", lease_seconds=60)
+            with bind_run_execution(store, item, "old"), pytest.raises(TargetRunClaimLost):
+                await runnable.ainvoke({"value": 10}, config)
+            assert (await runnable.aget_state(config)).values["value"] == 2
+    asyncio.run(run())
+
+
+def test_run_correction_is_accepted_while_previous_tool_is_still_running(target_run_components):
+    from application.target_run import TargetRunWorker
+    from application.turn_runtime import TurnRuntime
+    from application.response_assembly import ResponseAssembler
+    from application.chat_contracts import Completed
+    from application.deterministic_resolution import TurnObservations
+    from application.turn_planning import TurnProposal, ProposalDisposition, CommandProposal, CommandKind
+    from application.work_control import WorkControlGuard
+    from infrastructure.postgres_target_runtime import PostgresConversationStateStore
+    from infrastructure.langgraph_checkpoint import target_checkpoint_serializer
+    from langgraph.checkpoint.memory import InMemorySaver
+    from tests.test_turn_runtime import _manager, _Executor, _OrderUnderstanding, _identity
+    pool = target_run_components
+    original = _identity()
+    correction = IdentityFactory().create_invocation(tenant_id=original.tenant_id, user_id=original.user_id,
+        conversation_id=original.conversation_id, request_id="cancel-request")
+    _admit_and_bind(pool, identity=original, message="Query")
+    _admit_and_bind(pool, identity=correction, message="Cancel")
+    store = PostgresTargetRunStore(pool)
+    async def run():
+        entered, release = asyncio.Event(), asyncio.Event()
+        class Paused(_Executor):
+            async def __call__(self, context):
+                entered.set()
+                await release.wait()
+                return await super().__call__(context)
+        executor = Paused()
+        saver = InMemorySaver(serde=target_checkpoint_serializer())
+        manager = _manager(executor, checkpointer=saver)
+        manager._state_store = PostgresConversationStateStore(pool)
+        manager._orchestration._control_guard = WorkControlGuard(manager._state_store)
+        planning_calls = []
+        async def understand(observations, state, *args):
+            planning_calls.append(observations.raw_text)
+            if observations.raw_text == "Cancel":
+                target = state.active_work_controls[0]
+                return TurnProposal(ProposalDisposition.RESOLVED, (CommandProposal("cancel", CommandKind.CANCEL_WORK,
+                    target.owner_agent, "Cancel query", revises_control_id=target.control_id),), "CANCEL")
+            return await _OrderUnderstanding()(observations, state, *args)
+        manager._understanding = understand
+        runtime = TurnRuntime(manager, ResponseAssembler(), checkpointer=saver)
+        async def execute(item, guard):
+            identity = correction if item.invocation_key == correction.invocation_key else original
+            await runtime.execute(identity, TurnObservations(item.message))
+            return Completed("reply:" + item.request_id, {"response": "done"})
+        worker = TargetRunWorker(store, execute)
+        active = asyncio.create_task(worker.run_once(worker_id="active", invocation_key=original.invocation_key))
+        await asyncio.wait_for(entered.wait(), 5)
+        assert await worker.run_once(worker_id="control", invocation_key=correction.invocation_key) == ()
+        state = manager.load_state(original)
+        assert not state.active_work_controls
+        assert not active.done(), "correction must not wait for the running tool"
+        release.set()
+        await active
+        result, = await worker.run_once(worker_id="control", invocation_key=correction.invocation_key)
+        assert isinstance(result, Completed)
+        assert planning_calls == ["Query", "Cancel"]
+        assert executor.calls == 1
+    asyncio.run(run())
+
+
 def test_target_run_claim_is_exclusive_and_stale_attempt_is_fenced(
     target_run_components,
 ):

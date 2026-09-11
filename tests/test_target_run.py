@@ -47,6 +47,10 @@ class _RunStore:
         if worker_id != self.owner or item.attempt != self.attempt:
             raise TargetRunClaimLost("stale target run claim")
 
+    def acquire_execution(self, item, *, worker_id):
+        self.assert_owned(item, worker_id=worker_id)
+        return True
+
     def renew(self, item, *, worker_id, lease_seconds):
         del lease_seconds
         self.assert_owned(item, worker_id=worker_id)
@@ -186,9 +190,11 @@ def _item():
     )
 
 
-@pytest.mark.parametrize("attempt,expires", [(1, True), (2, False)])
+@pytest.mark.parametrize("attempt", [1, 2, 50])
+@pytest.mark.parametrize("expires", [True, False])
 def test_queue_deadline_expires_only_never_started_work(attempt, expires):
-    item = replace(_item(), admitted_at=datetime.now(timezone.utc)-timedelta(hours=1), attempt=attempt)
+    item = replace(_item(), admitted_at=datetime.now(timezone.utc)-timedelta(hours=1), attempt=attempt,
+        execution_started_at=None if expires else datetime.now(timezone.utc)-timedelta(minutes=30))
     store = _RunStore(item)
     calls = []
     async def execute(item, guard):
@@ -238,7 +244,7 @@ def test_retryable_failure_requeues_same_run_without_terminal_completion():
 
 @pytest.mark.parametrize("attempt,budget,terminal", [(1, 1, True), (1, 2, False), (2, 2, True), (4, 2, True)])
 def test_retry_budget_is_applied_before_terminal_failure_publication(attempt, budget, terminal):
-    store = _RunStore(replace(_item(), attempt=attempt))
+    store = _RunStore(replace(_item(), attempt=attempt, failure_count=attempt-1))
     finalized = []
     async def execute(item, guard):
         return Failed("provider_timeout", True, "trace")

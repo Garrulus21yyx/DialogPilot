@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from typing import Annotated, Awaitable, Callable, Mapping, Protocol, TypedDict
 
 from langgraph.graph import END, START, StateGraph
-from langgraph.errors import NodeCancelledError
+from langgraph.errors import NodeCancelledError, GraphBubbleUp
 from langgraph.types import Command, Overwrite, Send, interrupt
 
 from application.agent_result import (
@@ -243,7 +243,7 @@ class OrchestrationRuntime:
         builder.add_node("finish", self._finish)
         builder.add_edge(START, "initialize")
         builder.add_conditional_edges(
-            "initialize", self._dispatch, ["execute_work_item", "finish"],
+            "initialize", self._dispatch, ["execute_work_item", "await_resume", "finish"],
         )
         builder.add_edge("execute_work_item", "merge_results")
         builder.add_conditional_edges(
@@ -277,8 +277,8 @@ class OrchestrationRuntime:
         results = _agent_results(plan, state.get("agent_results", ()))
         if plan.policy.action_serialization is ActionSerialization.NONE:
             return tuple(state.get("ready_items", ()))
-        action_busy = any(result.status is AgentResultStatus.WAITING_APPROVAL
-                          for result in results)
+        action_busy = state.get("pending_approval") is not None or any(
+            result.status is AgentResultStatus.WAITING_APPROVAL for result in results)
         ready = []
         for item in state.get("ready_items", ()):
             action_capable = bool(item.allowed_actions) or item.control_mode in {
@@ -294,7 +294,8 @@ class OrchestrationRuntime:
         from application.agent_working_state import recovery_context
         ready = self._ready_wave(state)
         if not ready:
-            return "finish"
+            return ("await_resume" if self._checkpointer is not None
+                    and state.get("interrupt_after_completion") else "finish")
         results = {
             result.work_item_id: result
             for result in _agent_results(state["work_plan"], state.get("agent_results", ()))
@@ -477,7 +478,7 @@ class OrchestrationRuntime:
         started = time.perf_counter()
         try:
             update = await self._run_work_item(state)
-        except (OrchestrationRuntimeError, NodeCancelledError):
+        except (OrchestrationRuntimeError, NodeCancelledError, GraphBubbleUp):
             raise  # Broken execution contracts are not ordinary worker outages.
         except Exception as exc:
             if state["work_item"].effect is CapabilityEffect.WRITE:

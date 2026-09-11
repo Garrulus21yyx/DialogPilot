@@ -24,7 +24,7 @@ from infrastructure.target_model_context import delegated_task_content
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage, messages_to_dict
 from langchain_core.tools import StructuredTool, ToolException
 from langchain.tools import ToolRuntime
-from langgraph.errors import GraphRecursionError
+from langgraph.errors import GraphRecursionError, GraphBubbleUp
 from langfuse import propagate_attributes
 from langgraph.store.base import BaseStore
 from langchain_core.messages.utils import count_tokens_approximately
@@ -201,6 +201,8 @@ class TargetFrameworkAgent:
                         stream_mode="values",
                     ):
                         pass
+        except GraphBubbleUp:
+            raise
         except WorkSuperseded:
             return self._control_guard.superseded_result(item)
         except (GraphRecursionError, ModelCallLimitExceededError, ToolCallLimitExceededError) as exc:

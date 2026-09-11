@@ -4,7 +4,7 @@ from dataclasses import replace
 import pytest
 
 from application.agent_result import RequestedField
-from application.conversation_state import PendingInteractionState, WorkControlStatus
+from application.conversation_state import ConversationStateError, PendingInteractionState, WorkControlStatus
 from application.deterministic_resolution import DeterministicResolver, TurnObservations
 from application.entity_binding import BindingStatus
 from application.target_understanding import StateBoundTargetUnderstanding
@@ -135,13 +135,18 @@ def test_typed_input_extends_only_bound_fields_without_refreshing_old_provenance
 def test_same_local_work_id_cannot_exchange_accepted_envelopes_between_controls(kind):
     state, registry, item, _ = accepted_work(kind)
     other = replace(item, control=replace(item.control, control_id="another-control"))
+    # A conversation owns globally unique work identities; reject aliasing at
+    # admission, before any downstream envelope can be used for continuation.
+    with pytest.raises(ConversationStateError, match="controlled work identities"):
+        state.accept_work_items((other,), invocation_key="another-invocation")
+    other = replace(other, work_item_id="another-work")
     state = state.accept_work_items((other,), invocation_key="another-invocation")
-    # Both envelopes are trusted, with equal local IDs, owner and revision.
+    # Both valid envelopes have the same owner and revision.
     # Neither can authorize a continuation of the other's control.
     for target, wrong in ((item, other), (other, item)):
         command = StateBoundTargetUnderstanding._resume_command(1, target)
         RoutePolicy().accept(proposal(command), state, registry, continuation_items=(other,))
-        with pytest.raises(TurnPlanningError, match="parameters differ"):
+        with pytest.raises(TurnPlanningError, match="bound continuation"):
             RoutePolicy().accept(proposal(replace(command, resumed_work_item=wrong)), state, registry,
                 continuation_items=(other,))
 

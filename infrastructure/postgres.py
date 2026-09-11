@@ -42,6 +42,10 @@ class MigrationDriftError(RuntimeError):
     pass
 
 
+class MigrationRejected(RuntimeError):
+    """The database explicitly rejected migration, rather than being unavailable."""
+
+
 class ForwardOnlyMigrationError(RuntimeError):
     pass
 
@@ -197,6 +201,9 @@ class PostgresMigrationRunner:
                 self._record_applied_revisions(target_revision)
             return self.verify(target_revision)
         except (psycopg.Error, SQLAlchemyError, OSError) as exc:
+            database_error = getattr(exc, "orig", exc)
+            if getattr(database_error, "sqlstate", None) in {"P0001", "55000"}:
+                raise MigrationRejected(str(database_error)) from exc
             raise PostgresUnavailableError("PostgreSQL migration failed") from exc
 
     def verify(self, target: str = "head") -> dict[str, str]:

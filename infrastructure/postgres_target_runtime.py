@@ -95,6 +95,8 @@ class PostgresConversationStateStore:
         with self.pool.transaction() as connection:
             subject = _subject(connection, scope, create=True, lock=True)
             _assert_active(subject)
+            from application.run_execution import fence_transaction
+            fence_transaction(connection)
             stored = load_conversation_state(connection, scope)
             if stored.fingerprint != current.fingerprint:
                 return False
@@ -154,6 +156,9 @@ class PostgresOperationLedger:
             stored = _load_operation(connection, self.scope, current.operation_key)
             if stored != current:
                 return False
+            if next_record.status is OperationStatus.EXECUTING:
+                from application.run_execution import fence_transaction
+                fence_transaction(connection, executing=True)
             if next_record.status is OperationStatus.EXECUTING and current.status in {
                 OperationStatus.PLANNED, OperationStatus.WAITING_APPROVAL,
                 OperationStatus.NOT_COMMITTED,

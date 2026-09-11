@@ -61,7 +61,7 @@ class TurnRuntimeResult:
 class TurnRuntime:
     """Coordinate durable turn phases without owning their domain semantics."""
 
-    version = "turn-runtime-v24-scoped-input-revision"
+    version = "turn-runtime-v25-single-execution-owner"
 
     def __init__(
         self,
@@ -89,6 +89,8 @@ class TurnRuntime:
         builder = StateGraph(TurnGraphState)
         for name, node in (
             ("prepare_turn", self._prepare_turn),
+            ("accept_control", self._accept_control),
+            ("acquire_execution", self._acquire_execution),
             ("execute_work_plan", self._execute_work_plan),
             ("commit_turn_state", self._commit_turn_state),
             ("commit_progress", self._commit_progress),
@@ -97,9 +99,11 @@ class TurnRuntime:
             ("commit_observation", self._commit_turn_state),
             ("plan_observation", self._plan_observation),
         ):
-            builder.add_node(name, node)
+            builder.add_node(name, self._fenced(node))
         builder.add_edge(START, "prepare_turn")
-        builder.add_edge("prepare_turn", "execute_work_plan")
+        builder.add_edge("prepare_turn", "accept_control")
+        builder.add_edge("accept_control", "acquire_execution")
+        builder.add_edge("acquire_execution", "execute_work_plan")
         builder.add_edge("execute_work_plan", "commit_progress")
         builder.add_edge("commit_progress", "resolve_followup")
         builder.add_conditional_edges("resolve_followup", self._after_followup,
@@ -111,6 +115,24 @@ class TurnRuntime:
         builder.add_edge("assemble_response", "commit_turn_state")
         builder.add_edge("commit_turn_state", END)
         return builder.compile(checkpointer=self._checkpointer)
+
+    @staticmethod
+    def _fenced(node):
+        async def invoke(state):
+            from application.run_execution import check_execution
+            await check_execution()
+            result = await node(state)
+            await check_execution()
+            return result
+        return invoke
+
+    async def _accept_control(self, state):
+        return {"prepared": self._manager.accept_before_execution(state["prepared"])}
+
+    async def _acquire_execution(self, state):
+        from application.run_execution import acquire_execution
+        await acquire_execution()
+        return {"prepared": await self._manager.bind_execution(state["prepared"])}
 
     async def _prepare_turn(self, state: TurnGraphState):
         try:
@@ -320,7 +342,7 @@ class TurnRuntime:
                 completed = snapshot.values.get("managed") is not None and not snapshot.next
                 if (
                     snapshot.values.get("runtime_version") != self.version
-                    or (prepared is not None and prepared.artifact_version != "prepared-turn-v2")
+                    or (prepared is not None and prepared.artifact_version != "prepared-turn-v3")
                 ):
                     raise TurnCheckpointVersionError("unpublished checkpoint requires explicit lifecycle migration")
                 if completed:

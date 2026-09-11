@@ -189,11 +189,13 @@ class PreparedTurn:
     recent_relevant_turns: tuple[str, ...]
     evidence_refs: tuple[str, ...]
     token_budget: int
-    artifact_version: str = "prepared-turn-v2"
+    artifact_version: str = "prepared-turn-v3"
     execution_context: dict = field(default_factory=dict)
     state_transitions: tuple[ConversationState, ...] = ()
     source_thread_ids: tuple[str, ...] = ()
     planning_step: int = 0
+    semantic_proposal: TurnProposal | None = None
+    acceptance_committed: bool = False
 
     @property
     def fingerprint(self) -> str:
@@ -262,6 +264,8 @@ class TargetConversationManager:
         evidence_refs: tuple[str, ...] = (),
         token_budget: int = 6000,
         execution_context: dict | None = None,
+        _proposal: TurnProposal | None = None,
+        _rebind: bool = False,
     ) -> PreparedTurn:
         state_before = self._state_store.load(
             invocation.tenant_id,
@@ -292,9 +296,17 @@ class TargetConversationManager:
         )
         planning_state = state
         continuation_items = deterministic.resumed_work_items
-        proposal = await self._understanding(
-            observations, state, deterministic, self._registry, turn_context,
-        )
+        if _rebind:
+            from application.target_understanding import StateBoundTargetUnderstanding
+            proposal = _proposal or await StateBoundTargetUnderstanding()(
+                observations, state, deterministic, self._registry, turn_context)
+            if proposal is None:
+                raise ConversationStateConflict("queued signal no longer has its original wait")
+        else:
+            proposal = await self._understanding(
+                observations, state, deterministic, self._registry, turn_context,
+            )
+        semantic_proposal = proposal
         if proposal.historical_context_view is not None:
             turn_context = replace(turn_context, business_observations=proposal.historical_context_view)
         from application.target_understanding import StateBoundTargetUnderstanding
@@ -396,7 +408,57 @@ class TargetConversationManager:
             execution_context={**dict(execution_context or {}), "knowledge_filter_contract": turn_context.knowledge_filter_contract},
             state_transitions=tuple(transitions),
             source_thread_ids=tuple(thread for thread in retired_threads if thread != resume_thread_id),
+            semantic_proposal=semantic_proposal,
         )
+
+    def accept_before_execution(self, prepared: PreparedTurn) -> PreparedTurn:
+        """Accept ordinary goal changes promptly; consume user signals under the execution owner."""
+        proposal = prepared.semantic_proposal
+        if (prepared.deterministic.kind not in {
+                ResolutionKind.UNRESOLVED, ResolutionKind.REPLY_PENDING_INPUT,
+                ResolutionKind.CANCEL_WORKSTREAM, ResolutionKind.CLARIFY_WORKSTREAM}
+                or (proposal and (proposal.input_values or proposal.approval_decision is not None))):
+            return prepared
+        accepted = self._commit_states(prepared.state_before, prepared.state_transitions,
+                                       allow_rebase=True)
+        return replace(prepared, state=accepted, acceptance_committed=True,
+                       state_transitions=(accepted,) if accepted != prepared.state_before else ())
+
+    async def bind_execution(self, prepared: PreparedTurn) -> PreparedTurn:
+        """Bind a saved decision to the current wait; this stage never calls a model."""
+        current = self.load_state(prepared.invocation)
+        if not prepared.acceptance_committed and current.fingerprint != prepared.state_before.fingerprint:
+            proposal = prepared.semantic_proposal
+            if proposal and proposal.input_values:
+                original, live = prepared.state_before.pending_interaction, current.pending_interaction
+                if (original is None or live is None or
+                        (original.interaction_id, original.version) != (live.interaction_id, live.version)):
+                    raise ConversationStateConflict("queued answer belongs to a retired interaction")
+            if proposal and proposal.approval_decision is not None:
+                original, live = prepared.state_before.pending_approval, current.pending_approval
+                if (original is None or live is None or
+                        (original.approval_id, original.version) != (live.approval_id, live.version)):
+                    raise ConversationStateConflict("queued decision belongs to a retired approval")
+            # Typed signals use fresh deterministic continuation envelopes.
+            # Semantic signals keep only the user's already interpreted decision.
+            semantic = proposal if proposal and (proposal.input_values or proposal.approval_decision is not None) else None
+            prepared = await self.prepare(prepared.invocation, prepared.observations,
+                recent_relevant_turns=prepared.recent_relevant_turns,
+                evidence_refs=prepared.evidence_refs, token_budget=prepared.token_budget,
+                execution_context=prepared.execution_context, _proposal=semantic, _rebind=True)
+        if prepared.acceptance_committed:
+            prepared = replace(prepared, state=current)
+        waiting = prepared.state.pending_interaction
+        if waiting is None and prepared.plan.work and any(
+                item.allowed_actions or item.effect.value == "WRITE" for item in prepared.plan.work.items):
+            waiting = prepared.state.pending_approval
+        if waiting and prepared.plan.work is not None:
+            old_thread = prepared.resume_thread_id
+            sources = tuple(dict.fromkeys((*prepared.source_thread_ids,
+                *((old_thread,) if old_thread and old_thread != waiting.checkpoint_thread_id else ()))))
+            prepared = replace(prepared, resume_thread_id=waiting.checkpoint_thread_id,
+                source_thread_ids=tuple(t for t in sources if t != waiting.checkpoint_thread_id))
+        return prepared
 
     def load_state(self, invocation: InvocationIdentity) -> ConversationState:
         """Load authoritative state when constructing a run-level service notice."""
@@ -419,7 +481,11 @@ class TargetConversationManager:
         current = self._state_store.load(previous.invocation.tenant_id,
             previous.invocation.user_id, previous.invocation.conversation_id)
         if current.fingerprint != state.fingerprint:
-            raise ConversationStateConflict("observed execution state is not the committed conversation state")
+            if any(not current.accepts_work(item, dependency_work_ids=result.plan.work.dependency_closure(item))
+                   for item in result.plan.work.items):
+                raise TurnPlanningError("observed goal was superseded before follow-up planning")
+            board = current_result_board(result.plan, board, current)
+            state = current
         deterministic = DeterministicResolution(ResolutionKind.UNRESOLVED, "OBSERVE_EXECUTION", state.fingerprint)
         context = replace(previous.context, observed_execution=board, observation_feedback=progress_feedback)
         # Observe results of the already interpreted input, not another user
@@ -455,8 +521,9 @@ class TargetConversationManager:
     async def execute(self, prepared: PreparedTurn) -> ManagedTurnResult:
         # PreparedTurn is checkpointed before consuming input or accepting work.
         # A replay recognizes only an exact committed prefix of this plan.
-        accepted = self._commit_states(prepared.state_before, prepared.state_transitions,
-                                       allow_rebase=prepared.plan.work is not None)
+        accepted = (self.load_state(prepared.invocation) if prepared.acceptance_committed else
+            self._commit_states(prepared.state_before, prepared.state_transitions,
+                                allow_rebase=prepared.plan.work is not None))
         prepared = replace(prepared, state=accepted,
             state_transitions=(accepted,) if accepted != prepared.state_before else ())
         invocation = prepared.invocation

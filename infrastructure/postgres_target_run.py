@@ -17,6 +17,12 @@ from core.identity import InvocationKey, WorkflowRunId
 
 
 _LEDGER = "dialogpilot_app.compatibility_execution_outbox"
+_FENCE_SQL = f"""
+    SELECT execution_phase FROM {_LEDGER}
+    WHERE workflow_run_id=%s AND claimed_by=%s AND attempts=%s
+      AND acknowledged_at IS NULL AND lease_until > clock_timestamp()
+    FOR UPDATE
+"""
 
 
 class PostgresTargetRunBinder:
@@ -118,12 +124,30 @@ class PostgresTargetRunStore:
                           AND invocation.execution_run_id=job.workflow_run_id
                           AND conversation.deleted_at IS NULL
                           AND conversation.deletion_epoch=job.source_deletion_epoch
+                          AND (job.execution_phase != 'READY' OR NOT EXISTS (
+                              SELECT 1 FROM dialogpilot_app.compatibility_execution_outbox owner
+                              WHERE owner.tenant_id=job.tenant_id AND owner.user_id=job.user_id
+                                AND owner.conversation_id=job.conversation_id
+                                AND owner.execution_phase='EXECUTING'
+                                AND owner.acknowledged_at IS NULL
+                                AND owner.job_id != job.job_id))
                 """ + key_filter + f"""
-                        ORDER BY job.available_at, job.created_at, job.job_id
+                        ORDER BY (job.execution_phase='EXECUTING') DESC,
+                                 job.available_at, job.created_at, job.job_id
                         FOR UPDATE OF job SKIP LOCKED LIMIT %s
                     )
                     UPDATE {_LEDGER} job
-                    SET claimed_by=%s,
+                    SET attempt_failures=job.attempt_failures || CASE
+                          WHEN job.claimed_by IS NOT NULL AND job.execution_phase != 'READY'
+                          THEN jsonb_build_object(job.attempts::text, jsonb_build_object(
+                            'code', 'RUN_LEASE_EXPIRED', 'retryable', true,
+                            'correlation_id', job.invocation_key,
+                            'safe_message', 'The previous worker stopped; saved progress will be recovered.',
+                            'stages', jsonb_build_array(jsonb_build_object(
+                              'stage', 'run_lease', 'status', 'failed',
+                              'detail', jsonb_build_object('code', 'RUN_LEASE_EXPIRED')))))
+                          ELSE '{{}}'::jsonb END,
+                        claimed_by=%s,
                         lease_until=transaction_timestamp() + (%s * interval '1 second'),
                         attempts=attempts+1, last_error_code=NULL
                     FROM candidates,
@@ -138,6 +162,55 @@ class PostgresTargetRunStore:
                               turn.metadata AS turn_metadata
                 """, tuple(parameters)).fetchall()
         return tuple(self._item(row) for row in rows)
+
+    def fence_transaction(self, connection, item, *, worker_id, executing=False):
+        row = connection.execute(_FENCE_SQL, (str(item.run_id), worker_id, item.attempt)).fetchone()
+        if row is None or (executing and row[0] != 'EXECUTING'):
+            raise TargetRunClaimLost("target Run no longer owns this commit")
+
+    async def fence_checkpoint(self, cursor, item, *, worker_id):
+        await cursor.execute(_FENCE_SQL, (str(item.run_id), worker_id, item.attempt))
+        if await cursor.fetchone() is None:
+            raise TargetRunClaimLost("target Run no longer owns checkpoint persistence")
+
+    def acquire_execution(self, item, *, worker_id):
+        # Conversation -> job is also the lock order at state/write/publication
+        # commits. An expired owner remains the owner until recovered/finished.
+        with self.pool.transaction() as connection:
+            row = connection.execute("""
+                SELECT 1 FROM dialogpilot_app.conversations
+                WHERE tenant_id=%s AND user_id=%s AND conversation_id=%s
+                  AND deleted_at IS NULL AND deletion_epoch=%s FOR UPDATE
+            """, (item.tenant_id, item.user_id, item.conversation_id,
+                  item.deletion_epoch)).fetchone()
+            if row is None:
+                raise TargetRunClaimLost("conversation no longer accepts this Run")
+            self.fence_transaction(connection, item, worker_id=worker_id)
+            busy = connection.execute(f"""
+                SELECT 1 FROM {_LEDGER}
+                WHERE tenant_id=%s AND user_id=%s AND conversation_id=%s
+                  AND acknowledged_at IS NULL AND execution_phase='EXECUTING'
+                  AND workflow_run_id != %s
+            """, (item.tenant_id, item.user_id, item.conversation_id,
+                  str(item.run_id))).fetchone()
+            connection.execute(f"""
+                UPDATE {_LEDGER} SET execution_phase=%s,
+                  execution_started_at=CASE WHEN %s THEN
+                    COALESCE(execution_started_at, clock_timestamp()) ELSE execution_started_at END
+                WHERE workflow_run_id=%s
+            """, ('READY' if busy else 'EXECUTING', not busy, str(item.run_id)))
+            return not busy
+
+    def defer(self, item, *, worker_id):
+        with self.pool.transaction() as connection:
+            updated = connection.execute(f"""
+                UPDATE {_LEDGER} SET claimed_by=NULL, lease_until=NULL
+                WHERE workflow_run_id=%s AND claimed_by=%s AND attempts=%s
+                  AND execution_phase='READY' AND acknowledged_at IS NULL
+                  AND lease_until > clock_timestamp()
+            """, (str(item.run_id), worker_id, item.attempt)).rowcount
+            if updated != 1:
+                raise TargetRunClaimLost("only the waiting owner can defer its Run")
 
     def renew(
         self, item: TargetRunItem, *, worker_id: str, lease_seconds: int,
@@ -278,7 +351,8 @@ class PostgresTargetRunStore:
             with connection.cursor(row_factory=dict_row) as cursor:
                 row = cursor.execute(f"""
                     SELECT workflow_run_id, claimed_by, lease_until, attempts,
-                           outcome_type, last_error_code, acknowledged_at, attempt_failures
+                           outcome_type, last_error_code, acknowledged_at, attempt_failures,
+                           execution_phase, execution_started_at
                     FROM {_LEDGER} WHERE workflow_run_id=%s
                 """, (run_id,)).fetchone()
         if row is None:
@@ -292,6 +366,10 @@ class PostgresTargetRunStore:
             "runtime_kind": "target",
             "run_id": row["workflow_run_id"],
             "execution_status": status,
+            "execution_phase": row["execution_phase"],
+            "execution_started_at": (row["execution_started_at"].isoformat()
+                                     if row["execution_started_at"] else None),
+            "failure_count": len(row["attempt_failures"]),
             "attempt": int(row["attempts"]),
             "reason_code": row["last_error_code"],
             # This projection is exposed by /invocations; full exception chains
@@ -323,6 +401,8 @@ class PostgresTargetRunStore:
             deletion_epoch=int(row["source_deletion_epoch"]),
             attempt=int(row["attempts"]), claimed_by=row["claimed_by"],
             admitted_at=row["created_at"],
+            failure_count=len(row["attempt_failures"]),
+            execution_started_at=row["execution_started_at"],
             selected_failure=(outcome_from_terminal(TargetRunTerminal(
                 "FAILED", dict(row["selected_failure"]), str(row["invocation_key"])))
                 if row["selected_failure"] is not None else None),

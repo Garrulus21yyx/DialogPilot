@@ -30,7 +30,7 @@ class SchemaContract:
 class SchemaVersionRegistry:
     version = "schema-version-registry-v1"
     postgres = SchemaContract(
-        "postgres-domain", "20260911_0038", ("20260911_0038",),
+        "postgres-domain", "20260911_0039", ("20260911_0039",),
         MigrationStrategy.FORWARD_ONLY,
     )
     data_location_transitions = (

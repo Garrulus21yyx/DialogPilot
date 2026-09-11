@@ -127,6 +127,8 @@ class CommandProposal:
     observe_result: bool = False
 
     def __post_init__(self) -> None:
+        for name in ("arguments", "requirement_ids", "candidate_skill_ids", "dependencies", "argument_bindings"):
+            object.__setattr__(self, name, tuple(getattr(self, name)))
         if type(self.observe_result) is not bool or (
             self.observe_result and self.kind is not CommandKind.DIRECT_TOOL
         ):
@@ -187,6 +189,8 @@ class TurnProposal:
     failure_detail: Mapping[str, Any] | None = None
 
     def __post_init__(self) -> None:
+        for name in ("commands", "missing_inputs", "input_values"):
+            object.__setattr__(self, name, tuple(getattr(self, name)))
         if self.disposition is ProposalDisposition.RESPOND:
             if not isinstance(self.response_text, str) or not self.response_text.strip() or self.missing_inputs:
                 raise TurnPlanningError("response proposal requires only nonblank response text")
