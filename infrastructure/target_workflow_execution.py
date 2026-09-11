@@ -266,6 +266,8 @@ class _ToolReconciler:
             and passthrough_matches
             and receipt_id
         ):
+            if self._tools.read_reuse is not None:
+                await self._tools.read_reuse.resolve_write(self._context.trusted_context, operation_key)
             return WriteToolOutcome(
                 WriteOutcomeStatus.COMMITTED,
                 receipt_id,

@@ -42,14 +42,16 @@ class TargetToolExecutor:
             if self._control_guard is not None:
                 self._control_guard.ensure_current(item, context.trusted_context)
             params = {argument.name: argument.value for argument in item.arguments}
+            refresh = params.pop("_refresh", False)
             if tool_id == "knowledge_search":
                 params.setdefault("query", context.current_message)
             result = await self._tools.execute_for_agent(
                 tool_id,
                 params,
                 agent_type=principal,
-                context=dict(context.trusted_context),
+                context={**context.trusted_context, "work_item_id": item.work_item_id},
                 allowed_tool_ids=item.allowed_tools,
+                refresh=refresh,
                 call_id=f"{item.work_item_id}:{index}:{tool_id}",
             )
             if self._control_guard is not None:

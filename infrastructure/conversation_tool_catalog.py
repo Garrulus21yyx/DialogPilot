@@ -52,7 +52,7 @@ class ConversationToolCatalog:
                         or requirement.effect is not RequirementEffect.READ
                         or requirement.support is not AuthoritySupport.SUPPORTED):
                     raise ValueError("conversation_tool_requirement_missing")
-                schema = tool.input_schema(context)
+                schema = tool.model_input_schema(context)
                 if not isinstance(schema, Mapping):
                     raise ValueError("conversation_tool_schema_requires_object_form")
                 Draft202012Validator.check_schema(schema)

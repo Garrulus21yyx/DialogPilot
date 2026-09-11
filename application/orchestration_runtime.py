@@ -132,8 +132,6 @@ class AgentContextView:
     working_messages: tuple[dict, ...] = ()
     pending_approval: PendingApprovalState | None = None
     working_state: dict = field(default_factory=dict)
-    read_epoch: tuple[str, ...] = ()
-    read_reuse_allowed: bool = True
 
     def __post_init__(self):
         # Origin is supplied by the runtime, never by a model tool argument.
@@ -171,7 +169,6 @@ class ParentGraphState(TypedDict, total=False):
     continuation_facts: dict[str, tuple[FactRecord, ...]]
     continuation_messages: dict[str, tuple[dict, ...]]
     continuation_states: dict[str, dict]
-    read_mutations: tuple[str, ...]
     pending_approval: PendingApprovalState | None
     retained_outcomes: tuple[tuple[WorkItem, AgentResult | None], ...]
     accepted_observed_outcomes: tuple[tuple[WorkItem, AgentResult | None], ...]
@@ -192,8 +189,6 @@ class WorkerState(TypedDict):
     working_messages: tuple[dict, ...]
     pending_approval: PendingApprovalState | None
     working_state: dict
-    read_epoch: tuple[str, ...]
-    read_reuse_allowed: bool
 
 
 class OrchestrationRuntime:
@@ -296,7 +291,7 @@ class OrchestrationRuntime:
         return tuple(ready)
 
     def _dispatch(self, state: ParentGraphState):
-        from application.agent_working_state import recovery_context, read_epoch
+        from application.agent_working_state import recovery_context
         ready = self._ready_wave(state)
         if not ready:
             return "finish"
@@ -307,17 +302,6 @@ class OrchestrationRuntime:
         now = datetime.now(timezone.utc)
         prior = state.get("accepted_observed_outcomes", ())
         recovered = {item.work_item_id: recovery_context(state["work_plan"], item, prior) for item in ready}
-        outcomes = (*state.get("retained_outcomes", ()), *prior,
-                    *((work, results.get(work.work_item_id)) for work in state["work_plan"].items))
-        # A concurrent/unfinished write can invalidate a snapshot while a reader
-        # is running. In that wave perform real reads; do not claim a frozen
-        # dispatch epoch is an external transaction or isolation guarantee.
-        reuse_allowed = not any(work.effect is CapabilityEffect.WRITE for work in ready)
-        reuse_allowed = reuse_allowed and not any(work.effect is CapabilityEffect.WRITE and result
-            and result.status not in {AgentResultStatus.SUCCEEDED, AgentResultStatus.CANCELLED,
-                                      AgentResultStatus.SUPERSEDED}
-            for work, result in outcomes)
-        epoch = tuple(sorted(set(state.get("read_mutations", ())) | set(read_epoch(outcomes))))
         return [
             Send("execute_work_item", {
                 "work_item": item,
@@ -359,8 +343,6 @@ class OrchestrationRuntime:
                     recovered[item.work_item_id].get("working_messages", ())),
                 "working_state": state.get("continuation_states", {}).get(item.work_item_id,
                     recovered[item.work_item_id].get("working_state", {})),
-                "read_epoch": epoch,
-                "read_reuse_allowed": reuse_allowed,
             })
             for item in ready
         ]
@@ -430,8 +412,6 @@ class OrchestrationRuntime:
         if not isinstance(plan, WorkPlan):
             raise OrchestrationRuntimeError("resume payload requires a validated WorkPlan")
         previous = _merge_checkpoint_outcomes(previous, imported)
-        from application.agent_working_state import read_epoch
-        mutations = tuple(sorted(set(state.get("read_mutations", ())) | set(read_epoch(previous))))
         # A resume executes a subset, but cannot erase other outcomes from the
         # original request. These are checkpoint projections, never runnable work.
         retained = tuple((item, _closed_outcome(item, result) if item in closed else result)
@@ -471,7 +451,6 @@ class OrchestrationRuntime:
             "continuation_facts": progress,
             "continuation_messages": messages,
             "continuation_states": working_states,
-            "read_mutations": mutations,
             "work_plan_fingerprint": _work_plan_fingerprint(plan),
             "current_message": str(resumed.get("current_message") or ""),
             "recent_relevant_turns": tuple(resumed.get("recent_relevant_turns") or ()),
@@ -527,8 +506,6 @@ class OrchestrationRuntime:
             state.get("working_messages", ()),
             state.get("pending_approval"),
             state.get("working_state", {}),
-            state.get("read_epoch", ()),
-            state.get("read_reuse_allowed", True),
         )
         if self._control_guard is not None and not self._control_guard.is_current(
             item, context.trusted_context,

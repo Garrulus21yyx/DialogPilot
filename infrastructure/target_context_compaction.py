@@ -17,7 +17,6 @@ from langgraph.types import Command
 from application.context_budget import ModelContextBudgetExceeded
 from infrastructure.target_result_archive import ResultArchiveError, result_pointer
 from core.tracing import exception_chain
-from mcp.read_reuse import merge_read_records
 from infrastructure.target_working_sources import SOURCE_INDEX_ID, working_source_index
 
 
@@ -25,7 +24,6 @@ class ResultState(AgentState):
     tool_observations: Annotated[dict[str, dict], operator.or_]
     archive_failed: Annotated[bool, operator.or_]
     compaction_records: Annotated[list[dict], operator.add]
-    reusable_reads: Annotated[dict[str, dict], merge_read_records]
 
 
 class ToolResultPersistence(AgentMiddleware):
@@ -74,10 +72,7 @@ class ToolResultPersistence(AgentMiddleware):
                     "read_tool_result": {"reference": reference, "offset": 0},
                     "note": "Original archived; read bounded pages before using it as evidence."})
         response = response.model_copy(update={"content": content, "artifact": pointer})
-        reuse = artifact.get("task_read")
         return Command(update={"messages": [response],
-            **({"reusable_reads": {reuse["key"]: {**reuse, "reference": reference}}}
-               if reuse and result.get("success") else {}),
             "tool_observations": {response.tool_call_id: {
                 "reference": reference, "pending_action": bool(result.get("pending_action"))}}})
 

@@ -445,21 +445,7 @@ class TargetFrameworkAgent:
         )
 
     def _atomic_tool(self, definition, trusted_context=None):
-        from copy import deepcopy
-        from mcp.read_reuse import read_key, ReadReusePolicy
-        policy = definition.task_read_reuse
-        if policy is not None:
-            limits = [requirement.freshness_seconds for requirement in self._registry.requirements
-                      if definition.name in requirement.allowed_tools and requirement.freshness_seconds is not None]
-            if policy.max_age_seconds is not None:
-                limits.append(policy.max_age_seconds)
-            policy = ReadReusePolicy(min(limits) if limits else None)
-        schema = deepcopy(definition.input_schema(trusted_context))
-        if definition.task_read_reuse:
-            if "_refresh" in schema.get("properties", {}):
-                raise ValueError("tool schema conflicts with task read refresh control")
-            schema.setdefault("properties", {})["_refresh"] = {"type": "boolean", "default": False,
-                "description": "Request a fresh read for explicit user refresh or known changed conditions; not merely because results were summarized."}
+        schema = definition.model_input_schema(trusted_context)
 
         async def execute(runtime: ToolRuntime, **arguments):
             context = runtime.context
@@ -469,44 +455,14 @@ class TargetFrameworkAgent:
                     context.work_item, context.trusted_context,
                 )
             refresh = arguments.pop("_refresh", False) if definition.task_read_reuse else False
-            key = read_key(definition, arguments, context.trusted_context, context.work_item.registry_fingerprint)
-            epoch = list(context.read_epoch)
-            record = runtime.state.get("reusable_reads", {}).get(key)
-            reused = None
-            if (definition.task_read_reuse and context.read_reuse_allowed and not refresh and record
-                    and policy.valid(record, epoch=epoch)):
-                original = await self._archive.load(context, record["reference"])
-                reused = restore_framework_artifact(original["artifact"])
-            if definition.read_only:
-                if refresh:
-                    reuse_decision = "REFRESH_REQUESTED"
-                elif reused is not None:
-                    reuse_decision = "REUSE_VALID_RESULT"
-                elif definition.task_read_reuse is None:
-                    reuse_decision = "POLICY_DISABLED"
-                elif record is None:
-                    reuse_decision = "NO_PRIOR_RESULT"
-                else:
-                    reuse_decision = "PRIOR_RESULT_INVALIDATED"
-                if self._trace_sink is not None:
-                    self._trace_sink.record_causal_event(
-                        "READ_REUSE_DECIDED", owner="tool_read_reuse",
-                        turn_id=str(context.trusted_context.get("invocation_key") or context.work_item.work_item_id),
-                        work_item_id=context.work_item.work_item_id,
-                        read_identity=key, tool_call_id=runtime.tool_call_id,
-                        emitted_business_call_id=runtime.tool_call_id,
-                        reuse_decision=reuse_decision,
-                        refresh_requested=refresh,
-                        prior_result_present=record is not None,
-                    )
             result = await self._tool_manager.execute_for_agent(
                 definition.name,
                 dict(arguments),
                 agent_type=runtime_agent,
                 call_id=runtime.tool_call_id,
-                context=dict(context.trusted_context),
+                context={**context.trusted_context, "work_item_id": context.work_item.work_item_id},
                 allowed_tool_ids=context.work_item.allowed_tools,
-                reuse_result=reused,
+                refresh=refresh,
                 # One cache owner for this call. Explicit refresh/invalidation
                 # must not fall through to a second, process-local old snapshot.
                 use_cache=definition.task_read_reuse is None,
@@ -516,22 +472,13 @@ class TargetFrameworkAgent:
                     context.work_item, context.trusted_context,
                 )
             artifact = framework_artifact(result)
-            if (definition.task_read_reuse and context.read_reuse_allowed
-                    and result.success and result.observed_at is not None):
-                artifact["task_read"] = {"key": key, "epoch": epoch,
-                    "observed_at": result.observed_at.isoformat()}
-            if reused is not None and self._trace_sink is not None:
-                self._trace_sink.record_causal_event("READ_REUSED", owner="agent_progress",
-                    turn_id=str(context.trusted_context.get("invocation_key") or context.work_item.work_item_id),
-                    work_item_id=context.work_item.work_item_id, read_identity=key,
-                    guard_decision="REUSE_VALID_RESULT", source_ref=record["reference"])
             return _tool_output(result), artifact
 
         return StructuredTool.from_function(
             coroutine=execute,
             name=definition.name,
             description=definition.description + (
-                " The runtime reuses valid results within this task, preserving original observation time. "
+                " The runtime reuses authorized valid results across this conversation, preserving original observation time. "
                 "Use existing results to advance; ask for _refresh only for an explicit refresh request or known changed conditions."
                 if definition.task_read_reuse else ""),
             args_schema=schema,

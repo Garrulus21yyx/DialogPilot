@@ -140,6 +140,10 @@ async def build_target_runtime(
         )
         state_store = PostgresConversationStateStore(postgres_pool)
         control_guard = WorkControlGuard(state_store)
+        from infrastructure.conversation_read_reuse import ConversationReadReuse
+        tool_manager.read_reuse = ConversationReadReuse(checkpoint_owner.store, registry,
+            subject_fence=PostgresConversationDeletionRepository(postgres_pool).fence,
+            trace_sink=langfuse_sink)
         tool_executor = TargetToolExecutor(
             tool_manager, registry=registry, control_guard=control_guard,
         )

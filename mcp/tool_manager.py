@@ -327,6 +327,16 @@ class Tool:
     def input_schema(self, context=None):
         return self.schema_factory(dict(context or {})) if self.schema_factory else self.schema
 
+    def model_input_schema(self, context=None):
+        from copy import deepcopy
+        schema = deepcopy(self.input_schema(context))
+        if self.task_read_reuse is not None:
+            if "_refresh" in schema.get("properties", {}):
+                raise ValueError("tool schema conflicts with read refresh control")
+            schema.setdefault("properties", {})["_refresh"] = {"type": "boolean", "default": False,
+                "description": "Request a fresh read for explicit user refresh or known changed conditions; not merely because results were summarized."}
+        return schema
+
     # 运行时状态（不参与构造）
     stats:   ToolStats    = field(default_factory=ToolStats, init=False)
     breaker: CircuitBreaker = field(default_factory=CircuitBreaker, init=False)
@@ -366,6 +376,7 @@ class MCPToolManager:
         self._model  = self._rewrite_model_profile.model
         self._tools: Dict[str, Tool] = {}
         self._cache: Dict[str, tuple] = {}   # key → (result, expire_at, reranked)
+        self.read_reuse = None  # Target composition supplies the existing durable Store adapter.
         self._approval_mode = ApprovalMode(approval_mode)
         self._trace_recorder = trace_recorder or TraceRecorder()
         self._audit: Deque[ToolAuditRecord] = deque(maxlen=max(1, int(max_audit_records)))
@@ -494,7 +505,7 @@ class MCPToolManager:
         approved: bool = False,
         call_id: Optional[str] = None,
         allowed_tool_ids: Optional[Collection[str]] = None,
-        reuse_result: Optional[ToolResult] = None,
+        refresh: bool = False,
         use_cache: bool = True,
     ) -> ToolResult:
         """在身份、审批、审计和 Trace 边界内执行一次 Agent 工具调用。
@@ -594,31 +605,48 @@ class MCPToolManager:
             "tool.risk": tool.risk.value,
             "tool.call_id": resolved_call_id,
         }
+        business_call_started = False
         try:
             scope = nullcontext(trace_id) if current_trace_id() == trace_id else trace_scope(trace_id)
             with scope:
                 with self._trace_recorder.span(
                     f"tool.{name}", kind="tool", attributes=span_attributes
                 ):
-                    if reuse_result is not None:
-                        from copy import deepcopy
-                        if (tool.task_read_reuse is None or not tool.read_only
-                                or not reuse_result.success or reuse_result.tool_name != name):
-                            raise ValueError("invalid task read reuse")
+                    try:
                         self._validate_params(tool, params, context)
-                        result = deepcopy(reuse_result)
-                        result.cached = True
-                        tool.stats.total += 1
-                        tool.stats.success += 1
-                    else:
-                        result = await self.call(name, params, {
+                    except ValueError as exc:
+                        raise ToolRejected(str(exc)) from exc
+                    async def invoke():
+                        nonlocal business_call_started
+                        business_call_started = True
+                        return await self.call(name, params, {
                             **dict(context or {}), "_agent_type": normalized_agent,
-                        }, use_cache=use_cache)
+                        }, use_cache=use_cache and tool.task_read_reuse is None and not refresh)
+                    if self.read_reuse is not None:
+                        def finalize(value):
+                            value_status = (ToolCallStatus(value.status) if value.status else
+                                ToolCallStatus.SUCCESS if value.success else ToolCallStatus.ERROR)
+                            return self._prepare_controlled_result(value, tool=tool,
+                                params=params, context=context, trace_id=trace_id,
+                                call_id=resolved_call_id, status=value_status)
+                        result = await self.read_reuse.execute(tool, params, context, invoke,
+                            finalize=finalize, refresh=refresh)
+                    elif tool.task_read_reuse is not None:
+                        raise ValueError("reusable tool requires configured durable read owner")
+                    else:
+                        result = await invoke()
             status = (
                 ToolCallStatus(result.status)
                 if result.status
                 else ToolCallStatus.SUCCESS if result.success else ToolCallStatus.ERROR
             )
+        except ToolRejected as exc:
+            tool.stats.total += 1
+            tool.stats.failed += 1
+            result = ToolResult(False, exc.data, name, error=str(exc),
+                status=ToolCallStatus.REJECTED.value,
+                effect_status=(ToolEffectStatus.NONE.value if tool.read_only else ToolEffectStatus.NOT_COMMITTED.value))
+            status = ToolCallStatus.REJECTED
         except asyncio.CancelledError:
             # 取消必须留下唯一终态审计，但仍向调用方传播取消语义。
             result = ToolResult(
@@ -648,7 +676,9 @@ class MCPToolManager:
             )
             raise
         except Exception as exc:  # call() 应闭合异常，此处保护未来适配器。
-            result = ToolResult(False, None, name, error=f"{type(exc).__name__}: {exc}")
+            result = ToolResult(False, None, name, error=f"{type(exc).__name__}: {exc}",
+                effect_status=(ToolEffectStatus.NONE.value if tool.read_only else
+                    ToolEffectStatus.OUTCOME_UNKNOWN.value if business_call_started else ToolEffectStatus.NOT_COMMITTED.value))
             status = ToolCallStatus.ERROR
         return self._finish_controlled_call(
             result=result,
@@ -972,6 +1002,38 @@ class MCPToolManager:
         approved: bool,
     ) -> ToolResult:
         """在唯一出口闭合结果字段并追加脱敏审计。"""
+        result = self._prepare_controlled_result(result, tool=tool, params=params,
+            context=context, trace_id=trace_id, call_id=call_id, status=status)
+        status = ToolCallStatus(result.status)
+        risk = tool.risk if tool else ToolRisk.HIGH
+        read_only = tool.read_only if tool else True
+        payload = json.dumps(params, ensure_ascii=False, sort_keys=True, default=str)
+        record = ToolAuditRecord(
+            trace_id=trace_id,
+            call_id=call_id,
+            request_id=request_id,
+            agent_type=agent_type,
+            tool_name=result.tool_name,
+            status=status,
+            risk=risk,
+            read_only=read_only,
+            params_hash=hashlib.sha256(payload.encode("utf-8")).hexdigest(),
+            params_summary=self._params_summary(params),
+            result_summary=self._result_summary(result),
+            approved=approved,
+            started_at=started_iso,
+            latency_ms=(time.monotonic() - started) * 1000,
+            error="tool execution failed" if result.error else "",
+            effect_status=ToolEffectStatus(result.effect_status),
+            receipt_id=result.receipt_id,
+            invocation_key=str(context.get("invocation_key") or ""),
+            operation_key=str(context.get("operation_key") or ""),
+        )
+        self._audit.append(record)
+        return result
+
+    def _prepare_controlled_result(self, result, *, tool, params, context, trace_id, call_id, status):
+        """Accept the result before persistence; audit remains at the sole exit."""
         result.call_id = call_id
         result.trace_id = trace_id
         result.status = status.value
@@ -1001,31 +1063,6 @@ class MCPToolManager:
                 "effect_status": result.effect_status,
                 "receipt_id": result.receipt_id,
             }, sort_keys=True)
-        risk = tool.risk if tool else ToolRisk.HIGH
-        read_only = tool.read_only if tool else True
-        payload = json.dumps(params, ensure_ascii=False, sort_keys=True, default=str)
-        record = ToolAuditRecord(
-            trace_id=trace_id,
-            call_id=call_id,
-            request_id=request_id,
-            agent_type=agent_type,
-            tool_name=result.tool_name,
-            status=status,
-            risk=risk,
-            read_only=read_only,
-            params_hash=hashlib.sha256(payload.encode("utf-8")).hexdigest(),
-            params_summary=self._params_summary(params),
-            result_summary=self._result_summary(result),
-            approved=approved,
-            started_at=started_iso,
-            latency_ms=(time.monotonic() - started) * 1000,
-            error="tool execution failed" if result.error else "",
-            effect_status=ToolEffectStatus(result.effect_status),
-            receipt_id=result.receipt_id,
-            invocation_key=str(context.get("invocation_key") or ""),
-            operation_key=str(context.get("operation_key") or ""),
-        )
-        self._audit.append(record)
         return result
 
     def _render_for_model(self, result: ToolResult) -> str:

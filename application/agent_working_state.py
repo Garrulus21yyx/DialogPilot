@@ -2,7 +2,7 @@
 from copy import deepcopy
 
 PROGRESS_FIELDS = ("observed_results", "stagnant_rounds", "progress_warning",
-                   "consumed_progress_calls", "reusable_reads")
+                   "consumed_progress_calls")
 
 
 def working_state(state):
@@ -33,14 +33,3 @@ def recovery_context(plan, item, previous):
     return {"working_state": working_state(sources[0][1].working_state),
             "working_messages": tuple(sources[0][1].working_messages),
             "facts": tuple(sources[0][1].facts)} if sources else {}
-
-
-def read_epoch(outcomes):
-    """Any observed write attempt invalidates prior task snapshots conservatively.
-
-    Includes failed/unknown writes, not just successful receipts. No interpretation
-    of a summary or model claim can change this execution boundary.
-    """
-    from application.capability_registry import CapabilityEffect
-    return sorted({item.fingerprint for item, result in outcomes
-                   if item.effect is CapabilityEffect.WRITE and result is not None})

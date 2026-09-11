@@ -22,6 +22,8 @@ def read(call_id, **extra):
 
 
 def agent(model, manager, store, trace_sink=None):
+    from infrastructure.conversation_read_reuse import ConversationReadReuse
+    manager.read_reuse = ConversationReadReuse(store, build_default_capability_registry("tenant-a"), trace_sink=trace_sink)
     return TargetFrameworkAgent(model, manager, review_model=model,
         review_available_tokens=14200, result_store=store,
         registry=build_default_capability_registry("tenant-a"), system_prompt="Assist with the objective.",
@@ -50,8 +52,9 @@ def test_read_history_and_reuse_survive_every_continuation_split(split):
         assert result.status is AgentResultStatus.NEEDS_USER_INPUT
         assert len(calls) == 1
         assert result.working_state["observed_results"]
-        assert result.working_state["reusable_reads"]
-        observed_at = next(iter(result.working_state["reusable_reads"].values()))["observed_at"]
+        saved = await store.asearch(("target-originals",), limit=100)
+        observed_at = [entry.value["observed_at"] for entry in saved if entry.namespace[-1] == "results"]
+        assert observed_at
         updated = replace(original, work_item_id="next", continuation_of=original.work_item_id,
                           control=WorkControlBinding("goal", 2))
         # Deliberately remove all model history: reuse/progress are not a summary.
@@ -59,7 +62,8 @@ def test_read_history_and_reuse_survive_every_continuation_split(split):
         final = await agent(second, manager, store)(replace(_context(updated), current_message="Blue",
             working_state=result.working_state))
         assert len(calls) == 1
-        assert next(iter(final.working_state["reusable_reads"].values()))["observed_at"] == observed_at
+        saved = await store.asearch(("target-originals",), limit=100)
+        assert [entry.value["observed_at"] for entry in saved if entry.namespace[-1] == "results"] == observed_at
         assert set(result.working_state["observed_results"]) <= set(final.working_state["observed_results"])
         assert final.status in {AgentResultStatus.SUCCEEDED, AgentResultStatus.BLOCKED}
     asyncio.run(run())
@@ -99,16 +103,23 @@ def test_real_invalidation_runs_the_read_again(change):
         state = working_state(result.working_state)
         extra = {"_refresh": True} if change == "refresh" else {}
         if change in {"expiry", "authority_age"}:
-            for record in state["reusable_reads"].values():
+            for entry in await store.asearch(("target-originals",), limit=100):
+                if entry.namespace[-1] != "results":
+                    continue
+                record = dict(entry.value)
                 record["observed_at"] = (datetime.now(timezone.utc)-timedelta(
                     seconds=61 if change == "authority_age" else 301)).isoformat()
+                await store.aput(entry.namespace, entry.key, record)
+        if change == "mutation":
+            namespace = await manager.read_reuse._namespace(context.trusted_context)
+            await store.aput(namespace, "epoch", {"id": "write-attempt"})
         if change == "version":
             tool.output_schema_version = "next-version"
         message = read("second", **extra)
         if change == "arguments":
             message.tool_calls[0]["args"]["query"] = "other product"
         final = await agent(ScriptedToolModel(responses=[message, AIMessage(content="Done")]), manager, store)(
-            replace(context, working_state=state, read_epoch=("write-attempt",) if change == "mutation" else ()))
+            replace(context, working_state=state))
         assert len(calls) == 2
         assert final.status is AgentResultStatus.SUCCEEDED
     asyncio.run(run())
@@ -185,6 +196,7 @@ def test_postgres_reopen_preserves_reuse_and_accepts_new_input(postgres_database
     from infrastructure.langgraph_checkpoint import AsyncPostgresCheckpointOwner
     async def run():
         calls = []
+        trusted = {**_context().trusted_context, "conversation_id": "pg-continuation-split"}
         original = replace(_item(), max_steps=12, control=WorkControlBinding("pg-goal", 1))
         manager = _manager(calls)
         manager.registered_tools[0].task_read_reuse = ReadReusePolicy(300)
@@ -195,7 +207,7 @@ def test_postgres_reopen_preserves_reuse_and_accepts_new_input(postgres_database
             worker = agent(first_model, manager, owner.store)
             runtime = OrchestrationRuntime(direct_executor=worker, domain_workers={original.owner_agent: worker}, checkpointer=saver)
             first = await runtime.execute(WorkPlan((original,), original.work_item_id), current_message="Find the product",
-                trusted_context=_context().trusted_context, thread_id="read-continuity-pg")
+                trusted_context=trusted, thread_id="read-continuity-pg")
             assert first.results[0].status is AgentResultStatus.NEEDS_USER_INPUT
         owner = AsyncPostgresCheckpointOwner(postgres_database_url, setup=True)
         async with owner as saver:
@@ -205,52 +217,36 @@ def test_postgres_reopen_preserves_reuse_and_accepts_new_input(postgres_database
             target = replace(original, work_item_id="continued", continuation_of=original.work_item_id,
                              control=WorkControlBinding("pg-goal", 2))
             board = await runtime.resume(WorkPlan((target,), target.work_item_id), current_message="Blue",
-                trusted_context=_context().trusted_context, thread_id="read-continuity-pg")
+                trusted_context=trusted, thread_id="read-continuity-pg")
             assert board.results[0].status is AgentResultStatus.SUCCEEDED
             assert board.results[0].working_state["observed_results"] == first.results[0].working_state["observed_results"]
         assert len(calls) == 1
     asyncio.run(run())
 
 
-def test_parallel_record_reducer_is_commutative_associative_and_idempotent():
-    from itertools import permutations
-    from functools import reduce
-    from mcp.read_reuse import merge_read_records
-    records = [{key: {"observed_at": f"2026-09-11T12:00:0{i}+00:00", "reference": str(i)}}
-               for i, key in enumerate(["a", "b", "a", "b"])]
-    expected = reduce(merge_read_records, records, {})
-    for ordering in permutations(records):
-        assert reduce(merge_read_records, ordering, {}) == expected
-    assert merge_read_records(expected, expected) == expected
-
-
-def test_dispatch_disables_reuse_during_parallel_or_unresolved_writes():
-    from application.agent_result import AgentResult
+def test_new_planner_controls_reuse_reads_without_inheriting_private_progress():
     from application.orchestration_runtime import OrchestrationRuntime
-    from test_handoff_runtime import _item as write_item
-    async def unused(context):
-        raise AssertionError("dispatch-only test")
-    runtime = OrchestrationRuntime(direct_executor=unused, domain_workers={})
-    reader = _item()
-    writer = replace(write_item(), registry_fingerprint=reader.registry_fingerprint)
-    plan = WorkPlan((reader, writer), reader.work_item_id)
-    state = {"work_plan": plan, "ready_items": (reader, writer), "agent_results": []}
-    assert all(not dispatch.arg["read_reuse_allowed"] for dispatch in runtime._dispatch(state))
-    # An unknown write in retained state is not equivalent to a completed write.
-    unknown = AgentResult(writer.work_item_id, writer.owner_agent, AgentResultStatus.BLOCKED,
-                          "WRITE_OUTCOME_UNKNOWN", "v1")
-    read_plan = WorkPlan((reader,), reader.work_item_id)
-    state = {"work_plan": read_plan, "ready_items": (reader,), "agent_results": [],
-             "retained_outcomes": ((writer, unknown),)}
-    dispatched = runtime._dispatch(state)[0].arg
-    assert not dispatched["read_reuse_allowed"]
-    assert writer.fingerprint in dispatched["read_epoch"]
-    from application.orchestration_runtime import _scope_results
-    state = {"work_plan": plan, "ready_items": (reader,),
-             "agent_results": _scope_results(plan, (unknown,))}
-    dispatched = runtime._dispatch(state)[0].arg
-    assert not dispatched["read_reuse_allowed"]
-    assert writer.fingerprint in dispatched["read_epoch"]
+    from application.turn_planning import TurnPlanCompiler
+    from types import SimpleNamespace
+    async def run():
+        calls, store = [], InMemoryStore()
+        manager = _manager(calls)
+        manager.registered_tools[0].task_read_reuse = ReadReusePolicy(300)
+        for turn in range(4):
+            # Exercise the real compiler's fresh-control branch, no handcrafted
+            # continuation/recovery relation and no retained native messages.
+            control = TurnPlanCompiler._control_binding(
+                SimpleNamespace(revises_control_id=None, command_id="semantic-1"), None,
+                SimpleNamespace(invocation_key=f"turn-{turn}"), 0)
+            item = replace(_item(), work_item_id=f"work-{turn}", control=control)
+            model = ScriptedToolModel(responses=[read(f"read-{turn}"), AIMessage(content="Done")])
+            worker = agent(model, manager, store)
+            runtime = OrchestrationRuntime(direct_executor=worker, domain_workers={item.owner_agent: worker})
+            result = await runtime.execute(WorkPlan((item,), item.work_item_id), current_message="Continue",
+                trusted_context={**_context().trusted_context, "invocation_key": f"turn-{turn}"})
+            assert result.results[0].status is AgentResultStatus.SUCCEEDED
+        assert len(calls) == 1
+    asyncio.run(run())
 
 
 @pytest.mark.parametrize("owner", [a.agent_id for a in build_default_capability_registry("tenant-a").agents])

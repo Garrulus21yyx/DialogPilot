@@ -102,6 +102,18 @@ def _board(*results, missing=(), conflicts=(), partial=False):
     )
 
 
+@pytest.mark.parametrize("count", range(1, 6))
+def test_unavailable_detailed_reply_is_one_turn_notice_not_one_per_work_item(count):
+    from application.response_assembly import _render_board
+    from dataclasses import replace
+    results = tuple(replace(_result(f"work-{i}", "general"), candidate_response="Unverified promise")
+                    for i in range(count))
+    response = _render_board(_board(*results), locale="en")
+    assert response.count("could not verify the detailed reply") == 1
+    assert "Unverified promise" not in response
+    assert all(result.candidate_response == "Unverified promise" for result in results)
+
+
 @pytest.mark.parametrize("extra_goals", range(5))
 def test_requested_goal_growth_cannot_expand_prepared_scope(extra_goals):
     from dataclasses import replace

@@ -243,6 +243,8 @@ class AsyncPostgresCheckpointOwner:
                 SET ttl_minutes = %s,
                     expires_at = updated_at + %s * INTERVAL '1 minute'
                 WHERE prefix LIKE 'target-originals.%%' AND ttl_minutes IS NULL
+                  AND prefix NOT LIKE 'target-originals.%%.shared-reads'
+                  AND prefix NOT LIKE 'target-originals.%%.shared-reads.writers'
             """, (self._result_ttl, self._result_ttl))
             await self.store.start_ttl_sweeper()
             self._context.push_async_callback(self.store.stop_ttl_sweeper)

@@ -576,6 +576,7 @@ def _render_progress(board, pending_approval=None, conversation_context=None, *,
 def _render_board(board, *, locale="zh-CN", knowledge_safe=False, empty_message=True) -> str:
     from dataclasses import replace
     sections = []
+    detail_unavailable = False
     current = _current_board_facts(board)
     for item, result in _outcome_pairs(board):
         if result is None:
@@ -625,9 +626,12 @@ def _render_board(board, *, locale="zh-CN", knowledge_safe=False, empty_message=
         elif result.status is AgentResultStatus.PARTIAL:
             rendered.append(_message(locale, "部分请求尚未完成。", "Part of the request remains incomplete."))
         if not rendered:
-            rendered.append(_message(locale, "详细答复暂时未能完成核验。",
-                "The detailed reply could not be verified."))
+            detail_unavailable = True
         sections.extend(rendered)
+    if detail_unavailable:
+        sections.append(_message(locale,
+            "已有处理进度仍已保留，但本次详细答复未能完成核验。",
+            "Your recorded progress is retained, but I could not verify the detailed reply this time."))
     return "\n".join(sections) or ("" if knowledge_safe or not empty_message else _message(locale, "暂时没有可发布的结果。", "No result is available yet."))
 
 

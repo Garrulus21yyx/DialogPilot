@@ -9,6 +9,46 @@ from core.structured_model import structured_call
 from langchain_core.messages import HumanMessage
 
 
+@pytest.mark.parametrize("mode", ["recover", "reject", "empty", "refusal", "max_tokens"])
+def test_verifier_protocol_recovery_is_bounded_and_keeps_the_same_evidence(monkeypatch, mode):
+    from services.answer_verifier import AnswerVerifier, VerificationReasonCode
+    import langchain_anthropic.chat_models as integration
+    requests = []
+    async def handler(request):
+        body = json.loads(request.content)
+        requests.append(body)
+        value = ({"result": {"supported": True, "answered": True, "issues": []}}
+                 if mode == "recover" and len(requests) == 2 else {})
+        if mode == "reject":
+            value = {"result": {"supported": False, "answered": True,
+                                "issues": ["The evidence does not establish that status."]}}
+        return httpx.Response(200, json={"id": f"msg-{len(requests)}", "type": "message",
+            "role": "assistant", "model": body["model"],
+            "content": [{"type": "tool_use", "id": f"call-{len(requests)}",
+                         "name": "submit_claim_checks", "input": value}],
+            "stop_reason": mode if mode in {"refusal", "max_tokens"} else "tool_use",
+            "stop_sequence": None, "usage": {"input_tokens": 12, "output_tokens": 8}})
+    async def run():
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as transport:
+            monkeypatch.setattr(integration, "_get_default_async_httpx_client", lambda **_: transport)
+            profile = ModelProfile("deepseek-v4-flash", ReasoningEffort.NONE, "deepseek")
+            model = framework_model(profile, {"api_key": "test-key", "base_url": "https://example.invalid"})
+            verifier = AnswerVerifier(model, model_profile=profile)
+            result = await verifier.verify("Status?", "Saved.", '{"status":"saved"}')
+            assert result.publishable is (mode == "recover")
+            if mode == "reject":
+                assert result.assessment is not None
+                assert not result.assessment.supported
+            elif mode != "recover":
+                assert result.reason_code is VerificationReasonCode.INVALID_MODEL_OUTPUT
+                assert result.assessment is None
+    asyncio.run(run())
+    assert len(requests) == (1 if mode in {"reject", "refusal", "max_tokens"} else 2)
+    assert all(body["messages"] == requests[0]["messages"] for body in requests)
+    assert all(body["tools"] == requests[0]["tools"] for body in requests)
+    assert all([tool["name"] for tool in body["tools"]] == ["submit_claim_checks"] for body in requests)
+
+
 @pytest.mark.parametrize('stage', ['plan', 'compose'])
 @pytest.mark.parametrize('catalog', [[], ['general_qa']])
 def test_public_text_is_native_sdk_text_separate_from_reasoning(monkeypatch, stage, catalog):

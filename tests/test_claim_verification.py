@@ -84,8 +84,14 @@ def test_invalid_input_assessment_rejects_unbound_duplicate_and_contradictory_re
 def test_incomplete_or_wrong_sdk_output_is_rejected(stop, name, count):
     request, output = fixture()
     model = models(output, name=name, stop=stop, count=count)[ModelRole.INTENT]
+    model.responses = model.responses * 2  # Pure verifier permits one protocol retry.
+    if stop == "tool_use":
+        # The verifier retries a malformed protocol result once. Supply the same
+        # invalid response twice to prove the finite retry still fails closed.
+        model.responses *= 2
     with pytest.raises(ValueError):
         asyncio.run(verify_claims(model, ModelProfile("test"), **request))
+    assert model.calls == (2 if stop == "tool_use" else 1)
 
 
 def test_budget_checked_before_network():

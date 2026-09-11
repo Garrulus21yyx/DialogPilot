@@ -1,4 +1,4 @@
-"""Tool-owned reuse lifetime for private task snapshots (not a global cache)."""
+"""Tool-owned freshness and identity for scoped reusable read snapshots."""
 from dataclasses import dataclass
 from datetime import datetime, timezone
 import hashlib
@@ -31,17 +31,6 @@ def read_key(tool, arguments, trusted_context, registry_fingerprint=""):
     value = [registry_fingerprint, tool.name, tool.authority, tool.manifest_version, tool.output_schema_version,
              tool.task_read_reuse.max_age_seconds if tool.task_read_reuse else "disabled",
              tool.input_schema(trusted_context), arguments,
-             [trusted_context.get(key) for key in ("tenant_id", "user_id", "conversation_id")]]
+             [trusted_context.get(key) for key in ("tenant_id", "user_id", "conversation_id", "agent_type")]]
     return hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=False,
                                      allow_nan=False).encode()).hexdigest()
-
-
-def merge_read_records(left, right):
-    """Parallel results converge independently of reducer arrival order."""
-    merged = dict(left)
-    for key, record in right.items():
-        old = merged.get(key)
-        if old is None or (datetime.fromisoformat(record["observed_at"]), record["reference"]) > (
-                datetime.fromisoformat(old["observed_at"]), old["reference"]):
-            merged[key] = record
-    return merged

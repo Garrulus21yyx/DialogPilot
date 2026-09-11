@@ -5,7 +5,7 @@ import json
 from dataclasses import dataclass
 from jsonschema import Draft202012Validator, ValidationError
 from langchain_core.messages import HumanMessage
-from core.structured_model import structured_call, structured_tool
+from core.structured_model import structured_call, structured_tool, ModelOutputError
 from core.provider_context_budget import DEFAULT_PROVIDER_CONTEXT_BUDGET
 from core.model_policy import ModelRole
 
@@ -44,9 +44,9 @@ def assess(request, output):
     try:
         Draft202012Validator(output_schema(request)).validate(output)
     except ValidationError as exc:
-        raise ValueError("answer_assessment_schema_invalid") from exc
+        raise ModelOutputError("answer_assessment_schema_invalid") from exc
     if (not output["supported"] or not output["answered"]) and not output["issues"]:
-        raise ValueError("answer_assessment_requires_actionable_feedback")
+        raise ModelOutputError("answer_assessment_requires_actionable_feedback")
     return AnswerAssessment(fingerprint(request), output["supported"], output["answered"],
                             tuple(output["issues"]))
 
@@ -134,5 +134,6 @@ async def verify_claims(model, profile, *, question, answer, evidence, max_token
         tools=[structured_tool("submit_claim_checks", output_schema(request))])
     DEFAULT_PROVIDER_CONTEXT_BUDGET.validate(profile, ModelRole.VERIFIER, payload)
     value = await structured_call(model, name="submit_claim_checks", schema=output_schema(request),
-                                  system=system, messages=[HumanMessage(content)], callbacks=callbacks)
+                                  system=system, messages=[HumanMessage(content)], callbacks=callbacks,
+                                  protocol_attempts=2)
     return assess(request, value)

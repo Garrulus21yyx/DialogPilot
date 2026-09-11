@@ -52,10 +52,14 @@ def test_rejected_request_keeps_endpoint_feedback_without_transport_retry_or_cir
         calls.append(arguments)
         return SimpleNamespace(content='{"error":"record_id must include its prefix"}', error=True, id="rejected")
     manager = MCPToolManager("test-key", model="test-model")
-    bind_environment(environment, manager, call)
+    registry = bind_environment(environment, manager, call)
+    from infrastructure.conversation_read_reuse import ConversationReadReuse
+    from langgraph.store.memory import InMemoryStore
+    manager.read_reuse = ConversationReadReuse(InMemoryStore(), registry)
     async def run():
         return await manager.execute_for_agent("lookup", {"record_id": "1"}, agent_type="retail",
-            context={"business_operation_key": "op"}, approved=True, allowed_tool_ids=("lookup",))
+            context={"business_operation_key": "op", "tenant_id": "t", "user_id": "u",
+                     "conversation_id": "c"}, approved=True, allowed_tool_ids=("lookup",))
     result = asyncio.run(run())
     assert not result.success and result.status == ToolCallStatus.REJECTED.value
     assert "record_id must include its prefix" in result.output_for_model

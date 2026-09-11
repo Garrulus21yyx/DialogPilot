@@ -35,6 +35,7 @@ class VerificationReasonCode(str, Enum):
     MODEL_REJECTED = "model_rejected"
     VERIFIER_UNAVAILABLE = "verifier_unavailable"
     INVALID_CONTRACT = "invalid_contract"
+    INVALID_MODEL_OUTPUT = "invalid_model_output"
     POLICY_TERMINAL = "policy_terminal"
 
 
@@ -177,6 +178,7 @@ class AnswerVerifier:
                 reason_code=reason_code, assessment=assessment,
             )
         except Exception as exc:
+            from core.structured_model import ModelOutputError
             from core.framework_models import ModelInvocationError
             if isinstance(exc, ModelInvocationError) and exc.retryable:
                 raise
@@ -184,7 +186,7 @@ class AnswerVerifier:
             return VerificationResult(
                 status=VerificationStatus.UNKNOWN, grounded=False, need_escalation=True,
                 reason="verification unavailable: " + json.dumps(exception_chain(exc), ensure_ascii=False),
-                reason_code=(VerificationReasonCode.INVALID_CONTRACT
-                             if isinstance(exc, (ValueError, TypeError))
+                reason_code=(VerificationReasonCode.INVALID_MODEL_OUTPUT if isinstance(exc, ModelOutputError)
+                             else VerificationReasonCode.INVALID_CONTRACT if isinstance(exc, (ValueError, TypeError))
                              else VerificationReasonCode.VERIFIER_UNAVAILABLE),
             )
