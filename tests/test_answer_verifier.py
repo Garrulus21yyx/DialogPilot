@@ -67,10 +67,12 @@ def test_semantic_verdict_does_not_own_approval_readiness(pending, fields, suppo
         content = ''.join(block['text'] for block in content if block.get('type') == 'text')
     assert 'approval_required' not in json.loads(content)['evidence']
     system = requests[0]['system']
-    assert ('Current turn includes an accepted information request.' in system) is fields
+    evidence = json.loads(content)['evidence']['context']
+    assert bool(evidence['pending_actions']) is pending
+    assert bool(evidence['requested_inputs']) is fields
+    from services.claim_verification import SYSTEM
+    assert system == SYSTEM
     assert 'Current turn: approve the prepared action.' not in system
-    from application.action_approval import action_presentation_instruction
-    assert action_presentation_instruction([{}] if pending else []) in system
     assert 'missing information, not execution approval' not in system
 
 

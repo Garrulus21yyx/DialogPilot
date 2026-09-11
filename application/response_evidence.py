@@ -4,6 +4,59 @@ Only known envelope metadata is removed. Never recursively redact business keys
 or customer text: an order ID is useful, an internal receipt ID is not a citation.
 """
 from copy import deepcopy
+import json
+
+
+def verification_evidence(snapshot):
+    """Reviewer view of the same snapshot; never derive authorization or status.
+
+    Preserve business bodies and historical evidence, but remove planner-facing
+    instructions/catalog metadata. Exact duplicates are not independent evidence.
+    """
+    result = deepcopy(snapshot)
+    policy = result.pop("capability_policy", None)
+    if isinstance(policy, dict):
+        result["policy_excerpts"] = [
+            {"action": row.get("tool_id"), "text": row["description"]}
+            for row in policy.get("business_actions", ()) if row.get("description")]
+        result["conversation_constraints"] = list(dict.fromkeys(
+            row["conversation_policy"] for row in policy.get("agents", ())
+            if row.get("conversation_policy")))
+    facts = result.get("facts", [])
+    unique, indexes, seen = [], {}, {}
+    for index, fact in enumerate(facts):
+        identity = json.dumps(fact, sort_keys=True, ensure_ascii=False)
+        if identity not in seen:
+            seen[identity] = len(unique)
+            unique.append(fact)
+        indexes[index] = seen[identity]
+    if "facts" in result:
+        result["facts"] = unique
+    for outcome in result.get("outcomes", ()):
+        outcome.pop("control", None)
+        outcome.pop("owner_agent", None)
+        if "requested_evidence" in outcome:
+            outcome["requested_evidence"] = [_without(row, "preferred_providers")
+                                             for row in outcome["requested_evidence"]]
+        if "fact_indexes" in outcome:
+            outcome["fact_indexes"] = list(dict.fromkeys(indexes[i] for i in outcome["fact_indexes"]))
+    context = result.get("user_context")
+    if isinstance(context, dict):
+        # These are navigation/instruction fields, not business records. Keep
+        # dialogue, restrictions, retained approvals and historical observations.
+        for key in ("evidence_refs", "knowledge_reuse_contract", "observation_feedback"):
+            context.pop(key, None)
+        observed = context.get("observed_execution")
+        if isinstance(observed, dict):
+            observed.pop("contract", None)
+            observed.pop("detail_contract", None)
+            for outcome in observed.get("outcomes", ()):
+                task_input = outcome.pop("task_input", None)
+                if isinstance(task_input, dict):
+                    outcome["observation_scope"] = _without(task_input, "control_mode")
+                for key in ("assignment_issue", "owner_agent"):
+                    outcome.pop(key, None)
+    return result
 
 
 def _without(row, *names):
