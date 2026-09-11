@@ -21,11 +21,20 @@ class TargetActionPreparation:
         self.tools = tool_manager
         self.guard = control_guard
 
-    async def prepare(self, context, action_ref, arguments, call_id):
+    async def prepare(self, context, action_ref, arguments, call_id, *, operation_plan=None):
         item = context.work_item
         action = self.registry.action(action_ref)
         if action.ref not in item.allowed_actions or action.owner_agent != item.owner_agent:
             raise ValueError("action proposal exceeds work envelope")
+        if operation_plan is not None:
+            from application.operation_plan import validate_operation_plan
+            from application.action_compatibility import validate_action_compatibility
+            rules = {"prepare_" + tool: registered.state_transition
+                     for registered in self.registry.actions for tool in registered.allowed_tool_ids}
+            name = "prepare_" + action.allowed_tool_ids[0]
+            validate_operation_plan(operation_plan, selected_tool=name, allowed_tools=rules)
+            validate_action_compatibility({"tool": name,
+                "arguments": {**arguments, "operation_plan": operation_plan}}, rules)
         if self.guard is not None:
             self.guard.ensure_current(item, context.trusted_context)
         if action.approval_policy not in {

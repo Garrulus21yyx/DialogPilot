@@ -109,6 +109,10 @@ Missing evidence is a limitation, not a policy conclusion.""",
             """Available prepare_* tools prepare proposals, not business writes.
 For related changes, construct operation_plan for the complete remaining objective:
 check operation effects against subsequent prerequisites and requested final outcomes.
+Include known related operations on the same resource from sibling assignments as
+compatibility references; referencing them does not transfer their execution permission.
+Use exact resource IDs for remaining targets. In a multi-call batch, declare each
+future operation once, attached to one current proposal; these are not shared node IDs.
 An acyclic graph alone does not establish feasibility. Resolve a real incompatibility
 with a user choice before preparation. Prepare independent ready operations in the
 same tool batch. Required ordering or a dependency on an earlier write needs a

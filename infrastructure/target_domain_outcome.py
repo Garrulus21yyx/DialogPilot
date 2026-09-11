@@ -65,6 +65,12 @@ Prepare only the first prerequisite in that case. They will share one user
 approval but retain separate execution receipts. Assess compatibility across the
 set; do not demand separate user confirmations for independent ready operations.
 For changes outside that concrete set, use the supplied operation_plan when needed.
+Known sibling operations on the same resource may be referenced for compatibility,
+not prepared by this worker. Check that these references preserve the sibling scope;
+do not reject a reference merely because execution belongs to another owner.
+Registered state checks establish necessary compatibility only, not live eligibility
+or completeness of the operation list. Still check omitted requested changes and
+policy dimensions not represented by the resource-state contract.
 For multiple related remaining writes in a single-action candidate, require candidate.arguments.operation_plan.
 It must cover the remaining assigned changes, not just restate the selected action.
 The current entry describes THIS candidate tool call and its actual target/arguments;

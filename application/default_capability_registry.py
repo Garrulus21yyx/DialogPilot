@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from application.authority_policy import AuthoritySupport, FactRequirement, RequirementEffect
+from application.action_compatibility import ActionStateTransition
 from application.capability_registry import (
     ActionDefinition,
     ActionPreparationDefinition,
@@ -241,6 +242,7 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
                 target_version_argument="expected_order_version",
             ),
             True,
+            state_transition=ActionStateTransition("customer.order.status", "order_id", ("delivered",)),
         ),
         ActionDefinition(
             "support.handoff.create", "v1", "human_service", "human_handoff:v1",
@@ -282,6 +284,7 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
                 target_version_argument="expected_order_version",
             ),
             True,
+            state_transition=ActionStateTransition("customer.order.status", "order_id", ("paid",), "cancelled"),
         ),
         ActionDefinition(
             "order.shipping_address.change", "v1", "order_logistics",
@@ -310,6 +313,7 @@ def build_default_capability_registry(tenant_id: str) -> CapabilityRegistryBundl
                 target_version_argument="expected_order_version",
             ),
             True,
+            state_transition=ActionStateTransition("customer.order.status", "order_id", ("paid",)),
         ),
         ActionDefinition(
             "account.freeze", "v1", "account_security", "freeze_account:v1",

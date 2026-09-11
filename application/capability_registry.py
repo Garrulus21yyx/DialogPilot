@@ -9,6 +9,7 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import asdict, dataclass
+from application.action_compatibility import ActionStateTransition
 from enum import Enum
 from typing import Iterable
 
@@ -317,6 +318,7 @@ class ActionDefinition:
     verification_profile: str
     preparation: ActionPreparationDefinition | None = None
     interruptible_by_security: bool = False
+    state_transition: ActionStateTransition | None = None
 
     @property
     def ref(self) -> str:

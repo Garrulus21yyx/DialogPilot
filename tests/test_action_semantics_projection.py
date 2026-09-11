@@ -27,7 +27,7 @@ def test_business_description_survives_every_exposure_without_exposing_a_write(d
     semantics = catalog.action_semantics(registry)
     assert semantics[0]['description'] == description
     assert semantics[0]['description_sha256'] == hashlib.sha256(description.encode()).hexdigest()
-    wrapped = worker._action_tool(registry.actions[0].ref, preparation_names=("prepare_order_cancel",))
+    wrapped = worker._action_tool(registry.actions[0].ref)
     assert 'business_operation_reference' in wrapped.description
     assert json.dumps('order_cancel') + ': ' + json.dumps(description, ensure_ascii=False) in worker._system(context)
     assert wrapped.name == 'prepare_order_cancel'

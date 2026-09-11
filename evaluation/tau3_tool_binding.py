@@ -17,6 +17,8 @@ from mcp.tool_manager import Tool, ToolEffectReceipt, ToolEffectStatus, ToolRisk
 
 
 def bind_environment(environment, manager, call):
+    from evaluation.retail_action_contracts import retail_action_transitions
+    transitions = retail_action_transitions()
     definitions, requirements, actions = [], [], []
     receipts = {}
     profile = "environment-evidence:v1"
@@ -90,7 +92,7 @@ def bind_environment(environment, manager, call):
                 ("environment." + name,), (name,), ApprovalPolicy.EXPLICIT_CONFIRMATION_REQUIRED,
                 receipt_schema, ActionReconciliationDefinition(
                     status_tool, "environment." + status_tool, "operation_key", "operation_key",
-                    (), "receipt_id"), profile,
+                    (), "receipt_id"), profile, state_transition=transitions.get(name),
             ))
 
     agent = AgentDefinition(

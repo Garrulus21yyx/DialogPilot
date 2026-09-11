@@ -121,9 +121,10 @@ class InteractionBoundaryMiddleware(AgentMiddleware):
     state_schema = OutcomeState
     max_rejections = 2
 
-    def __init__(self, action_tools=(), *, review):
+    def __init__(self, action_tools=(), *, review, action_rules=None):
         self.action_tools = frozenset(action_tools)
         self.review = review
+        self.action_rules = dict(action_rules or {})
 
     def proposed_outcome(self, message):
         calls = message.tool_calls if isinstance(message, AIMessage) else ()
@@ -186,19 +187,25 @@ class InteractionBoundaryMiddleware(AgentMiddleware):
         if rejections >= self.max_rejections:
             raise DomainOutcomeRejected("domain_outcome_correction_budget_exhausted")
         assessment = None
+        compatibility = None
         if kind == "PREPARE_ACTION":
             from application.operation_plan import OperationPlanError, validate_operation_plan
+            from application.action_compatibility import ActionCompatibilityError, validate_action_compatibility
             try:
                 for proposal in candidate.get("actions", (candidate,)):
                     if "operation_plan" in proposal["arguments"]:
                         validate_operation_plan(proposal["arguments"]["operation_plan"],
-                            selected_tool=proposal["tool"], allowed_tools=self.action_tools)
-            except OperationPlanError as exc:
-                assessment = {"accepted": False, "feedback": str(exc), "repair_owner": "domain"}
+                            selected_tool=proposal["tool"], allowed_tools=self.action_rules.keys() | self.action_tools)
+                compatibility = validate_action_compatibility(candidate, self.action_rules)
+            except (OperationPlanError, ActionCompatibilityError) as exc:
+                assessment = {"accepted": False, "feedback": str(exc), "repair_owner": "domain",
+                    "reason_code": getattr(exc, "code", "OPERATION_PLAN_INVALID"), "model_called": False}
         if assessment is None:
             assessment = await self.review.assess(context=runtime.context,
                 messages=state["messages"], kind=kind, candidate=candidate)
             review_calls += int(assessment.get("model_called", True))
+        if compatibility is not None:
+            assessment = {**assessment, "compatibility_check": compatibility}
         if not assessment["accepted"] and assessment.get("repair_owner") == "conversation":
             from infrastructure.target_domain_outcome import DomainAssignmentRejected
             raise DomainAssignmentRejected(assessment["feedback"])

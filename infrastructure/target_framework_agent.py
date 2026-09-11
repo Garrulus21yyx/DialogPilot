@@ -11,7 +11,7 @@ import asyncio
 import json
 import logging
 from contextlib import nullcontext
-from dataclasses import replace
+from dataclasses import asdict, replace
 from typing import Annotated, Any, Mapping
 
 from pydantic import Field
@@ -146,7 +146,9 @@ class TargetFrameworkAgent:
             registered_action_refs=tuple(action.ref for action in self._registry.actions
                                         if action.owner_agent == item.owner_agent))
         boundary = InteractionBoundaryMiddleware(("prepare_" + tool_id for ref in item.allowed_actions
-            for tool_id in self._registry.action(ref).allowed_tool_ids), review=review)
+            for tool_id in self._registry.action(ref).allowed_tool_ids), review=review,
+            action_rules={"prepare_" + tool: action.state_transition
+                for action in self._registry.actions for tool in action.allowed_tool_ids})
         compaction = ContextCompaction(self._model, self._archive,
             available_tokens=self._context_budget.available_tokens,
             overhead_tokens=overhead, pinned_message=pinned, max_summary_calls=item.max_steps,
@@ -322,10 +324,8 @@ class TargetFrameworkAgent:
         # Conversation state already owns one prepared decision. Read-only
         # assistance remains available; another proposal cannot replace it.
         action_refs = () if context.pending_approval else item.allowed_actions
-        preparation_names = tuple("prepare_" + tool_id for ref in action_refs
-                                  for tool_id in self._registry.action(ref).allowed_tool_ids)
         for action_ref in action_refs:
-            tools.append(self._action_tool(action_ref, preparation_names=preparation_names))
+            tools.append(self._action_tool(action_ref))
         if not tools:
             raise ValueError("delegated Agent has no executable capability")
         packages = self._skill_manager.for_agent(item.owner_agent) if self._skill_manager else ()
@@ -388,7 +388,7 @@ class TargetFrameworkAgent:
                 (report_blocked, "report_blocked",
                  "Explain why the objective cannot proceed. Set needs_reassignment only when another domain capability or a revised task assignment is needed; explain what is missing so the conversation planner can reassign the remaining work. Leave it false for a final business restriction or user refusal. Missing user information belongs to request_user_input; unknown write outcomes belong to runtime reconciliation. Ends this segment without claiming completion."))]
 
-    def _action_tool(self, action_ref, *, preparation_names):
+    def _action_tool(self, action_ref):
         action = self._registry.action(action_ref)
         if len(action.allowed_tool_ids) != 1:
             raise ValueError("action must pin one write tool")
@@ -400,7 +400,9 @@ class TargetFrameworkAgent:
         from application.operation_plan import operation_plan_schema, validate_operation_plan
         if "operation_plan" in schema.get("properties", {}):
             raise ValueError("business tool argument conflicts with preparation operation_plan")
-        schema.setdefault("properties", {})["operation_plan"] = operation_plan_schema(preparation_names)
+        planning_names = {"prepare_" + tool for registered in self._registry.actions
+                          for tool in registered.allowed_tool_ids}
+        schema.setdefault("properties", {})["operation_plan"] = operation_plan_schema(planning_names)
         if action.preparation:
             field = action.preparation.target_version_argument
             schema.get("properties", {}).pop(field, None)
@@ -408,12 +410,13 @@ class TargetFrameworkAgent:
         preparation = TargetActionPreparation(self._registry, self._tool_manager, self._control_guard)
 
         async def propose(runtime: ToolRuntime, **arguments):
+            plan = None
             if "operation_plan" in arguments:
                 plan = arguments.pop("operation_plan")
                 validate_operation_plan(plan, selected_tool="prepare_" + definition.name,
-                    allowed_tools={"prepare_" + tool for ref in runtime.context.work_item.allowed_actions
-                                   for tool in self._registry.action(ref).allowed_tool_ids})
-            result = await preparation.prepare(runtime.context, action.ref, arguments, runtime.tool_call_id)
+                    allowed_tools=planning_names)
+            result = await preparation.prepare(runtime.context, action.ref, arguments, runtime.tool_call_id,
+                                               operation_plan=plan)
             feedback = ("Action prepared, NOT executed. This worker segment ends here. The conversation layer explains this proposal and manages approval, bound to these exact parameters. The complete remaining objective is retained for continuation; other operations have not been performed."
                         if result.pending_action else result.reason_code)
             return feedback, framework_artifact(result)
@@ -431,6 +434,8 @@ class TargetFrameworkAgent:
                 "to resolve the actual tradeoff before preparing anything; do not promise later impossible actions. "
                 "The conversation layer presents the prepared set and collects approval; the runtime executes each member. "
                 "Operation: " + definition.name + ". Use the supplied argument schema and business evidence. "
+                + ("Resource-state rule: " + json.dumps(asdict(action.state_transition)) + ". "
+                   if action.state_transition else "") +
                 "Runtime collects execution confirmation for this proposal. "
                 "Business prerequisites and effects are in business_operation_reference under the operation name."),
             args_schema=schema, infer_schema=False, response_format="content_and_artifact",

@@ -8,7 +8,7 @@ from jsonschema import Draft202012Validator
 TEXT = {"type": "string", "minLength": 1, "pattern": r"\S"}
 OPERATION_PLAN_SCHEMA = {
     "type": "object", "additionalProperties": False,
-    "description": "Remaining related writes covering the assigned goal. Not execution permission.",
+    "description": "Remaining related writes, including known sibling operations on the same resource as references only. Not execution permission. Declare each future operation once per batch; node IDs are local to this proposal.",
     "properties": {
         "current": {"type": "object", "additionalProperties": False,
             "description": "This tool call is the ready current action; its tool and target come from the call, not this plan. Future dependencies may reference current.",
@@ -18,6 +18,7 @@ OPERATION_PLAN_SCHEMA = {
             "type": "object", "additionalProperties": False,
             "properties": {**{key: TEXT for key in (
                 "id", "tool", "target", "goal", "preconditions", "effects")},
+                "target": {**TEXT, "description": "Exact resource ID (for example the order_id value), not a prose description. References another operation only for compatibility, not permission to execute it."},
                 "depends_on": {"type": "array", "items": TEXT, "uniqueItems": True}},
             "required": ["id", "tool", "target", "goal", "preconditions", "effects", "depends_on"],
         }},
@@ -35,13 +36,13 @@ def operation_plan_schema(allowed_tools):
     schema = deepcopy(OPERATION_PLAN_SCHEMA)
     schema["properties"]["remaining_steps"]["items"]["properties"]["tool"] = {
         **TEXT, "enum": sorted(set(allowed_tools)),
-        "description": "Exact callable preparation tool name from this enum, not the underlying business operation name.",
+        "description": "Exact registered preparation name from this enum, not the underlying business operation name. A future reference need not be callable by this worker and grants no permission.",
     }
     return schema
 
 
 def validate_operation_plan(plan, *, selected_tool, allowed_tools):
-    """Check graph structure only; semantic feasibility belongs to domain review."""
+    """Check graph structure; registered transitions and semantic coverage follow."""
     allowed_tools = frozenset(allowed_tools)
     errors = list(Draft202012Validator(operation_plan_schema(allowed_tools)).iter_errors(plan))
     if errors:

@@ -114,10 +114,17 @@ def test_plan_survives_history_but_only_selected_arguments_enter_action(dependen
 
 
 def test_semantic_conflict_asks_choice_without_approval_or_preparation():
+    from dataclasses import replace
     value = plan(step("a"), step("b", ("a",)))
     question = "These changes cannot both be made. Which outcome do you prefer?"
     agent, context, model, calls = domain([proposal(value), AIMessage(content="", tool_calls=[
         dict(name="request_user_input", id="choice", args={"question": question})])])
+    # Unstructured policy still uses the existing reviewer; registered state
+    # conflicts are tested separately and must not need a judge call.
+    agent._registry = replace(agent._registry, actions=tuple(
+        replace(action, state_transition=None) for action in agent._registry.actions))
+    context = replace(context, work_item=replace(context.work_item,
+        registry_fingerprint=agent._registry.fingerprint))
     model.outcome_reviews = [
         {"accepted": False, "feedback": "Both operations consume the same initial state; ask which goal to retain."},
         {"accepted": True, "feedback": ""}]
@@ -142,7 +149,7 @@ def test_plan_metadata_does_not_change_operation_identity():
     async def run():
         from langgraph.prebuilt import ToolRuntime
         agent, context, _, calls = domain([])
-        tool = agent._action_tool(context.work_item.allowed_actions[0], preparation_names=("prepare_order_cancel",))
+        tool = agent._action_tool(context.work_item.allowed_actions[0])
         runtime = ToolRuntime(state={}, context=context, config={}, stream_writer=lambda _: None,
                               tool_call_id="same-call", store=None)
         _, plain = await tool.coroutine(runtime=runtime, order_id="DP1234")

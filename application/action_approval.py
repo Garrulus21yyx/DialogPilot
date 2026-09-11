@@ -198,6 +198,15 @@ def bind_action_approval(state, plan, board, registry, checkpoint_thread_id):
     actions = result.prepared_actions
     for prepared in actions:
         _validate_prepared_action(prepared, parent, registry)
+    # Custom executors share the same prepared-set contract as the SDK boundary.
+    # Approval cannot turn an unordered incompatible set into executable work.
+    from application.action_compatibility import validate_action_compatibility
+    validate_action_compatibility({"actions": [{
+        "tool": "prepare_" + registry.action(prepared.action_ref).allowed_tool_ids[0],
+        "arguments": {argument.name: argument.value for argument in prepared.arguments},
+    } for prepared in actions]}, {
+        "prepare_" + tool: definition.state_transition
+        for definition in registry.actions for tool in definition.allowed_tool_ids})
     action = actions[0]
     definition = registry.action(action.action_ref)
     operations = tuple(ApprovalOperation(a.action_ref, a.operation_key, a.aggregate_ref,

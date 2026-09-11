@@ -25,6 +25,20 @@ bounded observation loop, never by directly executing a failed write again.
 
 ## Scope and progress
 
+### Active follow-up: operation compatibility before preparation
+
+Implement registry-owned resource state transitions, checked against the whole
+declared candidate batch and its remaining operation DAG before any preparation
+tool runs. Resource identity is independent of domain owner. This is a necessary
+compatibility check, not current eligibility, a transaction, or proof that the
+model listed every user goal. Existing semantic coverage review remains responsible
+for omissions and unstructured policy. Submission still validates live business
+state. No new router, additional model call, or action-pair exception table.
+
+Validation must distinguish impossible combinations, feasible ordered sequences,
+unordered noncommuting batches, different entities, missing declarations, and
+user-choice recovery with no prepared approval from a rejected batch.
+
 - done: traced dispatch, dependency projection, approval binding and observation.
 - done: explicit reassignment handback using existing assignment_issue; WorkPlan
   selects same-control adjacent-revision investigation sources from the existing
@@ -32,9 +46,19 @@ bounded observation loop, never by directly executing a failed write again.
   original provenance; no old messages, grants or completion state are inherited.
   Multiple explicit handbacks retain these authorized inputs without requiring
   each intermediate domain to own their original tool authority.
-- open: cross-domain combined-operation preflight and default return/exchange
-  business capability. Requires real operation semantics and preparation lifecycle
-  changes; a generic DAG check or a name-based prohibition is not an implementation.
+- implemented and contract-validated: necessary compatibility of the complete declared
+  operation group before preparation. ActionDefinition owns resource transitions;
+  the SDK boundary checks the ready batch and remaining graph before tools/review.
+  Preparation validates its declared graph; approval binding rechecks concrete sets
+  from custom executors. Known conflicts use the existing user-choice handback.
+  Default order cancellation/address/refund state prerequisites and official retail
+  order transitions are registered from their business implementations.
+- bounded limits: this is not a transaction or proof of live eligibility, payment,
+  current versions, full policy, or semantic completeness. Unmodelled effects remain
+  explicitly UNMODELLED_EFFECTS for the existing semantic review, not no-op effects.
+  Sibling operations must be declared by the planner/worker for deterministic
+  comparison. Undeclared objectives remain a semantic coverage concern; no global
+  combination guarantee is claimed. Default return/exchange writers remain absent.
 - open: preparation failure lifecycle. Existing preparation maps dependency
   failure to a generic BLOCKED result; the native loop may continue and a later
   explanation may be treated as COMPLETE for an untyped open-ended goal. A local
@@ -43,8 +67,37 @@ bounded observation loop, never by directly executing a failed write again.
   preparation-attempt outcome contract, not a precedence special case.
 
 No additional router, execution engine, automatic compensation, or retry of
-unknown writes. This item is not globally closed while the combination-preflight
-gap remains. Existing unrelated worktree changes remain excluded from delivery.
+unknown writes. Existing unrelated worktree changes remain excluded from delivery.
+Registry fingerprints include transition rules, so an approval prepared against
+different rules must not be silently reused. The grant/receipt lifecycle is unchanged.
+
+### Compatibility acceptance evidence
+
+Generated rule algebra compares 729 three-operation sequences and 729 unordered
+two-operation batches with a future action to an independent exhaustive simulator.
+Checks cover same/different resource IDs, valid sequencing vs mutual exclusion,
+unknown effects, cross-resource dependency contradictions, owner-independent rules,
+native cross-owner references without expanded permissions, zero preparation on
+conflict, persisted choice, subsequent selected-action preparation, and custom
+executor approval validation.
+
+Fresh review caught unknown-as-preserve and existential unordered-batch acceptance;
+both repaired at the checker and covered by the broader algebra oracle, not a
+business-name branch. Ready batches require all allowed orders to preserve the
+remaining goal. Search is bounded to 4096 states; budget exhaustion is typed
+ACTION_COMPATIBILITY_UNRESOLVED, not a business incompatibility assertion.
+Each remaining graph is local to its proposal; future operations are declared once
+per batch, not deduplicated by guessing whether similar operations mean the same job.
+
+Regression validation passed 503 tests using PostgreSQL after the unordered-batch
+and approval-boundary changes (one existing multiprocessing fork warning). Final
+focused validation passed 72 tests, covering three-operation restore-vs-choice diagnostics and
+removal of the obsolete preparation_names argument. Independent review passed
+18 tests and its separate unordered-batch counterexample. No paid tau3 simulation
+or new business-effect score is claimed. This closes only the stated resource-
+state compatibility contract, not semantic omission detection or all business policy.
+The 72 focused tests also passed from an isolated checkout of the staged files,
+without the workspace's unrelated tracing/context modifications.
 
 ## Independent review and validation
 
