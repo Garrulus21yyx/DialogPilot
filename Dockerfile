@@ -25,13 +25,6 @@ COPY requirements.txt .
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt
 
-# 可选语义检索依赖。默认 production 不包含本地 ML runtime；需要
-# BGE-M3 的评测/部署显式选择 production-semantic target。
-FROM dependencies AS semantic-dependencies
-
-COPY requirements-semantic.txt .
-RUN pip install -r requirements-semantic.txt
-
 # ── 阶段 3：生产镜像 ──────────────────────────────────────────────────────────
 FROM base AS production
 
@@ -48,9 +41,9 @@ COPY --from=dependencies /usr/local/bin /usr/local/bin
 COPY --chown=dialogpilot:dialogpilot . .
 
 # 创建必要目录，只调整运行期需要写入的目录权限，避免递归 chown 整个应用。
-RUN mkdir -p /app/data/badcases /app/data/customer-operations /app/data/react-runs /app/data/evolution /app/logs /app/config && \
+RUN mkdir -p /app/data /app/logs /app/config && \
     chown dialogpilot:dialogpilot \
-        /app/data /app/data/badcases /app/data/customer-operations /app/data/react-runs /app/data/evolution \
+        /app/data \
         /app/logs /app/config
 USER dialogpilot
 
@@ -60,6 +53,12 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
 CMD ["python", "-m", "uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+# 放在 production 之后，旧版 builder 构建 production 时也不会安装可选 ML 依赖。
+FROM dependencies AS semantic-dependencies
+
+COPY requirements-semantic.txt .
+RUN pip install -r requirements-semantic.txt
 
 # 保留与 production 相同的应用层，只增加本地语义模型运行依赖。
 FROM production AS production-semantic
@@ -74,7 +73,7 @@ FROM dependencies AS development
 
 COPY . .
 
-RUN mkdir -p /app/data/badcases /app/data/customer-operations /app/data/react-runs /app/data/evolution /app/logs /app/config /app/tests && \
+RUN mkdir -p /app/data /app/logs /app/config /app/tests && \
     chmod -R 777 /app/data /app/logs
 
 EXPOSE 8000
