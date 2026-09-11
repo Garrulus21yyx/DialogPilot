@@ -40,6 +40,7 @@ from application.turn_planning import (
     TurnPlanningError,
 )
 from application.work_item import ArgumentValue, WorkControlBinding
+from application.work_control import current_result_board
 from core.identity import InvocationIdentity
 
 
@@ -454,7 +455,10 @@ class TargetConversationManager:
     async def execute(self, prepared: PreparedTurn) -> ManagedTurnResult:
         # PreparedTurn is checkpointed before consuming input or accepting work.
         # A replay recognizes only an exact committed prefix of this plan.
-        self._commit_states(prepared.state_before, prepared.state_transitions)
+        accepted = self._commit_states(prepared.state_before, prepared.state_transitions,
+                                       allow_rebase=prepared.plan.work is not None)
+        prepared = replace(prepared, state=accepted,
+            state_transitions=(accepted,) if accepted != prepared.state_before else ())
         invocation = prepared.invocation
         observations = prepared.observations
         state_before = prepared.state_before
@@ -549,22 +553,12 @@ class TargetConversationManager:
                 **execution_context,
             )
         )
-        transitions = list(prepared.state_transitions)
-        state = self._apply_successful_workflows(
-            state, plan, board, invocation, deterministic,
-            checkpoint_thread_id=(
-                thread_id if self._orchestration.supports_resume else None
-            ),
-            transitions=transitions,
-        )
-        from application.action_approval import bind_action_approval
-        next_state = bind_action_approval(
-            state, plan, board, self._registry,
-            thread_id if self._orchestration.supports_resume else None,
-        )
-        if next_state is not state:
-            transitions.append(next_state)
-            state = next_state
+        # Another turn may have added/corrected work while this graph ran. Its
+        # state is authoritative; completed sibling reads remain deliverable.
+        state = self.load_state(invocation)
+        board = current_result_board(plan, board, state)
+        transitions = [state] if state != state_before else []
+        state = self._project_execution(state, prepared, board, thread_id, transitions)
         progress_transition_count = len(transitions)
         return ManagedTurnResult(
             state_before, state, deterministic, plan, board, thread_id,
@@ -573,6 +567,24 @@ class TargetConversationManager:
             source_thread_ids=prepared.source_thread_ids,
             followup_pending=True,
         )
+
+    def _project_execution(self, state, prepared, board, thread_id, transitions):
+        state = self._apply_successful_workflows(
+            state, prepared.plan, board, prepared.invocation, prepared.deterministic,
+            checkpoint_thread_id=(
+                thread_id if self._orchestration.supports_resume else None
+            ),
+            transitions=transitions,
+        )
+        from application.action_approval import bind_action_approval
+        next_state = bind_action_approval(
+            state, prepared.plan, board, self._registry,
+            thread_id if self._orchestration.supports_resume else None,
+        )
+        if next_state is not state:
+            transitions.append(next_state)
+            state = next_state
+        return state
 
     async def resolve_followup(self, prepared: PreparedTurn, result: ManagedTurnResult) -> ManagedTurnResult:
         """Bind execution-owned waits after progress is durable; no model replanning."""
@@ -609,10 +621,36 @@ class TargetConversationManager:
     def supports_resume(self) -> bool:
         return self._orchestration.supports_resume
 
-    async def commit_progress(self, result: ManagedTurnResult) -> None:
+    async def commit_progress(self, result: ManagedTurnResult, *, prepared: PreparedTurn) -> ManagedTurnResult:
         """Execution facts and prepared actions do not depend on reply quality."""
-        self._commit_states(result.state_before,
-                            result.state_transitions[:result.progress_transition_count])
+        board = result.board
+        for _ in range(3):
+            current = self.load_state(prepared.invocation)
+            try:
+                if current.fingerprint in {s.fingerprint for s in (
+                    result.state_before, *result.state_transitions[:result.progress_transition_count])}:
+                    committed = self._commit_states(result.state_before,
+                        result.state_transitions[:result.progress_transition_count])
+                elif result.plan.work is not None:
+                    # Derive progress again from live authority, not by merging
+                    # a stale pending approval/input snapshot. No tool is rerun.
+                    board = current_result_board(result.plan, result.board, current)
+                    transitions = []
+                    self._project_execution(current, prepared, board,
+                                            result.checkpoint_thread_id, transitions)
+                    committed = self._commit_states(current, tuple(transitions))
+                else:
+                    raise ConversationStateConflict("conversation-only result has a stale snapshot")
+                break
+            except ConversationStateConflict:
+                if self.load_state(prepared.invocation).fingerprint == current.fingerprint:
+                    raise
+        else:
+            raise ConversationStateConflict("execution progress contention")
+        return replace(result, state_after=committed,
+            board=current_result_board(result.plan, board, committed),
+            state_transitions=(committed,) if committed != result.state_before else (),
+            progress_transition_count=int(committed != result.state_before))
 
     async def commit(self, result: ManagedTurnResult) -> None:
         """Commit the checkpointed decision, then release its execution wait."""
@@ -1021,14 +1059,25 @@ class TargetConversationManager:
         self,
         current: ConversationState,
         transitions: tuple[ConversationState, ...],
-    ) -> None:
+        *, allow_rebase: bool = False,
+    ) -> ConversationState:
         states = (current, *transitions)
         stored = self._state_store.load(
             current.tenant_id, current.user_id, current.conversation_id)
         matched = next((index for index, state in enumerate(states)
                         if state.fingerprint == stored.fingerprint), None)
         if matched is None:
-            raise ConversationStateConflict("conversation state changed outside this turn")
+            if not allow_rebase:
+                raise ConversationStateConflict("conversation state changed outside this turn")
+            from application.conversation_transition import rebase_transition
+            # Retry only the pure state transition, never planning or tools.
+            for _ in range(3):
+                updated = rebase_transition(current, states[-1], stored)
+                if updated == stored or self._state_store.compare_and_set(stored, updated):
+                    return updated
+                stored = self._state_store.load(current.tenant_id, current.user_id, current.conversation_id)
+            raise ConversationStateConflict("conversation transition contention")
         for before, after in zip(states[matched:], states[matched + 1:]):
             if not self._state_store.compare_and_set(before, after):
                 raise ConversationStateConflict("conversation state changed concurrently")
+        return states[-1]

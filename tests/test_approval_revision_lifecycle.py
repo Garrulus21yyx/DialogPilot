@@ -239,12 +239,12 @@ def test_revised_wait_preserves_checkpoint_progress_and_dependency_closure(cance
         assert calls == ["origin", "completed"]
         revised = await manager.prepare(_identity("revise"), TurnObservations("Cancel" if cancel else "Use another target"))
         second = await manager.execute(revised)
-        await manager.commit_progress(second)
+        second = await manager.commit_progress(second, prepared=revised)
         second = await manager.resolve_followup(revised, second)
         await manager.commit(second)
         previous_calls = tuple(calls)
         replayed = await manager.execute(revised)
-        await manager.commit_progress(replayed)
+        replayed = await manager.commit_progress(replayed, prepared=revised)
         replayed = await manager.resolve_followup(revised, replayed)
         await manager.commit(replayed)
         assert tuple(calls) == previous_calls

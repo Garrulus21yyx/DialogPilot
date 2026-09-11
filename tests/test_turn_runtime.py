@@ -177,8 +177,8 @@ class _CountingManager:
     async def commit(self, result):
         await self.manager.commit(result)
 
-    async def commit_progress(self, result):
-        await self.manager.commit_progress(result)
+    async def commit_progress(self, result, *, prepared):
+        return await self.manager.commit_progress(result, prepared=prepared)
 
     async def resolve_followup(self, prepared, result):
         return await self.manager.resolve_followup(prepared, result)

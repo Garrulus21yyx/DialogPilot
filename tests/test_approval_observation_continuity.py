@@ -60,7 +60,7 @@ def test_held_approval_read_observation_replies_without_reconsuming_current_inpu
         assert len(prepared.plan.work.items) == 1
         assert prepared.plan.work.items[0].observe_result
         read = await manager.execute(prepared)
-        await manager.commit_progress(read)
+        read = await manager.commit_progress(read, prepared=prepared)
         read = await manager.resolve_followup(prepared, read)
         await manager.commit(read)
         following = await manager.prepare_observation(prepared, read)
@@ -79,7 +79,7 @@ def test_held_approval_read_observation_replies_without_reconsuming_current_inpu
         assert captured[1]["pending_approval"] == captured[0]["pending_approval"]
         assert captured[1]["conversation_context"]["observed_execution"] is not None
         answered = await manager.execute(following)
-        await manager.commit_progress(answered)
+        answered = await manager.commit_progress(answered, prepared=following)
         answered = await manager.resolve_followup(following, answered)
         await manager.commit(answered)
         assert answered.state_after.pending_approval == pending

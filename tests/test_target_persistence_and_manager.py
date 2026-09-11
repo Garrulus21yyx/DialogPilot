@@ -1067,7 +1067,9 @@ def test_postgres_target_state_and_operation_ledgers_are_replayable(
             attempts=1,
             reason_code="STARTED",
         )
-        assert ledger.compare_and_set(operation, executing)
+        accepted = next_state.accept_work_items((item,), invocation_key=str(identity.invocation_key))
+        assert state_store.compare_and_set(next_state, accepted)
+        assert ledger.compare_and_set(operation, executing, submission=item)
         assert not ledger.compare_and_set(operation, executing)
         assert ledger.acquire(item) == executing
     finally:

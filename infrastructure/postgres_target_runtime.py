@@ -114,9 +114,10 @@ class PostgresConversationStateStore:
 class PostgresOperationLedger:
     """Conversation-bound monotonic ledger for governed business writes."""
 
-    def __init__(self, pool, scope: ConversationScope) -> None:
+    def __init__(self, pool, scope: ConversationScope, *, dependency_work_ids=None) -> None:
         self.pool = pool
         self.scope = scope
+        self.dependency_work_ids = dependency_work_ids
 
     def acquire(self, item: WorkItem) -> OperationRecord:
         operation_key = str(item.operation_key or "")
@@ -144,6 +145,7 @@ class PostgresOperationLedger:
         self,
         current: OperationRecord,
         next_record: OperationRecord,
+        *, submission: WorkItem | None = None,
     ) -> bool:
         _validate_operation_successor(current, next_record)
         with self.pool.transaction() as connection:
@@ -152,6 +154,20 @@ class PostgresOperationLedger:
             stored = _load_operation(connection, self.scope, current.operation_key)
             if stored != current:
                 return False
+            if next_record.status is OperationStatus.EXECUTING and current.status in {
+                OperationStatus.PLANNED, OperationStatus.WAITING_APPROVAL,
+                OperationStatus.NOT_COMMITTED,
+            }:
+                # Commit send authority under the same row lock as goal revision.
+                # Unknown-effect recovery retains its original send authority.
+                from application.work_control import WorkSuperseded
+                if submission is None or submission.operation_fingerprint != current.work_item_fingerprint:
+                    raise OperationConflict("new submission requires its bound work item")
+                state = load_conversation_state(connection, self.scope)
+                if submission.dependencies and self.dependency_work_ids is None:
+                    raise OperationConflict("submission lacks its compiled prerequisite closure")
+                if not state.accepts_work(submission, dependency_work_ids=self.dependency_work_ids or ()):
+                    raise WorkSuperseded("write goal changed before submission authority was committed")
             _append_operation(connection, self.scope, next_record)
             return True
 

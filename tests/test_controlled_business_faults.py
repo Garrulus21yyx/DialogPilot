@@ -70,6 +70,8 @@ def test_controlled_business_fault(fault_pool, case_id, scenario):
             "user_id": user, "conversation_id": operation, "conv_id": operation,
             "request_id": operation})
         scope = ConversationScope(TenantId(tenant), UserId(user), ConversationId(operation))
+        from tests.test_write_workflow import accept_work
+        accept_work(fault_pool, scope, item)
         events = []
         entered, release = asyncio.Event(), asyncio.Event()
 
@@ -79,6 +81,10 @@ def test_controlled_business_fault(fault_pool, case_id, scenario):
                 self.manager = MCPToolManager(api_key="unused", model="unused")
                 for tool in customer_operation_tools(owner):
                     self.manager.register(tool)
+
+            @property
+            def read_reuse(self):
+                return self.manager.read_reuse
 
             async def execute_for_agent(self, tool_id, params, **kwargs):
                 write = tool_id == "refund_request_create"

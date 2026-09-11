@@ -324,7 +324,8 @@ class OrchestrationRuntime:
                     tuple(fact for work, result in state.get("retained_outcomes", ())
                           if result and work.control_mode is ControlMode.DIRECT for fact in result.facts),
                     state.get("continuation_facts", {}).get(item.work_item_id, ()))),
-                "trusted_context": {**state.get("trusted_context", {}), "assignment_view": {
+                "trusted_context": {**state.get("trusted_context", {}),
+                    "dependency_work_ids": state["work_plan"].dependency_closure(item), "assignment_view": {
                     "assignments": [{"work_item_id": work.work_item_id, "owner_agent": work.owner_agent,
                         "objective": work.objective, "allows_action_preparation": bool(work.allowed_actions),
                         "dependencies": list(work.dependencies),
@@ -507,7 +508,7 @@ class OrchestrationRuntime:
             state.get("pending_approval"),
             state.get("working_state", {}),
         )
-        if self._control_guard is not None and not self._control_guard.is_current(
+        if item.effect is CapabilityEffect.READ and self._control_guard is not None and not self._control_guard.is_current(
             item, context.trusted_context,
         ):
             return {"agent_results": [self._control_guard.superseded_result(item)]}
@@ -532,8 +533,8 @@ class OrchestrationRuntime:
             else:
                 result = await self._execute_with_evidence(executor, context)
         except WorkSuperseded:
-            result = self._control_guard.superseded_result(item)
-        if self._control_guard is not None and not self._control_guard.is_current(
+            result = WorkControlGuard.superseded_result(item)
+        if item.effect is CapabilityEffect.READ and self._control_guard is not None and not self._control_guard.is_current(
             item, context.trusted_context,
         ):
             result = self._control_guard.superseded_result(item)
@@ -547,7 +548,7 @@ class OrchestrationRuntime:
         resolved_facts: tuple[FactRecord, ...] = ()
         seen_requests: set[tuple[str, tuple[str, ...]]] = set()
         for _attempt in range(context.work_item.max_steps):
-            if self._control_guard is not None:
+            if context.work_item.effect is CapabilityEffect.READ and self._control_guard is not None:
                 self._control_guard.ensure_current(
                     context.work_item, context.trusted_context,
                 )

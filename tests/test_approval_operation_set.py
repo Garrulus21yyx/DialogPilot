@@ -18,10 +18,12 @@ from tests.test_approval_conversation import domain
 from tests.test_response_assembly import _board
 
 
-def prepared(count):
+def prepared(count, control=None):
     calls = [{"name": "prepare_order_cancel", "args": {"order_id": f"DP{1000+i}"},
               "id": f"prepare-{i}"} for i in range(count)]
     agent, context, model, reads = domain([AIMessage(content="", tool_calls=calls)])
+    if control is not None:
+        context = replace(context, work_item=replace(context.work_item, control=control))
     result = asyncio.run(agent(context))
     assert result.status.value == "WAITING_APPROVAL", result
     assert len(result.prepared_actions) == len(reads) == count
@@ -121,7 +123,8 @@ def test_postgres_operation_members_execute_once_across_executor_restart(postgre
     from infrastructure.target_workflow_execution import TargetWorkflowExecutor
     from mcp.tool_manager import ToolEffectReceipt, ToolEffectStatus
     from tests.test_target_framework_agent import _context
-    agent, context, result, state = prepared(count)
+    from application.work_item import WorkControlBinding
+    agent, context, result, state = prepared(count, WorkControlBinding("operation-set", 1))
     pending = state.pending_approval
     writes = []
     async def write(arguments, runtime_context):
@@ -140,6 +143,11 @@ def test_postgres_operation_members_execute_once_across_executor_restart(postgre
         trusted_context={**context.trusted_context, "conversation_id": conversation,
             "approval_binding": pending.approval_id, "approved_operations": [op.view() for op in pending.operations]})
         for action in result.prepared_actions]
+    from application.conversation_store import ConversationScope
+    from core.identity import TenantId, UserId, ConversationId
+    from tests.test_write_workflow import accept_work
+    accept_work(pool, ConversationScope(TenantId(context.trusted_context["tenant_id"]),
+        UserId(context.trusted_context["user_id"]), ConversationId(conversation)), context.work_item)
     async def run():
         first = TargetWorkflowExecutor(pool, agent._tool_manager, registry=agent._registry)
         # Stop after the first member; a fresh executor must replay its receipt

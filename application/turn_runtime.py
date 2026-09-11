@@ -135,8 +135,7 @@ class TurnRuntime:
         return {}
 
     async def _commit_progress(self, state: TurnGraphState):
-        await self._manager.commit_progress(state["managed"])
-        return {}
+        return {"managed": await self._manager.commit_progress(state["managed"], prepared=state["prepared"])}
 
     async def _resolve_followup(self, state: TurnGraphState):
         return {"managed": await self._manager.resolve_followup(state["prepared"], state["managed"])}

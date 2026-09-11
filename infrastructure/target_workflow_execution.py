@@ -18,7 +18,6 @@ from application.write_workflow import (
     WriteOutcomeStatus,
     WriteToolOutcome,
 )
-from application.work_control import WorkControlGuard
 from core.identity import ConversationId, TenantId, UserId
 from infrastructure.postgres_target_runtime import PostgresOperationLedger
 from infrastructure.postgres_write_recovery import PostgresWriteRecoveryReview
@@ -31,11 +30,10 @@ class TargetWorkflowExecutor:
     version = "target-workflow-executor-v1"
 
     def __init__(
-        self, pool, tool_manager, *, registry, control_guard: WorkControlGuard | None = None,
+        self, pool, tool_manager, *, registry,
     ) -> None:
         self._pool = pool
         self._tools = tool_manager
-        self._control_guard = control_guard
         self._registry = registry
 
     async def __call__(self, context: AgentContextView) -> AgentResult:
@@ -49,12 +47,12 @@ class TargetWorkflowExecutor:
         grants = self._approval_grants(item, trusted)
         accepted_handoff = self._accepted_handoff(context)
         runtime = GovernedWriteRuntime(
-            ledger=PostgresOperationLedger(self._pool, scope),
+            ledger=PostgresOperationLedger(self._pool, scope,
+                dependency_work_ids=trusted.get("dependency_work_ids")),
             tool_port=_ToolPort(
                 self._tools,
                 context,
                 accepted_handoff=accepted_handoff,
-                control_guard=self._control_guard,
                 principal=self._registry.agent(item.owner_agent).execution_principal,
             ),
             reconciliation_port=_ToolReconciler(self._tools, context,
@@ -151,19 +149,15 @@ class _ToolPort:
         *,
         principal: str,
         accepted_handoff: AcceptedHandoff | None = None,
-        control_guard: WorkControlGuard | None = None,
     ) -> None:
         self._tools = tool_manager
         self._context = context
         self._accepted_handoff = accepted_handoff
         self._principal = principal
-        self._control_guard = control_guard
 
     async def execute(self, item, *, tool_id, arguments, operation_key):
-        if self._control_guard is not None:
-            self._control_guard.ensure_current(
-                self._context.work_item, self._context.trusted_context,
-            )
+        # The operation ledger has already committed send authority. A later
+        # goal revision cannot turn an admitted/unknown write into "not sent".
         context = {
             **dict(self._context.trusted_context),
             "business_operation_key": operation_key,

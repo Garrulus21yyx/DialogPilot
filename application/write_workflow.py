@@ -144,6 +144,7 @@ class OperationLedger(Protocol):
         self,
         current: OperationRecord,
         next_record: OperationRecord,
+        *, submission: WorkItem | None = None,
     ) -> bool: ...
 
 
@@ -184,7 +185,10 @@ class ReconciliationPort(Protocol):
 
 
 class InMemoryOperationLedger:
-    """Reference CAS ledger; production adapters must preserve this algebra."""
+    """Operation-CAS test double, without a conversation authority transaction.
+
+    Goal cancellation versus send authority is verified against PostgreSQL.
+    """
 
     def __init__(self) -> None:
         self._records: dict[str, OperationRecord] = {}
@@ -214,6 +218,7 @@ class InMemoryOperationLedger:
         self,
         current: OperationRecord,
         next_record: OperationRecord,
+        *, submission: WorkItem | None = None,
     ) -> bool:
         validate_operation_successor(current, next_record)
         with self._lock:
@@ -307,6 +312,7 @@ class GovernedWriteRuntime:
                 record,
                 OperationStatus.EXECUTING,
                 "WRITE_EXECUTION_STARTED",
+                submission=item,
                 attempts=record.attempts + 1,
                 effect_status=WriteOutcomeStatus.OUTCOME_UNKNOWN,
             )
@@ -479,6 +485,7 @@ class GovernedWriteRuntime:
         current: OperationRecord,
         status: OperationStatus,
         reason_code: str,
+        *, submission: WorkItem | None = None,
         **changes,
     ) -> OperationRecord:
         if status not in _LEGAL_TRANSITIONS[current.status]:
@@ -492,7 +499,7 @@ class GovernedWriteRuntime:
             reason_code=reason_code,
             **changes,
         )
-        if not self._ledger.compare_and_set(current, next_record):
+        if not self._ledger.compare_and_set(current, next_record, submission=submission):
             raise OperationCASConflict("operation changed concurrently")
         return next_record
 

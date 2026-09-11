@@ -385,6 +385,7 @@ class ConversationState:
             raise ConversationStateError("automation cannot claim a human ticket")
         _unique((item.workstream_id for item in self.workstreams), "workstreams")
         _unique((item.control_id for item in self.work_controls), "work controls")
+        _unique((item.work_item_id for item in self.work_controls), "controlled work identities")
         _unique((item.token for item in self.resume_bindings), "resume tokens")
         _unique(self.consumed_signal_ids, "consumed signals")
         _unique(
@@ -439,6 +440,12 @@ class ConversationState:
             and item.status is WorkControlStatus.ACTIVE
             for item in self.work_controls
         )
+
+    def accepts_work(self, item: WorkItem, *, dependency_work_ids=()) -> bool:
+        """A task may use only the still-current revisions of its prerequisites."""
+        active_items = {control.work_item_id for control in self.active_work_controls}
+        return bool(item.control and self.accepts(item.control)
+                    and (set(item.dependencies) | set(dependency_work_ids)).issubset(active_items))
 
     @property
     def fingerprint(self) -> str:
@@ -600,6 +607,8 @@ class ConversationState:
                     raise ConversationStateConflict("work control replay differs")
                 continue
             elif binding.revision == current.revision + 1:
+                if work_item.work_item_id == current.work_item_id:
+                    raise ConversationStateConflict("a revised goal requires a new work identity")
                 changed = True
             else:
                 raise ConversationStateConflict("work control revision is not the next revision")

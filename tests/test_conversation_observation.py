@@ -43,12 +43,12 @@ def test_observation_cancel_retains_evidence_without_active_execution_authority(
         identity = _identity()
         prepared = await manager.prepare(identity, TurnObservations("Check my order"))
         read = await manager.execute(prepared)
-        await manager.commit_progress(read)
+        read = await manager.commit_progress(read, prepared=prepared)
         read = await manager.resolve_followup(prepared, read)
         await manager.commit(read)
         following = await manager.prepare_observation(prepared, read)
         cancelled = await manager.execute(following)
-        await manager.commit_progress(cancelled)
+        cancelled = await manager.commit_progress(cancelled, prepared=following)
         cancelled = await manager.resolve_followup(following, cancelled)
         await manager.commit(cancelled)
         assert executor.calls == 1
@@ -253,7 +253,7 @@ def test_read_observe_read_respond_preserves_request_results_and_step_scope():
         steps = []
         for _ in range(3):
             result = await manager.execute(prepared)
-            await manager.commit_progress(result)
+            result = await manager.commit_progress(result, prepared=prepared)
             result = await manager.resolve_followup(prepared, result)
             await manager.commit(result)
             steps.append((prepared, result))

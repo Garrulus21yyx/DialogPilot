@@ -8,7 +8,7 @@ import pytest
 from langchain_core.messages import AIMessage
 from langgraph.checkpoint.memory import InMemorySaver
 
-from application.conversation_state import InMemoryConversationStateStore, WorkControlStatus
+from application.conversation_state import WorkControlStatus
 from application.default_capability_registry import build_default_capability_registry
 from application.deterministic_resolution import TurnObservations, DeterministicResolutionError
 from application.orchestration_runtime import OrchestrationRuntime
@@ -21,7 +21,7 @@ from infrastructure.target_framework_agent import TargetFrameworkAgent
 from infrastructure.target_workflow_execution import TargetWorkflowExecutor
 from mcp.tool_manager import MCPToolManager, Tool, ToolEffectReceipt, ToolEffectStatus
 from tests.test_target_framework_agent import ScriptedToolModel
-from tests.test_target_persistence_and_manager import _identity, _ResumeAwareUnderstanding
+from tests.test_target_persistence_and_manager import _ResumeAwareUnderstanding
 
 
 @pytest.mark.parametrize("independent_count", [0, 1, 3])
@@ -83,13 +83,18 @@ def test_existing_explicit_approval_retains_only_same_checkpoint_work(waiting_st
         pending_action=None, status=AgentResultStatus(waiting_status), assignment_issue=None),))
     next_state = bind_action_approval(state, SimpleNamespace(work=SimpleNamespace(items=(item,))),
                                       board, None, "thread" if same_thread else "other-thread")
-    # Sharing an execution thread does not make unrelated work part of this
-    # previously prepared action's continuation contract.
+    # Thread identity alone does not grant a new continuation ownership.
     assert next_state is state
 
 
 @pytest.mark.parametrize("decision", ["approve", "deny", "supersede", "ask_first", "ask_twice", "clarify_during_approval", "cancel_both", "invalid_followup", "simultaneous_approve_first", "simultaneous_fields_first"])
 def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url, decision):
+    from uuid import uuid4
+    from core.identity import IdentityFactory
+    conversation_id = "approval-test-" + uuid4().hex
+    def _identity(request):
+        return IdentityFactory().create_invocation(tenant_id="tenant-target",
+            user_id="user-target", conversation_id=conversation_id, request_id=request)
     async def run():
         base = build_default_capability_registry("tenant-target")
         action = replace(base.action("order.cancel:v1"), flow_ref=None)
@@ -166,7 +171,8 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
         pool = PostgresPool(PostgresPoolConfig(postgres_database_url, min_size=1, max_size=4))
         pool.open()
         try:
-            store = InMemoryConversationStateStore()
+            from infrastructure.postgres_target_runtime import PostgresConversationStateStore
+            store = PostgresConversationStateStore(pool)
             manager = TargetConversationManager(
                 state_store=store, registry=registry,
                 understanding=_ResumeAwareUnderstanding(TurnProposal(
@@ -255,7 +261,7 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
                         clarification.checkpoint_thread_id, pending.checkpoint_thread_id}
                     assert prepared.state.pending_interaction is prepared.state.pending_approval is None
                     result = await manager.execute(prepared)
-                    await manager.commit_progress(result)
+                    result = await manager.commit_progress(result, prepared=prepared)
                     result = await manager.resolve_followup(prepared, result)
                     close = manager._orchestration.cancel_interrupt
                     fail_once = True
@@ -301,7 +307,7 @@ def test_domain_action_approval_roundtrip_and_continuation(postgres_database_url
                     fallback_locale = "en"
                     async def assemble(self, board, *, requested_inputs, **kwargs):
                         assert requested_inputs
-                        current = store.load("tenant-target", "user-target", "conversation-target")
+                        current = store.load("tenant-target", "user-target", conversation_id)
                         assert current.pending_interaction is None
                         assert current.pending_approval is None
                         assert next(s for s in current.workstreams if s.workstream_id == pending.workstream_id).status is WorkstreamStatus.COMPLETED

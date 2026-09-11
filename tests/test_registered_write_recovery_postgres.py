@@ -21,7 +21,7 @@ from mcp.customer_operations_tools import customer_operation_tools
 from mcp.tool_manager import MCPToolManager
 from services.customer_operations import CustomerOperationsService, OrderStatus, SecuritySeverity
 from tests.test_controlled_business_faults import fault_pool
-from tests.test_write_workflow import _item, _context
+from tests.test_write_workflow import _item, _context, accept_work
 
 
 ACTIONS = ("refund.request.create:v1", "order.cancel:v1",
@@ -67,6 +67,7 @@ def setup(pool, action_ref):
     for tool in customer_operation_tools(owner):
         manager.register(tool)
     scope = ConversationScope(TenantId(tenant), UserId(user), ConversationId(key))
+    accept_work(pool, scope, item)
     return registry, item, context, manager, scope
 
 
@@ -78,6 +79,10 @@ def test_registered_owners_recover_or_create_one_manual_review(fault_pool, actio
         calls = []
 
         class Boundary:
+            @property
+            def read_reuse(self):
+                return manager.read_reuse
+
             async def execute_for_agent(self, tool, params, **kwargs):
                 calls.append(tool)
                 if fault == "unavailable":
@@ -139,6 +144,10 @@ def test_many_recovery_instances_and_late_original_share_one_business_write(faul
         entered, release = asyncio.Event(), asyncio.Event()
         calls = []
         class Boundary:
+            @property
+            def read_reuse(self):
+                return manager.read_reuse
+
             async def execute_for_agent(self, tool, params, **kwargs):
                 calls.append(tool)
                 if len(calls) == 1:

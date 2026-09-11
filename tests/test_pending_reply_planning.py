@@ -76,7 +76,7 @@ def test_bound_reply_plan_owns_goal_and_wait_lifecycle(decision, depth, explicit
             assert prepared.resume_thread_id == (pending.checkpoint_thread_id if decision == "unrelated" else None)
             if decision == "unrelated":
                 result = await manager.execute(prepared)
-                await manager.commit_progress(result)
+                result = await manager.commit_progress(result, prepared=prepared)
                 result = await manager.resolve_followup(prepared, result)
                 await manager.commit(result)
                 assert result.state_after.pending_interaction == pending
@@ -101,7 +101,7 @@ def test_bound_reply_plan_owns_goal_and_wait_lifecycle(decision, depth, explicit
             assert len(prepared.plan.work.items) == depth + 1
             assert all(item.dependencies for item in prepared.plan.work.items[1:])
         result = await manager.execute(prepared)
-        await manager.commit_progress(result)
+        result = await manager.commit_progress(result, prepared=prepared)
         result = await manager.resolve_followup(prepared, result)
         await manager.commit(result)
         assert sum(item.objective == "Independent" for item in seen) == 1

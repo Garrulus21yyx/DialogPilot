@@ -12,7 +12,7 @@ from application.capability_registry import (
     CapabilityRisk,
 )
 from application.orchestration_runtime import AgentContextView, OrchestrationRuntime
-from application.work_item import ArgumentValue, ControlMode, WorkItem, WorkPlan
+from application.work_item import ArgumentValue, ControlMode, WorkItem, WorkPlan, WorkControlBinding
 from application.write_workflow import (
     ApprovalGrant,
     GovernedWriteRuntime,
@@ -55,9 +55,17 @@ def ledger_factory(request):
         TenantId("workflow-test"), UserId("user-a"), ConversationId(uuid4().hex),
     )
     try:
+        accept_work(pool, scope, _item())
         yield lambda: PostgresOperationLedger(pool, scope)
     finally:
         pool.close()
+
+
+def accept_work(pool, scope, item):
+    from infrastructure.postgres_target_runtime import PostgresConversationStateStore
+    store = PostgresConversationStateStore(pool)
+    state = store.load(scope.tenant_id, scope.user_id, scope.conversation_id)
+    assert store.compare_and_set(state, state.accept_work_items((item,), invocation_key="test-invocation"))
 
 
 def _item(operation_key="operation-1"):
@@ -94,6 +102,7 @@ def _item(operation_key="operation-1"):
         aggregate_ref="order:DP1234",
         action_ref="refund.request.create:v1",
         approval_policy=ApprovalPolicy.EXPLICIT_CONFIRMATION_REQUIRED,
+        control=WorkControlBinding("test-write-control", 1),
     )
 
 
@@ -229,7 +238,8 @@ def test_recreated_runtime_reconciles_unfinished_writes_without_resubmission(
     ledger = ledger_factory()
     planned = ledger.acquire(_item())
     unfinished = replace(planned, status=status, version=2, attempts=1)
-    assert ledger.compare_and_set(planned, unfinished)
+    assert ledger.compare_and_set(planned, unfinished,
+                                  submission=_item() if status is OperationStatus.EXECUTING else None)
     tool = ToolPort([])
     reconciler = Reconciler([WriteToolOutcome(
         WriteOutcomeStatus.COMMITTED, "refund-R1", "refund-receipt-v1", "FOUND",

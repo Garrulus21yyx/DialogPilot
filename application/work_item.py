@@ -20,6 +20,29 @@ class WorkItemContractError(ValueError):
     pass
 
 
+def prerequisite_ids(item: WorkItem, items: Iterable[WorkItem]) -> tuple[str, ...]:
+    """Resolve provenance through current and retained work, without guessing gaps."""
+    by_id = {}
+    for work in items:
+        prior = by_id.setdefault(work.work_item_id, work)
+        if prior != work:
+            raise WorkItemContractError("prerequisite identity has conflicting contracts")
+    pending, seen = list(item.dependencies), set()
+    while pending:
+        identity = pending.pop()
+        if identity not in by_id:
+            raise WorkItemContractError("prerequisite provenance is incomplete")
+        if identity not in seen:
+            seen.add(identity)
+            pending.extend(by_id[identity].dependencies)
+    from graphlib import TopologicalSorter, CycleError
+    try:
+        tuple(TopologicalSorter({key: by_id[key].dependencies for key in seen}).static_order())
+    except CycleError as exc:
+        raise WorkItemContractError("prerequisite provenance contains a cycle") from exc
+    return tuple(sorted(seen))
+
+
 def planning_continuations(state, resolved_items=()):
     """Only persisted waits or resolver-accepted envelopes authorize continuation."""
     items = {(item.work_item_id, item.control): item
@@ -439,6 +462,12 @@ class WorkPlan:
             and original.registry_fingerprint == item.registry_fingerprint
             and result.work_item_id == original.work_item_id
             and result.owner_agent == original.owner_agent)
+
+    def dependency_closure(self, item: WorkItem) -> tuple[str, ...]:
+        """All prerequisite identities, including already completed ancestors."""
+        if item not in self.items:
+            raise WorkItemContractError("dependency closure requires a plan member")
+        return prerequisite_ids(item, self.items)
 
     def execution_waves(
         self,
