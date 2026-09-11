@@ -94,6 +94,6 @@ Task success = 0
 
 这轮结果支持高频闭合角色继续使用 Flash/off。它没有证明“Flash 永远优于 Pro”，只证明在当前客服 seed、Prompt、工具、15s/20s 预算下，全局开启 high 或全局升级 Pro 不划算。
 
-当前生产默认仍采用按角色分层：Intent/Worker/ReAct/Memory/rewrite/rerank 为 Flash/off，Synthesis/Verifier/Judge 为 Pro/off。后续若要启用 reasoning，应在 human-reviewed gold 上按角色单独消融，而不是全局打开。
+当前生产默认仍采用按角色分层：Intent/Worker/ReAct/Memory/rewrite/rerank 为 Flash/off，Synthesis/Verifier/Judge 为 Pro/off。后续若要启用 reasoning，应在公开 Dev 选择、冻结 Test 与 80 条合成合同真实主链上按角色单独消融，而不是全局打开。
 
 可机读摘要：[model-ablation-2026-08-30.summary.json](./data/model-ablation-2026-08-30.summary.json)。

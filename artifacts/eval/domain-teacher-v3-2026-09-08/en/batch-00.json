@@ -1,0 +1,2043 @@
+{
+  "batch_id": "domain-v3:en:0",
+  "language": "en",
+  "split": "train",
+  "model": "deepseek-v4-pro",
+  "synthetic": true,
+  "author_prompt": "Author 8 DIFFERENT natural ecommerce customer-service dialogue families in en.\nBatch 0; ensure at least four current turns classified as general across this batch.\nEach family has its OWN coherent history of 2, 4 or 6 short alternating user/assistant\nmessages, followed by 3 ALTERNATIVE current user turns, not three sequential turns.\nThose alternatives differ in effective intent: retain vs replace, withdraw vs\ncontinue, single goal vs concurrent goal, or resolved vs unresolved reference.\nInclude natural short answers where history matters. Vary old completed tasks,\nhesitation, self-correction, indirect wording, topics and dialogue acts. General\nand human-service requests must also occur as NEW goals, not only stale history.\nDo not follow a repeated sentence template or substitute product nouns to create\nnew families. Avoid stereotyped 'information only, do not submit' repetition.\nInvent broad everyday ecommerce situations; no copied benchmark or private data.\nHistory plus current turn should fit 150 English words or 180 Chinese characters;\nkeep it compact but meaningful. No future replies or final conversation summaries.\nSupply the correct label for each alternative according to the rubric.\n",
+  "author_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_6pPnDHmB8juvr3hWA4vu2108",
+          "input": {
+            "families": [
+              {
+                "scenario": "Customer asks about a blender's jar material, then pivots to a refund for a different order.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Hi, is the jar on the VitaBlend 500 made of glass or plastic?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "It's a BPA-free Tritan plastic jar, very durable."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Okay, thanks. Actually, I also need a refund for the toaster I got last week."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Sure, I can help with that. What's the issue with the toaster?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "It stopped heating after two days, and I'd like my money back.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Never mind the toaster, does the blender come with a tamper?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "It stopped heating, and also can you tell me if the blender jar is dishwasher safe?",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer greets and asks about store hours, then asks for a human agent.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Good morning! What are your customer service hours?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "We're available 8am to 10pm every day."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Great, thanks for letting me know."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "You're welcome! Anything else I can help with?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Actually, can I speak to a real person? This bot isn't helping.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "No, that's all. Have a nice day!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "One more thing, my login keeps failing. Can you fix that?",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer tracks a package, then shifts to asking about a coupon code.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Where is my order #8821? It was supposed to arrive yesterday."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "It's out for delivery today and should arrive by 6pm."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Perfect, thank you."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Happy to help! Is there anything else?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Yes, do you have any promo codes right now?",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Actually, I want to cancel that order before it arrives.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Wait, can you change the delivery address? I won't be home.",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer reports a login problem, then withdraws and asks a product question.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I can't log into my account, it says my password is wrong."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I can send a reset link to your email. Would you like that?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Hold on, let me try one more time."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "No problem, take your time."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "It worked! I'm in now. Thanks anyway.",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Still locked out. Please send the reset link.",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "While I'm at it, does the smartwatch support iOS?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a laptop's specs, then requests a return label.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Does the NovaBook 14 have a backlit keyboard?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Yes, it has a full backlit keyboard with three brightness levels."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Nice. I actually bought one and want to return it."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I can help with that. May I ask why you're returning it?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "The screen has a dead pixel, and I want a replacement.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Actually, keep it. Can you tell me the battery life instead?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "The screen is faulty, and I also need help resetting my password.",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about shipping to a remote area, then greets casually.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Do you ship to rural Alaska?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Yes, but delivery takes 7-10 business days there."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Okay, that works for me."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Great! Let me know if you need anything else."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Thanks so much, you've been really helpful!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Actually, can you ship it faster with express?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "One more thing, how do I apply a gift card at checkout?",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer complains about a late order and asks to escalate.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My order has been stuck in transit for two weeks. This is unacceptable."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry for the delay. Let me check the tracking for you."
+                  },
+                  {
+                    "role": "user",
+                    "content": "I've already checked. I want to file a formal complaint."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I understand your frustration. I can escalate this to a supervisor."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Yes, please escalate it now.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Actually, just refund me instead.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Forget the complaint, just tell me when it will arrive.",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a vacuum's filter, then asks about warranty coverage.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "How often should I replace the filter on the DustPro X?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Every 3-6 months depending on use."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Got it. Is the filter covered under warranty?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Filters are consumables, so they're not covered by the standard warranty."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "That's disappointing. Can I buy a multi-pack of filters?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Okay, thanks for clarifying. That's all I needed.",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Then I want to return the vacuum entirely.",
+                    "label": "billing_refund"
+                  }
+                ]
+              }
+            ]
+          },
+          "name": "AuthoredBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "9404df7e-05d5-44b7-954e-931fb49a2a8a",
+        "container": null,
+        "model": "deepseek-v4-pro",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "inference_geo": null,
+          "input_tokens": 959,
+          "output_tokens": 1635,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-pro",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081ca-57d3-7303-8531-493c48c81a60-0",
+      "tool_calls": [
+        {
+          "name": "AuthoredBatch",
+          "args": {
+            "families": [
+              {
+                "scenario": "Customer asks about a blender's jar material, then pivots to a refund for a different order.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Hi, is the jar on the VitaBlend 500 made of glass or plastic?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "It's a BPA-free Tritan plastic jar, very durable."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Okay, thanks. Actually, I also need a refund for the toaster I got last week."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Sure, I can help with that. What's the issue with the toaster?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "It stopped heating after two days, and I'd like my money back.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Never mind the toaster, does the blender come with a tamper?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "It stopped heating, and also can you tell me if the blender jar is dishwasher safe?",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer greets and asks about store hours, then asks for a human agent.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Good morning! What are your customer service hours?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "We're available 8am to 10pm every day."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Great, thanks for letting me know."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "You're welcome! Anything else I can help with?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Actually, can I speak to a real person? This bot isn't helping.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "No, that's all. Have a nice day!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "One more thing, my login keeps failing. Can you fix that?",
+                    "label": "account_security"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer tracks a package, then shifts to asking about a coupon code.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Where is my order #8821? It was supposed to arrive yesterday."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "It's out for delivery today and should arrive by 6pm."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Perfect, thank you."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Happy to help! Is there anything else?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Yes, do you have any promo codes right now?",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Actually, I want to cancel that order before it arrives.",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "Wait, can you change the delivery address? I won't be home.",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer reports a login problem, then withdraws and asks a product question.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "I can't log into my account, it says my password is wrong."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I can send a reset link to your email. Would you like that?"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Hold on, let me try one more time."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "No problem, take your time."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "It worked! I'm in now. Thanks anyway.",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Still locked out. Please send the reset link.",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "While I'm at it, does the smartwatch support iOS?",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a laptop's specs, then requests a return label.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Does the NovaBook 14 have a backlit keyboard?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Yes, it has a full backlit keyboard with three brightness levels."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Nice. I actually bought one and want to return it."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I can help with that. May I ask why you're returning it?"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "The screen has a dead pixel, and I want a replacement.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Actually, keep it. Can you tell me the battery life instead?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "The screen is faulty, and I also need help resetting my password.",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about shipping to a remote area, then greets casually.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Do you ship to rural Alaska?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Yes, but delivery takes 7-10 business days there."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Okay, that works for me."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Great! Let me know if you need anything else."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Thanks so much, you've been really helpful!",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Actually, can you ship it faster with express?",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "One more thing, how do I apply a gift card at checkout?",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer complains about a late order and asks to escalate.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "My order has been stuck in transit for two weeks. This is unacceptable."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I'm sorry for the delay. Let me check the tracking for you."
+                  },
+                  {
+                    "role": "user",
+                    "content": "I've already checked. I want to file a formal complaint."
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "I understand your frustration. I can escalate this to a supervisor."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "Yes, please escalate it now.",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "Actually, just refund me instead.",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "Forget the complaint, just tell me when it will arrive.",
+                    "label": "order_logistics"
+                  }
+                ]
+              },
+              {
+                "scenario": "Customer asks about a vacuum's filter, then asks about warranty coverage.",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "How often should I replace the filter on the DustPro X?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Every 3-6 months depending on use."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Got it. Is the filter covered under warranty?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "Filters are consumables, so they're not covered by the standard warranty."
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "That's disappointing. Can I buy a multi-pack of filters?",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "Okay, thanks for clarifying. That's all I needed.",
+                    "label": "general"
+                  },
+                  {
+                    "text": "Then I want to return the vacuum entirely.",
+                    "label": "billing_refund"
+                  }
+                ]
+              }
+            ]
+          },
+          "id": "call_00_6pPnDHmB8juvr3hWA4vu2108",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 959,
+        "output_tokens": 1635,
+        "total_tokens": 2594,
+        "input_token_details": {
+          "cache_read": 0,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "authored": {
+    "families": [
+      {
+        "scenario": "Customer asks about a blender's jar material, then pivots to a refund for a different order.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Hi, is the jar on the VitaBlend 500 made of glass or plastic?"
+          },
+          {
+            "role": "assistant",
+            "content": "It's a BPA-free Tritan plastic jar, very durable."
+          },
+          {
+            "role": "user",
+            "content": "Okay, thanks. Actually, I also need a refund for the toaster I got last week."
+          },
+          {
+            "role": "assistant",
+            "content": "Sure, I can help with that. What's the issue with the toaster?"
+          }
+        ],
+        "variants": [
+          {
+            "text": "It stopped heating after two days, and I'd like my money back.",
+            "label": "billing_refund"
+          },
+          {
+            "text": "Never mind the toaster, does the blender come with a tamper?",
+            "label": "product_technical"
+          },
+          {
+            "text": "It stopped heating, and also can you tell me if the blender jar is dishwasher safe?",
+            "label": "__DEFER__"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer greets and asks about store hours, then asks for a human agent.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Good morning! What are your customer service hours?"
+          },
+          {
+            "role": "assistant",
+            "content": "We're available 8am to 10pm every day."
+          },
+          {
+            "role": "user",
+            "content": "Great, thanks for letting me know."
+          },
+          {
+            "role": "assistant",
+            "content": "You're welcome! Anything else I can help with?"
+          }
+        ],
+        "variants": [
+          {
+            "text": "Actually, can I speak to a real person? This bot isn't helping.",
+            "label": "human_service"
+          },
+          {
+            "text": "No, that's all. Have a nice day!",
+            "label": "general"
+          },
+          {
+            "text": "One more thing, my login keeps failing. Can you fix that?",
+            "label": "account_security"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer tracks a package, then shifts to asking about a coupon code.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Where is my order #8821? It was supposed to arrive yesterday."
+          },
+          {
+            "role": "assistant",
+            "content": "It's out for delivery today and should arrive by 6pm."
+          },
+          {
+            "role": "user",
+            "content": "Perfect, thank you."
+          },
+          {
+            "role": "assistant",
+            "content": "Happy to help! Is there anything else?"
+          }
+        ],
+        "variants": [
+          {
+            "text": "Yes, do you have any promo codes right now?",
+            "label": "general"
+          },
+          {
+            "text": "Actually, I want to cancel that order before it arrives.",
+            "label": "order_logistics"
+          },
+          {
+            "text": "Wait, can you change the delivery address? I won't be home.",
+            "label": "order_logistics"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer reports a login problem, then withdraws and asks a product question.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "I can't log into my account, it says my password is wrong."
+          },
+          {
+            "role": "assistant",
+            "content": "I can send a reset link to your email. Would you like that?"
+          },
+          {
+            "role": "user",
+            "content": "Hold on, let me try one more time."
+          },
+          {
+            "role": "assistant",
+            "content": "No problem, take your time."
+          }
+        ],
+        "variants": [
+          {
+            "text": "It worked! I'm in now. Thanks anyway.",
+            "label": "general"
+          },
+          {
+            "text": "Still locked out. Please send the reset link.",
+            "label": "account_security"
+          },
+          {
+            "text": "While I'm at it, does the smartwatch support iOS?",
+            "label": "product_technical"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer asks about a laptop's specs, then requests a return label.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Does the NovaBook 14 have a backlit keyboard?"
+          },
+          {
+            "role": "assistant",
+            "content": "Yes, it has a full backlit keyboard with three brightness levels."
+          },
+          {
+            "role": "user",
+            "content": "Nice. I actually bought one and want to return it."
+          },
+          {
+            "role": "assistant",
+            "content": "I can help with that. May I ask why you're returning it?"
+          }
+        ],
+        "variants": [
+          {
+            "text": "The screen has a dead pixel, and I want a replacement.",
+            "label": "billing_refund"
+          },
+          {
+            "text": "Actually, keep it. Can you tell me the battery life instead?",
+            "label": "product_technical"
+          },
+          {
+            "text": "The screen is faulty, and I also need help resetting my password.",
+            "label": "__DEFER__"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer asks about shipping to a remote area, then greets casually.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Do you ship to rural Alaska?"
+          },
+          {
+            "role": "assistant",
+            "content": "Yes, but delivery takes 7-10 business days there."
+          },
+          {
+            "role": "user",
+            "content": "Okay, that works for me."
+          },
+          {
+            "role": "assistant",
+            "content": "Great! Let me know if you need anything else."
+          }
+        ],
+        "variants": [
+          {
+            "text": "Thanks so much, you've been really helpful!",
+            "label": "general"
+          },
+          {
+            "text": "Actually, can you ship it faster with express?",
+            "label": "order_logistics"
+          },
+          {
+            "text": "One more thing, how do I apply a gift card at checkout?",
+            "label": "billing_refund"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer complains about a late order and asks to escalate.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "My order has been stuck in transit for two weeks. This is unacceptable."
+          },
+          {
+            "role": "assistant",
+            "content": "I'm sorry for the delay. Let me check the tracking for you."
+          },
+          {
+            "role": "user",
+            "content": "I've already checked. I want to file a formal complaint."
+          },
+          {
+            "role": "assistant",
+            "content": "I understand your frustration. I can escalate this to a supervisor."
+          }
+        ],
+        "variants": [
+          {
+            "text": "Yes, please escalate it now.",
+            "label": "human_service"
+          },
+          {
+            "text": "Actually, just refund me instead.",
+            "label": "billing_refund"
+          },
+          {
+            "text": "Forget the complaint, just tell me when it will arrive.",
+            "label": "order_logistics"
+          }
+        ]
+      },
+      {
+        "scenario": "Customer asks about a vacuum's filter, then asks about warranty coverage.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "How often should I replace the filter on the DustPro X?"
+          },
+          {
+            "role": "assistant",
+            "content": "Every 3-6 months depending on use."
+          },
+          {
+            "role": "user",
+            "content": "Got it. Is the filter covered under warranty?"
+          },
+          {
+            "role": "assistant",
+            "content": "Filters are consumables, so they're not covered by the standard warranty."
+          }
+        ],
+        "variants": [
+          {
+            "text": "That's disappointing. Can I buy a multi-pack of filters?",
+            "label": "product_technical"
+          },
+          {
+            "text": "Okay, thanks for clarifying. That's all I needed.",
+            "label": "general"
+          },
+          {
+            "text": "Then I want to return the vacuum entirely.",
+            "label": "billing_refund"
+          }
+        ]
+      }
+    ]
+  },
+  "review_input_sha256": "5bff396f924dd35aa13c78ddc48329ea9bf4b5157a406e68a6e34c090902d3cd",
+  "review_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_VKInl4r0gey2ZuYf7HG58327",
+          "input": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:en:0:0:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User continues the refund request for the toaster, describing the defect and asking for money back."
+              },
+              {
+                "case_id": "domain-v3:en:0:0:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User explicitly drops the toaster refund ('Never mind the toaster') and asks a product question about the blender tamper."
+              },
+              {
+                "case_id": "domain-v3:en:0:0:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "Two simultaneous requests in different domains: refund for toaster (billing_refund) and dishwasher-safety product question (product_technical)."
+              },
+              {
+                "case_id": "domain-v3:en:0:1:0",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "User explicitly requests to speak to a real person."
+              },
+              {
+                "case_id": "domain-v3:en:0:1:1",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "Closing courtesy with no remaining business goal."
+              },
+              {
+                "case_id": "domain-v3:en:0:1:2",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "User reports login failure and asks for help fixing it."
+              },
+              {
+                "case_id": "domain-v3:en:0:2:0",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "Asks about promo codes, a general inquiry not clearly tied to a specific domain."
+              },
+              {
+                "case_id": "domain-v3:en:0:2:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User wants to cancel the order before it arrives."
+              },
+              {
+                "case_id": "domain-v3:en:0:2:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User requests a delivery address change."
+              },
+              {
+                "case_id": "domain-v3:en:0:3:0",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "User reports the issue resolved and thanks; no remaining goal."
+              },
+              {
+                "case_id": "domain-v3:en:0:3:1",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "User still locked out and requests the password reset link."
+              },
+              {
+                "case_id": "domain-v3:en:0:3:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User pivots to a product compatibility question about the smartwatch and iOS."
+              },
+              {
+                "case_id": "domain-v3:en:0:4:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User describes the defect and requests a replacement (return/exchange after-sales)."
+              },
+              {
+                "case_id": "domain-v3:en:0:4:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User drops the return ('keep it') and asks a product spec question about battery life."
+              },
+              {
+                "case_id": "domain-v3:en:0:4:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "Two simultaneous requests in different domains: faulty screen return (billing_refund) and password reset (account_security)."
+              },
+              {
+                "case_id": "domain-v3:en:0:5:0",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "Closing thanks with no remaining business goal."
+              },
+              {
+                "case_id": "domain-v3:en:0:5:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User asks about faster express shipping."
+              },
+              {
+                "case_id": "domain-v3:en:0:5:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User asks how to apply a gift card at checkout, a payment-related question."
+              },
+              {
+                "case_id": "domain-v3:en:0:6:0",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "User confirms escalation to a supervisor (formal complaint/escalation)."
+              },
+              {
+                "case_id": "domain-v3:en:0:6:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User replaces the complaint with a refund request."
+              },
+              {
+                "case_id": "domain-v3:en:0:6:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User drops the complaint and asks about delivery timing."
+              },
+              {
+                "case_id": "domain-v3:en:0:7:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User asks about purchasing a multi-pack of filters, a product-related question."
+              },
+              {
+                "case_id": "domain-v3:en:0:7:1",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "Closing thanks with no remaining business goal."
+              },
+              {
+                "case_id": "domain-v3:en:0:7:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User wants to return the vacuum entirely (after-sales return)."
+              }
+            ]
+          },
+          "name": "ReviewedBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "c312e8ab-e1b9-4213-bd0c-fe78e3096769",
+        "container": null,
+        "model": "deepseek-v4-pro",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 384,
+          "inference_geo": null,
+          "input_tokens": 3476,
+          "output_tokens": 1274,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-pro",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081ca-b247-73e3-9f32-b26e78b668a5-0",
+      "tool_calls": [
+        {
+          "name": "ReviewedBatch",
+          "args": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:en:0:0:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User continues the refund request for the toaster, describing the defect and asking for money back."
+              },
+              {
+                "case_id": "domain-v3:en:0:0:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User explicitly drops the toaster refund ('Never mind the toaster') and asks a product question about the blender tamper."
+              },
+              {
+                "case_id": "domain-v3:en:0:0:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "Two simultaneous requests in different domains: refund for toaster (billing_refund) and dishwasher-safety product question (product_technical)."
+              },
+              {
+                "case_id": "domain-v3:en:0:1:0",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "User explicitly requests to speak to a real person."
+              },
+              {
+                "case_id": "domain-v3:en:0:1:1",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "Closing courtesy with no remaining business goal."
+              },
+              {
+                "case_id": "domain-v3:en:0:1:2",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "User reports login failure and asks for help fixing it."
+              },
+              {
+                "case_id": "domain-v3:en:0:2:0",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "Asks about promo codes, a general inquiry not clearly tied to a specific domain."
+              },
+              {
+                "case_id": "domain-v3:en:0:2:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User wants to cancel the order before it arrives."
+              },
+              {
+                "case_id": "domain-v3:en:0:2:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User requests a delivery address change."
+              },
+              {
+                "case_id": "domain-v3:en:0:3:0",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "User reports the issue resolved and thanks; no remaining goal."
+              },
+              {
+                "case_id": "domain-v3:en:0:3:1",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "User still locked out and requests the password reset link."
+              },
+              {
+                "case_id": "domain-v3:en:0:3:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User pivots to a product compatibility question about the smartwatch and iOS."
+              },
+              {
+                "case_id": "domain-v3:en:0:4:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User describes the defect and requests a replacement (return/exchange after-sales)."
+              },
+              {
+                "case_id": "domain-v3:en:0:4:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User drops the return ('keep it') and asks a product spec question about battery life."
+              },
+              {
+                "case_id": "domain-v3:en:0:4:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "Two simultaneous requests in different domains: faulty screen return (billing_refund) and password reset (account_security)."
+              },
+              {
+                "case_id": "domain-v3:en:0:5:0",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "Closing thanks with no remaining business goal."
+              },
+              {
+                "case_id": "domain-v3:en:0:5:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User asks about faster express shipping."
+              },
+              {
+                "case_id": "domain-v3:en:0:5:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User asks how to apply a gift card at checkout, a payment-related question."
+              },
+              {
+                "case_id": "domain-v3:en:0:6:0",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "User confirms escalation to a supervisor (formal complaint/escalation)."
+              },
+              {
+                "case_id": "domain-v3:en:0:6:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User replaces the complaint with a refund request."
+              },
+              {
+                "case_id": "domain-v3:en:0:6:2",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "User drops the complaint and asks about delivery timing."
+              },
+              {
+                "case_id": "domain-v3:en:0:7:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "User asks about purchasing a multi-pack of filters, a product-related question."
+              },
+              {
+                "case_id": "domain-v3:en:0:7:1",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "Closing thanks with no remaining business goal."
+              },
+              {
+                "case_id": "domain-v3:en:0:7:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "User wants to return the vacuum entirely (after-sales return)."
+              }
+            ]
+          },
+          "id": "call_00_VKInl4r0gey2ZuYf7HG58327",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 3860,
+        "output_tokens": 1274,
+        "total_tokens": 5134,
+        "input_token_details": {
+          "cache_read": 384,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "reviewed": {
+    "verdicts": [
+      {
+        "case_id": "domain-v3:en:0:0:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User continues the refund request for the toaster, describing the defect and asking for money back."
+      },
+      {
+        "case_id": "domain-v3:en:0:0:1",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "User explicitly drops the toaster refund ('Never mind the toaster') and asks a product question about the blender tamper."
+      },
+      {
+        "case_id": "domain-v3:en:0:0:2",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "Two simultaneous requests in different domains: refund for toaster (billing_refund) and dishwasher-safety product question (product_technical)."
+      },
+      {
+        "case_id": "domain-v3:en:0:1:0",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "User explicitly requests to speak to a real person."
+      },
+      {
+        "case_id": "domain-v3:en:0:1:1",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "Closing courtesy with no remaining business goal."
+      },
+      {
+        "case_id": "domain-v3:en:0:1:2",
+        "label": "account_security",
+        "clear_and_natural": true,
+        "reason": "User reports login failure and asks for help fixing it."
+      },
+      {
+        "case_id": "domain-v3:en:0:2:0",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "Asks about promo codes, a general inquiry not clearly tied to a specific domain."
+      },
+      {
+        "case_id": "domain-v3:en:0:2:1",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "User wants to cancel the order before it arrives."
+      },
+      {
+        "case_id": "domain-v3:en:0:2:2",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "User requests a delivery address change."
+      },
+      {
+        "case_id": "domain-v3:en:0:3:0",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "User reports the issue resolved and thanks; no remaining goal."
+      },
+      {
+        "case_id": "domain-v3:en:0:3:1",
+        "label": "account_security",
+        "clear_and_natural": true,
+        "reason": "User still locked out and requests the password reset link."
+      },
+      {
+        "case_id": "domain-v3:en:0:3:2",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "User pivots to a product compatibility question about the smartwatch and iOS."
+      },
+      {
+        "case_id": "domain-v3:en:0:4:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User describes the defect and requests a replacement (return/exchange after-sales)."
+      },
+      {
+        "case_id": "domain-v3:en:0:4:1",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "User drops the return ('keep it') and asks a product spec question about battery life."
+      },
+      {
+        "case_id": "domain-v3:en:0:4:2",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "Two simultaneous requests in different domains: faulty screen return (billing_refund) and password reset (account_security)."
+      },
+      {
+        "case_id": "domain-v3:en:0:5:0",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "Closing thanks with no remaining business goal."
+      },
+      {
+        "case_id": "domain-v3:en:0:5:1",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "User asks about faster express shipping."
+      },
+      {
+        "case_id": "domain-v3:en:0:5:2",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User asks how to apply a gift card at checkout, a payment-related question."
+      },
+      {
+        "case_id": "domain-v3:en:0:6:0",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "User confirms escalation to a supervisor (formal complaint/escalation)."
+      },
+      {
+        "case_id": "domain-v3:en:0:6:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User replaces the complaint with a refund request."
+      },
+      {
+        "case_id": "domain-v3:en:0:6:2",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "User drops the complaint and asks about delivery timing."
+      },
+      {
+        "case_id": "domain-v3:en:0:7:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "User asks about purchasing a multi-pack of filters, a product-related question."
+      },
+      {
+        "case_id": "domain-v3:en:0:7:1",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "Closing thanks with no remaining business goal."
+      },
+      {
+        "case_id": "domain-v3:en:0:7:2",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "User wants to return the vacuum entirely (after-sales return)."
+      }
+    ]
+  },
+  "rows": [
+    {
+      "case_id": "domain-v3:en:0:0:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Hi, is the jar on the VitaBlend 500 made of glass or plastic?"
+        },
+        {
+          "role": "assistant",
+          "content": "It's a BPA-free Tritan plastic jar, very durable."
+        },
+        {
+          "role": "user",
+          "content": "Okay, thanks. Actually, I also need a refund for the toaster I got last week."
+        },
+        {
+          "role": "assistant",
+          "content": "Sure, I can help with that. What's the issue with the toaster?"
+        }
+      ],
+      "text": "It stopped heating after two days, and I'd like my money back.",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:0:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:0:0:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Hi, is the jar on the VitaBlend 500 made of glass or plastic?"
+        },
+        {
+          "role": "assistant",
+          "content": "It's a BPA-free Tritan plastic jar, very durable."
+        },
+        {
+          "role": "user",
+          "content": "Okay, thanks. Actually, I also need a refund for the toaster I got last week."
+        },
+        {
+          "role": "assistant",
+          "content": "Sure, I can help with that. What's the issue with the toaster?"
+        }
+      ],
+      "text": "Never mind the toaster, does the blender come with a tamper?",
+      "label": "product_technical",
+      "language": "en",
+      "group_id": "domain-v3:en:0:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:0:0:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Hi, is the jar on the VitaBlend 500 made of glass or plastic?"
+        },
+        {
+          "role": "assistant",
+          "content": "It's a BPA-free Tritan plastic jar, very durable."
+        },
+        {
+          "role": "user",
+          "content": "Okay, thanks. Actually, I also need a refund for the toaster I got last week."
+        },
+        {
+          "role": "assistant",
+          "content": "Sure, I can help with that. What's the issue with the toaster?"
+        }
+      ],
+      "text": "It stopped heating, and also can you tell me if the blender jar is dishwasher safe?",
+      "label": "__DEFER__",
+      "language": "en",
+      "group_id": "domain-v3:en:0:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:0:1:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Good morning! What are your customer service hours?"
+        },
+        {
+          "role": "assistant",
+          "content": "We're available 8am to 10pm every day."
+        },
+        {
+          "role": "user",
+          "content": "Great, thanks for letting me know."
+        },
+        {
+          "role": "assistant",
+          "content": "You're welcome! Anything else I can help with?"
+        }
+      ],
+      "text": "Actually, can I speak to a real person? This bot isn't helping.",
+      "label": "human_service",
+      "language": "en",
+      "group_id": "domain-v3:en:0:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:0:1:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Good morning! What are your customer service hours?"
+        },
+        {
+          "role": "assistant",
+          "content": "We're available 8am to 10pm every day."
+        },
+        {
+          "role": "user",
+          "content": "Great, thanks for letting me know."
+        },
+        {
+          "role": "assistant",
+          "content": "You're welcome! Anything else I can help with?"
+        }
+      ],
+      "text": "No, that's all. Have a nice day!",
+      "label": "general",
+      "language": "en",
+      "group_id": "domain-v3:en:0:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:0:1:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Good morning! What are your customer service hours?"
+        },
+        {
+          "role": "assistant",
+          "content": "We're available 8am to 10pm every day."
+        },
+        {
+          "role": "user",
+          "content": "Great, thanks for letting me know."
+        },
+        {
+          "role": "assistant",
+          "content": "You're welcome! Anything else I can help with?"
+        }
+      ],
+      "text": "One more thing, my login keeps failing. Can you fix that?",
+      "label": "account_security",
+      "language": "en",
+      "group_id": "domain-v3:en:0:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:0:2:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Where is my order #8821? It was supposed to arrive yesterday."
+        },
+        {
+          "role": "assistant",
+          "content": "It's out for delivery today and should arrive by 6pm."
+        },
+        {
+          "role": "user",
+          "content": "Perfect, thank you."
+        },
+        {
+          "role": "assistant",
+          "content": "Happy to help! Is there anything else?"
+        }
+      ],
+      "text": "Yes, do you have any promo codes right now?",
+      "label": "general",
+      "language": "en",
+      "group_id": "domain-v3:en:0:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:0:2:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Where is my order #8821? It was supposed to arrive yesterday."
+        },
+        {
+          "role": "assistant",
+          "content": "It's out for delivery today and should arrive by 6pm."
+        },
+        {
+          "role": "user",
+          "content": "Perfect, thank you."
+        },
+        {
+          "role": "assistant",
+          "content": "Happy to help! Is there anything else?"
+        }
+      ],
+      "text": "Actually, I want to cancel that order before it arrives.",
+      "label": "order_logistics",
+      "language": "en",
+      "group_id": "domain-v3:en:0:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:0:2:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Where is my order #8821? It was supposed to arrive yesterday."
+        },
+        {
+          "role": "assistant",
+          "content": "It's out for delivery today and should arrive by 6pm."
+        },
+        {
+          "role": "user",
+          "content": "Perfect, thank you."
+        },
+        {
+          "role": "assistant",
+          "content": "Happy to help! Is there anything else?"
+        }
+      ],
+      "text": "Wait, can you change the delivery address? I won't be home.",
+      "label": "order_logistics",
+      "language": "en",
+      "group_id": "domain-v3:en:0:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:0:3:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I can't log into my account, it says my password is wrong."
+        },
+        {
+          "role": "assistant",
+          "content": "I can send a reset link to your email. Would you like that?"
+        },
+        {
+          "role": "user",
+          "content": "Hold on, let me try one more time."
+        },
+        {
+          "role": "assistant",
+          "content": "No problem, take your time."
+        }
+      ],
+      "text": "It worked! I'm in now. Thanks anyway.",
+      "label": "general",
+      "language": "en",
+      "group_id": "domain-v3:en:0:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:0:3:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I can't log into my account, it says my password is wrong."
+        },
+        {
+          "role": "assistant",
+          "content": "I can send a reset link to your email. Would you like that?"
+        },
+        {
+          "role": "user",
+          "content": "Hold on, let me try one more time."
+        },
+        {
+          "role": "assistant",
+          "content": "No problem, take your time."
+        }
+      ],
+      "text": "Still locked out. Please send the reset link.",
+      "label": "account_security",
+      "language": "en",
+      "group_id": "domain-v3:en:0:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:0:3:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I can't log into my account, it says my password is wrong."
+        },
+        {
+          "role": "assistant",
+          "content": "I can send a reset link to your email. Would you like that?"
+        },
+        {
+          "role": "user",
+          "content": "Hold on, let me try one more time."
+        },
+        {
+          "role": "assistant",
+          "content": "No problem, take your time."
+        }
+      ],
+      "text": "While I'm at it, does the smartwatch support iOS?",
+      "label": "product_technical",
+      "language": "en",
+      "group_id": "domain-v3:en:0:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:0:4:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Does the NovaBook 14 have a backlit keyboard?"
+        },
+        {
+          "role": "assistant",
+          "content": "Yes, it has a full backlit keyboard with three brightness levels."
+        },
+        {
+          "role": "user",
+          "content": "Nice. I actually bought one and want to return it."
+        },
+        {
+          "role": "assistant",
+          "content": "I can help with that. May I ask why you're returning it?"
+        }
+      ],
+      "text": "The screen has a dead pixel, and I want a replacement.",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:0:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:0:4:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Does the NovaBook 14 have a backlit keyboard?"
+        },
+        {
+          "role": "assistant",
+          "content": "Yes, it has a full backlit keyboard with three brightness levels."
+        },
+        {
+          "role": "user",
+          "content": "Nice. I actually bought one and want to return it."
+        },
+        {
+          "role": "assistant",
+          "content": "I can help with that. May I ask why you're returning it?"
+        }
+      ],
+      "text": "Actually, keep it. Can you tell me the battery life instead?",
+      "label": "product_technical",
+      "language": "en",
+      "group_id": "domain-v3:en:0:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:0:4:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Does the NovaBook 14 have a backlit keyboard?"
+        },
+        {
+          "role": "assistant",
+          "content": "Yes, it has a full backlit keyboard with three brightness levels."
+        },
+        {
+          "role": "user",
+          "content": "Nice. I actually bought one and want to return it."
+        },
+        {
+          "role": "assistant",
+          "content": "I can help with that. May I ask why you're returning it?"
+        }
+      ],
+      "text": "The screen is faulty, and I also need help resetting my password.",
+      "label": "__DEFER__",
+      "language": "en",
+      "group_id": "domain-v3:en:0:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:0:5:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Do you ship to rural Alaska?"
+        },
+        {
+          "role": "assistant",
+          "content": "Yes, but delivery takes 7-10 business days there."
+        },
+        {
+          "role": "user",
+          "content": "Okay, that works for me."
+        },
+        {
+          "role": "assistant",
+          "content": "Great! Let me know if you need anything else."
+        }
+      ],
+      "text": "Thanks so much, you've been really helpful!",
+      "label": "general",
+      "language": "en",
+      "group_id": "domain-v3:en:0:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:0:5:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Do you ship to rural Alaska?"
+        },
+        {
+          "role": "assistant",
+          "content": "Yes, but delivery takes 7-10 business days there."
+        },
+        {
+          "role": "user",
+          "content": "Okay, that works for me."
+        },
+        {
+          "role": "assistant",
+          "content": "Great! Let me know if you need anything else."
+        }
+      ],
+      "text": "Actually, can you ship it faster with express?",
+      "label": "order_logistics",
+      "language": "en",
+      "group_id": "domain-v3:en:0:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:0:5:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Do you ship to rural Alaska?"
+        },
+        {
+          "role": "assistant",
+          "content": "Yes, but delivery takes 7-10 business days there."
+        },
+        {
+          "role": "user",
+          "content": "Okay, that works for me."
+        },
+        {
+          "role": "assistant",
+          "content": "Great! Let me know if you need anything else."
+        }
+      ],
+      "text": "One more thing, how do I apply a gift card at checkout?",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:0:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:0:6:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My order has been stuck in transit for two weeks. This is unacceptable."
+        },
+        {
+          "role": "assistant",
+          "content": "I'm sorry for the delay. Let me check the tracking for you."
+        },
+        {
+          "role": "user",
+          "content": "I've already checked. I want to file a formal complaint."
+        },
+        {
+          "role": "assistant",
+          "content": "I understand your frustration. I can escalate this to a supervisor."
+        }
+      ],
+      "text": "Yes, please escalate it now.",
+      "label": "human_service",
+      "language": "en",
+      "group_id": "domain-v3:en:0:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:0:6:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My order has been stuck in transit for two weeks. This is unacceptable."
+        },
+        {
+          "role": "assistant",
+          "content": "I'm sorry for the delay. Let me check the tracking for you."
+        },
+        {
+          "role": "user",
+          "content": "I've already checked. I want to file a formal complaint."
+        },
+        {
+          "role": "assistant",
+          "content": "I understand your frustration. I can escalate this to a supervisor."
+        }
+      ],
+      "text": "Actually, just refund me instead.",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:0:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:0:6:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My order has been stuck in transit for two weeks. This is unacceptable."
+        },
+        {
+          "role": "assistant",
+          "content": "I'm sorry for the delay. Let me check the tracking for you."
+        },
+        {
+          "role": "user",
+          "content": "I've already checked. I want to file a formal complaint."
+        },
+        {
+          "role": "assistant",
+          "content": "I understand your frustration. I can escalate this to a supervisor."
+        }
+      ],
+      "text": "Forget the complaint, just tell me when it will arrive.",
+      "label": "order_logistics",
+      "language": "en",
+      "group_id": "domain-v3:en:0:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:0:7:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "How often should I replace the filter on the DustPro X?"
+        },
+        {
+          "role": "assistant",
+          "content": "Every 3-6 months depending on use."
+        },
+        {
+          "role": "user",
+          "content": "Got it. Is the filter covered under warranty?"
+        },
+        {
+          "role": "assistant",
+          "content": "Filters are consumables, so they're not covered by the standard warranty."
+        }
+      ],
+      "text": "That's disappointing. Can I buy a multi-pack of filters?",
+      "label": "product_technical",
+      "language": "en",
+      "group_id": "domain-v3:en:0:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:0:7:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "How often should I replace the filter on the DustPro X?"
+        },
+        {
+          "role": "assistant",
+          "content": "Every 3-6 months depending on use."
+        },
+        {
+          "role": "user",
+          "content": "Got it. Is the filter covered under warranty?"
+        },
+        {
+          "role": "assistant",
+          "content": "Filters are consumables, so they're not covered by the standard warranty."
+        }
+      ],
+      "text": "Okay, thanks for clarifying. That's all I needed.",
+      "label": "general",
+      "language": "en",
+      "group_id": "domain-v3:en:0:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:en:0:7:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "How often should I replace the filter on the DustPro X?"
+        },
+        {
+          "role": "assistant",
+          "content": "Every 3-6 months depending on use."
+        },
+        {
+          "role": "user",
+          "content": "Got it. Is the filter covered under warranty?"
+        },
+        {
+          "role": "assistant",
+          "content": "Filters are consumables, so they're not covered by the standard warranty."
+        }
+      ],
+      "text": "Then I want to return the vacuum entirely.",
+      "label": "billing_refund",
+      "language": "en",
+      "group_id": "domain-v3:en:0:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    }
+  ],
+  "rejected": [],
+  "status": "reviewed"
+}

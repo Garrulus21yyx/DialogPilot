@@ -1,0 +1,552 @@
+{
+  "case_count": 9,
+  "dataset_id": "doc2dial-rag-mini-heldout-v1",
+  "deployment_gates": {
+    "evidence_citation_recall_ge_90pct_when_available": true,
+    "generator_failure_rate_le_1pct": true,
+    "judge_citation_relevance_rate_ge_90pct": true,
+    "judge_correct_rate_ge_75pct": true,
+    "judge_failure_rate_le_5pct": true,
+    "judge_grounded_rate_ge_95pct": true,
+    "language_match_rate_ge_95pct": true
+  },
+  "fixed_context_config": "top5-2600",
+  "generation_prompt_version": "customer-support-grounded-v3",
+  "judge_note": "LLM judgement is secondary and must be calibrated on a human-reviewed subset; deterministic citation-ID, language, and failure metrics remain authoritative; gold-evidence citation precision is diagnostic because Doc2Dial annotations are not exhaustive",
+  "judge_prompt_version": "customer-support-rag-judge-v2",
+  "metrics": {
+    "abstention_rate": 0.3333333333333333,
+    "evidence_citation_recall_when_context_contains_evidence": 1.0,
+    "generation_input_tokens": 20664,
+    "generation_output_tokens": 1096,
+    "generator_failure_count": 0,
+    "gold_evidence_citation_precision_when_available": 0.7222222222222222,
+    "judge_citation_relevance_rate": 1.0,
+    "judge_complete_rate": 0.7777777777777778,
+    "judge_correct_rate": 0.7777777777777778,
+    "judge_failure_count": 0,
+    "judge_grounded_rate": 1.0,
+    "judge_input_tokens": 6091,
+    "judge_output_tokens": 243,
+    "language_match_rate": 1.0,
+    "mean_token_f1_vs_reference": 0.3705529164674118
+  },
+  "models": {
+    "judge": {
+      "min_completion_tokens": 0,
+      "model": "deepseek-v4-pro",
+      "reasoning": "none"
+    },
+    "synthesis": {
+      "min_completion_tokens": 0,
+      "model": "deepseek-v4-pro",
+      "reasoning": "none"
+    }
+  },
+  "passes_all_gates": true,
+  "rows": [
+    {
+      "abstained": true,
+      "answer": "Based on the supplied sources, I cannot confirm what happens in your VA health care process if your VA provider does not agree to the prescription. The provided sources do not contain the relevant VA prescription-approval policy or next steps for that situation.",
+      "case_id": "doc2dial-heldout-2e0a29b94fc37a6d9999bb17411d53df-14",
+      "citations": [],
+      "context_contains_evidence": 0.0,
+      "evidence_cited": 0.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2447,
+        "latency_ms": {
+          "max": 2751.747,
+          "p50": 2751.747,
+          "p95": 2751.747,
+          "sum": 2751.747
+        },
+        "output_tokens": 74,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": false,
+        "correct": false,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 216,
+        "latency_ms": {
+          "max": 790.605,
+          "p50": 790.605,
+          "p95": 790.605,
+          "sum": 790.605
+        },
+        "output_tokens": 21,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "since you do not meet all the requirements we will not be able to fill prescriptions from a community provider other than VA",
+      "token_f1": 0.20895522388059704
+    },
+    {
+      "abstained": false,
+      "answer": "Yes, you can request an appeal online for a reconsideration, a hearing by an administrative law judge, and a review by the Appeals Council, even if you live outside of the United States. If your disability claim was recently denied for medical reasons, you can request an appeal online. Federal Court review is not available online.",
+      "case_id": "doc2dial-heldout-3d7744f89550a80add78ce8af315a34f-13",
+      "citations": [
+        "Appeal A Decision | Social Security Administration#1_0::chunk-0",
+        "Appeal A Decision | Social Security Administration#2_0::chunk-0",
+        "Appeal A Decision | Social Security Administration#1_0::chunk-2"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2255,
+        "latency_ms": {
+          "max": 2687.897,
+          "p50": 2687.897,
+          "p95": 2687.897,
+          "sum": 2687.897
+        },
+        "output_tokens": 152,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.3333333333333333,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1239,
+        "latency_ms": {
+          "max": 975.248,
+          "p50": 975.248,
+          "p95": 975.248,
+          "sum": 975.248
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": " You can request an appeal online for a reconsideration , a hearing by an administrative law judge , and a review by the Appeals Council , even if you live outside of the United States",
+      "token_f1": 0.7272727272727273
+    },
+    {
+      "abstained": false,
+      "answer": "An appeal is a request to have a decision about your Social Security benefits or SSI reviewed. If you were recently denied, you generally have 60 days after you receive the notice of the decision to ask for any type of appeal. There are four levels of appeal: Reconsideration, Hearing by an administrative law judge, Review by the Appeals Council, and Federal Court review. A reconsideration is a complete review of your claim by someone who did not take part in the first determination, and Social Security will look at all the evidence submitted in the original determination plus any new evidence. You can request an appeal online for a reconsideration, a hearing by an administrative law judge, and a review by the Appeals Council.",
+      "case_id": "doc2dial-heldout-720f21c0e4259a87ce2ad783ea250aae-10",
+      "citations": [
+        "Appeal A Decision | Social Security Administration#1_0::chunk-0",
+        "Appeal A Decision | Social Security Administration#2_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2322,
+        "latency_ms": {
+          "max": 3892.923,
+          "p50": 3892.923,
+          "p95": 3892.923,
+          "sum": 3892.923
+        },
+        "output_tokens": 211,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.5,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1132,
+        "latency_ms": {
+          "max": 1228.365,
+          "p50": 1228.365,
+          "p95": 1228.365,
+          "sum": 1228.365
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "You can request an appeal online for a reconsideration , a hearing by an administrative law judge , and a review by the Appeals Council.",
+      "token_f1": 0.3108108108108108
+    },
+    {
+      "abstained": false,
+      "answer": "For a Veteran with a service-connected disability who needs a home adapted with ramps and lower counters, the sources mention Veterans Mortgage Life Insurance (VMLI) as mortgage protection insurance for a home that has been adapted to meet your needs, if you have a severe service-connected disability. The sources do not describe a VA grant or insurance that directly pays for home modifications such as ramps or lower counters.",
+      "case_id": "doc2dial-heldout-87a49a6d6ba97ce60abafa50ca0e874d-11",
+      "citations": [
+        "About VA Insurance Options And Eligibility | Veterans Affairs#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2442,
+        "latency_ms": {
+          "max": 3559.315,
+          "p50": 3559.315,
+          "p95": 3559.315,
+          "sum": 3559.315
+        },
+        "output_tokens": 115,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 666,
+        "latency_ms": {
+          "max": 1328.557,
+          "p50": 1328.557,
+          "p95": 1328.557,
+          "sum": 1328.557
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "Veterans Mortgage Life Insurance VMLI could possibly be a great choice for your friend. It has mortgage protection insurance for a house that has been adapted to meet the needs of a disabled veteran.",
+      "token_f1": 0.43809523809523815
+    },
+    {
+      "abstained": true,
+      "answer": "Based on the supplied sources, this cannot be confirmed. The sources do not contain information about whether a school or its representative made false or misleading statements about the school’s educational programs.",
+      "case_id": "doc2dial-heldout-ab054785181de6bcbb7dd362438de44b-12",
+      "citations": [],
+      "context_contains_evidence": 0.0,
+      "evidence_cited": 0.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2142,
+        "latency_ms": {
+          "max": 2181.369,
+          "p50": 2181.369,
+          "p95": 2181.369,
+          "sum": 2181.369
+        },
+        "output_tokens": 62,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 187,
+        "latency_ms": {
+          "max": 1057.811,
+          "p50": 1057.811,
+          "p95": 1057.811,
+          "sum": 1057.811
+        },
+        "output_tokens": 21,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "in this case you have no evidence to file a complaint",
+      "token_f1": 0.09090909090909091
+    },
+    {
+      "abstained": false,
+      "answer": "If you have any questions or don’t understand what types of loans are in your aid offer, contact the school. Make sure you understand what you’re accepting and the repayment terms.",
+      "case_id": "doc2dial-heldout-ab5886aedfb6f8283ce9c8f6dd54e46f-11",
+      "citations": [
+        "Accepting Aid | Federal Student Aid#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2325,
+        "latency_ms": {
+          "max": 2337.929,
+          "p50": 2337.929,
+          "p95": 2337.929,
+          "sum": 2337.929
+        },
+        "output_tokens": 80,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 632,
+        "latency_ms": {
+          "max": 1147.804,
+          "p50": 1147.804,
+          "p95": 1147.804,
+          "sum": 1147.804
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "Contact the school and make sure you understand what you're accepting.",
+      "token_f1": 0.5333333333333333
+    },
+    {
+      "abstained": false,
+      "answer": "The cost of an I-PIRP course is set by the course sponsor and varies from one course to another. Your cost is stated clearly before you register for the course, and it is to your advantage to compare courses and their fees.",
+      "case_id": "doc2dial-heldout-da93fdb7b3d8f42eaf8dac3f5b2505aa-12",
+      "citations": [
+        "About online and alternative delivery method courses (I-PIRP/ADM)#3_0::chunk-2"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2397,
+        "latency_ms": {
+          "max": 2209.438,
+          "p50": 2209.438,
+          "p95": 2209.438,
+          "sum": 2209.438
+        },
+        "output_tokens": 98,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 671,
+        "latency_ms": {
+          "max": 800.611,
+          "p50": 800.611,
+          "p95": 800.611,
+          "sum": 800.611
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "The fee for the course is set by the sponsor, so it will vary from course to course. The cost must be stated clearly before you register, so be sure to compare courses and their fees to get the best value.",
+      "token_f1": 0.6428571428571429
+    },
+    {
+      "abstained": true,
+      "answer": "The supplied sources do not state whether you can stay open if you lose your license. This cannot be confirmed from the provided information.",
+      "case_id": "doc2dial-heldout-e6a8b47fb0ff5ed1a980a4b8548f4aa7-12",
+      "citations": [],
+      "context_contains_evidence": 0.0,
+      "evidence_cited": 0.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2346,
+        "latency_ms": {
+          "max": 1930.195,
+          "p50": 1930.195,
+          "p95": 1930.195,
+          "sum": 1930.195
+        },
+        "output_tokens": 51,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": false,
+        "correct": false,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 211,
+        "latency_ms": {
+          "max": 846.476,
+          "p50": 846.476,
+          "p95": 846.476,
+          "sum": 846.476
+        },
+        "output_tokens": 21,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "Your facility license enables you to operate in New York State. Complaints filed and charges brought against you can result in the loss of your privilege to operate as a business in New York State. ",
+      "token_f1": 0.23728813559322035
+    },
+    {
+      "abstained": false,
+      "answer": "To file a complaint against your school, the appropriate route depends on the issue. If you believe your school is not administering federal student aid funds properly (for example, calculating your eligibility incorrectly, disbursing aid incorrectly, lacking required policies, or making false or misleading statements), and you have already tried to resolve it with the school, you may contact the Federal Student Aid Feedback Center or call 1-844-651-0077. If you suspect your school or an individual of fraud, waste, or abuse involving federal student aid, you can make a confidential report to ED’s Office of Inspector General Fraud Hotline. If you believe the school misrepresented its educational program, cost, outcomes, or recruitment practices, you can also contact the Federal Student Aid Feedback Center. If you think your school awarded aid to someone else in your name, report it to the Office of Inspector General Hotline as identity theft.",
+      "case_id": "doc2dial-heldout-e94cd3f3b555528f3a13851e801c253e-1",
+      "citations": [
+        "Aid for Military Families | Federal Student Aid#1_0::chunk-3",
+        "Avoiding Student Aid Scams | Federal Student Aid#1_0::chunk-8"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1988,
+        "latency_ms": {
+          "max": 4474.849,
+          "p50": 4474.849,
+          "p95": 4474.849,
+          "sum": 4474.849
+        },
+        "output_tokens": 253,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.5,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1137,
+        "latency_ms": {
+          "max": 1274.93,
+          "p50": 1274.93,
+          "p95": 1274.93,
+          "sum": 1274.93
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "Do you believe your school is not administering federal student aid funds properly?",
+      "token_f1": 0.14545454545454542
+    }
+  ],
+  "split": "heldout"
+}

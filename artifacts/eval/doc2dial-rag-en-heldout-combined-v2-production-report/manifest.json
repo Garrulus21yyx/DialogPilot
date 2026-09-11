@@ -1,0 +1,39 @@
+{
+  "artifacts": {
+    "report.json": "a2ccd91adecf5d04b55e95faddd309476c2954e168d92ac0be2320c2c5cc4f8d"
+  },
+  "case_count": 156,
+  "case_ids_sha256": "dd71884dbab082d63c0dc358a72dc153361c8b8ca792c08cca438484e3f03aa9",
+  "components": [
+    {
+      "case_count": 36,
+      "cases_sha256": "ad1aad05e697964c0773f553358712fa3e0d45622dd1208fdb235375832c77bf",
+      "dataset_id": "doc2dial-rag-en-heldout-balanced-v2",
+      "path": "artifacts/eval/doc2dial-rag-en-heldout-balanced-v2-production-retry-1",
+      "predictions_sha256": "80cb43b44814324e5a33e98b0c0c8f91c9ec4f0959e4698c43be32c69a083414",
+      "report_sha256": "61875d0ee0ade91e024b1b9d9013986a13a979cb1a41e48467cad7fc859d3f30",
+      "run_id": "4251fc2044004440b6febb6bf9e01c34"
+    },
+    {
+      "case_count": 120,
+      "cases_sha256": "6ae0c43dc6a2b3f3d3f88685e900e50477a0fd182057cbd78f098c51a0e759fd",
+      "dataset_id": "doc2dial-rag-en-heldout-supplement-v1",
+      "path": "artifacts/eval/doc2dial-rag-en-heldout-supplement-v1-production-run",
+      "predictions_sha256": "c1a05c44779182bdc8ae5b3cadf78949fb00be48cfdadfbb22c82041c8c65c34",
+      "report_sha256": "0ad9e423a7004f36a8b1dcf3226b22586e68c02eb8b536e7b441804c8e595d08",
+      "run_id": "9003da638eed4b4a92baeb9eacd280c0"
+    }
+  ],
+  "configuration_selection_allowed": false,
+  "created_at": "2026-09-03T12:18:03.546454+00:00",
+  "evaluation_role": "FRESH_HELDOUT_COMBINED_PROJECTION",
+  "frozen_configuration": {
+    "corpus_sha256": "d1f8a7873fcfa01915d15a67e46108451bfb1dde1de3e267732d6abb04329d05",
+    "embedding_fingerprint": "9cae2189438f71b8a4b39c32b9269a1d08c0cf9e56f86160ccb97b73d186b824",
+    "generation_immutable_fingerprint": "5374f24539bcbbf4247f5c64f916fc6dfa6ecddc7c4e746e374897a1a632f0db",
+    "policy_fingerprint": "8a4fa6f1762ffb0ec92d02051faae840ceff6cb4347f259490e35cd047c7e225"
+  },
+  "run_id": "241e3227a8ab45b8b6db6ed094f24e68",
+  "runner_version": "postgres-production-rag-heldout-v2",
+  "schema_version": 1
+}

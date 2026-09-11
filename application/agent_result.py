@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 
@@ -188,6 +188,8 @@ class AgentResult:
     # The local attempt is terminal; already observed evidence remains usable.
     assignment_issue: str | None = None
     additional_actions: tuple[WorkItem, ...] = ()
+    # Native progress/reuse state. Never interpolated into model messages.
+    working_state: dict = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if self.assignment_issue is not None and (

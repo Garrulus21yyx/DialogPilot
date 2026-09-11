@@ -15,7 +15,7 @@ permalink: /customer-service-rag-production-audit/
 ```text
 SourceRevision
 → active generation
-→ fixed-token chunk
+→ structure-aware chunk
 → pgvector + PostgreSQL Chinese FTS
 → weighted RRF
 → optional rerank / ContextPacker
@@ -25,7 +25,7 @@ SourceRevision
 → PostgreSQL publication
 ```
 
-可本地复现的能力包括唯一 SourceRevision 生命周期、稳定 chunk identity、混合检索、Evidence provenance、Coverage 和 fail-closed 发布。尚不能据此宣称生产就绪：fresh human-reviewed Gold、生产数据治理、真实负载容量、Collector/告警、生产 RPO/RTO 和组织级发布治理仍未闭合。
+可本地复现的能力包括唯一 SourceRevision 生命周期、稳定 chunk identity、混合检索、Evidence provenance、Coverage 和 fail-closed 发布。尚不能据此宣称生产就绪：冻结公开测试、80 条合成合同真实 E2E、生产数据治理、真实负载容量、Collector/告警、生产 RPO/RTO 和组织级发布治理仍未闭合。
 
 ## 2. 审计范围与非目标
 
@@ -52,7 +52,7 @@ SourceRevision
 |---|---|---|
 | 原文版本 | PostgreSQL SourceRevision | checksum、scope、状态和 revision 可追溯 |
 | 可服务索引 | active generation | 同一语料只有一个在线 generation；不完整索引失败关闭 |
-| Chunk | chunker + stable identity | 512/64 fixed-token；字符范围回指 revision |
+| Chunk | chunker + stable identity | 当前 PG baseline 为 structure-aware 512/64；字符范围回指 revision |
 | Dense / Sparse | pgvector / PostgreSQL FTS | 都是同一原文的派生投影，可重建 |
 | Query variants | query policy | Raw 与 Standalone 带固定权重和版本 |
 | Fusion | weighted RRF | rank 输入、权重和 `k` 可复现 |
@@ -80,7 +80,7 @@ SourceRevision
 
 | 参数 | 值 | 口径 |
 |---|---:|---|
-| Chunk | 512 tokens | fixed-token |
+| Chunk | 512 tokens | structure-aware |
 | Overlap | 64 tokens | 相邻 chunk |
 | Dense weight | 0.25 | weighted RRF 输入 |
 | Lexical weight | 0.75 | PostgreSQL Chinese FTS |
@@ -88,9 +88,11 @@ SourceRevision
 | Candidate | 20 | rerank/selection 前 |
 | Packed | 5 | 回答上下文 |
 | Context budget | 2600 estimated tokens | packing 上限 |
-| Local embedding | 384 dimensions | deterministic feature hashing |
+| Local embedding | 384 dimensions | deterministic feature hashing；仅为本地占位 |
 
-这些参数来自 Doc2Dial Dev 的分层实验和当前本地可复现目标。`dialogpilot-500-v1` 的旧 25 文档 fixture 曾选择 BM25-only，只是历史 development baseline，不能覆盖 Doc2Dial 更完整链路的选型，更不能把两个数据集的数字拼成一个总分。
+这些参数是历史 Doc2Dial Dev 选择与当前本地可复现目标的组合，不是当前 PostgreSQL+BGE-M3 的联合最优。历史实验选择的是 fixed `512/64`，当前 PG ingest 实际使用 structure-aware `512/64`；二者必须分别标注。当前文档侧 hash embedding 输入是预分词 `lexical_document`，查询侧输入是原始 query，切真实 BGE-M3 前必须在 ingest Owner 修成“原始 Chunk → dense、预分词文本 → FTS”，并由 provider 正确发布 model/dimension/digest/preprocessing metadata。
+
+`dialogpilot-500-v1` 的旧 25 文档 fixture 曾选择 BM25-only，只是历史 development baseline，不能覆盖 Doc2Dial 更完整链路的选型，更不能把两个数据集的数字拼成一个总分。
 
 ## 6. Evidence 与 authority 隔离
 
@@ -173,7 +175,7 @@ RAG 实验显示 Query rewrite 在部分集合提升 Candidate recall，但父�
 
 当前仍需补齐：
 
-1. human-reviewed、自然分布、fresh heldout 的中文客服 Gold；
+1. 冻结的公开能力测试，以及 80 条合成架构合同通过真实 `ChatApplication.handle()` 的结果；
 2. 对真实业务 corpus 的权限、保留、删除、PII 与审计制度；
 3. 真实并发、索引增长、P95/P99、成本和故障注入容量测试；
 4. 生产备份、恢复演练与经业务确认的 RPO/RTO；
@@ -190,7 +192,7 @@ RAG 实验显示 Query rewrite 在部分集合提升 Candidate recall，但父�
 - [x] FactRequirement / Coverage / Verifier fail-closed。
 - [x] 公共 Knowledge 与私有业务 receipt authority 隔离。
 - [x] 真实 JWT、本地 Docker、L1/L2 和 restore 机器报告。
-- [ ] fresh human-reviewed Gold 与独立复核闭环。
+- [ ] 冻结公开测试与 80 条合成合同真实 E2E 闭环。
 - [ ] 真实生产容量、隐私治理、告警和 RPO/RTO。
 - [ ] 复杂文档 ingest 与跨页/版面证据门禁。
 

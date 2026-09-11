@@ -1,0 +1,46 @@
+{
+  "task_id": "0",
+  "official_reward": null,
+  "langfuse_session_id": "tau3-666730cd554b44d49808394ea58fd776",
+  "status": "ERROR",
+  "error_type": "Empty",
+  "error": "",
+  "target_trace": [
+    {
+      "verification": {
+        "status": "reject",
+        "grounded": true,
+        "need_escalation": true,
+        "reason": "Explain unresolved task outcomes: work:1:semantic-1",
+        "reason_code": "incomplete",
+        "assessment": {
+          "request_hash": "0f7688dcf896f0b99fd7a821673607d7bd81078715cf87cc4d6b5b08ee15ad4d",
+          "supported": true,
+          "answered": true,
+          "approval_terms_complete": false,
+          "issues": []
+        },
+        "request_binding": "f6eb76b3580a6e754823100bb45781c65945864e9f8e6c937ff30f4b7790ba42"
+      },
+      "candidate": "To help you exchange items from your delivered order, I first need to verify your identity. Could you please provide the email address associated with your account? (If you don't remember your email, you can provide your first name, last name, and zip code instead.)"
+    },
+    {
+      "verification": {
+        "status": "reject",
+        "grounded": true,
+        "need_escalation": true,
+        "reason": "Explain unresolved task outcomes: work:1:semantic-1",
+        "reason_code": "incomplete",
+        "assessment": {
+          "request_hash": "0f7688dcf896f0b99fd7a821673607d7bd81078715cf87cc4d6b5b08ee15ad4d",
+          "supported": true,
+          "answered": true,
+          "approval_terms_complete": false,
+          "issues": []
+        },
+        "request_binding": "f6eb76b3580a6e754823100bb45781c65945864e9f8e6c937ff30f4b7790ba42"
+      },
+      "candidate": "To help you exchange items from your delivered order, I first need to verify your identity. Could you please provide the email address associated with your account? (If you don't remember your email, you can provide your first name, last name, and zip code instead.)"
+    }
+  ]
+}

@@ -55,10 +55,18 @@ class Tau3TargetAgent(HalfDuplexAgent):
         self.pool = pool
         self.conversation_id = "tau3-" + uuid.uuid4().hex
 
-    async def call_tool(self, name, arguments):
+    async def call_tool(self, name, arguments, internal_tool_call_id=None):
         if self._stopped.is_set():
             raise SimulationStopped("simulation stopped before a new tool request")
         call_id = "tau3-call-" + uuid.uuid4().hex
+        if internal_tool_call_id:
+            self.trace.append({"causal_link": {
+                "schema_version": "tau3-business-call-binding-v1",
+                "turn": self.turn,
+                "internal_tool_call_id": str(internal_tool_call_id),
+                "business_call_id": call_id,
+                "tool_name": name,
+            }})
         result = self.loop.create_future()
         self.pending[call_id] = result
         self.events.put(AssistantMessage(role="assistant", tool_calls=[

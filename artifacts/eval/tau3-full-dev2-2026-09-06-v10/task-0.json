@@ -1,0 +1,20 @@
+{
+  "task_id": "0",
+  "official_reward": null,
+  "status": "ERROR",
+  "error_type": "RuntimeError",
+  "error": "Target did not publish a completed reply: Failed",
+  "target_trace": [
+    {
+      "turn": 1,
+      "input": "Hi, I just received my order—number W2378156—and I’d like to set up exchanges for two items. I want to make sure we cover everything in one go, if possible.",
+      "outcome": {
+        "code": "target_runtime_failed",
+        "retryable": false,
+        "correlation_id": "invocation:v1:de20a8cc94285302594d95df75c875b73c035f09237a4dabe139b93fe505a356",
+        "safe_message": "Target runtime failed closed: ValueError",
+        "stages": []
+      }
+    }
+  ]
+}

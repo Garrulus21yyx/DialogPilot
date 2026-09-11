@@ -207,3 +207,42 @@ def test_cross_user_response_is_not_enumerable(compat_components):
             response.response_id, user_id="other-user",
             status=DeliveryStatus.READ,
         )
+
+
+def test_reconnect_pagination_and_reordered_ack_preserve_database_authority(compat_components):
+    import itertools
+
+    pool, initial, _ = compat_components
+
+    def reopen():
+        return PostgresResponseDeliveryService(pool, resume_binding_secret="compat-secret",
+                                              clock=lambda: CREATED)
+
+    selected = []
+    for index in range(3):
+        identity = IdentityFactory(lambda: "unused").create_invocation(
+            tenant_id=str(initial.tenant_id), user_id=str(initial.user_id),
+            conversation_id=str(initial.conversation_id), request_id=f"reconnect-{index}")
+        PostgresAdmissionUnitOfWork(pool).admit_new(NewInvocationInbound(
+            identity=identity, message="question", pinned_versions={"bundle": "v1"}, created_at=CREATED))
+        selected.append(reopen().select_response(user_id=str(identity.user_id),
+            conv_id=str(identity.conversation_id), request_id=str(identity.request_id),
+            response_text=f"answer-{index}", identity_metadata=_metadata(identity)))
+    assert [r.seq for r in selected] == sorted({r.seq for r in selected})
+    cursor, recovered = 0, []
+    while page := reopen().list_after(user_id=str(initial.user_id),
+            conv_id=str(initial.conversation_id), after_seq=cursor, limit=1):
+        recovered.extend(page)
+        cursor = page[-1].seq
+    assert [r.response_id for r in recovered] == [r.response_id for r in selected]
+    # Exhaust every ordering of duplicated/late acknowledgements on each response.
+    for response in selected:
+        maximum = DeliveryStatus.SELECTED
+        rank = {DeliveryStatus.SELECTED: 0, DeliveryStatus.DELIVERED: 1, DeliveryStatus.READ: 2}
+        for order in itertools.permutations((DeliveryStatus.READ, DeliveryStatus.DELIVERED, DeliveryStatus.READ)):
+            for status in order:
+                maximum = max((maximum, status), key=rank.get)
+                ack = reopen().acknowledge(response.response_id, user_id=str(initial.user_id), status=status)
+                assert ack.status is maximum
+    assert all(r.status is DeliveryStatus.READ for r in reopen().list_after(
+        user_id=str(initial.user_id), conv_id=str(initial.conversation_id)))

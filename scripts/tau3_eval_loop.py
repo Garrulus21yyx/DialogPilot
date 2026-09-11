@@ -39,6 +39,13 @@ def main() -> None:
     enrich.add_argument("--env-file", type=Path, default=ROOT / ".env")
     enrich.add_argument("--output", type=Path)
 
+    inspect = subparsers.add_parser(
+        "inspect", help="Build one local RCA, execution-chain, error, and token report",
+    )
+    inspect.add_argument("run_dir", type=Path)
+    inspect.add_argument("--env-file", type=Path, default=ROOT / ".env")
+    inspect.add_argument("--output", type=Path)
+
     judge = subparsers.add_parser("judge", help="Judge semantic hypotheses from bounded evidence")
     judge.add_argument("report", type=Path)
     judge.add_argument("--env-file", type=Path, default=ROOT / ".env")
@@ -65,6 +72,16 @@ def main() -> None:
     if args.command == "analyze":
         result = analyze_run(args.run_dir)
         result = probe_report(result, args.run_dir)
+    elif args.command == "inspect":
+        _load_env(args.env_file)
+        result = probe_report(analyze_run(args.run_dir), args.run_dir)
+        try:
+            result = enrich_from_langfuse(result)
+            result = probe_report(result, args.run_dir)
+            result["observability_status"] = "AVAILABLE"
+        except Exception as exc:
+            result["observability_status"] = "UNAVAILABLE"
+            result["observability_error"] = {"error_type": type(exc).__name__}
     elif args.command == "candidates":
         result = generate_candidates(_read(args.report))
     elif args.command == "enrich-langfuse":

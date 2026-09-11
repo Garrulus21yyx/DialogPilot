@@ -1,0 +1,171 @@
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/core/structured_model.py", line 36, in structured_call
+    Draft202012Validator(tool["input_schema"]).validate(output["parsed"])
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/jsonschema/validators.py", line 450, in validate
+    raise error
+jsonschema.exceptions.ValidationError: {'status': 'resolved'} is not valid under any of the given schemas
+
+Failed validating 'oneOf' in schema['properties']['result']:
+    {'type': 'object',
+     'additionalProperties': False,
+     'required': ['status'],
+     'properties': {'status': {'type': 'string',
+                               'enum': ['resolved',
+                                        'insufficient_context',
+                                        'out_of_scope']},
+                    'goals': {'type': 'array',
+                              'minItems': 1,
+                              'maxItems': 4,
+                              'items': {'type': 'object',
+                                        'additionalProperties': False,
+                                        'required': ['kind'],
+                                        'properties': {'kind': {'type': 'string',
+                                                                'enum': ['cancel_active_work',
+                                                                         'continue_active_work',
+                                                                         'delegate_task']},
+                                                       'goal_id': {'type': 'string',
+                                                                   'minLength': 1,
+                                                                   'pattern': '\\S'},
+                                                       'order_id': {'type': 'string',
+                                                                    'minLength': 1,
+                                                                    'pattern': '\\S'},
+                                                       'order_id_source_ref': {'type': 'string',
+                                                                               'minLength': 1,
+                                                                               'pattern': '\\S'},
+                                                       'asset_id': {'type': 'string',
+                                                                    'minLength': 1,
+                                                                    'pattern': '\\S'},
+                                                       'asset_id_source_ref': {'type': 'string',
+                                                                               'minLength': 1,
+                                                                               'pattern': '\\S'},
+                                                       'new_address': {'type': 'string',
+                                                                       'minLength': 1,
+                                                                       'pattern': '\\S'},
+                                                       'revises_control_id': {'type': 'string',
+                                                                              'minLength': 1,
+                                                                              'pattern': '\\S'},
+                                                       'target_agent': {'type': 'string',
+                                                                        'minLength': 1,
+                                                                        'pattern': '\\S'},
+                                                       'objective': {'type': 'string',
+                                                                     'minLength': 1,
+                                                                     'pattern': '\\S'},
+                                                       'resolved_query': {'type': 'string',
+                                                                          'minLength': 1,
+                                                                          'pattern': '\\S',
+                                                                          'maxLength': 4000},
+                                                       'depends_on': {'type': 'array',
+                                                                      'uniqueItems': True,
+                                                                      'items': {'type': 'string',
+                                                                                'minLength': 1,
+                                                                                'pattern': '\\S'}},
+                                                       'allow_action_proposals': {'type': 'boolean',
+                                                                                  'description': 'Only '
+                                                                                                 'for '
+                                                                                                 'kind=delegate_task; '
+                                                                                                 'omit '
+                                                                                                 'for '
+                                                                                                 'every '
+                                                                                                 'other '
+                                                                                                 'kind. '
+                                                                                                 'True '
+                                                                                                 'only '
+                                                                                                 'if '
+                                                                                                 'this '
+                                                                                                 'delegated '
+                                                                                                 'objective '
+                                                                                                 'requests '
+                                                                                                 'a '
+                                                                                                 'business '
+                                                                                                 'change; '
+                                                                                                 'false '
+                                                                                                 'for '
+                                                                                                 'delegated '
+                                                                                                 'queries, '
+                                                                                                 'counts, '
+                                                                                                 'rules '
+                                                                                                 'or '
+                                                                                                 'advice. '
+                                                                                                 'This '
+                                                                                                 'permits '
+                                                                                                 'preparation, '
+                                                                                                 'never '
+                                                                                                 'authorizes '
+                                                                                                 'execution.'}},
+                                        'allOf': [{'if': {'properties': {'kind': {'const': 'delegate_task'}}},
+                                                   'then': {'required': ['target_agent',
+                                                                         'objective',
+                                                                         'allow_action_proposals']},
+                                                   'else': {'not': {'anyOf': [{'required': ['target_agent']},
+                                                                              {'required': ['objective']},
+                                                                              {'required': ['allow_action_proposals']}]}}},
+                                                  {'if': {'properties': {'kind': {'enum': ['general_qa',
+                                                                                           'invoice_qa',
+                                                                                           'product_qa',
+                                                                                           'refund_policy']}}},
+                                                   'then': {'required': ['resolved_query']}}]}},
+                    'approval_decision': {'type': 'object',
+                                          'additionalProperties': False,
+                                          'required': ['approval_id',
+                                                       'decision'],
+                                          'properties': {'approval_id': {'type': 'string',
+                                                                         'minLength': 1,
+                                                                         'pattern': '\\S'},
+                                                         'decision': {'type': 'string',
+                                                                      'enum': ['approve',
+                                                                               'decline']}}},
+                    'missing_fields': {'type': 'array',
+                                       'minItems': 1,
+                                       'uniqueItems': True,
+                                       'items': {'type': 'string',
+                                                 'enum': ['asset_id',
+                                                          'customer_service_goal',
+                                                          'new_address',
+                                                          'order_id']}}},
+     'oneOf': [{'properties': {'status': {'const': 'resolved'}},
+                'anyOf': [{'required': ['goals']},
+                          {'required': ['approval_decision']}],
+                'not': {'required': ['missing_fields']}},
+               {'properties': {'status': {'const': 'insufficient_context'}},
+                'required': ['missing_fields'],
+                'not': {'anyOf': [{'required': ['goals']},
+                                  {'required': ['approval_decision']}]}},
+               {'properties': {'status': {'const': 'out_of_scope'}},
+                'not': {'anyOf': [{'required': ['goals']},
+                                  {'required': ['missing_fields']},
+                                  {'required': ['approval_decision']}]}}]}
+
+On instance['result']:
+    {'status': 'resolved'}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 140, in _complete
+    value = await structured_call(self._models[role], name=output_name,
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        schema=schema, system=system, content=request["messages"][0]["content"],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        callbacks=self._callbacks)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/core/structured_model.py", line 38, in structured_call
+    raise ValueError("structured_output_schema_invalid") from exc
+ValueError: structured_output_schema_invalid
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 304, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 27, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<43 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 145, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: structured_output_schema_invalid

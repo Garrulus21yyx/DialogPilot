@@ -3,8 +3,11 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from functools import cached_property
+import hashlib
+import itertools
 import logging
 import os
+import threading
 from typing import Any
 
 
@@ -21,6 +24,8 @@ class LangfuseTraceSink:
 
         self.public_key = os.getenv("LANGFUSE_PUBLIC_KEY")
         self.client = Langfuse(mask_otel_spans=mask_otel_spans)
+        self._causal_sequence = itertools.count(1)
+        self._causal_lock = threading.Lock()
 
     @classmethod
     def from_env(cls):
@@ -89,6 +94,36 @@ class LangfuseTraceSink:
             level='ERROR', status_message=diagnostic['detail']['code'],
         ):
             pass
+
+    def record_causal_event(self, event_type: str, *, owner: str, turn_id: str, **fields) -> None:
+        """Emit a compact owner event whose join keys survive telemetry masking."""
+        try:
+            lock = getattr(self, "_causal_lock", None)
+            if lock is None:
+                lock = self._causal_lock = threading.Lock()
+                self._causal_sequence = itertools.count(1)
+            with lock:
+                sequence = next(self._causal_sequence)
+            identity = "|".join((str(sequence), event_type, owner, turn_id))
+            metadata = {
+                "causal.event_id": "causal:" + hashlib.sha256(identity.encode()).hexdigest(),
+                "causal.sequence": str(sequence),
+                "causal.event_type": event_type,
+                "causal.turn_id": turn_id,
+                "causal.owner": owner,
+                "causal.evidence_origin": "OWNER_EVENT",
+                **{
+                    f"causal.{key}": str(value)
+                    for key, value in fields.items()
+                    if value not in (None, "")
+                },
+            }
+            with self.client.start_as_current_observation(
+                name=event_type.casefold(), as_type="span", metadata=metadata,
+            ):
+                pass
+        except Exception:
+            logger.exception("Causal trace export failed; business execution is unchanged")
 
 
 def _observation_type(name: str, kind: str) -> str:

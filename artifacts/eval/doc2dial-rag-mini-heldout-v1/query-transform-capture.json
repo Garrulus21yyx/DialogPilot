@@ -1,0 +1,744 @@
+{
+  "case_count": 9,
+  "dataset_id": "doc2dial-rag-mini-heldout-v1",
+  "error_case_count": 0,
+  "expansion_count": 2,
+  "model_policy": {
+    "base_url": "https://api.deepseek.com/anthropic",
+    "provider": "deepseek",
+    "rewrite": {
+      "min_completion_tokens": 0,
+      "model": "deepseek-v4-flash",
+      "reasoning": "none"
+    }
+  },
+  "prompt_version": "customer-support-query-v1",
+  "rows": [
+    {
+      "case_id": "doc2dial-heldout-2e0a29b94fc37a6d9999bb17411d53df-14",
+      "errors": [],
+      "expansions": [
+        "no, you don't agree policy terms",
+        "no, you don't agree conditions exception handling"
+      ],
+      "group_id": "doc2dial-2e0a29b94fc37a6d9999bb17411d53df",
+      "history_turns": 13,
+      "hyde": "关于用户反馈中出现的否定性表述，如“no, you don't agree”，客服人员应保持中立态度，不直接反驳或肯定用户观点。在帮助中心文档中，建议使用一般性政策术语说明：当用户对服务条款或处理结果表示异议时，平台将依据现行服务协议及争议处理流程进行复核。复核过程不涉及对用户个人账户的即时查询或操作，且不预设结论。具体处理时限、所需材料或后续步骤，请以官方渠道提供的指引为准。",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "va"
+      ],
+      "raw_query": "no, you don't agree",
+      "standalone": "no, you don't agree",
+      "usage": {
+        "calls": 3,
+        "errors": 0,
+        "input_tokens": 336,
+        "latency_ms": {
+          "sum": 3899.9620000000004
+        },
+        "output_tokens": 149
+      },
+      "usage_by_stage": {
+        "hyde": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 91,
+          "latency_ms": {
+            "max": 2433.001,
+            "p50": 2433.001,
+            "p95": 2433.001,
+            "sum": 2433.001
+          },
+          "output_tokens": 114,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        },
+        "multi_query": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 96,
+          "latency_ms": {
+            "max": 667.453,
+            "p50": 667.453,
+            "p95": 667.453,
+            "sum": 667.453
+          },
+          "output_tokens": 25,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        },
+        "standalone": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 149,
+          "latency_ms": {
+            "max": 799.508,
+            "p50": 799.508,
+            "p95": 799.508,
+            "sum": 799.508
+          },
+          "output_tokens": 10,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      }
+    },
+    {
+      "case_id": "doc2dial-heldout-3d7744f89550a80add78ce8af315a34f-13",
+      "errors": [],
+      "expansions": [
+        "How to submit an appeal request online?",
+        "Is online appeal filing available and what are the steps?"
+      ],
+      "group_id": "doc2dial-3d7744f89550a80add78ce8af315a34f",
+      "history_turns": 12,
+      "hyde": "Appeals may be submitted through the official online portal when available. The process generally requires providing relevant case details and supporting information. Submission methods and eligibility criteria are outlined in the general appeals policy. For specific guidance, refer to the help center's appeals section.",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "ssa"
+      ],
+      "raw_query": "can I request an appeal online?",
+      "standalone": "can I request an appeal online?",
+      "usage": {
+        "calls": 3,
+        "errors": 0,
+        "input_tokens": 418,
+        "latency_ms": {
+          "sum": 3218.018
+        },
+        "output_tokens": 94
+      },
+      "usage_by_stage": {
+        "hyde": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 91,
+          "latency_ms": {
+            "max": 1252.732,
+            "p50": 1252.732,
+            "p95": 1252.732,
+            "sum": 1252.732
+          },
+          "output_tokens": 57,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        },
+        "multi_query": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 96,
+          "latency_ms": {
+            "max": 773.052,
+            "p50": 773.052,
+            "p95": 773.052,
+            "sum": 773.052
+          },
+          "output_tokens": 26,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        },
+        "standalone": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 231,
+          "latency_ms": {
+            "max": 1192.234,
+            "p50": 1192.234,
+            "p95": 1192.234,
+            "sum": 1192.234
+          },
+          "output_tokens": 11,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      }
+    },
+    {
+      "case_id": "doc2dial-heldout-720f21c0e4259a87ce2ad783ea250aae-10",
+      "errors": [],
+      "expansions": [
+        "What is an appeal and what happens if I receive one?",
+        "What does an appeal involve and what are the consequences of getting an appeal notice?"
+      ],
+      "group_id": "doc2dial-720f21c0e4259a87ce2ad783ea250aae",
+      "history_turns": 9,
+      "hyde": "An appeal is a formal request to review a decision made regarding your account or application. If you receive an appeal notice, it typically outlines the specific decision under review, the reasons for that decision, and the steps you may take to respond. The process generally involves submitting any relevant information or documentation within a specified timeframe. After your submission, the review team will evaluate the case based on the provided materials and applicable policies. You will be notified of the outcome through the standard communication channels. The exact procedures and timelines may vary depending on the nature of the decision and your jurisdiction.",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "ssa"
+      ],
+      "raw_query": "what is in an appeal or what happens if I get one?",
+      "standalone": "what is in an appeal or what happens if I get one?",
+      "usage": {
+        "calls": 3,
+        "errors": 0,
+        "input_tokens": 432,
+        "latency_ms": {
+          "sum": 3626.156
+        },
+        "output_tokens": 171
+      },
+      "usage_by_stage": {
+        "hyde": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 97,
+          "latency_ms": {
+            "max": 1913.012,
+            "p50": 1913.012,
+            "p95": 1913.012,
+            "sum": 1913.012
+          },
+          "output_tokens": 119,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        },
+        "multi_query": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 102,
+          "latency_ms": {
+            "max": 1045.846,
+            "p50": 1045.846,
+            "p95": 1045.846,
+            "sum": 1045.846
+          },
+          "output_tokens": 35,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        },
+        "standalone": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 233,
+          "latency_ms": {
+            "max": 667.298,
+            "p50": 667.298,
+            "p95": 667.298,
+            "sum": 667.298
+          },
+          "output_tokens": 17,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      }
+    },
+    {
+      "case_id": "doc2dial-heldout-87a49a6d6ba97ce60abafa50ca0e874d-11",
+      "errors": [],
+      "expansions": [
+        "Veteran injured special insurance home modification ramps lower counters eligibility requirements",
+        "Veteran injured special insurance home modification ramps lower counters application process and exceptions"
+      ],
+      "group_id": "doc2dial-87a49a6d6ba97ce60abafa50ca0e874d",
+      "history_turns": 10,
+      "hyde": "For veterans with service-connected injuries, home modification programs may provide support for accessibility improvements such as wheelchair ramps, widened doorways, and lowered counters. Eligibility and the scope of covered modifications generally depend on the nature of the injury, the veteran's housing situation, and applicable program guidelines. The process typically involves a formal assessment by an authorized professional, followed by a review of the proposed changes. Approved modifications are usually subject to program-specific standards and may require prior authorization. Veterans are encouraged to consult official program materials or a benefits counselor for details on how to apply and what documentation may be needed.",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "va"
+      ],
+      "raw_query": "My friend is a Veteran who was injured and he wants to know if there are any special insurances that he qualifies for. He needs to get his house updated with ramps and lower counters. ",
+      "standalone": "Veteran injured special insurance home modification ramps lower counters",
+      "usage": {
+        "calls": 3,
+        "errors": 0,
+        "input_tokens": 488,
+        "latency_ms": {
+          "sum": 4559.062
+        },
+        "output_tokens": 177
+      },
+      "usage_by_stage": {
+        "hyde": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 97,
+          "latency_ms": {
+            "max": 2383.207,
+            "p50": 2383.207,
+            "p95": 2383.207,
+            "sum": 2383.207
+          },
+          "output_tokens": 123,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        },
+        "multi_query": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 102,
+          "latency_ms": {
+            "max": 1029.114,
+            "p50": 1029.114,
+            "p95": 1029.114,
+            "sum": 1029.114
+          },
+          "output_tokens": 38,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        },
+        "standalone": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 289,
+          "latency_ms": {
+            "max": 1146.741,
+            "p50": 1146.741,
+            "p95": 1146.741,
+            "sum": 1146.741
+          },
+          "output_tokens": 16,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      }
+    },
+    {
+      "case_id": "doc2dial-heldout-ab054785181de6bcbb7dd362438de44b-12",
+      "errors": [],
+      "expansions": [
+        "not 政策 条件 否定 条款",
+        "not 办理 步骤 异常 处理"
+      ],
+      "group_id": "doc2dial-ab054785181de6bcbb7dd362438de44b",
+      "history_turns": 11,
+      "hyde": "关于账户操作中否定性条件的说明：在部分服务流程中，系统可能对特定指令或关键词（如“not”）进行识别与处理。此类处理通常遵循一般性的规则与政策，具体适用范围及结果需以官方帮助中心的最新说明为准。用户在使用相关功能时，应留意界面提示及条款中的限制性表述。本说明不构成对任何具体操作结果或账户状态的承诺。",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "studentaid"
+      ],
+      "raw_query": "not",
+      "standalone": "not",
+      "usage": {
+        "calls": 3,
+        "errors": 0,
+        "input_tokens": 390,
+        "latency_ms": {
+          "sum": 3553.004
+        },
+        "output_tokens": 122
+      },
+      "usage_by_stage": {
+        "hyde": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 86,
+          "latency_ms": {
+            "max": 1994.366,
+            "p50": 1994.366,
+            "p95": 1994.366,
+            "sum": 1994.366
+          },
+          "output_tokens": 91,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        },
+        "multi_query": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 91,
+          "latency_ms": {
+            "max": 933.871,
+            "p50": 933.871,
+            "p95": 933.871,
+            "sum": 933.871
+          },
+          "output_tokens": 26,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        },
+        "standalone": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 213,
+          "latency_ms": {
+            "max": 624.767,
+            "p50": 624.767,
+            "p95": 624.767,
+            "sum": 624.767
+          },
+          "output_tokens": 5,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      }
+    },
+    {
+      "case_id": "doc2dial-heldout-ab5886aedfb6f8283ce9c8f6dd54e46f-11",
+      "errors": [],
+      "expansions": [
+        "what if the aid offer is too complicated to understand",
+        "aid offer complexity clarification steps conditions exceptions"
+      ],
+      "group_id": "doc2dial-ab5886aedfb6f8283ce9c8f6dd54e46f",
+      "history_turns": 10,
+      "hyde": "If you find the details of an aid offer difficult to understand, our help center provides general guidance on how to review such offers. You may look for a plain-language summary, ask for clarification on any unclear terms, or consult the official policy documents that describe the standard application process. For personalized assistance, you can contact our support team through the channels listed in the help center, but we cannot confirm any specific account details or outcomes here.",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "studentaid"
+      ],
+      "raw_query": "what if the aid offer is too complicated to understand?",
+      "standalone": "what if the aid offer is too complicated to understand?",
+      "usage": {
+        "calls": 3,
+        "errors": 0,
+        "input_tokens": 377,
+        "latency_ms": {
+          "sum": 3914.545
+        },
+        "output_tokens": 132
+      },
+      "usage_by_stage": {
+        "hyde": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 95,
+          "latency_ms": {
+            "max": 1806.608,
+            "p50": 1806.608,
+            "p95": 1806.608,
+            "sum": 1806.608
+          },
+          "output_tokens": 92,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        },
+        "multi_query": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 100,
+          "latency_ms": {
+            "max": 1011.213,
+            "p50": 1011.213,
+            "p95": 1011.213,
+            "sum": 1011.213
+          },
+          "output_tokens": 25,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        },
+        "standalone": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 182,
+          "latency_ms": {
+            "max": 1096.724,
+            "p50": 1096.724,
+            "p95": 1096.724,
+            "sum": 1096.724
+          },
+          "output_tokens": 15,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      }
+    },
+    {
+      "case_id": "doc2dial-heldout-da93fdb7b3d8f42eaf8dac3f5b2505aa-12",
+      "errors": [],
+      "expansions": [
+        "What is the typical tuition fee for an I-PIRP course?",
+        "I-PIRP course pricing and cost details"
+      ],
+      "group_id": "doc2dial-da93fdb7b3d8f42eaf8dac3f5b2505aa",
+      "history_turns": 11,
+      "hyde": "The cost of an I-PIRP course can vary depending on factors such as course format, duration, and provider. Generally, pricing is set by the training institution and may be subject to periodic updates. For accurate and current fee information, please refer to the official course listing or contact the support team. No specific amount is guaranteed here.",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "dmv"
+      ],
+      "raw_query": "How much does a I-PIRP course usually cost?",
+      "standalone": "How much does a I-PIRP course usually cost?",
+      "usage": {
+        "calls": 3,
+        "errors": 0,
+        "input_tokens": 500,
+        "latency_ms": {
+          "sum": 3313.31
+        },
+        "output_tokens": 120
+      },
+      "usage_by_stage": {
+        "hyde": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 96,
+          "latency_ms": {
+            "max": 1345.061,
+            "p50": 1345.061,
+            "p95": 1345.061,
+            "sum": 1345.061
+          },
+          "output_tokens": 73,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        },
+        "multi_query": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 101,
+          "latency_ms": {
+            "max": 1066.985,
+            "p50": 1066.985,
+            "p95": 1066.985,
+            "sum": 1066.985
+          },
+          "output_tokens": 31,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        },
+        "standalone": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 303,
+          "latency_ms": {
+            "max": 901.264,
+            "p50": 901.264,
+            "p95": 901.264,
+            "sum": 901.264
+          },
+          "output_tokens": 16,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      }
+    },
+    {
+      "case_id": "doc2dial-heldout-e6a8b47fb0ff5ed1a980a4b8548f4aa7-12",
+      "errors": [],
+      "expansions": [
+        "Can we continue operating if our license is revoked or suspended?",
+        "What are the rules for staying open after losing a license, including exceptions or penalties?"
+      ],
+      "group_id": "doc2dial-e6a8b47fb0ff5ed1a980a4b8548f4aa7",
+      "history_turns": 11,
+      "hyde": "If your business license is suspended or revoked, your ability to continue operating may be restricted. The specific rules depend on the type of license and local regulations. In many cases, operating without a valid license is not permitted and could lead to further penalties. You should review the official policy on license status and business operations, and contact the relevant authority for guidance on your situation. This document does not provide legal advice or guarantee any specific outcome.",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "dmv"
+      ],
+      "raw_query": "can we stay open if we lose our license?",
+      "standalone": "can we stay open if we lose our license?",
+      "usage": {
+        "calls": 3,
+        "errors": 0,
+        "input_tokens": 446,
+        "latency_ms": {
+          "sum": 3683.556
+        },
+        "output_tokens": 142
+      },
+      "usage_by_stage": {
+        "hyde": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 94,
+          "latency_ms": {
+            "max": 1812.455,
+            "p50": 1812.455,
+            "p95": 1812.455,
+            "sum": 1812.455
+          },
+          "output_tokens": 92,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        },
+        "multi_query": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 99,
+          "latency_ms": {
+            "max": 849.196,
+            "p50": 849.196,
+            "p95": 849.196,
+            "sum": 849.196
+          },
+          "output_tokens": 36,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        },
+        "standalone": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 253,
+          "latency_ms": {
+            "max": 1021.905,
+            "p50": 1021.905,
+            "p95": 1021.905,
+            "sum": 1021.905
+          },
+          "output_tokens": 14,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      }
+    },
+    {
+      "case_id": "doc2dial-heldout-e94cd3f3b555528f3a13851e801c253e-1",
+      "errors": [],
+      "expansions": [
+        "how to file a complaint against a school",
+        "school complaint filing procedure and conditions"
+      ],
+      "group_id": "doc2dial-e94cd3f3b555528f3a13851e801c253e",
+      "history_turns": 0,
+      "hyde": "This article explains the general process for submitting a formal complaint regarding an educational institution. It outlines the typical steps, such as reviewing the institution's internal grievance policy, preparing a written statement of the issue, and submitting it to the designated office. The article also notes that if the internal process is not satisfactory, complainants may have the option to escalate the matter to an external oversight body, depending on the jurisdiction. It emphasizes that specific procedures, timelines, and available remedies vary by institution and location, and advises users to consult official resources for their particular case.",
+      "query_types": [
+        "customer_support",
+        "standalone",
+        "studentaid"
+      ],
+      "raw_query": "help me file a complaint against my school",
+      "standalone": "help me file a complaint against my school",
+      "usage": {
+        "calls": 2,
+        "errors": 0,
+        "input_tokens": 191,
+        "latency_ms": {
+          "sum": 3298.697
+        },
+        "output_tokens": 138
+      },
+      "usage_by_stage": {
+        "hyde": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 93,
+          "latency_ms": {
+            "max": 2423.511,
+            "p50": 2423.511,
+            "p95": 2423.511,
+            "sum": 2423.511
+          },
+          "output_tokens": 116,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        },
+        "multi_query": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 98,
+          "latency_ms": {
+            "max": 875.186,
+            "p50": 875.186,
+            "p95": 875.186,
+            "sum": 875.186
+          },
+          "output_tokens": 22,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        },
+        "standalone": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "calls": 0,
+          "errors": 0,
+          "input_tokens": 0,
+          "latency_ms": {
+            "max": 0.0,
+            "p50": 0.0,
+            "p95": 0.0,
+            "sum": 0
+          },
+          "output_tokens": 0,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      }
+    }
+  ],
+  "sample_policy": "one maximum-history turn per dialogue, domain round-robin",
+  "schema_version": 1,
+  "split": "heldout",
+  "total_calls": 26,
+  "total_input_tokens": 3578,
+  "total_output_tokens": 1245
+}

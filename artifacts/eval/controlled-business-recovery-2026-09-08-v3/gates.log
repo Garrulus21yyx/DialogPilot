@@ -1,0 +1,32 @@
+........................................................................ [ 25%]
+..............................................................s.s....... [ 51%]
+........................................................................ [ 76%]
+.................................................................        [100%]
+=============================== warnings summary ===============================
+tests/test_domain_action_approval.py::test_domain_action_approval_roundtrip_and_continuation[ask_first]
+tests/test_domain_action_approval.py::test_domain_action_approval_roundtrip_and_continuation[ask_twice]
+tests/test_domain_action_approval.py::test_domain_action_approval_roundtrip_and_continuation[ask_twice]
+tests/test_domain_action_approval.py::test_domain_action_approval_roundtrip_and_continuation[clarify_during_approval]
+tests/test_domain_action_approval.py::test_domain_action_approval_roundtrip_and_continuation[cancel_both]
+tests/test_domain_action_approval.py::test_domain_action_approval_roundtrip_and_continuation[invalid_followup]
+  /home/yang/DialogPilot/.venv/lib/python3.13/site-packages/pydantic/functional_validators.py:835: UserWarning: Pydantic serializer warnings:
+    PydanticSerializationUnexpectedValue(Expected `str` - serialized value may not be as expected [field_name='trusted_context', input_value={'catalog_id': 'unconfigu...', 'sales_channels': {}}, input_type=dict])
+    function=lambda v, h: h(v), schema=original_schema
+
+tests/test_domain_action_approval.py::test_domain_action_approval_roundtrip_and_continuation[ask_first]
+tests/test_domain_action_approval.py::test_domain_action_approval_roundtrip_and_continuation[ask_twice]
+tests/test_domain_action_approval.py::test_domain_action_approval_roundtrip_and_continuation[ask_twice]
+tests/test_domain_action_approval.py::test_domain_action_approval_roundtrip_and_continuation[clarify_during_approval]
+tests/test_domain_action_approval.py::test_domain_action_approval_roundtrip_and_continuation[cancel_both]
+tests/test_domain_action_approval.py::test_domain_action_approval_roundtrip_and_continuation[invalid_followup]
+  /home/yang/DialogPilot/.venv/lib/python3.13/site-packages/pydantic/main.py:475: UserWarning: Pydantic serializer warnings:
+    PydanticSerializationUnexpectedValue(Expected `str` - serialized value may not be as expected [field_name='trusted_context', input_value={'catalog_id': 'unconfigu...', 'sales_channels': {}}, input_type=dict])
+    return self.__pydantic_serializer__.to_python(
+
+tests/test_target_framework_agent.py::test_postgres_subgraph_survives_process_exit_after_tool
+  /home/yang/miniconda3/lib/python3.13/multiprocessing/popen_fork.py:67: DeprecationWarning: This process (pid=1903748) is multi-threaded, use of fork() may lead to deadlocks in the child.
+    self.pid = os.fork()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: /home/yang/DialogPilot/artifacts/eval/controlled-business-recovery-2026-09-08-v3/gates.xml -
+279 passed, 2 skipped, 13 warnings in 198.32s (0:03:18)

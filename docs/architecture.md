@@ -103,7 +103,7 @@ sequenceDiagram
 
 ```text
 SourceRevision
-  → fixed-token chunks
+  → structure-aware chunks
   → pgvector + PostgreSQL FTS
   → Raw / Standalone query variants
   → weighted RRF

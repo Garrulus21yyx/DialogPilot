@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+  <!-- 覆盖 Minima 2.5 的 head，以显式接入教程交互和 Mermaid。 -->
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111c28"><!-- Begin Jekyll SEO tag v2.9.0 -->
+<title>500 条分层评测：设计与运行 | DialogPilot 完整架构教程</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="500 条分层评测：设计与运行" />
+<meta property="og:locale" content="zh_CN" />
+<meta name="description" content="Python 多 Agent 客服后端的架构、链路、内部实现、改造记录与项目追问" />
+<meta name="twitter:description" property="og:description" content="Python 多 Agent 客服后端的架构、链路、内部实现、改造记录与项目追问" />
+<meta property="og:site_name" content="DialogPilot 完整架构教程" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="500 条分层评测：设计与运行" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"Python 多 Agent 客服后端的架构、链路、内部实现、改造记录与项目追问","headline":"500 条分层评测：设计与运行","url":"/DialogPilot/evaluation-500/"}</script>
+<!-- End Jekyll SEO tag -->
+<!-- 每次 Pages 构建生成新版本号，避免浏览器继续使用旧 CSS/JS。 -->
+  <link rel="icon" href="/DialogPilot/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/DialogPilot/assets/main.css?v=1788371868"><link type="application/atom+xml" rel="alternate" href="/DialogPilot/feed.xml" title="DialogPilot 完整架构教程" /><!-- defer 保证 Mermaid 先定义，页面增强脚本随后在 DOM 解析完成后运行。 -->
+  <script defer src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <script defer src="/DialogPilot/assets/dialogpilot.js?v=1788371868"></script>
+</head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/DialogPilot/">DialogPilot 完整架构教程</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/DialogPilot/interview-guide.html">DialogPilot 面经校准与追问手册</a><a class="page-link" href="/DialogPilot/architecture.html">架构边界与职责归属</a><a class="page-link" href="/DialogPilot/project-pitch.html">项目讲述与技术取舍</a><a class="page-link" href="/DialogPilot/agent-evolution/">Agent 进化闭环</a><a class="page-link" href="/DialogPilot/evaluation-500/">500 条分层评测：设计与运行</a><a class="page-link" href="/DialogPilot/rag-pipeline-evaluation/">客服 RAG 全链路评测</a><a class="page-link" href="/DialogPilot/customer-service-rag-production-audit/">客服 RAG 生产化审计</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">500 条分层评测：设计与运行</h1>
+  </header>
+
+  <div class="post-content">
+    <h1 id="500-条分层评测覆盖四个责任边界不制造一个总分">500 条分层评测：覆盖四个责任边界，不制造一个总分</h1>
+
+<blockquote>
+  <p><code class="language-plaintext highlighter-rouge">dialogpilot-500-v1</code> 是当前实现保留的 provisional 合同数据集。它用于定位 Intent、TaskPlan、Retrieval 与 Stateful 四层问题；其中部分 heldout 已参与修复，不能被重新命名为 fresh Gold。当前 PostgreSQL RAG 的选型证据另见 <a href="/DialogPilot/rag-pipeline-evaluation/">Doc2Dial 全链路评测</a>。</p>
+</blockquote>
+
+<h2 id="1-数据矩阵">1. 数据矩阵</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>评测层</th>
+      <th style="text-align: right">Dev</th>
+      <th style="text-align: right">Heldout</th>
+      <th style="text-align: right">总数</th>
+      <th>权威真值</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Intent / OOS</td>
+      <td style="text-align: right">144</td>
+      <td style="text-align: right">36</td>
+      <td style="text-align: right">180</td>
+      <td>意图标签与 OOS</td>
+    </tr>
+    <tr>
+      <td>TaskPlan Routing</td>
+      <td style="text-align: right">96</td>
+      <td style="text-align: right">24</td>
+      <td style="text-align: right">120</td>
+      <td>route、Owner、task id</td>
+    </tr>
+    <tr>
+      <td>RAG Retrieval</td>
+      <td style="text-align: right">80</td>
+      <td style="text-align: right">20</td>
+      <td style="text-align: right">100</td>
+      <td>relevant document ids</td>
+    </tr>
+    <tr>
+      <td>Memory + ReAct/Tool</td>
+      <td style="text-align: right">80</td>
+      <td style="text-align: right">20</td>
+      <td style="text-align: right">100</td>
+      <td>状态与副作用断言</td>
+    </tr>
+    <tr>
+      <td><strong>总计</strong></td>
+      <td style="text-align: right"><strong>400</strong></td>
+      <td style="text-align: right"><strong>100</strong></td>
+      <td style="text-align: right"><strong>500</strong></td>
+      <td>分层报告</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>如果把 500 条都做成意图分类，只能回答入口标签问题，无法发现错误 Owner、缺失任务、越权工具、无证据发布或记忆污染。这里没有跨层“总准确率”；每层按自己的 Owner 和失败代数评分。</p>
+
+<h2 id="2-数据来源与审阅状态">2. 数据来源与审阅状态</h2>
+
+<ul>
+  <li>Intent 的 180 条来自 BANKING77 与 CLINC150 OOS 许可子集，状态为 <code class="language-plaintext highlighter-rouge">auto_mapped</code>。</li>
+  <li>其余 320 条是项目合同场景，状态为 <code class="language-plaintext highlighter-rouge">provisional</code>。</li>
+  <li>相同语义 family 共享 <code class="language-plaintext highlighter-rouge">group_id</code>，必须整体进入同一个 split，避免改写泄漏。</li>
+  <li>manifest 固定 case/corpus checksum、分布、来源、版本与 review policy。</li>
+  <li>Stateful 20 条 heldout 已用于缺陷定位，状态是 <code class="language-plaintext highlighter-rouge">consumed_regression_after_repair</code>。</li>
+  <li>恢复 verified closure 仍需要未见的 fresh cases 与独立 reviewer。</li>
+</ul>
+
+<p>因此本页的数字只能叫开发基线或机械回归，不能写成“500 条人工 Gold 的生产准确率”。</p>
+
+<h2 id="3-当前分支如何生成与校验">3. 当前分支如何生成与校验</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="nb">.</span> .venv/bin/python scripts/build_project_eval_500.py
+<span class="nv">PYTHONPATH</span><span class="o">=</span><span class="nb">.</span> .venv/bin/python <span class="nt">-m</span> evaluation.dataset <span class="se">\</span>
+  data/eval/dialogpilot-500-v1
+</code></pre></div></div>
+
+<p>普通评分不需要下载第三方大语料；选中的样本、corpus 和 checksum 已提交。重新构建外部候选池时才需要联网，并必须保留数据许可证与来源。</p>
+
+<h2 id="4-intent-与-routing">4. Intent 与 Routing</h2>
+
+<p>服务启动后，通过同一个数据集注册表运行 Dev：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-sS</span> <span class="nt">-X</span> POST http://localhost:18000/eval/run <span class="se">\</span>
+  <span class="nt">-H</span> <span class="s2">"Authorization: Bearer </span><span class="nv">$DIALOGPILOT_TOKEN</span><span class="s2">"</span> <span class="se">\</span>
+  <span class="nt">-H</span> <span class="s1">'Content-Type: application/json'</span> <span class="se">\</span>
+  <span class="nt">-d</span> <span class="s1">'{
+    "dataset_id":"dialogpilot-500-v1",
+    "split":"dev",
+    "layers":["intent","routing"],
+    "include_non_gold":true
+  }'</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">include_non_gold=true</code> 是对当前 review 状态的显式承认，不是放宽通过标准。</p>
+
+<p>Routing 的确定性真值是 route mode、Owner 和 task id。它不执行 Worker、工具、Coverage 或 Verifier，因此 <code class="language-plaintext highlighter-rouge">routing passed</code> 不能推导为完整服务链通过。</p>
+
+<h2 id="5-stateful-fixture">5. Stateful fixture</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">TEST_DATABASE_URL</span><span class="o">=</span>postgresql://dialogpilot:dialogpilot-local@localhost:15432/dialogpilot <span class="se">\</span>
+<span class="nv">PYTHONPATH</span><span class="o">=</span><span class="nb">.</span> .venv/bin/python <span class="nt">-m</span> evaluation.stateful_runner <span class="se">\</span>
+  data/eval/dialogpilot-500-v1 <span class="nt">--split</span> dev <span class="se">\</span>
+  <span class="nt">--predictions</span> artifacts/eval/stateful-dev-predictions.jsonl <span class="se">\</span>
+  <span class="nt">--report</span> artifacts/eval/stateful-dev-report.json
+</code></pre></div></div>
+
+<p>执行器只把冻结的 <code class="language-plaintext highlighter-rouge">FixtureRequest(case_id, scenario, message)</code> 交给 actual producer，类型上不暴露 <code class="language-plaintext highlighter-rouge">expected</code>。fixture 调用真实 Memory、Context、ToolManager、ReAct、Coverage、Verifier 和 PostgreSQL Ticket Owner；未注册 action、异常、缺少探针或非布尔观测都会显式失败。</p>
+
+<p>这关闭了“fixture 读取 expected 后制造通过”的 harness 缺口，但仍不把固定 fixture 等同于真实服务链或未见泛化。</p>
+
+<h2 id="6-retrieval-层的当前定位">6. Retrieval 层的当前定位</h2>
+
+<p><code class="language-plaintext highlighter-rouge">dialogpilot-500-v1</code> 的 Retrieval 是 25 篇隔离 corpus、100 条 query 的早期开发基线。它记录过 vector/BM25/RRF 的历史比较，但当前分支已删除 Chroma <code class="language-plaintext highlighter-rouge">KnowledgeBase</code>、<code class="language-plaintext highlighter-rouge">evaluation.retrieval_runner</code> 和旧 retrieval ablation 运行时，在线唯一 Owner 已迁移到 PostgreSQL SourceRevision + pgvector + 中文 FTS。</p>
+
+<p>因此：</p>
+
+<ul>
+  <li>不再发布已删除模块的“当前运行命令”；</li>
+  <li>旧 Retrieval case 仍可用于数据合同、离线 scorer 和历史对照；</li>
+  <li>当前在线 RAG 参数与发布资格必须由 Doc2Dial 分层实验、PostgreSQL Owner 测试和真实 <code class="language-plaintext highlighter-rouge">/chat</code> E2E 共同证明；</li>
+  <li>需要重新激活这 100 条时，应为 <code class="language-plaintext highlighter-rouge">HybridRetrievalBackend</code> 实现新的 producer，而不是复活 Chroma。</li>
+</ul>
+
+<h2 id="7-从-500-条到-service-chain-v2">7. 从 500 条到 Service-chain v2</h2>
+
+<p>四层 fixture 暴露了覆盖缺口，但还不能表达完整客服生命周期。当前分支新增 Service-chain v2，将一次请求拆成 11 个可审计层：</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>perception → route_mode → context_memory → retrieval
+→ tool_authority → tool_effect → generation_claims
+→ publication → handoff → delivery_feedback → service_outcome
+</code></pre></div></div>
+
+<p>每条 case 固定 required/forbidden layer、Owner、工具参数子集、receipt 字段、task owner/dependency、parallel wave、claim-evidence、状态迁移、publication/effect 上限和零容忍安全标志。</p>
+
+<p><code class="language-plaintext highlighter-rouge">ChatApplicationRunner</code> 调用与服务相同的 <code class="language-plaintext highlighter-rouge">ChatApplication</code>，并采集 typed stages 与 Owner state。grader 在执行后比较 rubric；可选 semantic scorer 不能覆盖确定性失败。</p>
+
+<p>当前合同测试入口：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="nb">.</span> .venv/bin/pytest <span class="nt">-q</span> <span class="se">\</span>
+  tests/test_service_chain_eval_v2.py <span class="se">\</span>
+  tests/test_chat_application_runner.py <span class="se">\</span>
+  tests/test_behavior_baseline.py
+</code></pre></div></div>
+
+<h2 id="8-选择回归与-fresh-evidence">8. 选择、回归与 fresh evidence</h2>
+
+<p>正确流程：</p>
+
+<ol>
+  <li>在 Dev 上定位层与 slice；</li>
+  <li>建立根因、Owner 和正向合同；</li>
+  <li>用状态机/属性/集成测试修复整个因果面；</li>
+  <li>固定候选、数据、代码和环境 fingerprint；</li>
+  <li>在未参与开发的 fresh cases 上反证；</li>
+  <li>由独立 reviewer 核对报告、实现和文档；</li>
+  <li>已读 heldout 自动降级为 regression，不重复声称泛化。</li>
+</ol>
+
+<p>一个回归示例只证明该示例。身份隔离、未审批副作用、唯一 publication、证据覆盖、ACK 单调等应使用 invariant 或状态机测试。</p>
+
+<h2 id="9-已记录的历史结果如何解读">9. 已记录的历史结果如何解读</h2>
+
+<p>历史收敛运行记录包括：Intent 170/180、Fast Routing 120/120、Stateful Dev 80/80 和 consumed regression 20/20。它们属于固定版本和数据状态的证据快照，不是当前提交自动继承的承诺。</p>
+
+<p>Intent 的剩余分歧包含标签边界问题，例如“陌生扣款”可落在 account security 或 payment issue。正确处理是人工仲裁标签与支持范围，而不是用 case id 或更多关键词制造 100%。</p>
+
+<p>每次重新引用数字时必须同时写出：commit、dataset checksum、split/review 状态、配置 fingerprint、环境与生成报告。若缺少这些字段，只能称为历史描述。</p>
+
+<h2 id="10-零容忍门禁">10. 零容忍门禁</h2>
+
+<p>以下失败不能被平均分抵消：</p>
+
+<ul>
+  <li>JWT subject / tenant 越权；</li>
+  <li>OOS 被当作业务执行；</li>
+  <li>模型伪造审批字段触发写工具；</li>
+  <li>同一 operation 产生重复副作用；</li>
+  <li>必需任务或 requirement 缺失却正常发布；</li>
+  <li>无合法 authority 的 claim 获得 citation；</li>
+  <li>同一 Invocation 出现多个权威 publication；</li>
+  <li><code class="language-plaintext highlighter-rouge">REJECT / UNKNOWN</code> 被改写为普通成功；</li>
+  <li>projection 或 cache 反向覆盖 PostgreSQL 事实。</li>
+</ul>
+
+<h2 id="11-面试追问">11. 面试追问</h2>
+
+<h3 id="q1为什么-500-条不直接乘三个模型">Q1：为什么 500 条不直接乘三个模型？</h3>
+
+<p>数据覆盖和模型配置是两个维度。先在 Dev 比较候选并定位分层差异，再冻结配置只使用真正 fresh 的 heldout，才能避免反复看答案。</p>
+
+<h3 id="q2为什么不全部交给-llm-judge">Q2：为什么不全部交给 LLM Judge？</h3>
+
+<p>Owner、task id、receipt、publication count 和状态迁移都有确定性真值。LLM Judge 适合人工校准后的语义质量，不应决定权限或副作用是否安全。</p>
+
+<h3 id="q3为什么删除-retrieval-的旧运行命令">Q3：为什么删除 Retrieval 的旧运行命令？</h3>
+
+<p>当前分支已删除其 Chroma producer。保留不可执行命令会把历史实现冒充当前链路；新的 producer 应接 PostgreSQL <code class="language-plaintext highlighter-rouge">HybridRetrievalBackend</code>。</p>
+
+<h3 id="q4500-条与-service-chain-v2-是替代关系吗">Q4：500 条与 Service-chain v2 是替代关系吗？</h3>
+
+<p>不是。500 条提供四层覆盖与历史回归，v2 扩展到真实应用边界和服务生命周期。两者的 case identity、rubric 和可证明结论不同。</p>
+
+<h3 id="q5最重要的评测纪律是什么">Q5：最重要的评测纪律是什么？</h3>
+
+<p>先固定事实 Owner 和 supported algebra，再让 runner 观察真实 outcome；报告必须保留失败，不能让 harness、projection 或 semantic scorer替系统完成任务。</p>
+
+<hr />
+
+<h2 id="rag-逐阶段评测与生产核查附录">RAG 逐阶段评测与生产核查附录</h2>
+
+<h3 id="1-先拆开离线建库和在线回答">1. 先拆开离线建库和在线回答</h3>
+
+<p>离线建库评测回答“知识是否被正确变成可检索投影”：</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SourceRevision
+→ parse/normalize
+→ 512/64 fixed-token chunks
+→ canonical chunk spec
+→ embedding + Chinese FTS projection
+→ generation manifest
+→ activate
+</code></pre></div></div>
+
+<p>在线回答评测回答“真实请求是否在正确时机检索并安全发布”：</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ChatApplication
+→ RouteDecision
+→ raw/standalone queries
+→ dense + sparse recall
+→ weighted RRF
+→ rerank
+→ context packing
+→ EvidencePack
+→ grounded generation or Agent context
+→ CitationClaimGate/Coverage/Verifier
+→ Publication
+</code></pre></div></div>
+
+<p>两者必须使用相同 SourceRevision、generation 和 manifest 身份。离线索引质量通过，不等于 <code class="language-plaintext highlighter-rouge">/chat</code> 的 route 会触发它；在线回答流畅，也不能证明 chunk、引用或权限正确。</p>
+
+<h3 id="2-数据单位和-group-safe-split">2. 数据单位和 group-safe split</h3>
+
+<p>检索 case 至少包含：<code class="language-plaintext highlighter-rouge">case_id</code>、query、gold source revision、gold span/chunk、route、tenant/scope、标签来源、review 状态和 provenance。相同 source、模板变体或同一对话的相邻问题不能跨 dev/heldout，否则只是在测近重复记忆。</p>
+
+<p>数据状态必须区分：</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">provisional</code>：规则或模型生成，只能做开发反馈；</li>
+  <li><code class="language-plaintext highlighter-rouge">reviewed</code>：人工检查过，但可能参与修复；</li>
+  <li><code class="language-plaintext highlighter-rouge">gold</code>：有明确标注规范与仲裁；</li>
+  <li><code class="language-plaintext highlighter-rouge">fresh-heldout</code>：未被实现和调参过程消费；</li>
+  <li><code class="language-plaintext highlighter-rouge">regression</code>：已知失败见证，不再是无偏准确率样本。</li>
+</ul>
+
+<h3 id="3-chunk-评测">3. Chunk 评测</h3>
+
+<p>不要只比较 chunk 数。对 256/32、512/64、768/96 等候选记录：</p>
+
+<ul>
+  <li>gold span 是否完整落在至少一个 chunk；</li>
+  <li>边界切断率和重复 token 比例；</li>
+  <li>source metadata、字符 offset、revision/checksum 是否可回溯；</li>
+  <li>Top-K 中为覆盖一个答案占用了多少上下文 token；</li>
+  <li>更新一个 source 时需要重建多少投影。</li>
+</ul>
+
+<p>当前 512/64 是默认基线。若标题、列表、表格或条款在固定 token 边界被切坏，可比较结构感知 chunk 或 parent-child retrieval，但只有 heldout 指标证明收益才替换。</p>
+
+<h3 id="4-retrieval-分层指标">4. Retrieval 分层指标</h3>
+
+<p>Dense 与 FTS 先分别报告，再评估融合：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>层</th>
+      <th>指标</th>
+      <th>诊断问题</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Candidate recall</td>
+      <td>Recall@5/10/20</td>
+      <td>gold 是否进入候选</td>
+    </tr>
+    <tr>
+      <td>Ranking</td>
+      <td>MRR、nDCG@K</td>
+      <td>gold 是否排得足够靠前</td>
+    </tr>
+    <tr>
+      <td>Source</td>
+      <td>source exact / revision exact</td>
+      <td>是否命中正确文档版本</td>
+    </tr>
+    <tr>
+      <td>Span</td>
+      <td>overlap / containment</td>
+      <td>是否覆盖正确依据</td>
+    </tr>
+    <tr>
+      <td>Isolation</td>
+      <td>tenant/ACL violation</td>
+      <td>是否跨主体泄漏</td>
+    </tr>
+    <tr>
+      <td>Failure</td>
+      <td>no-evidence precision</td>
+      <td>没有依据时是否克制</td>
+    </tr>
+    <tr>
+      <td>Runtime</td>
+      <td>P50/P95、cache hit</td>
+      <td>延迟和缓存是否可接受</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>weighted RRF 当前使用 <code class="language-plaintext highlighter-rouge">k=10</code>、vector 0.25、lexical 0.75。必须保留 dense-only、sparse-only、RRF 的同集对照；不能只公布选中的最好结果。</p>
+
+<h3 id="5-query-rewrite-评测">5. Query rewrite 评测</h3>
+
+<p>raw query 和 standalone query 都要保留。Standalone rewrite 的成功条件是消解代词与补全上下文，不是变得更长。评测至少检查：</p>
+
+<ul>
+  <li>关键实体、否定词、时间和用户限定是否保留；</li>
+  <li>是否引入原问题没有的订单号、政策名或结论；</li>
+  <li>raw-only、standalone-only、双路融合的 Recall/MRR；</li>
+  <li>rewrite provider 失败时 raw path 是否仍能工作；</li>
+  <li>输入历史是否只来自允许的 conversation range。</li>
+</ul>
+
+<p>当前 raw/standalone 权重 0.25/0.75。对“它什么时候到”这类续问，standalone 往往增益；对错误码和明确标题，raw path 能防止改写漂移。</p>
+
+<h3 id="6-rerank-合同">6. Rerank 合同</h3>
+
+<p>Reranker 接收稳定候选 ID，只能返回这些 ID 的排列和分数。验证重复、未知、遗漏、解析失败和 timeout。失败时走原 RRF 顺序或 typed degradation，不把候选正文交给模型后接受它凭空生成的引用。</p>
+
+<p>报告要分清：Recall@candidate 不会被 rerank 提升；rerank 改善的是 MRR/nDCG 和最终 packing 命中。若 candidate 阶段没有 gold，升级 reranker 没有意义。</p>
+
+<h3 id="7-packing-与上下文预算">7. Packing 与上下文预算</h3>
+
+<p>默认从最多 20 个候选中选 top 5，并把知识 context 控制在约 2600 token。Packer 需要测试：</p>
+
+<ul>
+  <li>required span 是否被截断；</li>
+  <li>同 source 冗余 chunk 是否挤走另一条必需证据；</li>
+  <li>多条件问题是否覆盖所有 fact requirement；</li>
+  <li>citation ID 与实际进入 prompt 的片段是否一致；</li>
+  <li>system、tool schema、Memory 和输出预留加入后是否仍低于 provider 上限。</li>
+</ul>
+
+<p>“检索命中但回答错”常常是 packing 丢证据或 prompt 引用错位，不应全部归咎于生成模型。</p>
+
+<h3 id="8-generationcitation-与-claim">8. Generation、Citation 与 Claim</h3>
+
+<p>生成层至少评分：citation validity、claim coverage、groundedness、correctness、abstention、语言和安全。确定性检查先于 LLM Judge：citation 是否存在、是否属于当前 generation、source revision/checksum 是否匹配、claim 是否引用实际 packed item，都能由代码证明。</p>
+
+<p>LLM Judge 适合判断开放文本是否完整、自然或语义正确，但必须记录 judge model/prompt/version，并在人工子集上校准偏差。Judge <code class="language-plaintext highlighter-rouge">PASS</code> 不能覆盖 Authority、ACL、Coverage 或 Verifier 的 hard failure。</p>
+
+<h3 id="9-route-aware-rag-测试">9. Route-aware RAG 测试</h3>
+
+<p>同一 Retriever 要在不同 route 中验证调用次数和角色：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Route</th>
+      <th style="text-align: right">前置 Retriever</th>
+      <th>最终候选</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">knowledge_qa</code></td>
+      <td style="text-align: right">1 次</td>
+      <td>grounded answer 可以是 final candidate</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">mixed</code></td>
+      <td style="text-align: right">1 次</td>
+      <td>evidence-only，Agent/Reducer 结合业务 receipt</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">agent_task</code></td>
+      <td style="text-align: right">0 次</td>
+      <td>只有声明 Knowledge Authority 的 task 可调 knowledge tool</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">multi_domain</code></td>
+      <td style="text-align: right">0 次</td>
+      <td>task 级按需调用，不能全局重复</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">clarify/handoff/out_of_scope</code></td>
+      <td style="text-align: right">0 次</td>
+      <td>策略终态或工单路径</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>测试既要断言“应该调用”，也要断言“禁止调用”。否则所有请求都预检索也可能让答案测试通过，却浪费延迟并混淆 Authority。</p>
+
+<h3 id="10-serviceepisode-与-knowledge-隔离">10. ServiceEpisode 与 Knowledge 隔离</h3>
+
+<p>两者可复用 pgvector/FTS/RRF 实现，但评测集和安全门禁必须分开：</p>
+
+<ul>
+  <li>Knowledge 是企业公共或受 ACL 保护的 source revision；</li>
+  <li>ServiceEpisode 是已解决用户服务经历，绑定 tenant/user/case/revision；</li>
+  <li>权重、retention、deletion fence、generation 与 cache namespace 独立；</li>
+  <li>任一跨用户 episode 命中都是 hard failure，不能被平均 Recall 抵消。</li>
+</ul>
+
+<h3 id="11-多模态-rag-核查">11. 多模态 RAG 核查</h3>
+
+<p>上传、OCR/VLM 感知和知识检索是三段。测试分别确认：</p>
+
+<ol>
+  <li>asset identity、MIME、checksum、tenant/user/turn binding；</li>
+  <li>OCR 的 page/bbox/text/provider/version 与 VLM observation 的 normalized bbox/confidence；</li>
+  <li>OCR 文本是否作为不可信 query data 进入 KnowledgeRetriever；</li>
+  <li>最终 citation 是否仍指向知识 source revision，而 media observation 指向 asset artifact；</li>
+  <li>VLM 不得把视觉猜测升级为退款资格、账户状态或故障根因。</li>
+</ol>
+
+<p>图片错误码可以由 OCR 产生 query，再检索维修文档；商品外观可以帮助确定候选，但型号确认仍要 SKU/业务 Owner 或人工。</p>
+
+<h3 id="12-缓存与-generation-切换">12. 缓存与 generation 切换</h3>
+
+<p>cache key 应包含 tenant/scope/ACL/deletion epoch、query hash、manifest/generation、embedding/rewrite/rerank/policy 版本。需要故障注入验证：</p>
+
+<ul>
+  <li>Redis 全失效时答案语义不变；</li>
+  <li>active generation 切换后旧 cache 不命中；</li>
+  <li>source retract/deletion fence 前移后旧 evidence 不复用；</li>
+  <li>并发 cold query 可以 single-flight，但 waiter 超时不改变权威结果；</li>
+  <li>corrupted cache 不能绕过 Evidence validator。</li>
+</ul>
+
+<h3 id="13-postgresql-生产核查">13. PostgreSQL 生产核查</h3>
+
+<p><code class="language-plaintext highlighter-rouge">postgresql+pgvector+pg_fts</code> 的 readiness 不只看能否 SELECT：</p>
+
+<ul>
+  <li>extension、index、operator 与中文分词配置是否符合 migration；</li>
+  <li>source revision、chunk spec、projection receipt 和 generation manifest 是否可对账；</li>
+  <li>active generation 是否唯一；</li>
+  <li>query plan、连接池、锁等待和 P95/P99 是否在目标内；</li>
+  <li>rebuild 能否从 SourceRevision 恢复而不依赖旧索引；</li>
+  <li>backup/restore 后 revision、manifest 和 chunk checksum 是否一致。</li>
+</ul>
+
+<p>当前本地 384 维 feature hashing 是可复现基线，不代表生产语义质量。替换 embedding 时必须新建 generation，不能在旧向量字段中静默混用维度或模型。</p>
+
+<h3 id="14-失败注入矩阵">14. 失败注入矩阵</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>故障</th>
+      <th>预期结果</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>rewrite timeout</td>
+      <td>raw query 继续，记录 degraded</td>
+    </tr>
+    <tr>
+      <td>dense 不可用</td>
+      <td>sparse 可独立工作；证据标明路径</td>
+    </tr>
+    <tr>
+      <td>sparse 不可用</td>
+      <td>dense 可独立工作</td>
+    </tr>
+    <tr>
+      <td>两路不可用</td>
+      <td><code class="language-plaintext highlighter-rouge">UNAVAILABLE</code>，不是 <code class="language-plaintext highlighter-rouge">NO_EVIDENCE</code></td>
+    </tr>
+    <tr>
+      <td>rerank 非法排列</td>
+      <td>原顺序/typed degradation</td>
+    </tr>
+    <tr>
+      <td>manifest 冲突</td>
+      <td><code class="language-plaintext highlighter-rouge">CONFLICT</code>，禁止发布旧证据</td>
+    </tr>
+    <tr>
+      <td>Evidence checksum 错</td>
+      <td><code class="language-plaintext highlighter-rouge">INVALID_CONTRACT</code></td>
+    </tr>
+    <tr>
+      <td>无 gold evidence</td>
+      <td>abstain/clarify，不用模型常识补齐</td>
+    </tr>
+    <tr>
+      <td>Verifier timeout</td>
+      <td><code class="language-plaintext highlighter-rouge">UNKNOWN</code>，安全降级或 handoff</td>
+    </tr>
+    <tr>
+      <td>Redis 失效</td>
+      <td>旁路缓存，同语义重算</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="15-报告应该怎样写">15. 报告应该怎样写</h3>
+
+<p>每份报告固定记录 commit SHA、dataset checksum、split/provenance、review 状态、Bundle、模型矩阵、retrieval policy、generation manifest、seed、运行时间、scope limit 和失败 case。结果表同时给分母、绝对数与置信区间；小样本 pilot 明确写 pilot。</p>
+
+<p>不能只写“准确率 90%”：至少区分 route exact、Recall@K、MRR/nDCG、citation validity、claim coverage、groundedness、abstention、hard safety failures、P95 latency 与 cost proxy。生产结论必须来自 fresh human-reviewed heldout，回归集只证明已知问题未复发。</p>
+
+<h3 id="16-高频追问">16. 高频追问</h3>
+
+<p><strong>为什么 lexical 权重大？</strong> 当前客服语料有大量精确规则名、错误码和业务短语，本地实验选择该基线；它不是普适结论，必须在 fresh heldout 重估。</p>
+
+<p><strong>为什么不能只用向量库？</strong> 精确词和版本号可能被稠密语义稀释；同时只有一种召回路径会形成单点失败。混合召回提供互补证据。</p>
+
+<p><strong>为什么不能把 Memory 和 Knowledge 放一张表？</strong> 权威、ACL、删除、retention 和用途不同；共享 backend 不等于共享 corpus。</p>
+
+<p><strong>没有证据时怎样答？</strong> 返回 NO_EVIDENCE 并澄清、拒答或 handoff；不能用模型参数知识伪造 citation。</p>
+
+<p><strong>如何证明新 embedding 更好？</strong> 在相同 revision、chunk、candidate budget 和 fresh group-safe heldout 上比较 Recall/MRR、延迟、成本与安全隔离，并至少重复运行；只有增益超过门槛才激活新 generation。</p>
+
+<p><strong>线上指标下降先查哪里？</strong> 按 route → query rewrite → candidate recall → fusion/rerank → packing → claim/citation → verifier → delivery 分层定位，不先改一个全局阈值。</p>
+
+
+  </div>
+
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/DialogPilot/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">DialogPilot 完整架构教程</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">DialogPilot 完整架构教程</li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Python 多 Agent 客服后端的架构、链路、内部实现、改造记录与项目追问</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

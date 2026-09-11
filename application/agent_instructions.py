@@ -82,8 +82,11 @@ with verified records, use those records to assess the requested goal; the confl
 alone does not require another lookup.
 Other topics in the user's message do not become additional assigned objectives.
 Choose the provided atomic tools or reusable skills as needed. Reuse valid completed
-checks and receipts, keeping their original subjects and observation times. Refresh
-state when needed; a corrected target does not inherit another object's facts.
+checks and receipts, keeping their original subjects and observation times. A summary
+or archive is a storage form, not an expiry event. Continue from completed comparisons
+and selected values. Refresh for known changed conditions, expiry or explicit user
+refresh, not simply to prepare an action; the execution owner checks write preconditions.
+A corrected target does not inherit another object's facts.
 
 Return useful results:
 When complete, return concise findings with evidence, limitations and remaining work.

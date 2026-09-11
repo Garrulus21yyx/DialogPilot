@@ -1,0 +1,16 @@
+{
+  "case_count": 209,
+  "cases_sha256": "eb290a46c73de9cd0627fe6457d9e22e17065bf2e0b578864b487a4599f82416",
+  "corpus_sha256": "ce4db3f15c1efd3aed1d42f09fe3d22fb10920f913aaf8673058919df061109e",
+  "dataset_id": "doc2dial-rag-long8000-dev-v1",
+  "document_count": 100,
+  "schema_version": 1,
+  "source": {
+    "dataset": "Doc2Dial v1.0.1",
+    "grounding_granularity": "character-span",
+    "license": "CC-BY-3.0",
+    "min_relevant_document_chars": 8000,
+    "selection": "deterministic domain-balanced prefix plus distractors",
+    "url": "https://doc2dial.github.io/file/doc2dial_v1.0.1.zip"
+  }
+}

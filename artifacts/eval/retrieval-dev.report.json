@@ -1,0 +1,904 @@
+{
+  "case_count": 80,
+  "corpus_documents": 25,
+  "dataset_checksum": "07de2bba52155be143cb865f6572405bc93370610f1b119ab2c494be377112fd",
+  "dataset_id": "dialogpilot-500-v1",
+  "dataset_version": "1.0.0-provisional",
+  "execution_mode": "isolated-embedded-production-knowledge-base",
+  "gold_only": false,
+  "inserted_chunks": 25,
+  "layers": {
+    "retrieval": {
+      "mrr": 0.7504,
+      "ndcg_at_5": 0.7914,
+      "recall_at_5": 0.9125
+    }
+  },
+  "layers_requested": [
+    "retrieval"
+  ],
+  "outcomes": [
+    {
+      "case_id": "retrieval-account-close-1",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 0.5,
+        "ndcg_at_5": 0.6309297535714575,
+        "recall_at_5": 1.0
+      },
+      "passed": false,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-account-close-2",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-account-close-3",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-account-close-4",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 0.0,
+        "ndcg_at_5": 0.0,
+        "recall_at_5": 0.0
+      },
+      "passed": false,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-account-profile-1",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-account-profile-2",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-account-profile-3",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-account-profile-4",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-address-change-1",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-address-change-2",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 0.5,
+        "ndcg_at_5": 0.6309297535714575,
+        "recall_at_5": 1.0
+      },
+      "passed": false,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-address-change-3",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-address-change-4",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-client-crash-1",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-client-crash-2",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-client-crash-3",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-client-crash-4",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-crash-500-1",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 0.0,
+        "ndcg_at_5": 0.0,
+        "recall_at_5": 0.0
+      },
+      "passed": false,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-crash-500-2",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 0.25,
+        "ndcg_at_5": 0.43067655807339306,
+        "recall_at_5": 1.0
+      },
+      "passed": false,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-crash-500-3",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-crash-500-4",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 0.0,
+        "ndcg_at_5": 0.0,
+        "recall_at_5": 0.0
+      },
+      "passed": false,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-double-charge-1",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 0.3333333333333333,
+        "ndcg_at_5": 0.5,
+        "recall_at_5": 1.0
+      },
+      "passed": false,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-double-charge-2",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 0.3333333333333333,
+        "ndcg_at_5": 0.5,
+        "recall_at_5": 1.0
+      },
+      "passed": false,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-double-charge-3",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-double-charge-4",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-human-handoff-1",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-human-handoff-2",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-human-handoff-3",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-human-handoff-4",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 0.5,
+        "ndcg_at_5": 0.6309297535714575,
+        "recall_at_5": 1.0
+      },
+      "passed": false,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-invoice-1",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-invoice-2",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 0.5,
+        "ndcg_at_5": 0.6309297535714575,
+        "recall_at_5": 1.0
+      },
+      "passed": false,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-invoice-3",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-invoice-4",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-login-401-1",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-login-401-2",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 0.5,
+        "ndcg_at_5": 0.6309297535714575,
+        "recall_at_5": 1.0
+      },
+      "passed": false,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-login-401-3",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-login-401-4",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 0.5,
+        "ndcg_at_5": 0.6309297535714575,
+        "recall_at_5": 1.0
+      },
+      "passed": false,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-login-captcha-1",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 0.25,
+        "ndcg_at_5": 0.43067655807339306,
+        "recall_at_5": 1.0
+      },
+      "passed": false,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-login-captcha-2",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-login-captcha-3",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-login-captcha-4",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 0.2,
+        "ndcg_at_5": 0.38685280723454163,
+        "recall_at_5": 1.0
+      },
+      "passed": false,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-logistics-delay-1",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-logistics-delay-2",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 0.0,
+        "ndcg_at_5": 0.0,
+        "recall_at_5": 0.0
+      },
+      "passed": false,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-logistics-delay-3",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-logistics-delay-4",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 0.0,
+        "ndcg_at_5": 0.0,
+        "recall_at_5": 0.0
+      },
+      "passed": false,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-memory-profile-1",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-memory-profile-2",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-memory-profile-3",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-memory-profile-4",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-order-status-1",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-order-status-2",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 0.0,
+        "ndcg_at_5": 0.0,
+        "recall_at_5": 0.0
+      },
+      "passed": false,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-order-status-3",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-order-status-4",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 0.5,
+        "ndcg_at_5": 0.6309297535714575,
+        "recall_at_5": 1.0
+      },
+      "passed": false,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-payment-failed-1",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-payment-failed-2",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-payment-failed-3",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-payment-failed-4",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-refund-trace-1",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 0.3333333333333333,
+        "ndcg_at_5": 0.5,
+        "recall_at_5": 1.0
+      },
+      "passed": false,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-refund-trace-2",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 0.3333333333333333,
+        "ndcg_at_5": 0.5,
+        "recall_at_5": 1.0
+      },
+      "passed": false,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-refund-trace-3",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-refund-trace-4",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 0.25,
+        "ndcg_at_5": 0.43067655807339306,
+        "recall_at_5": 1.0
+      },
+      "passed": false,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-refund-window-1",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 0.5,
+        "ndcg_at_5": 0.6309297535714575,
+        "recall_at_5": 1.0
+      },
+      "passed": false,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-refund-window-2",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-refund-window-3",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-refund-window-4",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 0.0,
+        "ndcg_at_5": 0.0,
+        "recall_at_5": 0.0
+      },
+      "passed": false,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-security-device-1",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-security-device-2",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 0.5,
+        "ndcg_at_5": 0.6309297535714575,
+        "recall_at_5": 1.0
+      },
+      "passed": false,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-security-device-3",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-security-device-4",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 0.5,
+        "ndcg_at_5": 0.6309297535714575,
+        "recall_at_5": 1.0
+      },
+      "passed": false,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-security-identity-1",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 0.5,
+        "ndcg_at_5": 0.6309297535714575,
+        "recall_at_5": 1.0
+      },
+      "passed": false,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-security-identity-2",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 0.5,
+        "ndcg_at_5": 0.6309297535714575,
+        "recall_at_5": 1.0
+      },
+      "passed": false,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-security-identity-3",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-security-identity-4",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-security-stolen-1",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-security-stolen-2",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 0.25,
+        "ndcg_at_5": 0.43067655807339306,
+        "recall_at_5": 1.0
+      },
+      "passed": false,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-security-stolen-3",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-security-stolen-4",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-subscription-1",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-subscription-2",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-subscription-3",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "recall_at_5": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "retrieval-subscription-4",
+      "layer": "retrieval",
+      "metrics": {
+        "mrr": 0.5,
+        "ndcg_at_5": 0.6309297535714575,
+        "recall_at_5": 1.0
+      },
+      "passed": false,
+      "split": "dev"
+    }
+  ],
+  "pass_rate": 0.6375,
+  "split": "dev"
+}

@@ -1,0 +1,92 @@
+{
+  "case_count": 300,
+  "chunk_count": 314,
+  "created_at": "2026-09-03T13:02:56.405836+00:00",
+  "dataset_cases_sha256": "f0e282d4e6b0594dfc98267322bd865e846b4cc00dbbe8d534d2e6ebc6ec6363",
+  "dataset_corpus_sha256": "89a8828b798c97946e6d150851fe046692f1c8c58e1795648223345a5d526281",
+  "dataset_id": "doc2dial-rag-mini-dev-v1",
+  "encoding_latency_ms": 3404.4591672718525,
+  "evaluation_role": "PUBLIC_DEV_ABLATION",
+  "external_inference_api_calls": 0,
+  "flag_embedding_version": "1.3.5",
+  "metrics": {
+    "bm25": {
+      "all_evidence_recall@20": 0.9366666666666666,
+      "all_evidence_recall@5": 0.8133333333333334,
+      "all_evidence_recall@50": 0.9766666666666667,
+      "document_recall": 0.9633333333333334,
+      "evidence_recall": 0.9383333333333334,
+      "mrr": 0.6436475217249211,
+      "ndcg": 0.7143624010345687,
+      "recall@20": 0.9383333333333334,
+      "recall@5": 0.8183333333333334,
+      "recall@50": 0.9766666666666667
+    },
+    "dense": {
+      "all_evidence_recall@20": 0.96,
+      "all_evidence_recall@5": 0.8533333333333334,
+      "all_evidence_recall@50": 0.99,
+      "document_recall": 0.98,
+      "evidence_recall": 0.96,
+      "mrr": 0.6251660446679796,
+      "ndcg": 0.7048565989893767,
+      "recall@20": 0.96,
+      "recall@5": 0.856111111111111,
+      "recall@50": 0.99
+    },
+    "dense_bm25_rrf": {
+      "all_evidence_recall@20": 0.97,
+      "all_evidence_recall@5": 0.8466666666666667,
+      "all_evidence_recall@50": 1.0,
+      "document_recall": 0.9866666666666667,
+      "evidence_recall": 0.9716666666666667,
+      "mrr": 0.681915959040959,
+      "ndcg": 0.7510932014425387,
+      "recall@20": 0.9716666666666667,
+      "recall@5": 0.8516666666666667,
+      "recall@50": 1.0
+    },
+    "dense_sparse_bm25_rrf": {
+      "all_evidence_recall@20": 0.9833333333333333,
+      "all_evidence_recall@5": 0.8866666666666667,
+      "all_evidence_recall@50": 1.0,
+      "document_recall": 0.9933333333333333,
+      "evidence_recall": 0.985,
+      "mrr": 0.7068792995503522,
+      "ndcg": 0.7741462919791957,
+      "recall@20": 0.985,
+      "recall@5": 0.8916666666666667,
+      "recall@50": 1.0
+    },
+    "dense_sparse_rrf": {
+      "all_evidence_recall@20": 0.9766666666666667,
+      "all_evidence_recall@5": 0.8733333333333333,
+      "all_evidence_recall@50": 0.9933333333333333,
+      "document_recall": 0.9933333333333333,
+      "evidence_recall": 0.9783333333333334,
+      "mrr": 0.6835712769629178,
+      "ndcg": 0.7548641524470188,
+      "recall@20": 0.9783333333333334,
+      "recall@5": 0.8761111111111111,
+      "recall@50": 0.9933333333333333
+    },
+    "learned_sparse": {
+      "all_evidence_recall@20": 0.95,
+      "all_evidence_recall@5": 0.8233333333333334,
+      "all_evidence_recall@50": 0.9766666666666667,
+      "document_recall": 0.9833333333333333,
+      "evidence_recall": 0.9516666666666667,
+      "mrr": 0.6494319027921969,
+      "ndcg": 0.7221742226204194,
+      "recall@20": 0.9516666666666667,
+      "recall@5": 0.8266666666666667,
+      "recall@50": 0.9766666666666667
+    }
+  },
+  "model": "BAAI/bge-m3",
+  "model_revision": "5617a9f61b028005a4858fdac845db406aefb181",
+  "model_weights_sha256": "b5e0ce3470abf5ef3831aa1bd5553b486803e83251590ab7ff35a117cf6aad38",
+  "query_mode": "user_history",
+  "ranking_and_metric_latency_ms": 382.97303952276707,
+  "schema_version": 1
+}

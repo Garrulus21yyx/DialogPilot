@@ -1,0 +1,854 @@
+{
+  "task_id": "15",
+  "official_reward": 1.0,
+  "langfuse_session_id": "tau3-9b7894c1ccbf4917818154c6c4730f3f",
+  "termination": "user_stop",
+  "simulation_status": "COMPLETED",
+  "evaluation_errors": {},
+  "all": {
+    "reward": 1.0,
+    "db_check": {
+      "db_match": true,
+      "db_reward": 1.0
+    },
+    "env_assertions": [],
+    "action_checks": [
+      {
+        "action": {
+          "action_id": "15_0",
+          "requestor": "assistant",
+          "name": "find_user_id_by_name_zip",
+          "arguments": {
+            "first_name": "Fatima",
+            "last_name": "Johnson",
+            "zip": "78712"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "15_1",
+          "requestor": "assistant",
+          "name": "get_user_details",
+          "arguments": {
+            "user_id": "fatima_johnson_7581"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "15_2",
+          "requestor": "assistant",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W9389413"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "15_3",
+          "requestor": "assistant",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W8665881"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "15_4",
+          "requestor": "assistant",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W5199551"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "15_5",
+          "requestor": "assistant",
+          "name": "get_product_details",
+          "arguments": {
+            "product_id": "7363354090"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "15_6",
+          "requestor": "assistant",
+          "name": "modify_pending_order_items",
+          "arguments": {
+            "order_id": "#W5199551",
+            "item_ids": [
+              "1615379700"
+            ],
+            "new_item_ids": [
+              "3613716226"
+            ],
+            "payment_method_id": "paypal_5364164"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "write"
+      }
+    ],
+    "nl_assertions": [],
+    "communicate_checks": null,
+    "reward_basis": [
+      "DB",
+      "NL_ASSERTION"
+    ],
+    "reward_breakdown": {
+      "DB": 1.0,
+      "NL_ASSERTION": 1.0
+    },
+    "info": {
+      "env": null,
+      "nl": {
+        "note": "No nl_assertions to evaluate"
+      },
+      "communicate": {
+        "note": "No communicate_info to evaluate"
+      },
+      "action": null
+    }
+  },
+  "env": {
+    "reward": 1.0,
+    "db_check": {
+      "db_match": true,
+      "db_reward": 1.0
+    },
+    "env_assertions": [],
+    "action_checks": null,
+    "nl_assertions": null,
+    "communicate_checks": null,
+    "reward_basis": [
+      "DB",
+      "NL_ASSERTION"
+    ],
+    "reward_breakdown": {
+      "DB": 1.0
+    },
+    "info": null
+  },
+  "action": {
+    "reward": 1.0,
+    "db_check": null,
+    "env_assertions": null,
+    "action_checks": [
+      {
+        "action": {
+          "action_id": "15_0",
+          "requestor": "assistant",
+          "name": "find_user_id_by_name_zip",
+          "arguments": {
+            "first_name": "Fatima",
+            "last_name": "Johnson",
+            "zip": "78712"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "15_1",
+          "requestor": "assistant",
+          "name": "get_user_details",
+          "arguments": {
+            "user_id": "fatima_johnson_7581"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "15_2",
+          "requestor": "assistant",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W9389413"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "15_3",
+          "requestor": "assistant",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W8665881"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "15_4",
+          "requestor": "assistant",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W5199551"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "15_5",
+          "requestor": "assistant",
+          "name": "get_product_details",
+          "arguments": {
+            "product_id": "7363354090"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "15_6",
+          "requestor": "assistant",
+          "name": "modify_pending_order_items",
+          "arguments": {
+            "order_id": "#W5199551",
+            "item_ids": [
+              "1615379700"
+            ],
+            "new_item_ids": [
+              "3613716226"
+            ],
+            "payment_method_id": "paypal_5364164"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "write"
+      }
+    ],
+    "nl_assertions": null,
+    "communicate_checks": null,
+    "reward_basis": [
+      "DB"
+    ],
+    "reward_breakdown": {
+      "ACTION": 1.0
+    },
+    "info": null
+  },
+  "status": "EVALUATED",
+  "simulator_diagnostics": {
+    "capture_complete": true,
+    "capture_errors": [],
+    "calls": [
+      {
+        "call_id": "cf8bde5f-2e53-4efe-9ab3-407b9a6e29e3",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 32,
+            "prompt_tokens": 388,
+            "total_tokens": 420,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 32
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 256,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 256,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "9fe33fd3-3aba-40e9-b6c1-f86452423159",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 26,
+            "prompt_tokens": 451,
+            "total_tokens": 477,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 26
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 384,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 384,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "5a3de3a5-ff9c-49f6-9ec9-bba74ef9d22f",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 17,
+            "prompt_tokens": 512,
+            "total_tokens": 529,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 17
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 384,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 384,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "37cde003-5ca6-4893-a485-11b841958f1a",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 48,
+            "prompt_tokens": 662,
+            "total_tokens": 710,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 48
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 384,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 384,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "e78fd8d5-ab00-4e84-82fa-0d0a7806b95a",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 13,
+            "prompt_tokens": 789,
+            "total_tokens": 802,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 13
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 640,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 640,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "ccc22249-1597-4721-91ac-e1dec4092c40",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 18,
+            "prompt_tokens": 873,
+            "total_tokens": 891,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 18
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 768,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 768,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      }
+    ]
+  },
+  "target_trace": [
+    {
+      "verification": {
+        "status": "pass",
+        "grounded": true,
+        "need_escalation": false,
+        "reason": "answer supported and request addressed",
+        "reason_code": "passed",
+        "assessment": {
+          "request_hash": "658a874ac894ebe07e527ad2bdd314a56420418a8c89f0efacde0bf9102196cb",
+          "supported": true,
+          "answered": true,
+          "approval_terms_complete": false,
+          "issues": [],
+          "rejected_input_work_items": []
+        },
+        "request_binding": "c8ea1ec8bbfc535303edb26532b8e48f204e2688e293cd9f47fae83ad71372c6"
+      },
+      "candidate": "Of course, I can help with that. To locate your pending order, could you please provide the email address associated with your account?"
+    },
+    {
+      "turn": 1,
+      "input": "Hi, I have a pending order for some boots, and I’d like to change the size to an 8. Can you help me with that?",
+      "outcome": {
+        "workflow_run_id": "workflow-run:v1:6aaf6ab31c313b83272c3c67da068fe2b0de3e9826ed3c9a730202fbdeb0a2b4",
+        "signal_id": "interaction:v1:1a0ee32427c415a1d2780b2aa6439c549a2892f462448c0b624b2d268d0f22dd",
+        "kind": "FIELDS",
+        "expires_at": "2026-09-14T16:21:29.012400+00:00",
+        "interaction_publication_id": "publication:v1:f0f57bb2217054c7e784b4a2d364f8e21cadab6ba5e482345990a52d96acb0a0"
+      }
+    },
+    {
+      "verification": {
+        "status": "pass",
+        "grounded": true,
+        "need_escalation": false,
+        "reason": "answer supported and request addressed",
+        "reason_code": "passed",
+        "assessment": {
+          "request_hash": "a75261b3438713eab74131aff4e1c117949b576bfbb0c91c5c2986c7b596aa84",
+          "supported": true,
+          "answered": true,
+          "approval_terms_complete": false,
+          "issues": [],
+          "rejected_input_work_items": []
+        },
+        "request_binding": "c168195bee2901817f1fd4e646d67fca61ffe4a16df8a3ddb540956535b11d61"
+      },
+      "candidate": "Yes, I can look up your order using your name and zip code instead. Could you please provide your first name, last name, and zip code?"
+    },
+    {
+      "turn": 2,
+      "input": "I’m sorry, I don’t remember which email I used. Is there another way you can look up my order?",
+      "outcome": {
+        "workflow_run_id": "workflow-run:v1:f029f4797f82e1b972675747e6ed176e25703ebff6985529c69b17d1a3462574",
+        "signal_id": "interaction:v1:49dab02c172beb9d4100c88b4ec670056334ae254cf8043e7f816fd0f6e12c12",
+        "kind": "FIELDS",
+        "expires_at": "2026-09-14T16:21:38.484298+00:00",
+        "interaction_publication_id": "publication:v1:950a0c1fc09829b3e7a5fe32b74f9ae0d541cd14dd0ddbc432bec6847eeb9924"
+      }
+    },
+    {
+      "verification": {
+        "status": "pass",
+        "grounded": true,
+        "need_escalation": false,
+        "reason": "answer supported and request addressed",
+        "reason_code": "passed",
+        "assessment": {
+          "request_hash": "40379652f31818993c4284ae3ea2b761349466845522e8df7ef5ee5cf87e2d9f",
+          "supported": true,
+          "answered": true,
+          "approval_terms_complete": false,
+          "issues": [],
+          "rejected_input_work_items": []
+        },
+        "request_binding": "3df3f336f242c2f0be1dc413afdfcb107c068893a48f38cd587f03a89d2a1d71"
+      },
+      "candidate": "Thanks, Fatima. I found your pending order #W5199551, which contains a pair of Hiking Boots in size 10 (synthetic, waterproof). To change to size 8, the available size-8 variant is a synthetic, non-waterproof boot priced at $253.54, compared to your current boot at $253.89 — a $0.35 refund to you.\n\nPlease confirm this is the correct order and that you'd like to change the boots to size 8. Also, which payment method would you like to use to receive the $0.35 refund: your gift card or PayPal?"
+    },
+    {
+      "turn": 3,
+      "input": "Sure, my name is Fatima Johnson and my zip code is 78712.",
+      "outcome": {
+        "workflow_run_id": "workflow-run:v1:9e342a651d65256cbf10631cc71fd1bf2cdd948d1a7a85eaa1196ea3f04e4d6b",
+        "signal_id": "interaction:v1:1b24b140a74c33d4ccdc73c35a5caf9f09138e9225a283479b382e57fd3ecac5",
+        "kind": "FIELDS",
+        "expires_at": "2026-09-14T16:22:06.430789+00:00",
+        "interaction_publication_id": "publication:v1:25b03a88462f138af165ac492447b8a044eebd619e0325affcf93ea9aa2fd8e6"
+      }
+    },
+    {
+      "verification": {
+        "status": "pass",
+        "grounded": true,
+        "need_escalation": false,
+        "reason": "answer supported and request addressed",
+        "reason_code": "passed",
+        "assessment": {
+          "request_hash": "567b0f236f90fd1cb514df17ee7a5dab45f7f3e13304d3f5c4985ddf67877450",
+          "supported": true,
+          "answered": true,
+          "approval_terms_complete": true,
+          "issues": [],
+          "rejected_input_work_items": []
+        },
+        "request_binding": "b7ad461972467dce31bd11fa17ce6fc6b6c1f3ebee326be4f76e9da440c3cc49"
+      },
+      "candidate": "Thanks, Fatima. To confirm: I’ll change the Hiking Boots in order #W5199551 from size 10 (synthetic, waterproof) to size 8 (synthetic, non-waterproof), and the $0.35 price difference will be refunded to your PayPal. This change has not been made yet. Shall I go ahead?"
+    },
+    {
+      "turn": 4,
+      "input": "Yes, that’s the right order. I’d like to switch to the size 8 boots, and I’m fine with the synthetic, non-waterproof option. For the refund, I’d prefer PayPal, please.",
+      "outcome": {
+        "workflow_run_id": "workflow-run:v1:390577f3f8d00fe3b54030612596d2a3988b6a8f2b1b2b67340f6c39aba3cf78",
+        "signal_id": "approval:action:v1:377d77ba7f235935a27ffaee573e918824d8d20e30bbb4ebb3005a9424296675",
+        "kind": "APPROVAL",
+        "expires_at": "2026-09-07T16:37:13.148480+00:00",
+        "interaction_publication_id": "publication:v1:d6ec46d6ce6b44f0c9696a1827ea16fbab885b1ec9a7c8d03977cd776c5012f8"
+      }
+    },
+    {
+      "conversation_id": "tau3-9b7894c1ccbf4917818154c6c4730f3f",
+      "turn": 5,
+      "approval_id": "approval:action:v1:377d77ba7f235935a27ffaee573e918824d8d20e30bbb4ebb3005a9424296675",
+      "approval_classification": "approve"
+    },
+    {
+      "verification": {
+        "status": "pass",
+        "grounded": true,
+        "need_escalation": false,
+        "reason": "answer supported and request addressed",
+        "reason_code": "passed",
+        "assessment": {
+          "request_hash": "31684db00d51f91785aa7113a1a7dbda2556d27ddbec5a698afcaed9feb8fbdf",
+          "supported": true,
+          "answered": true,
+          "approval_terms_complete": false,
+          "issues": [],
+          "rejected_input_work_items": []
+        },
+        "request_binding": "f39c6d90a995fcc474e3d29d34d917b14eeccdea21eb4f7c49f5dd444ef8f987"
+      },
+      "candidate": "Done! Your Hiking Boots in order #W5199551 have been changed to size 8 (synthetic, non-waterproof), and the $0.35 price difference has been refunded to your PayPal. Your order status is now \"pending (item modified).\" Is there anything else I can help you with?"
+    },
+    {
+      "turn": 5,
+      "input": "Yes, please go ahead and make the change. Thank you!",
+      "outcome": {
+        "response_id": "publication:v1:cc5ee9f4236875f2eb4c69d64ab89a11d3fdf3299cd5cd9dc4a59b794c0b5e5d",
+        "response": {
+          "intent": "APPROVED_WORKFLOW_RESUME",
+          "conv_id": "tau3-9b7894c1ccbf4917818154c6c4730f3f",
+          "coverage": {
+            "complete": true,
+            "missing_requirement_ids": []
+          },
+          "grounded": true,
+          "response": "Done! Your Hiking Boots in order #W5199551 have been changed to size 8 (synthetic, non-waterproof), and the $0.35 price difference has been refunded to your PayPal. Your order status is now \"pending (item modified).\" Is there anything else I can help you with?",
+          "verified": true,
+          "escalated": false,
+          "task_plan": {
+            "plan_id": "turn-plan:v1:aa3cb9c67b799070bbd57d82ddc020f904c5432e341071e14ba377d482040e3b",
+            "work_item_ids": [
+              "work:1:continue-approved-workflow",
+              "work:2:continue-domain-objective-1"
+            ]
+          },
+          "ticket_id": null,
+          "agent_type": "retail",
+          "latency_ms": 10782.699665054679,
+          "request_id": "turn-5",
+          "agent_types": [
+            "retail"
+          ],
+          "response_id": "publication:v1:cc5ee9f4236875f2eb4c69d64ab89a11d3fdf3299cd5cd9dc4a59b794c0b5e5d",
+          "intent_group": "retail",
+          "response_seq": 5,
+          "primary_agent": "retail",
+          "ticket_status": null,
+          "agent_outcomes": [
+            {
+              "status": "SUCCEEDED",
+              "owner_agent": "retail",
+              "reason_code": "TOOL_COMMITTED",
+              "work_item_id": "work:1:continue-approved-workflow"
+            },
+            {
+              "status": "SUCCEEDED",
+              "owner_agent": "retail",
+              "reason_code": "FRAMEWORK_AGENT_REQUIREMENTS_SATISFIED",
+              "work_item_id": "work:2:continue-domain-objective-1"
+            }
+          ],
+          "bundle_version": "tau3-retail-v1",
+          "routing_reason": "APPROVED_WORKFLOW_RESUME",
+          "task_completed": true,
+          "delivery_status": "selected",
+          "handoff_created": false,
+          "evaluation_trace": {
+            "cost": {
+              "latency_ms": 10782.699665054679,
+              "work_item_count": 2,
+              "conversation_planner_invoked": false
+            },
+            "outcome": {
+              "kind": "COMPLETED",
+              "task_completed": true,
+              "verifier_status": "PASS",
+              "coverage_complete": true,
+              "missing_requirement_ids": []
+            },
+            "trigger": {
+              "invocation_admitted": true,
+              "deterministic_resolution": "APPROVAL_DECISION"
+            },
+            "artifact": {
+              "plan_id": "turn-plan:v1:aa3cb9c67b799070bbd57d82ddc020f904c5432e341071e14ba377d482040e3b",
+              "owner_ids": [
+                "retail"
+              ],
+              "route_mode": "AGENT_TASK",
+              "registry_fingerprint": "capability-bundle:v1:3b6d277e66dda28d864ed33af998551145d185fc79366a6bef1bfc46c0be4339",
+              "understanding_reason": "APPROVED_WORKFLOW_RESUME"
+            },
+            "consumption": {
+              "facts": [
+                {
+                  "source_ref": "official-call:tau3-call-80345366abaf4419b2c21aacf6bc8409",
+                  "producer_id": "modify_pending_order_items",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.modify_pending_order_items",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_00_PMJSrf6rOcJ40c9QrI4C5029",
+                  "producer_id": "find_user_id_by_name_zip",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.find_user_id_by_name_zip",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_00_tu1JVWsEc4fojbcCCyGE5450",
+                  "producer_id": "get_user_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_user_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_00_vi4QukbgFGu6oUjpoDbq4824",
+                  "producer_id": "get_order_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_order_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_01_tnqz4T5IDSPLNRGpXMmg6967",
+                  "producer_id": "get_order_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_order_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_02_BG1mOQOpU5PEXEGfQi0o5364",
+                  "producer_id": "get_order_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_order_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_00_9QbkqyQP1aHjpJKLy0tr6753",
+                  "producer_id": "get_product_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_product_details",
+                  "producer_version": "tool-output-v1"
+                }
+              ],
+              "work_items": [
+                {
+                  "owner_agent": "retail",
+                  "control_mode": "ACTION",
+                  "work_item_id": "work:1:continue-approved-workflow",
+                  "allowed_tools": [
+                    "modify_pending_order_items",
+                    "observed_operation_status"
+                  ],
+                  "allowed_skills": []
+                },
+                {
+                  "owner_agent": "retail",
+                  "control_mode": "DELEGATED",
+                  "work_item_id": "work:2:continue-domain-objective-1",
+                  "allowed_tools": [
+                    "calculate",
+                    "find_user_id_by_name_zip",
+                    "find_user_id_by_email",
+                    "get_order_details",
+                    "get_product_details",
+                    "get_item_details",
+                    "get_user_details",
+                    "list_all_product_types",
+                    "transfer_to_human_agents"
+                  ],
+                  "allowed_skills": []
+                }
+              ],
+              "result_statuses": [
+                "SUCCEEDED",
+                "SUCCEEDED"
+              ]
+            },
+            "schema_version": "target-evaluation-trace-v1",
+            "state_side_effect": {
+              "state_version_after": 14,
+              "workstream_statuses": [
+                "COMPLETED"
+              ],
+              "state_version_before": 11,
+              "committed_receipt_refs": [
+                "official-call:tau3-call-80345366abaf4419b2c21aacf6bc8409"
+              ]
+            }
+          },
+          "synthesis_reason": "ANSWER_SUPPORT_CHECKED",
+          "synthesis_status": "conversation_compose",
+          "supporting_agents": [],
+          "routing_disposition": "agent_task",
+          "synthesis_conflicts": [],
+          "verification_status": "pass",
+          "verification_reason_code": "ANSWER_SUPPORT_CHECKED"
+        },
+        "stages": []
+      }
+    }
+  ]
+}

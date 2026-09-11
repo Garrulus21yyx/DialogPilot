@@ -1,0 +1,845 @@
+{
+  "case_count": 80,
+  "dataset_checksum": "07de2bba52155be143cb865f6572405bc93370610f1b119ab2c494be377112fd",
+  "dataset_id": "dialogpilot-500-v1",
+  "dataset_version": "1.0.0-provisional",
+  "execution_mode": "isolated-real-owner-fixtures",
+  "fixture_registry": [
+    "coverage_gate",
+    "memory_archive_idempotent",
+    "memory_context_budget",
+    "memory_empty_recall",
+    "memory_finalize",
+    "memory_finalize_concurrent",
+    "memory_finalize_idempotent",
+    "memory_hybrid_exact",
+    "memory_hybrid_recency",
+    "memory_profile_merge",
+    "memory_summary_bound",
+    "react_max_steps",
+    "ticket_idempotent",
+    "tool_allowlist",
+    "tool_approval",
+    "tool_approved",
+    "tool_output",
+    "tool_schema",
+    "tool_timeout",
+    "tool_trace",
+    "tool_unknown",
+    "verifier_fail_closed"
+  ],
+  "gold_only": false,
+  "layers": {
+    "stateful": {
+      "all_assertions_pass": 1.0,
+      "assertion_pass_rate": 1.0
+    }
+  },
+  "layers_requested": [
+    "stateful"
+  ],
+  "outcomes": [
+    {
+      "case_id": "stateful-memory-archive-upsert-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-archive-upsert-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-cas-finalize-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-cas-finalize-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-concurrent-finalize-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-concurrent-finalize-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-duplicate-finalize-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-duplicate-finalize-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-exact-error-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-exact-error-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-exact-order-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-exact-order-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-explicit-close-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-explicit-close-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-profile-entities-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-profile-entities-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-profile-id-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-profile-id-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-profile-preference-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-profile-preference-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-raw-archive-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-raw-archive-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-recency-filter-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-recency-filter-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-recency-tie-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-recency-tie-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-retry-finalize-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-retry-finalize-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-semantic-recall-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-semantic-recall-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-short-close-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-short-close-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-summary-bound-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-summary-bound-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-summary-close-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-summary-close-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-summary-fallback-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-summary-fallback-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-summary-schema-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-memory-summary-schema-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-agent-allowlist-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-agent-allowlist-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-approval-required-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-approval-required-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-approved-call-id-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-approved-call-id-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-audit-minimum-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-audit-minimum-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-discovery-allowlist-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-discovery-allowlist-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-forged-approval-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-forged-approval-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-host-approved-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-host-approved-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-max-steps-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-max-steps-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-output-budget-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-output-budget-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-parallel-read-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-parallel-read-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-schema-required-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-schema-required-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-schema-type-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-schema-type-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-secret-args-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-secret-args-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-timeout-effect-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-timeout-effect-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-tool-pairing-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-tool-pairing-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-tool-timeout-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-tool-timeout-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-trace-propagation-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-trace-propagation-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-unknown-audit-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-unknown-audit-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-unknown-tool-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-unknown-tool-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-write-default-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    },
+    {
+      "case_id": "stateful-react-security-write-default-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "dev"
+    }
+  ],
+  "pass_rate": 1.0,
+  "split": "dev"
+}

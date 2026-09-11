@@ -1,0 +1,2766 @@
+{
+  "case_count": 48,
+  "dataset_id": "doc2dial-rag-mini-dev-v1",
+  "deployment_gates": {
+    "evidence_citation_recall_ge_90pct_when_available": true,
+    "generator_failure_rate_le_1pct": true,
+    "judge_citation_relevance_rate_ge_90pct": true,
+    "judge_correct_rate_ge_75pct": true,
+    "judge_failure_rate_le_5pct": true,
+    "judge_grounded_rate_ge_95pct": true,
+    "language_match_rate_ge_95pct": true
+  },
+  "fixed_context_config": "top5-2600",
+  "generation_prompt_version": "customer-support-grounded-v3",
+  "judge_note": "LLM judgement is secondary and must be calibrated on a human-reviewed subset; deterministic citation-ID, language, and failure metrics remain authoritative; gold-evidence citation precision is diagnostic because Doc2Dial annotations are not exhaustive",
+  "judge_prompt_version": "customer-support-rag-judge-v2",
+  "metrics": {
+    "abstention_rate": 0.10416666666666667,
+    "evidence_citation_recall_when_context_contains_evidence": 0.9166666666666666,
+    "generation_input_tokens": 112836,
+    "generation_output_tokens": 6881,
+    "generator_failure_count": 0,
+    "gold_evidence_citation_precision_when_available": 0.6944444444444444,
+    "judge_citation_relevance_rate": 1.0,
+    "judge_complete_rate": 0.7916666666666666,
+    "judge_correct_rate": 0.7916666666666666,
+    "judge_failure_count": 0,
+    "judge_grounded_rate": 0.9791666666666666,
+    "judge_input_tokens": 38875,
+    "judge_output_tokens": 1371,
+    "language_match_rate": 1.0,
+    "mean_token_f1_vs_reference": 0.24903918594788818
+  },
+  "models": {
+    "judge": {
+      "min_completion_tokens": 0,
+      "model": "deepseek-v4-pro",
+      "reasoning": "none"
+    },
+    "synthesis": {
+      "min_completion_tokens": 0,
+      "model": "deepseek-v4-pro",
+      "reasoning": "none"
+    }
+  },
+  "passes_all_gates": true,
+  "rows": [
+    {
+      "abstained": false,
+      "answer": "From the supplied sources, Corinthian Colleges refers to a group of schools that included Everest, Heald, and WyoTech. The sources discuss borrower defense to repayment applications for borrowers who attended these Corinthian Colleges schools, including a Corinthian-specific application for those with a first date of attendance between July 1, 2010, and Sept. 30, 2014. The sources do not provide a broader definition or history of Corinthian Colleges beyond identifying these school names.",
+      "case_id": "doc2dial-dev-00a4a05f229e5cee83e7b10f2e20873d-12",
+      "citations": [
+        "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-0",
+        "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-7"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2211,
+        "latency_ms": {
+          "max": 3288.531,
+          "p50": 3288.531,
+          "p95": 3288.531,
+          "sum": 3288.531
+        },
+        "output_tokens": 170,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.5,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1017,
+        "latency_ms": {
+          "max": 1570.844,
+          "p50": 1570.844,
+          "p95": 1570.844,
+          "sum": 1570.844
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "They are Everest, Heald, and WyoTech",
+      "token_f1": 0.10126582278481013
+    },
+    {
+      "abstained": false,
+      "answer": "Aidan can also help you quickly find pages on the website, retrieve your loan balance, make a payment, understand your repayment plan, find customer support information, and find your loan servicer(s).",
+      "case_id": "doc2dial-dev-0847d31eaab4dd943f8e9b0f6de370cb-10",
+      "citations": [
+        "Aidan | The FSA Virtual Assistant | Federal Student Aid#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2108,
+        "latency_ms": {
+          "max": 2026.902,
+          "p50": 2026.902,
+          "p95": 2026.902,
+          "sum": 2026.902
+        },
+        "output_tokens": 88,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 640,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 38,
+        "latency_ms": {
+          "max": 1168.555,
+          "p50": 1168.555,
+          "p95": 1168.555,
+          "sum": 1168.555
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "You can find out your current loan account balance, learn more about grants, or get help contacting your loan servicer.",
+      "token_f1": 0.38461538461538464
+    },
+    {
+      "abstained": false,
+      "answer": "No. There will be no record of an inspection on New York State DMV records when you receive an extension sticker. Because there is no DMV record of an inspection within the past 12 months, you cannot renew the registration until you get a New York State inspection.",
+      "case_id": "doc2dial-dev-09f69dbfbbb5ab0b90ce0faf73e5166b-13",
+      "citations": [
+        "About New York State Inspections#3_0::chunk-1",
+        "About New York State Inspections#3_0::chunk-2"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2552,
+        "latency_ms": {
+          "max": 3023.646,
+          "p50": 3023.646,
+          "p95": 3023.646,
+          "sum": 3023.646
+        },
+        "output_tokens": 118,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1096,
+        "latency_ms": {
+          "max": 1965.574,
+          "p50": 1965.574,
+          "p95": 1965.574,
+          "sum": 1965.574
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "No, it will not. This also means that you can not renew the registration, if there is no record of inspection within the past 12 months.",
+      "token_f1": 0.4594594594594595
+    },
+    {
+      "abstained": true,
+      "answer": "I cannot confirm what an account is from the supplied sources. The sources describe specific accounts such as a DIAL-IN search account, a MyDMV account, and a my Social Security account, but they do not provide a general definition of an account.",
+      "case_id": "doc2dial-dev-0f20051cca23859b571386e82fff9ac8-12",
+      "citations": [],
+      "context_contains_evidence": 0.0,
+      "evidence_cited": 0.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2656,
+        "latency_ms": {
+          "max": 2254.83,
+          "p50": 2254.83,
+          "p95": 2254.83,
+          "sum": 2254.83
+        },
+        "output_tokens": 76,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": false,
+        "correct": false,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 128,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 67,
+        "latency_ms": {
+          "max": 1163.525,
+          "p50": 1163.525,
+          "p95": 1163.525,
+          "sum": 1163.525
+        },
+        "output_tokens": 21,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "Online Services.",
+      "token_f1": 0.0
+    },
+    {
+      "abstained": false,
+      "answer": "If your application is approved, wait for your welcome call from VA. They will call you to welcome you to the VA health care program, help you schedule your first doctor's appointment, and answer any questions you may have about your health care benefits. You should also read your Veterans Health Benefits Handbook, which will be sent to you by mail. To get your Veterans Health Identification Card (VHIC), contact your local VA medical center and speak with the enrollment coordinator. If you requested a doctor's appointment when you applied, VA will set up an appointment for you and send you a notice with your appointment time in the mail. If you did not ask for a doctor's appointment when you applied, VA will help you set up your appointment during your welcome call.",
+      "case_id": "doc2dial-dev-13e5b0e028d5aa4d2523b5ebbfe77977-13",
+      "citations": [
+        "After You Apply For Health Care Benefits | Veterans Affairs#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2024,
+        "latency_ms": {
+          "max": 3412.431,
+          "p50": 3412.431,
+          "p95": 3412.431,
+          "sum": 3412.431
+        },
+        "output_tokens": 198,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 756,
+        "latency_ms": {
+          "max": 1696.498,
+          "p50": 1696.498,
+          "p95": 1696.498,
+          "sum": 1696.498
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": " Read your Veterans Health Benefits Handbook ",
+      "token_f1": 0.08391608391608392
+    },
+    {
+      "abstained": false,
+      "answer": "The sources indicate you can learn more about priority groups from the VA health benefits information. Specifically, the \"About VA health benefits\" page states \"Learn more about priority groups\" in the context of how your covered benefits depend on your priority group. The \"Active-Duty Service Members And VA Health Care\" page also states \"Learn more about priority groups\" when explaining priority group 6 assignment. However, the sources do not provide a specific URL, phone number, or detailed page location for priority group information beyond these references.",
+      "case_id": "doc2dial-dev-13f5099fe2dc8875b44e6b15ad7c2dd1-15",
+      "citations": [
+        "About VA Health Benefits | Veterans Affairs#1_0::chunk-0",
+        "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-1"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2156,
+        "latency_ms": {
+          "max": 4515.519,
+          "p50": 4515.519,
+          "p95": 4515.519,
+          "sum": 4515.519
+        },
+        "output_tokens": 175,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.5,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1062,
+        "latency_ms": {
+          "max": 2251.943,
+          "p50": 2251.943,
+          "p95": 2251.943,
+          "sum": 2251.943
+        },
+        "output_tokens": 34,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "you can browse our website",
+      "token_f1": 0.043478260869565216
+    },
+    {
+      "abstained": false,
+      "answer": "If your revocation was due to an alcohol-related incident, the restriction remains in effect for five years from the date you receive your driver license or permit. If your revocation was not due to an alcohol-related incident, the restriction remains in effect for two years from the date you receive your driver license or permit. The restriction cannot be removed earlier.",
+      "case_id": "doc2dial-dev-23178e836c47051d9cc2be93932f6757-1",
+      "citations": [
+        "About problem driver restrictions#3_0::chunk-1"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2354,
+        "latency_ms": {
+          "max": 2333.372,
+          "p50": 2333.372,
+          "p95": 2333.372,
+          "sum": 2333.372
+        },
+        "output_tokens": 107,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": false,
+        "correct": false,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 646,
+        "latency_ms": {
+          "max": 1274.169,
+          "p50": 1274.169,
+          "p95": 1274.169,
+          "sum": 1274.169
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "You would have to either log into our portal or check the court order against you.",
+      "token_f1": 0.12658227848101264
+    },
+    {
+      "abstained": false,
+      "answer": "To get your Social Security Benefit Verification Letter online, log in to your my Social Security account. Then go to \"Replacement Documents\" on the right side of the screen and choose \"Get a Benefit Verification Letter\" to view, save, and print your personalized letter. If you do not have a my Social Security account, you can create a free account, which takes less than 10 minutes, and then download or print your benefit verification letter. The letter can serve as proof of retirement, disability, Supplemental Security Income (SSI), or Medicare benefits, and may be used for loans, housing assistance, mortgage, and other income verification purposes. If you need help, call 1-800-772-1213 or visit your Social Security office. If you are deaf or hard of hearing, call TTY 1-800-325-0778 between 7 a.m. and 7 p.m. Monday through Friday.",
+      "case_id": "doc2dial-dev-247f23e580bce66d852b143a622f29d7-12",
+      "citations": [
+        "Benefit Verification Letter  | Social Security Administration#1_0::chunk-0",
+        "Benefit Verification Letter  | Social Security Administration#2_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 0.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2225,
+        "latency_ms": {
+          "max": 3905.992,
+          "p50": 3905.992,
+          "p95": 3905.992,
+          "sum": 3905.992
+        },
+        "output_tokens": 258,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1098,
+        "latency_ms": {
+          "max": 1604.94,
+          "p50": 1604.94,
+          "p95": 1604.94,
+          "sum": 1604.94
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "Your Right To Question The Decision Made On Your Claim",
+      "token_f1": 0.07741935483870968
+    },
+    {
+      "abstained": false,
+      "answer": "Creating a free my Social Security account takes less than 10 minutes.",
+      "case_id": "doc2dial-dev-28c759aa607520e8e07e080847e19054-11",
+      "citations": [
+        "Benefit Verification Letter  | Social Security Administration#2_0::chunk-0",
+        "Benefit Verification Letter  | Social Security Administration#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2439,
+        "latency_ms": {
+          "max": 1941.906,
+          "p50": 1941.906,
+          "p95": 1941.906,
+          "sum": 1941.906
+        },
+        "output_tokens": 67,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.5,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 896,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 28,
+        "latency_ms": {
+          "max": 1295.95,
+          "p50": 1295.95,
+          "p95": 1295.95,
+          "sum": 1295.95
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "It should only take 10 minutes of your time.",
+      "token_f1": 0.1904761904761905
+    },
+    {
+      "abstained": false,
+      "answer": "For retirement benefits, you can start benefits as early as age 62 or as late as age 70. You should apply four months before you want your Social Security retirement benefits to start. For example, if you want benefits to start at age 62, you can apply at age 61 and eight months. For disability benefits, you should apply as soon as you become disabled. However, based on the conversation, you stated you are not disabled, so the disability timing would not apply to you.",
+      "case_id": "doc2dial-dev-2a86125210a3fd5b3a548d32717abf8e-11",
+      "citations": [
+        "Apply for Retirement Benefits | SSA#1_0::chunk-0",
+        "Benefits Planner: Disability | How You Apply | Social Security Administration#2_0::chunk-0",
+        "Benefits Planner: Disability | How You Apply | Social Security Administration#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 0.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2447,
+        "latency_ms": {
+          "max": 2669.779,
+          "p50": 2669.779,
+          "p95": 2669.779,
+          "sum": 2669.779
+        },
+        "output_tokens": 195,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": false,
+        "correct": false,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1550,
+        "latency_ms": {
+          "max": 1650.208,
+          "p50": 1650.208,
+          "p95": 1650.208,
+          "sum": 1650.208
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "If you are a spouse of a retired or disabled worker then you should apply within 3 months of age 62 or older and fill out the application online for monthly benefits.",
+      "token_f1": 0.25641025641025644
+    },
+    {
+      "abstained": true,
+      "answer": "The provided sources do not contain information about what to do after receiving a response from the ED regarding a borrower defense application denial or partial approval. Therefore, the next steps or appeal options for that specific situation cannot be confirmed from the supplied material.",
+      "case_id": "doc2dial-dev-2be506ef6926fe365c87941f7ef14862-12",
+      "citations": [],
+      "context_contains_evidence": 0.0,
+      "evidence_cited": 0.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2716,
+        "latency_ms": {
+          "max": 2834.448,
+          "p50": 2834.448,
+          "p95": 2834.448,
+          "sum": 2834.448
+        },
+        "output_tokens": 73,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": false,
+        "correct": false,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 267,
+        "latency_ms": {
+          "max": 1647.206,
+          "p50": 1647.206,
+          "p95": 1647.206,
+          "sum": 1647.206
+        },
+        "output_tokens": 21,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "Well for your information, when your loan is taken out of forbearance or stopped collections status, any interest that accumulated for the length of time that you were in forbearance or stopped collections is then added to the amount you owe when you entered into either of these status'. This may result in the total amount you owe in the future being higher",
+      "token_f1": 0.18518518518518517
+    },
+    {
+      "abstained": false,
+      "answer": "Yes. Social Security offers benefit calculators and planners to help you get estimates of benefits you and your family may be eligible for. You can use your personal my Social Security account to verify your earnings and get estimates of future retirement, disability, and survivors benefits. If you already have enough Social Security credits to qualify for benefits, you can use the Retirement Estimator for a personalized, instant estimate of retirement benefits and enter different dates and ages to determine the best time to retire. For survivors or disability benefit estimates, or if you do not already have enough credits, you can use one of the benefit calculators to estimate future retirement, disability, and survivors benefits.",
+      "case_id": "doc2dial-dev-2e4dd0f220c11f620c803bc75605946a-9",
+      "citations": [
+        "Benefits Planner | Social Security Administration#1_0::chunk-0",
+        "Benefits Planner | Social Security Administration#2_0::chunk-1",
+        "Benefits Planner | Social Security Administration#1_0::chunk-1",
+        "Benefits Planner | Social Security Administration#2_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2160,
+        "latency_ms": {
+          "max": 3764.245,
+          "p50": 3764.245,
+          "p95": 3764.245,
+          "sum": 3764.245
+        },
+        "output_tokens": 229,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.25,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1683,
+        "latency_ms": {
+          "max": 1026.384,
+          "p50": 1026.384,
+          "p95": 1026.384,
+          "sum": 1026.384
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "You can use one of our benefit calculators to estimate your future retirement, disability, and survivors benefits ",
+      "token_f1": 0.24060150375939848
+    },
+    {
+      "abstained": false,
+      "answer": "If the sticker is not usable, you can have your vehicle re-inspected or order a replacement sticker using the form Request for Replacement Inspection Sticker (VS-118). Complete the form and mail it to the address on the form.",
+      "case_id": "doc2dial-dev-2e9623b209161de6e9448f0c0d2b113b-11",
+      "citations": [
+        "About New York State Inspections#3_0::chunk-2"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2493,
+        "latency_ms": {
+          "max": 2081.554,
+          "p50": 2081.554,
+          "p95": 2081.554,
+          "sum": 2081.554
+        },
+        "output_tokens": 85,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 512,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 128,
+        "latency_ms": {
+          "max": 1352.502,
+          "p50": 1352.502,
+          "p95": 1352.502,
+          "sum": 1352.502
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "You could have your vehicle reinspected or you can order a replacement sticker.",
+      "token_f1": 0.37735849056603776
+    },
+    {
+      "abstained": false,
+      "answer": "Según las fuentes proporcionadas, su pagaré (promissory note) es un documento legal. Al firmarlo, usted acepta reembolsar el préstamo de acuerdo con los términos establecidos en dicho documento. Debe reembolsar todos los préstamos que reciba, incluso si no completa su educación.",
+      "case_id": "doc2dial-dev-3231fc98c27c1216a21ec9baf5abd0ea-11",
+      "citations": [
+        "Avoiding Default | Federal Student Aid#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2488,
+        "latency_ms": {
+          "max": 2775.096,
+          "p50": 2775.096,
+          "p95": 2775.096,
+          "sum": 2775.096
+        },
+        "output_tokens": 112,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 688,
+        "latency_ms": {
+          "max": 1982.954,
+          "p50": 1982.954,
+          "p95": 1982.954,
+          "sum": 1982.954
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "Read your promissory note. It is a legal document. Signing a promissory note means that you agree to repay the loan in accordance with the terms of the promissory note.",
+      "token_f1": 0.07894736842105264
+    },
+    {
+      "abstained": false,
+      "answer": "You should fill out the online Child Disability Report. At the end of the report, you will be asked to sign a form that gives the child's doctor permission to provide information about the child's disability. If you do not want to complete the report online or need help, you can call toll-free at 1-800-772-1213.",
+      "case_id": "doc2dial-dev-386b9ab9d08e5166377f9854763b16f9-11",
+      "citations": [
+        "Apply For A Child (Under Age 18) | Disability Benefits | SSA#1_0::chunk-0",
+        "Apply For A Child (Under Age 18) | Disability Benefits | SSA#2_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2281,
+        "latency_ms": {
+          "max": 2520.925,
+          "p50": 2520.925,
+          "p95": 2520.925,
+          "sum": 2520.925
+        },
+        "output_tokens": 154,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.5,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 768,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 122,
+        "latency_ms": {
+          "max": 1211.539,
+          "p50": 1211.539,
+          "p95": 1211.539,
+          "sum": 1211.539
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "COMPLETE the Child Disability Report online.",
+      "token_f1": 0.1791044776119403
+    },
+    {
+      "abstained": false,
+      "answer": "To qualify for the ACA minimum essential coverage requirement, you must have been enrolled in one of these programs: the VA health care program, the Civilian Health and Medical Program of the Department of Veterans Affairs (CHAMPVA), CHAMPVA through the Program of Comprehensive Assistance to Family Caregivers, the Spina Bifida Health Care Benefits Program, or a Department of Defense TRICARE plan that provides minimum essential coverage.",
+      "case_id": "doc2dial-dev-406b5f89f61e55f3a77ff0e41f4f3e66-11",
+      "citations": [
+        "Affordable Care Act (ACA) And Your Coverage | Veterans Affairs#1_0::chunk-1",
+        "Affordable Care Act (ACA) And Your Coverage | Veterans Affairs#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2292,
+        "latency_ms": {
+          "max": 2677.524,
+          "p50": 2677.524,
+          "p95": 2677.524,
+          "sum": 2677.524
+        },
+        "output_tokens": 163,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 924,
+        "latency_ms": {
+          "max": 1788.133,
+          "p50": 1788.133,
+          "p95": 1788.133,
+          "sum": 1788.133
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "You would have to been enrolled in one or more of the programs such as VA health care.",
+      "token_f1": 0.3333333333333333
+    },
+    {
+      "abstained": true,
+      "answer": "The provided sources do not state what will happen after you meet the requirements for VA Aid and Attendance benefits or Housebound allowance. The sources describe eligibility and how to apply, but they do not confirm the next steps or outcome after qualification.",
+      "case_id": "doc2dial-dev-4630990a8988bc91fd954aa6056dbfb1-12",
+      "citations": [],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 0.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2505,
+        "latency_ms": {
+          "max": 2442.211,
+          "p50": 2442.211,
+          "p95": 2442.211,
+          "sum": 2442.211
+        },
+        "output_tokens": 72,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": false,
+        "correct": false,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 197,
+        "latency_ms": {
+          "max": 2587.085,
+          "p50": 2587.085,
+          "p95": 2587.085,
+          "sum": 2587.085
+        },
+        "output_tokens": 21,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "Yes You may qualify",
+      "token_f1": 0.0425531914893617
+    },
+    {
+      "abstained": false,
+      "answer": "If the inspection sticker on your vehicle has expired in the past 60 days, you can receive a fine of $25 to $50. A mandatory state surcharge is also added to the fine.",
+      "case_id": "doc2dial-dev-46c0f3dbe110f020aaf0358ae35d4283-13",
+      "citations": [
+        "About New York State Inspections#3_0::chunk-2"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2411,
+        "latency_ms": {
+          "max": 2224.363,
+          "p50": 2224.363,
+          "p95": 2224.363,
+          "sum": 2224.363
+        },
+        "output_tokens": 71,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 636,
+        "latency_ms": {
+          "max": 1599.339,
+          "p50": 1599.339,
+          "p95": 1599.339,
+          "sum": 1599.339
+        },
+        "output_tokens": 21,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "You may be fined $ 25 to $ 50.",
+      "token_f1": 0.2
+    },
+    {
+      "abstained": false,
+      "answer": "Based on the provided sources, I cannot confirm that contacting Social Security and checking the income/resource limits means you can now apply for SSI. The sources state that people who do not have enough work credits may possibly qualify for SSI if they have limited income and resources, and that Social Security asks for information about your medical condition, work, and education history to decide if you are disabled under their rules. However, the sources do not provide the specific next step or confirm that you are ready to apply after only checking the income and resource requirements.",
+      "case_id": "doc2dial-dev-4a856ad6df4f53edcd00f1aaa7cffdbc-11",
+      "citations": [
+        "Benefits Planner: Disability | How You Apply | Social Security Administration#2_0::chunk-1",
+        "Benefits Planner: Disability | Social Security Administration#2_0::chunk-0"
+      ],
+      "context_contains_evidence": 0.0,
+      "evidence_cited": 0.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1936,
+        "latency_ms": {
+          "max": 4004.266,
+          "p50": 4004.266,
+          "p95": 4004.266,
+          "sum": 4004.266
+        },
+        "output_tokens": 181,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": false,
+        "correct": false,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 946,
+        "latency_ms": {
+          "max": 1655.064,
+          "p50": 1655.064,
+          "p95": 1655.064,
+          "sum": 1655.064
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "Yes, that's correct.",
+      "token_f1": 0.01941747572815534
+    },
+    {
+      "abstained": false,
+      "answer": "Yes. If you have an adverse credit history, you may still become eligible for a Direct PLUS Loan by documenting extenuating circumstances relating to that adverse credit history. You would need to provide a statement explaining your extenuating circumstances and applicable documentation to support your claim. The U.S. Department of Education can use discretion to consider whether your circumstances qualify. However, review does not guarantee approval, and previous approval does not guarantee further approvals. Loss of a job or poor economy alone are generally not considered extenuating circumstances. If you qualify through extenuating circumstances, you must also complete PLUS Credit Counseling.",
+      "case_id": "doc2dial-dev-56ecb9ca49fe6db3568b935cff6c0510-11",
+      "citations": [
+        "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0::chunk-0",
+        "Complete Federal Student Loan Counseling | Federal Student Aid#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 0.0,
+      "evidence_cited": 0.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2189,
+        "latency_ms": {
+          "max": 3559.877,
+          "p50": 3559.877,
+          "p95": 3559.877,
+          "sum": 3559.877
+        },
+        "output_tokens": 203,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1036,
+        "latency_ms": {
+          "max": 2312.343,
+          "p50": 2312.343,
+          "p95": 2312.343,
+          "sum": 2312.343
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "You are primarily an authorized user on the account.",
+      "token_f1": 0.07207207207207207
+    },
+    {
+      "abstained": false,
+      "answer": "If you previously defaulted on your federal student loan and have entered a rehabilitation plan, you should contact the collection agency that you have been working with to set up that plan. This is to determine whether there may be any negative consequences if you choose to enter stopped collections status.",
+      "case_id": "doc2dial-dev-5c539f53cdb29706da2eac1fd093fb8a-10",
+      "citations": [
+        "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-5"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2508,
+        "latency_ms": {
+          "max": 2712.226,
+          "p50": 2712.226,
+          "p95": 2712.226,
+          "sum": 2712.226
+        },
+        "output_tokens": 105,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 625,
+        "latency_ms": {
+          "max": 1776.489,
+          "p50": 1776.489,
+          "p95": 1776.489,
+          "sum": 1776.489
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "Go ahead and contact the collection agency that you have been working with to set up that plan in order to determine whether there may be any negative consequences if you choose to enter stopped collections status.",
+      "token_f1": 0.7499999999999999
+    },
+    {
+      "abstained": false,
+      "answer": "If your inspection sticker falls off, you can reattach it to the windshield with clear tape or a small amount of clear adhesive. The inspection station must still be able to remove it during your next inspection. If the sticker is not usable, you can either have your vehicle re-inspected or order a replacement sticker using the form \"Request for Replacement Inspection Sticker\" (VS-118). Complete the form and mail it to the address on the form.",
+      "case_id": "doc2dial-dev-5d87b04944b11a9a535998c5c0e1b075-8",
+      "citations": [
+        "About New York State Inspections#3_0::chunk-2"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2547,
+        "latency_ms": {
+          "max": 2547.745,
+          "p50": 2547.745,
+          "p95": 2547.745,
+          "sum": 2547.745
+        },
+        "output_tokens": 133,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 689,
+        "latency_ms": {
+          "max": 1726.966,
+          "p50": 1726.966,
+          "p95": 1726.966,
+          "sum": 1726.966
+        },
+        "output_tokens": 34,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "Clear tape works great to reattach it to the windshield.",
+      "token_f1": 0.18181818181818182
+    },
+    {
+      "abstained": false,
+      "answer": "After you return your vehicle to New York State, write the date the vehicle returned to New York on the extension sticker, attach the sticker to your windshield, and get your vehicle inspected within 10 days.",
+      "case_id": "doc2dial-dev-6977cbb3bed8f0e8480018cb3cac6716-13",
+      "citations": [
+        "About New York State Inspections#3_0::chunk-2"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2310,
+        "latency_ms": {
+          "max": 2078.334,
+          "p50": 2078.334,
+          "p95": 2078.334,
+          "sum": 2078.334
+        },
+        "output_tokens": 82,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 640,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 13,
+        "latency_ms": {
+          "max": 1244.339,
+          "p50": 1244.339,
+          "p95": 1244.339,
+          "sum": 1244.339
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "After returning your vehicle to New York State\n    write the date the vehicle returned to New York on the extension sticker\n   stick the sticker to your windshield",
+      "token_f1": 0.7936507936507936
+    },
+    {
+      "abstained": false,
+      "answer": "Whether you applied online, by phone, or in an office, you can check the status of your disability and SSI hearing using your personal my Social Security account. If you do not have one, you can create one today.",
+      "case_id": "doc2dial-dev-69a1ae6bc0b246b8725a70ae49745fe8-11",
+      "citations": [
+        "Appeal A Decision | Social Security Administration#1_0::chunk-1",
+        "Appeal A Decision | Social Security Administration#2_0::chunk-1"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2253,
+        "latency_ms": {
+          "max": 2338.79,
+          "p50": 2338.79,
+          "p95": 2338.79,
+          "sum": 2338.79
+        },
+        "output_tokens": 113,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.5,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1039,
+        "latency_ms": {
+          "max": 2173.797,
+          "p50": 2173.797,
+          "p95": 2173.797,
+          "sum": 2173.797
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "A my Social Security account is an easy , convenient , and secure way to do business with us ",
+      "token_f1": 0.25
+    },
+    {
+      "abstained": false,
+      "answer": "Inspections expire the last day of the month punched on the inspection sticker.",
+      "case_id": "doc2dial-dev-6f9180a71a8195073fd4fe17e708cee9-12",
+      "citations": [
+        "About New York State Inspections#3_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2399,
+        "latency_ms": {
+          "max": 2073.28,
+          "p50": 2073.28,
+          "p95": 2073.28,
+          "sum": 2073.28
+        },
+        "output_tokens": 60,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 512,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 127,
+        "latency_ms": {
+          "max": 1457.297,
+          "p50": 1457.297,
+          "p95": 1457.297,
+          "sum": 1457.297
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "A valid inspection tag must be displayed on your vehicle. Inspections expire on the last day of the month marked on the inspection label.",
+      "token_f1": 0.5945945945945945
+    },
+    {
+      "abstained": false,
+      "answer": "Yes. Blue Water Navy Veterans are now entitled to a presumption of service connection for illnesses related to Agent Orange exposure. This is a result of Public Law 116-23, the Blue Water Navy Vietnam Veterans Act of 2019. The law was signed on June 25, 2019, and takes effect on January 1, 2020.",
+      "case_id": "doc2dial-dev-7ebc042e7cd8ad9be3ac94158aac5ffb-14",
+      "citations": [
+        "Agent Orange Exposure On Navy Or Coast Guard Ships | Veterans Affairs#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2672,
+        "latency_ms": {
+          "max": 2203.008,
+          "p50": 2203.008,
+          "p95": 2203.008,
+          "sum": 2203.008
+        },
+        "output_tokens": 123,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 728,
+        "latency_ms": {
+          "max": 1560.346,
+          "p50": 1560.346,
+          "p95": 1560.346,
+          "sum": 1560.346
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "Of course, they are now entitled to a presumption of service connection for illnesses related to Agent Orange exposure, this law was signed on 2019 and takes effect on January 2020",
+      "token_f1": 0.6823529411764706
+    },
+    {
+      "abstained": false,
+      "answer": "Yes, if you have a VA life insurance policy, you can use your online portal to pay your premium. The source states you can use the online portal to \"Pay your premium (the amount you'll pay each month to keep your coverage).\"",
+      "case_id": "doc2dial-dev-87921ca5728f6fdad0c8639539661493-14",
+      "citations": [
+        "Access Your VA Life Insurance Policy Online | Veterans Affairs#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2595,
+        "latency_ms": {
+          "max": 2898.139,
+          "p50": 2898.139,
+          "p95": 2898.139,
+          "sum": 2898.139
+        },
+        "output_tokens": 96,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 526,
+        "latency_ms": {
+          "max": 1591.962,
+          "p50": 1591.962,
+          "p95": 1591.962,
+          "sum": 1591.962
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "Yes, you can check your premium online and pay it there too.",
+      "token_f1": 0.2545454545454546
+    },
+    {
+      "abstained": false,
+      "answer": "If you do not want to complete the Child Disability Report online or you need help, you can call Social Security toll-free at 1-800-772-1213. If you are deaf or hard of hearing, call the toll-free TTY number at 1-800-325-0778. Representatives are available Monday through Friday between 8 a.m. and 5:30 p.m.",
+      "case_id": "doc2dial-dev-94c86cc0695d314271835dc8d5ae3493-11",
+      "citations": [
+        "Apply For A Child (Under Age 18) | Disability Benefits | SSA#2_0::chunk-0",
+        "Apply For A Child (Under Age 18) | Disability Benefits | SSA#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2491,
+        "latency_ms": {
+          "max": 2377.074,
+          "p50": 2377.074,
+          "p95": 2377.074,
+          "sum": 2377.074
+        },
+        "output_tokens": 165,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.5,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 920,
+        "latency_ms": {
+          "max": 1140.254,
+          "p50": 1140.254,
+          "p95": 1140.254,
+          "sum": 1140.254
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": " you can call us toll - free at 1 - 800 - 772 - 1213 ",
+      "token_f1": 0.273972602739726
+    },
+    {
+      "abstained": false,
+      "answer": "If you are considering a private student loan, you should learn about the differences between federal and other loans. Pay special attention to the terms and conditions of the private loans so you understand what your obligations would be. If you have any questions or don’t understand what types of loans are in your aid offer, contact the school.",
+      "case_id": "doc2dial-dev-95eb1569c01691ed454fe5a51d485884-13",
+      "citations": [
+        "Accepting Aid | Federal Student Aid#1_0::chunk-0",
+        "Comparing School Aid Offers | Federal Student Aid#1_0::chunk-1"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2099,
+        "latency_ms": {
+          "max": 2438.141,
+          "p50": 2438.141,
+          "p95": 2438.141,
+          "sum": 2438.141
+        },
+        "output_tokens": 132,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.5,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 818,
+        "latency_ms": {
+          "max": 1643.851,
+          "p50": 1643.851,
+          "p95": 1643.851,
+          "sum": 1643.851
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "You should learn the differences between federal and other loans then.",
+      "token_f1": 0.2816901408450704
+    },
+    {
+      "abstained": false,
+      "answer": "CHAMPVA is a VA health benefits program. With CHAMPVA, you are covered for services and supplies when VA determines they are medically necessary and received from an authorized provider. CHAMPVA is always the second payer to Medicare. Eligibility can be affected by factors such as age, Medicare status, student status, remarriage, or being a primary family caregiver of a Veteran with disabilities. Specific eligibility details depend on your status, and the sources do not provide a complete general eligibility list in this excerpt.",
+      "case_id": "doc2dial-dev-9c7626c8c2aa2b927759e64a2323d8a9-8",
+      "citations": [
+        "CHAMPVA Benefits | Veterans Affairs#1_0::chunk-2",
+        "CHAMPVA Benefits | Veterans Affairs#1_0::chunk-1"
+      ],
+      "context_contains_evidence": 0.0,
+      "evidence_cited": 0.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2366,
+        "latency_ms": {
+          "max": 3752.045,
+          "p50": 3752.045,
+          "p95": 3752.045,
+          "sum": 3752.045
+        },
+        "output_tokens": 166,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": false
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1156,
+        "latency_ms": {
+          "max": 1762.797,
+          "p50": 1762.797,
+          "p95": 1762.797,
+          "sum": 1762.797
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "you may be able to get health insurance through the Civilian Health and Medical Program of the Department of Veterans Affairs CHAMPVA .",
+      "token_f1": 0.19047619047619047
+    },
+    {
+      "abstained": false,
+      "answer": "Yes. ED has determined that students who first enrolled in certain programs at certain schools operated by CCI between 2010 and 2014 have borrower defense claims arising from the publication of misleading job placement rates and are eligible for a discharge of part or all of their loans under ED’s Borrower Defense regulation. To have a successful borrower defense claim based on ED’s CCI findings, you must have enrolled in one of the covered programs during a listed time period. ED has established a process for the review of borrower defense to repayment claims for job placement rates asserted by borrowers enrolled in the covered programs at CCI schools during the eligibility period. Each CCI borrower’s application is reviewed under the same process to determine whether the borrower qualifies for borrower defense to payment relief based on a CCI school job placement rate claim.",
+      "case_id": "doc2dial-dev-a7fe7aa38830465e8a73320e9320b305-5",
+      "citations": [
+        "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-12"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1597,
+        "latency_ms": {
+          "max": 4288.012,
+          "p50": 4288.012,
+          "p95": 4288.012,
+          "sum": 4288.012
+        },
+        "output_tokens": 211,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 787,
+        "latency_ms": {
+          "max": 1026.681,
+          "p50": 1026.681,
+          "p95": 1026.681,
+          "sum": 1026.681
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "Yes, the ED have set up a process for the review of such cases for job placement rates asserted by borrowers enrolled in the covered programs at CCI schools during the eligibility period",
+      "token_f1": 0.3222222222222222
+    },
+    {
+      "abstained": false,
+      "answer": "If you die, your family members may be protected through Survivors Benefits. You can use the Survivors Planner to learn how your family members are protected or how they may qualify as survivors on your Social Security record. This protection is particularly important for young families with children. Your family’s eligibility for survivors benefits when you die is determined using the amount of Social Security credits you have earned. However, the sources do not provide specific details about what happens to survivors if you are dependent on Social Security as your income.",
+      "case_id": "doc2dial-dev-ab1414c04aac7b762752cef10b2e59b8-11",
+      "citations": [
+        "Benefits Planner | Social Security Administration#2_0::chunk-1",
+        "Benefits Planner | Social Security Administration#1_0::chunk-1",
+        "Benefits Planner | Social Security Credits and Benefit Eligibility | SSA#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2278,
+        "latency_ms": {
+          "max": 4364.613,
+          "p50": 4364.613,
+          "p95": 4364.613,
+          "sum": 4364.613
+        },
+        "output_tokens": 190,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.3333333333333333,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1296,
+        "latency_ms": {
+          "max": 1678.487,
+          "p50": 1678.487,
+          "p95": 1678.487,
+          "sum": 1678.487
+        },
+        "output_tokens": 25,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "You can use our Survivors Planner to learn how your family members will be protected in the event of your passing. ",
+      "token_f1": 0.2807017543859649
+    },
+    {
+      "abstained": true,
+      "answer": "The provided sources do not state whether you can file by mail specifically to add a dependent to VA disability benefits. The sources mention online filing through eBenefits for adding or removing dependents, but they do not confirm a mail option for that process.",
+      "case_id": "doc2dial-dev-abba59c477b0cf795c20d5b0b83e4634-11",
+      "citations": [],
+      "context_contains_evidence": 0.0,
+      "evidence_cited": 0.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2434,
+        "latency_ms": {
+          "max": 5750.236,
+          "p50": 5750.236,
+          "p95": 5750.236,
+          "sum": 5750.236
+        },
+        "output_tokens": 74,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": false,
+        "correct": false,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 231,
+        "latency_ms": {
+          "max": 4366.936,
+          "p50": 4366.936,
+          "p95": 4366.936,
+          "sum": 4366.936
+        },
+        "output_tokens": 21,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "Yes you can, but we encourage you to file online. The online process is simple, and you can upload your supporting documents along with your claim.",
+      "token_f1": 0.2285714285714286
+    },
+    {
+      "abstained": false,
+      "answer": "If you reject the offer, a hearing must be held. The result of the hearing may be no action, a civil penalty, and/or a suspension or revocation of your ability to operate as a vehicle-related business in New York State. You may also be offered the opportunity to pay restitution to the consumer instead of the fines and/or penalties, or to have the penalty reduced.",
+      "case_id": "doc2dial-dev-ad94c0dc42f749c2b0e2349d830b4827-12",
+      "citations": [
+        "About complaints and charges for dealer and transporter businesses#3_0::chunk-1",
+        "About complaints and charges for inspection stations and certified inspectors#3_0::chunk-1",
+        "About complaints and charges for repair and body shops#3_0::chunk-1",
+        "A Guide for Facilities:#3_0::chunk-1"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2552,
+        "latency_ms": {
+          "max": 2983.453,
+          "p50": 2983.453,
+          "p95": 2983.453,
+          "sum": 2983.453
+        },
+        "output_tokens": 182,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.25,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1927,
+        "latency_ms": {
+          "max": 1619.822,
+          "p50": 1619.822,
+          "p95": 1619.822,
+          "sum": 1619.822
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "If an offer is rejected a hearing will be held .",
+      "token_f1": 0.15384615384615385
+    },
+    {
+      "abstained": false,
+      "answer": "To request an inspection extension while out of state, mail the following information to the NYS DMV Bureau of Consumer and Facility Services: your name and current out-of-state mailing address, the year and make of your vehicle, the vehicle plate number, and the inspection sticker number and expiration date. Send it to: NYS DMV, Bureau of Consumer and Facility Services, Inspection Extension, P.O. Box 2700-ESP, Albany, NY 12220-0700. Allow 14 days for processing and mailing.",
+      "case_id": "doc2dial-dev-b55dafba91b47f076435e58d02a0659b-10",
+      "citations": [
+        "About New York State Inspections#3_0::chunk-1"
+      ],
+      "context_contains_evidence": 0.0,
+      "evidence_cited": 0.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2280,
+        "latency_ms": {
+          "max": 2829.47,
+          "p50": 2829.47,
+          "p95": 2829.47,
+          "sum": 2829.47
+        },
+        "output_tokens": 138,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": false,
+        "correct": false,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 693,
+        "latency_ms": {
+          "max": 1754.121,
+          "p50": 1754.121,
+          "p95": 1754.121,
+          "sum": 1754.121
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "please call 518 - 486 - 9786. we will be happy to help you",
+      "token_f1": 0.02173913043478261
+    },
+    {
+      "abstained": false,
+      "answer": "Yes. A parked vehicle with no inspection sticker, or with an expired inspection sticker, can receive a parking ticket.",
+      "case_id": "doc2dial-dev-caa2d4ca2a98cc6f57a5628d9e128db9-12",
+      "citations": [
+        "About New York State Inspections#3_0::chunk-3"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2223,
+        "latency_ms": {
+          "max": 2306.741,
+          "p50": 2306.741,
+          "p95": 2306.741,
+          "sum": 2306.741
+        },
+        "output_tokens": 64,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 369,
+        "latency_ms": {
+          "max": 1640.547,
+          "p50": 1640.547,
+          "p95": 1640.547,
+          "sum": 1640.547
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "Yes, A parked vehicle without an inspection tag, or with an expired inspection tag, may receive a parking ticket.",
+      "token_f1": 0.7368421052631579
+    },
+    {
+      "abstained": false,
+      "answer": "A \"presumption of contact\" means VA presumes you had contact with Agent Orange based on certain qualifying service, such as serving in Vietnam, in or near the Korean DMZ during the Vietnam Era, or on certain Navy or Coast Guard ships operating in specified waters during the relevant dates. This presumption can help you qualify for disability benefits if you also have a presumptive disease believed to be caused by Agent Orange.",
+      "case_id": "doc2dial-dev-cb7b4dd9f52ce66b315e7709dbbfd2ff-12",
+      "citations": [
+        "Agent Orange Exposure On Navy Or Coast Guard Ships | Veterans Affairs#1_0::chunk-0",
+        "Agent Orange Exposure | Veterans Affairs#1_0::chunk-0",
+        "Agent Orange Exposure In Vietnam Or Korea | Veterans Affairs#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2688,
+        "latency_ms": {
+          "max": 3587.789,
+          "p50": 3587.789,
+          "p95": 3587.789,
+          "sum": 3587.789
+        },
+        "output_tokens": 174,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.3333333333333333,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1657,
+        "latency_ms": {
+          "max": 1895.01,
+          "p50": 1895.01,
+          "p95": 1895.01,
+          "sum": 1895.01
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "if you have had contact with Agent Orange, a herbicide that the US Army. USA Used to clean plants and trees during the war. We refer to this as a presumption of contact",
+      "token_f1": 0.3619047619047619
+    },
+    {
+      "abstained": false,
+      "answer": "Yes, there are some housing-related options in the supplied sources. If you have certain service-connected disabilities, VA offers disability housing grants (Specially Adapted Housing and Special Housing Adaptation) to buy or change a home to meet your needs. If you are using VA educational assistance and are in an approved co-op training program, you may be able to get help paying for housing costs as part of your education benefits. If you are homeless or at risk of becoming homeless, VA can help connect you with resources such as homeless shelters or faith-based organizations; you can call the National Call Center for Homeless Veterans at 877-424-3838. A Social Security Benefit Verification Letter may also be used as proof for housing assistance or mortgage purposes.",
+      "case_id": "doc2dial-dev-d2eaa023dd3ba0cee48adb6d3bab5396-14",
+      "citations": [
+        "Disability Housing Grants For Veterans | Veterans Affairs#1_0::chunk-0",
+        "Co-op Training | Veterans Affairs#1_0::chunk-0",
+        "Careers And Employment | Veterans Affairs#2_0::chunk-0",
+        "Benefit Verification Letter  | Social Security Administration#2_0::chunk-0"
+      ],
+      "context_contains_evidence": 0.0,
+      "evidence_cited": 0.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2400,
+        "latency_ms": {
+          "max": 4046.399,
+          "p50": 4046.399,
+          "p95": 4046.399,
+          "sum": 4046.399
+        },
+        "output_tokens": 253,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1898,
+        "latency_ms": {
+          "max": 1954.945,
+          "p50": 1954.945,
+          "p95": 1954.945,
+          "sum": 1954.945
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "If you have a severe service-connected disability you may be able to get mortgage protection insurance for a home that has been adapted to meet your needs.",
+      "token_f1": 0.2784810126582279
+    },
+    {
+      "abstained": false,
+      "answer": "If you believe your school calculated your eligibility for federal student grants, loans, or work-study incorrectly, and you have already tried to work things out with the school but were unable to, you may contact the Federal Student Aid Feedback Center or call 1-844-651-0077. Note that your school, not the U.S. Department of Education, distributes your financial aid, so questions about why your aid was not the amount you expected should first be directed to your school.",
+      "case_id": "doc2dial-dev-dd8eb49fdbf955282d36e8d39d10e452-10",
+      "citations": [
+        "Aid for Military Families | Federal Student Aid#1_0::chunk-3"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1919,
+        "latency_ms": {
+          "max": 2543.916,
+          "p50": 2543.916,
+          "p95": 2543.916,
+          "sum": 2543.916
+        },
+        "output_tokens": 142,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 669,
+        "latency_ms": {
+          "max": 1672.597,
+          "p50": 1672.597,
+          "p95": 1672.597,
+          "sum": 1672.597
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "You don't think it was correct the way the school calculated your eligibility for federal student grants",
+      "token_f1": 0.24
+    },
+    {
+      "abstained": false,
+      "answer": "Yes. The DMV requires that the sponsors and their delivery agents provide secure websites that protect the personal information of those who take the courses. Sponsors are also required to store your personal information on a secure server for a time period specified by DMV, and the DMV verifies the security of the servers that host the course.",
+      "case_id": "doc2dial-dev-ddce2ae456060c8c50cb8717afeaaec5-11",
+      "citations": [
+        "About online and alternative delivery method courses (I-PIRP/ADM)#3_0::chunk-3"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2012,
+        "latency_ms": {
+          "max": 2612.448,
+          "p50": 2612.448,
+          "p95": 2612.448,
+          "sum": 2612.448
+        },
+        "output_tokens": 117,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 630,
+        "latency_ms": {
+          "max": 2150.012,
+          "p50": 2150.012,
+          "p95": 2150.012,
+          "sum": 2150.012
+        },
+        "output_tokens": 21,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "Very secure. DMV requires sponsors and their delivery agents to provide secure websites that protect your personal information.",
+      "token_f1": 0.44736842105263147
+    },
+    {
+      "abstained": false,
+      "answer": "Yes, you may be able to get disability benefits from VA if you meet the requirements for a specific exposure or service situation. For Agent Orange exposure, this must be true: You have an illness VA believes is caused by Agent Orange, called a presumptive disease. At least one of these must also be true: You came into contact with Agent Orange while serving in the military, or you served in or near the Korean DMZ between September 1, 1967, and August 31, 1971, or you served in the Republic of Vietnam between January 9, 1962, and May 7, 1975. For Camp Lejeune water contamination, you must have served at Camp Lejeune or MCAS New River for at least 30 cumulative days from August 1953 through December 1987, did not receive a dishonorable discharge, and have a diagnosis of one or more listed presumptive conditions.",
+      "case_id": "doc2dial-dev-df084f0bfd2a11429ec36b331b048c6d-11",
+      "citations": [
+        "Agent Orange Exposure In Vietnam Or Korea | Veterans Affairs#1_0::chunk-0",
+        "Agent Orange Exposure | Veterans Affairs#1_0::chunk-0",
+        "Camp Lejeune Water Contamination Health Issues | Veterans Affairs#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2721,
+        "latency_ms": {
+          "max": 3767.772,
+          "p50": 3767.772,
+          "p95": 3767.772,
+          "sum": 3767.772
+        },
+        "output_tokens": 282,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.3333333333333333,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1705,
+        "latency_ms": {
+          "max": 1583.616,
+          "p50": 1583.616,
+          "p95": 1583.616,
+          "sum": 1583.616
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "You may be able to get disability benefits if the below descriptions are true for you",
+      "token_f1": 0.16149068322981366
+    },
+    {
+      "abstained": false,
+      "answer": "The supplied sources do not list which vehicles are exempt from the emissions inspection. They state that most vehicles must get an emissions inspection, and they describe exemptions from the California emissions standard, but they do not provide a general list of vehicles exempt from the emissions inspection itself.",
+      "case_id": "doc2dial-dev-dfe69859eb7ea18e177951165518bee0-12",
+      "citations": [
+        "About New York State Inspections#3_0::chunk-0",
+        "California emissions standards#3_0::chunk-1"
+      ],
+      "context_contains_evidence": 0.0,
+      "evidence_cited": 0.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2509,
+        "latency_ms": {
+          "max": 2193.064,
+          "p50": 2193.064,
+          "p95": 2193.064,
+          "sum": 2193.064
+        },
+        "output_tokens": 113,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": false,
+        "correct": false,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 964,
+        "latency_ms": {
+          "max": 2120.627,
+          "p50": 2120.627,
+          "p95": 2120.627,
+          "sum": 2120.627
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "Motorcycles, vehicles that are less than two model years old model year is greater than or equal to calendar year minus one, and more than 25 model years old model year is less than or equal to calendar year minus 25",
+      "token_f1": 0.08888888888888888
+    },
+    {
+      "abstained": false,
+      "answer": "Yes. To request your Social Security Benefit Verification Letter online, sign in to your my Social Security account, go to Replacement Documents on the right side of the screen, then choose \"get a Benefit Verification Letter\" to view, save, and print your personalized letter. If you do not have a my Social Security account, you can create a free account, which takes less than 10 minutes. If you need help, call 1-800-772-1213 or visit your Social Security office. If you are deaf or hard of hearing, call TTY 1-800-325-0778 between 7 a.m. and 7 p.m. Monday through Friday.",
+      "case_id": "doc2dial-dev-e5e710f355a743db30e61032c000ec2c-11",
+      "citations": [
+        "Benefit Verification Letter  | Social Security Administration#1_0::chunk-0",
+        "Benefit Verification Letter  | Social Security Administration#2_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2316,
+        "latency_ms": {
+          "max": 2938.327,
+          "p50": 2938.327,
+          "p95": 2938.327,
+          "sum": 2938.327
+        },
+        "output_tokens": 207,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.5,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1068,
+        "latency_ms": {
+          "max": 2575.326,
+          "p50": 2575.326,
+          "p95": 2575.326,
+          "sum": 2575.326
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "In that case you can call our toll-free number at 1-800-772-1213 or visit your Social Security office, we'll walk you through the process.",
+      "token_f1": 0.26865671641791045
+    },
+    {
+      "abstained": false,
+      "answer": "If you disagree with the hearing decision, you may request an Appeals Council review of the decision or dismissal made by the administrative law judge. The Appeals Council looks at all requests for review, but it may deny a request if it believes the hearing decision was supported and in accordance with Social Security law and regulations. If the Appeals Council decides to review your case, it will either decide your case itself or return it to an administrative law judge for further review.",
+      "case_id": "doc2dial-dev-e8e7ac1b799ac6a132bd803307d4b707-12",
+      "citations": [
+        "Appeal A Decision | Social Security Administration#2_0::chunk-1",
+        "Appeal A Decision | Social Security Administration#1_0::chunk-1"
+      ],
+      "context_contains_evidence": 0.0,
+      "evidence_cited": 0.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2189,
+        "latency_ms": {
+          "max": 3786.278,
+          "p50": 3786.278,
+          "p95": 3786.278,
+          "sum": 3786.278
+        },
+        "output_tokens": 157,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 1024,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 51,
+        "latency_ms": {
+          "max": 1291.434,
+          "p50": 1291.434,
+          "p95": 1291.434,
+          "sum": 1291.434
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "you may request a review by Social Security s Appeals Council online",
+      "token_f1": 0.20833333333333331
+    },
+    {
+      "abstained": false,
+      "answer": "To apply for or recertify an income-driven repayment plan, you need a verified FSA ID. If you are a spouse co-signing an IDR request, you need your own verified FSA ID, the Reference Number/Co-Sign Code, the IDR applicant's SSN, and financial information only if you file taxes separately from your spouse.",
+      "case_id": "doc2dial-dev-ee7631c809126d88bff37909a0d0fa2e-11",
+      "citations": [
+        "Apply for Income-Driven Student Loan Repayment | Federal Student Aid#1_0::chunk-0",
+        "Co-sign Your Spouse's Income-Driven Repayment Plan Application | Federal Student Aid#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2540,
+        "latency_ms": {
+          "max": 3046.298,
+          "p50": 3046.298,
+          "p95": 3046.298,
+          "sum": 3046.298
+        },
+        "output_tokens": 152,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.5,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1067,
+        "latency_ms": {
+          "max": 2279.16,
+          "p50": 2279.16,
+          "p95": 2279.16,
+          "sum": 2279.16
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "FSA Verified ID",
+      "token_f1": 0.10169491525423728
+    },
+    {
+      "abstained": false,
+      "answer": "The sources do not provide a specific phone number, office address, or contact page for getting more information. However, the VA pages referenced indicate you can review the list of diseases related to Agent Orange, check the list of military units and Air Force specialty codes for C-123 contact, and find out how to file a claim for disability compensation. For more information, you would need to visit the VA website pages cited or use the VA’s general contact options, which are not included in the supplied sources.",
+      "case_id": "doc2dial-dev-f4fc4a6d5d6b9723f50202a5637ade64-11",
+      "citations": [
+        "Agent Orange Exposure | Veterans Affairs#1_0::chunk-0",
+        "Agent Orange Exposure In Vietnam Or Korea | Veterans Affairs#1_0::chunk-0",
+        "Agent Orange Exposure From C-123 Aircraft | Veterans Affairs#1_0::chunk-0",
+        "Agent Orange Exposure On Navy Or Coast Guard Ships | Veterans Affairs#1_0::chunk-0",
+        "Agent Orange Exposure On Navy Or Coast Guard Ships | Veterans Affairs#1_0::chunk-1"
+      ],
+      "context_contains_evidence": 0.0,
+      "evidence_cited": 0.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2682,
+        "latency_ms": {
+          "max": 3735.541,
+          "p50": 3735.541,
+          "p95": 3735.541,
+          "sum": 3735.541
+        },
+        "output_tokens": 240,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2512,
+        "latency_ms": {
+          "max": 1654.338,
+          "p50": 1654.338,
+          "p95": 1654.338,
+          "sum": 1654.338
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "Do you want more information about C-123 aircraft Agent Orange claims?",
+      "token_f1": 0.1568627450980392
+    },
+    {
+      "abstained": false,
+      "answer": "If the information causing the adverse credit decision is incorrect, you may still become eligible for a Direct PLUS Loan by addressing that incorrect information. The source indicates this is one of the actions you may take, but it does not provide the specific steps, forms, deadlines, or contact details for disputing or correcting the incorrect credit information.",
+      "case_id": "doc2dial-dev-f9aa69339de7652e855b2c941a24d7c9-10",
+      "citations": [
+        "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2340,
+        "latency_ms": {
+          "max": 2896.417,
+          "p50": 2896.417,
+          "p95": 2896.417,
+          "sum": 2896.417
+        },
+        "output_tokens": 122,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 614,
+        "latency_ms": {
+          "max": 1656.021,
+          "p50": 1656.021,
+          "p95": 1656.021,
+          "sum": 1656.021
+        },
+        "output_tokens": 21,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "It all depends on the information you supply.",
+      "token_f1": 0.1212121212121212
+    },
+    {
+      "abstained": true,
+      "answer": "The sources do not provide a single set of procedures for “this purpose” because the prior conversation was about student grants and loan calculations, while the supplied sources cover different topics such as VA benefits, Social Security disability applications, and Private Service Bureau licenses. I cannot confirm the specific procedures for the student grant or loan issue from the supplied sources.",
+      "case_id": "doc2dial-dev-ff81921e81d6e595b1b47916a1d2f59a-13",
+      "citations": [],
+      "context_contains_evidence": 0.0,
+      "evidence_cited": 0.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2273,
+        "latency_ms": {
+          "max": 3008.661,
+          "p50": 3008.661,
+          "p95": 3008.661,
+          "sum": 3008.661
+        },
+        "output_tokens": 93,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": false,
+        "correct": false,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 128,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 111,
+        "latency_ms": {
+          "max": 1348.957,
+          "p50": 1348.957,
+          "p95": 1348.957,
+          "sum": 1348.957
+        },
+        "output_tokens": 21,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "As a first objective you must have been under 24 years old or be enrolled at least part-time in a university or vocational school.",
+      "token_f1": 0.06976744186046512
+    }
+  ],
+  "split": "dev"
+}

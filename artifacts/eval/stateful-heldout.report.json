@@ -1,0 +1,245 @@
+{
+  "case_count": 20,
+  "dataset_checksum": "07de2bba52155be143cb865f6572405bc93370610f1b119ab2c494be377112fd",
+  "dataset_id": "dialogpilot-500-v1",
+  "dataset_version": "1.0.0-provisional",
+  "execution_mode": "isolated-real-owner-fixtures",
+  "fixture_registry": [
+    "coverage_gate",
+    "memory_archive_idempotent",
+    "memory_context_budget",
+    "memory_empty_recall",
+    "memory_finalize",
+    "memory_finalize_concurrent",
+    "memory_finalize_idempotent",
+    "memory_hybrid_exact",
+    "memory_hybrid_recency",
+    "memory_profile_merge",
+    "memory_summary_bound",
+    "react_max_steps",
+    "ticket_idempotent",
+    "tool_allowlist",
+    "tool_approval",
+    "tool_approved",
+    "tool_output",
+    "tool_schema",
+    "tool_timeout",
+    "tool_trace",
+    "tool_unknown",
+    "verifier_fail_closed"
+  ],
+  "gold_only": false,
+  "layers": {
+    "stateful": {
+      "all_assertions_pass": 1.0,
+      "assertion_pass_rate": 1.0
+    }
+  },
+  "layers_requested": [
+    "stateful"
+  ],
+  "outcomes": [
+    {
+      "case_id": "stateful-memory-context-budget-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "heldout"
+    },
+    {
+      "case_id": "stateful-memory-context-budget-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "heldout"
+    },
+    {
+      "case_id": "stateful-memory-context-escape-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "heldout"
+    },
+    {
+      "case_id": "stateful-memory-context-escape-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "heldout"
+    },
+    {
+      "case_id": "stateful-memory-context-priority-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "heldout"
+    },
+    {
+      "case_id": "stateful-memory-context-priority-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "heldout"
+    },
+    {
+      "case_id": "stateful-memory-empty-corpus-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "heldout"
+    },
+    {
+      "case_id": "stateful-memory-empty-corpus-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "heldout"
+    },
+    {
+      "case_id": "stateful-memory-empty-query-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "heldout"
+    },
+    {
+      "case_id": "stateful-memory-empty-query-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "heldout"
+    },
+    {
+      "case_id": "stateful-react-security-coverage-duplicate-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "heldout"
+    },
+    {
+      "case_id": "stateful-react-security-coverage-duplicate-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "heldout"
+    },
+    {
+      "case_id": "stateful-react-security-coverage-missing-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "heldout"
+    },
+    {
+      "case_id": "stateful-react-security-coverage-missing-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "heldout"
+    },
+    {
+      "case_id": "stateful-react-security-ticket-audit-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "heldout"
+    },
+    {
+      "case_id": "stateful-react-security-ticket-audit-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "heldout"
+    },
+    {
+      "case_id": "stateful-react-security-ticket-idempotent-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "heldout"
+    },
+    {
+      "case_id": "stateful-react-security-ticket-idempotent-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "heldout"
+    },
+    {
+      "case_id": "stateful-react-security-verifier-unknown-1",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "heldout"
+    },
+    {
+      "case_id": "stateful-react-security-verifier-unknown-2",
+      "layer": "stateful",
+      "metrics": {
+        "all_assertions_pass": 1.0,
+        "assertion_pass_rate": 1.0
+      },
+      "passed": true,
+      "split": "heldout"
+    }
+  ],
+  "pass_rate": 1.0,
+  "split": "heldout"
+}

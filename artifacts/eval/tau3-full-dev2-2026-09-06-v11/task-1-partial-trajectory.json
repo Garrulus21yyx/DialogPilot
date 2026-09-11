@@ -1,0 +1,135 @@
+[
+  {
+    "role": "assistant",
+    "content": "Hi! How can I help you today?",
+    "tool_calls": null,
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-06T19:38:08.748366",
+    "cost": 0.0,
+    "usage": null,
+    "raw_data": null,
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  },
+  {
+    "role": "user",
+    "content": "Hi! I need to exchange a couple of items from my recent order. I’d like to make sure both exchanges are handled at the same time if possible.",
+    "tool_calls": null,
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-06T19:38:09.796576",
+    "cost": 0.0,
+    "usage": {
+      "completion_tokens": 80,
+      "prompt_tokens": 498
+    },
+    "raw_data": {
+      "id": "chatcmpl-4c2d0197-6d6f-4aee-a566-887a11604e56",
+      "created": 1788716289,
+      "model": "deepseek-v4-flash",
+      "object": "chat.completion",
+      "system_fingerprint": null,
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "message": {
+            "content": "Hi! I need to exchange a couple of items from my recent order. I’d like to make sure both exchanges are handled at the same time if possible.",
+            "role": "assistant",
+            "tool_calls": null,
+            "function_call": null,
+            "reasoning_content": "Hi! I need help with my recent order. I received the items but I want to exchange a couple of them for different versions. I want to make sure I get everything sorted out in one go, so let me explain.",
+            "thinking_blocks": [
+              {
+                "type": "thinking",
+                "thinking": "Hi! I need help with my recent order. I received the items but I want to exchange a couple of them for different versions. I want to make sure I get everything sorted out in one go, so let me explain.",
+                "signature": "c90cf224-14ae-4709-ba57-9e185baed788"
+              }
+            ],
+            "provider_specific_fields": {
+              "citations": null,
+              "thinking_blocks": [
+                {
+                  "type": "thinking",
+                  "thinking": "Hi! I need help with my recent order. I received the items but I want to exchange a couple of them for different versions. I want to make sure I get everything sorted out in one go, so let me explain.",
+                  "signature": "c90cf224-14ae-4709-ba57-9e185baed788"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "usage": {
+        "completion_tokens": 80,
+        "prompt_tokens": 498,
+        "total_tokens": 578,
+        "completion_tokens_details": {
+          "reasoning_tokens": 46,
+          "text_tokens": 34
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 384,
+          "image_tokens": null,
+          "text_tokens": null,
+          "video_tokens": null,
+          "cache_creation_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 384,
+        "inference_geo": null,
+        "speed": null
+      }
+    },
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  },
+  {
+    "role": "assistant",
+    "content": "What is the email address associated with your account?",
+    "tool_calls": null,
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-06T19:38:13.323497",
+    "cost": null,
+    "usage": null,
+    "raw_data": null,
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  }
+]

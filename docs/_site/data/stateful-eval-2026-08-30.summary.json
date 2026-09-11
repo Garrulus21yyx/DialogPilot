@@ -1,0 +1,45 @@
+{
+  "dataset_checksum": "07de2bba52155be143cb865f6572405bc93370610f1b119ab2c494be377112fd",
+  "dataset_id": "dialogpilot-500-v1",
+  "evaluation_layer": "stateful",
+  "execution_mode": "isolated-real-owner-fixtures",
+  "fixture_count": 22,
+  "review_scope": "provisional",
+  "closure_status": "implementation_repaired_verification_open",
+  "split_status": {
+    "dev": "deterministic_regression",
+    "heldout": "consumed_regression_after_repair",
+    "fresh_holdout": "required_before_verified_closure"
+  },
+  "runs": {
+    "dev_regression": {
+      "all_assertions_pass": 1.0,
+      "case_count": 80,
+      "pass_rate": 1.0
+    },
+    "consumed_heldout_regression": {
+      "all_assertions_pass": 1.0,
+      "case_count": 20,
+      "pass_rate": 1.0
+    }
+  },
+  "root_cause_repair": {
+    "context_budget_owner": "charges the exact joined escaped representation, reallocates only available minus retained history, and raises a typed error when mandatory content cannot fit",
+    "fixture_evidence_owner": "reviewed cases now execute search_long_term, _summarize to _fallback_summary, finalize_conversation, and ContextAssembler.assemble",
+    "documentation_boundary": "claims were reduced to the behavior actually executed"
+  },
+  "verification": {
+    "seeded_context_combinations_ci": 3000,
+    "seeded_context_combinations_local": 20000,
+    "seeded_context_accepted": 19405,
+    "seeded_context_typed_rejections": 595,
+    "seeded_context_violations": 0,
+    "owner_mutation_families": [
+      "empty-query",
+      "summary-fallback",
+      "explicit-close",
+      "context-escape"
+    ]
+  },
+  "warning": "Mechanical regression is reproducible, but fresh-context Reviewer B, new unseen Stateful cases and human Gold review remain required."
+}

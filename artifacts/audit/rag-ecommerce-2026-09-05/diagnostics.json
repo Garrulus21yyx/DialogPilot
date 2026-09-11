@@ -1,0 +1,46 @@
+{
+  "timestamp": "2026-09-05T16:47:09.905456+00:00",
+  "head": "fa1c21b572ef3468450dcbbe1f07f2d56e915544",
+  "artifact_checks": [
+    {
+      "file": "artifacts/eval/doc2dial-rag-en-heldout-balanced-v2-production-retry-1/predictions.jsonl",
+      "sha256": "80cb43b44814324e5a33e98b0c0c8f91c9ec4f0959e4698c43be32c69a083414"
+    },
+    {
+      "file": "artifacts/eval/doc2dial-rag-en-heldout-balanced-v2-production-retry-1/report.json",
+      "sha256": "61875d0ee0ade91e024b1b9d9013986a13a979cb1a41e48467cad7fc859d3f30"
+    },
+    {
+      "file": "artifacts/eval/doc2dial-rag-en-heldout-supplement-v1-production-run/predictions.jsonl",
+      "sha256": "c1a05c44779182bdc8ae5b3cadf78949fb00be48cfdadfbb22c82041c8c65c34"
+    },
+    {
+      "file": "artifacts/eval/doc2dial-rag-en-heldout-supplement-v1-production-run/report.json",
+      "sha256": "0ad9e423a7004f36a8b1dcf3226b22586e68c02eb8b536e7b441804c8e595d08"
+    },
+    {
+      "file": "artifacts/eval/doc2dial-rag-en-heldout-combined-v2-production-report/report.json",
+      "sha256": "a2ccd91adecf5d04b55e95faddd309476c2954e168d92ac0be2320c2c5cc4f8d"
+    }
+  ],
+  "prefix_diagnostic": [
+    {
+      "dataset": "doc2dial-rag-mini-dev-v1",
+      "cases": 300,
+      "chunks": 314,
+      "gold_spans": 488,
+      "contained_in_full_chunk": 488,
+      "contained_in_any_1200_char_prefix": 372,
+      "note": "Static corpus visibility bound, not observed rerank loss; scorer-only consumed data diagnosis."
+    },
+    {
+      "dataset": "doc2dial-rag-en-heldout-fresh-local-v1",
+      "cases": 60,
+      "chunks": 1469,
+      "gold_spans": 109,
+      "contained_in_full_chunk": 109,
+      "contained_in_any_1200_char_prefix": 78,
+      "note": "Static corpus visibility bound, not observed rerank loss; scorer-only consumed data diagnosis."
+    }
+  ]
+}

@@ -1,0 +1,698 @@
+{
+  "batch_id": "domain-v3:zh:10",
+  "language": "zh",
+  "split": "train",
+  "model": "deepseek-v4-pro",
+  "synthetic": true,
+  "author_prompt": "Author 8 DIFFERENT natural ecommerce customer-service dialogue families in zh.\nBatch 10; ensure at least four current turns classified as account_security across this batch.\nEach family has its OWN coherent history of 2, 4 or 6 short alternating user/assistant\nmessages, followed by 3 ALTERNATIVE current user turns, not three sequential turns.\nThose alternatives differ in effective intent: retain vs replace, withdraw vs\ncontinue, single goal vs concurrent goal, or resolved vs unresolved reference.\nInclude natural short answers where history matters. Vary old completed tasks,\nhesitation, self-correction, indirect wording, topics and dialogue acts. General\nand human-service requests must also occur as NEW goals, not only stale history.\nDo not follow a repeated sentence template or substitute product nouns to create\nnew families. Avoid stereotyped 'information only, do not submit' repetition.\nInvent broad everyday ecommerce situations; no copied benchmark or private data.\nHistory plus current turn should fit 150 English words or 180 Chinese characters;\nkeep it compact but meaningful. No future replies or final conversation summaries.\nSupply the correct label for each alternative according to the rubric.\n",
+  "author_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_svdpEH3aN7NpMPQVY0La7353",
+          "input": {
+            "families": [
+              {
+                "scenario": "用户忘记密码，尝试登录失败后求助",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我登录时一直提示密码错误，试了好几次都不行。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "别急，您可以用注册手机号找回密码，需要我发验证码吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "好，发到我的手机吧。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "验证码已发送，请查收并告诉我。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "验证码收到了，是 482913。",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "先别发了，我想问下我买的鞋什么时候发货。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "算了，我晚点再弄，先这样吧。",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "验证码收到了，顺便帮我查下订单到哪了。",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "用户咨询蓝牙耳机兼容性",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "这款耳机能连我的旧款安卓手机吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "支持蓝牙5.0及以上，您的手机系统版本是多少？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "安卓9，应该没问题吧？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "安卓9可以正常连接，请放心。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，那音质怎么样，降噪效果好吗？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "谢谢，另外我账号被锁了怎么解锁？",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "明白了，那帮我看看我昨天下的单发货没。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "行，那这个耳机和那个音箱，哪个更值得买？",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "用户询问退款到账时间",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我申请退款三天了，钱还没到账。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "退款一般3到5个工作日到账，我帮您查一下进度。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "麻烦快点，我等着用钱。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "已为您加急处理，预计明天到账。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，那到账后能通知我吗？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "谢谢，顺便问下我账号怎么突然登不上了。",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "算了，不用查了，我直接找人工客服。",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "那退款和我的优惠券会一起退回来吗？",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "用户咨询会员账号异地登录提醒",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我收到短信说账号在异地登录，是我没操作过。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "建议您立即修改密码，我可以帮您冻结账号。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "先冻结吧，我怕被盗刷。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "账号已临时冻结，您需要重置密码吗？"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "要，帮我重置密码吧。",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "先别冻结了，我想先看看我的订单有没有异常。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "算了，可能是我自己登录的，解冻吧。",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "帮我重置密码，另外我有个订单要取消。",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "用户咨询商品退换货政策",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "衣服买大了，能换小一号吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "可以的，七天无理由退换，吊牌完好即可。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "吊牌我剪了，还能换吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "剪了吊牌可能无法退换，我帮您申请特殊处理试试。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那麻烦帮我申请一下，谢谢。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "好的，另外我登录密码忘了，能帮我找回吗？",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "算了，不换了，凑合穿吧。",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "帮我申请，顺便问下你们客服电话多少。",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "用户咨询订单修改收货地址",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我下单时地址填错了，能改吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "订单还没发货，可以修改，请提供新地址。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "改成公司地址吧，我发给你。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "好的，请把完整地址发过来。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "北京市朝阳区某某大厦 8 层。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "先不改了，我想问下这个商品保修多久。",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "算了，地址不改了，直接取消订单吧。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "地址发你了，顺便帮我查下账号为什么被限制。",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "用户咨询发票开具",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我买的办公用品能开发票吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "可以，电子发票和纸质发票都支持。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "我要电子发票，抬头写公司名。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "好的，请提供公司全称和税号。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "某某科技有限公司，税号我找一下。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "先不开了，我想问下我账号怎么被冻结了。",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "算了，发票不要了，谢谢。",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "抬头发你，另外帮我查下物流到哪了。",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "用户咨询商品使用说明",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "这个空气炸锅第一次用要预热吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "建议预热3分钟，再放入食材。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "那温度设多少合适？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "一般180度，具体看食材，说明书有参考表。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，那炸薯条要多久？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "谢谢，顺便问下我账号登录验证码收不到怎么办。",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "明白了，那帮我看看我买的这个锅发货没。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "行，那这个和烤箱比哪个更省电？",
+                    "label": "product_technical"
+                  }
+                ]
+              }
+            ]
+          },
+          "name": "AuthoredBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "5d3ee1b3-b1ae-40c9-8e64-771562700684",
+        "container": null,
+        "model": "deepseek-v4-pro",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 640,
+          "inference_geo": null,
+          "input_tokens": 321,
+          "output_tokens": 1734,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-pro",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081cc-cbfb-7962-a8b2-95d47452c6a9-0",
+      "tool_calls": [
+        {
+          "name": "AuthoredBatch",
+          "args": {
+            "families": [
+              {
+                "scenario": "用户忘记密码，尝试登录失败后求助",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我登录时一直提示密码错误，试了好几次都不行。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "别急，您可以用注册手机号找回密码，需要我发验证码吗？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "好，发到我的手机吧。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "验证码已发送，请查收并告诉我。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "验证码收到了，是 482913。",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "先别发了，我想问下我买的鞋什么时候发货。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "算了，我晚点再弄，先这样吧。",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "验证码收到了，顺便帮我查下订单到哪了。",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "用户咨询蓝牙耳机兼容性",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "这款耳机能连我的旧款安卓手机吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "支持蓝牙5.0及以上，您的手机系统版本是多少？"
+                  },
+                  {
+                    "role": "user",
+                    "content": "安卓9，应该没问题吧？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "安卓9可以正常连接，请放心。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，那音质怎么样，降噪效果好吗？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "谢谢，另外我账号被锁了怎么解锁？",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "明白了，那帮我看看我昨天下的单发货没。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "行，那这个耳机和那个音箱，哪个更值得买？",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "用户询问退款到账时间",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我申请退款三天了，钱还没到账。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "退款一般3到5个工作日到账，我帮您查一下进度。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "麻烦快点，我等着用钱。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "已为您加急处理，预计明天到账。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，那到账后能通知我吗？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "谢谢，顺便问下我账号怎么突然登不上了。",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "算了，不用查了，我直接找人工客服。",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "那退款和我的优惠券会一起退回来吗？",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "用户咨询会员账号异地登录提醒",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我收到短信说账号在异地登录，是我没操作过。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "建议您立即修改密码，我可以帮您冻结账号。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "先冻结吧，我怕被盗刷。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "账号已临时冻结，您需要重置密码吗？"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "要，帮我重置密码吧。",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "先别冻结了，我想先看看我的订单有没有异常。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "算了，可能是我自己登录的，解冻吧。",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "帮我重置密码，另外我有个订单要取消。",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "用户咨询商品退换货政策",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "衣服买大了，能换小一号吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "可以的，七天无理由退换，吊牌完好即可。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "吊牌我剪了，还能换吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "剪了吊牌可能无法退换，我帮您申请特殊处理试试。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那麻烦帮我申请一下，谢谢。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "好的，另外我登录密码忘了，能帮我找回吗？",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "算了，不换了，凑合穿吧。",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "帮我申请，顺便问下你们客服电话多少。",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "用户咨询订单修改收货地址",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我下单时地址填错了，能改吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "订单还没发货，可以修改，请提供新地址。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "改成公司地址吧，我发给你。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "好的，请把完整地址发过来。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "北京市朝阳区某某大厦 8 层。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "先不改了，我想问下这个商品保修多久。",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "算了，地址不改了，直接取消订单吧。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "地址发你了，顺便帮我查下账号为什么被限制。",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "用户咨询发票开具",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我买的办公用品能开发票吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "可以，电子发票和纸质发票都支持。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "我要电子发票，抬头写公司名。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "好的，请提供公司全称和税号。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "某某科技有限公司，税号我找一下。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "先不开了，我想问下我账号怎么被冻结了。",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "算了，发票不要了，谢谢。",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "抬头发你，另外帮我查下物流到哪了。",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "用户咨询商品使用说明",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "这个空气炸锅第一次用要预热吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "建议预热3分钟，再放入食材。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "那温度设多少合适？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "一般180度，具体看食材，说明书有参考表。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，那炸薯条要多久？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "谢谢，顺便问下我账号登录验证码收不到怎么办。",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "明白了，那帮我看看我买的这个锅发货没。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "行，那这个和烤箱比哪个更省电？",
+                    "label": "product_technical"
+                  }
+                ]
+              }
+            ]
+          },
+          "id": "call_00_svdpEH3aN7NpMPQVY0La7353",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 961,
+        "output_tokens": 1734,
+        "total_tokens": 2695,
+        "input_token_details": {
+          "cache_read": 640,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": "8 validation errors for AuthoredBatch\nfamilies.0.variants\n  List should have at most 3 items after validation, not 4 [type=too_long, input_value=[{'text': '验证码收..., 'label': '__DEFER__'}], input_type=list]\n    For further information visit https://errors.pydantic.dev/2.13/v/too_long\nfamilies.1.variants\n  List should have at most 3 items after validation, not 4 [type=too_long, input_value=[{'text': '好的，那...': 'product_technical'}], input_type=list]\n    For further information visit https://errors.pydantic.dev/2.13/v/too_long\nfamilies.2.variants\n  List should have at most 3 items after validation, not 4 [type=too_long, input_value=[{'text': '好的，那...bel': 'billing_refund'}], input_type=list]\n    For further information visit https://errors.pydantic.dev/2.13/v/too_long\nfamilies.3.variants\n  List should have at most 3 items after validation, not 4 [type=too_long, input_value=[{'text': '要，帮我..., 'label': '__DEFER__'}], input_type=list]\n    For further information visit https://errors.pydantic.dev/2.13/v/too_long\nfamilies.4.variants\n  List should have at most 3 items after validation, not 4 [type=too_long, input_value=[{'text': '那麻烦帮...abel': 'human_service'}], input_type=list]\n    For further information visit https://errors.pydantic.dev/2.13/v/too_long\nfamilies.5.variants\n  List should have at most 3 items after validation, not 4 [type=too_long, input_value=[{'text': '北京市朝..., 'label': '__DEFER__'}], input_type=list]\n    For further information visit https://errors.pydantic.dev/2.13/v/too_long\nfamilies.6.variants\n  List should have at most 3 items after validation, not 4 [type=too_long, input_value=[{'text': '某某科技..., 'label': '__DEFER__'}], input_type=list]\n    For further information visit https://errors.pydantic.dev/2.13/v/too_long\nfamilies.7.variants\n  List should have at most 3 items after validation, not 4 [type=too_long, input_value=[{'text': '好的，那...': 'product_technical'}], input_type=list]\n    For further information visit https://errors.pydantic.dev/2.13/v/too_long"
+  },
+  "status": "failed",
+  "failure_stage": "author",
+  "error_type": "ValueError"
+}

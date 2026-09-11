@@ -1,0 +1,853 @@
+{
+  "case_count": 32,
+  "dataset_id": "wixqa-rag-long8000-dev-v1",
+  "error_case_count": 0,
+  "expansion_count": 0,
+  "model_policy": {
+    "provider": "none",
+    "rewrite": {
+      "model": "none"
+    }
+  },
+  "prompt_version": "raw-only-v1",
+  "rows": [
+    {
+      "case_id": "wixqa-dev-wixqa_expertwritten-14",
+      "errors": [],
+      "expansions": [],
+      "group_id": "wix-articles-b0fb1a8a610b905c2aee",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "wixqa_expertwritten",
+        "single_article",
+        "long_document"
+      ],
+      "raw_query": "I need assistance with creating custom hours for a staff member in the work schedule.",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "wixqa-dev-wixqa_expertwritten-15",
+      "errors": [],
+      "expansions": [],
+      "group_id": "wix-articles-39c4dacac1a6fcd21cac",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "wixqa_expertwritten",
+        "multi_article",
+        "long_document"
+      ],
+      "raw_query": "Can you help me understand how to enable guest checkout for my pricing plans on Wix?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "wixqa-dev-wixqa_expertwritten-25",
+      "errors": [],
+      "expansions": [],
+      "group_id": "wix-articles-f175e27e478ef0398352",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "wixqa_expertwritten",
+        "single_article",
+        "long_document"
+      ],
+      "raw_query": "I need to know if more information is required for Wix payment verification status for my business account.",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "wixqa-dev-wixqa_expertwritten-30",
+      "errors": [],
+      "expansions": [],
+      "group_id": "wix-articles-a889c4632a874cab1723",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "wixqa_expertwritten",
+        "single_article",
+        "long_document"
+      ],
+      "raw_query": "I need to switch my business type from sole prop to LLC in order to use an EIN.",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "wixqa-dev-wixqa_expertwritten-32",
+      "errors": [],
+      "expansions": [],
+      "group_id": "wix-articles-1708978e81a8c3cbe7ac",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "wixqa_expertwritten",
+        "single_article",
+        "long_document"
+      ],
+      "raw_query": "I need to track the status of chargeback #1124381935-1.",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "wixqa-dev-wixqa_expertwritten-36",
+      "errors": [],
+      "expansions": [],
+      "group_id": "wix-articles-94978d74efec1f1ba8d4",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "wixqa_expertwritten",
+        "single_article",
+        "long_document"
+      ],
+      "raw_query": "How can I add delivery information to my product page?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "wixqa-dev-wixqa_expertwritten-56",
+      "errors": [],
+      "expansions": [],
+      "group_id": "wix-articles-b9bc86cb67ef3151f4d8",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "wixqa_expertwritten",
+        "single_article",
+        "long_document"
+      ],
+      "raw_query": "I would like to know how many options Wix offers per product.",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "wixqa-dev-wixqa_expertwritten-6",
+      "errors": [],
+      "expansions": [],
+      "group_id": "wix-articles-5d879ad46822833dfea6",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "wixqa_expertwritten",
+        "multi_article",
+        "long_document"
+      ],
+      "raw_query": "I am trying to change the order of the items within a CMS collection on my Wix site, but the provided steps did not work for me.",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "wixqa-dev-wixqa_expertwritten-63",
+      "errors": [],
+      "expansions": [],
+      "group_id": "wix-articles-55c583000f07bc009722",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "wixqa_expertwritten",
+        "multi_article",
+        "long_document"
+      ],
+      "raw_query": "I'm attempting to redesign the product page of my Wix Store. I need guidance on customizing the layout, image display & button text.",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "wixqa-dev-wixqa_simulated-127",
+      "errors": [],
+      "expansions": [],
+      "group_id": "wix-articles-36a806dd3a4cb16e38a3",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "wixqa_simulated",
+        "single_article",
+        "long_document"
+      ],
+      "raw_query": "how to change on checkout page the telephone number that customer is putting",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "wixqa-dev-wixqa_simulated-17",
+      "errors": [],
+      "expansions": [],
+      "group_id": "wix-articles-334e7b921f42c2fcf9aa",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "wixqa_simulated",
+        "multi_article",
+        "long_document"
+      ],
+      "raw_query": "How can I ensure my website www.momsroots.com is published on Google and indexed by search engines?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "wixqa-dev-wixqa_simulated-173",
+      "errors": [],
+      "expansions": [],
+      "group_id": "wix-articles-47c7c161fdc07edc2c0b",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "wixqa_simulated",
+        "single_article",
+        "long_document"
+      ],
+      "raw_query": "Hi I would like to install blog",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "wixqa-dev-wixqa_simulated-24",
+      "errors": [],
+      "expansions": [],
+      "group_id": "wix-articles-709b723408a5397d6354",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "wixqa_simulated",
+        "multi_article",
+        "long_document"
+      ],
+      "raw_query": "How can I preview my dynamic pages and see how they connect to the buttons?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "wixqa-dev-wixqa_simulated-39",
+      "errors": [],
+      "expansions": [],
+      "group_id": "wix-articles-8498b345df10660164ef",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "wixqa_simulated",
+        "single_article",
+        "long_document"
+      ],
+      "raw_query": "How can I change the font color of the dropdown menu on my desktop site using the Wix Editor?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "wixqa-dev-wixqa_simulated-49",
+      "errors": [],
+      "expansions": [],
+      "group_id": "wix-articles-b9cdd61d284a4c977e52",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "wixqa_simulated",
+        "single_article",
+        "long_document"
+      ],
+      "raw_query": "I need to rename a Wix file with an inappropriate name. The provided instructions were ghastly.",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "wixqa-dev-wixqa_simulated-55",
+      "errors": [],
+      "expansions": [],
+      "group_id": "wix-articles-e7de635adfc7eb65a72f",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "wixqa_simulated",
+        "single_article",
+        "long_document"
+      ],
+      "raw_query": "how to edit the cart page in a Wix store",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "wixqa-dev-wixqa_simulated-64",
+      "errors": [],
+      "expansions": [],
+      "group_id": "wix-articles-f0e5968fb36861d353c1",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "wixqa_simulated",
+        "single_article",
+        "long_document"
+      ],
+      "raw_query": "how to remove an automatic discount code from a product in a Wix shop",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "wixqa-dev-wixqa_simulated-87",
+      "errors": [],
+      "expansions": [],
+      "group_id": "wix-articles-9931836f34e1fe921df8",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "wixqa_simulated",
+        "single_article",
+        "long_document"
+      ],
+      "raw_query": "how to handle multiple bookings for same registrant",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "wixqa-dev-wixqa_simulated-9",
+      "errors": [],
+      "expansions": [],
+      "group_id": "wix-articles-c961780b41f4b15b735c",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "wixqa_simulated",
+        "single_article",
+        "long_document"
+      ],
+      "raw_query": "can you change the text for the service descriptions",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "wixqa-dev-wixqa_simulated-99",
+      "errors": [],
+      "expansions": [],
+      "group_id": "wix-articles-c7a25b63a4114a0b40ac",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "wixqa_simulated",
+        "single_article",
+        "long_document"
+      ],
+      "raw_query": "can I get the invoice re-issued with the correct address",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "wixqa-dev-wixqa_synthetic-107",
+      "errors": [],
+      "expansions": [],
+      "group_id": "wix-articles-c8fb8fdbd019b7b1319f",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "wixqa_synthetic",
+        "single_article",
+        "long_document"
+      ],
+      "raw_query": "How can I add a rich content field to my collection in the CMS?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "wixqa-dev-wixqa_synthetic-119",
+      "errors": [],
+      "expansions": [],
+      "group_id": "wix-articles-e73324058c005ebf2126",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "wixqa_synthetic",
+        "single_article",
+        "long_document"
+      ],
+      "raw_query": "How can I import content from a CSV file into my CMS collection without losing existing data?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "wixqa-dev-wixqa_synthetic-144",
+      "errors": [],
+      "expansions": [],
+      "group_id": "wix-articles-67acfda2ba7a93b1b61b",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "wixqa_synthetic",
+        "single_article",
+        "long_document"
+      ],
+      "raw_query": "What does the 'Valid' status mean in the Wix Site Inspection report, and does it guarantee that a page will appear in search results?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "wixqa-dev-wixqa_synthetic-156",
+      "errors": [],
+      "expansions": [],
+      "group_id": "wix-articles-dd9b3e87379df3ff5ef5",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "wixqa_synthetic",
+        "single_article",
+        "long_document"
+      ],
+      "raw_query": "How can I manage multiple workspaces in Wix Studio using the same account?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "wixqa-dev-wixqa_synthetic-190",
+      "errors": [],
+      "expansions": [],
+      "group_id": "wix-articles-4e21723adf2a3914f9f7",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "wixqa_synthetic",
+        "single_article",
+        "long_document"
+      ],
+      "raw_query": "How can I use the Site Checker in Editor X to identify and fix issues on my site?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "wixqa-dev-wixqa_synthetic-207",
+      "errors": [],
+      "expansions": [],
+      "group_id": "wix-articles-ea60d0b3ea8489d47b6f",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "wixqa_synthetic",
+        "single_article",
+        "long_document"
+      ],
+      "raw_query": "How can I set up a new menu using the Wix Restaurants Menus app?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "wixqa-dev-wixqa_synthetic-232",
+      "errors": [],
+      "expansions": [],
+      "group_id": "wix-articles-0ffabd244a629e72a450",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "wixqa_synthetic",
+        "single_article",
+        "long_document"
+      ],
+      "raw_query": "How do I connect a dropdown element to a CMS collection in Wix Editor?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "wixqa-dev-wixqa_synthetic-280",
+      "errors": [],
+      "expansions": [],
+      "group_id": "wix-articles-a1f14219045a4fd4f294",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "wixqa_synthetic",
+        "single_article",
+        "long_document"
+      ],
+      "raw_query": "How do I create a new automation using the new automation builder?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "wixqa-dev-wixqa_synthetic-31",
+      "errors": [],
+      "expansions": [],
+      "group_id": "wix-articles-6b13ceb689b6a2a91431",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "wixqa_synthetic",
+        "single_article",
+        "long_document"
+      ],
+      "raw_query": "What factors should I consider when determining appointment availability in Wix Bookings?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "wixqa-dev-wixqa_synthetic-50",
+      "errors": [],
+      "expansions": [],
+      "group_id": "wix-articles-33bb928709fddad29506",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "wixqa_synthetic",
+        "single_article",
+        "long_document"
+      ],
+      "raw_query": "How can I add an element to my Wix member app using the Wix app?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "wixqa-dev-wixqa_synthetic-72",
+      "errors": [],
+      "expansions": [],
+      "group_id": "wix-articles-ee73bc11b34a497d8e64",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "wixqa_synthetic",
+        "single_article",
+        "long_document"
+      ],
+      "raw_query": "How can I enable the option to control item visibility in my Wix collection using the Wix Editor?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "wixqa-dev-wixqa_synthetic-99",
+      "errors": [],
+      "expansions": [],
+      "group_id": "wix-articles-fa773f861a8333a41197",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "wixqa_synthetic",
+        "single_article",
+        "long_document"
+      ],
+      "raw_query": "How can I connect a Pro Gallery to a media gallery field in my CMS collection using the Wix Editor?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    }
+  ],
+  "sample_policy": "one case per article group, deterministic domain round-robin",
+  "schema_version": 1,
+  "split": "dev",
+  "total_calls": 0,
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

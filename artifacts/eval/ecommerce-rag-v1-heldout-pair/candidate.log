@@ -1,0 +1,137 @@
+2026-09-08 18:31:25,634 [INFO] sentence_transformers.base.model: Loading SentenceTransformer model from /home/yang/.cache/huggingface/hub/models--BAAI--bge-m3/snapshots/5617a9f61b028005a4858fdac845db406aefb181.
+/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-candidate/infrastructure/bge_m3_embedding.py:145: FutureWarning: The `get_sentence_embedding_dimension` method has been renamed to `get_embedding_dimension`.
+  dimension = self._model.get_sentence_embedding_dimension()
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade  -> 20260902_0001, Create platform namespaces and immutable migration ledger.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0001 -> 20260902_0002, Create immutable conversation, admission and publication facts.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0002 -> 20260902_0003, Create start/resume outboxes for inbound-first admission.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0003 -> 20260902_0004, Add canonical publication evidence, delivery lifecycle and send outbox.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0004 -> 20260902_0005, Reserved revision after direct PostgreSQL ResponseDelivery initialization.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0005 -> 20260902_0006, Create event projection outbox, watermarks and deletion epoch fence.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0006 -> 20260902_0007, Bind the approved data-location registry artifact.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0007 -> 20260902_0008, Add audited conversation close state for M1 query projections.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0008 -> 20260902_0009, Install the retrieval write-approved data-location overlay.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0009 -> 20260902_0010, Add the corpus-scoped retrieval generation and search schema.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0010 -> 20260902_0011, Make PG_FTS_ZH_V1 tsvector a database-owned generated projection.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0011 -> 20260902_0012, Add immutable Knowledge SourceRevision v0 and generation manifests.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0012 -> 20260902_0013, Add canonical retrieval projection outbox and deletion fences.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0013 -> 20260902_0014, Harden canonical projection event identity and owner-reference enqueue checks.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0014 -> 20260902_0015, Make the retrieval runtime role read-only over rebuildable search projections.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0015 -> 20260902_0016, Add direct-ingest SourceRevision provenance fields.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0016 -> 20260902_0017, Add the durable M1 compatibility invocation execution outbox.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0017 -> 20260902_0018, Add canonical thread-summary chunks and checkpoints.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0018 -> 20260902_0019, Add rebuild generations to thread-summary ownership.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0019 -> 20260902_0020, Add canonical ServiceEpisode revisions and current-head CAS.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0020 -> 20260902_0021, Finalize direct ServiceEpisode retrieval for fresh installations.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0021 -> 20260902_0022, Add PostgreSQL-owned versioned user memory facts.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0022 -> 20260902_0023, Add PostgreSQL-owned local media assets and turn bindings.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0023 -> 20260902_0024, Add PostgreSQL-owned handoff tickets, events and delivery outbox.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0024 -> 20260902_0025, Add PostgreSQL-owned customer commitments and versioned events.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0025 -> 20260902_0026, Add a bounded local persistence surface for sanitized application spans.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0026 -> 20260903_0027, Pin provider and document/query preprocessing in retrieval generations.
+INFO  [alembic.runtime.migration] Running upgrade 20260903_0027 -> 20260903_0028, Preserve canonical ServiceEpisode entity scope for dense projection.
+INFO  [alembic.runtime.migration] Running upgrade 20260903_0028 -> 20260903_0029, Add the conversation-scoped active-flow CAS aggregate.
+INFO  [alembic.runtime.migration] Running upgrade 20260903_0029 -> 20260903_0030, Add contextual Knowledge retrieval text, BM25 terms, and metadata filters.
+INFO  [alembic.runtime.migration] Running upgrade 20260903_0030 -> 20260903_0031, Let v1 Knowledge revisions distinguish retrieval-affecting metadata.
+INFO  [alembic.runtime.migration] Running upgrade 20260903_0031 -> 20260905_0032, Move the immutable AgentBundle registry to the platform database.
+INFO  [alembic.runtime.migration] Running upgrade 20260905_0032 -> 20260905_0033, Move ecommerce business state to tenant-scoped PostgreSQL tables.
+INFO  [alembic.runtime.migration] Running upgrade 20260905_0033 -> 20260905_0034, Move quality observations and intent feedback audit to PostgreSQL.
+INFO  [alembic.runtime.migration] Running upgrade 20260905_0034 -> 20260905_0035, Retire the unused pre-Target flow aggregate (destructive, forward-only).
+INFO  [alembic.runtime.migration] Running upgrade 20260905_0035 -> 20260906_0036, Knowledge applicability and monotonic revision withdrawal (forward-only).
+INFO  [alembic.runtime.migration] Running upgrade 20260906_0036 -> 20260908_0037, Retain Target run attempt failures in the existing execution outbox.
+FULL ec-006-1 Completed ['knowledge_search']
+FULL ec-006-2 Completed ['knowledge_search']
+FULL ec-007-1 Completed ['knowledge_search']
+FULL ec-007-2 Completed ['knowledge_search']
+FULL ec-008-1 Completed ['knowledge_search', 'knowledge_search']
+FULL ec-008-2 Completed ['knowledge_search', 'knowledge_search']
+FULL ec-009-1 Completed ['knowledge_search']
+FULL ec-009-2 Completed ['knowledge_search']
+FULL ec-010-1 Completed ['knowledge_search']
+FULL ec-010-2 Completed ['knowledge_search']
+FULL ec-011-1 Completed ['knowledge_search']
+FULL ec-011-2 Completed ['knowledge_search']
+FULL ec-012-1 Completed ['knowledge_search']
+FULL ec-012-2 Completed ['knowledge_search']
+FULL ec-013-1 Completed ['knowledge_search']
+FULL ec-013-2 Completed ['knowledge_search']
+FULL ec-014-1 Completed ['knowledge_search']
+FULL ec-014-2 Completed ['knowledge_search', 'knowledge_search']
+FULL ec-015-1 Completed ['knowledge_search']
+FULL ec-015-2 Completed ['knowledge_search']
+FULL ec-020-1 Completed ['knowledge_search']
+FULL ec-020-2 Completed ['knowledge_search']
+FULL ec-021-1 Completed ['knowledge_search']
+FULL ec-021-2 Completed ['knowledge_search']
+FULL ec-022-1 Completed ['knowledge_search']
+FULL ec-022-2 Completed ['knowledge_search', 'knowledge_search']
+ERROR [infrastructure.target_framework_agent] Domain execution failed: {"stage": "agent_execution", "status": "failed", "detail": {"code": "AGENT_STEP_BUDGET_EXCEEDED", "retryable": false, "work_item_id": "work:invocation:v1:a53205857c457e127b5ce73de3000c49cc2af600a0d2165c349f7859f232ecee:1:semantic-1", "owner_agent": "product_technical", "invocation_key": "invocation:v1:a53205857c457e127b5ce73de3000c49cc2af600a0d2165c349f7859f232ecee", "conversation_id": "full-ec-023-1", "control_id": "control:invocation:v1:a53205857c457e127b5ce73de3000c49cc2af600a0d2165c349f7859f232ecee:semantic-1", "revision": 1, "exception_chain": [{"type": "ToolCallLimitExceededError", "frames": [{"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-candidate/infrastructure/target_framework_agent.py", "line": 181, "function": "__call__"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/main.py", "line": 3440, "function": "astream"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/_runner.py", "line": 396, "function": "atick"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/_retry.py", "line": 744, "function": "arun_with_retry"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/_internal/_runnable.py", "line": 756, "function": "ainvoke"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/_internal/_runnable.py", "line": 522, "function": "ainvoke"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain/agents/middleware/tool_call_limit.py", "line": 488, "function": "aafter_model"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain/agents/middleware/tool_call_limit.py", "line": 400, "function": "after_model"}], "message": "Tool call limit reached: thread limit exceeded (5/4 calls)."}], "related_errors": []}}
+FULL ec-023-1 Completed ['catalog_search', 'catalog_search', 'knowledge_search']
+FULL ec-023-2 Completed ['knowledge_search', 'knowledge_search']
+FULL ec-024-1 Completed ['knowledge_search']
+FULL ec-024-2 Completed ['knowledge_search']
+FULL ec-025-1 Completed ['knowledge_search']
+FULL ec-025-2 Completed ['knowledge_search']
+ERROR [mcp.tool_manager] 工具异常: order_lookup — order not found
+FULL ec-026-1 Completed ['service_episode_search', 'order_lookup']
+ERROR [mcp.tool_manager] 工具异常: order_lookup — order not found
+ERROR [mcp.tool_manager] 工具异常: order_lookup — order not found
+FULL ec-026-2 Completed ['order_lookup', 'order_lookup']
+FULL ec-027-1 Completed ['knowledge_search']
+FULL ec-027-2 Completed ['knowledge_search']
+FULL ec-033-1 Completed ['knowledge_search', 'knowledge_search']
+FULL ec-033-2 Completed ['knowledge_search', 'knowledge_search']
+FULL ec-034-1 Completed ['knowledge_search', 'knowledge_search']
+FULL ec-034-2 Completed ['knowledge_search']
+FULL ec-035-1 Completed ['knowledge_search']
+FULL ec-035-2 Completed ['knowledge_search']
+/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/pydantic/functional_validators.py:835: UserWarning: Pydantic serializer warnings:
+  PydanticSerializationUnexpectedValue(Expected `str` - serialized value may not be as expected [field_name='trusted_context', input_value={'top_k': 5, 'candidate_k...adata_hint_weight': 0.5}, input_type=dict])
+  PydanticSerializationUnexpectedValue(Expected `str` - serialized value may not be as expected [field_name='trusted_context', input_value={'catalog_id': 'unconfigu...', 'sales_channels': {}}, input_type=dict])
+  PydanticSerializationUnexpectedValue(Expected `str` - serialized value may not be as expected [field_name='trusted_context', input_value={'bundle_version': 'custo...9e3ae8e80580b6370120a5'}, input_type=dict])
+  function=lambda v, h: h(v), schema=original_schema
+/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/pydantic/main.py:475: UserWarning: Pydantic serializer warnings:
+  PydanticSerializationUnexpectedValue(Expected `str` - serialized value may not be as expected [field_name='trusted_context', input_value={'top_k': 5, 'candidate_k...adata_hint_weight': 0.5}, input_type=dict])
+  PydanticSerializationUnexpectedValue(Expected `str` - serialized value may not be as expected [field_name='trusted_context', input_value={'catalog_id': 'unconfigu...', 'sales_channels': {}}, input_type=dict])
+  PydanticSerializationUnexpectedValue(Expected `str` - serialized value may not be as expected [field_name='trusted_context', input_value={'bundle_version': 'custo...9e3ae8e80580b6370120a5'}, input_type=dict])
+  return self.__pydantic_serializer__.to_python(
+ERROR [infrastructure.target_framework_agent] Domain execution failed: {"stage": "agent_execution", "status": "failed", "detail": {"code": "RESULT_ARCHIVE_UNAVAILABLE", "retryable": false, "work_item_id": "work:invocation:v1:1e00365d2f67f3b181e24acb40c6bcb9f1826d5fe6cef9ae8984aa6bfd61b297:1:semantic-1", "owner_agent": "product_technical", "invocation_key": "invocation:v1:1e00365d2f67f3b181e24acb40c6bcb9f1826d5fe6cef9ae8984aa6bfd61b297", "conversation_id": "full-ec-036-1", "control_id": "control:invocation:v1:1e00365d2f67f3b181e24acb40c6bcb9f1826d5fe6cef9ae8984aa6bfd61b297:semantic-1", "revision": 1, "exception_chain": [{"type": "ResultArchiveError", "frames": [{"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-candidate/infrastructure/target_framework_agent.py", "line": 181, "function": "__call__"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/main.py", "line": 3440, "function": "astream"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/_runner.py", "line": 396, "function": "atick"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/_retry.py", "line": 744, "function": "arun_with_retry"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/_internal/_runnable.py", "line": 756, "function": "ainvoke"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/_internal/_runnable.py", "line": 522, "function": "ainvoke"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/prebuilt/tool_node.py", "line": 858, "function": "_afunc"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/prebuilt/tool_node.py", "line": 1216, "function": "_arun_one"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/prebuilt/tool_node.py", "line": 434, "function": "_handle_tool_error"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/prebuilt/tool_node.py", "line": 391, "function": "_default_handle_tool_errors"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/prebuilt/tool_node.py", "line": 1207, "function": "_arun_one"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain/agents/factory.py", "line": 646, "function": "composed"}, {"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-candidate/infrastructure/target_agent_middleware.py", "line": 199, "function": "awrap_tool_call"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain/agents/factory.py", "line": 643, "function": "call_inner"}, {"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-candidate/infrastructure/target_context_compaction.py", "line": 38, "function": "awrap_tool_call"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/prebuilt/tool_node.py", "line": 1198, "function": "execute"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/prebuilt/tool_node.py", "line": 1153, "function": "_execute_tool_async"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/prebuilt/tool_node.py", "line": 434, "function": "_handle_tool_error"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/prebuilt/tool_node.py", "line": 391, "function": "_default_handle_tool_errors"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/prebuilt/tool_node.py", "line": 1105, "function": "_execute_tool_async"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain_core/tools/structured.py", "line": 125, "function": "ainvoke"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain_core/tools/base.py", "line": 774, "function": "ainvoke"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain_core/tools/base.py", "line": 1262, "function": "arun"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain_core/tools/base.py", "line": 1228, "function": "arun"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain_core/tools/structured.py", "line": 179, "function": "_arun"}, {"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-candidate/infrastructure/target_framework_agent.py", "line": 315, "function": "read_tool_result"}, {"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-candidate/infrastructure/target_result_archive.py", "line": 90, "function": "read"}, {"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-candidate/infrastructure/target_result_archive.py", "line": 78, "function": "load"}], "message": "result reference is unavailable in this task"}], "related_errors": []}}
+FULL ec-036-1 Completed ['catalog_search', 'knowledge_search']
+FULL ec-036-2 Completed ['knowledge_search']
+FULL ec-037-1 Completed ['knowledge_search']
+FULL ec-037-2 Completed ['knowledge_search']
+FULL ec-038-1 Completed ['knowledge_search']
+FULL ec-038-2 Completed ['knowledge_search']
+FULL ec-039-1 Completed ['knowledge_search', 'knowledge_search']
+FULL ec-039-2 Completed ['knowledge_search']
+FULL ec-040-1 Completed ['knowledge_search']
+FULL ec-040-2 Completed ['knowledge_search']
+FULL ec-044-1 Completed ['order_lookup']
+FULL ec-044-2 Completed ['order_lookup', 'refund_status']
+FULL ec-045-1 Completed ['order_lookup', 'knowledge_search']
+FULL ec-045-2 Completed ['order_lookup', 'knowledge_search']
+FULL ec-046-1 Completed ['order_lookup', 'order_lookup']
+FULL ec-046-2 Completed ['order_lookup', 'order_lookup']
+FULL ec-047-1 Completed ['order_lookup', 'knowledge_search']
+FULL ec-047-2 Completed ['order_lookup']
+FULL ec-048-1 Completed ['order_lookup', 'knowledge_search']
+FULL ec-048-2 Completed ['order_lookup', 'knowledge_search']
+FULL ec-049-1 Completed ['order_lookup', 'knowledge_search']
+FULL ec-049-2 Completed ['order_lookup', 'knowledge_search']
+FULL ec-050-1 Completed ['order_lookup', 'knowledge_search']
+FULL ec-050-2 Completed ['order_lookup']
+FULL ec-054-1 Completed ['knowledge_search']
+FULL ec-054-2 Completed ['knowledge_search']
+FULL ec-055-1 Completed ['knowledge_search']
+FULL ec-055-2 Completed ['knowledge_search']
+FULL ec-056-1 Completed ['service_episode_search', 'knowledge_search', 'knowledge_search']
+FULL ec-056-2 Completed ['knowledge_search', 'knowledge_search']
+FULL ec-057-1 Completed ['knowledge_search']
+FULL ec-057-2 Completed ['knowledge_search']
+FULL ec-058-1 Completed ['knowledge_search']
+FULL ec-058-2 Completed ['knowledge_search']
+FULL ec-059-1 Completed ['knowledge_search']
+FULL ec-059-2 Completed ['knowledge_search']
+FULL ec-060-1 Completed ['knowledge_search']
+FULL ec-060-2 Completed ['knowledge_search']

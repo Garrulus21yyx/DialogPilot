@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+  <!-- 覆盖 Minima 2.5 的 head，以显式接入教程交互和 Mermaid。 -->
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111c28"><!-- Begin Jekyll SEO tag v2.9.0 -->
+<title>架构边界与职责归属 | DialogPilot 完整架构教程</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="架构边界与职责归属" />
+<meta property="og:locale" content="zh_CN" />
+<meta name="description" content="Python 多 Agent 客服后端的架构、链路、内部实现、改造记录与项目追问" />
+<meta name="twitter:description" property="og:description" content="Python 多 Agent 客服后端的架构、链路、内部实现、改造记录与项目追问" />
+<meta property="og:site_name" content="DialogPilot 完整架构教程" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="架构边界与职责归属" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"Python 多 Agent 客服后端的架构、链路、内部实现、改造记录与项目追问","headline":"架构边界与职责归属","url":"/DialogPilot/architecture.html"}</script>
+<!-- End Jekyll SEO tag -->
+<!-- 每次 Pages 构建生成新版本号，避免浏览器继续使用旧 CSS/JS。 -->
+  <link rel="icon" href="/DialogPilot/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/DialogPilot/assets/main.css?v=1788371868"><link type="application/atom+xml" rel="alternate" href="/DialogPilot/feed.xml" title="DialogPilot 完整架构教程" /><!-- defer 保证 Mermaid 先定义，页面增强脚本随后在 DOM 解析完成后运行。 -->
+  <script defer src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <script defer src="/DialogPilot/assets/dialogpilot.js?v=1788371868"></script>
+</head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/DialogPilot/">DialogPilot 完整架构教程</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/DialogPilot/interview-guide.html">DialogPilot 面经校准与追问手册</a><a class="page-link" href="/DialogPilot/architecture.html">架构边界与职责归属</a><a class="page-link" href="/DialogPilot/project-pitch.html">项目讲述与技术取舍</a><a class="page-link" href="/DialogPilot/agent-evolution/">Agent 进化闭环</a><a class="page-link" href="/DialogPilot/evaluation-500/">500 条分层评测：设计与运行</a><a class="page-link" href="/DialogPilot/rag-pipeline-evaluation/">客服 RAG 全链路评测</a><a class="page-link" href="/DialogPilot/customer-service-rag-production-audit/">客服 RAG 生产化审计</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <h1 id="dialogpilot-架构边界">DialogPilot 架构边界</h1>
+
+<blockquote>
+  <p>本文描述重构后的当前代码，而不是未来路线图。完整目标与分阶段验收分别见<a href="/DialogPilot/customer-service-agent-target-architecture.html">目标架构</a>和<a href="/DialogPilot/customer-service-agent-implementation-plan.html">实施计划</a>。</p>
+</blockquote>
+
+<h2 id="设计原则">设计原则</h2>
+
+<p>DialogPilot 用“唯一事实 Owner + 可重建投影”组织客服 Agent：</p>
+
+<ul>
+  <li>PostgreSQL 拥有请求、Invocation、Conversation、回答发布、Knowledge、ServiceEpisode 和用户事实。</li>
+  <li>Redis 只拥有当前会话的快速投影与短期任务队列，不是第二事实库。</li>
+  <li>Agent 负责识别需求、形成任务和执行；不能直接授予工具权限或决定副作用已成功。</li>
+  <li>ToolManager 拥有授权与 receipt；Coverage/Verifier 拥有发布资格。</li>
+  <li>HTTP 层只做身份、输入输出合同与 outcome 映射。</li>
+</ul>
+
+<h2 id="总体结构">总体结构</h2>
+
+<pre><code class="language-mermaid">flowchart TB
+    HTTP[FastAPI / JWT] --&gt; ADMIT[PostgreSQL Admission]
+    ADMIT --&gt; ROUTE[Intent + RouteDecision]
+    ROUTE --&gt;|EXECUTE| GRAPH[TaskGraph]
+    ROUTE --&gt;|CLARIFY / OUT_OF_SCOPE| TERMINAL[Policy Terminal]
+    GRAPH --&gt; WORKER[Domain Worker]
+    WORKER --&gt; REACT[Bounded ReAct]
+    REACT --&gt; TOOLS[Knowledge / Business Tools]
+    TOOLS --&gt; EVIDENCE[EvidenceReceipt]
+    EVIDENCE --&gt; COVERAGE[Requirement Coverage]
+    COVERAGE --&gt; VERIFY[AnswerVerifier]
+    VERIFY --&gt;|PASS| PUB[PostgreSQL Publication]
+    VERIFY --&gt;|REJECT / UNKNOWN| HANDOFF[Ticket / Handoff]
+    PUB --&gt; REDIS[Redis Working Projection]
+    PUB --&gt; ACK[Delivery ACK / Replay]
+    PUB --&gt; EPISODE[ServiceEpisode / Memory Facts]
+    HANDOFF --&gt; TICKET[PostgreSQL Ticket + Outbox]
+    PUB --&gt; COMMIT[Commitment lifecycle]
+</code></pre>
+
+<h2 id="权威边界">权威边界</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>关注点</th>
+      <th>Owner</th>
+      <th>正向合同</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>HTTP 身份</td>
+      <td><code class="language-plaintext highlighter-rouge">core/auth.py</code></td>
+      <td>签名 JWT 产生 Principal；请求体不能改写 subject</td>
+    </tr>
+    <tr>
+      <td>请求准入</td>
+      <td><code class="language-plaintext highlighter-rouge">infrastructure/postgres_admission.py</code></td>
+      <td>先持久化请求、Invocation 与 start outbox，再执行 Agent</td>
+    </tr>
+    <tr>
+      <td>应用主链</td>
+      <td><code class="language-plaintext highlighter-rouge">application/chat_application.py</code></td>
+      <td>从固定 identity 到唯一 ChatOutcome</td>
+    </tr>
+    <tr>
+      <td>路由</td>
+      <td><code class="language-plaintext highlighter-rouge">application/route_decision.py</code>、Agent policy</td>
+      <td>一个不可变 RouteDecision，未知状态类型化失败</td>
+    </tr>
+    <tr>
+      <td>TaskGraph</td>
+      <td><code class="language-plaintext highlighter-rouge">agents/orchestration_contracts.py</code></td>
+      <td>唯一 task id、无悬空依赖、无环、闭合 outcome</td>
+    </tr>
+    <tr>
+      <td>ReAct</td>
+      <td><code class="language-plaintext highlighter-rouge">agents/react_engine.py</code></td>
+      <td>有界步数、checkpoint、审批恢复、同一 tool call 防重</td>
+    </tr>
+    <tr>
+      <td>工具授权</td>
+      <td><code class="language-plaintext highlighter-rouge">mcp/tool_manager.py</code></td>
+      <td>白名单、风险、审批、typed result 与脱敏审计</td>
+    </tr>
+    <tr>
+      <td>Knowledge</td>
+      <td>PostgreSQL retrieval modules</td>
+      <td>唯一 active generation，source revision 可追溯</td>
+    </tr>
+    <tr>
+      <td>证据覆盖</td>
+      <td>authority/coverage modules</td>
+      <td>每个 requirement 恰好由合法 authority 满足或明确失败</td>
+    </tr>
+    <tr>
+      <td>发布资格</td>
+      <td><code class="language-plaintext highlighter-rouge">services/answer_verifier.py</code></td>
+      <td><code class="language-plaintext highlighter-rouge">PASS / REJECT / UNKNOWN</code>，只有 PASS 正常发布</td>
+    </tr>
+    <tr>
+      <td>回答与送达</td>
+      <td>PostgreSQL publication/delivery</td>
+      <td>publication 先于 HTTP 返回，ACK 单调且可重放</td>
+    </tr>
+    <tr>
+      <td>当前会话</td>
+      <td>Redis projection</td>
+      <td>从 PostgreSQL 事件重建，不反向成为事实 Owner</td>
+    </tr>
+    <tr>
+      <td>跨会话记忆</td>
+      <td>ServiceEpisode / MemoryFact</td>
+      <td>PostgreSQL 记录来源、revision、有效状态</td>
+    </tr>
+    <tr>
+      <td>人工升级</td>
+      <td><code class="language-plaintext highlighter-rouge">infrastructure/postgres_ticket_service.py</code></td>
+      <td>PostgreSQL 事务内的幂等 ticket、合法状态迁移、event 与 outbox</td>
+    </tr>
+    <tr>
+      <td>服务承诺</td>
+      <td><code class="language-plaintext highlighter-rouge">infrastructure/postgres_commitment_service.py</code></td>
+      <td>显式来源、版本 CAS、自动违约、receipt 履约与 Handoff 风险引用</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="chat-时序"><code class="language-plaintext highlighter-rouge">/chat</code> 时序</h2>
+
+<pre><code class="language-mermaid">sequenceDiagram
+    participant C as Client
+    participant A as FastAPI
+    participant P as PostgreSQL
+    participant R as Router/Planner
+    participant W as Worker/ReAct
+    participant V as Coverage/Verifier
+    participant X as Redis Projection
+
+    C-&gt;&gt;A: POST /chat + Bearer JWT
+    A-&gt;&gt;P: admit request + invocation + outbox
+    P--&gt;&gt;A: immutable identity/pins
+    A-&gt;&gt;R: classify and decide route
+    alt EXECUTE
+        R-&gt;&gt;W: TaskGraph
+        W-&gt;&gt;W: tools + receipts + evidence
+        W-&gt;&gt;V: typed task outcomes
+        V--&gt;&gt;A: PASS / REJECT / UNKNOWN
+    else policy terminal
+        R--&gt;&gt;A: CLARIFY / OUT_OF_SCOPE
+    end
+    A-&gt;&gt;P: select final publication
+    P--&gt;&gt;A: response_id + response_seq
+    A--&gt;&gt;C: public ChatOutcome
+    P--&gt;&gt;X: project conversation events
+</code></pre>
+
+<p>关键不变量：</p>
+
+<ol>
+  <li>不存在“先执行 LLM、后补 Invocation”的请求。</li>
+  <li>相同请求身份只能得到同一 publication，重试不能生成第二份业务事实。</li>
+  <li>Route <code class="language-plaintext highlighter-rouge">execute</code> 在 publication 边界映射为 <code class="language-plaintext highlighter-rouge">normal</code>；<code class="language-plaintext highlighter-rouge">clarify/out_of_scope/approval</code> 保持显式语义。</li>
+  <li>投影异步应用在 Redis 客户端所属事件循环，不能跨 loop 共享连接。</li>
+  <li>最终回答持久化失败时返回 typed failure，不伪装成功。</li>
+</ol>
+
+<h2 id="knowledge-数据流">Knowledge 数据流</h2>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SourceRevision
+  → fixed-token chunks
+  → pgvector + PostgreSQL FTS
+  → Raw / Standalone query variants
+  → weighted RRF
+  → optional rerank
+  → ContextPacker
+  → EvidencePack(source revision/checksum/span/ranks/manifest)
+  → GroundedAnswer
+  → Coverage + Verifier
+</code></pre></div></div>
+
+<p>Knowledge 的物理身份由 <code class="language-plaintext highlighter-rouge">storage_backend</code> 暴露，当前 engine 为 <code class="language-plaintext highlighter-rouge">postgresql+pgvector+pg_fts</code>。本地 embedding 是确定性的 384 维 feature hashing，避免下载大型模型；它是可复现本地基线，不宣称语义模型效果。</p>
+
+<p>公共知识只回答政策与说明。订单状态、退款办理结果、账户安全事件等私有事实必须由业务工具返回 receipt，Knowledge Evidence 不能替代。</p>
+
+<h2 id="context-与记忆">Context 与记忆</h2>
+
+<p>模型上下文由 ContextPolicy 组装，而不是把数据库内容直接拼进 Prompt：</p>
+
+<ul>
+  <li>Redis working window：最近会话消息的快速投影。</li>
+  <li>PostgreSQL Conversation：事件与 turn 的权威来源。</li>
+  <li>ServiceEpisode：经验证的跨会话服务经历。</li>
+  <li>MemoryFact/Profile：带来源的用户事实。</li>
+  <li>ActiveCase/Ticket：未完成事项，高于普通历史相似性。</li>
+</ul>
+
+<p>Redis 投影失败不会改写 PostgreSQL 事实；后台 outbox 会重试。删除与重建也围绕权威事件执行。</p>
+
+<h2 id="工具副作用与恢复">工具、副作用与恢复</h2>
+
+<p>模型可以请求工具，但不能授权自己。ToolManager 根据 Agent allowlist 和风险策略决定执行方式。写调用在审批前保存 checkpoint；批准时重新验证 user/task/tool/arguments 绑定。相同 tool call 复用 receipt，不重复提交副作用。</p>
+
+<p>运行结果闭合为成功、超时、错误、预算耗尽、依赖阻塞或等待审批。Coverage 不把部分返回冒充完整任务完成。</p>
+
+<h2 id="本地可观测性与评测">本地可观测性与评测</h2>
+
+<ul>
+  <li>HTTP 与内部边界传播 TraceId。</li>
+  <li>Prometheus 暴露 Agent、Tool 和健康指标。</li>
+  <li>TraceRecorder 保留进程内快速投影，同时把脱敏 span 写入 PostgreSQL；配置凭据后通过 OTel-native Langfuse v4 SDK 导出 Agent/Generation/Tool/Guardrail。</li>
+  <li><code class="language-plaintext highlighter-rouge">/eval/run</code> 和离线脚本生成确定性报告；provisional 数据不包装为 Gold。</li>
+  <li><code class="language-plaintext highlighter-rouge">scripts/run_local_e2e.py</code> 验证健康、Knowledge 后端和真实鉴权对话。</li>
+  <li><code class="language-plaintext highlighter-rouge">scripts/run_local_vlm_e2e.py</code> 验证真实 DeepSeek Vision L2 与回答消费。</li>
+  <li><code class="language-plaintext highlighter-rouge">scripts/run_local_trace_e2e.py</code> 验证 HTTP span 跨进程内存后仍可从 PostgreSQL 查询。</li>
+  <li><code class="language-plaintext highlighter-rouge">scripts/rehearse_x_t01_restore.py</code> 验证空库 schema 的本地 dump/restore。</li>
+</ul>
+
+<h2 id="已删除的旧路径">已删除的旧路径</h2>
+
+<ul>
+  <li>Chroma Knowledge、raw episodic writer/reader 和用户事实存储。</li>
+  <li>SQLite ResponseDelivery 及 freeze/backfill/cutover 状态机。</li>
+  <li>Knowledge/Route/Agent shadow 双算。</li>
+  <li>Canary、promotion、rollback pointer 与 <code class="language-plaintext highlighter-rouge">/evolution/rollouts/*</code>。</li>
+  <li>生产签署、双盲仲裁、非劣门禁和空 corpus backfill。</li>
+</ul>
+
+<h2 id="多模态单路径">多模态单路径</h2>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">/assets/upload</code> 将图片/PDF 与认证用户、本轮 turn 绑定，安全扫描本身不调用模型。</li>
+  <li>Agent 是唯一 MediaRequirementDecision producer；无关附件停在 L0，字符读取进入 Tesseract L1，外观/位置/关系进入 DeepSeek Vision L2。</li>
+  <li>ParseResult 与 EvidenceNode 保存 asset checksum、page/bbox、producer/model/version；TaskGraph 显式声明 <code class="language-plaintext highlighter-rouge">media_observations</code> 后 Worker 才能读取。</li>
+  <li>媒体文字和视觉观察始终标为不可信派生数据，不能冒充订单、资格、根因或指令。</li>
+</ul>
+
+<h2 id="尚未实现">尚未实现</h2>
+
+<ul>
+  <li>生产级 OpenTelemetry Collector、Tempo/Jaeger fan-out 与 tail sampling；本地 PostgreSQL Trace 和可选 Langfuse 已实现。</li>
+  <li>BadCase/ReAct metadata 的 PostgreSQL 最终收敛；Ticket 与 Commitment 已完成。</li>
+  <li>human-reviewed Gold 和未消费的 fresh heldout。</li>
+  <li>LangGraph 薄 runtime、复杂文档摄取和生产级容量治理；它们仍在目标/计划合同中，不是当前 composition root 的能力。</li>
+</ul>
+
+<p>这些条目是后续实施节点，不属于当前能力声明。</p>
+
+<hr />
+
+<h2 id="当前运行链逐层展开">当前运行链逐层展开</h2>
+
+<p>下面按 FastAPI、API、Intent、在线/离线 RAG、Memory、多模态、TaskGraph、Reducer、Verifier、Delivery 的顺序展开当前实现，作为上面 Owner 图的逐节点说明。</p>
+
+<h2 id="0-先建立正确的阅读坐标">0. 先建立正确的阅读坐标</h2>
+
+<p>这不是“请求进来，调用大模型，返回字符串”的项目。当前主链把一次客服请求拆成四类事实：</p>
+
+<ol>
+  <li>协议事实：谁在什么租户下、以哪个 <code class="language-plaintext highlighter-rouge">request_id</code> 请求了什么；</li>
+  <li>决策事实：Intent、RequestShape、Route、TaskGraph 和需要哪些 Authority；</li>
+  <li>执行事实：检索证据、工具回执、Agent outcome、审批暂停和人工工单；</li>
+  <li>交付事实：哪一个候选被允许发布、<code class="language-plaintext highlighter-rouge">response_id/seq</code> 是什么、客户端是否 ACK。</li>
+</ol>
+
+<p>必须记住三条边界：</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">api/main.py</code> 只拥有 HTTP、认证和 DTO 映射；统一业务入口是 <code class="language-plaintext highlighter-rouge">ChatApplication.handle()</code>。</li>
+  <li>PostgreSQL Conversation Event 是完整会话事实；Redis 是可丢弃的热投影，不是历史真相。</li>
+  <li>LangGraph 尚未接管当前运行时。当前执行是 Python <code class="language-plaintext highlighter-rouge">TaskGraph + AgentOrchestrator + bounded ReAct</code>；LangGraph 是第二部分的薄恢复层目标。</li>
+</ul>
+
+<h2 id="1-从-fastapi-开始应用如何启动">1. 从 FastAPI 开始：应用如何启动</h2>
+
+<p><code class="language-plaintext highlighter-rouge">api/main.py</code> 创建 <code class="language-plaintext highlighter-rouge">FastAPI(title="DialogPilot 智能客服", version="2.0.0", docs_url="/docs", lifespan=lifespan)</code>。真正重要的是 <code class="language-plaintext highlighter-rouge">lifespan()</code>，因为它是 composition root：所有接口、实现和后台 worker 在这里绑定。</p>
+
+<p>启动顺序可读成：</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>环境变量与 ModelPolicy 校验
+→ JWTAuthenticator / scope policy
+→ PostgreSQL pool 与 migration 版本检查
+→ RunStore、AgentBundleRegistry
+→ IntentRecognizer、SkillManager
+→ PostgreSQL Ticket / Commitment / Delivery Owner
+→ MemoryManager + PostgreSQL MemoryFactStore / ProjectionReader
+→ PostgreSQL KnowledgeRetriever（pgvector + 中文 FTS）
+→ MediaAssetService、OCR、可选 VLM
+→ ToolManager、AgentOrchestrator、AnswerVerifier
+→ ChatApplication 与 durable admission coordinator
+→ Monitor、projection/outbox worker
+</code></pre></div></div>
+
+<p>为什么要把初始化集中在 lifespan，而不是在 endpoint 中临时创建？因为连接池、缓存、模型策略、Bundle 和状态 Owner 必须在进程生命周期内共享；否则每个请求会得到不同配置，幂等键和统计也无法对齐。启动失败应立即暴露缺少 API key、非法模型配置或不可用的权威存储，而不是在第一个用户请求中随机失败。</p>
+
+<p>退出阶段按相反方向停止 worker、等待后台任务并关闭 Redis/PostgreSQL 连接。关闭顺序同样是合同：先停止生产新任务，再释放任务依赖。</p>
+
+<h3 id="11-横切中间件">1.1 横切中间件</h3>
+
+<p>每个 HTTP 请求都有 <code class="language-plaintext highlighter-rouge">X-Trace-Id</code>。合法调用方可携带它；缺失或非法时由服务生成。Trace ID 贯穿 intent、retrieval、Agent、tool、verification、ticket 与 delivery，但它只用于关联，不替代 <code class="language-plaintext highlighter-rouge">request_id</code> 的业务幂等。</p>
+
+<p>CORS 由环境变量提供允许源。认证使用 JWT subject 和 scopes；不能相信 body 中自报的 <code class="language-plaintext highlighter-rouge">user_id</code>。若 body 的用户和 token subject 不一致，接口拒绝，而不是偷偷改写。</p>
+
+<h2 id="2-api-全景每组接口由谁负责">2. API 全景：每组接口由谁负责</h2>
+
+<h3 id="21-在线对话与恢复">2.1 在线对话与恢复</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>方法</th>
+      <th>路径</th>
+      <th>作用</th>
+      <th>关键合同</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">POST</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/chat</code></td>
+      <td>唯一在线聊天入口</td>
+      <td>进入 <code class="language-plaintext highlighter-rouge">ChatApplication.handle()</code>，不在路由函数复制业务链</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">POST</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/assets/upload</code></td>
+      <td>上传图片或 PDF</td>
+      <td>只完成绑定、MIME 校验和扫描，不等于 OCR/VLM 已完成</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">GET</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/agent-runs/{run_id}</code></td>
+      <td>查询 ReAct run</td>
+      <td>返回运行或等待审批状态，不伪造业务结果</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">POST</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/agent-runs/{run_id}/resume</code></td>
+      <td>宿主批准/拒绝后恢复</td>
+      <td>需要 <code class="language-plaintext highlighter-rouge">tool:approve</code>，重新核验主体、call 与 checkpoint</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">POST</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/conversations/{conv_id}/finalize</code></td>
+      <td>兼容接口：等待投影水位</td>
+      <td>已弃用；它不关闭会话</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">POST</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/conversations/{conv_id}/close</code></td>
+      <td>关闭会话</td>
+      <td>关闭语义的唯一 HTTP 入口</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">GET</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/conversations/{conv_id}/turns</code></td>
+      <td>读取持久 turn</td>
+      <td>读 PostgreSQL Conversation 投影</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">GET</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/invocations/{invocation_key}</code></td>
+      <td>查询幂等 invocation</td>
+      <td>显示 admission/execution/publication 的组合只读状态</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">POST</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/responses/{response_id}/ack</code></td>
+      <td>客户端确认送达/已读</td>
+      <td>ACK 单调推进，不回写回答内容</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">GET</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/conversations/{conv_id}/responses</code></td>
+      <td>断线续取回答</td>
+      <td>按稳定 seq 返回已选定回答</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="22-人工服务与承诺">2.2 人工服务与承诺</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>方法</th>
+      <th>路径</th>
+      <th>Owner</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">POST/GET</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/tickets</code></td>
+      <td>PostgreSQL TicketService 创建或列表</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">GET</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/tickets/{ticket_id}</code></td>
+      <td>工单详情与状态事实</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">PATCH</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/tickets/{ticket_id}/status</code></td>
+      <td>合法状态迁移；事件与 outbox 同事务</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">POST/GET</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/commitments</code></td>
+      <td>企业承诺创建与列表</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">GET</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/commitments/{commitment_id}</code></td>
+      <td>承诺期限、状态和来源</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">PATCH</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/commitments/{commitment_id}/status</code></td>
+      <td>履约、违约等合法迁移</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="23-知识质量演进与运维">2.3 知识、质量、演进与运维</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>方法</th>
+      <th>路径</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">POST</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/search</code></td>
+      <td>直接检索调试；不等于 <code class="language-plaintext highlighter-rouge">/chat</code> 会无条件触发 RAG</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">POST</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/knowledge/add</code></td>
+      <td>写入文本知识源修订</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">POST</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/knowledge/upload</code></td>
+      <td>摄取受支持文档</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">GET</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/knowledge/stats</code></td>
+      <td>corpus/generation 统计</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">POST</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/feedback</code></td>
+      <td>回答反馈，关联 response/request/producer</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">GET/PATCH</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/bad-cases...</code></td>
+      <td>Bad Case 查询和生命周期维护</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">GET/POST</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/intent-feedback...</code></td>
+      <td>prediction、人工 review 与 annotation</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">GET/POST</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/eval/datasets</code>、<code class="language-plaintext highlighter-rouge">/eval/run</code></td>
+      <td>数据集列表与评测执行</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">POST/GET</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/evolution/proposals</code>、<code class="language-plaintext highlighter-rouge">/evolution/bundles...</code></td>
+      <td>受限候选与不可变 Bundle</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">GET</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/skills</code>、<code class="language-plaintext highlighter-rouge">POST /skills/reload</code></td>
+      <td>Skill 发现和显式重载</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">GET</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/health</code>、<code class="language-plaintext highlighter-rouge">/monitor</code>、<code class="language-plaintext highlighter-rouge">/metrics</code></td>
+      <td>健康、应用指标与 Prometheus</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">GET</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/traces/{trace_id}</code></td>
+      <td>管理员读取持久 Trace</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="3-chat-输入合同与公开结果代数">3. <code class="language-plaintext highlighter-rouge">/chat</code> 输入合同与公开结果代数</h2>
+
+<p><code class="language-plaintext highlighter-rouge">ChatRequest.message</code> 最多 10000 字符；<code class="language-plaintext highlighter-rouge">request_id</code> 最多 128 字符；单轮最多绑定 5 个 <code class="language-plaintext highlighter-rouge">asset_ids</code>。<code class="language-plaintext highlighter-rouge">conv_id</code> 确定 thread，JWT subject 确定 user，部署配置确定 tenant。三者共同决定隔离边界。</p>
+
+<p>进入 Memory、RAG、LLM 或 Tool 之前先执行输入安全检查。输入中的“忽略系统指令”“输出密钥”属于不可信数据，不能因为它来自 OCR、知识文档或历史消息就获得更高权限。</p>
+
+<p>公开返回不是只有 200/500：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Outcome</th>
+      <th style="text-align: right">HTTP</th>
+      <th>语义</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">ChatResponse</code></td>
+      <td style="text-align: right">200</td>
+      <td>已选择并登记回答</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Accepted</code></td>
+      <td style="text-align: right">202</td>
+      <td>已接纳，后台 durable 执行</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">NeedsInput</code></td>
+      <td style="text-align: right">202</td>
+      <td>缺材料或待批准，有明确 pending signal</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Reconciling</code></td>
+      <td style="text-align: right">202</td>
+      <td>写副作用结果未知，正在核对</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">HandedOff</code></td>
+      <td style="text-align: right">200/202</td>
+      <td>已进入人工处理语义</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Conflict</code></td>
+      <td style="text-align: right">409</td>
+      <td>同幂等身份出现不同 payload 或版本冲突</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Expired</code></td>
+      <td style="text-align: right">410</td>
+      <td>审批/运行已过期</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Rejected</code></td>
+      <td style="text-align: right">422</td>
+      <td>合同或策略拒绝</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Failed</code></td>
+      <td style="text-align: right">500/503</td>
+      <td>typed code、是否可重试和 correlation ID</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>同一个 <code class="language-plaintext highlighter-rouge">request_id</code> 重试必须读取同一 invocation，不应重复建工单、重复写记忆或生成第二个 final response。</p>
+
+<h2 id="4-当前-chat-端到端时序">4. 当前 <code class="language-plaintext highlighter-rouge">/chat</code> 端到端时序</h2>
+
+<pre><code class="language-mermaid">sequenceDiagram
+    participant C as Client
+    participant F as FastAPI
+    participant A as ChatApplication
+    participant P as PostgreSQL Owners
+    participant R as Route/RAG
+    participant G as TaskGraph/ReAct
+    participant V as Coverage/Verifier
+    participant D as Delivery
+    C-&gt;&gt;F: POST /chat + JWT + request_id
+    F-&gt;&gt;A: ChatCommand
+    A-&gt;&gt;P: admission / inbound turn
+    A-&gt;&gt;P: read memory projections + watermarks
+    A-&gt;&gt;R: intent + shape + route
+    R--&gt;&gt;A: optional EvidencePack
+    A-&gt;&gt;G: PromptContext + TaskGraph
+    G--&gt;&gt;A: outcomes or PendingSignal
+    A-&gt;&gt;V: candidate + coverage + evidence
+    V--&gt;&gt;A: PASS / REJECT / UNKNOWN
+    A-&gt;&gt;P: optional ticket + tool receipts
+    A-&gt;&gt;D: select response + seq
+    A-&gt;&gt;P: projection outbox / observations
+    A--&gt;&gt;F: typed ChatOutcome
+</code></pre>
+
+<p>代码中的阶段观测依次包括：<code class="language-plaintext highlighter-rouge">bundle_resolution</code>、<code class="language-plaintext highlighter-rouge">memory_load</code>、<code class="language-plaintext highlighter-rouge">intent</code>、<code class="language-plaintext highlighter-rouge">media</code>、<code class="language-plaintext highlighter-rouge">knowledge_retrieval</code>、<code class="language-plaintext highlighter-rouge">active_case</code>、<code class="language-plaintext highlighter-rouge">route_and_agent</code>、<code class="language-plaintext highlighter-rouge">verification</code>、<code class="language-plaintext highlighter-rouge">ticket</code>、<code class="language-plaintext highlighter-rouge">delivery</code>、<code class="language-plaintext highlighter-rouge">tool</code>、<code class="language-plaintext highlighter-rouge">memory_write</code>。阶段状态是 <code class="language-plaintext highlighter-rouge">OK/DEGRADED/SKIPPED/FAILED</code>，用来区分“没有触发”和“触发后失败”。</p>
+
+<h3 id="41-bundle-固定">4.1 Bundle 固定</h3>
+
+<p>请求开始时解析一次 AgentBundle，后续 Intent、路由、检索、Worker、Verifier 和 checkpoint 都引用同一版本。否则一个请求可能显示 v18，却有子调用实际使用 v17。</p>
+
+<h3 id="42-memory-读取">4.2 Memory 读取</h3>
+
+<p>先读 PostgreSQL 权威会话与投影水位。返回 <code class="language-plaintext highlighter-rouge">READY/LAGGING/DEGRADED/UNAVAILABLE</code>，而不是把故障伪装成“无历史”。投影落后时可从 PostgreSQL raw turns 有界回退；权威库不可用时返回可重试失败。</p>
+
+<h3 id="43-intent-与-route">4.3 Intent 与 Route</h3>
+
+<p>Intent 只计算一次，再由 RequestShapePolicy 决定问题形态与 Authority。Route 决定是否前置 RAG、是否使用业务工具、是否需要多 Agent。</p>
+
+<h3 id="44-候选校验与发布">4.4 候选、校验与发布</h3>
+
+<p>Agent 文本只是 candidate。CoverageGate 先证明 required tasks 是否完成；Verifier 再检查证据、引用和安全。只有选定的安全文本进入 ResponseDelivery 和 assistant 历史。被拒候选可以留在审计中，但不能污染未来上下文。</p>
+
+<h2 id="5-intent分类不是最终路由">5. Intent：分类不是最终路由</h2>
+
+<p>当前闭合标签包括：<code class="language-plaintext highlighter-rouge">query</code>、<code class="language-plaintext highlighter-rouge">complaint</code>、<code class="language-plaintext highlighter-rouge">request</code>、<code class="language-plaintext highlighter-rouge">greeting</code>、<code class="language-plaintext highlighter-rouge">escalation</code>、<code class="language-plaintext highlighter-rouge">technical</code>、<code class="language-plaintext highlighter-rouge">billing</code>、<code class="language-plaintext highlighter-rouge">account</code>、<code class="language-plaintext highlighter-rouge">feedback</code>、<code class="language-plaintext highlighter-rouge">order_status</code>、<code class="language-plaintext highlighter-rouge">logistics</code>、<code class="language-plaintext highlighter-rouge">refund</code>、<code class="language-plaintext highlighter-rouge">invoice</code>、<code class="language-plaintext highlighter-rouge">payment_issue</code>、<code class="language-plaintext highlighter-rouge">account_security</code>、<code class="language-plaintext highlighter-rouge">technical_login</code>、<code class="language-plaintext highlighter-rouge">technical_crash</code>、<code class="language-plaintext highlighter-rouge">human_handoff</code>、<code class="language-plaintext highlighter-rouge">other</code>。</p>
+
+<p>默认融合是三路：LLM 0.7、字符 n-gram 0.2、Pattern 0.1。这里的 n-gram 是本地字符相似度，不是已训练的 embedding 分类器。关闭本地相似度时使用 LLM 0.85 + Pattern 0.15。</p>
+
+<p>输出包含 <code class="language-plaintext highlighter-rouge">intent/confidence/urgency/intent_group/entities/reasoning/latency_ms/source_scores/classifier_fingerprint/input_fingerprint</code>。缓存 key 包含分类器指纹；普通 TTL 默认 3600 秒，低置信度与账户安全最多 300 秒。缓存只减少重复计算，人工纠正仍由 prediction/feedback/annotation Owner 保存。</p>
+
+<p>为什么 Intent 不直接映射 Agent？“退款政策是什么”和“立即替我退款”都可能是 refund，但前者要知识，后者是高风险写操作。因此还要做 RequestShape 与 Authority 判断。</p>
+
+<h2 id="6-requestshapeauthority-与-route">6. RequestShape、Authority 与 Route</h2>
+
+<p>RequestShape 包括 <code class="language-plaintext highlighter-rouge">greeting</code>、<code class="language-plaintext highlighter-rouge">knowledge_faq</code>、<code class="language-plaintext highlighter-rouge">business_state</code>、<code class="language-plaintext highlighter-rouge">action_request</code>、<code class="language-plaintext highlighter-rouge">agent_assistance</code>、<code class="language-plaintext highlighter-rouge">mixed_policy_state</code>、<code class="language-plaintext highlighter-rouge">multi_domain_task</code>、<code class="language-plaintext highlighter-rouge">missing_input</code>、<code class="language-plaintext highlighter-rouge">explicit_handoff</code>、<code class="language-plaintext highlighter-rouge">out_of_scope</code>、<code class="language-plaintext highlighter-rouge">security_risk</code>、<code class="language-plaintext highlighter-rouge">unsupported_operation</code> 等。</p>
+
+<p>Authority 包括 <code class="language-plaintext highlighter-rouge">knowledge</code>、<code class="language-plaintext highlighter-rouge">order_state</code>、<code class="language-plaintext highlighter-rouge">refund_state</code>、<code class="language-plaintext highlighter-rouge">account_state</code>、<code class="language-plaintext highlighter-rouge">security</code>、<code class="language-plaintext highlighter-rouge">domain_tool</code>、<code class="language-plaintext highlighter-rouge">action_approval</code>、<code class="language-plaintext highlighter-rouge">human</code>。它回答的不是“哪个模型更聪明”，而是“谁有资格证明这个事实”。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>用户问题</th>
+      <th>Shape</th>
+      <th>Route</th>
+      <th>必需证据</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>“退货期几天？”</td>
+      <td><code class="language-plaintext highlighter-rouge">knowledge_faq</code></td>
+      <td><code class="language-plaintext highlighter-rouge">knowledge_qa</code></td>
+      <td>Knowledge revision/chunk</td>
+    </tr>
+    <tr>
+      <td>“我的订单到哪了？”</td>
+      <td><code class="language-plaintext highlighter-rouge">business_state</code></td>
+      <td><code class="language-plaintext highlighter-rouge">agent_task</code></td>
+      <td>订单工具 receipt</td>
+    </tr>
+    <tr>
+      <td>“规则怎么说、我是否符合？”</td>
+      <td><code class="language-plaintext highlighter-rouge">mixed_policy_state</code></td>
+      <td><code class="language-plaintext highlighter-rouge">mixed</code></td>
+      <td>Knowledge + business receipt</td>
+    </tr>
+    <tr>
+      <td>“登录异常还被重复扣款”</td>
+      <td><code class="language-plaintext highlighter-rouge">multi_domain_task</code></td>
+      <td><code class="language-plaintext highlighter-rouge">multi_domain</code></td>
+      <td>安全与账务任务各自证据</td>
+    </tr>
+    <tr>
+      <td>“帮我退款”但无订单号</td>
+      <td><code class="language-plaintext highlighter-rouge">missing_input</code></td>
+      <td><code class="language-plaintext highlighter-rouge">clarify</code></td>
+      <td>缺失字段声明</td>
+    </tr>
+    <tr>
+      <td>“转人工”</td>
+      <td><code class="language-plaintext highlighter-rouge">explicit_handoff</code></td>
+      <td><code class="language-plaintext highlighter-rouge">handoff</code></td>
+      <td>工单持久化结果</td>
+    </tr>
+    <tr>
+      <td>非客服问题</td>
+      <td><code class="language-plaintext highlighter-rouge">out_of_scope</code></td>
+      <td><code class="language-plaintext highlighter-rouge">out_of_scope</code></td>
+      <td>固定策略终态</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>RouteDecision 还保存三段可解释轨迹：<code class="language-plaintext highlighter-rouge">intent_fusion → domain_routing → instance_selection</code>。RouteExecutionPolicy 明确每条 route 的 required、conditional、forbidden components，防止 endpoint 或 Agent 偷偷多跑一条路径。</p>
+
+<h2 id="7-rag-什么时候触发">7. RAG 什么时候触发</h2>
+
+<h3 id="71-前置在线-rag">7.1 前置在线 RAG</h3>
+
+<p>只有 <code class="language-plaintext highlighter-rouge">knowledge_qa</code> 和 <code class="language-plaintext highlighter-rouge">mixed</code> 在 ChatApplication 中前置调用 KnowledgeRetriever。</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">knowledge_qa</code>：Retriever + GroundedAnswerGenerator 可直接产生最终候选。</li>
+  <li><code class="language-plaintext highlighter-rouge">mixed</code>：只检索证据上下文，<code class="language-plaintext highlighter-rouge">generate_answer=false</code>；最终结论必须与实时业务工具结果一起融合。</li>
+  <li><code class="language-plaintext highlighter-rouge">direct/clarify/handoff/out_of_scope</code>：不跑前置知识检索。</li>
+  <li><code class="language-plaintext highlighter-rouge">agent_task/multi_domain</code>：不代表永不检索；具体 task 若声明知识 Authority，可通过 Agent knowledge tool 调用同一个 Retriever。</li>
+</ul>
+
+<p>这样做避免“所有请求先 RAG 一遍、Agent 又检索一遍”的重复调用，也避免用静态知识回答实时订单状态。</p>
+
+<h3 id="72-在线检索流水线">7.2 在线检索流水线</h3>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>原始 query + 最近上下文
+→ standalone query rewrite
+→ PostgreSQL dense(pgvector) 与中文 FTS 并行召回
+→ raw query / standalone query 两路候选
+→ weighted RRF 合并
+→ 可选 rerank（必须是候选 ID 的结构化排列）
+→ Top-K 与 token packing
+→ EvidencePack
+→ Grounded answer / Agent context
+→ CitationClaimGate + Verifier
+</code></pre></div></div>
+
+<p>默认参数：chunk 512 token、overlap 64、candidate 20、最终 top 5、context 2600 token；RRF 常数 10；vector 0.25、lexical 0.75；raw query 0.25、standalone query 0.75。参数来自环境与固定 Bundle，不能在文档中写成永恒最优值。</p>
+
+<p>Dense 擅长同义表达，中文 FTS 保住订单规则名、型号、错误码等精确词。RRF 融合 rank 而不是直接相加不可比较的 cosine/BM25 分数。Reranker 只能重排给定候选，返回未知 ID、重复 ID 或漏掉合同所需项都按无效输出处理。</p>
+
+<h3 id="73-retrieval-结果代数">7.3 Retrieval 结果代数</h3>
+
+<p><code class="language-plaintext highlighter-rouge">OK</code>、<code class="language-plaintext highlighter-rouge">NO_EVIDENCE</code>、<code class="language-plaintext highlighter-rouge">AMBIGUOUS</code>、<code class="language-plaintext highlighter-rouge">UNAVAILABLE</code>、<code class="language-plaintext highlighter-rouge">INVALID_CONTRACT</code>、<code class="language-plaintext highlighter-rouge">CONFLICT</code> 是不同状态。无证据可以澄清或拒答；系统不可用要重试/降级；冲突要转人工，不能统一压成空列表。</p>
+
+<h2 id="8-离线-rag知识怎样进入线上索引">8. 离线 RAG：知识怎样进入线上索引</h2>
+
+<p>离线链不是“把文本塞进向量库”：</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>source upload/add
+→ MIME/编码/安全校验
+→ immutable SourceRevision + checksum
+→ parse/normalize
+→ fixed-token chunk specs（512/64）
+→ canonical projection outbox
+→ embedding projection + Chinese FTS projection
+→ generation manifest 与 entry 校验
+→ 原子激活唯一 ACTIVE generation
+→ 旧 generation 可重建、回收
+</code></pre></div></div>
+
+<p>SourceRevision 是企业知识权威；chunk 与 dense/sparse index 是可重建投影。更新文档必须生成新 revision/generation，不能原地篡改已经被回答引用的 chunk。</p>
+
+<p>缓存 key 至少绑定 tenant、subject scope/ACL、deletion epoch、normalized query、manifest/generation、embedding/rerank/policy 版本。Redis TTL 只控制资源占用；即使缓存全部丢失，语义必须保持，只增加延迟。</p>
+
+<p>Knowledge 与 ServiceEpisode 可以复用同一个 HybridRetrievalBackend，但必须是不同 corpus、表、generation、ACL 和权重。否则用户服务经历会泄入公共知识，或者静态政策会被误当成某位用户的历史事实。</p>
+
+<h2 id="9-memory短期长期过期和存储位置">9. Memory：短期、长期、过期和存储位置</h2>
+
+<p>“Memory”不是一个向量库，而是多个 Owner 的投影：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>层</th>
+      <th>保存什么</th>
+      <th>权威位置</th>
+      <th>触发</th>
+      <th>失效/过期</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Conversation L0</td>
+      <td>完整 user/assistant/system 事件</td>
+      <td>PostgreSQL turns/events</td>
+      <td>admission、publication、human reply</td>
+      <td><code class="language-plaintext highlighter-rouge">retention_until</code> 与删除协调</td>
+    </tr>
+    <tr>
+      <td>Working window</td>
+      <td>最近对话窗口</td>
+      <td>Redis/内存投影，可从 PG 重建</td>
+      <td>每轮投影</td>
+      <td>TTL/容量淘汰不影响正确性</td>
+    </tr>
+    <tr>
+      <td>Thread summary</td>
+      <td>固定连续范围摘要</td>
+      <td>PostgreSQL chunks/checkpoint</td>
+      <td>token 阈值、idle、close/finalize 投影</td>
+      <td>source hash/version 不符即 stale，可重建</td>
+    </tr>
+    <tr>
+      <td>MemoryFact</td>
+      <td>用户明确事实/偏好</td>
+      <td>PostgreSQL <code class="language-plaintext highlighter-rouge">memory_facts</code></td>
+      <td>够 3 轮或 idle 300s 的异步提取</td>
+      <td><code class="language-plaintext highlighter-rouge">active/superseded/retracted</code>，并受删除 fence</td>
+    </tr>
+    <tr>
+      <td>ServiceEpisode</td>
+      <td>已解决服务经历</td>
+      <td>PostgreSQL immutable revisions/head + 独立检索 corpus</td>
+      <td>case resolved/closed 且证据完整</td>
+      <td>retention、重建与撤回策略</td>
+    </tr>
+    <tr>
+      <td>ActiveCase</td>
+      <td>未结工单与承诺</td>
+      <td>Ticket/Commitment PostgreSQL Owner 的投影</td>
+      <td>每轮按引用、风险、SLA 选择</td>
+      <td>case 终结后不再作为 active</td>
+    </tr>
+    <tr>
+      <td>User Profile</td>
+      <td>active MemoryFacts 的只读投影</td>
+      <td>不另造 persona 真相</td>
+      <td>组装 Context 时</td>
+      <td>随 fact 状态和删除 fence 变化</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="91-长期和短期怎样串起来">9.1 长期和短期怎样串起来</h3>
+
+<p>当前轮先读 Conversation watermarks，再读取 working window、summary、facts、episodes 和 active cases。投影若落后，<code class="language-plaintext highlighter-rouge">PostgresMemoryProjectionReader</code> 最多有界读取 200 条 raw turns 补偿，并在结果中标明 <code class="language-plaintext highlighter-rouge">raw_fallback_used</code>、included/omitted ranges。<code class="language-plaintext highlighter-rouge">READY</code> 不允许静默遗漏；<code class="language-plaintext highlighter-rouge">UNAVAILABLE</code> 不允许解释成新用户。</p>
+
+<h3 id="92-summary-为什么按范围">9.2 Summary 为什么按范围</h3>
+
+<p>每个 summary chunk 绑定 <code class="language-plaintext highlighter-rouge">[from_seq,to_seq]</code>、source SHA、schema/model version、deletion epoch 与 generation。LLM 只生产摘要候选；repository 才拥有范围、checkpoint 和 CAS。两个 worker 竞争时只有一个能推进相同 watermark，另一个重读，不删除 L0 原文。</p>
+
+<h3 id="93-fact-为什么延迟提取">9.3 Fact 为什么延迟提取</h3>
+
+<p>默认积累 3 个完整轮次立即触发；不足时在最后活动 300 秒后触发，worker 默认每 5 秒扫描。这样减少每轮模型调用和事实碎片。提取失败不推进 checkpoint；重试仍处理同一固定范围。事实 identity 不变，更新只能形成 active/superseded/retracted 生命周期。</p>
+
+<h3 id="94-什么不应进入长期记忆">9.4 什么不应进入长期记忆</h3>
+
+<p>实时余额、订单当前状态、退款是否到账、账户是否冻结必须每次从业务 Owner 读取；模型回答和旧 assistant 文本也不是用户事实。长期记忆只能保存有来源、可撤回、适合复用的信息，如明确语言偏好或已验证服务经历。</p>
+
+<h3 id="95-过期不是一个-ttl">9.5 “过期”不是一个 TTL</h3>
+
+<ul>
+  <li>Redis working cache 可按 TTL 丢弃，因为 PostgreSQL 可重建；</li>
+  <li>Conversation/Trace/业务记录使用各自 <code class="language-plaintext highlighter-rouge">retention_until</code>；</li>
+  <li>Fact 用 supersede/retract 与 deletion fence，不应用缓存 TTL 判断业务真伪；</li>
+  <li>Summary/episode 引用源已删除、hash/version 不匹配时为 stale；</li>
+  <li>Ticket/Commitment 的业务有效性由状态机和期限决定。</li>
+</ul>
+
+<h2 id="10-用户信息和连续服务怎样走">10. 用户信息和连续服务怎样走</h2>
+
+<p>每轮用户信息不是拼成一段自由 Persona。ContextAssembler 按 section 组装：当前问题、最近消息、范围摘要、active facts、相关 episode、active case、knowledge、media observation 和 task dependency artifacts。</p>
+
+<p>ActiveCase 选择优先级：精确工单引用、critical/security、已违约 SLA/commitment 是硬选择；然后才按 topic/entity、priority、recency 排序。返回 <code class="language-plaintext highlighter-rouge">NO_ACTIVE_CASE/CASES/UNAVAILABLE/CONFLICT</code>。系统不可用时不能谎称用户没有工单。</p>
+
+<p>Continuation 决定当前话题是 <code class="language-plaintext highlighter-rouge">continue/expand/switch/ambiguous</code>。它只影响上下文与澄清，不拥有工单状态，也不能让旧主题绕过本轮 AuthorityPolicy。</p>
+
+<h2 id="11-多模态从上传到可引用观察">11. 多模态：从上传到可引用观察</h2>
+
+<h3 id="111-上传层">11.1 上传层</h3>
+
+<p><code class="language-plaintext highlighter-rouge">POST /assets/upload</code> 默认最大 10 MiB，允许 PNG、JPEG、PDF；同时检查声明 MIME、扩展名和内容 sniff，绑定 tenant/user/turn。状态为：</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>UPLOADED → SCANNING → SCANNED | FAILED | QUARANTINED
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">SCANNED</code> 只表示 L0 安全扫描通过，不表示已经 OCR 或视觉理解。</p>
+
+<h3 id="112-感知层级">11.2 感知层级</h3>
+
+<ul>
+  <li>L0：文件身份、hash、安全与元数据，不调用模型；</li>
+  <li>L1：文本提取。当前 Tesseract provider 面向图片，默认 <code class="language-plaintext highlighter-rouge">psm=6</code>、<code class="language-plaintext highlighter-rouge">lang=eng</code>、timeout 15s，输出原像素 bbox、page/block node、checksum 和 provider version；</li>
+  <li>L2：视觉推理。可选 DeepSeek VLM 在 OCR 后运行，默认最多 512 tokens，输出结构化 <code class="language-plaintext highlighter-rouge">observation_type/description/bbox/confidence</code>。</li>
+</ul>
+
+<p>VLM 只能产生 observation，不能推断账户归属、退款资格、订单真实状态或最终故障根因。图片中的指令文本仍是不可信数据。</p>
+
+<p>PDF 可以上传，但当前 Tesseract/VLM provider 是 image-only；复杂 PDF 分页、layout 与多页视觉解析属于目标扩展，不能写成已完成。</p>
+
+<h3 id="113-什么时候看图">11.3 什么时候看图</h3>
+
+<p>Agent 先产生 MediaRequirementDecision；文字证据已足够时不调用 OCR/VLM。只有 task 声明 <code class="language-plaintext highlighter-rouge">media_context_refs</code>，对应 worker 才能读 media section。感知不可用返回 typed <code class="language-plaintext highlighter-rouge">UNAVAILABLE/PARTIAL</code>，不能补写一段“看起来像”的描述。</p>
+
+<h2 id="12-taskgraph为什么并发怎样并发">12. TaskGraph：为什么并发、怎样并发</h2>
+
+<p>Agent 角色包括 general、technical、billing、account_security、escalation。Planner 形成 <code class="language-plaintext highlighter-rouge">TaskSpec</code>：owner、required、risk、effect、depends_on、context_refs、evidence spans 与 dependency inputs。</p>
+
+<p>图在运行前验证 task ID 唯一、依赖存在并且无环，然后拓扑分 wave：</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>wave 1: account_security(read-only) || billing_lookup(read-only)
+wave 2: refund_write(depends_on both, write_requires_approval)
+</code></pre></div></div>
+
+<p>同一 wave 中仅 <code class="language-plaintext highlighter-rouge">READ_ONLY</code> 且不会 interrupt 的任务通过 <code class="language-plaintext highlighter-rouge">asyncio.gather</code> 并发，最多 <code class="language-plaintext highlighter-rouge">max_parallel_workers</code>。写任务、可能暂停的任务先 flush 并发 batch 后串行执行。因此“最多 3 个 Agent”不是无条件并发 3 个写操作。</p>
+
+<p>默认预算：单 worker 15 秒、整请求 20 秒、最多执行 3 个 Agent、ReAct 最多 4 步。依赖失败的下游得到 <code class="language-plaintext highlighter-rouge">BLOCKED_DEPENDENCY</code>；超预算得到 <code class="language-plaintext highlighter-rouge">BUDGET_EXCEEDED</code>；不会从结果列表中消失。</p>
+
+<p>v1 同一图只允许一个 blocking PendingSignal。若同一 wave 出现第二个并发 interrupt，会投影成 <code class="language-plaintext highlighter-rouge">UNSUPPORTED_CONCURRENT_INTERRUPT</code>，避免两个审批点争夺一个恢复入口。</p>
+
+<h2 id="13-bounded-react-与工具执行">13. bounded ReAct 与工具执行</h2>
+
+<p>外层 TaskGraph 决定“必须完成哪些工作”；Worker 内层 ReAct 决定“为完成这一个 task 调什么工具”。两层不能颠倒，否则模型会自行删除 required task 或绕过依赖。</p>
+
+<p>工具 schema、风险和允许 Agent 由 ToolManager 注册。模型传入的 <code class="language-plaintext highlighter-rouge">approved=true</code> 等宿主字段会被剥离。写工具默认产生审批 PendingSignal；审批 TTL 默认 900 秒，恢复 grace 30 秒。</p>
+
+<p>工具有两套状态：</p>
+
+<ul>
+  <li>调用状态：<code class="language-plaintext highlighter-rouge">AWAITING_APPROVAL/EXECUTING/SUCCESS/ERROR/TIMEOUT/CANCELLED/DENIED/UNTRUSTED_OUTPUT</code>；</li>
+  <li>副作用状态：<code class="language-plaintext highlighter-rouge">NONE/COMMITTED/NOT_COMMITTED/OUTCOME_UNKNOWN</code>。</li>
+</ul>
+
+<p>超时不等于未提交。若远端可能已写成功但本地没有 receipt，必须进入 outcome unknown/reconciliation，不能盲目重试。稳定 call ID 与业务 idempotency key 让 resume 重放已完成 receipt，而不是执行第二次退款或建第二张工单。</p>
+
+<p>当前 ReAct checkpoint/ledger 是本地 SQLite <code class="language-plaintext highlighter-rouge">RunStore</code>，适合单应用写者；它不是 LangGraph，也不是跨服务工作流引擎。</p>
+
+<h2 id="14-reducer不是拼字符串">14. Reducer：不是拼字符串</h2>
+
+<p>并行结束后 <code class="language-plaintext highlighter-rouge">ResultSynthesizer</code> 是候选融合的唯一 Owner。单任务状态闭合为 <code class="language-plaintext highlighter-rouge">SUCCESS/TIMEOUT/ERROR/BUDGET_EXCEEDED/BLOCKED_DEPENDENCY/CANCELLED/EXPIRED</code>；等待审批使用 PendingSignal，而不是伪装成完成 outcome。</p>
+
+<p>整组融合状态是 <code class="language-plaintext highlighter-rouge">SUCCESS/PARTIAL/CONFLICT/FAILED/UNKNOWN</code>。Authority conflict 不能让 LLM“折中”；它直接成为 <code class="language-plaintext highlighter-rouge">CONFLICT</code> 并升级人工。</p>
+
+<p>CoverageGate 按 task ID 比较计划、outcomes 与 pending signals，检查：</p>
+
+<ul>
+  <li>required task 是否全部成功；</li>
+  <li>是否缺失、重复或出现意外 task ID；</li>
+  <li>是否仍有 awaiting signal；</li>
+  <li>dependency artifact/receipt schema 是否完整。</li>
+</ul>
+
+<p>只要 required coverage 不完整，语言再流畅也不能发布成完整成功。融合器超时或不可用时保留成功证据，但状态为 <code class="language-plaintext highlighter-rouge">UNKNOWN/FAILED</code> 并转人工，不伪造统一结论。</p>
+
+<h2 id="15-evidenceclaim-与-verifier">15. Evidence、Claim 与 Verifier</h2>
+
+<p>证据类型包括 <code class="language-plaintext highlighter-rouge">KNOWLEDGE/BUSINESS_TOOL/ACTION_RECEIPT/MEMORY_EVENT/SERVICE_EPISODE/COMMITMENT/MEDIA_OBSERVATION/HUMAN_ASSERTION</code>。它们共享引用外形，但原始事实仍由各自 Owner 保管。</p>
+
+<p>每个事实需求的状态可以是 <code class="language-plaintext highlighter-rouge">SATISFIED/MISSING/CONFLICTING/STALE/UNSUPPORTED/INVALID_EVIDENCE</code>。Coverage 证明“工作完成了”；CitationClaimGate 证明“知识声明有合法引用”；Verifier 检查 candidate 是否 grounded、安全、与 evidence 一致。三者不能用一个 LLM Judge 替代。</p>
+
+<p>Verifier 结果为 <code class="language-plaintext highlighter-rouge">PASS/REJECT/UNKNOWN</code>。解析失败、provider 超时是 UNKNOWN，不是 PASS。发布策略选择安全降级文案或人工交接；原 candidate 不进入对话历史。</p>
+
+<h2 id="16-发布送达与-ack">16. 发布、送达与 ACK</h2>
+
+<p>ResponseDelivery 先登记唯一被选中的 assistant response，分配 <code class="language-plaintext highlighter-rouge">response_id</code> 和 conversation-local <code class="language-plaintext highlighter-rouge">response_seq</code>，再返回客户端。客户端收到 HTTP 仍不等于 UI 已展示，因此通过 <code class="language-plaintext highlighter-rouge">/responses/{id}/ack</code> 单调推进 delivery/read 状态；断线后按 seq 从 <code class="language-plaintext highlighter-rouge">/conversations/{id}/responses</code> 续取。</p>
+
+<p>Conversation 保存完整事件，Delivery 保存交付状态，两者各自是 Owner。投影视图可以组合显示，但不能反向修改任一状态。</p>
+
+<h2 id="17-人工工单与企业承诺">17. 人工工单与企业承诺</h2>
+
+<p>需要人工的原因可能是：安全风险、Authority conflict、required coverage 缺失、Verifier reject/unknown、业务工具 outcome unknown、用户明确要求人工、承诺违约。</p>
+
+<p>工单使用 PostgreSQL Owner，创建时以稳定 operation key 幂等，并在同一事务写 ticket、首个 event 与 outbox。外部 CRM 投递失败不会回滚本地工单事实；outbox 按稳定 event ID 重试，接收方同样必须幂等。</p>
+
+<p>Commitment 不是一段回答承诺，而是独立实体：承诺内容、deadline、来源、状态与事件。已违约承诺会提高 ActiveCase 和 handoff 优先级。LLM 不能自行把承诺标记为已履行。</p>
+
+<h2 id="18-skill模型分层和上下文预算">18. Skill、模型分层和上下文预算</h2>
+
+<p>Skill 是受控业务说明，启动加载、按 request/task 匹配、作为有标签 section 注入；它不拥有权限，不可新增 Tool，也不能覆盖系统安全合同。默认注入上限 5000 字符。</p>
+
+<p>ModelPolicy 默认把 Intent、Worker、ReAct、Memory、Rewrite、Rerank 放到 Flash/no-thinking；Synthesis、Verifier、Judge 使用 Pro/no-thinking。角色配置固定到 Bundle 与 Trace，避免供应商默认 reasoning 让短任务尾延迟失控。</p>
+
+<p>ContextAssembler 默认输入预算 12000 token、输出预留 1536、Memory 子预算 6000。优先保留当前用户问题、系统/权限合同、required evidence 和 dependency artifact，再裁剪低优先级历史。工具 schema 和 result 也必须计入最终 provider 请求，不能只在入口算一次。</p>
+
+<h2 id="19-当前为何不用-langchain目标为何考虑-langgraph">19. 当前为何不用 LangChain，目标为何考虑 LangGraph</h2>
+
+<h3 id="191-当前为什么是直接-python">19.1 当前为什么是直接 Python</h3>
+
+<p>当前核心难点是 closed algebra：Authority、Task DAG、审批、receipt、coverage、publication 与 delivery。直接 Python 让每个状态和测试边界可见，也避免框架 callback 或 memory abstraction 成为第二真相。项目不需要为了“用了框架”把这些 Owner 改写成 chain。</p>
+
+<h3 id="192-为什么不全量使用-langchain">19.2 为什么不全量使用 LangChain</h3>
+
+<p>LangChain 可以作为模型、embedding、loader 或 tool adapter，但不应拥有订单、退款、Ticket、Conversation、Evidence 或授权语义。全量迁移会增加 adapter 层和隐式默认值，却不自动提供 exactly-once、副作用 receipt 或业务幂等。</p>
+
+<h3 id="193-langgraph-目标解决什么">19.3 LangGraph 目标解决什么</h3>
+
+<p>目标只让 LangGraph 作为薄 durable runtime，负责 graph checkpoint、interrupt/resume、retry 与执行历史；现有 Planner、TaskGraph、ReAct、ToolManager、Evidence、Delivery 和业务 Owner 保持权威。只有跨进程恢复完整 Agent run 的收益超过引入依赖、checkpoint schema 与运维复杂度时才切换。</p>
+
+<p>因此准确表述是：<strong>当前未使用 LangGraph Agent runtime；已有 SQLite ReAct resume。目标是把完整 run 的恢复交给 LangGraph，而不是用 LangChain 重写业务架构。</strong></p>
+
+<h2 id="20-失败路径要怎样顺下来">20. 失败路径要怎样顺下来</h2>
+
+<h3 id="场景-a纯政策问题">场景 A：纯政策问题</h3>
+
+<p>Intent/Shape 判为 knowledge FAQ → 前置 hybrid retrieval → EvidencePack → grounded candidate → claim/citation gate → verifier → delivery。无证据则明确 abstain，不调用订单工具。</p>
+
+<h3 id="场景-b问自己的订单状态">场景 B：问自己的订单状态</h3>
+
+<p>判为 business state → 跳过前置 RAG → 订单 Agent 调只读业务工具 → receipt 成为 Authority evidence → verifier → delivery。历史 assistant 说“已发货”不能代替实时 receipt。</p>
+
+<h3 id="场景-c规则与资格混合">场景 C：规则与资格混合</h3>
+
+<p>前置 RAG 只提供政策 evidence，不先定最终答案 → Agent 调业务工具得到个人状态 → reducer 检查两种 Authority → verifier 后发布。两者冲突则人工。</p>
+
+<h3 id="场景-d截图中的登录错误">场景 D：截图中的登录错误</h3>
+
+<p>asset 上传和扫描 → Agent 判定需要 media → OCR L1 → 必要时 VLM L2 → observation 进入 technical task context → 仍需账户/安全工具验证动态事实 → 输出或升级。</p>
+
+<h3 id="场景-e登录异常并要求退款">场景 E：登录异常并要求退款</h3>
+
+<p>TaskGraph 分安全调查与账务查询并发 wave → 写退款 task 依赖二者 → required approval 产生 PendingSignal → <code class="language-plaintext highlighter-rouge">/agent-runs/.../resume</code> → 稳定 call ID 执行一次 → receipt → reducer/verification/publication。</p>
+
+<h3 id="场景-f投影落后">场景 F：投影落后</h3>
+
+<p>Memory reader 返回 LAGGING → 有界 PG raw fallback → Trace 记录遗漏范围和 watermark → 继续时标记 degraded。若 PG 也不可用则 503 retryable，不把用户当新会话。</p>
+
+<h2 id="21-当前边界与不能夸大的地方">21. 当前边界与不能夸大的地方</h2>
+
+<ul>
+  <li>LangGraph 完整 run runtime 尚未接入；当前只恢复单个 ReAct 审批 run。</li>
+  <li>PDF 上传已支持，复杂 PDF OCR/layout/VLM 主链未完成。</li>
+  <li>本地业务沙箱、ReAct RunStore、Bundle registry 等仍有 SQLite 组件，横向多写需迁移或换实现。</li>
+  <li>Redis 是投影与缓存；它故障可影响延迟/降级，但不应成为唯一会话事实。</li>
+  <li>500 条分层数据和自动 Judge 不是生产准确率；human-reviewed gold 与独立 heldout 必须单独声明。</li>
+  <li>当前多 Agent 是有界 task graph，不是开放式自治群体，也不是模型自行改权限。</li>
+</ul>
+
+<h2 id="22-核心面试追问与校准答案">22. 核心面试追问与校准答案</h2>
+
+<h3 id="q1请从-fastapi-讲一次完整请求">Q1：请从 FastAPI 讲一次完整请求。</h3>
+
+<p>JWT/scope 和 trace 中间件先处理请求，endpoint 将 DTO 转为 ChatCommand，只调用 <code class="language-plaintext highlighter-rouge">ChatApplication.handle()</code>。Application 完成 admission、Memory 投影读取、Intent/Shape/Route、按 route 触发 RAG/media、TaskGraph/ReAct、Coverage/Reducer/Verifier、可选 Ticket、Delivery 与投影写入，再映射 typed outcome。</p>
+
+<h3 id="q2rag-到底什么时候触发">Q2：RAG 到底什么时候触发？</h3>
+
+<p><code class="language-plaintext highlighter-rouge">knowledge_qa</code> 和 <code class="language-plaintext highlighter-rouge">mixed</code> 前置触发；mixed 只提供 context。Agent task 只有声明 Knowledge Authority 才经工具调用同一 Retriever。direct、clarify、handoff、out-of-scope 不前置检索。</p>
+
+<h3 id="q3为什么在线离线-rag-要分开讲">Q3：为什么在线、离线 RAG 要分开讲？</h3>
+
+<p>离线链拥有 source revision、chunk、embedding/FTS projection 和 generation activation；在线链只读取一个已激活 generation 并完成 rewrite、召回、融合、rerank、packing。把两者混在请求里会让更新不可审计、延迟不可控。</p>
+
+<h3 id="q4为什么-chunk-是-51264">Q4：为什么 chunk 是 512/64？</h3>
+
+<p>这是当前默认起点，在语义完整性、召回粒度与上下文浪费间折中，不是理论最优。必须用目标语料对 chunk 大小/重叠做 Recall@K、引用完整性、延迟与成本消融。</p>
+
+<h3 id="q5为什么-dense-与中文-fts-都要">Q5：为什么 dense 与中文 FTS 都要？</h3>
+
+<p>Dense 召回同义表达，FTS 保住精确术语、错误码和规则名；二者故障模式不同。weighted RRF 用 rank 合并，避免直接相加量纲不同的分数。</p>
+
+<h3 id="q6为什么-mixed-不能直接发布-rag-答案">Q6：为什么 mixed 不能直接发布 RAG 答案？</h3>
+
+<p>政策知识只能证明通用规则，不能证明某用户当前是否满足条件。必须再取业务 receipt，由 Agent/reducer 合并。</p>
+
+<h3 id="q7用户长期记忆放在哪里">Q7：用户长期记忆放在哪里？</h3>
+
+<p>明确事实放 PostgreSQL <code class="language-plaintext highlighter-rouge">memory_facts</code>，已解决经历放 ServiceEpisode；User Profile 是 active facts 投影。Redis 只保存热窗口/缓存，不是长期权威。</p>
+
+<h3 id="q8短期记忆如何过期">Q8：短期记忆如何过期？</h3>
+
+<p>Redis TTL 或容量可以淘汰工作窗口，因为能从 PostgreSQL 重建；Conversation 依据 retention/deletion policy。不要把 Redis TTL 描述为用户事实的业务有效期。</p>
+
+<h3 id="q9长期事实何时提取">Q9：长期事实何时提取？</h3>
+
+<p>默认 3 个完整轮次或最后活动 300 秒后触发，worker 每 5 秒扫描。失败不推进 checkpoint；事实有 active/superseded/retracted 状态与来源。</p>
+
+<h3 id="q10摘要会不会丢原文">Q10：摘要会不会丢原文？</h3>
+
+<p>不会删除 L0。摘要只覆盖固定 seq 范围，是可重建投影；repository 用 source hash/version/CAS 推进 checkpoint。</p>
+
+<h3 id="q11用户信息是不是每轮生成-persona">Q11：用户信息是不是每轮生成 Persona？</h3>
+
+<p>不是。当前 profile 是 active MemoryFacts 的受控投影；实时业务状态每次查业务 Owner，避免陈旧和过度推断。</p>
+
+<h3 id="q12多-agent-并发怎么控制">Q12：多 Agent 并发怎么控制？</h3>
+
+<p>先验证 DAG 并按拓扑 wave。仅同 wave 的 read-only、不可 interrupt task 并发；写或可能暂停的 task 串行。受 max workers、task timeout、request deadline 和最多执行任务数约束。</p>
+
+<h3 id="q13reducer-做什么">Q13：Reducer 做什么？</h3>
+
+<p>ResultSynthesizer 融合 typed outcomes；CoverageGate 先检查 required task 完整性、重复/缺失和 pending signal；Authority conflict 不交给模型折中。</p>
+
+<h3 id="q14为什么不直接拼接多个-agent-回答">Q14：为什么不直接拼接多个 Agent 回答？</h3>
+
+<p>拼接会隐藏失败、重复和冲突，也无法知道必需任务是否缺失。Reducer 输出 success/partial/conflict/failed/unknown，并保留生产者归因。</p>
+
+<h3 id="q15一个-agent-超时会怎样">Q15：一个 Agent 超时会怎样？</h3>
+
+<p>该 task 得到 TIMEOUT；依赖它的任务是 BLOCKED_DEPENDENCY。若剩余证据不足则 coverage 不完整，安全降级或人工，不让整个事实面静默消失。</p>
+
+<h3 id="q16react-为什么限定-4-步">Q16：ReAct 为什么限定 4 步？</h3>
+
+<p>客服工具面闭合，开放循环会放大成本、延迟和副作用风险。步数是预算，若 heldout 证明复杂任务需要更多，应按 task 类型调整并重新验证，而非让模型无限循环。</p>
+
+<h3 id="q17审批怎么防止模型自批">Q17：审批怎么防止模型自批？</h3>
+
+<p>ToolManager 删除模型参数中的 approved 字段；宿主通过带 scope 的 resume API 批准，checkpoint 绑定 subject/task/call。稳定 call ledger 防重复执行。</p>
+
+<h3 id="q18工具超时为什么不能直接重试">Q18：工具超时为什么不能直接重试？</h3>
+
+<p>远端可能已提交。必须区分 invocation status 和 effect status；<code class="language-plaintext highlighter-rouge">OUTCOME_UNKNOWN</code> 先 reconciliation，只有权威 <code class="language-plaintext highlighter-rouge">NOT_COMMITTED</code> 才安全重试。</p>
+
+<h3 id="q19verifier-和-reducer-有什么不同">Q19：Verifier 和 Reducer 有什么不同？</h3>
+
+<p>Reducer 解决多任务覆盖与冲突，Verifier 解决候选是否有证据、安全且可发布。前者不能证明 grounding，后者不能补齐没执行的 required task。</p>
+
+<h3 id="q20为什么-unknown-不能当-pass">Q20：为什么 UNKNOWN 不能当 PASS？</h3>
+
+<p>解析失败或 provider 故障没有证明回答安全。fail-open 会把校验基础设施故障变成内容发布漏洞。</p>
+
+<h3 id="q21人工工单创建失败怎么办">Q21：人工工单创建失败怎么办？</h3>
+
+<p>仍保留“需要人工”的事实，但公开文本说明工单未建成，并要求使用相同 request_id 重试或直接联系人工；不能返回虚假的 ticket ID。</p>
+
+<h3 id="q22http-200-是否等于用户看到了回答">Q22：HTTP 200 是否等于用户看到了回答？</h3>
+
+<p>不等于。Delivery 先选定 response，再由客户端 ACK 单调推进；断线可按 response seq 续取。</p>
+
+<h3 id="q23为什么不用-langchain-重写">Q23：为什么不用 LangChain 重写？</h3>
+
+<p>核心问题是业务 Owner、closed algebra、幂等和 receipt，框架不会自动解决。LangChain 可做边界 adapter，但不能成为 Conversation、Ticket、Tool Effect 或 Evidence 真相。</p>
+
+<h3 id="q24为什么目标又要-langgraph">Q24：为什么目标又要 LangGraph？</h3>
+
+<p>为了完整 Agent run 的 checkpoint、interrupt/resume 与跨进程恢复，不是为了替代现有决策语义。它应是薄 runtime。</p>
+
+<h3 id="q25当前是否已经用了-langgraph">Q25：当前是否已经用了 LangGraph？</h3>
+
+<p>没有。当前是直接 Python TaskGraph 和 SQLite ReAct RunStore。把目标图说成现行实现是不准确的。</p>
+
+<h3 id="q26图片识别从哪开始">Q26：图片识别从哪开始？</h3>
+
+<p>先上传绑定和扫描，再由 Agent 判断是否需要 media；L1 OCR，必要时 L2 VLM。observation 进入声明了 context ref 的 task，动态业务结论仍查工具。</p>
+
+<h3 id="q27为什么-ocr-后还可能需要-vlm">Q27：为什么 OCR 后还可能需要 VLM？</h3>
+
+<p>OCR擅长文字和坐标，不能稳定解释界面布局、红框、部件或视觉关系；VLM补充观察，但不能越权成为订单/安全事实。</p>
+
+<h3 id="q28pdf-现在做到什么程度">Q28：PDF 现在做到什么程度？</h3>
+
+<p>上传和安全边界支持 PDF；当前 OCR/VLM provider 是 image-only。复杂分页解析属于目标，必须如实标注。</p>
+
+<h3 id="q29缓存击穿或-redis-故障会怎样">Q29：缓存击穿或 Redis 故障会怎样？</h3>
+
+<p>缓存旁路后执行同一权威读取/检索，语义不变、延迟增加。若某结果只有 Redis 才存在，说明权威划分错了。</p>
+
+<h3 id="q30如何防止跨用户召回">Q30：如何防止跨用户召回？</h3>
+
+<p>查询、cache key、projection、asset 和 retrieval request 全部绑定 tenant/user/ACL/deletion epoch；共享知识只有批准的 shared scope。跨主体命中是 hard failure。</p>
+
+<h3 id="q31为什么-sourcerevision-不原地更新">Q31：为什么 SourceRevision 不原地更新？</h3>
+
+<p>回答引用必须可回溯。不可变 revision 和 generation manifest 能解释当时使用哪个版本，也便于撤回和重建投影。</p>
+
+<h3 id="q32reranker-输出错格式怎么办">Q32：Reranker 输出错格式怎么办？</h3>
+
+<p>结构化校验失败，走确定性原排序或 typed invalid contract；不接受模型凭空添加 candidate ID。</p>
+
+<h3 id="q33为什么-answer-文本不是业务事实">Q33：为什么 Answer 文本不是业务事实？</h3>
+
+<p>它是对证据的表达，可能过时或被拒绝。订单/退款/账户事实来自业务 receipt；知识事实来自 source revision。</p>
+
+<h3 id="q34为什么-finalize-不再代表关闭">Q34：为什么 finalize 不再代表关闭？</h3>
+
+<p>兼容 endpoint 只等待投影 watermark，真正 close 由 <code class="language-plaintext highlighter-rouge">/conversations/{id}/close</code> 拥有。否则读一致性动作会偷偷改变生命周期。</p>
+
+<h3 id="q35500-条评测能说明什么">Q35：500 条评测能说明什么？</h3>
+
+<p>说明分层合同有可重复回归面；不能直接说明生产准确率。要区分 provisional、reviewed、gold、dev、heldout 和污染状态。</p>
+
+<h3 id="q36在线反馈怎样进入进化">Q36：在线反馈怎样进入进化？</h3>
+
+<p>Feedback 关联 response、producer、bundle 和 trace，BadCaseMiner 聚类，CreditAttributor 定位 Owner，Proposal 只能改白名单 Bundle 字段，候选经离线 gate；模型不能直接修改 Active。</p>
+
+<h3 id="q37最重要的安全设计是什么">Q37：最重要的安全设计是什么？</h3>
+
+<p>权限和副作用在工具 Owner 边界执行，不靠 Prompt；输入、OCR、知识、历史都按不可信 data section 处理。</p>
+
+<h3 id="q3810-倍流量先改什么">Q38：10 倍流量先改什么？</h3>
+
+<p>先用 trace 分解模型、PG、retrieval、tool 和 worker 队列的 P95/P99；扩连接池和无状态 API，隔离 projection/outbox worker，做 cache/single-flight。仍在 SQLite 的 RunStore/registry 若需多写要先迁移。</p>
+
+<h3 id="q39这个项目最强的技术点是什么">Q39：这个项目最强的技术点是什么？</h3>
+
+<p>不是 Agent 数量，而是从 Authority 到 Evidence、Task outcome、Coverage、Verifier、Delivery 的可验证发布链；失败不会被一段流畅文本遮住。</p>
+
+<h3 id="q40一句话怎样诚实概括">Q40：一句话怎样诚实概括？</h3>
+
+<p>DialogPilot 是以 FastAPI 为协议入口、PostgreSQL 为会话与业务事实、pgvector+中文 FTS 为知识投影、Python TaskGraph+有界 ReAct 为当前执行器，并以 Evidence/Coverage/Verifier/Delivery 保证可追责发布的客服 Agent；LangGraph 是下一阶段的薄恢复运行时目标。</p>
+
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/DialogPilot/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">DialogPilot 完整架构教程</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">DialogPilot 完整架构教程</li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Python 多 Agent 客服后端的架构、链路、内部实现、改造记录与项目追问</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

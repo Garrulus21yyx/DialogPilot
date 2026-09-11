@@ -1,0 +1,111 @@
+[
+  {
+    "role": "assistant",
+    "content": "Hi! How can I help you today?",
+    "tool_calls": null,
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-07T10:03:21.233805",
+    "cost": 0.0,
+    "usage": null,
+    "raw_data": null,
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  },
+  {
+    "role": "user",
+    "content": "Hi there! I just received my order, and I need to exchange a couple of items. I’d like to make sure we can sort everything out in one go, so let me explain what I need.",
+    "tool_calls": null,
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-07T10:03:22.835613",
+    "cost": 0.0,
+    "usage": {
+      "completion_tokens": 70,
+      "prompt_tokens": 498
+    },
+    "raw_data": {
+      "id": "chatcmpl-9d067826-84c9-475d-9252-8bbf4090f286",
+      "created": 1788768202,
+      "model": "deepseek-v4-flash",
+      "object": "chat.completion",
+      "system_fingerprint": null,
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "message": {
+            "content": "Hi there! I just received my order, and I need to exchange a couple of items. I’d like to make sure we can sort everything out in one go, so let me explain what I need.",
+            "role": "assistant",
+            "tool_calls": null,
+            "function_call": null,
+            "reasoning_content": "Hi! I received my order and I need to set up some exchanges. Let me explain what I have and what I need.",
+            "thinking_blocks": [
+              {
+                "type": "thinking",
+                "thinking": "Hi! I received my order and I need to set up some exchanges. Let me explain what I have and what I need.",
+                "signature": "58d71a5c-5147-4c20-9456-66f77825f73b"
+              }
+            ],
+            "provider_specific_fields": {
+              "citations": null,
+              "thinking_blocks": [
+                {
+                  "type": "thinking",
+                  "thinking": "Hi! I received my order and I need to set up some exchanges. Let me explain what I have and what I need.",
+                  "signature": "58d71a5c-5147-4c20-9456-66f77825f73b"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "usage": {
+        "completion_tokens": 70,
+        "prompt_tokens": 498,
+        "total_tokens": 568,
+        "completion_tokens_details": {
+          "reasoning_tokens": 26,
+          "text_tokens": 44
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 384,
+          "image_tokens": null,
+          "text_tokens": null,
+          "video_tokens": null,
+          "cache_creation_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 384,
+        "inference_geo": null,
+        "speed": null
+      }
+    },
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  }
+]

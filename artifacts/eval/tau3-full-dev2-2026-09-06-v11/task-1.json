@@ -1,0 +1,20 @@
+{
+  "task_id": "1",
+  "official_reward": null,
+  "status": "ERROR",
+  "error_type": "ValueError",
+  "error": "UserMessage must have either content or tool_calls. Got UserMessage\nis_final_chunk: True",
+  "target_trace": [
+    {
+      "turn": 1,
+      "input": "Hi! I need to exchange a couple of items from my recent order. I’d like to make sure both exchanges are handled at the same time if possible.",
+      "outcome": {
+        "workflow_run_id": "workflow-run:v1:d86d5610b1309d70c915eaf346562f042a5cd950b347a1450872b885f2683713",
+        "signal_id": "interaction:v1:9f91df1f3ad544ef404035f56be087fa1434fb58bda0901c24d6474c471d62a9",
+        "kind": "FIELDS",
+        "expires_at": "2026-09-13T17:38:13.317551+00:00",
+        "interaction_publication_id": "publication:v1:26b54add74baa6483026488c48a026ce0eb4d3843bac1229b7c9e31176b26c44"
+      }
+    }
+  ]
+}

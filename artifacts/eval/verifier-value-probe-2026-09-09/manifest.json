@@ -1,0 +1,15 @@
+{
+  "scope": "Frozen answer/fact replay for atomic checks; not a full publication evaluation.",
+  "source_sha256": "2fb11b5d19df73f881dfc325fead535640f71537405274f3e9545209d7a49986",
+  "cases": 12,
+  "max_api_calls": 12,
+  "profile": {
+    "model": "deepseek-v4-pro",
+    "reasoning": "none",
+    "min_completion_tokens": 0,
+    "max_context_tokens": 32768
+  },
+  "max_tokens": 4096,
+  "protocol": "semantic-answer-assessment-v1",
+  "production_publication_enabled": false
+}

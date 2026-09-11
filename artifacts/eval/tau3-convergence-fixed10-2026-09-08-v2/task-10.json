@@ -1,0 +1,862 @@
+{
+  "task_id": "10",
+  "official_reward": 1.0,
+  "langfuse_session_id": "tau3-44c94b3802094dd1aa3cd3b7cde640c9",
+  "termination": "user_stop",
+  "simulation_status": "COMPLETED",
+  "evaluation_errors": {},
+  "all": {
+    "reward": 1.0,
+    "db_check": {
+      "db_match": true,
+      "db_reward": 1.0
+    },
+    "env_assertions": [],
+    "action_checks": [
+      {
+        "action": {
+          "action_id": "10_0",
+          "requestor": "assistant",
+          "name": "find_user_id_by_email",
+          "arguments": {
+            "email": "mia.garcia2723@example.com"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "10_1",
+          "requestor": "assistant",
+          "name": "get_user_details",
+          "arguments": {
+            "user_id": "mia_garcia_4516"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "10_2",
+          "requestor": "assistant",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W5490111"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "10_3",
+          "requestor": "assistant",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W7387996"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "10_4",
+          "requestor": "assistant",
+          "name": "transfer_to_human_agents",
+          "arguments": {
+            "summary": "The user wants to refund each order to the opposite order's payment method, but the agent cannot help."
+          },
+          "info": null,
+          "compare_args": []
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "generic"
+      }
+    ],
+    "nl_assertions": [],
+    "communicate_checks": null,
+    "reward_basis": [
+      "DB",
+      "NL_ASSERTION"
+    ],
+    "reward_breakdown": {
+      "DB": 1.0,
+      "NL_ASSERTION": 1.0
+    },
+    "info": {
+      "env": null,
+      "nl": {
+        "note": "No nl_assertions to evaluate"
+      },
+      "communicate": {
+        "note": "No communicate_info to evaluate"
+      },
+      "action": null
+    }
+  },
+  "env": {
+    "reward": 1.0,
+    "db_check": {
+      "db_match": true,
+      "db_reward": 1.0
+    },
+    "env_assertions": [],
+    "action_checks": null,
+    "nl_assertions": null,
+    "communicate_checks": null,
+    "reward_basis": [
+      "DB",
+      "NL_ASSERTION"
+    ],
+    "reward_breakdown": {
+      "DB": 1.0
+    },
+    "info": null
+  },
+  "action": {
+    "reward": 1.0,
+    "db_check": null,
+    "env_assertions": null,
+    "action_checks": [
+      {
+        "action": {
+          "action_id": "10_0",
+          "requestor": "assistant",
+          "name": "find_user_id_by_email",
+          "arguments": {
+            "email": "mia.garcia2723@example.com"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "10_1",
+          "requestor": "assistant",
+          "name": "get_user_details",
+          "arguments": {
+            "user_id": "mia_garcia_4516"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "10_2",
+          "requestor": "assistant",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W5490111"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "10_3",
+          "requestor": "assistant",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W7387996"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "10_4",
+          "requestor": "assistant",
+          "name": "transfer_to_human_agents",
+          "arguments": {
+            "summary": "The user wants to refund each order to the opposite order's payment method, but the agent cannot help."
+          },
+          "info": null,
+          "compare_args": []
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "generic"
+      }
+    ],
+    "nl_assertions": null,
+    "communicate_checks": null,
+    "reward_basis": [
+      "DB"
+    ],
+    "reward_breakdown": {
+      "ACTION": 1.0
+    },
+    "info": null
+  },
+  "status": "EVALUATED",
+  "simulator_diagnostics": {
+    "capture_complete": true,
+    "capture_errors": [],
+    "calls": [
+      {
+        "call_id": "f8204bee-75d3-477f-a4ca-7bd25d047ce7",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 10,
+            "prompt_tokens": 417,
+            "total_tokens": 427,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 10
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 384,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 384,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "587eb0de-e592-4c43-8dc6-c15c702f3769",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 45,
+            "prompt_tokens": 439,
+            "total_tokens": 484,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 45
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 384,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 384,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "7d1e2f88-a25e-4afa-bd1a-b8af87ccfe68",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 8,
+            "prompt_tokens": 516,
+            "total_tokens": 524,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 8
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 384,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 384,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "2f20e400-cf1e-45bb-8a7f-7e1002df5276",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 32,
+            "prompt_tokens": 645,
+            "total_tokens": 677,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 32
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 512,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 512,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "57de5f2e-4185-4a0f-a0aa-ac20173ca346",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 5,
+            "prompt_tokens": 706,
+            "total_tokens": 711,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 5
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 640,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 640,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      }
+    ]
+  },
+  "target_trace": [
+    {
+      "turn": 1,
+      "input": "I need to return everything from both my orders.",
+      "outcome": {
+        "response_id": "publication:v1:9a472e15a200ae96ab15f2288ac1239a77765bd2eeb410cfc2e8f6571989d17e",
+        "response": {
+          "intent": "SEMANTIC_INSUFFICIENT_CONTEXT",
+          "conv_id": "tau3-44c94b3802094dd1aa3cd3b7cde640c9",
+          "coverage": {
+            "complete": false,
+            "missing_requirement_ids": [
+              "order_id"
+            ]
+          },
+          "grounded": false,
+          "response": "Please provide the information needed to continue.",
+          "verified": false,
+          "escalated": false,
+          "task_plan": {
+            "plan_id": "turn-plan:v1:716091bbe0602509ca496460f23be6435ced9c42e116cb29dc2590c6c751398e",
+            "work_item_ids": []
+          },
+          "ticket_id": null,
+          "agent_type": "general",
+          "latency_ms": 2946.213899180293,
+          "request_id": "turn-1",
+          "agent_types": [],
+          "response_id": "publication:v1:9a472e15a200ae96ab15f2288ac1239a77765bd2eeb410cfc2e8f6571989d17e",
+          "intent_group": "other",
+          "response_seq": 1,
+          "primary_agent": "",
+          "ticket_status": null,
+          "agent_outcomes": [],
+          "bundle_version": "tau3-retail-v1",
+          "routing_reason": "SEMANTIC_INSUFFICIENT_CONTEXT",
+          "task_completed": false,
+          "delivery_status": "selected",
+          "handoff_created": false,
+          "evaluation_trace": {
+            "cost": {
+              "latency_ms": 2946.213899180293,
+              "work_item_count": 0,
+              "conversation_planner_invoked": false
+            },
+            "outcome": {
+              "kind": "COMPLETED",
+              "task_completed": false,
+              "verifier_status": "NOT_CHECKED",
+              "coverage_complete": false,
+              "missing_requirement_ids": [
+                "order_id"
+              ]
+            },
+            "trigger": {
+              "invocation_admitted": true,
+              "deterministic_resolution": "UNRESOLVED"
+            },
+            "artifact": {
+              "plan_id": "turn-plan:v1:716091bbe0602509ca496460f23be6435ced9c42e116cb29dc2590c6c751398e",
+              "owner_ids": [],
+              "route_mode": "CLARIFY",
+              "registry_fingerprint": "capability-bundle:v1:3b6d277e66dda28d864ed33af998551145d185fc79366a6bef1bfc46c0be4339",
+              "understanding_reason": "SEMANTIC_INSUFFICIENT_CONTEXT"
+            },
+            "consumption": {
+              "facts": [],
+              "work_items": [],
+              "result_statuses": []
+            },
+            "schema_version": "target-evaluation-trace-v1",
+            "state_side_effect": {
+              "state_version_after": 0,
+              "workstream_statuses": [],
+              "state_version_before": 0,
+              "committed_receipt_refs": []
+            }
+          },
+          "synthesis_reason": "terminal route response",
+          "synthesis_status": "terminal",
+          "supporting_agents": [],
+          "routing_disposition": "clarify",
+          "synthesis_conflicts": [],
+          "verification_status": "not_checked",
+          "verification_reason_code": "TERMINAL_RESPONSE_NOT_CHECKED"
+        },
+        "stages": []
+      }
+    },
+    {
+      "verification": {
+        "status": "pass",
+        "grounded": true,
+        "need_escalation": false,
+        "reason": "answer supported and request addressed",
+        "reason_code": "passed",
+        "assessment": {
+          "request_hash": "d35475ec77edc05cc3455188507ea8fe7629dafe44473e0626df0fe72b37d5fb",
+          "supported": true,
+          "answered": true,
+          "approval_terms_complete": false,
+          "issues": [],
+          "rejected_input_work_items": []
+        },
+        "request_binding": "29c6737c3bae56761201b70067e8e5a408b0d2ab6238d602df20faeaac6d1465"
+      },
+      "candidate": "I can help with that. To authenticate you, please provide your email address (or your first name, last name, and zip code)."
+    },
+    {
+      "turn": 2,
+      "input": "Order one was paid with one card, order two with another. I want the refunds swapped—order one’s refund to the second card, order two’s refund to the first card. Can you do that?",
+      "outcome": {
+        "workflow_run_id": "workflow-run:v1:a33af85219b3e79e6d414d8d9d6155fa82370965926a21f1926cc4fd13c6fff2",
+        "signal_id": "interaction:v1:8d9274255c5a264166f6e1915e19410f7cd9745cb79f7a84f19b372cea12138d",
+        "kind": "FIELDS",
+        "expires_at": "2026-09-15T01:05:54.516835+00:00",
+        "interaction_publication_id": "publication:v1:f916ddb9ef33d35cd2c6e129664b8a30fcc5b85ad244941566e52eee765a3a5e"
+      }
+    },
+    {
+      "verification": {
+        "status": "pass",
+        "grounded": true,
+        "need_escalation": false,
+        "reason": "answer supported and request addressed",
+        "reason_code": "passed",
+        "assessment": {
+          "request_hash": "5f8ccf6d5ffd51377ec30c66a45f6795a3200f393283d50a00b186afc0ee7f86",
+          "supported": true,
+          "answered": true,
+          "approval_terms_complete": false,
+          "issues": [],
+          "rejected_input_work_items": []
+        },
+        "request_binding": "b2d3a422eea6ad4cdc1be64cf97d668a4fb5eb14eb162c8968aba2ca3a8c5173"
+      },
+      "candidate": "Thanks, Mia. I found both orders: #W5490111 (paid with the Visa ending 7285) and #W7387996 (paid with PayPal).\n\nUnfortunately, I can't swap the refunds as requested. Refunds must go back to the original payment method used for each order, or to a gift card on file. Since neither order's refund can be redirected to the other's payment method, the swap isn't permitted.\n\nI can still process returns for both orders with refunds to their original payment methods. Would you like me to proceed that way?"
+    },
+    {
+      "turn": 3,
+      "input": "mia.garcia2723@example.com",
+      "outcome": {
+        "response_id": "publication:v1:ce63b73382967b5d2323f5fa64da82969640a8bd1a281f2605466be33e04b185",
+        "response": {
+          "intent": "PENDING_INPUT_RESUMED",
+          "conv_id": "tau3-44c94b3802094dd1aa3cd3b7cde640c9",
+          "coverage": {
+            "complete": true,
+            "missing_requirement_ids": []
+          },
+          "grounded": true,
+          "response": "Thanks, Mia. I found both orders: #W5490111 (paid with the Visa ending 7285) and #W7387996 (paid with PayPal).\n\nUnfortunately, I can't swap the refunds as requested. Refunds must go back to the original payment method used for each order, or to a gift card on file. Since neither order's refund can be redirected to the other's payment method, the swap isn't permitted.\n\nI can still process returns for both orders with refunds to their original payment methods. Would you like me to proceed that way?",
+          "verified": true,
+          "escalated": false,
+          "task_plan": {
+            "plan_id": "turn-plan:v1:4910ef0d2eaf4c15c5030a86d4e99c873bc9154cc9ffe81d5864386f68f3e546",
+            "work_item_ids": [
+              "work:1:continue-domain-objective-1"
+            ]
+          },
+          "ticket_id": null,
+          "agent_type": "retail",
+          "latency_ms": 20981.334574520588,
+          "request_id": "turn-3",
+          "agent_types": [
+            "retail"
+          ],
+          "response_id": "publication:v1:ce63b73382967b5d2323f5fa64da82969640a8bd1a281f2605466be33e04b185",
+          "intent_group": "retail",
+          "response_seq": 3,
+          "primary_agent": "retail",
+          "ticket_status": null,
+          "agent_outcomes": [
+            {
+              "status": "BLOCKED",
+              "owner_agent": "retail",
+              "reason_code": "DOMAIN_OBJECTIVE_BLOCKED",
+              "work_item_id": "work:1:continue-domain-objective-1"
+            }
+          ],
+          "bundle_version": "tau3-retail-v1",
+          "routing_reason": "PENDING_INPUT_RESUMED",
+          "task_completed": false,
+          "delivery_status": "selected",
+          "handoff_created": false,
+          "evaluation_trace": {
+            "cost": {
+              "latency_ms": 20981.334574520588,
+              "work_item_count": 1,
+              "conversation_planner_invoked": false
+            },
+            "outcome": {
+              "kind": "COMPLETED",
+              "task_completed": false,
+              "verifier_status": "PASS",
+              "coverage_complete": true,
+              "missing_requirement_ids": []
+            },
+            "trigger": {
+              "invocation_admitted": true,
+              "deterministic_resolution": "REPLY_PENDING_INPUT"
+            },
+            "artifact": {
+              "plan_id": "turn-plan:v1:4910ef0d2eaf4c15c5030a86d4e99c873bc9154cc9ffe81d5864386f68f3e546",
+              "owner_ids": [
+                "retail"
+              ],
+              "route_mode": "AGENT_TASK",
+              "registry_fingerprint": "capability-bundle:v1:3b6d277e66dda28d864ed33af998551145d185fc79366a6bef1bfc46c0be4339",
+              "understanding_reason": "PENDING_INPUT_RESUMED"
+            },
+            "consumption": {
+              "facts": [
+                {
+                  "source_ref": "call_00_gLP2t9EAjijmbh5SdXqY3194",
+                  "producer_id": "find_user_id_by_email",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.find_user_id_by_email",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_00_eNAwJqtZ45GgMGRLaMbK7028",
+                  "producer_id": "get_user_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_user_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_00_gnlNKFn6ePrvFQDmC82Y8599",
+                  "producer_id": "get_order_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_order_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_01_7cLwmnkIZ0tIwFfDj4tm2183",
+                  "producer_id": "get_order_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_order_details",
+                  "producer_version": "tool-output-v1"
+                }
+              ],
+              "work_items": [
+                {
+                  "owner_agent": "retail",
+                  "control_mode": "DELEGATED",
+                  "work_item_id": "work:1:continue-domain-objective-1",
+                  "allowed_tools": [
+                    "calculate",
+                    "find_user_id_by_name_zip",
+                    "find_user_id_by_email",
+                    "get_order_details",
+                    "get_product_details",
+                    "get_item_details",
+                    "get_user_details",
+                    "list_all_product_types",
+                    "transfer_to_human_agents"
+                  ],
+                  "allowed_skills": []
+                }
+              ],
+              "result_statuses": [
+                "BLOCKED"
+              ]
+            },
+            "schema_version": "target-evaluation-trace-v1",
+            "state_side_effect": {
+              "state_version_after": 4,
+              "workstream_statuses": [],
+              "state_version_before": 2,
+              "committed_receipt_refs": []
+            }
+          },
+          "synthesis_reason": "ANSWER_SUPPORT_CHECKED",
+          "synthesis_status": "conversation_compose",
+          "supporting_agents": [],
+          "routing_disposition": "agent_task",
+          "synthesis_conflicts": [],
+          "verification_status": "pass",
+          "verification_reason_code": "ANSWER_SUPPORT_CHECKED"
+        },
+        "stages": []
+      }
+    },
+    {
+      "verification": {
+        "status": "pass",
+        "grounded": true,
+        "need_escalation": false,
+        "reason": "answer supported and request addressed",
+        "reason_code": "passed",
+        "assessment": {
+          "request_hash": "77f4c342c6b91121923177d4d728492790f631451a820b2a4e2e84084adff311",
+          "supported": true,
+          "answered": true,
+          "approval_terms_complete": false,
+          "issues": [],
+          "rejected_input_work_items": []
+        },
+        "request_binding": "d6f3073b9e5ce2905c6ec69aee559c67644ed7b3904ee0d2af572a8b6cd13fa4"
+      },
+      "candidate": "I understand your frustration, Mia. I've transferred you to a human agent who can assist you further. Please hold on."
+    },
+    {
+      "turn": 4,
+      "input": "What the hell? That’s ridiculous. I want the refunds swapped—why can’t you just do it? Get me a human rep now.",
+      "outcome": {
+        "response_id": "publication:v1:91d96d964658efe479288895923a6f1ceb45f89c15c6e3551061aec189c320a5",
+        "response": {
+          "intent": "CONVERSATION_AGENT_PLAN",
+          "conv_id": "tau3-44c94b3802094dd1aa3cd3b7cde640c9",
+          "coverage": {
+            "complete": true,
+            "missing_requirement_ids": []
+          },
+          "grounded": true,
+          "response": "I understand your frustration, Mia. I've transferred you to a human agent who can assist you further. Please hold on.",
+          "verified": true,
+          "escalated": false,
+          "task_plan": {
+            "plan_id": "turn-plan:v1:5c03635beac20f9c03ed94c57cdb9f0bb00e3404c81d60a6d808098894dd341b",
+            "work_item_ids": [
+              "work:1:handle_swapped_refund_return_request"
+            ]
+          },
+          "ticket_id": null,
+          "agent_type": "retail",
+          "latency_ms": 17371.373437345028,
+          "request_id": "turn-4",
+          "agent_types": [
+            "retail"
+          ],
+          "response_id": "publication:v1:91d96d964658efe479288895923a6f1ceb45f89c15c6e3551061aec189c320a5",
+          "intent_group": "retail",
+          "response_seq": 4,
+          "primary_agent": "retail",
+          "ticket_status": null,
+          "agent_outcomes": [
+            {
+              "status": "SUCCEEDED",
+              "owner_agent": "retail",
+              "reason_code": "FRAMEWORK_AGENT_REQUIREMENTS_SATISFIED",
+              "work_item_id": "work:1:handle_swapped_refund_return_request"
+            }
+          ],
+          "bundle_version": "tau3-retail-v1",
+          "routing_reason": "CONVERSATION_AGENT_PLAN",
+          "task_completed": true,
+          "delivery_status": "selected",
+          "handoff_created": false,
+          "evaluation_trace": {
+            "cost": {
+              "latency_ms": 17371.373437345028,
+              "work_item_count": 1,
+              "conversation_planner_invoked": true
+            },
+            "outcome": {
+              "kind": "COMPLETED",
+              "task_completed": true,
+              "verifier_status": "PASS",
+              "coverage_complete": true,
+              "missing_requirement_ids": []
+            },
+            "trigger": {
+              "invocation_admitted": true,
+              "deterministic_resolution": "UNRESOLVED"
+            },
+            "artifact": {
+              "plan_id": "turn-plan:v1:5c03635beac20f9c03ed94c57cdb9f0bb00e3404c81d60a6d808098894dd341b",
+              "owner_ids": [
+                "retail"
+              ],
+              "route_mode": "AGENT_TASK",
+              "registry_fingerprint": "capability-bundle:v1:3b6d277e66dda28d864ed33af998551145d185fc79366a6bef1bfc46c0be4339",
+              "understanding_reason": "CONVERSATION_AGENT_PLAN"
+            },
+            "consumption": {
+              "facts": [
+                {
+                  "source_ref": "call_00_DHe42p3XqqWeBk1h1jFW4306",
+                  "producer_id": "find_user_id_by_email",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.find_user_id_by_email",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_00_WgdIXvciK9ixtbDTzUAR8555",
+                  "producer_id": "get_user_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_user_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_01_8iqvbgXPeWKKO1rMssZn8464",
+                  "producer_id": "get_order_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_order_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_02_9dRJg0g7EbsOl75mMCnE2271",
+                  "producer_id": "get_order_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_order_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_00_EjVCyi7OhA3OsrgPiCZc5966",
+                  "producer_id": "transfer_to_human_agents",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.transfer_to_human_agents",
+                  "producer_version": "tool-output-v1"
+                }
+              ],
+              "work_items": [
+                {
+                  "owner_agent": "retail",
+                  "control_mode": "DELEGATED",
+                  "work_item_id": "work:1:handle_swapped_refund_return_request",
+                  "allowed_tools": [
+                    "calculate",
+                    "find_user_id_by_name_zip",
+                    "find_user_id_by_email",
+                    "get_order_details",
+                    "get_product_details",
+                    "get_item_details",
+                    "get_user_details",
+                    "list_all_product_types",
+                    "transfer_to_human_agents"
+                  ],
+                  "allowed_skills": []
+                }
+              ],
+              "result_statuses": [
+                "SUCCEEDED"
+              ]
+            },
+            "schema_version": "target-evaluation-trace-v1",
+            "state_side_effect": {
+              "state_version_after": 5,
+              "workstream_statuses": [],
+              "state_version_before": 4,
+              "committed_receipt_refs": []
+            }
+          },
+          "synthesis_reason": "ANSWER_SUPPORT_CHECKED",
+          "synthesis_status": "conversation_compose",
+          "supporting_agents": [],
+          "routing_disposition": "agent_task",
+          "synthesis_conflicts": [],
+          "verification_status": "pass",
+          "verification_reason_code": "ANSWER_SUPPORT_CHECKED"
+        },
+        "stages": []
+      }
+    }
+  ]
+}

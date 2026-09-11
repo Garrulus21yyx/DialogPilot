@@ -1,0 +1,538 @@
+{
+  "scope": "One real domain Agent over frozen long knowledge output; no retrieval or writes.",
+  "max_steps": 8,
+  "call_cap": 9,
+  "api_calls": 3,
+  "profile": {
+    "model": "deepseek-v4-flash",
+    "reasoning": "none",
+    "min_completion_tokens": 0,
+    "max_context_tokens": 32768
+  },
+  "lookup_calls": [
+    {
+      "query": "types of pre-annotation use one at a time or combination multiple pre-annotators"
+    },
+    {
+      "query": "different tools for conversational documents versus technical documents pre-annotation"
+    }
+  ],
+  "result": {
+    "work_item_id": "archive-probe",
+    "owner_agent": "general",
+    "status": "TERMINAL_FAILURE",
+    "reason_code": "AGENT_STEP_BUDGET_EXCEEDED",
+    "producer_version": "target-framework-agent-v2-registry-delegation",
+    "facts": [
+      {
+        "subject_ref": "tool-query:v1:b7d50d4f3eda7bff88aa40dc7400eda16fb017249c0b598447f72df3a59c821f",
+        "requirement_id": "knowledge.active_source",
+        "value_json": "{\"evidence_pack\":{\"index_manifest_fingerprint\":\"frozen-eval-fixture\",\"items\":[{\"chunk_id\":\"mtrag:cloud:ibmcld_16444-1600-3658\",\"source_ref\":{\"applicability\":{},\"checksum\":\"de568f535d5cac66e62944c7f558780dd4ce95fbce4b2b1fd5fdf6f618bdfca4\",\"end_char\":2059,\"scope\":\"public\",\"source_id\":\"mtrag:cloud:ibmcld_16444-1600-3658\",\"source_revision\":\"2c618bb98db3c8526433e22d8a2f7320f10a7470\",\"source_type\":\"mtrag_official_passage\",\"start_char\":0},\"text\":\"\\nHuman annotators can specify entity subtypes for each pre-annotated mention by working on an [annotation task](https://cloud.ibm.com/docs/watson-knowledge-studio-data?topic=watson-knowledge-studio-data-annotate-documentswks_hatask) with the pre-annotated document.\\n* Machine learning\\n\\nUses a machine learning model to automatically annotate documents. This option is only available to you if you have created a machine learning model with Knowledge Studio already. If you add a document set, you can run the machine learning annotator that you created previously to pre-annotate the new documents. If the new set of documents is similar to the documents that were used to train the machine learning annotator originally, then this is probably your best choice for pre-annotation.\\n* Rule\\n\\nUses a rule-based model to automatically annotate documents. This option is only available if you have created a rule-based model with Knowledge Studio already. If your documents contain common patterns of tokens from which you can derive meaning, this model might be a good choice. It can incorporate some of the function of the dictionary pre-annotator if you enable it, by identifying class types for dictionary terms that it finds in the documents also.\\n\\n\\n\\nAlternatively, you can upload already-annotated documents, and use them to start training the machine learning model. You cannot run a pre-annotator on annotated documents that you upload or the existing annotations will be stripped from the documents and replaced with annotations produced by the pre-annotator only.\\n\\nYou can run a pre-annotator on documents that were added to the ground truth as part of the current workspace. Annotations that were added to the documents, reviewed, accepted, and promoted to ground truth within the current workspace are not stripped out.\\n\\n\\n\\n\\n\\n Running multiple pre-annotators \\n\\nKnowledge Studio allows you to run multiple pre-annotators at once. First, you need to prepare the pre-annotation methods that you want to use. For more information, see the following sections.\",\"title\":\"\"},{\"chunk_id\":\"mtrag:cloud:ibmcld_16507-3099-4772\",\"source_ref\":{\"applicability\":{},\"checksum\":\"92f4651bedc4a1ce140ca6cbb3ee83d2d4b943b962f728c4b1cfa06b17666ca2\",\"end_char\":1674,\"scope\":\"public\",\"source_id\":\"mtrag:cloud:ibmcld_16507-3099-4772\",\"source_revision\":\"2c618bb98db3c8526433e22d8a2f7320f10a7470\",\"source_type\":\"mtrag_official_passage\",\"start_char\":0},\"text\":\"\\nIt can incorporate some of the function of the dictionary pre-annotator if you enable it, by identifying class types for dictionary terms that it finds in the documents also.\\n\\n\\n\\nAlternatively, you can upload already-annotated documents, and use them to start training the machine learning model. You cannot run a pre-annotator on annotated documents that you upload or the existing annotations will be stripped from the documents and replaced with annotations produced by the pre-annotator only.\\n\\n\\n\\n\\n\\n Running multiple pre-annotators \\n\\nKnowledge Studio allows you to run multiple pre-annotators at once. First, you need to prepare the pre-annotation methods that you want to use. For more information, see the following sections:\\n\\n\\n\\n* [Natural Language Understanding](https://cloud.ibm.com/docs/watson-knowledge-studio?topic=watson-knowledge-studio-preannotationwks_preannotnlu)\\n* [Dictionaries](https://cloud.ibm.com/docs/watson-knowledge-studio?topic=watson-knowledge-studio-preannotationwks_preannot)\\n* [Machine learning model](https://cloud.ibm.com/docs/watson-knowledge-studio?topic=watson-knowledge-studio-preannotationwks_preannotsire)\\n* [Rules-based model](https://cloud.ibm.com/docs/watson-knowledge-studio?topic=watson-knowledge-studio-preannotationwks_preannotrule)\\n\\n\\n\\n\\n\\n Configuring the order of pre-annotators \\n\\nWhen multiple pre-annotators are used, the first annotation made to a span of text is saved for the results, even if other pre-annotators attempt to annotate the same span of text later in the order. This doesn't apply to human annotations, which are preserved regardless of pre-annotation order.\\n\\nFor example, consider the example text IBM Watson.\",\"title\":\"\"},{\"chunk_id\":\"mtrag:cloud:ibmcld_16444-3168-4952\",\"source_ref\":{\"applicability\":{},\"checksum\":\"834eb61d3ad67924e0e0f8e687188893c7ba32daf4f98782dccb8f3e647dd8fb\",\"end_char\":1785,\"scope\":\"public\",\"source_id\":\"mtrag:cloud:ibmcld_16444-3168-4952\",\"source_revision\":\"2c618bb98db3c8526433e22d8a2f7320f10a7470\",\"source_type\":\"mtrag_official_passage\",\"start_char\":0},\"text\":\"\\nYou can run a pre-annotator on documents that were added to the ground truth as part of the current workspace. Annotations that were added to the documents, reviewed, accepted, and promoted to ground truth within the current workspace are not stripped out.\\n\\n\\n\\n\\n\\n Running multiple pre-annotators \\n\\nKnowledge Studio allows you to run multiple pre-annotators at once. First, you need to prepare the pre-annotation methods that you want to use. For more information, see the following sections.\\n\\n\\n\\n* [Dictionaries](https://cloud.ibm.com/docs/watson-knowledge-studio-data?topic=watson-knowledge-studio-data-preannotationwks_preannot)\\n* [Machine learning model](https://cloud.ibm.com/docs/watson-knowledge-studio-data?topic=watson-knowledge-studio-data-preannotationwks_preannotsire)\\n* [Rules-based model](https://cloud.ibm.com/docs/watson-knowledge-studio-data?topic=watson-knowledge-studio-data-preannotationwks_preannotrule)\\n\\n\\n\\n\\n\\n Configuring the order of pre-annotators \\n\\nWhen multiple pre-annotators are used, the first annotation made to a span of text is saved for the results, even if other pre-annotators attempt to annotate the same span of text later in the order. This doesn't apply to human annotations, which are preserved regardless of pre-annotation order.\\n\\nFor example, consider the example text IBM Watson. If a dictionary that is first in the order labels IBM as an Organization entity type, a machine learning model that is second in the order can't annotate IBM Watson as a Software Brand entity type because that would override the earlier annotation made to IBM.\\n\\nYou can view the current order of pre-annotators in the Order column on the Machine Learning Model > Pre-annotation page. To change the order, complete the following steps.\\n\\n\\n\\n1. Click Order Settings.\\n2.\",\"title\":\"\"},{\"chunk_id\":\"mtrag:cloud:ibmcld_16507-1455-3632\",\"source_ref\":{\"applicability\":{},\"checksum\":\"5bf94d6a1bc1f67882530a06d9b8b1432fc2f0ca4cf3327e4ff46d239f5ca039\",\"end_char\":2178,\"scope\":\"public\",\"source_id\":\"mtrag:cloud:ibmcld_16507-1455-3632\",\"source_revision\":\"2c618bb98db3c8526433e22d8a2f7320f10a7470\",\"source_type\":\"mtrag_official_passage\",\"start_char\":0},\"text\":\"\\nThis choice is best for fields with unique or specialized terminology because this pre-annotator does not analyze the context in which the term is used in the way a machine learning pre-annotator does; it instead relies on the term being distinct enough to have a decipherable meaning regardless of the context in which it is used. For example, it is easier to recognize asbestos as a mineral entity type than to determine the entity type of squash, which can refer to a vegetable, a sport, or a verb meaning to crush something.\\n\\nDictionary pre-annotators do not recognize entity subtypes. Human annotators can specify entity subtypes for each pre-annotated mention by working on an [annotation task](https://cloud.ibm.com/docs/watson-knowledge-studio?topic=watson-knowledge-studio-annotate-documentswks_hatask) with the pre-annotated document.\\n* Machine learning\\n\\nUses a machine learning model to automatically annotate documents. This option is only available if you have created a machine learning model with Knowledge Studio already. If you add a document set, you can run the machine learning annotator that you created previously to pre-annotate the new documents. If the new set of documents is similar to the documents that were used to train the machine learning annotator originally, then this is probably your best choice for pre-annotation.\\n* Rule\\n\\nUses a rule-based model to automatically annotate documents. This option is only available if you have created a rule-based model with Knowledge Studio already. If your documents contain common patterns of tokens from which you can derive meaning, this model might be a good choice. It can incorporate some of the function of the dictionary pre-annotator if you enable it, by identifying class types for dictionary terms that it finds in the documents also.\\n\\n\\n\\nAlternatively, you can upload already-annotated documents, and use them to start training the machine learning model. You cannot run a pre-annotator on annotated documents that you upload or the existing annotations will be stripped from the documents and replaced with annotations produced by the pre-annotator only.\\n\\n\\n\\n\\n\\n Running multiple pre-annotators\",\"title\":\"\"},{\"chunk_id\":\"mtrag:cloud:ibmcld_16507-7-2044\",\"source_ref\":{\"applicability\":{},\"checksum\":\"1722ba8e99393a4e2f0380b488d17a4663221db91a525f680fe25d209199b027\",\"end_char\":2038,\"scope\":\"public\",\"source_id\":\"mtrag:cloud:ibmcld_16507-7-2044\",\"source_revision\":\"2c618bb98db3c8526433e22d8a2f7320f10a7470\",\"source_type\":\"mtrag_official_passage\",\"start_char\":0},\"text\":\"\\nBootstrapping annotation \\n\\nSimplify the job of the human annotator by pre-annotating the documents in a workspace. A pre-annotator is a Knowledge Studio dictionary, rule-based model, or machine learning model that you can run to find and annotate mentions automatically.\\n\\nPre-annotation makes the job of human annotators easier because it covers the straightforward annotations, and gets the job of annotating the documents underway.\\n\\nThe method that you use to pre-annotate documents in no way restricts the ways that you can use the resulting model. For example, just because you use the Natural Language Understanding service to pre-annotate documents does not mean you must deploy the final machine learning model that you build to the Natural Language Understanding service.\\n\\n\\n\\n Pre-annotation methods \\n\\nThe following pre-annotators are available:\\n\\n\\n\\n* Natural Language Understanding\\n\\nA pre-annotator that you can use to find mentions of entities in your documents automatically. If your source documents have general knowledge subject matter, then this pre-annotator is a good choice for you. If you are working with highly specialized documents that focus on a specific field, such as patent law research, for example, the dictionary pre-annotator or rule-based model might be a better choice.\\n* Dictionary\\n\\nUses a dictionary of terms that you provide and associate with an entity type to find mentions of that entity type in the documents. This choice is best for fields with unique or specialized terminology because this pre-annotator does not analyze the context in which the term is used in the way a machine learning pre-annotator does; it instead relies on the term being distinct enough to have a decipherable meaning regardless of the context in which it is used. For example, it is easier to recognize asbestos as a mineral entity type than to determine the entity type of squash, which can refer to a vegetable, a sport, or a verb meaning to crush something.\\n\\nDictionary pre-annotators do not recognize entity subtypes.\",\"title\":\"\"}],\"query\":\"|user|: Can I use multiple types of pre-annotations at once, and are there different tools for conversational and technical documents?\"},\"status\":\"OK\"}",
+        "source_kind": "KNOWLEDGE_ASSERTED",
+        "source_ref": "call_00_EGmPNC34CLA7nRbGIYiP0341",
+        "producer_id": "knowledge_search",
+        "producer_version": "tool-output-v1",
+        "observed_at": "2026-09-08 01:38:19.950622+00:00",
+        "valid_until": null,
+        "observation_started_at": "2026-09-08 01:38:19.950579+00:00"
+      },
+      {
+        "subject_ref": "tool-query:v1:f23f15fdbf8cabc791b161c359746e37021f236c1b90e31946139d41ce07e5dd",
+        "requirement_id": "knowledge.active_source",
+        "value_json": "{\"evidence_pack\":{\"index_manifest_fingerprint\":\"frozen-eval-fixture\",\"items\":[{\"chunk_id\":\"mtrag:cloud:ibmcld_16444-1600-3658\",\"source_ref\":{\"applicability\":{},\"checksum\":\"de568f535d5cac66e62944c7f558780dd4ce95fbce4b2b1fd5fdf6f618bdfca4\",\"end_char\":2059,\"scope\":\"public\",\"source_id\":\"mtrag:cloud:ibmcld_16444-1600-3658\",\"source_revision\":\"2c618bb98db3c8526433e22d8a2f7320f10a7470\",\"source_type\":\"mtrag_official_passage\",\"start_char\":0},\"text\":\"\\nHuman annotators can specify entity subtypes for each pre-annotated mention by working on an [annotation task](https://cloud.ibm.com/docs/watson-knowledge-studio-data?topic=watson-knowledge-studio-data-annotate-documentswks_hatask) with the pre-annotated document.\\n* Machine learning\\n\\nUses a machine learning model to automatically annotate documents. This option is only available to you if you have created a machine learning model with Knowledge Studio already. If you add a document set, you can run the machine learning annotator that you created previously to pre-annotate the new documents. If the new set of documents is similar to the documents that were used to train the machine learning annotator originally, then this is probably your best choice for pre-annotation.\\n* Rule\\n\\nUses a rule-based model to automatically annotate documents. This option is only available if you have created a rule-based model with Knowledge Studio already. If your documents contain common patterns of tokens from which you can derive meaning, this model might be a good choice. It can incorporate some of the function of the dictionary pre-annotator if you enable it, by identifying class types for dictionary terms that it finds in the documents also.\\n\\n\\n\\nAlternatively, you can upload already-annotated documents, and use them to start training the machine learning model. You cannot run a pre-annotator on annotated documents that you upload or the existing annotations will be stripped from the documents and replaced with annotations produced by the pre-annotator only.\\n\\nYou can run a pre-annotator on documents that were added to the ground truth as part of the current workspace. Annotations that were added to the documents, reviewed, accepted, and promoted to ground truth within the current workspace are not stripped out.\\n\\n\\n\\n\\n\\n Running multiple pre-annotators \\n\\nKnowledge Studio allows you to run multiple pre-annotators at once. First, you need to prepare the pre-annotation methods that you want to use. For more information, see the following sections.\",\"title\":\"\"},{\"chunk_id\":\"mtrag:cloud:ibmcld_16507-3099-4772\",\"source_ref\":{\"applicability\":{},\"checksum\":\"92f4651bedc4a1ce140ca6cbb3ee83d2d4b943b962f728c4b1cfa06b17666ca2\",\"end_char\":1674,\"scope\":\"public\",\"source_id\":\"mtrag:cloud:ibmcld_16507-3099-4772\",\"source_revision\":\"2c618bb98db3c8526433e22d8a2f7320f10a7470\",\"source_type\":\"mtrag_official_passage\",\"start_char\":0},\"text\":\"\\nIt can incorporate some of the function of the dictionary pre-annotator if you enable it, by identifying class types for dictionary terms that it finds in the documents also.\\n\\n\\n\\nAlternatively, you can upload already-annotated documents, and use them to start training the machine learning model. You cannot run a pre-annotator on annotated documents that you upload or the existing annotations will be stripped from the documents and replaced with annotations produced by the pre-annotator only.\\n\\n\\n\\n\\n\\n Running multiple pre-annotators \\n\\nKnowledge Studio allows you to run multiple pre-annotators at once. First, you need to prepare the pre-annotation methods that you want to use. For more information, see the following sections:\\n\\n\\n\\n* [Natural Language Understanding](https://cloud.ibm.com/docs/watson-knowledge-studio?topic=watson-knowledge-studio-preannotationwks_preannotnlu)\\n* [Dictionaries](https://cloud.ibm.com/docs/watson-knowledge-studio?topic=watson-knowledge-studio-preannotationwks_preannot)\\n* [Machine learning model](https://cloud.ibm.com/docs/watson-knowledge-studio?topic=watson-knowledge-studio-preannotationwks_preannotsire)\\n* [Rules-based model](https://cloud.ibm.com/docs/watson-knowledge-studio?topic=watson-knowledge-studio-preannotationwks_preannotrule)\\n\\n\\n\\n\\n\\n Configuring the order of pre-annotators \\n\\nWhen multiple pre-annotators are used, the first annotation made to a span of text is saved for the results, even if other pre-annotators attempt to annotate the same span of text later in the order. This doesn't apply to human annotations, which are preserved regardless of pre-annotation order.\\n\\nFor example, consider the example text IBM Watson.\",\"title\":\"\"},{\"chunk_id\":\"mtrag:cloud:ibmcld_16444-3168-4952\",\"source_ref\":{\"applicability\":{},\"checksum\":\"834eb61d3ad67924e0e0f8e687188893c7ba32daf4f98782dccb8f3e647dd8fb\",\"end_char\":1785,\"scope\":\"public\",\"source_id\":\"mtrag:cloud:ibmcld_16444-3168-4952\",\"source_revision\":\"2c618bb98db3c8526433e22d8a2f7320f10a7470\",\"source_type\":\"mtrag_official_passage\",\"start_char\":0},\"text\":\"\\nYou can run a pre-annotator on documents that were added to the ground truth as part of the current workspace. Annotations that were added to the documents, reviewed, accepted, and promoted to ground truth within the current workspace are not stripped out.\\n\\n\\n\\n\\n\\n Running multiple pre-annotators \\n\\nKnowledge Studio allows you to run multiple pre-annotators at once. First, you need to prepare the pre-annotation methods that you want to use. For more information, see the following sections.\\n\\n\\n\\n* [Dictionaries](https://cloud.ibm.com/docs/watson-knowledge-studio-data?topic=watson-knowledge-studio-data-preannotationwks_preannot)\\n* [Machine learning model](https://cloud.ibm.com/docs/watson-knowledge-studio-data?topic=watson-knowledge-studio-data-preannotationwks_preannotsire)\\n* [Rules-based model](https://cloud.ibm.com/docs/watson-knowledge-studio-data?topic=watson-knowledge-studio-data-preannotationwks_preannotrule)\\n\\n\\n\\n\\n\\n Configuring the order of pre-annotators \\n\\nWhen multiple pre-annotators are used, the first annotation made to a span of text is saved for the results, even if other pre-annotators attempt to annotate the same span of text later in the order. This doesn't apply to human annotations, which are preserved regardless of pre-annotation order.\\n\\nFor example, consider the example text IBM Watson. If a dictionary that is first in the order labels IBM as an Organization entity type, a machine learning model that is second in the order can't annotate IBM Watson as a Software Brand entity type because that would override the earlier annotation made to IBM.\\n\\nYou can view the current order of pre-annotators in the Order column on the Machine Learning Model > Pre-annotation page. To change the order, complete the following steps.\\n\\n\\n\\n1. Click Order Settings.\\n2.\",\"title\":\"\"},{\"chunk_id\":\"mtrag:cloud:ibmcld_16507-1455-3632\",\"source_ref\":{\"applicability\":{},\"checksum\":\"5bf94d6a1bc1f67882530a06d9b8b1432fc2f0ca4cf3327e4ff46d239f5ca039\",\"end_char\":2178,\"scope\":\"public\",\"source_id\":\"mtrag:cloud:ibmcld_16507-1455-3632\",\"source_revision\":\"2c618bb98db3c8526433e22d8a2f7320f10a7470\",\"source_type\":\"mtrag_official_passage\",\"start_char\":0},\"text\":\"\\nThis choice is best for fields with unique or specialized terminology because this pre-annotator does not analyze the context in which the term is used in the way a machine learning pre-annotator does; it instead relies on the term being distinct enough to have a decipherable meaning regardless of the context in which it is used. For example, it is easier to recognize asbestos as a mineral entity type than to determine the entity type of squash, which can refer to a vegetable, a sport, or a verb meaning to crush something.\\n\\nDictionary pre-annotators do not recognize entity subtypes. Human annotators can specify entity subtypes for each pre-annotated mention by working on an [annotation task](https://cloud.ibm.com/docs/watson-knowledge-studio?topic=watson-knowledge-studio-annotate-documentswks_hatask) with the pre-annotated document.\\n* Machine learning\\n\\nUses a machine learning model to automatically annotate documents. This option is only available if you have created a machine learning model with Knowledge Studio already. If you add a document set, you can run the machine learning annotator that you created previously to pre-annotate the new documents. If the new set of documents is similar to the documents that were used to train the machine learning annotator originally, then this is probably your best choice for pre-annotation.\\n* Rule\\n\\nUses a rule-based model to automatically annotate documents. This option is only available if you have created a rule-based model with Knowledge Studio already. If your documents contain common patterns of tokens from which you can derive meaning, this model might be a good choice. It can incorporate some of the function of the dictionary pre-annotator if you enable it, by identifying class types for dictionary terms that it finds in the documents also.\\n\\n\\n\\nAlternatively, you can upload already-annotated documents, and use them to start training the machine learning model. You cannot run a pre-annotator on annotated documents that you upload or the existing annotations will be stripped from the documents and replaced with annotations produced by the pre-annotator only.\\n\\n\\n\\n\\n\\n Running multiple pre-annotators\",\"title\":\"\"},{\"chunk_id\":\"mtrag:cloud:ibmcld_16507-7-2044\",\"source_ref\":{\"applicability\":{},\"checksum\":\"1722ba8e99393a4e2f0380b488d17a4663221db91a525f680fe25d209199b027\",\"end_char\":2038,\"scope\":\"public\",\"source_id\":\"mtrag:cloud:ibmcld_16507-7-2044\",\"source_revision\":\"2c618bb98db3c8526433e22d8a2f7320f10a7470\",\"source_type\":\"mtrag_official_passage\",\"start_char\":0},\"text\":\"\\nBootstrapping annotation \\n\\nSimplify the job of the human annotator by pre-annotating the documents in a workspace. A pre-annotator is a Knowledge Studio dictionary, rule-based model, or machine learning model that you can run to find and annotate mentions automatically.\\n\\nPre-annotation makes the job of human annotators easier because it covers the straightforward annotations, and gets the job of annotating the documents underway.\\n\\nThe method that you use to pre-annotate documents in no way restricts the ways that you can use the resulting model. For example, just because you use the Natural Language Understanding service to pre-annotate documents does not mean you must deploy the final machine learning model that you build to the Natural Language Understanding service.\\n\\n\\n\\n Pre-annotation methods \\n\\nThe following pre-annotators are available:\\n\\n\\n\\n* Natural Language Understanding\\n\\nA pre-annotator that you can use to find mentions of entities in your documents automatically. If your source documents have general knowledge subject matter, then this pre-annotator is a good choice for you. If you are working with highly specialized documents that focus on a specific field, such as patent law research, for example, the dictionary pre-annotator or rule-based model might be a better choice.\\n* Dictionary\\n\\nUses a dictionary of terms that you provide and associate with an entity type to find mentions of that entity type in the documents. This choice is best for fields with unique or specialized terminology because this pre-annotator does not analyze the context in which the term is used in the way a machine learning pre-annotator does; it instead relies on the term being distinct enough to have a decipherable meaning regardless of the context in which it is used. For example, it is easier to recognize asbestos as a mineral entity type than to determine the entity type of squash, which can refer to a vegetable, a sport, or a verb meaning to crush something.\\n\\nDictionary pre-annotators do not recognize entity subtypes.\",\"title\":\"\"}],\"query\":\"|user|: Can I use multiple types of pre-annotations at once, and are there different tools for conversational and technical documents?\"},\"status\":\"OK\"}",
+        "source_kind": "KNOWLEDGE_ASSERTED",
+        "source_ref": "call_01_yHEt1qilakw5TmGHKFMy7993",
+        "producer_id": "knowledge_search",
+        "producer_version": "tool-output-v1",
+        "observed_at": "2026-09-08 01:38:19.953944+00:00",
+        "valid_until": null,
+        "observation_started_at": "2026-09-08 01:38:19.953917+00:00"
+      }
+    ],
+    "evidence_refs": [
+      "call_00_EGmPNC34CLA7nRbGIYiP0341",
+      "call_01_yHEt1qilakw5TmGHKFMy7993"
+    ],
+    "action_receipts": [],
+    "missing_inputs": [],
+    "requested_evidence": [],
+    "state_mutation_proposals": [],
+    "candidate_response": null,
+    "retryable": false,
+    "pending_action": null,
+    "working_messages": [
+      {
+        "type": "human",
+        "data": {
+          "content": "{\"action_proposals_allowed\": false, \"arguments\": {\"question\": \"many kinds of pre-anno! Use one at a time or combination?  also, different tool btn conversational and technical docs?\"}, \"completed_actions\": [], \"evidence_refs\": [], \"objective\": \"many kinds of pre-anno! Use one at a time or combination?  also, different tool btn conversational and technical docs?\", \"pending_approval\": null, \"recent_relevant_turns\": [\"{\\\"role\\\": \\\"user\\\", \\\"text\\\": \\\"What is the Score Agreement level if it is less than 0?\\\"}\", \"{\\\"role\\\": \\\"agent\\\", \\\"text\\\": \\\"If the Score Agreement level is less than 0, it indicates poor agreement among the annotators, taking into account that what constitutes an acceptable level of agreement depends on your domain data and type system. This score can suggest that the annotation guidelines or instructions may need to be revised to improve consistency.\\\"}\", \"{\\\"role\\\": \\\"user\\\", \\\"text\\\": \\\"How many annotators are needed?\\\"}\", \"{\\\"role\\\": \\\"agent\\\", \\\"text\\\": \\\"The number of annotators needed can vary depending on the specific requirements of the project. However, inter-annotator agreement scores cannot be calculated unless two or more human annotators annotate the same documents. That allows you to view the scores by comparing a pair of human annotators (for example, compare all of John's mention annotations to all of Mary's mention annotations). You can also view the scores by comparing specific documents (for example, compare the relation annotations that John made in one document to the relation annotations that Mary made in the same document).\\\"}\", \"{\\\"role\\\": \\\"user\\\", \\\"text\\\": \\\"data volume\\\"}\", \"{\\\"role\\\": \\\"agent\\\", \\\"text\\\": \\\"There are certain guidelines for the volume of data when adding documents for annotation to train a machine learning model. It is recommended to provide a set of documents that have a total size of about 300,000 words. The number of words can be adjusted based on the complexity of the type system. Each document should be limited to a page or two of content, preferably fewer than 2,000 words and closer to 1,000 words per document.  A goal to aim for is to eventually have at least 50 annotations for each entity type and 50 for each relation type in the document collection.  The set of documents for training must contain at least 10 annotated documents.\\\"}\", \"{\\\"role\\\": \\\"user\\\", \\\"text\\\": \\\"So, 3 ppl at least?\\\"}\", \"{\\\"role\\\": \\\"agent\\\", \\\"text\\\": \\\"I am not sure what you are asking. The minimal number of annotators needed is two, as per my answer to your previous question above. There can of course be more than two annotators depending on the project, but the minimal requirement is two annotators.\\\"}\", \"{\\\"role\\\": \\\"user\\\", \\\"text\\\": \\\"pre-annotations make the task easier\\\"}\", \"{\\\"role\\\": \\\"agent\\\", \\\"text\\\": \\\"Yes, pre-annotating documents can make the job of human annotators easier later by identifying potential entities or concepts in the text beforehand. Although it is an optional step, it can help to speed up the annotation process and increase consistency in the annotations  because it covers the straightforward annotations, and gets the job of annotating the documents underway.\\\"}\"], \"requirements\": [\"knowledge.active_source\"], \"source_conversation\": {\"current_message\": \"many kinds of pre-anno! Use one at a time or combination?  also, different tool btn conversational and technical docs?\"}, \"verified_facts\": []}",
+          "additional_kwargs": {},
+          "response_metadata": {},
+          "type": "human",
+          "name": null,
+          "id": "task-context:work-item:v1:98b694291f4ed06434f60efd64dea014ecc9d887c9828178b1174f87cd0b3c8a"
+        }
+      },
+      {
+        "type": "ai",
+        "data": {
+          "content": [
+            {
+              "text": "I'll research the documentation about pre-annotation types and whether they can be combined, plus any differences between conversational and technical document tools.",
+              "type": "text"
+            },
+            {
+              "id": "call_00_EGmPNC34CLA7nRbGIYiP0341",
+              "input": {
+                "query": "types of pre-annotation use one at a time or combination multiple pre-annotators"
+              },
+              "name": "knowledge_search",
+              "type": "tool_use",
+              "toolset_name": null
+            },
+            {
+              "id": "call_01_yHEt1qilakw5TmGHKFMy7993",
+              "input": {
+                "query": "different tools for conversational documents versus technical documents pre-annotation"
+              },
+              "name": "knowledge_search",
+              "type": "tool_use",
+              "toolset_name": null
+            }
+          ],
+          "additional_kwargs": {},
+          "response_metadata": {
+            "id": "fec1a9a7-e654-4a57-bdb0-38b8038dde58",
+            "container": null,
+            "model": "deepseek-v4-flash",
+            "stop_details": null,
+            "stop_reason": "tool_use",
+            "stop_sequence": null,
+            "usage": {
+              "cache_creation": null,
+              "cache_creation_input_tokens": 0,
+              "cache_read_input_tokens": 1152,
+              "inference_geo": null,
+              "input_tokens": 936,
+              "output_tokens": 125,
+              "output_tokens_details": null,
+              "server_tool_use": null,
+              "service_tier": "standard"
+            },
+            "model_name": "deepseek-v4-flash",
+            "model_provider": "anthropic"
+          },
+          "type": "ai",
+          "name": "general_agent",
+          "id": "lc_run--01a07eaa-7c26-7b72-947e-41e893f5f52f-0",
+          "tool_calls": [
+            {
+              "name": "knowledge_search",
+              "args": {
+                "query": "types of pre-annotation use one at a time or combination multiple pre-annotators"
+              },
+              "id": "call_00_EGmPNC34CLA7nRbGIYiP0341",
+              "type": "tool_call"
+            },
+            {
+              "name": "knowledge_search",
+              "args": {
+                "query": "different tools for conversational documents versus technical documents pre-annotation"
+              },
+              "id": "call_01_yHEt1qilakw5TmGHKFMy7993",
+              "type": "tool_call"
+            }
+          ],
+          "invalid_tool_calls": [],
+          "usage_metadata": {
+            "input_tokens": 2088,
+            "output_tokens": 125,
+            "total_tokens": 2213,
+            "input_token_details": {
+              "cache_read": 1152,
+              "cache_creation": 0
+            }
+          }
+        }
+      },
+      {
+        "type": "tool",
+        "data": {
+          "content": "{\"result_ref\": \"52108da201edc2c402618f0c47bc5d140c2089e6110f44134ec3ffe2ad053321\", \"total_characters\": 11825, \"preview\": \"{\\\"status\\\":\\\"OK\\\",\\\"query_used\\\":\\\"|user|: Can I use multiple types of pre-annotations at once, and are there different tools for conversational and technical documents?\\\",\\\"evidence\\\":[{\\\"evidence_id\\\":\\\"Eee5930010885\\\",\\\"title\\\":\\\"\\\",\\\"text\\\":\\\"\\\\nHuman annotators can specify entity subtypes for each pre-annotated mention by working on an [annotation task](https://cloud.ibm.com/docs/watson-knowledge-studio-data?topi\", \"complete\": false, \"evidence_directory\": [{\"evidence_id\": \"Eee5930010885\", \"title\": \"\", \"preview\": \"\\nHuman annotators can specify entity subtypes for each pre-annotated mention by working on an [annot\", \"total_characters\": 2059, \"read_tool_result\": {\"reference\": \"52108da201edc2c402618f0c47bc5d140c2089e6110f44134ec3ffe2ad053321\", \"evidence_id\": \"Eee5930010885\", \"offset\": 0, \"limit\": 2059}}, {\"evidence_id\": \"E6b26f5c2db0e\", \"title\": \"\", \"preview\": \"\\nIt can incorporate some of the function of the dictionary pre-annotator if you enable it, by identi\", \"total_characters\": 1674, \"read_tool_result\": {\"reference\": \"52108da201edc2c402618f0c47bc5d140c2089e6110f44134ec3ffe2ad053321\", \"evidence_id\": \"E6b26f5c2db0e\", \"offset\": 0, \"limit\": 1674}}, {\"evidence_id\": \"E4d6ee4986d21\", \"title\": \"\", \"preview\": \"\\nYou can run a pre-annotator on documents that were added to the ground truth as part of the current\", \"total_characters\": 1785, \"read_tool_result\": {\"reference\": \"52108da201edc2c402618f0c47bc5d140c2089e6110f44134ec3ffe2ad053321\", \"evidence_id\": \"E4d6ee4986d21\", \"offset\": 0, \"limit\": 1785}}, {\"evidence_id\": \"Ea40446fb9cca\", \"title\": \"\", \"preview\": \"\\nThis choice is best for fields with unique or specialized terminology because this pre-annotator do\", \"total_characters\": 2178, \"read_tool_result\": {\"reference\": \"52108da201edc2c402618f0c47bc5d140c2089e6110f44134ec3ffe2ad053321\", \"evidence_id\": \"Ea40446fb9cca\", \"offset\": 0, \"limit\": 2178}}, {\"evidence_id\": \"Ee7ca3adb4ecc\", \"title\": \"\", \"preview\": \"\\nBootstrapping annotation \\n\\nSimplify the job of the human annotator by pre-annotating the documents \", \"total_characters\": 2038, \"read_tool_result\": {\"reference\": \"52108da201edc2c402618f0c47bc5d140c2089e6110f44134ec3ffe2ad053321\", \"evidence_id\": \"Ee7ca3adb4ecc\", \"offset\": 0, \"limit\": 2038}}], \"evidence_reading\": \"Use read_tool_result with reference and evidence_id to read a specific evidence text with its source. Directory previews are incomplete, not sufficient evidence.\", \"read_tool_result\": {\"reference\": \"52108da201edc2c402618f0c47bc5d140c2089e6110f44134ec3ffe2ad053321\", \"offset\": 0}, \"note\": \"Preview only. Read required pages before concluding; absence from a page is not absence from the result.\"}",
+          "additional_kwargs": {},
+          "response_metadata": {},
+          "type": "tool",
+          "name": "knowledge_search",
+          "id": "fdde4b11-6fe3-42ff-a068-eacb5260a29d",
+          "tool_call_id": "call_00_EGmPNC34CLA7nRbGIYiP0341",
+          "artifact": {
+            "schema": "tool-result-v1",
+            "reference": "52108da201edc2c402618f0c47bc5d140c2089e6110f44134ec3ffe2ad053321",
+            "result": {
+              "status": "success",
+              "success": true,
+              "tool_name": "knowledge_search",
+              "effect_status": "none"
+            },
+            "observation": "bfad2ab9a27d943594247f6212491ed92504b3f0a2232bf82ff7c7fdd8aedfef"
+          },
+          "status": "success"
+        }
+      },
+      {
+        "type": "tool",
+        "data": {
+          "content": "{\"result_ref\": \"1b897573e5c7a14ad5fe9c752d5b2ae1b8a167e48fd77e64acb1692fe0de4c43\", \"total_characters\": 11825, \"preview\": \"{\\\"status\\\":\\\"OK\\\",\\\"query_used\\\":\\\"|user|: Can I use multiple types of pre-annotations at once, and are there different tools for conversational and technical documents?\\\",\\\"evidence\\\":[{\\\"evidence_id\\\":\\\"Eee5930010885\\\",\\\"title\\\":\\\"\\\",\\\"text\\\":\\\"\\\\nHuman annotators can specify entity subtypes for each pre-annotated mention by working on an [annotation task](https://cloud.ibm.com/docs/watson-knowledge-studio-data?topi\", \"complete\": false, \"evidence_directory\": [{\"evidence_id\": \"Eee5930010885\", \"title\": \"\", \"preview\": \"\\nHuman annotators can specify entity subtypes for each pre-annotated mention by working on an [annot\", \"total_characters\": 2059, \"read_tool_result\": {\"reference\": \"1b897573e5c7a14ad5fe9c752d5b2ae1b8a167e48fd77e64acb1692fe0de4c43\", \"evidence_id\": \"Eee5930010885\", \"offset\": 0, \"limit\": 2059}}, {\"evidence_id\": \"E6b26f5c2db0e\", \"title\": \"\", \"preview\": \"\\nIt can incorporate some of the function of the dictionary pre-annotator if you enable it, by identi\", \"total_characters\": 1674, \"read_tool_result\": {\"reference\": \"1b897573e5c7a14ad5fe9c752d5b2ae1b8a167e48fd77e64acb1692fe0de4c43\", \"evidence_id\": \"E6b26f5c2db0e\", \"offset\": 0, \"limit\": 1674}}, {\"evidence_id\": \"E4d6ee4986d21\", \"title\": \"\", \"preview\": \"\\nYou can run a pre-annotator on documents that were added to the ground truth as part of the current\", \"total_characters\": 1785, \"read_tool_result\": {\"reference\": \"1b897573e5c7a14ad5fe9c752d5b2ae1b8a167e48fd77e64acb1692fe0de4c43\", \"evidence_id\": \"E4d6ee4986d21\", \"offset\": 0, \"limit\": 1785}}, {\"evidence_id\": \"Ea40446fb9cca\", \"title\": \"\", \"preview\": \"\\nThis choice is best for fields with unique or specialized terminology because this pre-annotator do\", \"total_characters\": 2178, \"read_tool_result\": {\"reference\": \"1b897573e5c7a14ad5fe9c752d5b2ae1b8a167e48fd77e64acb1692fe0de4c43\", \"evidence_id\": \"Ea40446fb9cca\", \"offset\": 0, \"limit\": 2178}}, {\"evidence_id\": \"Ee7ca3adb4ecc\", \"title\": \"\", \"preview\": \"\\nBootstrapping annotation \\n\\nSimplify the job of the human annotator by pre-annotating the documents \", \"total_characters\": 2038, \"read_tool_result\": {\"reference\": \"1b897573e5c7a14ad5fe9c752d5b2ae1b8a167e48fd77e64acb1692fe0de4c43\", \"evidence_id\": \"Ee7ca3adb4ecc\", \"offset\": 0, \"limit\": 2038}}], \"evidence_reading\": \"Use read_tool_result with reference and evidence_id to read a specific evidence text with its source. Directory previews are incomplete, not sufficient evidence.\", \"read_tool_result\": {\"reference\": \"1b897573e5c7a14ad5fe9c752d5b2ae1b8a167e48fd77e64acb1692fe0de4c43\", \"offset\": 0}, \"note\": \"Preview only. Read required pages before concluding; absence from a page is not absence from the result.\"}",
+          "additional_kwargs": {},
+          "response_metadata": {},
+          "type": "tool",
+          "name": "knowledge_search",
+          "id": "4020eaff-9df1-4a5d-926c-27a04a95d248",
+          "tool_call_id": "call_01_yHEt1qilakw5TmGHKFMy7993",
+          "artifact": {
+            "schema": "tool-result-v1",
+            "reference": "1b897573e5c7a14ad5fe9c752d5b2ae1b8a167e48fd77e64acb1692fe0de4c43",
+            "result": {
+              "status": "success",
+              "success": true,
+              "tool_name": "knowledge_search",
+              "effect_status": "none"
+            },
+            "observation": "bfad2ab9a27d943594247f6212491ed92504b3f0a2232bf82ff7c7fdd8aedfef"
+          },
+          "status": "success"
+        }
+      },
+      {
+        "type": "ai",
+        "data": {
+          "content": [
+            {
+              "text": "Let me read the full evidence texts to understand the pre-annotation types and whether they can be combined.",
+              "type": "text"
+            },
+            {
+              "id": "call_00_qPdvhAnjUMhaoPQ1BehB1525",
+              "input": {
+                "reference": "52108da201edc2c402618f0c47bc5d140c2089e6110f44134ec3ffe2ad053321",
+                "evidence_id": "Ee7ca3adb4ecc"
+              },
+              "name": "read_tool_result",
+              "type": "tool_use",
+              "toolset_name": null
+            },
+            {
+              "id": "call_01_xqzXauHYmKqDmxAk3c7d2141",
+              "input": {
+                "reference": "52108da201edc2c402618f0c47bc5d140c2089e6110f44134ec3ffe2ad053321",
+                "evidence_id": "E6b26f5c2db0e"
+              },
+              "name": "read_tool_result",
+              "type": "tool_use",
+              "toolset_name": null
+            },
+            {
+              "id": "call_02_63bb5Lf2rM7VvOXe0EIo3040",
+              "input": {
+                "reference": "52108da201edc2c402618f0c47bc5d140c2089e6110f44134ec3ffe2ad053321",
+                "evidence_id": "Ea40446fb9cca"
+              },
+              "name": "read_tool_result",
+              "type": "tool_use",
+              "toolset_name": null
+            },
+            {
+              "id": "call_03_TTTKD9YxgzDQkYvr8tCx5281",
+              "input": {
+                "reference": "52108da201edc2c402618f0c47bc5d140c2089e6110f44134ec3ffe2ad053321",
+                "evidence_id": "E4d6ee4986d21"
+              },
+              "name": "read_tool_result",
+              "type": "tool_use",
+              "toolset_name": null
+            },
+            {
+              "id": "call_04_RB49mHSR2WkPs5AtXqzl1758",
+              "input": {
+                "reference": "52108da201edc2c402618f0c47bc5d140c2089e6110f44134ec3ffe2ad053321",
+                "evidence_id": "Eee5930010885"
+              },
+              "name": "read_tool_result",
+              "type": "tool_use",
+              "toolset_name": null
+            }
+          ],
+          "additional_kwargs": {},
+          "response_metadata": {
+            "id": "f869937b-d27b-47dc-8e30-2c84c95bde7c",
+            "container": null,
+            "model": "deepseek-v4-flash",
+            "stop_details": null,
+            "stop_reason": "tool_use",
+            "stop_sequence": null,
+            "usage": {
+              "cache_creation": null,
+              "cache_creation_input_tokens": 0,
+              "cache_read_input_tokens": 2176,
+              "inference_geo": null,
+              "input_tokens": 1965,
+              "output_tokens": 480,
+              "output_tokens_details": null,
+              "server_tool_use": null,
+              "service_tier": "standard"
+            },
+            "model_name": "deepseek-v4-flash",
+            "model_provider": "anthropic"
+          },
+          "type": "ai",
+          "name": "general_agent",
+          "id": "lc_run--01a07eaa-86b8-7bc2-a37c-3e3763ffdb93-0",
+          "tool_calls": [
+            {
+              "name": "read_tool_result",
+              "args": {
+                "reference": "52108da201edc2c402618f0c47bc5d140c2089e6110f44134ec3ffe2ad053321",
+                "evidence_id": "Ee7ca3adb4ecc"
+              },
+              "id": "call_00_qPdvhAnjUMhaoPQ1BehB1525",
+              "type": "tool_call"
+            },
+            {
+              "name": "read_tool_result",
+              "args": {
+                "reference": "52108da201edc2c402618f0c47bc5d140c2089e6110f44134ec3ffe2ad053321",
+                "evidence_id": "E6b26f5c2db0e"
+              },
+              "id": "call_01_xqzXauHYmKqDmxAk3c7d2141",
+              "type": "tool_call"
+            },
+            {
+              "name": "read_tool_result",
+              "args": {
+                "reference": "52108da201edc2c402618f0c47bc5d140c2089e6110f44134ec3ffe2ad053321",
+                "evidence_id": "Ea40446fb9cca"
+              },
+              "id": "call_02_63bb5Lf2rM7VvOXe0EIo3040",
+              "type": "tool_call"
+            },
+            {
+              "name": "read_tool_result",
+              "args": {
+                "reference": "52108da201edc2c402618f0c47bc5d140c2089e6110f44134ec3ffe2ad053321",
+                "evidence_id": "E4d6ee4986d21"
+              },
+              "id": "call_03_TTTKD9YxgzDQkYvr8tCx5281",
+              "type": "tool_call"
+            },
+            {
+              "name": "read_tool_result",
+              "args": {
+                "reference": "52108da201edc2c402618f0c47bc5d140c2089e6110f44134ec3ffe2ad053321",
+                "evidence_id": "Eee5930010885"
+              },
+              "id": "call_04_RB49mHSR2WkPs5AtXqzl1758",
+              "type": "tool_call"
+            }
+          ],
+          "invalid_tool_calls": [],
+          "usage_metadata": {
+            "input_tokens": 4141,
+            "output_tokens": 480,
+            "total_tokens": 4621,
+            "input_token_details": {
+              "cache_read": 2176,
+              "cache_creation": 0
+            }
+          }
+        }
+      },
+      {
+        "type": "tool",
+        "data": {
+          "content": "{\"reference\": \"52108da201edc2c402618f0c47bc5d140c2089e6110f44134ec3ffe2ad053321\", \"offset\": 0, \"total_characters\": 2038, \"text\": \"\\nBootstrapping annotation \\n\\nSimplify the job of the human annotator by pre-annotating the documents in a workspace. A pre-annotator is a Knowledge Studio dictionary, rule-based model, or machine learning model that you can run to find and annotate mentions automatically.\\n\\nPre-annotation makes the job of human annotators easier because it covers the straightforward annotations, and gets the job of annotating the documents underway.\\n\\nThe method that you use to pre-annotate documents in no way restricts the ways that you can use the resulting model. For example, just because you use the Natural Language Understanding service to pre-annotate documents does not mean you must deploy the final machine learning model that you build to the Natural Language Understanding service.\\n\\n\\n\\n Pre-annotation methods \\n\\nThe following pre-annotators are available:\\n\\n\\n\\n* Natural Language Understanding\\n\\nA pre-annotator that you can use to find mentions of entities in your documents automatically. If your source documents have general knowledge subject matter, then this pre-annotator is a good choice for you. If you are working with highly specialized documents that focus on a specific field, such as patent law research, for example, the dictionary pre-annotator or rule-based model might be a better choice.\\n* Dictionary\\n\\nUses a dictionary of terms that you provide and associate with an entity type to find mentions of that entity type in the documents. This choice is best for fields with unique or specialized terminology because this pre-annotator does not analyze the context in which the term is used in the way a machine learning pre-annotator does; it instead relies on the term being distinct enough to have a decipherable meaning regardless of the context in which it is used. For example, it is easier to recognize asbestos as a mineral entity type than to determine the entity type of squash, which can refer to a vegetable, a sport, or a verb meaning to crush something.\\n\\nDictionary pre-annota\", \"next_offset\": 2000, \"historical\": true, \"evidence_id\": \"Ee7ca3adb4ecc\", \"title\": \"\", \"source\": {\"source_id\": \"mtrag:cloud:ibmcld_16507-7-2044\", \"source_revision\": \"2c618bb98db3c8526433e22d8a2f7320f10a7470\", \"start_char\": 0, \"end_char\": 2038, \"source_type\": \"mtrag_official_passage\", \"checksum\": \"1722ba8e99393a4e2f0380b488d17a4663221db91a525f680fe25d209199b027\", \"scope\": \"public\", \"applicability\": {}}, \"offset_basis\": \"evidence_text\"}",
+          "additional_kwargs": {},
+          "response_metadata": {},
+          "type": "tool",
+          "name": "read_tool_result",
+          "id": "b640c0aa-ee8b-485b-ad6a-fb7aa64332d4",
+          "tool_call_id": "call_00_qPdvhAnjUMhaoPQ1BehB1525",
+          "artifact": null,
+          "status": "success"
+        }
+      },
+      {
+        "type": "tool",
+        "data": {
+          "content": "{\"reference\": \"52108da201edc2c402618f0c47bc5d140c2089e6110f44134ec3ffe2ad053321\", \"offset\": 0, \"total_characters\": 1674, \"text\": \"\\nIt can incorporate some of the function of the dictionary pre-annotator if you enable it, by identifying class types for dictionary terms that it finds in the documents also.\\n\\n\\n\\nAlternatively, you can upload already-annotated documents, and use them to start training the machine learning model. You cannot run a pre-annotator on annotated documents that you upload or the existing annotations will be stripped from the documents and replaced with annotations produced by the pre-annotator only.\\n\\n\\n\\n\\n\\n Running multiple pre-annotators \\n\\nKnowledge Studio allows you to run multiple pre-annotators at once. First, you need to prepare the pre-annotation methods that you want to use. For more information, see the following sections:\\n\\n\\n\\n* [Natural Language Understanding](https://cloud.ibm.com/docs/watson-knowledge-studio?topic=watson-knowledge-studio-preannotationwks_preannotnlu)\\n* [Dictionaries](https://cloud.ibm.com/docs/watson-knowledge-studio?topic=watson-knowledge-studio-preannotationwks_preannot)\\n* [Machine learning model](https://cloud.ibm.com/docs/watson-knowledge-studio?topic=watson-knowledge-studio-preannotationwks_preannotsire)\\n* [Rules-based model](https://cloud.ibm.com/docs/watson-knowledge-studio?topic=watson-knowledge-studio-preannotationwks_preannotrule)\\n\\n\\n\\n\\n\\n Configuring the order of pre-annotators \\n\\nWhen multiple pre-annotators are used, the first annotation made to a span of text is saved for the results, even if other pre-annotators attempt to annotate the same span of text later in the order. This doesn't apply to human annotations, which are preserved regardless of pre-annotation order.\\n\\nFor example, consider the example text IBM Watson.\", \"next_offset\": null, \"historical\": true, \"evidence_id\": \"E6b26f5c2db0e\", \"title\": \"\", \"source\": {\"source_id\": \"mtrag:cloud:ibmcld_16507-3099-4772\", \"source_revision\": \"2c618bb98db3c8526433e22d8a2f7320f10a7470\", \"start_char\": 0, \"end_char\": 1674, \"source_type\": \"mtrag_official_passage\", \"checksum\": \"92f4651bedc4a1ce140ca6cbb3ee83d2d4b943b962f728c4b1cfa06b17666ca2\", \"scope\": \"public\", \"applicability\": {}}, \"offset_basis\": \"evidence_text\"}",
+          "additional_kwargs": {},
+          "response_metadata": {},
+          "type": "tool",
+          "name": "read_tool_result",
+          "id": "cbab83ae-08fa-43e6-9e11-40a01d710f23",
+          "tool_call_id": "call_01_xqzXauHYmKqDmxAk3c7d2141",
+          "artifact": null,
+          "status": "success"
+        }
+      },
+      {
+        "type": "tool",
+        "data": {
+          "content": "{\"reference\": \"52108da201edc2c402618f0c47bc5d140c2089e6110f44134ec3ffe2ad053321\", \"offset\": 0, \"total_characters\": 2178, \"text\": \"\\nThis choice is best for fields with unique or specialized terminology because this pre-annotator does not analyze the context in which the term is used in the way a machine learning pre-annotator does; it instead relies on the term being distinct enough to have a decipherable meaning regardless of the context in which it is used. For example, it is easier to recognize asbestos as a mineral entity type than to determine the entity type of squash, which can refer to a vegetable, a sport, or a verb meaning to crush something.\\n\\nDictionary pre-annotators do not recognize entity subtypes. Human annotators can specify entity subtypes for each pre-annotated mention by working on an [annotation task](https://cloud.ibm.com/docs/watson-knowledge-studio?topic=watson-knowledge-studio-annotate-documentswks_hatask) with the pre-annotated document.\\n* Machine learning\\n\\nUses a machine learning model to automatically annotate documents. This option is only available if you have created a machine learning model with Knowledge Studio already. If you add a document set, you can run the machine learning annotator that you created previously to pre-annotate the new documents. If the new set of documents is similar to the documents that were used to train the machine learning annotator originally, then this is probably your best choice for pre-annotation.\\n* Rule\\n\\nUses a rule-based model to automatically annotate documents. This option is only available if you have created a rule-based model with Knowledge Studio already. If your documents contain common patterns of tokens from which you can derive meaning, this model might be a good choice. It can incorporate some of the function of the dictionary pre-annotator if you enable it, by identifying class types for dictionary terms that it finds in the documents also.\\n\\n\\n\\nAlternatively, you can upload already-annotated documents, and use them to start training the machine learning model. You cannot run a pre-annotator on annotated documents that \", \"next_offset\": 2000, \"historical\": true, \"evidence_id\": \"Ea40446fb9cca\", \"title\": \"\", \"source\": {\"source_id\": \"mtrag:cloud:ibmcld_16507-1455-3632\", \"source_revision\": \"2c618bb98db3c8526433e22d8a2f7320f10a7470\", \"start_char\": 0, \"end_char\": 2178, \"source_type\": \"mtrag_official_passage\", \"checksum\": \"5bf94d6a1bc1f67882530a06d9b8b1432fc2f0ca4cf3327e4ff46d239f5ca039\", \"scope\": \"public\", \"applicability\": {}}, \"offset_basis\": \"evidence_text\"}",
+          "additional_kwargs": {},
+          "response_metadata": {},
+          "type": "tool",
+          "name": "read_tool_result",
+          "id": "192e2bed-941b-427e-8612-952207d146cf",
+          "tool_call_id": "call_02_63bb5Lf2rM7VvOXe0EIo3040",
+          "artifact": null,
+          "status": "success"
+        }
+      },
+      {
+        "type": "tool",
+        "data": {
+          "content": "{\"reference\": \"52108da201edc2c402618f0c47bc5d140c2089e6110f44134ec3ffe2ad053321\", \"offset\": 0, \"total_characters\": 1785, \"text\": \"\\nYou can run a pre-annotator on documents that were added to the ground truth as part of the current workspace. Annotations that were added to the documents, reviewed, accepted, and promoted to ground truth within the current workspace are not stripped out.\\n\\n\\n\\n\\n\\n Running multiple pre-annotators \\n\\nKnowledge Studio allows you to run multiple pre-annotators at once. First, you need to prepare the pre-annotation methods that you want to use. For more information, see the following sections.\\n\\n\\n\\n* [Dictionaries](https://cloud.ibm.com/docs/watson-knowledge-studio-data?topic=watson-knowledge-studio-data-preannotationwks_preannot)\\n* [Machine learning model](https://cloud.ibm.com/docs/watson-knowledge-studio-data?topic=watson-knowledge-studio-data-preannotationwks_preannotsire)\\n* [Rules-based model](https://cloud.ibm.com/docs/watson-knowledge-studio-data?topic=watson-knowledge-studio-data-preannotationwks_preannotrule)\\n\\n\\n\\n\\n\\n Configuring the order of pre-annotators \\n\\nWhen multiple pre-annotators are used, the first annotation made to a span of text is saved for the results, even if other pre-annotators attempt to annotate the same span of text later in the order. This doesn't apply to human annotations, which are preserved regardless of pre-annotation order.\\n\\nFor example, consider the example text IBM Watson. If a dictionary that is first in the order labels IBM as an Organization entity type, a machine learning model that is second in the order can't annotate IBM Watson as a Software Brand entity type because that would override the earlier annotation made to IBM.\\n\\nYou can view the current order of pre-annotators in the Order column on the Machine Learning Model > Pre-annotation page. To change the order, complete the following steps.\\n\\n\\n\\n1. Click Order Settings.\\n2.\", \"next_offset\": null, \"historical\": true, \"evidence_id\": \"E4d6ee4986d21\", \"title\": \"\", \"source\": {\"source_id\": \"mtrag:cloud:ibmcld_16444-3168-4952\", \"source_revision\": \"2c618bb98db3c8526433e22d8a2f7320f10a7470\", \"start_char\": 0, \"end_char\": 1785, \"source_type\": \"mtrag_official_passage\", \"checksum\": \"834eb61d3ad67924e0e0f8e687188893c7ba32daf4f98782dccb8f3e647dd8fb\", \"scope\": \"public\", \"applicability\": {}}, \"offset_basis\": \"evidence_text\"}",
+          "additional_kwargs": {},
+          "response_metadata": {},
+          "type": "tool",
+          "name": "read_tool_result",
+          "id": "a10b14d6-3cad-4b20-ad7d-94c299734126",
+          "tool_call_id": "call_03_TTTKD9YxgzDQkYvr8tCx5281",
+          "artifact": null,
+          "status": "success"
+        }
+      },
+      {
+        "type": "tool",
+        "data": {
+          "content": "{\"reference\": \"52108da201edc2c402618f0c47bc5d140c2089e6110f44134ec3ffe2ad053321\", \"offset\": 0, \"total_characters\": 2059, \"text\": \"\\nHuman annotators can specify entity subtypes for each pre-annotated mention by working on an [annotation task](https://cloud.ibm.com/docs/watson-knowledge-studio-data?topic=watson-knowledge-studio-data-annotate-documentswks_hatask) with the pre-annotated document.\\n* Machine learning\\n\\nUses a machine learning model to automatically annotate documents. This option is only available to you if you have created a machine learning model with Knowledge Studio already. If you add a document set, you can run the machine learning annotator that you created previously to pre-annotate the new documents. If the new set of documents is similar to the documents that were used to train the machine learning annotator originally, then this is probably your best choice for pre-annotation.\\n* Rule\\n\\nUses a rule-based model to automatically annotate documents. This option is only available if you have created a rule-based model with Knowledge Studio already. If your documents contain common patterns of tokens from which you can derive meaning, this model might be a good choice. It can incorporate some of the function of the dictionary pre-annotator if you enable it, by identifying class types for dictionary terms that it finds in the documents also.\\n\\n\\n\\nAlternatively, you can upload already-annotated documents, and use them to start training the machine learning model. You cannot run a pre-annotator on annotated documents that you upload or the existing annotations will be stripped from the documents and replaced with annotations produced by the pre-annotator only.\\n\\nYou can run a pre-annotator on documents that were added to the ground truth as part of the current workspace. Annotations that were added to the documents, reviewed, accepted, and promoted to ground truth within the current workspace are not stripped out.\\n\\n\\n\\n\\n\\n Running multiple pre-annotators \\n\\nKnowledge Studio allows you to run multiple pre-annotators at once. First, you need to prepare the pre-annotation methods that you wan\", \"next_offset\": 2000, \"historical\": true, \"evidence_id\": \"Eee5930010885\", \"title\": \"\", \"source\": {\"source_id\": \"mtrag:cloud:ibmcld_16444-1600-3658\", \"source_revision\": \"2c618bb98db3c8526433e22d8a2f7320f10a7470\", \"start_char\": 0, \"end_char\": 2059, \"source_type\": \"mtrag_official_passage\", \"checksum\": \"de568f535d5cac66e62944c7f558780dd4ce95fbce4b2b1fd5fdf6f618bdfca4\", \"scope\": \"public\", \"applicability\": {}}, \"offset_basis\": \"evidence_text\"}",
+          "additional_kwargs": {},
+          "response_metadata": {},
+          "type": "tool",
+          "name": "read_tool_result",
+          "id": "99584eb5-31a5-4394-bee0-76f4e4e586bd",
+          "tool_call_id": "call_04_RB49mHSR2WkPs5AtXqzl1758",
+          "artifact": null,
+          "status": "success"
+        }
+      },
+      {
+        "type": "human",
+        "data": {
+          "content": "{\"execution_feedback\": {\"reason_code\": \"AGENT_STEP_BUDGET_EXCEEDED\", \"retryable\": false, \"uncompleted_tool_batch\": [{\"name\": \"knowledge_search\", \"args\": {\"query\": \"pre-annotation tool conversational documents versus technical documents different choice\"}, \"id\": \"call_00_Xskmm50FsQYB7oQC4pWq7638\", \"type\": \"tool_call\"}, {\"name\": \"knowledge_search\", \"args\": {\"query\": \"which pre-annotator to use for conversational text chat documents versus technical specialized documents\"}, \"id\": \"call_01_oboXVFFJeJtciMMeNFMl3212\", \"type\": \"tool_call\"}], \"instruction\": \"Retain completed evidence. The uncompleted batch has no confirmed result; do not infer success. Reassess the remaining objective before continuing.\"}}",
+          "additional_kwargs": {},
+          "response_metadata": {},
+          "type": "human",
+          "name": null,
+          "id": null
+        }
+      }
+    ],
+    "execution_feedback": [
+      {
+        "stage": "agent_execution",
+        "status": "failed",
+        "detail": {
+          "code": "AGENT_STEP_BUDGET_EXCEEDED",
+          "retryable": false,
+          "work_item_id": "archive-probe",
+          "owner_agent": "general",
+          "invocation_key": "archive-probe",
+          "conversation_id": "archive-probe",
+          "control_id": null,
+          "revision": null,
+          "exception_chain": [
+            {
+              "type": "ToolCallLimitExceededError",
+              "frames": [
+                {
+                  "file": "/home/yang/DialogPilot/infrastructure/target_framework_agent.py",
+                  "line": 187,
+                  "function": "__call__"
+                },
+                {
+                  "file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/main.py",
+                  "line": 3440,
+                  "function": "astream"
+                },
+                {
+                  "file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/_runner.py",
+                  "line": 396,
+                  "function": "atick"
+                },
+                {
+                  "file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/_retry.py",
+                  "line": 744,
+                  "function": "arun_with_retry"
+                },
+                {
+                  "file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/_internal/_runnable.py",
+                  "line": 756,
+                  "function": "ainvoke"
+                },
+                {
+                  "file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/_internal/_runnable.py",
+                  "line": 522,
+                  "function": "ainvoke"
+                },
+                {
+                  "file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain/agents/middleware/tool_call_limit.py",
+                  "line": 488,
+                  "function": "aafter_model"
+                },
+                {
+                  "file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain/agents/middleware/tool_call_limit.py",
+                  "line": 400,
+                  "function": "after_model"
+                }
+              ],
+              "message": "Tool call limit reached: thread limit exceeded (9/8 calls)."
+            }
+          ],
+          "related_errors": []
+        }
+      },
+      {
+        "stage": "tool",
+        "tool": "knowledge_search",
+        "call_id": "call_00_EGmPNC34CLA7nRbGIYiP0341",
+        "status": "success",
+        "success": true,
+        "error": null,
+        "effect_status": "none"
+      },
+      {
+        "stage": "tool",
+        "tool": "knowledge_search",
+        "call_id": "call_01_yHEt1qilakw5TmGHKFMy7993",
+        "status": "success",
+        "success": true,
+        "error": null,
+        "effect_status": "none"
+      },
+      {
+        "reason_code": "AGENT_STEP_BUDGET_EXCEEDED",
+        "retryable": false,
+        "uncompleted_tool_batch": [
+          {
+            "name": "knowledge_search",
+            "args": {
+              "query": "pre-annotation tool conversational documents versus technical documents different choice"
+            },
+            "id": "call_00_Xskmm50FsQYB7oQC4pWq7638",
+            "type": "tool_call"
+          },
+          {
+            "name": "knowledge_search",
+            "args": {
+              "query": "which pre-annotator to use for conversational text chat documents versus technical specialized documents"
+            },
+            "id": "call_01_oboXVFFJeJtciMMeNFMl3212",
+            "type": "tool_call"
+          }
+        ],
+        "instruction": "Retain completed evidence. The uncompleted batch has no confirmed result; do not infer success. Reassess the remaining objective before continuing."
+      }
+    ]
+  },
+  "error": null
+}

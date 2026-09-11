@@ -1,0 +1,937 @@
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 202, in action_proposal
+    raise ValueError("planning_action_unavailable")
+ValueError: planning_action_unavailable
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_action_unavailable
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 202, in action_proposal
+    raise ValueError("planning_action_unavailable")
+ValueError: planning_action_unavailable
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_action_unavailable
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 202, in action_proposal
+    raise ValueError("planning_action_unavailable")
+ValueError: planning_action_unavailable
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_action_unavailable
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 202, in action_proposal
+    raise ValueError("planning_action_unavailable")
+ValueError: planning_action_unavailable
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_action_unavailable
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 202, in action_proposal
+    raise ValueError("planning_action_unavailable")
+ValueError: planning_action_unavailable
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_action_unavailable
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 202, in action_proposal
+    raise ValueError("planning_action_unavailable")
+ValueError: planning_action_unavailable
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_action_unavailable
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 202, in action_proposal
+    raise ValueError("planning_action_unavailable")
+ValueError: planning_action_unavailable
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_action_unavailable
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 202, in action_proposal
+    raise ValueError("planning_action_unavailable")
+ValueError: planning_action_unavailable
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_action_unavailable
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 202, in action_proposal
+    raise ValueError("planning_action_unavailable")
+ValueError: planning_action_unavailable
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_action_unavailable
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 202, in action_proposal
+    raise ValueError("planning_action_unavailable")
+ValueError: planning_action_unavailable
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_action_unavailable
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 202, in action_proposal
+    raise ValueError("planning_action_unavailable")
+ValueError: planning_action_unavailable
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_action_unavailable
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 202, in action_proposal
+    raise ValueError("planning_action_unavailable")
+ValueError: planning_action_unavailable
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_action_unavailable
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 202, in action_proposal
+    raise ValueError("planning_action_unavailable")
+ValueError: planning_action_unavailable
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_action_unavailable
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 202, in action_proposal
+    raise ValueError("planning_action_unavailable")
+ValueError: planning_action_unavailable
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_action_unavailable
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 202, in action_proposal
+    raise ValueError("planning_action_unavailable")
+ValueError: planning_action_unavailable
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_action_unavailable
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 202, in action_proposal
+    raise ValueError("planning_action_unavailable")
+ValueError: planning_action_unavailable
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_action_unavailable
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 202, in action_proposal
+    raise ValueError("planning_action_unavailable")
+ValueError: planning_action_unavailable
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_action_unavailable
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 202, in action_proposal
+    raise ValueError("planning_action_unavailable")
+ValueError: planning_action_unavailable
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_action_unavailable
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 202, in action_proposal
+    raise ValueError("planning_action_unavailable")
+ValueError: planning_action_unavailable
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_action_unavailable
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 202, in action_proposal
+    raise ValueError("planning_action_unavailable")
+ValueError: planning_action_unavailable
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_action_unavailable
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 202, in action_proposal
+    raise ValueError("planning_action_unavailable")
+ValueError: planning_action_unavailable
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_action_unavailable
+Domain execution failed: {"stage": "domain_outcome", "status": "failed", "detail": {"code": "DOMAIN_OUTCOME_REJECTED", "retryable": false, "work_item_id": "work:invocation:v1:5f3fe741ba27685610ad9fd9b7e100583e27fe0d936e712afac683b9a0fa0ec4:1:semantic-1", "owner_agent": "retail", "invocation_key": "invocation:v1:5f3fe741ba27685610ad9fd9b7e100583e27fe0d936e712afac683b9a0fa0ec4", "conversation_id": "tau3-b708faf547084d6cb42985ee5af32cbc", "control_id": "control:invocation:v1:5f3fe741ba27685610ad9fd9b7e100583e27fe0d936e712afac683b9a0fa0ec4:semantic-1", "revision": 1, "exception_chain": [{"type": "DomainOutcomeRejected", "frames": [{"file": "/home/yang/DialogPilot/infrastructure/target_framework_agent.py", "line": 181, "function": "__call__"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/main.py", "line": 3440, "function": "astream"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/_runner.py", "line": 396, "function": "atick"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/_retry.py", "line": 744, "function": "arun_with_retry"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/_internal/_runnable.py", "line": 756, "function": "ainvoke"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/_internal/_runnable.py", "line": 522, "function": "ainvoke"}, {"file": "/home/yang/DialogPilot/infrastructure/target_agent_middleware.py", "line": 163, "function": "aafter_model"}], "message": "The authentication objective is already complete: find_user_id_by_name_zip returned user id sofia_hernandez_5364. Report COMPLETE, not BLOCKED. Completed work is not a blocker."}], "related_errors": []}}
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 202, in action_proposal
+    raise ValueError("planning_action_unavailable")
+ValueError: planning_action_unavailable
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_action_unavailable
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 202, in action_proposal
+    raise ValueError("planning_action_unavailable")
+ValueError: planning_action_unavailable
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_action_unavailable
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 204, in action_proposal
+    value = action.convert(call["args"])
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 47, in convert
+    Draft202012Validator(self.schema).validate(arguments)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/jsonschema/validators.py", line 450, in validate
+    raise error
+jsonschema.exceptions.ValidationError: 'W5565470' is not one of ['entity_1']
+
+Failed validating 'enum' in schema['properties']['order']:
+    {'type': 'string',
+     'enum': ['entity_1'],
+     'description': "Optional relevant order_id: {'entity_1': 'W5565470'}"}
+
+On instance['order']:
+    'W5565470'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: 'W5565470' is not one of ['entity_1']
+
+Failed validating 'enum' in schema['properties']['order']:
+    {'type': 'string',
+     'enum': ['entity_1'],
+     'description': "Optional relevant order_id: {'entity_1': 'W5565470'}"}
+
+On instance['order']:
+    'W5565470'
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 204, in action_proposal
+    value = action.convert(call["args"])
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 47, in convert
+    Draft202012Validator(self.schema).validate(arguments)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/jsonschema/validators.py", line 450, in validate
+    raise error
+jsonschema.exceptions.ValidationError: 'W5565470' is not one of ['entity_1']
+
+Failed validating 'enum' in schema['properties']['order']:
+    {'type': 'string',
+     'enum': ['entity_1'],
+     'description': "Optional relevant order_id: {'entity_1': 'W5565470'}"}
+
+On instance['order']:
+    'W5565470'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: 'W5565470' is not one of ['entity_1']
+
+Failed validating 'enum' in schema['properties']['order']:
+    {'type': 'string',
+     'enum': ['entity_1'],
+     'description': "Optional relevant order_id: {'entity_1': 'W5565470'}"}
+
+On instance['order']:
+    'W5565470'
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 204, in action_proposal
+    value = action.convert(call["args"])
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 47, in convert
+    Draft202012Validator(self.schema).validate(arguments)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/jsonschema/validators.py", line 450, in validate
+    raise error
+jsonschema.exceptions.ValidationError: 'W5565470' is not one of ['entity_1']
+
+Failed validating 'enum' in schema['properties']['order']:
+    {'type': 'string',
+     'enum': ['entity_1'],
+     'description': "Optional relevant order_id: {'entity_1': 'W5565470'}"}
+
+On instance['order']:
+    'W5565470'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: 'W5565470' is not one of ['entity_1']
+
+Failed validating 'enum' in schema['properties']['order']:
+    {'type': 'string',
+     'enum': ['entity_1'],
+     'description': "Optional relevant order_id: {'entity_1': 'W5565470'}"}
+
+On instance['order']:
+    'W5565470'
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 204, in action_proposal
+    value = action.convert(call["args"])
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 47, in convert
+    Draft202012Validator(self.schema).validate(arguments)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/jsonschema/validators.py", line 450, in validate
+    raise error
+jsonschema.exceptions.ValidationError: 'W5565470' is not one of ['entity_1']
+
+Failed validating 'enum' in schema['properties']['order']:
+    {'type': 'string',
+     'enum': ['entity_1'],
+     'description': "Optional relevant order_id: {'entity_1': 'W5565470'}"}
+
+On instance['order']:
+    'W5565470'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: 'W5565470' is not one of ['entity_1']
+
+Failed validating 'enum' in schema['properties']['order']:
+    {'type': 'string',
+     'enum': ['entity_1'],
+     'description': "Optional relevant order_id: {'entity_1': 'W5565470'}"}
+
+On instance['order']:
+    'W5565470'
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 202, in action_proposal
+    raise ValueError("planning_action_unavailable")
+ValueError: planning_action_unavailable
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_action_unavailable
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 202, in action_proposal
+    raise ValueError("planning_action_unavailable")
+ValueError: planning_action_unavailable
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_action_unavailable
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 202, in action_proposal
+    raise ValueError("planning_action_unavailable")
+ValueError: planning_action_unavailable
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_action_unavailable
+Response assembly failed: {"stage": "answer_verification", "status": "failed", "detail": {"code": "incomplete", "retryable": false, "exception_chain": [{"type": "ValueError", "message": "The reply claims it cannot execute the cancellation or returns because it lacks current processing records, but the evidence shows the assistant previously identified the specific orders and items (skateboard, garden hose, backpack, keyboard, bed, and the pending garden hose) and was awaiting the user's confirmation of the return order and cancellation scope. The user has now provided that confirmation, so the reply should proceed with or accurately explain the next step rather than deferring to support without basis.; The reply does not address the user's actual information need: the user confirmed the return order and the partial cancellation, and the reply merely restates the instructions and defers to support instead of processing or explaining the specific status of these actions.; The instruction to 'contact support to check the saved processing records; do not resubmit the same business operation' is not supported by the supplied evidence and appears to be an unsupported policy claim."}]}}
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 202, in action_proposal
+    raise ValueError("planning_action_unavailable")
+ValueError: planning_action_unavailable
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_action_unavailable
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 202, in action_proposal
+    raise ValueError("planning_action_unavailable")
+ValueError: planning_action_unavailable
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_action_unavailable
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 202, in action_proposal
+    raise ValueError("planning_action_unavailable")
+ValueError: planning_action_unavailable
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_action_unavailable
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 202, in action_proposal
+    raise ValueError("planning_action_unavailable")
+ValueError: planning_action_unavailable
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_action_unavailable
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 202, in action_proposal
+    raise ValueError("planning_action_unavailable")
+ValueError: planning_action_unavailable
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_action_unavailable
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 202, in action_proposal
+    raise ValueError("planning_action_unavailable")
+ValueError: planning_action_unavailable
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_action_unavailable
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 141, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 202, in action_proposal
+    raise ValueError("planning_action_unavailable")
+ValueError: planning_action_unavailable
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 323, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 31, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<25 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 143, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_action_unavailable

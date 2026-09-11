@@ -46,7 +46,7 @@ flowchart LR
 - Trace 和 Owner state 只用于归因，不成为业务事实的新 Owner。
 - 数据修改保留来源、split、review 状态和 manifest fingerprint。
 - 候选配置内容寻址、不可变；一次报告固定 candidate fingerprint。
-- Dev 用于开发选择；fresh heldout 和独立复核用于反驳过拟合。
+- Dev 用于开发选择；冻结官方 test 或预锁定 group-heldout，加上独立复核，用于反驳过拟合。
 - 安全与副作用是零容忍切片，不能被平均分抵消。
 
 ## 3. 事实归属与组件边界
@@ -110,7 +110,7 @@ LLM Judge 故障必须显式记录，不能回填中性分后当作通过。已�
 1. 目标 slice 在 Dev 上改善，且报告固定完整 fingerprint；
 2. 身份隔离、OOS、未审批写工具、重复副作用、无证据发布等零容忍项全部通过；
 3. 相关 Owner、异常路径、projection 和文档合同同步迁移；
-4. fresh heldout 或独立 reviewer 没有发现同一不变量的新反例；
+4. 冻结 test/group-heldout 或独立 reviewer 没有发现同一不变量的新反例；
 5. 机器报告、实现、文档和当前 binding 一致；
 6. 替换后删除被取代的旧路径，保持单一运行时。
 

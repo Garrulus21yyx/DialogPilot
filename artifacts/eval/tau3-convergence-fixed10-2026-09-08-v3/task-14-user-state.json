@@ -1,0 +1,392 @@
+{
+  "system_messages": [
+    {
+      "role": "system",
+      "content": "# User Simulation Guidelines\nYou are playing the role of a customer contacting a customer service representative. \nYour goal is to simulate realistic customer interactions while following specific scenario instructions.\n\n## Core Principles\n- Generate one message at a time, maintaining natural conversation flow.\n- Strictly follow the scenario instructions you have received.\n- Never make up or hallucinate information not provided in the scenario instructions. Information that is not provided in the scenario instructions should be considered unknown or unavailable.\n- Avoid repeating the exact instructions verbatim. Use paraphrasing and natural language to convey the same information\n- Disclose information progressively. Wait for the agent to ask for specific information before providing it.\n\n## Task Completion\n- The goal is to continue the conversation until the task is complete.\n- If the instruction goal is satisified, generate the '###STOP###' token to end the conversation.\n- If you are transferred to another agent, generate the '###TRANSFER###' token to indicate the transfer.\n- If you find yourself in a situation in which the scenario does not provide enough information for you to continue the conversation, generate the '###OUT-OF-SCOPE###' token to end the conversation.\nRemember: The goal is to create realistic, natural conversations while strictly adhering to the provided instructions and maintaining character consistency.\n\n\n<scenario>\nInstructions:\n\tDomain: retail\n\tReason for call:\n\t\tYou just quit gaming and want to cancel or return everything associated with it. (It's just a keyboard and a mouse, but do not reveal it to the agent). Original payment is preferred.\n\tKnown info:\n\t\tYou are mia_garcia_4516 with email [REDACTED:EMAIL]\n\tTask instructions:\n\t\tYou are into gaming but realized the importance of studying hard.\n</scenario>",
+      "turn_idx": null,
+      "timestamp": "2026-09-08T04:54:11.333376"
+    }
+  ],
+  "messages": [
+    {
+      "role": "assistant",
+      "content": "Hi! How can I help you today?",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-08T04:54:11.333408",
+      "cost": 0.0,
+      "usage": null,
+      "raw_data": null,
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "user",
+      "content": "Hi! I’d like to cancel or return some gaming-related items I purchased recently. I’ve decided to focus more on my studies and don’t want to keep them anymore. Can you help me with that?",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-08T04:54:12.426015",
+      "cost": 0.0,
+      "usage": {
+        "completion_tokens": 45,
+        "prompt_tokens": 381
+      },
+      "raw_data": {
+        "id": "chatcmpl-e95dd064-7b63-410e-ac92-f1d423ea03ad",
+        "created": 1788836052,
+        "model": "deepseek-v4-flash",
+        "object": "chat.completion",
+        "system_fingerprint": null,
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "content": "Hi! I’d like to cancel or return some gaming-related items I purchased recently. I’ve decided to focus more on my studies and don’t want to keep them anymore. Can you help me with that?",
+              "role": "assistant",
+              "tool_calls": null,
+              "function_call": null,
+              "provider_specific_fields": {
+                "citations": null,
+                "thinking_blocks": null
+              }
+            }
+          }
+        ],
+        "usage": {
+          "completion_tokens": 45,
+          "prompt_tokens": 381,
+          "total_tokens": 426,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "text_tokens": 45
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 256,
+            "image_tokens": null,
+            "text_tokens": null,
+            "video_tokens": null,
+            "cache_creation_tokens": 0
+          },
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 256,
+          "inference_geo": null,
+          "speed": null
+        }
+      },
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "assistant",
+      "content": "Of course, I can help with that. To get started, could you please provide the email address associated with your account so I can verify your identity?",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-08T04:54:27.078615",
+      "cost": null,
+      "usage": null,
+      "raw_data": null,
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "user",
+      "content": "Sure, my email is [REDACTED:EMAIL].",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-08T04:54:27.647281",
+      "cost": 0.0,
+      "usage": {
+        "completion_tokens": 14,
+        "prompt_tokens": 461
+      },
+      "raw_data": {
+        "id": "chatcmpl-bee45b1d-6e4c-4bc3-94e1-b8eea6e841ee",
+        "created": 1788836067,
+        "model": "deepseek-v4-flash",
+        "object": "chat.completion",
+        "system_fingerprint": null,
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "content": "Sure, my email is [REDACTED:EMAIL].",
+              "role": "assistant",
+              "tool_calls": null,
+              "function_call": null,
+              "provider_specific_fields": {
+                "citations": null,
+                "thinking_blocks": null
+              }
+            }
+          }
+        ],
+        "usage": {
+          "completion_tokens": 14,
+          "prompt_tokens": 461,
+          "total_tokens": 475,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "text_tokens": 14
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 384,
+            "image_tokens": null,
+            "text_tokens": null,
+            "video_tokens": null,
+            "cache_creation_tokens": 0
+          },
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 384,
+          "inference_geo": null,
+          "speed": null
+        }
+      },
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "assistant",
+      "content": "Thanks, Mia. I've verified your account. Both of your recent orders have already been delivered, so they can't be cancelled, but they are eligible for return:\n\n1. Order #W5490111: Water Bottle, Mechanical Keyboard, Action Camera, Backpack\n2. Order #W7387996: Gaming Mouse\n\nWhich specific items would you like to return?",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-08T04:54:47.866679",
+      "cost": null,
+      "usage": null,
+      "raw_data": null,
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "user",
+      "content": "I’d like to return the gaming-related items from those orders. Can you help me with that?",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-08T04:54:48.648742",
+      "cost": 0.0,
+      "usage": {
+        "completion_tokens": 21,
+        "prompt_tokens": 556
+      },
+      "raw_data": {
+        "id": "chatcmpl-1d8138f6-54ba-4fc8-8224-e75df5f46416",
+        "created": 1788836088,
+        "model": "deepseek-v4-flash",
+        "object": "chat.completion",
+        "system_fingerprint": null,
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "content": "I’d like to return the gaming-related items from those orders. Can you help me with that?",
+              "role": "assistant",
+              "tool_calls": null,
+              "function_call": null,
+              "provider_specific_fields": {
+                "citations": null,
+                "thinking_blocks": null
+              }
+            }
+          }
+        ],
+        "usage": {
+          "completion_tokens": 21,
+          "prompt_tokens": 556,
+          "total_tokens": 577,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "text_tokens": 21
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 384,
+            "image_tokens": null,
+            "text_tokens": null,
+            "video_tokens": null,
+            "cache_creation_tokens": 0
+          },
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 384,
+          "inference_geo": null,
+          "speed": null
+        }
+      },
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "assistant",
+      "content": "This request: This could not be completed. Please check the details or contact support.",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-08T04:55:22.022691",
+      "cost": null,
+      "usage": null,
+      "raw_data": null,
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "user",
+      "content": "I’m not sure what went wrong—could you clarify what details need to be checked? I just want to return the gaming-related items from my orders.",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-08T04:55:23.245615",
+      "cost": 0.0,
+      "usage": {
+        "completion_tokens": 32,
+        "prompt_tokens": 598
+      },
+      "raw_data": {
+        "id": "chatcmpl-81f2cd66-e7b3-430d-9320-1654186f06a7",
+        "created": 1788836123,
+        "model": "deepseek-v4-flash",
+        "object": "chat.completion",
+        "system_fingerprint": null,
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "content": "I’m not sure what went wrong—could you clarify what details need to be checked? I just want to return the gaming-related items from my orders.",
+              "role": "assistant",
+              "tool_calls": null,
+              "function_call": null,
+              "provider_specific_fields": {
+                "citations": null,
+                "thinking_blocks": null
+              }
+            }
+          }
+        ],
+        "usage": {
+          "completion_tokens": 32,
+          "prompt_tokens": 598,
+          "total_tokens": 630,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "text_tokens": 32
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 512,
+            "image_tokens": null,
+            "text_tokens": null,
+            "video_tokens": null,
+            "cache_creation_tokens": 0
+          },
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "inference_geo": null,
+          "speed": null
+        }
+      },
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    }
+  ]
+}

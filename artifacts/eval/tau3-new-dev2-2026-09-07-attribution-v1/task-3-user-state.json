@@ -1,0 +1,487 @@
+{
+  "system_messages": [
+    {
+      "role": "system",
+      "content": "# User Simulation Guidelines\nYou are playing the role of a customer contacting a customer service representative. \nYour goal is to simulate realistic customer interactions while following specific scenario instructions.\n\n## Core Principles\n- Generate one message at a time, maintaining natural conversation flow.\n- Strictly follow the scenario instructions you have received.\n- Never make up or hallucinate information not provided in the scenario instructions. Information that is not provided in the scenario instructions should be considered unknown or unavailable.\n- Avoid repeating the exact instructions verbatim. Use paraphrasing and natural language to convey the same information\n- Disclose information progressively. Wait for the agent to ask for specific information before providing it.\n\n## Task Completion\n- The goal is to continue the conversation until the task is complete.\n- If the instruction goal is satisified, generate the '###STOP###' token to end the conversation.\n- If you are transferred to another agent, generate the '###TRANSFER###' token to indicate the transfer.\n- If you find yourself in a situation in which the scenario does not provide enough information for you to continue the conversation, generate the '###OUT-OF-SCOPE###' token to end the conversation.\nRemember: The goal is to create realistic, natural conversations while strictly adhering to the provided instructions and maintaining character consistency.\n\n\n<scenario>\nInstructions:\n\tDomain: retail\n\tReason for call:\n\t\tYou want to know exactly how many tshirt options are available in the online store right now. You want to modify all your pending small tshirt to purple, same size, same v-neck, and prefer polyester.\n\tKnown info:\n\t\tYou are Yusuf Rossi in zipcode 19122.\n\tUnknown info:\n\t\tYou do not remember your email address\n\tTask instructions:\n\t\tYou are a private person that does not want to reveal much about yourself.\n</scenario>",
+      "turn_idx": null,
+      "timestamp": "2026-09-07T15:40:02.620957"
+    }
+  ],
+  "messages": [
+    {
+      "role": "assistant",
+      "content": "Hi! How can I help you today?",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-07T15:40:02.620987",
+      "cost": 0.0,
+      "usage": null,
+      "raw_data": null,
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "user",
+      "content": "Hi, I was wondering if you could tell me how many t-shirt options are currently available on your online store? Also, I have some pending orders for small t-shirts that I’d like to change to purple, keeping the same size and v-neck style, and I’d prefer them in polyester. Can you help with that?",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-07T15:40:03.889890",
+      "cost": 0.0,
+      "usage": {
+        "completion_tokens": 69,
+        "prompt_tokens": 398
+      },
+      "raw_data": {
+        "id": "chatcmpl-99b6b346-ec55-4e24-a8aa-5f108ac0d722",
+        "created": 1788788403,
+        "model": "deepseek-v4-flash",
+        "object": "chat.completion",
+        "system_fingerprint": null,
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "content": "Hi, I was wondering if you could tell me how many t-shirt options are currently available on your online store? Also, I have some pending orders for small t-shirts that I’d like to change to purple, keeping the same size and v-neck style, and I’d prefer them in polyester. Can you help with that?",
+              "role": "assistant",
+              "tool_calls": null,
+              "function_call": null,
+              "provider_specific_fields": {
+                "citations": null,
+                "thinking_blocks": null
+              }
+            }
+          }
+        ],
+        "usage": {
+          "completion_tokens": 69,
+          "prompt_tokens": 398,
+          "total_tokens": 467,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "text_tokens": 69
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 256,
+            "image_tokens": null,
+            "text_tokens": null,
+            "video_tokens": null,
+            "cache_creation_tokens": 0
+          },
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 256,
+          "inference_geo": null,
+          "speed": null
+        }
+      },
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "assistant",
+      "content": "I'd be happy to help with both of those! To look up the current t-shirt options and your pending orders, I first need to authenticate your identity. Could you please provide the email address associated with your account? If you don't remember your email, I can look you up by your first name, last name, and zip code.",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-07T15:40:11.687347",
+      "cost": null,
+      "usage": null,
+      "raw_data": null,
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "user",
+      "content": "I actually don’t remember which email I used. But you can look me up by my name and zip code—it’s Yusuf Rossi, and my zip code is 19122.",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-07T15:40:12.866776",
+      "cost": 0.0,
+      "usage": {
+        "completion_tokens": 40,
+        "prompt_tokens": 540
+      },
+      "raw_data": {
+        "id": "chatcmpl-41344d6c-fb7d-40ee-98da-2649f3c46a90",
+        "created": 1788788412,
+        "model": "deepseek-v4-flash",
+        "object": "chat.completion",
+        "system_fingerprint": null,
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "content": "I actually don’t remember which email I used. But you can look me up by my name and zip code—it’s Yusuf Rossi, and my zip code is 19122.",
+              "role": "assistant",
+              "tool_calls": null,
+              "function_call": null,
+              "provider_specific_fields": {
+                "citations": null,
+                "thinking_blocks": null
+              }
+            }
+          }
+        ],
+        "usage": {
+          "completion_tokens": 40,
+          "prompt_tokens": 540,
+          "total_tokens": 580,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "text_tokens": 40
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 384,
+            "image_tokens": null,
+            "text_tokens": null,
+            "video_tokens": null,
+            "cache_creation_tokens": 0
+          },
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 384,
+          "inference_geo": null,
+          "speed": null
+        }
+      },
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "assistant",
+      "content": "Thanks, Yusuf — I've verified your account.\n\nHere's what I found:\n\n**T-shirt availability:** There are currently 10 available t-shirt options in our online store.\n\n**Pending order modification:** I found one pending order containing a small t-shirt:\n- Order #W4776164 contains a T-Shirt (blue, cotton, size S, v-neck) priced at $53.43.\n\nYou'd like to change this to a purple, polyester, size S, v-neck t-shirt, which is available at $53.48. The price difference would be $0.05, payable via your Mastercard ending in 2478.\n\nPlease confirm:\n1. Is this the correct item and order you want to modify?\n2. Do you want to proceed with this modification using your credit card for the $0.05 difference?\n\nAlso, are there any other small t-shirts in pending orders you'd like to modify?",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-07T15:40:31.881628",
+      "cost": null,
+      "usage": null,
+      "raw_data": null,
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "user",
+      "content": "Yes, that’s the right order and item. Please go ahead and change it to the purple, polyester, size small, v-neck version. And yes, you can charge the $0.05 difference to my card.\n\nThat’s the only pending small t-shirt I have, so no other changes needed.",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-07T15:40:33.184937",
+      "cost": 0.0,
+      "usage": {
+        "completion_tokens": 65,
+        "prompt_tokens": 775
+      },
+      "raw_data": {
+        "id": "chatcmpl-c32ce972-e773-44eb-8bd5-94a915a342f2",
+        "created": 1788788433,
+        "model": "deepseek-v4-flash",
+        "object": "chat.completion",
+        "system_fingerprint": null,
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "content": "Yes, that’s the right order and item. Please go ahead and change it to the purple, polyester, size small, v-neck version. And yes, you can charge the $0.05 difference to my card.\n\nThat’s the only pending small t-shirt I have, so no other changes needed.",
+              "role": "assistant",
+              "tool_calls": null,
+              "function_call": null,
+              "provider_specific_fields": {
+                "citations": null,
+                "thinking_blocks": null
+              }
+            }
+          }
+        ],
+        "usage": {
+          "completion_tokens": 65,
+          "prompt_tokens": 775,
+          "total_tokens": 840,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "text_tokens": 65
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 512,
+            "image_tokens": null,
+            "text_tokens": null,
+            "video_tokens": null,
+            "cache_creation_tokens": 0
+          },
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "inference_geo": null,
+          "speed": null
+        }
+      },
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "assistant",
+      "content": "Thanks, Yusuf. To confirm: I'll modify order #W4776164, changing the blue cotton size S v-neck T-shirt ($53.43) to the purple polyester size S v-neck version ($53.48), and charge the $0.05 difference to your Mastercard ending in 2478. This change has not been made yet — please confirm you'd like me to proceed.",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-07T15:40:45.145386",
+      "cost": null,
+      "usage": null,
+      "raw_data": null,
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "user",
+      "content": "Yes, please go ahead and make that change. Thank you!",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-07T15:40:47.607502",
+      "cost": 0.0,
+      "usage": {
+        "completion_tokens": 13,
+        "prompt_tokens": 928
+      },
+      "raw_data": {
+        "id": "chatcmpl-c5e3f1a6-6e3e-4292-8734-3b6c090057e1",
+        "created": 1788788447,
+        "model": "deepseek-v4-flash",
+        "object": "chat.completion",
+        "system_fingerprint": null,
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "content": "Yes, please go ahead and make that change. Thank you!",
+              "role": "assistant",
+              "tool_calls": null,
+              "function_call": null,
+              "provider_specific_fields": {
+                "citations": null,
+                "thinking_blocks": null
+              }
+            }
+          }
+        ],
+        "usage": {
+          "completion_tokens": 13,
+          "prompt_tokens": 928,
+          "total_tokens": 941,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "text_tokens": 13
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 768,
+            "image_tokens": null,
+            "text_tokens": null,
+            "video_tokens": null,
+            "cache_creation_tokens": 0
+          },
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 768,
+          "inference_geo": null,
+          "speed": null
+        }
+      },
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "assistant",
+      "content": "Done! Your order #W4776164 has been updated: the blue cotton size S v-neck T-shirt is now the purple polyester size S v-neck version ($53.48), and the $0.05 difference was charged to your Mastercard ending in 2478. The order status is now \"pending (item modified).\"\n\nIs there anything else I can help you with?",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-07T15:41:02.360551",
+      "cost": null,
+      "usage": null,
+      "raw_data": null,
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "user",
+      "content": "No, that’s all I needed. Thanks for your help! \n\n###STOP###",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-07T15:41:03.084474",
+      "cost": 0.0,
+      "usage": {
+        "completion_tokens": 19,
+        "prompt_tokens": 1025
+      },
+      "raw_data": {
+        "id": "chatcmpl-b6655740-58b4-46cb-85fe-6b0fd4206b04",
+        "created": 1788788463,
+        "model": "deepseek-v4-flash",
+        "object": "chat.completion",
+        "system_fingerprint": null,
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "content": "No, that’s all I needed. Thanks for your help! \n\n###STOP###",
+              "role": "assistant",
+              "tool_calls": null,
+              "function_call": null,
+              "provider_specific_fields": {
+                "citations": null,
+                "thinking_blocks": null
+              }
+            }
+          }
+        ],
+        "usage": {
+          "completion_tokens": 19,
+          "prompt_tokens": 1025,
+          "total_tokens": 1044,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "text_tokens": 19
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 896,
+            "image_tokens": null,
+            "text_tokens": null,
+            "video_tokens": null,
+            "cache_creation_tokens": 0
+          },
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 896,
+          "inference_geo": null,
+          "speed": null
+        }
+      },
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    }
+  ]
+}

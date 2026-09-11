@@ -1,0 +1,36 @@
+{
+  "case_count": 500,
+  "cases_sha256": "08a36107d3e7bb4451f6a26a343553e6915b31fdfdc12a55eab4234daa47b41a",
+  "diagnostic_exclusion_sha256": "574f9f1b09531dfe02cc15a3a6b099c929982229e0513c6b5b7972fa118f80b3",
+  "generator": {
+    "min_completion_tokens": 0,
+    "model": "deepseek-v4-flash",
+    "reasoning": "none"
+  },
+  "label_counts": {
+    "account": 50,
+    "account_security": 50,
+    "logistics": 50,
+    "other": 100,
+    "payment_issue": 50,
+    "query": 50,
+    "refund": 50,
+    "technical": 50,
+    "technical_login": 50
+  },
+  "limitations": [
+    "No human gold review was available.",
+    "Translations inherit the upstream label mapping.",
+    "The existing Chinese diagnostic set was excluded by construction and exact-text check."
+  ],
+  "original_candidates_accepted": 498,
+  "reviewer": {
+    "min_completion_tokens": 0,
+    "model": "deepseek-v4-pro",
+    "reasoning": "none"
+  },
+  "reviewer_corrections": 2,
+  "schema_version": 1,
+  "source_sha256": "9dfd29819c8756c550ad96781caeb63164070d7717f3705246d281569d1d358f",
+  "status": "llm_reviewed_synthetic_training_only"
+}

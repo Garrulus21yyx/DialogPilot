@@ -1,0 +1,329 @@
+[
+  {
+    "role": "assistant",
+    "content": "Hi! How can I help you today?",
+    "tool_calls": null,
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-07T03:21:46.583555",
+    "cost": 0.0,
+    "usage": null,
+    "raw_data": null,
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  },
+  {
+    "role": "user",
+    "content": "Hi, I’d like to get some help with an exchange on my recent order. Can you assist me with that?",
+    "tool_calls": null,
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-07T03:21:48.434638",
+    "cost": 0.0,
+    "usage": {
+      "completion_tokens": 150,
+      "prompt_tokens": 498
+    },
+    "raw_data": {
+      "id": "chatcmpl-bb20cfe4-6d37-4d00-ac21-c756b7df029b",
+      "created": 1788744108,
+      "model": "deepseek-v4-flash",
+      "object": "chat.completion",
+      "system_fingerprint": null,
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "message": {
+            "content": "Hi, I’d like to get some help with an exchange on my recent order. Can you assist me with that?",
+            "role": "assistant",
+            "tool_calls": null,
+            "function_call": null,
+            "reasoning_content": "We need: customer wants to exchange items from order W2378156. We have details: mechanical keyboard for same one but with clicky switches, smart thermostat for one compatible with Google Home instead of Apple HomeKit. If no keyboard that is clicky, RGB backlight, full size, they'd rather only exchange thermostat. We need to converse naturally, disclose info when asked. Need to know order details, etc. We don't know email. Address known? We are Yusuf Rossi in zip 19122. But need perhaps full address? We'll wait for agent.\n\nLet's respond with initial inquiry.",
+            "thinking_blocks": [
+              {
+                "type": "thinking",
+                "thinking": "We need: customer wants to exchange items from order W2378156. We have details: mechanical keyboard for same one but with clicky switches, smart thermostat for one compatible with Google Home instead of Apple HomeKit. If no keyboard that is clicky, RGB backlight, full size, they'd rather only exchange thermostat. We need to converse naturally, disclose info when asked. Need to know order details, etc. We don't know email. Address known? We are Yusuf Rossi in zip 19122. But need perhaps full address? We'll wait for agent.\n\nLet's respond with initial inquiry.",
+                "signature": "59d9bfbb-fc54-416f-8a5d-b5f15c62e9f9"
+              }
+            ],
+            "provider_specific_fields": {
+              "citations": null,
+              "thinking_blocks": [
+                {
+                  "type": "thinking",
+                  "thinking": "We need: customer wants to exchange items from order W2378156. We have details: mechanical keyboard for same one but with clicky switches, smart thermostat for one compatible with Google Home instead of Apple HomeKit. If no keyboard that is clicky, RGB backlight, full size, they'd rather only exchange thermostat. We need to converse naturally, disclose info when asked. Need to know order details, etc. We don't know email. Address known? We are Yusuf Rossi in zip 19122. But need perhaps full address? We'll wait for agent.\n\nLet's respond with initial inquiry.",
+                  "signature": "59d9bfbb-fc54-416f-8a5d-b5f15c62e9f9"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "usage": {
+        "completion_tokens": 150,
+        "prompt_tokens": 498,
+        "total_tokens": 648,
+        "completion_tokens_details": {
+          "reasoning_tokens": 123,
+          "text_tokens": 27
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 384,
+          "image_tokens": null,
+          "text_tokens": null,
+          "video_tokens": null,
+          "cache_creation_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 384,
+        "inference_geo": null,
+        "speed": null
+      }
+    },
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  },
+  {
+    "role": "assistant",
+    "content": "已取得部分信息，但暂时无法整理为可靠答复。",
+    "tool_calls": null,
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-07T03:22:00.648135",
+    "cost": null,
+    "usage": null,
+    "raw_data": null,
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  },
+  {
+    "role": "user",
+    "content": "Of course, I’d be happy to help you with that! To get started, could you share your order number or any details you have handy? Also, could you let me know which items you’re interested in exchanging?",
+    "tool_calls": null,
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-07T03:22:03.204239",
+    "cost": 0.0,
+    "usage": {
+      "completion_tokens": 170,
+      "prompt_tokens": 540
+    },
+    "raw_data": {
+      "id": "chatcmpl-e4bc04ea-fd7a-4554-b337-5a3a0edc6b1a",
+      "created": 1788744123,
+      "model": "deepseek-v4-flash",
+      "object": "chat.completion",
+      "system_fingerprint": null,
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "message": {
+            "content": "Of course, I’d be happy to help you with that! To get started, could you share your order number or any details you have handy? Also, could you let me know which items you’re interested in exchanging?",
+            "role": "assistant",
+            "tool_calls": null,
+            "function_call": null,
+            "reasoning_content": "抱歉，我上一条回复内容似乎意外变成了无效信息。让我重新按客服角色给出自然的开场回应。\n\n我是客服，所以应该先说“我乐意帮忙”之类的话，然后把话题引向具体细节，同时记住用户是Yusuf Rossi，邮编19122，订单号W2378156。我不能假设已经知道这些东西，应该先询问一下大概情况，再索取具体细节。我要确保给出的每条回复都是短小的、可控的，并且要提出开放性问题来获取更多详细信息。所以，我的下一个回复会要求提供订单号，并大致询问他想要什么。",
+            "thinking_blocks": [
+              {
+                "type": "thinking",
+                "thinking": "抱歉，我上一条回复内容似乎意外变成了无效信息。让我重新按客服角色给出自然的开场回应。\n\n我是客服，所以应该先说“我乐意帮忙”之类的话，然后把话题引向具体细节，同时记住用户是Yusuf Rossi，邮编19122，订单号W2378156。我不能假设已经知道这些东西，应该先询问一下大概情况，再索取具体细节。我要确保给出的每条回复都是短小的、可控的，并且要提出开放性问题来获取更多详细信息。所以，我的下一个回复会要求提供订单号，并大致询问他想要什么。",
+                "signature": "aba87e69-2a64-406c-b4a9-e705ebb75554"
+              }
+            ],
+            "provider_specific_fields": {
+              "citations": null,
+              "thinking_blocks": [
+                {
+                  "type": "thinking",
+                  "thinking": "抱歉，我上一条回复内容似乎意外变成了无效信息。让我重新按客服角色给出自然的开场回应。\n\n我是客服，所以应该先说“我乐意帮忙”之类的话，然后把话题引向具体细节，同时记住用户是Yusuf Rossi，邮编19122，订单号W2378156。我不能假设已经知道这些东西，应该先询问一下大概情况，再索取具体细节。我要确保给出的每条回复都是短小的、可控的，并且要提出开放性问题来获取更多详细信息。所以，我的下一个回复会要求提供订单号，并大致询问他想要什么。",
+                  "signature": "aba87e69-2a64-406c-b4a9-e705ebb75554"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "usage": {
+        "completion_tokens": 170,
+        "prompt_tokens": 540,
+        "total_tokens": 710,
+        "completion_tokens_details": {
+          "reasoning_tokens": 215,
+          "text_tokens": -45
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 384,
+          "image_tokens": null,
+          "text_tokens": null,
+          "video_tokens": null,
+          "cache_creation_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 384,
+        "inference_geo": null,
+        "speed": null
+      }
+    },
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  },
+  {
+    "role": "assistant",
+    "content": "已取得部分信息，但暂时无法整理为可靠答复。",
+    "tool_calls": null,
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-07T03:22:12.459449",
+    "cost": null,
+    "usage": null,
+    "raw_data": null,
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  },
+  {
+    "role": "user",
+    "content": "Sure, my order number is W2378156. I want to exchange two items: a mechanical keyboard and a smart thermostat. For the keyboard, I'm looking for the same model but with clicky switches, RGB backlight, and full size. If that exact combo isn’t available, then I’d just prefer to move forward with exchanging only the thermostat. For the thermostat, I need a version that’s compatible with Google Home instead of Apple HomeKit. Can you check what you can do?",
+    "tool_calls": null,
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-07T03:22:15.119037",
+    "cost": 0.0,
+    "usage": {
+      "completion_tokens": 273,
+      "prompt_tokens": 604
+    },
+    "raw_data": {
+      "id": "chatcmpl-50d30310-8fe3-4f80-96ad-56c3ab45cb0b",
+      "created": 1788744135,
+      "model": "deepseek-v4-flash",
+      "object": "chat.completion",
+      "system_fingerprint": null,
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "message": {
+            "content": "Sure, my order number is W2378156. I want to exchange two items: a mechanical keyboard and a smart thermostat. For the keyboard, I'm looking for the same model but with clicky switches, RGB backlight, and full size. If that exact combo isn’t available, then I’d just prefer to move forward with exchanging only the thermostat. For the thermostat, I need a version that’s compatible with Google Home instead of Apple HomeKit. Can you check what you can do?",
+            "role": "assistant",
+            "tool_calls": null,
+            "function_call": null,
+            "reasoning_content": "Hmm, the agent is asking for my order number and what I want to exchange, but they haven't responded in a way that feels like a real dialogue—they just gave canned messages. I need to provide my order number and details about the exchange clearly. I have order #W2378156, and I want to exchange two items: a mechanical keyboard and a smart thermostat. For the keyboard, I need one with clicky switches, RGB backlight, and full size—if that exact match isn't available, I'd rather not exchange the keyboard at all, just the thermostat. For the thermostat, I need one that works with Google Home instead of Apple HomeKit. I should mention all this upfront to make sure we handle it in one go, and wait for them to ask for shipping information or other specifics later.",
+            "thinking_blocks": [
+              {
+                "type": "thinking",
+                "thinking": "Hmm, the agent is asking for my order number and what I want to exchange, but they haven't responded in a way that feels like a real dialogue—they just gave canned messages. I need to provide my order number and details about the exchange clearly. I have order #W2378156, and I want to exchange two items: a mechanical keyboard and a smart thermostat. For the keyboard, I need one with clicky switches, RGB backlight, and full size—if that exact match isn't available, I'd rather not exchange the keyboard at all, just the thermostat. For the thermostat, I need one that works with Google Home instead of Apple HomeKit. I should mention all this upfront to make sure we handle it in one go, and wait for them to ask for shipping information or other specifics later.",
+                "signature": "3b98ebc9-5912-45f7-9a87-c4fc888ebb6d"
+              }
+            ],
+            "provider_specific_fields": {
+              "citations": null,
+              "thinking_blocks": [
+                {
+                  "type": "thinking",
+                  "thinking": "Hmm, the agent is asking for my order number and what I want to exchange, but they haven't responded in a way that feels like a real dialogue—they just gave canned messages. I need to provide my order number and details about the exchange clearly. I have order #W2378156, and I want to exchange two items: a mechanical keyboard and a smart thermostat. For the keyboard, I need one with clicky switches, RGB backlight, and full size—if that exact match isn't available, I'd rather not exchange the keyboard at all, just the thermostat. For the thermostat, I need one that works with Google Home instead of Apple HomeKit. I should mention all this upfront to make sure we handle it in one go, and wait for them to ask for shipping information or other specifics later.",
+                  "signature": "3b98ebc9-5912-45f7-9a87-c4fc888ebb6d"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "usage": {
+        "completion_tokens": 273,
+        "prompt_tokens": 604,
+        "total_tokens": 877,
+        "completion_tokens_details": {
+          "reasoning_tokens": 164,
+          "text_tokens": 109
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 512,
+          "image_tokens": null,
+          "text_tokens": null,
+          "video_tokens": null,
+          "cache_creation_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 512,
+        "inference_geo": null,
+        "speed": null
+      }
+    },
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  }
+]

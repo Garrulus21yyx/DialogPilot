@@ -1,0 +1,436 @@
+{
+  "case_count": 12,
+  "dataset_id": "doc2dial-rag-parallel-stress-v1",
+  "error_case_count": 0,
+  "model_policy": {
+    "base_url": "https://api.deepseek.com/anthropic",
+    "provider": "deepseek",
+    "rewrite": {
+      "min_completion_tokens": 0,
+      "model": "deepseek-v4-flash",
+      "reasoning": "none"
+    }
+  },
+  "prompt_version": "customer-support-requirements-v1",
+  "query_kind_counts": {
+    "dependent": 0,
+    "parallel_composite": 12,
+    "simple": 0
+  },
+  "rows": [
+    {
+      "case_id": "doc2dial-parallel-stress-01",
+      "error": null,
+      "query_kind": "parallel_composite",
+      "raw_query": "I need help with two things: What are Corinthian colleges? Also, What is the logic behind the notifications regarding the Sweet v. DeVos Lawsuit?",
+      "requirements": [
+        {
+          "query": "What are Corinthian colleges?",
+          "requirement_id": "R1"
+        },
+        {
+          "query": "What is the logic behind the notifications regarding the Sweet v. DeVos Lawsuit?",
+          "requirement_id": "R2"
+        }
+      ],
+      "standalone_query": "I need help with two things: What are Corinthian colleges? Also, What is the logic behind the notifications regarding the Sweet v. DeVos Lawsuit?",
+      "usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 384,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 554,
+        "latency_ms": {
+          "max": 1817.799,
+          "p50": 1817.799,
+          "p95": 1817.799,
+          "sum": 1817.799
+        },
+        "output_tokens": 90,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      }
+    },
+    {
+      "case_id": "doc2dial-parallel-stress-02",
+      "error": null,
+      "query_kind": "parallel_composite",
+      "raw_query": "I need help with two things: How will I know how much I have left after the interest is calculated? Also, Do I need information related to mitigating circumstances?",
+      "requirements": [
+        {
+          "query": "How will I know how much I have left after the interest is calculated?",
+          "requirement_id": "R1"
+        },
+        {
+          "query": "Do I need information related to mitigating circumstances?",
+          "requirement_id": "R2"
+        }
+      ],
+      "standalone_query": "I need help with two things: How will I know how much I have left after the interest is calculated? Also, Do I need information related to mitigating circumstances?",
+      "usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 384,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 554,
+        "latency_ms": {
+          "max": 1811.76,
+          "p50": 1811.76,
+          "p95": 1811.76,
+          "sum": 1811.76
+        },
+        "output_tokens": 90,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      }
+    },
+    {
+      "case_id": "doc2dial-parallel-stress-03",
+      "error": null,
+      "query_kind": "parallel_composite",
+      "raw_query": "I need help with two things: What should I do if I have defaulted on my federal student loan and have entered a rehabilitation plan? Also, Are there any additional documents that I can submit as part of my application for borrower defense?",
+      "requirements": [
+        {
+          "query": "What should I do if I have defaulted on my federal student loan and have entered a rehabilitation plan?",
+          "requirement_id": "R1"
+        },
+        {
+          "query": "Are there any additional documents that I can submit as part of my application for borrower defense?",
+          "requirement_id": "R2"
+        }
+      ],
+      "standalone_query": "I need help with two things: What should I do if I have defaulted on my federal student loan and have entered a rehabilitation plan? Also, Are there any additional documents that I can submit as part of my application for borrower defense?",
+      "usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 384,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 584,
+        "latency_ms": {
+          "max": 1874.027,
+          "p50": 1874.027,
+          "p95": 1874.027,
+          "sum": 1874.027
+        },
+        "output_tokens": 105,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      }
+    },
+    {
+      "case_id": "doc2dial-parallel-stress-04",
+      "error": null,
+      "query_kind": "parallel_composite",
+      "raw_query": "I need help with two things: Is there a section on the website dedicated to common questions and answers regarding borrower defense decision notifications? Also, Are FFEL Program Loans eligible for the Sweet v. DeVos lawsuit?",
+      "requirements": [
+        {
+          "query": "Is there a section on the website dedicated to common questions and answers regarding borrower defense decision notifications?",
+          "requirement_id": "R1"
+        },
+        {
+          "query": "Are FFEL Program Loans eligible for the Sweet v. DeVos lawsuit?",
+          "requirement_id": "R2"
+        }
+      ],
+      "standalone_query": "I need help with two things: Is there a section on the website dedicated to common questions and answers regarding borrower defense decision notifications? Also, Are FFEL Program Loans eligible for the Sweet v. DeVos lawsuit?",
+      "usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 384,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 576,
+        "latency_ms": {
+          "max": 1815.599,
+          "p50": 1815.599,
+          "p95": 1815.599,
+          "sum": 1815.599
+        },
+        "output_tokens": 101,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      }
+    },
+    {
+      "case_id": "doc2dial-parallel-stress-05",
+      "error": null,
+      "query_kind": "parallel_composite",
+      "raw_query": "I need help with two things: Can I have my borrower defense discharge applied to my FFEL or Federal Perkins loans? Also, I have applied for borrower defense by way of email but now have found further information that I want to send, can I do this?",
+      "requirements": [
+        {
+          "query": "Can I have my borrower defense discharge applied to my FFEL or Federal Perkins loans?",
+          "requirement_id": "R1"
+        },
+        {
+          "query": "I have applied for borrower defense by way of email but now have found further information that I want to send, can I do this?",
+          "requirement_id": "R2"
+        }
+      ],
+      "standalone_query": "I need help with two things: Can I have my borrower defense discharge applied to my FFEL or Federal Perkins loans? Also, I have applied for borrower defense by way of email but now have found further information that I want to send, can I do this?",
+      "usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 384,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 594,
+        "latency_ms": {
+          "max": 1777.265,
+          "p50": 1777.265,
+          "p95": 1777.265,
+          "sum": 1777.265
+        },
+        "output_tokens": 110,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      }
+    },
+    {
+      "case_id": "doc2dial-parallel-stress-06",
+      "error": null,
+      "query_kind": "parallel_composite",
+      "raw_query": "I need help with two things: What is involved in complying with the Program Quality Assurance? Also, What information can you give me regarding adverse credit is incorrect?",
+      "requirements": [
+        {
+          "query": "What is involved in complying with the Program Quality Assurance?",
+          "requirement_id": "R1"
+        },
+        {
+          "query": "What information can you give me regarding adverse credit is incorrect?",
+          "requirement_id": "R2"
+        }
+      ],
+      "standalone_query": "I need help with two things: What is involved in complying with the Program Quality Assurance? Also, What information can you give me regarding adverse credit is incorrect?",
+      "usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 384,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 552,
+        "latency_ms": {
+          "max": 1731.791,
+          "p50": 1731.791,
+          "p95": 1731.791,
+          "sum": 1731.791
+        },
+        "output_tokens": 89,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      }
+    },
+    {
+      "case_id": "doc2dial-parallel-stress-07",
+      "error": null,
+      "query_kind": "parallel_composite",
+      "raw_query": "I need help with two things: when do benefits come? Also, What happens if I die and you still send the payments?",
+      "requirements": [
+        {
+          "query": "When do benefits come?",
+          "requirement_id": "R1"
+        },
+        {
+          "query": "What happens if I die and you still send the payments?",
+          "requirement_id": "R2"
+        }
+      ],
+      "standalone_query": "I need help with two things: when do benefits come? Also, What happens if I die and you still send the payments?",
+      "usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 384,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 540,
+        "latency_ms": {
+          "max": 1452.71,
+          "p50": 1452.71,
+          "p95": 1452.71,
+          "sum": 1452.71
+        },
+        "output_tokens": 83,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      }
+    },
+    {
+      "case_id": "doc2dial-parallel-stress-08",
+      "error": null,
+      "query_kind": "parallel_composite",
+      "raw_query": "I need help with two things: can the widow get monthly benefits if she is caring for the deceased person's daughter? Also, Is there a maximum limit to the amount a family could get?",
+      "requirements": [
+        {
+          "query": "Can the widow get monthly benefits if she is caring for the deceased person's daughter?",
+          "requirement_id": "R1"
+        },
+        {
+          "query": "Is there a maximum limit to the amount a family could get?",
+          "requirement_id": "R2"
+        }
+      ],
+      "standalone_query": "I need help with two things: can the widow get monthly benefits if she is caring for the deceased person's daughter? Also, Is there a maximum limit to the amount a family could get?",
+      "usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 384,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 566,
+        "latency_ms": {
+          "max": 1497.264,
+          "p50": 1497.264,
+          "p95": 1497.264,
+          "sum": 1497.264
+        },
+        "output_tokens": 96,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      }
+    },
+    {
+      "case_id": "doc2dial-parallel-stress-09",
+      "error": null,
+      "query_kind": "parallel_composite",
+      "raw_query": "I need help with two things: What can you tell me about monthly Medicare premiums? Also, What if I filed a federal income tax return for the year?",
+      "requirements": [
+        {
+          "query": "What can you tell me about monthly Medicare premiums?",
+          "requirement_id": "R1"
+        },
+        {
+          "query": "What if I filed a federal income tax return for the year?",
+          "requirement_id": "R2"
+        }
+      ],
+      "standalone_query": "I need help with two things: What can you tell me about monthly Medicare premiums? Also, What if I filed a federal income tax return for the year?",
+      "usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 384,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 552,
+        "latency_ms": {
+          "max": 1509.204,
+          "p50": 1509.204,
+          "p95": 1509.204,
+          "sum": 1509.204
+        },
+        "output_tokens": 89,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      }
+    },
+    {
+      "case_id": "doc2dial-parallel-stress-10",
+      "error": null,
+      "query_kind": "parallel_composite",
+      "raw_query": "I need help with two things: Is there other related information I would need to know about disability for a child under 18? Also, How is it determined if an adult \"child\" is disabled for SSDI benefits when the child is age 18 or older?",
+      "requirements": [
+        {
+          "query": "What other related information is needed to know about disability for a child under 18?",
+          "requirement_id": "R1"
+        },
+        {
+          "query": "How is it determined if an adult \"child\" is disabled for SSDI benefits when the child is age 18 or older?",
+          "requirement_id": "R2"
+        }
+      ],
+      "standalone_query": "I need help with two things: Is there other related information I would need to know about disability for a child under 18? Also, How is it determined if an adult \"child\" is disabled for SSDI benefits when the child is age 18 or older?",
+      "usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 384,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 596,
+        "latency_ms": {
+          "max": 1448.119,
+          "p50": 1448.119,
+          "p95": 1448.119,
+          "sum": 1448.119
+        },
+        "output_tokens": 109,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      }
+    },
+    {
+      "case_id": "doc2dial-parallel-stress-11",
+      "error": null,
+      "query_kind": "parallel_composite",
+      "raw_query": "I need help with two things: How would I go about appealing a decision? Also, Can I keep my CDL but with restrictions on it?",
+      "requirements": [
+        {
+          "query": "How would I go about appealing a decision?",
+          "requirement_id": "R1"
+        },
+        {
+          "query": "Can I keep my CDL but with restrictions on it?",
+          "requirement_id": "R2"
+        }
+      ],
+      "standalone_query": "I need help with two things: How would I go about appealing a decision? Also, Can I keep my CDL but with restrictions on it?",
+      "usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 384,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 548,
+        "latency_ms": {
+          "max": 1524.865,
+          "p50": 1524.865,
+          "p95": 1524.865,
+          "sum": 1524.865
+        },
+        "output_tokens": 87,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      }
+    },
+    {
+      "case_id": "doc2dial-parallel-stress-12",
+      "error": null,
+      "query_kind": "parallel_composite",
+      "raw_query": "I need help with two things: where to get more information about priority groups? Also, can I file by mail when I am ready to add my daughter?",
+      "requirements": [
+        {
+          "query": "Where to get more information about priority groups?",
+          "requirement_id": "R1"
+        },
+        {
+          "query": "Can I file by mail when I am ready to add my daughter?",
+          "requirement_id": "R2"
+        }
+      ],
+      "standalone_query": "I need help with two things: where to get more information about priority groups? Also, can I file by mail when I am ready to add my daughter?",
+      "usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 384,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 552,
+        "latency_ms": {
+          "max": 1452.888,
+          "p50": 1452.888,
+          "p95": 1452.888,
+          "sum": 1452.888
+        },
+        "output_tokens": 89,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      }
+    }
+  ],
+  "schema_version": 1,
+  "source_query_capture_prompt_version": "deterministic-parallel-stress-v1",
+  "split": "stress",
+  "total_calls": 12,
+  "total_input_tokens": 6768,
+  "total_output_tokens": 1138
+}

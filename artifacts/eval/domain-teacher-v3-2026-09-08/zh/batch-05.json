@@ -1,0 +1,2025 @@
+{
+  "batch_id": "domain-v3:zh:5",
+  "language": "zh",
+  "split": "train",
+  "model": "deepseek-v4-pro",
+  "synthetic": true,
+  "author_prompt": "Author 8 DIFFERENT natural ecommerce customer-service dialogue families in zh.\nBatch 5; ensure at least four current turns classified as human_service across this batch.\nEach family has its OWN coherent history of 2, 4 or 6 short alternating user/assistant\nmessages, followed by 3 ALTERNATIVE current user turns, not three sequential turns.\nThose alternatives differ in effective intent: retain vs replace, withdraw vs\ncontinue, single goal vs concurrent goal, or resolved vs unresolved reference.\nInclude natural short answers where history matters. Vary old completed tasks,\nhesitation, self-correction, indirect wording, topics and dialogue acts. General\nand human-service requests must also occur as NEW goals, not only stale history.\nDo not follow a repeated sentence template or substitute product nouns to create\nnew families. Avoid stereotyped 'information only, do not submit' repetition.\nInvent broad everyday ecommerce situations; no copied benchmark or private data.\nHistory plus current turn should fit 150 English words or 180 Chinese characters;\nkeep it compact but meaningful. No future replies or final conversation summaries.\nSupply the correct label for each alternative according to the rubric.\n",
+  "author_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_IlqBsbjsAaxGLBpF0aM64820",
+          "input": {
+            "families": [
+              {
+                "scenario": "顾客想取消订单但客服已发货，转而询问退货规则",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我昨晚下的单能取消吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "抱歉，您的包裹今天上午已经出库了，无法取消。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "那我不想要了，怎么退？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您可以拒收，或签收后申请七天无理由退货。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "拒收的话运费谁出？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "算了，那我还是留着吧。",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "退货要自己寄回吗？",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客咨询打印机兼容性后突然想找人工",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "这款打印机支持苹果电脑吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "支持，macOS 10.15 以上都可以用。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "驱动要另外下载吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "官网有对应驱动，插上会自动提示安装。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "能帮我转人工吗？",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "那无线连接怎么设置？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "好的，谢谢，没别的事了。",
+                    "label": "general"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客查物流后想改地址",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我的包裹到哪了？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "已到您所在城市的中转站，预计明天派送。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "能改送到公司地址吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "派送前可以联系快递员修改，我帮您备注。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那麻烦帮我改一下。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "不用了，我明天在家等。",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "顺便问下，这个能开发票吗？",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客登录异常后想投诉",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我登录一直提示密码错误。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您可以用手机号验证码重置密码。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "试过了，收不到验证码。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请确认手机号是否与账户绑定一致。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "我要投诉，你们系统太烂了。",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "绑定的号码我早不用了，怎么办？",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "算了，我换个号重新注册吧。",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客问保修后想顺便聊几句",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "这个耳机保修多久？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "整机保修一年，主要部件两年。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "保修要发票吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "有购买记录即可，无需纸质发票。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，谢谢，你们服务真不错。",
+                    "label": "general"
+                  },
+                  {
+                    "text": "那坏了怎么申请保修？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "能帮我查下我的订单还在保修期吗？",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客咨询退款进度后想催办",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我申请退款三天了，怎么还没到账？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "退款审核已通过，银行处理需1-3个工作日。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "能帮我催一下吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "我这边无法加急，建议您耐心等待。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那我要投诉，给我转人工。",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "好吧，那我再等等。",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "退款会退到原支付方式吗？",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客问尺码后想换货",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "这件外套我穿M码合适吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "按您身高体重，M码偏宽松，S码更合身。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "我收到的是M码，能换S吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "可以，未剪吊牌七天内可申请换货。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "换货运费谁承担？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "那帮我申请换货吧。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "算了，宽松点也能穿。",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客问优惠券后想找人工处理",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我领的优惠券怎么用不了？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "该券仅限指定品类，您的商品不适用。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "可页面没写限制啊。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "详情页底部有适用范围说明。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "我要找人工客服处理。",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "那哪些商品能用这张券？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "好吧，那我不买了。",
+                    "label": "__DEFER__"
+                  }
+                ]
+              }
+            ]
+          },
+          "name": "AuthoredBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "f0fd5793-06f0-4083-a2a7-c6405537b639",
+        "container": null,
+        "model": "deepseek-v4-pro",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 640,
+          "inference_geo": null,
+          "input_tokens": 320,
+          "output_tokens": 1422,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-pro",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081cc-540a-7841-98fe-7e604092cfa2-0",
+      "tool_calls": [
+        {
+          "name": "AuthoredBatch",
+          "args": {
+            "families": [
+              {
+                "scenario": "顾客想取消订单但客服已发货，转而询问退货规则",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我昨晚下的单能取消吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "抱歉，您的包裹今天上午已经出库了，无法取消。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "那我不想要了，怎么退？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您可以拒收，或签收后申请七天无理由退货。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "拒收的话运费谁出？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "算了，那我还是留着吧。",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "退货要自己寄回吗？",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客咨询打印机兼容性后突然想找人工",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "这款打印机支持苹果电脑吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "支持，macOS 10.15 以上都可以用。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "驱动要另外下载吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "官网有对应驱动，插上会自动提示安装。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "能帮我转人工吗？",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "那无线连接怎么设置？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "好的，谢谢，没别的事了。",
+                    "label": "general"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客查物流后想改地址",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我的包裹到哪了？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "已到您所在城市的中转站，预计明天派送。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "能改送到公司地址吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "派送前可以联系快递员修改，我帮您备注。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那麻烦帮我改一下。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "不用了，我明天在家等。",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "顺便问下，这个能开发票吗？",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客登录异常后想投诉",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我登录一直提示密码错误。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "您可以用手机号验证码重置密码。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "试过了，收不到验证码。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请确认手机号是否与账户绑定一致。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "我要投诉，你们系统太烂了。",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "绑定的号码我早不用了，怎么办？",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "算了，我换个号重新注册吧。",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客问保修后想顺便聊几句",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "这个耳机保修多久？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "整机保修一年，主要部件两年。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "保修要发票吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "有购买记录即可，无需纸质发票。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "好的，谢谢，你们服务真不错。",
+                    "label": "general"
+                  },
+                  {
+                    "text": "那坏了怎么申请保修？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "能帮我查下我的订单还在保修期吗？",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客咨询退款进度后想催办",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我申请退款三天了，怎么还没到账？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "退款审核已通过，银行处理需1-3个工作日。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "能帮我催一下吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "我这边无法加急，建议您耐心等待。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那我要投诉，给我转人工。",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "好吧，那我再等等。",
+                    "label": "__DEFER__"
+                  },
+                  {
+                    "text": "退款会退到原支付方式吗？",
+                    "label": "billing_refund"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客问尺码后想换货",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "这件外套我穿M码合适吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "按您身高体重，M码偏宽松，S码更合身。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "我收到的是M码，能换S吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "可以，未剪吊牌七天内可申请换货。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "换货运费谁承担？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "那帮我申请换货吧。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "算了，宽松点也能穿。",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客问优惠券后想找人工处理",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我领的优惠券怎么用不了？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "该券仅限指定品类，您的商品不适用。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "可页面没写限制啊。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "详情页底部有适用范围说明。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "我要找人工客服处理。",
+                    "label": "human_service"
+                  },
+                  {
+                    "text": "那哪些商品能用这张券？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "好吧，那我不买了。",
+                    "label": "__DEFER__"
+                  }
+                ]
+              }
+            ]
+          },
+          "id": "call_00_IlqBsbjsAaxGLBpF0aM64820",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 960,
+        "output_tokens": 1422,
+        "total_tokens": 2382,
+        "input_token_details": {
+          "cache_read": 640,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "authored": {
+    "families": [
+      {
+        "scenario": "顾客想取消订单但客服已发货，转而询问退货规则",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我昨晚下的单能取消吗？"
+          },
+          {
+            "role": "assistant",
+            "content": "抱歉，您的包裹今天上午已经出库了，无法取消。"
+          },
+          {
+            "role": "user",
+            "content": "那我不想要了，怎么退？"
+          },
+          {
+            "role": "assistant",
+            "content": "您可以拒收，或签收后申请七天无理由退货。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "拒收的话运费谁出？",
+            "label": "billing_refund"
+          },
+          {
+            "text": "算了，那我还是留着吧。",
+            "label": "__DEFER__"
+          },
+          {
+            "text": "退货要自己寄回吗？",
+            "label": "billing_refund"
+          }
+        ]
+      },
+      {
+        "scenario": "顾客咨询打印机兼容性后突然想找人工",
+        "messages": [
+          {
+            "role": "user",
+            "content": "这款打印机支持苹果电脑吗？"
+          },
+          {
+            "role": "assistant",
+            "content": "支持，macOS 10.15 以上都可以用。"
+          },
+          {
+            "role": "user",
+            "content": "驱动要另外下载吗？"
+          },
+          {
+            "role": "assistant",
+            "content": "官网有对应驱动，插上会自动提示安装。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "能帮我转人工吗？",
+            "label": "human_service"
+          },
+          {
+            "text": "那无线连接怎么设置？",
+            "label": "product_technical"
+          },
+          {
+            "text": "好的，谢谢，没别的事了。",
+            "label": "general"
+          }
+        ]
+      },
+      {
+        "scenario": "顾客查物流后想改地址",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我的包裹到哪了？"
+          },
+          {
+            "role": "assistant",
+            "content": "已到您所在城市的中转站，预计明天派送。"
+          },
+          {
+            "role": "user",
+            "content": "能改送到公司地址吗？"
+          },
+          {
+            "role": "assistant",
+            "content": "派送前可以联系快递员修改，我帮您备注。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "那麻烦帮我改一下。",
+            "label": "order_logistics"
+          },
+          {
+            "text": "不用了，我明天在家等。",
+            "label": "__DEFER__"
+          },
+          {
+            "text": "顺便问下，这个能开发票吗？",
+            "label": "billing_refund"
+          }
+        ]
+      },
+      {
+        "scenario": "顾客登录异常后想投诉",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我登录一直提示密码错误。"
+          },
+          {
+            "role": "assistant",
+            "content": "您可以用手机号验证码重置密码。"
+          },
+          {
+            "role": "user",
+            "content": "试过了，收不到验证码。"
+          },
+          {
+            "role": "assistant",
+            "content": "请确认手机号是否与账户绑定一致。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "我要投诉，你们系统太烂了。",
+            "label": "human_service"
+          },
+          {
+            "text": "绑定的号码我早不用了，怎么办？",
+            "label": "account_security"
+          },
+          {
+            "text": "算了，我换个号重新注册吧。",
+            "label": "__DEFER__"
+          }
+        ]
+      },
+      {
+        "scenario": "顾客问保修后想顺便聊几句",
+        "messages": [
+          {
+            "role": "user",
+            "content": "这个耳机保修多久？"
+          },
+          {
+            "role": "assistant",
+            "content": "整机保修一年，主要部件两年。"
+          },
+          {
+            "role": "user",
+            "content": "保修要发票吗？"
+          },
+          {
+            "role": "assistant",
+            "content": "有购买记录即可，无需纸质发票。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "好的，谢谢，你们服务真不错。",
+            "label": "general"
+          },
+          {
+            "text": "那坏了怎么申请保修？",
+            "label": "product_technical"
+          },
+          {
+            "text": "能帮我查下我的订单还在保修期吗？",
+            "label": "billing_refund"
+          }
+        ]
+      },
+      {
+        "scenario": "顾客咨询退款进度后想催办",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我申请退款三天了，怎么还没到账？"
+          },
+          {
+            "role": "assistant",
+            "content": "退款审核已通过，银行处理需1-3个工作日。"
+          },
+          {
+            "role": "user",
+            "content": "能帮我催一下吗？"
+          },
+          {
+            "role": "assistant",
+            "content": "我这边无法加急，建议您耐心等待。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "那我要投诉，给我转人工。",
+            "label": "human_service"
+          },
+          {
+            "text": "好吧，那我再等等。",
+            "label": "__DEFER__"
+          },
+          {
+            "text": "退款会退到原支付方式吗？",
+            "label": "billing_refund"
+          }
+        ]
+      },
+      {
+        "scenario": "顾客问尺码后想换货",
+        "messages": [
+          {
+            "role": "user",
+            "content": "这件外套我穿M码合适吗？"
+          },
+          {
+            "role": "assistant",
+            "content": "按您身高体重，M码偏宽松，S码更合身。"
+          },
+          {
+            "role": "user",
+            "content": "我收到的是M码，能换S吗？"
+          },
+          {
+            "role": "assistant",
+            "content": "可以，未剪吊牌七天内可申请换货。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "换货运费谁承担？",
+            "label": "billing_refund"
+          },
+          {
+            "text": "那帮我申请换货吧。",
+            "label": "billing_refund"
+          },
+          {
+            "text": "算了，宽松点也能穿。",
+            "label": "__DEFER__"
+          }
+        ]
+      },
+      {
+        "scenario": "顾客问优惠券后想找人工处理",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我领的优惠券怎么用不了？"
+          },
+          {
+            "role": "assistant",
+            "content": "该券仅限指定品类，您的商品不适用。"
+          },
+          {
+            "role": "user",
+            "content": "可页面没写限制啊。"
+          },
+          {
+            "role": "assistant",
+            "content": "详情页底部有适用范围说明。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "我要找人工客服处理。",
+            "label": "human_service"
+          },
+          {
+            "text": "那哪些商品能用这张券？",
+            "label": "billing_refund"
+          },
+          {
+            "text": "好吧，那我不买了。",
+            "label": "__DEFER__"
+          }
+        ]
+      }
+    ]
+  },
+  "review_input_sha256": "780d4297f63d313bfbc09abe49f95c001a3871c221b7c3d030bc8e03a4403fd5",
+  "review_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_wjO72N78jthOJY1hGkNI9058",
+          "input": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:zh:5:0:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "继续追问拒收运费，属于退货/售后规则范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:0:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户放弃退货，无剩余目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:0:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "询问退货是否需自行寄回，属于退货流程。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:1:0",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "明确要求转人工。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:1:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问无线连接设置，属于产品使用/技术问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:1:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "致谢并结束，无业务目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:2:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "确认修改配送地址，属于物流范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:2:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户放弃改地址，无剩余目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:2:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "转而询问开发票，属于支付/发票范畴，替换原物流目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:3:0",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "明确表达投诉，属于投诉/人工服务。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:3:1",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "继续解决登录/绑定手机号问题，属于账户访问。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:3:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户放弃当前问题，改为重新注册，无明确待办目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:4:0",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "致谢与寒暄，无业务目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:4:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "询问保修申请流程，属于售后规则。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:4:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "查询订单保修期，属于售后/保修范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:5:0",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "明确要求投诉并转人工。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:5:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户接受现状，无剩余目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:5:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "询问退款到账方式，属于退款范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:6:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "询问换货运费承担，属于售后规则。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:6:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "请求申请换货，属于售后/退换货。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:6:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户放弃换货，无剩余目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:7:0",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "明确要求找人工客服处理。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:7:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "询问优惠券适用范围，属于支付/优惠券规则。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:7:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户放弃购买，无剩余目标。"
+              }
+            ]
+          },
+          "name": "ReviewedBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "50bda864-c7a3-4165-b49d-9d38ceafda37",
+        "container": null,
+        "model": "deepseek-v4-pro",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "inference_geo": null,
+          "input_tokens": 2973,
+          "output_tokens": 1195,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-pro",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081cc-a0b3-7392-baf0-ae79a048f7cd-0",
+      "tool_calls": [
+        {
+          "name": "ReviewedBatch",
+          "args": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:zh:5:0:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "继续追问拒收运费，属于退货/售后规则范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:0:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户放弃退货，无剩余目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:0:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "询问退货是否需自行寄回，属于退货流程。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:1:0",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "明确要求转人工。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:1:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问无线连接设置，属于产品使用/技术问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:1:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "致谢并结束，无业务目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:2:0",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "确认修改配送地址，属于物流范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:2:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户放弃改地址，无剩余目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:2:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "转而询问开发票，属于支付/发票范畴，替换原物流目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:3:0",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "明确表达投诉，属于投诉/人工服务。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:3:1",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "继续解决登录/绑定手机号问题，属于账户访问。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:3:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户放弃当前问题，改为重新注册，无明确待办目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:4:0",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "致谢与寒暄，无业务目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:4:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "询问保修申请流程，属于售后规则。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:4:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "查询订单保修期，属于售后/保修范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:5:0",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "明确要求投诉并转人工。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:5:1",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户接受现状，无剩余目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:5:2",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "询问退款到账方式，属于退款范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:6:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "询问换货运费承担，属于售后规则。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:6:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "请求申请换货，属于售后/退换货。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:6:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户放弃换货，无剩余目标。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:7:0",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "明确要求找人工客服处理。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:7:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "询问优惠券适用范围，属于支付/优惠券规则。"
+              },
+              {
+                "case_id": "domain-v3:zh:5:7:2",
+                "label": "__DEFER__",
+                "clear_and_natural": true,
+                "reason": "用户放弃购买，无剩余目标。"
+              }
+            ]
+          },
+          "id": "call_00_wjO72N78jthOJY1hGkNI9058",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 3485,
+        "output_tokens": 1195,
+        "total_tokens": 4680,
+        "input_token_details": {
+          "cache_read": 512,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "reviewed": {
+    "verdicts": [
+      {
+        "case_id": "domain-v3:zh:5:0:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "继续追问拒收运费，属于退货/售后规则范畴。"
+      },
+      {
+        "case_id": "domain-v3:zh:5:0:1",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "用户放弃退货，无剩余目标。"
+      },
+      {
+        "case_id": "domain-v3:zh:5:0:2",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "询问退货是否需自行寄回，属于退货流程。"
+      },
+      {
+        "case_id": "domain-v3:zh:5:1:0",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "明确要求转人工。"
+      },
+      {
+        "case_id": "domain-v3:zh:5:1:1",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "询问无线连接设置，属于产品使用/技术问题。"
+      },
+      {
+        "case_id": "domain-v3:zh:5:1:2",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "致谢并结束，无业务目标。"
+      },
+      {
+        "case_id": "domain-v3:zh:5:2:0",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "确认修改配送地址，属于物流范畴。"
+      },
+      {
+        "case_id": "domain-v3:zh:5:2:1",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "用户放弃改地址，无剩余目标。"
+      },
+      {
+        "case_id": "domain-v3:zh:5:2:2",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "转而询问开发票，属于支付/发票范畴，替换原物流目标。"
+      },
+      {
+        "case_id": "domain-v3:zh:5:3:0",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "明确表达投诉，属于投诉/人工服务。"
+      },
+      {
+        "case_id": "domain-v3:zh:5:3:1",
+        "label": "account_security",
+        "clear_and_natural": true,
+        "reason": "继续解决登录/绑定手机号问题，属于账户访问。"
+      },
+      {
+        "case_id": "domain-v3:zh:5:3:2",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "用户放弃当前问题，改为重新注册，无明确待办目标。"
+      },
+      {
+        "case_id": "domain-v3:zh:5:4:0",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "致谢与寒暄，无业务目标。"
+      },
+      {
+        "case_id": "domain-v3:zh:5:4:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "询问保修申请流程，属于售后规则。"
+      },
+      {
+        "case_id": "domain-v3:zh:5:4:2",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "查询订单保修期，属于售后/保修范畴。"
+      },
+      {
+        "case_id": "domain-v3:zh:5:5:0",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "明确要求投诉并转人工。"
+      },
+      {
+        "case_id": "domain-v3:zh:5:5:1",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "用户接受现状，无剩余目标。"
+      },
+      {
+        "case_id": "domain-v3:zh:5:5:2",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "询问退款到账方式，属于退款范畴。"
+      },
+      {
+        "case_id": "domain-v3:zh:5:6:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "询问换货运费承担，属于售后规则。"
+      },
+      {
+        "case_id": "domain-v3:zh:5:6:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "请求申请换货，属于售后/退换货。"
+      },
+      {
+        "case_id": "domain-v3:zh:5:6:2",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "用户放弃换货，无剩余目标。"
+      },
+      {
+        "case_id": "domain-v3:zh:5:7:0",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "明确要求找人工客服处理。"
+      },
+      {
+        "case_id": "domain-v3:zh:5:7:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "询问优惠券适用范围，属于支付/优惠券规则。"
+      },
+      {
+        "case_id": "domain-v3:zh:5:7:2",
+        "label": "__DEFER__",
+        "clear_and_natural": true,
+        "reason": "用户放弃购买，无剩余目标。"
+      }
+    ]
+  },
+  "rows": [
+    {
+      "case_id": "domain-v3:zh:5:0:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我昨晚下的单能取消吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "抱歉，您的包裹今天上午已经出库了，无法取消。"
+        },
+        {
+          "role": "user",
+          "content": "那我不想要了，怎么退？"
+        },
+        {
+          "role": "assistant",
+          "content": "您可以拒收，或签收后申请七天无理由退货。"
+        }
+      ],
+      "text": "拒收的话运费谁出？",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:5:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:5:0:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我昨晚下的单能取消吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "抱歉，您的包裹今天上午已经出库了，无法取消。"
+        },
+        {
+          "role": "user",
+          "content": "那我不想要了，怎么退？"
+        },
+        {
+          "role": "assistant",
+          "content": "您可以拒收，或签收后申请七天无理由退货。"
+        }
+      ],
+      "text": "算了，那我还是留着吧。",
+      "label": "__DEFER__",
+      "language": "zh",
+      "group_id": "domain-v3:zh:5:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:5:0:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我昨晚下的单能取消吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "抱歉，您的包裹今天上午已经出库了，无法取消。"
+        },
+        {
+          "role": "user",
+          "content": "那我不想要了，怎么退？"
+        },
+        {
+          "role": "assistant",
+          "content": "您可以拒收，或签收后申请七天无理由退货。"
+        }
+      ],
+      "text": "退货要自己寄回吗？",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:5:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:5:1:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "这款打印机支持苹果电脑吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "支持，macOS 10.15 以上都可以用。"
+        },
+        {
+          "role": "user",
+          "content": "驱动要另外下载吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "官网有对应驱动，插上会自动提示安装。"
+        }
+      ],
+      "text": "能帮我转人工吗？",
+      "label": "human_service",
+      "language": "zh",
+      "group_id": "domain-v3:zh:5:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:5:1:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "这款打印机支持苹果电脑吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "支持，macOS 10.15 以上都可以用。"
+        },
+        {
+          "role": "user",
+          "content": "驱动要另外下载吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "官网有对应驱动，插上会自动提示安装。"
+        }
+      ],
+      "text": "那无线连接怎么设置？",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:5:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:5:1:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "这款打印机支持苹果电脑吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "支持，macOS 10.15 以上都可以用。"
+        },
+        {
+          "role": "user",
+          "content": "驱动要另外下载吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "官网有对应驱动，插上会自动提示安装。"
+        }
+      ],
+      "text": "好的，谢谢，没别的事了。",
+      "label": "general",
+      "language": "zh",
+      "group_id": "domain-v3:zh:5:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:5:2:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我的包裹到哪了？"
+        },
+        {
+          "role": "assistant",
+          "content": "已到您所在城市的中转站，预计明天派送。"
+        },
+        {
+          "role": "user",
+          "content": "能改送到公司地址吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "派送前可以联系快递员修改，我帮您备注。"
+        }
+      ],
+      "text": "那麻烦帮我改一下。",
+      "label": "order_logistics",
+      "language": "zh",
+      "group_id": "domain-v3:zh:5:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:5:2:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我的包裹到哪了？"
+        },
+        {
+          "role": "assistant",
+          "content": "已到您所在城市的中转站，预计明天派送。"
+        },
+        {
+          "role": "user",
+          "content": "能改送到公司地址吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "派送前可以联系快递员修改，我帮您备注。"
+        }
+      ],
+      "text": "不用了，我明天在家等。",
+      "label": "__DEFER__",
+      "language": "zh",
+      "group_id": "domain-v3:zh:5:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:5:2:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我的包裹到哪了？"
+        },
+        {
+          "role": "assistant",
+          "content": "已到您所在城市的中转站，预计明天派送。"
+        },
+        {
+          "role": "user",
+          "content": "能改送到公司地址吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "派送前可以联系快递员修改，我帮您备注。"
+        }
+      ],
+      "text": "顺便问下，这个能开发票吗？",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:5:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:5:3:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我登录一直提示密码错误。"
+        },
+        {
+          "role": "assistant",
+          "content": "您可以用手机号验证码重置密码。"
+        },
+        {
+          "role": "user",
+          "content": "试过了，收不到验证码。"
+        },
+        {
+          "role": "assistant",
+          "content": "请确认手机号是否与账户绑定一致。"
+        }
+      ],
+      "text": "我要投诉，你们系统太烂了。",
+      "label": "human_service",
+      "language": "zh",
+      "group_id": "domain-v3:zh:5:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:5:3:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我登录一直提示密码错误。"
+        },
+        {
+          "role": "assistant",
+          "content": "您可以用手机号验证码重置密码。"
+        },
+        {
+          "role": "user",
+          "content": "试过了，收不到验证码。"
+        },
+        {
+          "role": "assistant",
+          "content": "请确认手机号是否与账户绑定一致。"
+        }
+      ],
+      "text": "绑定的号码我早不用了，怎么办？",
+      "label": "account_security",
+      "language": "zh",
+      "group_id": "domain-v3:zh:5:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:5:3:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我登录一直提示密码错误。"
+        },
+        {
+          "role": "assistant",
+          "content": "您可以用手机号验证码重置密码。"
+        },
+        {
+          "role": "user",
+          "content": "试过了，收不到验证码。"
+        },
+        {
+          "role": "assistant",
+          "content": "请确认手机号是否与账户绑定一致。"
+        }
+      ],
+      "text": "算了，我换个号重新注册吧。",
+      "label": "__DEFER__",
+      "language": "zh",
+      "group_id": "domain-v3:zh:5:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:5:4:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "这个耳机保修多久？"
+        },
+        {
+          "role": "assistant",
+          "content": "整机保修一年，主要部件两年。"
+        },
+        {
+          "role": "user",
+          "content": "保修要发票吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "有购买记录即可，无需纸质发票。"
+        }
+      ],
+      "text": "好的，谢谢，你们服务真不错。",
+      "label": "general",
+      "language": "zh",
+      "group_id": "domain-v3:zh:5:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:5:4:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "这个耳机保修多久？"
+        },
+        {
+          "role": "assistant",
+          "content": "整机保修一年，主要部件两年。"
+        },
+        {
+          "role": "user",
+          "content": "保修要发票吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "有购买记录即可，无需纸质发票。"
+        }
+      ],
+      "text": "能帮我查下我的订单还在保修期吗？",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:5:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:5:5:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我申请退款三天了，怎么还没到账？"
+        },
+        {
+          "role": "assistant",
+          "content": "退款审核已通过，银行处理需1-3个工作日。"
+        },
+        {
+          "role": "user",
+          "content": "能帮我催一下吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "我这边无法加急，建议您耐心等待。"
+        }
+      ],
+      "text": "那我要投诉，给我转人工。",
+      "label": "human_service",
+      "language": "zh",
+      "group_id": "domain-v3:zh:5:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:5:5:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我申请退款三天了，怎么还没到账？"
+        },
+        {
+          "role": "assistant",
+          "content": "退款审核已通过，银行处理需1-3个工作日。"
+        },
+        {
+          "role": "user",
+          "content": "能帮我催一下吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "我这边无法加急，建议您耐心等待。"
+        }
+      ],
+      "text": "好吧，那我再等等。",
+      "label": "__DEFER__",
+      "language": "zh",
+      "group_id": "domain-v3:zh:5:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:5:5:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我申请退款三天了，怎么还没到账？"
+        },
+        {
+          "role": "assistant",
+          "content": "退款审核已通过，银行处理需1-3个工作日。"
+        },
+        {
+          "role": "user",
+          "content": "能帮我催一下吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "我这边无法加急，建议您耐心等待。"
+        }
+      ],
+      "text": "退款会退到原支付方式吗？",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:5:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:5:6:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "这件外套我穿M码合适吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "按您身高体重，M码偏宽松，S码更合身。"
+        },
+        {
+          "role": "user",
+          "content": "我收到的是M码，能换S吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "可以，未剪吊牌七天内可申请换货。"
+        }
+      ],
+      "text": "换货运费谁承担？",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:5:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:5:6:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "这件外套我穿M码合适吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "按您身高体重，M码偏宽松，S码更合身。"
+        },
+        {
+          "role": "user",
+          "content": "我收到的是M码，能换S吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "可以，未剪吊牌七天内可申请换货。"
+        }
+      ],
+      "text": "那帮我申请换货吧。",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:5:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:5:6:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "这件外套我穿M码合适吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "按您身高体重，M码偏宽松，S码更合身。"
+        },
+        {
+          "role": "user",
+          "content": "我收到的是M码，能换S吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "可以，未剪吊牌七天内可申请换货。"
+        }
+      ],
+      "text": "算了，宽松点也能穿。",
+      "label": "__DEFER__",
+      "language": "zh",
+      "group_id": "domain-v3:zh:5:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:5:7:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我领的优惠券怎么用不了？"
+        },
+        {
+          "role": "assistant",
+          "content": "该券仅限指定品类，您的商品不适用。"
+        },
+        {
+          "role": "user",
+          "content": "可页面没写限制啊。"
+        },
+        {
+          "role": "assistant",
+          "content": "详情页底部有适用范围说明。"
+        }
+      ],
+      "text": "我要找人工客服处理。",
+      "label": "human_service",
+      "language": "zh",
+      "group_id": "domain-v3:zh:5:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:5:7:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我领的优惠券怎么用不了？"
+        },
+        {
+          "role": "assistant",
+          "content": "该券仅限指定品类，您的商品不适用。"
+        },
+        {
+          "role": "user",
+          "content": "可页面没写限制啊。"
+        },
+        {
+          "role": "assistant",
+          "content": "详情页底部有适用范围说明。"
+        }
+      ],
+      "text": "那哪些商品能用这张券？",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:5:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:5:7:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我领的优惠券怎么用不了？"
+        },
+        {
+          "role": "assistant",
+          "content": "该券仅限指定品类，您的商品不适用。"
+        },
+        {
+          "role": "user",
+          "content": "可页面没写限制啊。"
+        },
+        {
+          "role": "assistant",
+          "content": "详情页底部有适用范围说明。"
+        }
+      ],
+      "text": "好吧，那我不买了。",
+      "label": "__DEFER__",
+      "language": "zh",
+      "group_id": "domain-v3:zh:5:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    }
+  ],
+  "rejected": [
+    {
+      "case_id": "domain-v3:zh:5:4:1",
+      "author": "product_technical",
+      "label": "billing_refund",
+      "clear_and_natural": true,
+      "reason": "询问保修申请流程，属于售后规则。"
+    }
+  ],
+  "status": "reviewed"
+}

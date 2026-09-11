@@ -1,0 +1,22 @@
+{
+  "started_at": "2026-09-08T09:32:38.422184+00:00",
+  "seed": 20260908,
+  "planned_cases": 200,
+  "recovery_call_budget": 4,
+  "llm_calls": 0,
+  "head": "3ba66839c11eefdc96277d0fd827f15625961513",
+  "tracked_diff_sha256": "348cf3593f3c9f0c38aafbf091faf2d7e7e87b6a681ecde27f8c40da067bf268",
+  "files": {
+    "application/write_workflow.py": "f683eab59fe2da9239a2ae2d683d092f5ddc393d7be66f5b4d03108ee0a74831",
+    "infrastructure/postgres_target_runtime.py": "25823e56e08e632d685b932a05ef98f165fd6ce75bcd159571a516addcf501b4",
+    "infrastructure/target_workflow_execution.py": "dd7a0f9953070090200aebc729c6d1e51ae79dda59867e8552bc93dc5c8d6748",
+    "services/customer_operations.py": "55a6bbb58a993bc12229273477c7eec4cc94368daadaf4f07afff8a1daa2aac2",
+    "mcp/customer_operations_tools.py": "aca66c315442a61c92c67c619de38c5b5c7cddb90270590568d6ffe7156c700e",
+    "infrastructure/langgraph_checkpoint.py": "98a70aff517174a0bac9eb7bf984e8a285c2042c95505deaaa672c7522f6096a",
+    "infrastructure/postgres_response_delivery.py": "01cd93f1cfbbfabfd0a7c8de46c463a1894bdd27c758f078d98ffa2c0b04633b",
+    "tests/test_controlled_business_faults.py": "8e6806001e63e0ed9bbf3297275bce8d82961925395bbd2804d3ec1a294049e6",
+    "scripts/run_controlled_business_faults.py": "7787b4e215c419d69304546376e97a3b677871368127f4e050fb5bc552cadffb"
+  },
+  "scope": "Production PostgreSQL owners and tool adapters; injected tool-boundary exceptions. Approval pauses rebuild runtime objects. This is not a 200-process-crash or HTTP/LLM benchmark.",
+  "acceptance": "All 200 scenarios observed; at most one business row per operation; missing receipts remain reconciling without redispatch. Recovery rate is measured, not assumed."
+}

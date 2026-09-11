@@ -1,0 +1,74 @@
+{
+  "case_count": 300,
+  "chunk_count": 314,
+  "created_at": "2026-09-03T13:01:27.642192+00:00",
+  "dataset_cases_sha256": "f0e282d4e6b0594dfc98267322bd865e846b4cc00dbbe8d534d2e6ebc6ec6363",
+  "dataset_corpus_sha256": "89a8828b798c97946e6d150851fe046692f1c8c58e1795648223345a5d526281",
+  "dataset_id": "doc2dial-rag-mini-dev-v1",
+  "encoding_latency_ms": 3260.7825715094805,
+  "evaluation_role": "PUBLIC_DEV_ABLATION",
+  "external_inference_api_calls": 0,
+  "flag_embedding_version": "1.3.5",
+  "metrics": {
+    "bm25": {
+      "document_recall": 0.7266666666666667,
+      "evidence_recall": 0.69,
+      "mrr": 0.45173533070243593,
+      "ndcg": 0.5075358174508865,
+      "recall@20": 0.69,
+      "recall@5": 0.5766666666666667,
+      "recall@50": 0.78
+    },
+    "dense": {
+      "document_recall": 0.7466666666666667,
+      "evidence_recall": 0.7061111111111111,
+      "mrr": 0.435963409540809,
+      "ndcg": 0.49903572891870646,
+      "recall@20": 0.7061111111111111,
+      "recall@5": 0.5616666666666666,
+      "recall@50": 0.79
+    },
+    "dense_bm25_rrf": {
+      "document_recall": 0.7533333333333333,
+      "evidence_recall": 0.72,
+      "mrr": 0.48640325312229343,
+      "ndcg": 0.5405464624651733,
+      "recall@20": 0.72,
+      "recall@5": 0.6116666666666667,
+      "recall@50": 0.815
+    },
+    "dense_sparse_bm25_rrf": {
+      "document_recall": 0.78,
+      "evidence_recall": 0.7416666666666667,
+      "mrr": 0.5080293804063154,
+      "ndcg": 0.5631896062057431,
+      "recall@20": 0.7416666666666667,
+      "recall@5": 0.6433333333333333,
+      "recall@50": 0.7933333333333333
+    },
+    "dense_sparse_rrf": {
+      "document_recall": 0.77,
+      "evidence_recall": 0.7283333333333334,
+      "mrr": 0.4834547282066632,
+      "ndcg": 0.5412478570914492,
+      "recall@20": 0.7283333333333334,
+      "recall@5": 0.63,
+      "recall@50": 0.79
+    },
+    "learned_sparse": {
+      "document_recall": 0.7333333333333333,
+      "evidence_recall": 0.6833333333333333,
+      "mrr": 0.4517125569791979,
+      "ndcg": 0.5062926736018603,
+      "recall@20": 0.6833333333333333,
+      "recall@5": 0.5933333333333334,
+      "recall@50": 0.7766666666666666
+    }
+  },
+  "model": "BAAI/bge-m3",
+  "model_revision": "5617a9f61b028005a4858fdac845db406aefb181",
+  "model_weights_sha256": "b5e0ce3470abf5ef3831aa1bd5553b486803e83251590ab7ff35a117cf6aad38",
+  "query_mode": "raw",
+  "ranking_and_metric_latency_ms": 400.90532042086124,
+  "schema_version": 1
+}

@@ -48,9 +48,11 @@ def business_observation_context(observations):
                 "the prior reply failed verification. Use them to understand and explain completed work; "
                 "do not deny that data was obtained or repeat a lookup merely because this turn has no tools. "
                 "Preserve the original subject, source, observed_at and valid_until. These are not a "
-                "fresh business snapshot, approval, or new action prerequisite. Newer observations and "
-                "committed mutations may supersede earlier values; refresh only when the current goal "
-                "requires freshness or missing coverage. Preserve coverage restrictions: a fact in a "
+                "new observation or approval. Being historical or summarized does not itself invalidate "
+                "a result. Reuse covered facts and completed comparisons; fetch missing fields from their "
+                "originals. Refresh for an explicit refresh request, expiry, or a known relevant mutation, "
+                "not merely because an action is being prepared. The execution owner checks write "
+                "preconditions at submission. Preserve coverage restrictions: a fact in a "
                 "conflict-affected or incomplete outcome is not an established conclusion merely because "
                 "its worker returned SUCCEEDED. Recovery observations describe the recorded operation "
                 "only: NOT_COMMITTED is not UNCONFIRMED, and neither grants retry or action approval. "
@@ -61,6 +63,24 @@ def business_observation_context(observations):
                 "missing historical data. Final wording may rely only on visible source content, "
                 "including any selected historical read outputs supplied in current evidence."
             )}
+
+
+def assigned_business_observations(observations, *, work_item_ids, source_refs):
+    """Project explicitly assigned sources, not all of an owner's conversation.
+
+    Keep original records/pointers intact. A retained source reference admits its
+    producing observation; selection never parses user text or guesses order IDs.
+    """
+    work_item_ids = {value for value in work_item_ids if value}
+    source_refs = {value for value in source_refs if value}
+    selected = []
+    for row in observations:
+        original = row.get("observation", {})
+        refs = {fact.get("source_ref") for fact in original.get("facts", ())}
+        refs.update(receipt.get("receipt_id") for receipt in original.get("receipts", ()))
+        if original.get("work_item_id") in work_item_ids or refs.intersection(source_refs):
+            selected.append(row)
+    return tuple(selected)
 
 
 class BusinessObservation(BaseModel):

@@ -1,0 +1,42 @@
+{
+  "task_id": "1",
+  "official_reward": null,
+  "status": "ERROR",
+  "error_type": "RuntimeError",
+  "error": "Target did not publish a completed reply: Failed",
+  "target_trace": [
+    {
+      "turn": 1,
+      "input": "Hi there! I need help with an exchange for an order I recently received. I want to make sure I get the details right for both items.",
+      "outcome": {
+        "workflow_run_id": "workflow-run:v1:c94f0a174fc69b84d4c367c7624e87e4665786239affe862740788be2a04d448",
+        "signal_id": "interaction:v1:660f8471e3bc732af8f17867fa062582532c29b33bb8abb5d0d0fbdeced3ffa9",
+        "kind": "FIELDS",
+        "expires_at": "2026-09-13T17:13:34.244556+00:00",
+        "interaction_publication_id": "publication:v1:ba876fe7ff2c76db411a7c67d6b7fe803e8b5acfb369293cc1950347130ef3f4"
+      }
+    },
+    {
+      "turn": 2,
+      "input": "I’m sorry, I don’t remember which email I used for the account. Can I give you my order number or other details instead?",
+      "outcome": {
+        "workflow_run_id": "workflow-run:v1:81d2c2fd30bfe1fbb8dba2aecbd8bce7f5adea21661ab03daea630ac197e94ea",
+        "signal_id": "interaction:v1:b40232ab1ec8ae12ae167a71a8043ed124ad4fd7289f8b0d4391966312a1eeb2",
+        "kind": "FIELDS",
+        "expires_at": "2026-09-13T17:13:37.324029+00:00",
+        "interaction_publication_id": "publication:v1:57dc9eb21f8a8f73011a0a68ee79683446a534e979c79b1b4d1ea3d8ba2e4e99"
+      }
+    },
+    {
+      "turn": 3,
+      "input": "Sure—my name is Yusuf Rossi and my zip code is 19122. Let me know if you need anything else to look up my order.",
+      "outcome": {
+        "code": "target_runtime_failed",
+        "retryable": false,
+        "correlation_id": "invocation:v1:e7e5c64dc1c8135fd10c3a6238806d6093c7e0632cf2ab3d6b939b27d64a29e0",
+        "safe_message": "Target runtime failed closed: ConversationStateConflict",
+        "stages": []
+      }
+    }
+  ]
+}

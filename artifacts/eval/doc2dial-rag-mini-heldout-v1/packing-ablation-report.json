@@ -1,0 +1,275 @@
+{
+  "case_count": 9,
+  "dataset_id": "doc2dial-rag-mini-heldout-v1",
+  "evaluated_config": "top5-2600",
+  "recommended_rows": [
+    {
+      "case_id": "doc2dial-heldout-2e0a29b94fc37a6d9999bb17411d53df-14",
+      "packed_chunk_ids": [
+        "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-16",
+        "Appeal A Decision | Social Security Administration#2_0::chunk-1",
+        "Appeal A Decision | Social Security Administration#1_0::chunk-1",
+        "Affordable Care Act (ACA) And Your Coverage | Veterans Affairs#1_0::chunk-0",
+        "Avoiding Default | Federal Student Aid#1_0::chunk-0"
+      ],
+      "token_count": 2560
+    },
+    {
+      "case_id": "doc2dial-heldout-3d7744f89550a80add78ce8af315a34f-13",
+      "packed_chunk_ids": [
+        "Appeal A Decision | Social Security Administration#1_0::chunk-0",
+        "Appeal A Decision | Social Security Administration#2_0::chunk-0",
+        "Appeal A Decision | Social Security Administration#1_0::chunk-1",
+        "Appeal A Decision | Social Security Administration#2_0::chunk-1",
+        "Appeal A Decision | Social Security Administration#1_0::chunk-2"
+      ],
+      "token_count": 2264
+    },
+    {
+      "case_id": "doc2dial-heldout-720f21c0e4259a87ce2ad783ea250aae-10",
+      "packed_chunk_ids": [
+        "Appeal A Decision | Social Security Administration#1_0::chunk-0",
+        "Appeal A Decision | Social Security Administration#2_0::chunk-0",
+        "Apply for Retirement Benefits | SSA#1_0::chunk-5",
+        "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-16",
+        "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-7"
+      ],
+      "token_count": 2353
+    },
+    {
+      "case_id": "doc2dial-heldout-87a49a6d6ba97ce60abafa50ca0e874d-11",
+      "packed_chunk_ids": [
+        "About VA Insurance Options And Eligibility | Veterans Affairs#1_0::chunk-0",
+        "About VA Health Benefits | Veterans Affairs#1_0::chunk-2",
+        "About VA Health Benefits | Veterans Affairs#1_0::chunk-1",
+        "About VA Health Benefits | Veterans Affairs#1_0::chunk-3",
+        "About VA Health Benefits | Veterans Affairs#1_0::chunk-4"
+      ],
+      "token_count": 2479
+    },
+    {
+      "case_id": "doc2dial-heldout-ab054785181de6bcbb7dd362438de44b-12",
+      "packed_chunk_ids": [
+        "About point reduction#3_0::chunk-0",
+        "About point reduction#3_0::chunk-1",
+        "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-4",
+        "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-5",
+        "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-6"
+      ],
+      "token_count": 2277
+    },
+    {
+      "case_id": "doc2dial-heldout-ab5886aedfb6f8283ce9c8f6dd54e46f-11",
+      "packed_chunk_ids": [
+        "Accepting Aid | Federal Student Aid#1_0::chunk-0",
+        "Accepting Aid | Federal Student Aid#1_0::chunk-1",
+        "Avoiding Student Aid Scams | Federal Student Aid#1_0::chunk-0",
+        "Avoiding Student Aid Scams | Federal Student Aid#1_0::chunk-8",
+        "Avoiding Student Aid Scams | Federal Student Aid#1_0::chunk-4"
+      ],
+      "token_count": 2353
+    },
+    {
+      "case_id": "doc2dial-heldout-da93fdb7b3d8f42eaf8dac3f5b2505aa-12",
+      "packed_chunk_ids": [
+        "About online and alternative delivery method courses (I-PIRP/ADM)#3_0::chunk-2",
+        "About online and alternative delivery method courses (I-PIRP/ADM)#3_0::chunk-0",
+        "About online and alternative delivery method courses (I-PIRP/ADM)#3_0::chunk-1",
+        "About online and alternative delivery method courses (I-PIRP/ADM)#3_0::chunk-3",
+        "About online and alternative delivery method courses (I-PIRP/ADM)#3_0::chunk-4"
+      ],
+      "token_count": 2203
+    },
+    {
+      "case_id": "doc2dial-heldout-e6a8b47fb0ff5ed1a980a4b8548f4aa7-12",
+      "packed_chunk_ids": [
+        "About Private Service Bureau Licenses#1_0::chunk-0",
+        "About problem driver restrictions#3_0::chunk-1",
+        "After You Apply For Health Care Benefits | Veterans Affairs#1_0::chunk-2",
+        "About VA Health Benefits | Veterans Affairs#1_0::chunk-0",
+        "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-2"
+      ],
+      "token_count": 2284
+    },
+    {
+      "case_id": "doc2dial-heldout-e94cd3f3b555528f3a13851e801c253e-1",
+      "packed_chunk_ids": [
+        "Avoiding Student Aid Scams | Federal Student Aid#1_0::chunk-8",
+        "Aid for Military Families | Federal Student Aid#1_0::chunk-3",
+        "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-17",
+        "Avoiding Student Aid Scams | Federal Student Aid#1_0::chunk-0",
+        "Avoiding Student Aid Scams | Federal Student Aid#1_0::chunk-9"
+      ],
+      "token_count": 2119
+    }
+  ],
+  "results": [
+    {
+      "config_id": "top3-1800",
+      "evidence_recall": 0.6666666666666666,
+      "max_chunks": 3,
+      "mean_packed_chunks": 3.0,
+      "mean_packed_tokens": 1419.4444444444443,
+      "mean_skipped_redundant": 0.0,
+      "mrr": 0.6111111111111112,
+      "ndcg": 0.6256588615079397,
+      "redundancy_threshold": 1.0,
+      "token_budget": 1800
+    },
+    {
+      "config_id": "top5-1200",
+      "evidence_recall": 0.6666666666666666,
+      "max_chunks": 5,
+      "mean_packed_chunks": 3.0,
+      "mean_packed_tokens": 1139.3333333333333,
+      "mean_skipped_redundant": 0.0,
+      "mrr": 0.6111111111111112,
+      "ndcg": 0.6256588615079397,
+      "redundancy_threshold": 1.0,
+      "token_budget": 1200
+    },
+    {
+      "config_id": "top5-1800",
+      "evidence_recall": 0.6666666666666666,
+      "max_chunks": 5,
+      "mean_packed_chunks": 4.111111111111111,
+      "mean_packed_tokens": 1669.4444444444443,
+      "mean_skipped_redundant": 0.0,
+      "mrr": 0.6111111111111112,
+      "ndcg": 0.6256588615079397,
+      "redundancy_threshold": 1.0,
+      "token_budget": 1800
+    },
+    {
+      "config_id": "top5-2600",
+      "evidence_recall": 0.6666666666666666,
+      "max_chunks": 5,
+      "mean_packed_chunks": 5.0,
+      "mean_packed_tokens": 2321.3333333333335,
+      "mean_skipped_redundant": 0.0,
+      "mrr": 0.6111111111111112,
+      "ndcg": 0.6256588615079397,
+      "redundancy_threshold": 1.0,
+      "token_budget": 2600
+    },
+    {
+      "config_id": "dedup50-top5-1800",
+      "evidence_recall": 0.6666666666666666,
+      "max_chunks": 5,
+      "mean_packed_chunks": 4.0,
+      "mean_packed_tokens": 1671.6666666666667,
+      "mean_skipped_redundant": 0.1111111111111111,
+      "mrr": 0.6111111111111112,
+      "ndcg": 0.6256588615079397,
+      "redundancy_threshold": 0.5,
+      "token_budget": 1800
+    },
+    {
+      "config_id": "dedup50-top5-2600",
+      "evidence_recall": 0.6666666666666666,
+      "max_chunks": 5,
+      "mean_packed_chunks": 5.0,
+      "mean_packed_tokens": 2370.3333333333335,
+      "mean_skipped_redundant": 0.1111111111111111,
+      "mrr": 0.6111111111111112,
+      "ndcg": 0.6256588615079397,
+      "redundancy_threshold": 0.5,
+      "token_budget": 2600
+    }
+  ],
+  "selection": {
+    "eligible_count": 6,
+    "hard_constraints": {
+      "evidence_recall": [
+        "ge",
+        0.6666666666666666
+      ]
+    },
+    "metric_priority": [
+      [
+        "evidence_recall",
+        "max"
+      ]
+    ],
+    "ranked": [
+      {
+        "config_id": "top5-1200",
+        "evidence_recall": 0.6666666666666666,
+        "max_chunks": 5,
+        "mean_packed_chunks": 3.0,
+        "mean_packed_tokens": 1139.3333333333333,
+        "mean_skipped_redundant": 0.0,
+        "mrr": 0.6111111111111112,
+        "ndcg": 0.6256588615079397,
+        "redundancy_threshold": 1.0,
+        "token_budget": 1200
+      },
+      {
+        "config_id": "top3-1800",
+        "evidence_recall": 0.6666666666666666,
+        "max_chunks": 3,
+        "mean_packed_chunks": 3.0,
+        "mean_packed_tokens": 1419.4444444444443,
+        "mean_skipped_redundant": 0.0,
+        "mrr": 0.6111111111111112,
+        "ndcg": 0.6256588615079397,
+        "redundancy_threshold": 1.0,
+        "token_budget": 1800
+      },
+      {
+        "config_id": "top5-1800",
+        "evidence_recall": 0.6666666666666666,
+        "max_chunks": 5,
+        "mean_packed_chunks": 4.111111111111111,
+        "mean_packed_tokens": 1669.4444444444443,
+        "mean_skipped_redundant": 0.0,
+        "mrr": 0.6111111111111112,
+        "ndcg": 0.6256588615079397,
+        "redundancy_threshold": 1.0,
+        "token_budget": 1800
+      },
+      {
+        "config_id": "dedup50-top5-1800",
+        "evidence_recall": 0.6666666666666666,
+        "max_chunks": 5,
+        "mean_packed_chunks": 4.0,
+        "mean_packed_tokens": 1671.6666666666667,
+        "mean_skipped_redundant": 0.1111111111111111,
+        "mrr": 0.6111111111111112,
+        "ndcg": 0.6256588615079397,
+        "redundancy_threshold": 0.5,
+        "token_budget": 1800
+      },
+      {
+        "config_id": "top5-2600",
+        "evidence_recall": 0.6666666666666666,
+        "max_chunks": 5,
+        "mean_packed_chunks": 5.0,
+        "mean_packed_tokens": 2321.3333333333335,
+        "mean_skipped_redundant": 0.0,
+        "mrr": 0.6111111111111112,
+        "ndcg": 0.6256588615079397,
+        "redundancy_threshold": 1.0,
+        "token_budget": 2600
+      },
+      {
+        "config_id": "dedup50-top5-2600",
+        "evidence_recall": 0.6666666666666666,
+        "max_chunks": 5,
+        "mean_packed_chunks": 5.0,
+        "mean_packed_tokens": 2370.3333333333335,
+        "mean_skipped_redundant": 0.1111111111111111,
+        "mrr": 0.6111111111111112,
+        "ndcg": 0.6256588615079397,
+        "redundancy_threshold": 0.5,
+        "token_budget": 2600
+      }
+    ],
+    "recommended": null,
+    "selection_allowed": false,
+    "split": "heldout"
+  },
+  "split": "heldout",
+  "target_contract": "packing must preserve the measured reranked top-5 evidence recall; among qualifying configs choose maximum recall then minimum tokens",
+  "target_evidence_recall": 0.6666666666666666
+}

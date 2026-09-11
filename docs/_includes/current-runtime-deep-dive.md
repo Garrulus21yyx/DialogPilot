@@ -232,7 +232,7 @@ source upload/add
 → MIME/编码/安全校验
 → immutable SourceRevision + checksum
 → parse/normalize
-→ fixed-token chunk specs（512/64）
+→ structure-aware chunk specs（512/64）
 → canonical projection outbox
 → embedding projection + Chinese FTS projection
 → generation manifest 与 entry 校验
@@ -443,7 +443,7 @@ Memory reader 返回 LAGGING → 有界 PG raw fallback → Trace 记录遗漏�
 - PDF 上传已支持，复杂 PDF OCR/layout/VLM 主链未完成。
 - 本地业务沙箱、ReAct RunStore、Bundle registry 等仍有 SQLite 组件，横向多写需迁移或换实现。
 - Redis 是投影与缓存；它故障可影响延迟/降级，但不应成为唯一会话事实。
-- 500 条分层数据和自动 Judge 不是生产准确率；human-reviewed gold 与独立 heldout 必须单独声明。
+- 500 条分层数据和自动 Judge 不是生产准确率；冻结公开 test 与 80 条合成合同真实 E2E 必须单独声明。
 - 当前多 Agent 是有界 task graph，不是开放式自治群体，也不是模型自行改权限。
 
 ## 22. 核心面试追问与校准答案
@@ -460,9 +460,9 @@ JWT/scope 和 trace 中间件先处理请求，endpoint 将 DTO 转为 ChatComma
 
 离线链拥有 source revision、chunk、embedding/FTS projection 和 generation activation；在线链只读取一个已激活 generation 并完成 rewrite、召回、融合、rerank、packing。把两者混在请求里会让更新不可审计、延迟不可控。
 
-### Q4：为什么 chunk 是 512/64？
+### Q4：为什么当前 chunk 是 structure-aware 512/64？
 
-这是当前默认起点，在语义完整性、召回粒度与上下文浪费间折中，不是理论最优。必须用目标语料对 chunk 大小/重叠做 Recall@K、引用完整性、延迟与成本消融。
+这是 PostgreSQL 当前默认起点，在语义完整性、召回粒度与上下文浪费间折中，不是理论最优；历史 fixed `512/64` 只属于旧 Doc2Dial Dev。必须用目标语料按 strategy + 大小 + overlap 对 Recall@K、引用完整性、延迟与成本消融。
 
 ### Q5：为什么 dense 与中文 FTS 都要？
 

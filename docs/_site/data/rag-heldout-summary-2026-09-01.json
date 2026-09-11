@@ -1,0 +1,72 @@
+{
+  "status": "frozen_test_report_not_external_production_validation",
+  "run_date": "2026-09-01",
+  "dataset": {
+    "id": "doc2dial-rag-mini-heldout-v1",
+    "source": "Doc2Dial v1.0.1 official test split",
+    "documents": 40,
+    "retrieval_cases": 48,
+    "group_safe_model_cases": 9,
+    "manifest_sha256": "f82785918de0089a2c3c6d6f74631fcae7c4cad3d63561fd99170ee485f6a717"
+  },
+  "frozen_config": {
+    "chunk": "fixed-512-64",
+    "retrieval": "bm25-0.75_dense-0.25_rrf-k10_candidate-20",
+    "query": "raw-0.25_standalone-0.75",
+    "rerank": "listwise-20-to-5",
+    "packing": "top5-2600",
+    "generation": "customer-support-grounded-v3"
+  },
+  "metrics": {
+    "retrieval_48": {
+      "evidence_recall_at_20": 0.6875,
+      "mrr": 0.4711309523809524
+    },
+    "query_9": {
+      "raw_evidence_recall_at_20": 0.6666666666666666,
+      "candidate_evidence_recall_at_20": 0.6666666666666666,
+      "raw_mrr": 0.3648148148148148,
+      "candidate_mrr": 0.45370370370370366,
+      "harmful_case_rate": 0.0,
+      "entity_preservation": 1.0,
+      "negation_preservation": 1.0
+    },
+    "rerank_9": {
+      "baseline_evidence_recall_at_5": 0.6666666666666666,
+      "candidate_evidence_recall_at_5": 0.6666666666666666,
+      "baseline_mrr_at_5": 0.45370370370370366,
+      "candidate_mrr_at_5": 0.6111111111111112,
+      "harmful_case_rate": 0.0,
+      "typed_failure_count": 0
+    },
+    "packing_9": {
+      "evidence_recall": 0.6666666666666666,
+      "mean_packed_chunks": 5.0,
+      "mean_estimated_tokens": 2321.3333333333335
+    },
+    "generation_9": {
+      "generator_failure_count": 0,
+      "judge_failure_count": 0,
+      "language_match_rate": 1.0,
+      "evidence_citation_recall": 1.0,
+      "judge_grounded_rate": 1.0,
+      "judge_correct_rate": 0.7777777777777778,
+      "judge_complete_rate": 0.7777777777777778,
+      "judge_citation_relevance_rate": 1.0,
+      "abstention_rate": 0.3333333333333333
+    }
+  },
+  "report_sha256": {
+    "retrieval": "b11ff5cc4931a2beb30c506f94ee91acd60b31287ada88ba865c14a37e5be8a4",
+    "query_capture": "eab9bb88605f18ec045cfa3688368de5db652b9e54eba7807c4b33c457d62541",
+    "query_ablation": "fca681cd464c5ac995270ca35e6f54f95c79b2f07af2c20d19b7226bbc4adbf7",
+    "rerank": "0f9f08e5237b92dec765355ba43ed9c93795676a7d171461b6eec3d1a74312f0",
+    "packing": "01c46ba5654484b5934a12f4a32120870ff6821e7674e6ef3ec6d86066431460",
+    "generation": "f5df9d376590758fcdcc389c933efa50714153114a4fd79368497aa9fac3d93e"
+  },
+  "known_limits": [
+    "Model stages cover only nine dialogue groups.",
+    "LLM Judge has not been calibrated against blinded human review.",
+    "No real-traffic serial P95/P99, shadow, or canary evidence is claimed."
+  ]
+}

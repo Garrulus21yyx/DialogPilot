@@ -1,0 +1,20 @@
+{
+  "task_id": "1",
+  "official_reward": null,
+  "status": "ERROR",
+  "error_type": "RuntimeError",
+  "error": "Target did not publish a completed reply: Failed",
+  "target_trace": [
+    {
+      "turn": 1,
+      "input": "Hi there! I need some help with an exchange for a recent order I received. I want to swap out two items I purchased, and I'd like to make sure I get everything sorted out in one go. Can you assist me with that?",
+      "outcome": {
+        "code": "target_runtime_failed",
+        "retryable": false,
+        "correlation_id": "invocation:v1:d97eb64aa02e7e5cfb3887c68758474447229321c822e83bd1a93221058f01c0",
+        "safe_message": "Target runtime failed closed: ValueError",
+        "stages": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,249 @@
+{
+  "schema_version": 4,
+  "run_date": "2026-09-01",
+  "experiment": "customer-support long-document context topology structural and aligned full-chain evaluation",
+  "fixed_contract": {
+    "query": "Raw-only 1.0",
+    "retrieval": "BM25 0.75 + Dense 0.25 + weighted RRF k=10",
+    "packing": "top 5 within 2600 estimated tokens",
+    "topologies": [
+      "baseline fixed 512/64",
+      "neighbor expansion around fixed 512/64 anchors",
+      "parent-child 256/32 child to 1024/128 parent",
+      "conditional parent-child after baseline long-document and branch-disagreement probe"
+    ],
+    "model_calls": 0,
+    "doc2dial_repeat_runs": 2
+  },
+  "datasets": {
+    "doc2dial-rag-long8000-dev-v1": {
+      "license": "CC-BY-3.0",
+      "grounding": "character-span",
+      "corpus_documents": 100,
+      "relevant_long_documents": 19,
+      "source_cases": 209,
+      "evaluated_article_groups": 36,
+      "multi_span_groups": 16,
+      "relevant_document_chars": {
+        "min": 8348,
+        "median": 9291,
+        "p95": 18772,
+        "max": 44837
+      },
+      "corpus_sha256": "ce4db3f15c1efd3aed1d42f09fe3d22fb10920f913aaf8673058919df061109e",
+      "cases_sha256": "eb290a46c73de9cd0627fe6457d9e22e17065bf2e0b578864b487a4599f82416"
+    },
+    "wixqa-rag-long8000-dev-v1": {
+      "license": "MIT",
+      "grounding": "article-level",
+      "corpus_documents": 39,
+      "documents_at_least_8000_chars": 34,
+      "source_cases": 36,
+      "evaluated_article_groups": 32,
+      "multi_article_groups": 5,
+      "corpus_document_chars": {
+        "min": 1252,
+        "median": 9365,
+        "p95": 17187,
+        "max": 27637
+      },
+      "corpus_sha256": "442609f7b89804aa36a60e456185f5019f6cba5db45b74668fa810615d8ecfd0",
+      "cases_sha256": "e80d80f3204b5cca1763d9ef339535bab62f82cd93da0529cbde50e09e9504ee"
+    }
+  },
+  "results": {
+    "doc2dial_span_gold": {
+      "baseline-512": {
+        "candidate_recall_at_20": 0.7222222222222222,
+        "first_stage_mrr_at_5_range": [
+          0.4185185185185185,
+          0.42685185185185187
+        ],
+        "packed_evidence_recall": 0.5277777777777778,
+        "multi_condition_completeness": 0.5,
+        "harmful_context_rate_vs_baseline": 0.0,
+        "p95_retrieval_latency_ms_range": [
+          49.50739163905382,
+          55.68959657102823
+        ]
+      },
+      "neighbor-512": {
+        "candidate_recall_at_20": 0.7222222222222222,
+        "first_stage_mrr_at_5_range": [
+          0.4185185185185185,
+          0.42685185185185187
+        ],
+        "packed_evidence_recall": 0.5555555555555556,
+        "multi_condition_completeness": 0.5625,
+        "harmful_context_rate_vs_baseline": 0.027777777777777776,
+        "p95_retrieval_latency_ms_range": [
+          49.50739163905382,
+          55.68959657102823
+        ]
+      },
+      "parent-child-256-1024": {
+        "candidate_recall_at_20": 0.7222222222222222,
+        "first_stage_mrr_at_5_range": [
+          0.500925925925926,
+          0.5148148148148148
+        ],
+        "packed_evidence_recall": 0.5833333333333334,
+        "multi_condition_completeness": 0.5,
+        "harmful_context_rate_vs_baseline": 0.0,
+        "p95_retrieval_latency_ms_range": [
+          58.815819676965475,
+          66.77443441003561
+        ]
+      },
+      "conditional-parent-child": {
+        "candidate_recall_at_20": 0.75,
+        "first_stage_mrr_at_5": 0.5101851851851852,
+        "packed_evidence_recall": 0.5833333333333334,
+        "multi_condition_completeness": 0.5,
+        "harmful_context_rate_vs_baseline": 0.0,
+        "parent_child_route_count": 21,
+        "parent_child_route_rate": 0.5833333333333334,
+        "p95_cascade_retrieval_latency_ms": 110.23607337847352
+      }
+    },
+    "wixqa_article_gold": {
+      "baseline-512": {
+        "candidate_recall_at_20": 1.0,
+        "first_stage_mrr_at_5": 0.96875,
+        "packed_document_recall": 0.9635416666666666,
+        "multi_article_completeness": 0.7666666666666666
+      },
+      "neighbor-512": {
+        "candidate_recall_at_20": 1.0,
+        "first_stage_mrr_at_5": 0.96875,
+        "packed_document_recall": 0.953125,
+        "multi_article_completeness": 0.7
+      },
+      "parent-child-256-1024": {
+        "candidate_recall_at_20": 1.0,
+        "first_stage_mrr_at_5": 0.96875,
+        "packed_document_recall": 0.953125,
+        "multi_article_completeness": 0.7
+      },
+      "conditional-parent-child": {
+        "candidate_recall_at_20": 1.0,
+        "first_stage_mrr_at_5": 0.96875,
+        "packed_document_recall": 0.953125,
+        "multi_article_completeness": 0.7,
+        "harmful_context_rate_vs_baseline": 0.03125,
+        "parent_child_route_count": 9,
+        "parent_child_route_rate": 0.28125,
+        "p95_cascade_retrieval_latency_ms": 97.5846073590219
+      }
+    },
+    "doc2dial_aligned_full_chain": {
+      "generation_contract": "grounded-v4-history",
+      "query_contract": "Raw 0.25 + captured Standalone 0.75",
+      "query_capture": {
+        "case_count": 36,
+        "calls": 108,
+        "input_tokens": 14455,
+        "output_tokens": 5874,
+        "error_cases": 0,
+        "raw_candidate_recall_at_20": 0.7222222222222222,
+        "standalone_candidate_recall_at_20": 0.7777777777777778,
+        "multi2_dev_candidate_recall_at_20_diagnostic": 0.8333333333333334
+      },
+      "baseline-512": {
+        "candidate_recall_at_20": 0.7777777777777778,
+        "reranked_recall_at_5": 0.7361111111111112,
+        "packed_evidence_recall": 0.7361111111111112,
+        "multi_condition_completeness": 0.71875,
+        "rerank_failure_rate": 0.1388888888888889,
+        "generation_failure_or_abstention_rate": 0.9166666666666666,
+        "claim_support_rate": 0.08333333333333333,
+        "citation_correctness_rate": 0.08333333333333333
+      },
+      "parent-child-256-1024": {
+        "candidate_recall_at_20": 0.7777777777777778,
+        "reranked_recall_at_5": 0.6944444444444444,
+        "packed_evidence_recall": 0.6666666666666666,
+        "multi_condition_completeness": 0.6875,
+        "harmful_context_rate_vs_baseline": 0.1388888888888889,
+        "rerank_failure_rate": 0.05555555555555555,
+        "generation_failure_or_abstention_rate": 0.8333333333333334,
+        "claim_support_rate": 0.16666666666666666,
+        "citation_correctness_rate": 0.16666666666666666
+      },
+      "conditional-parent-child": {
+        "candidate_recall_at_20": 0.8055555555555556,
+        "reranked_recall_at_5": 0.7638888888888888,
+        "packed_evidence_recall": 0.7361111111111112,
+        "multi_condition_completeness": 0.65625,
+        "harmful_context_rate_vs_baseline": 0.05555555555555555,
+        "rerank_failure_rate": 0.0,
+        "generation_failure_or_abstention_rate": 0.8611111111111112,
+        "claim_support_rate": 0.1111111111111111,
+        "citation_correctness_rate": 0.1111111111111111
+      },
+      "physical_model_usage": {
+        "query_capture_calls": 108,
+        "rerank_calls": 72,
+        "generation_and_repair_calls": 203,
+        "judge_calls": 14,
+        "approximately_total_input_tokens": 568121,
+        "approximately_total_output_tokens": 114342
+      }
+    },
+    "doc2dial_grounded_v5_pydanticai": {
+      "dataset_and_retrieval_reused_from": "doc2dial_aligned_full_chain",
+      "prompt_version": "customer-support-grounded-v5-pydanticai",
+      "contract": "PydanticAI tool output; segments are the single source for answer, claims, and citations; one output retry maximum",
+      "baseline-512": {
+        "generation_contract_failure_rate": 0.0,
+        "typed_abstention_rate": 0.16666666666666666,
+        "claim_support_rate": 0.7777777777777778,
+        "citation_correctness_rate": 0.7777777777777778,
+        "answer_completeness_rate": 0.75,
+        "p95_pipeline_latency_ms": 10218.739405163675
+      },
+      "parent-child-256-1024": {
+        "generation_contract_failure_rate": 0.0,
+        "typed_abstention_rate": 0.16666666666666666,
+        "claim_support_rate": 0.7777777777777778,
+        "citation_correctness_rate": 0.7777777777777778,
+        "answer_completeness_rate": 0.6666666666666666,
+        "p95_pipeline_latency_ms": 11055.580960392148
+      },
+      "conditional-parent-child": {
+        "generation_contract_failure_rate": 0.0,
+        "typed_abstention_rate": 0.16666666666666666,
+        "claim_support_rate": 0.8055555555555556,
+        "citation_correctness_rate": 0.8055555555555556,
+        "answer_completeness_rate": 0.7222222222222222,
+        "p95_pipeline_latency_ms": 11654.469334419431
+      },
+      "physical_generation_usage": {
+        "cases_across_topologies": 108,
+        "requests": 108,
+        "input_tokens": 301059,
+        "cache_read_input_tokens": 228736,
+        "output_tokens": 27248,
+        "contract_errors": 0
+      },
+      "selection": "keep baseline 512/64; generation contract repaired on Dev, topology candidates still fail multi-condition packing gates; fresh Heldout and Shadow not run"
+    }
+  },
+  "decision": {
+    "global_default": "baseline-512",
+    "neighbor_passes_all_gates": false,
+    "parent_child_passes_all_gates": false,
+    "conditional_parent_child_followup": false,
+    "conditional_parent_child_passes_all_gates": false,
+    "heldout_opened": false,
+    "reason": "After aligning Raw plus Standalone, rerank, packing and grounded v4 on the same 36 long-document groups, conditional parent-child improved candidate recall to 0.8056 and reranked recall to 0.7639, but packed recall fell back to the baseline 0.7361, multi-condition completeness regressed to 0.6563, harmful context was 0.0556, and generation failed or abstained on 0.8611. The topology therefore does not pass Dev gates."
+  },
+  "limitations": [
+    "The Raw-only and WixQA results are structural prechecks; doc2dial_aligned_full_chain includes reranker, generator, and Judge calls.",
+    "WixQA evaluates relevant-article retrieval, not answer-section localization.",
+    "Local serial latency on a small corpus is not a production load test.",
+    "Doc2Dial MRR and local P95 are reported as repeated-run ranges where available because rebuilding the local approximate index produced small rank-order and timing variation; stable Recall and packing metrics drive the structural conclusion.",
+    "The conditional policy is one predeclared observable heuristic, not a calibrated classifier or a claim that all conditional routing has failed.",
+    "Full-chain P95 includes provider variance and this small serial corpus is not a load test; token totals are observability sums, not a currency-cost estimate."
+  ]
+}

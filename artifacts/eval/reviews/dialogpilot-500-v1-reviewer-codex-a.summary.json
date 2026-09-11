@@ -1,0 +1,31 @@
+{
+  "blindness_notice": "Not pristine blind: dataset overview, reported Planner 120/120 agreement, and a small expected-label prefix were seen before assignment clarification; no prior reviewer artifact was read and Planner was not executed.",
+  "by_layer_decision": {
+    "intent:accept": 157,
+    "intent:ambiguous": 14,
+    "intent:revise": 9,
+    "retrieval:accept": 100,
+    "routing:accept": 115,
+    "routing:revise": 5,
+    "stateful:revise": 100
+  },
+  "case_count": 500,
+  "confidence_notice": "Self-reported confidence is uncalibrated triage metadata and must not be interpreted as probability.",
+  "dataset_cases_sha256": "00c32e28eda8b9026482a4135561fba5287747982dd50c15127db126fe94b8ac",
+  "dataset_id": "dialogpilot-500-v1",
+  "dataset_version": "1.0.0-provisional",
+  "decision_counts": {
+    "accept": 372,
+    "ambiguous": 14,
+    "revise": 114
+  },
+  "generated_at": "2026-08-30T12:39:28.304826+00:00",
+  "gold_notice": "This artifact is llm_reviewed evidence only; it does not create human_reviewed gold.",
+  "human_queue_case_count": 128,
+  "human_queue_group_count": 76,
+  "reviewer_id": "codex-a-2026-08-30",
+  "reviewer_role": "Reviewer A",
+  "reviewer_runtime": "OpenAI Codex current session",
+  "schema_version": 1,
+  "stateful_notice": "All stateful cases require concrete fixtures and real execution; this review does not certify isolation or side effects."
+}

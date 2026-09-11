@@ -1,0 +1,1968 @@
+{
+  "batch_id": "domain-v3:zh:1",
+  "language": "zh",
+  "split": "train",
+  "model": "deepseek-v4-pro",
+  "synthetic": true,
+  "author_prompt": "Author 8 DIFFERENT natural ecommerce customer-service dialogue families in zh.\nBatch 1; ensure at least four current turns classified as product_technical across this batch.\nEach family has its OWN coherent history of 2, 4 or 6 short alternating user/assistant\nmessages, followed by 3 ALTERNATIVE current user turns, not three sequential turns.\nThose alternatives differ in effective intent: retain vs replace, withdraw vs\ncontinue, single goal vs concurrent goal, or resolved vs unresolved reference.\nInclude natural short answers where history matters. Vary old completed tasks,\nhesitation, self-correction, indirect wording, topics and dialogue acts. General\nand human-service requests must also occur as NEW goals, not only stale history.\nDo not follow a repeated sentence template or substitute product nouns to create\nnew families. Avoid stereotyped 'information only, do not submit' repetition.\nInvent broad everyday ecommerce situations; no copied benchmark or private data.\nHistory plus current turn should fit 150 English words or 180 Chinese characters;\nkeep it compact but meaningful. No future replies or final conversation summaries.\nSupply the correct label for each alternative according to the rubric.\n",
+  "author_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_u3nycfKKSVRejjJf7srB0376",
+          "input": {
+            "families": [
+              {
+                "scenario": "顾客购买蓝牙耳机后询问降噪与兼容性",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我昨天买的耳机到了，想问问降噪怎么开？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "长按左耳触控区两秒即可切换降噪模式。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "那它连我的旧平板会不会有问题？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "支持蓝牙5.0以上设备，旧平板若版本低可能断连。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那降噪模式下续航大概多久？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "算了，先帮我查一下这单到哪了。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "哦这样啊，那没事了，谢谢。",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客咨询智能手表与手机配对失败",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "手表一直连不上手机，重启也没用。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请确认手机蓝牙和定位都已开启，再试一次。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "都开了，还是搜不到设备。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "那试试在手表上恢复出厂设置后重新配对。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "恢复出厂会清掉我的运动记录吗？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "先别管这个了，我要退掉这块表。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "好的我试试，顺便问下你们客服电话多少？",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客询问空气炸锅温度设置",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "炸薯条一般设多少度？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "建议200度，15到18分钟，中途翻动一次。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "那烤鸡翅呢？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "鸡翅180度烤20分钟，皮会更脆。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "内胆能放进洗碗机洗吗？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "对了，我昨天那单怎么还没发货？",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "好的，先这样吧。",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客咨询咖啡机除垢方法",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "咖啡机提示要除垢了，怎么操作？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "水箱加除垢剂到刻度线，长按除垢键启动。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "没有除垢剂能用白醋代替吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "可以，白醋和水1:1混合，但之后要多冲洗两遍。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "除垢过程大概要多久？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "我登录不上账号了，能帮我看看吗？",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "那除垢剂你们有卖吗？",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客询问净水器滤芯更换周期",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "滤芯多久换一次？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "PP棉3到6个月，活性炭6到12个月，RO膜2年。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "怎么知道该换了呢？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "出水量明显变小或口感变差，就该换了。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "换滤芯要断电断水吗？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "我上个月买的滤芯还没到，查一下。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "明白了，谢谢。",
+                    "label": "general"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客咨询扫地机器人卡住报错",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "机器人一直报错说滚刷卡住。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请关机后取出滚刷，清理缠绕的毛发。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "清理了还是报错。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "那检查一下滚刷两端卡扣是否装到位。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "卡扣装好了，还是不行，能换货吗？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "滚刷多久需要换新的？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "算了，我找人工客服处理吧。",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客咨询电饭煲预约功能",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "预约煮粥怎么设置？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "按预约键，再按加减设定完成时间，选煮粥模式。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "设的是完成时间还是开始时间？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "是完成时间，机器会自动倒推开始煮。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那夏天预约会不会馊掉？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "我改主意了，这锅能退吗？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "好的，没别的事了。",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客咨询加湿器不出雾",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "加湿器开了但不出雾。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "先看水箱是否缺水，水位过低会自动停。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "水是满的，还是没雾。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "那可能是雾化片有水垢，用棉签蘸白醋轻擦。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "擦完还是不行，能保修吗？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "雾化片在哪，怎么拆开？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "算了不弄了，谢谢。",
+                    "label": "__DEFER__"
+                  }
+                ]
+              }
+            ]
+          },
+          "name": "AuthoredBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "3c257541-e692-4c39-813b-e65c7f5d1442",
+        "container": null,
+        "model": "deepseek-v4-pro",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 384,
+          "inference_geo": null,
+          "input_tokens": 577,
+          "output_tokens": 1505,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-pro",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081cb-d51a-70a2-b55a-4072479d247a-0",
+      "tool_calls": [
+        {
+          "name": "AuthoredBatch",
+          "args": {
+            "families": [
+              {
+                "scenario": "顾客购买蓝牙耳机后询问降噪与兼容性",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "我昨天买的耳机到了，想问问降噪怎么开？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "长按左耳触控区两秒即可切换降噪模式。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "那它连我的旧平板会不会有问题？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "支持蓝牙5.0以上设备，旧平板若版本低可能断连。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那降噪模式下续航大概多久？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "算了，先帮我查一下这单到哪了。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "哦这样啊，那没事了，谢谢。",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客咨询智能手表与手机配对失败",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "手表一直连不上手机，重启也没用。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请确认手机蓝牙和定位都已开启，再试一次。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "都开了，还是搜不到设备。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "那试试在手表上恢复出厂设置后重新配对。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "恢复出厂会清掉我的运动记录吗？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "先别管这个了，我要退掉这块表。",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "好的我试试，顺便问下你们客服电话多少？",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客询问空气炸锅温度设置",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "炸薯条一般设多少度？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "建议200度，15到18分钟，中途翻动一次。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "那烤鸡翅呢？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "鸡翅180度烤20分钟，皮会更脆。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "内胆能放进洗碗机洗吗？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "对了，我昨天那单怎么还没发货？",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "好的，先这样吧。",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客咨询咖啡机除垢方法",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "咖啡机提示要除垢了，怎么操作？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "水箱加除垢剂到刻度线，长按除垢键启动。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "没有除垢剂能用白醋代替吗？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "可以，白醋和水1:1混合，但之后要多冲洗两遍。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "除垢过程大概要多久？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "我登录不上账号了，能帮我看看吗？",
+                    "label": "account_security"
+                  },
+                  {
+                    "text": "那除垢剂你们有卖吗？",
+                    "label": "product_technical"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客询问净水器滤芯更换周期",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "滤芯多久换一次？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "PP棉3到6个月，活性炭6到12个月，RO膜2年。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "怎么知道该换了呢？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "出水量明显变小或口感变差，就该换了。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "换滤芯要断电断水吗？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "我上个月买的滤芯还没到，查一下。",
+                    "label": "order_logistics"
+                  },
+                  {
+                    "text": "明白了，谢谢。",
+                    "label": "general"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客咨询扫地机器人卡住报错",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "机器人一直报错说滚刷卡住。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "请关机后取出滚刷，清理缠绕的毛发。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "清理了还是报错。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "那检查一下滚刷两端卡扣是否装到位。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "卡扣装好了，还是不行，能换货吗？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "滚刷多久需要换新的？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "算了，我找人工客服处理吧。",
+                    "label": "human_service"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客咨询电饭煲预约功能",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "预约煮粥怎么设置？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "按预约键，再按加减设定完成时间，选煮粥模式。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "设的是完成时间还是开始时间？"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "是完成时间，机器会自动倒推开始煮。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "那夏天预约会不会馊掉？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "我改主意了，这锅能退吗？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "好的，没别的事了。",
+                    "label": "__DEFER__"
+                  }
+                ]
+              },
+              {
+                "scenario": "顾客咨询加湿器不出雾",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "加湿器开了但不出雾。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "先看水箱是否缺水，水位过低会自动停。"
+                  },
+                  {
+                    "role": "user",
+                    "content": "水是满的，还是没雾。"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "那可能是雾化片有水垢，用棉签蘸白醋轻擦。"
+                  }
+                ],
+                "variants": [
+                  {
+                    "text": "擦完还是不行，能保修吗？",
+                    "label": "billing_refund"
+                  },
+                  {
+                    "text": "雾化片在哪，怎么拆开？",
+                    "label": "product_technical"
+                  },
+                  {
+                    "text": "算了不弄了，谢谢。",
+                    "label": "__DEFER__"
+                  }
+                ]
+              }
+            ]
+          },
+          "id": "call_00_u3nycfKKSVRejjJf7srB0376",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 961,
+        "output_tokens": 1505,
+        "total_tokens": 2466,
+        "input_token_details": {
+          "cache_read": 384,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "authored": {
+    "families": [
+      {
+        "scenario": "顾客购买蓝牙耳机后询问降噪与兼容性",
+        "messages": [
+          {
+            "role": "user",
+            "content": "我昨天买的耳机到了，想问问降噪怎么开？"
+          },
+          {
+            "role": "assistant",
+            "content": "长按左耳触控区两秒即可切换降噪模式。"
+          },
+          {
+            "role": "user",
+            "content": "那它连我的旧平板会不会有问题？"
+          },
+          {
+            "role": "assistant",
+            "content": "支持蓝牙5.0以上设备，旧平板若版本低可能断连。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "那降噪模式下续航大概多久？",
+            "label": "product_technical"
+          },
+          {
+            "text": "算了，先帮我查一下这单到哪了。",
+            "label": "order_logistics"
+          },
+          {
+            "text": "哦这样啊，那没事了，谢谢。",
+            "label": "__DEFER__"
+          }
+        ]
+      },
+      {
+        "scenario": "顾客咨询智能手表与手机配对失败",
+        "messages": [
+          {
+            "role": "user",
+            "content": "手表一直连不上手机，重启也没用。"
+          },
+          {
+            "role": "assistant",
+            "content": "请确认手机蓝牙和定位都已开启，再试一次。"
+          },
+          {
+            "role": "user",
+            "content": "都开了，还是搜不到设备。"
+          },
+          {
+            "role": "assistant",
+            "content": "那试试在手表上恢复出厂设置后重新配对。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "恢复出厂会清掉我的运动记录吗？",
+            "label": "product_technical"
+          },
+          {
+            "text": "先别管这个了，我要退掉这块表。",
+            "label": "billing_refund"
+          },
+          {
+            "text": "好的我试试，顺便问下你们客服电话多少？",
+            "label": "human_service"
+          }
+        ]
+      },
+      {
+        "scenario": "顾客询问空气炸锅温度设置",
+        "messages": [
+          {
+            "role": "user",
+            "content": "炸薯条一般设多少度？"
+          },
+          {
+            "role": "assistant",
+            "content": "建议200度，15到18分钟，中途翻动一次。"
+          },
+          {
+            "role": "user",
+            "content": "那烤鸡翅呢？"
+          },
+          {
+            "role": "assistant",
+            "content": "鸡翅180度烤20分钟，皮会更脆。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "内胆能放进洗碗机洗吗？",
+            "label": "product_technical"
+          },
+          {
+            "text": "对了，我昨天那单怎么还没发货？",
+            "label": "order_logistics"
+          },
+          {
+            "text": "好的，先这样吧。",
+            "label": "__DEFER__"
+          }
+        ]
+      },
+      {
+        "scenario": "顾客咨询咖啡机除垢方法",
+        "messages": [
+          {
+            "role": "user",
+            "content": "咖啡机提示要除垢了，怎么操作？"
+          },
+          {
+            "role": "assistant",
+            "content": "水箱加除垢剂到刻度线，长按除垢键启动。"
+          },
+          {
+            "role": "user",
+            "content": "没有除垢剂能用白醋代替吗？"
+          },
+          {
+            "role": "assistant",
+            "content": "可以，白醋和水1:1混合，但之后要多冲洗两遍。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "除垢过程大概要多久？",
+            "label": "product_technical"
+          },
+          {
+            "text": "我登录不上账号了，能帮我看看吗？",
+            "label": "account_security"
+          },
+          {
+            "text": "那除垢剂你们有卖吗？",
+            "label": "product_technical"
+          }
+        ]
+      },
+      {
+        "scenario": "顾客询问净水器滤芯更换周期",
+        "messages": [
+          {
+            "role": "user",
+            "content": "滤芯多久换一次？"
+          },
+          {
+            "role": "assistant",
+            "content": "PP棉3到6个月，活性炭6到12个月，RO膜2年。"
+          },
+          {
+            "role": "user",
+            "content": "怎么知道该换了呢？"
+          },
+          {
+            "role": "assistant",
+            "content": "出水量明显变小或口感变差，就该换了。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "换滤芯要断电断水吗？",
+            "label": "product_technical"
+          },
+          {
+            "text": "我上个月买的滤芯还没到，查一下。",
+            "label": "order_logistics"
+          },
+          {
+            "text": "明白了，谢谢。",
+            "label": "general"
+          }
+        ]
+      },
+      {
+        "scenario": "顾客咨询扫地机器人卡住报错",
+        "messages": [
+          {
+            "role": "user",
+            "content": "机器人一直报错说滚刷卡住。"
+          },
+          {
+            "role": "assistant",
+            "content": "请关机后取出滚刷，清理缠绕的毛发。"
+          },
+          {
+            "role": "user",
+            "content": "清理了还是报错。"
+          },
+          {
+            "role": "assistant",
+            "content": "那检查一下滚刷两端卡扣是否装到位。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "卡扣装好了，还是不行，能换货吗？",
+            "label": "billing_refund"
+          },
+          {
+            "text": "滚刷多久需要换新的？",
+            "label": "product_technical"
+          },
+          {
+            "text": "算了，我找人工客服处理吧。",
+            "label": "human_service"
+          }
+        ]
+      },
+      {
+        "scenario": "顾客咨询电饭煲预约功能",
+        "messages": [
+          {
+            "role": "user",
+            "content": "预约煮粥怎么设置？"
+          },
+          {
+            "role": "assistant",
+            "content": "按预约键，再按加减设定完成时间，选煮粥模式。"
+          },
+          {
+            "role": "user",
+            "content": "设的是完成时间还是开始时间？"
+          },
+          {
+            "role": "assistant",
+            "content": "是完成时间，机器会自动倒推开始煮。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "那夏天预约会不会馊掉？",
+            "label": "product_technical"
+          },
+          {
+            "text": "我改主意了，这锅能退吗？",
+            "label": "billing_refund"
+          },
+          {
+            "text": "好的，没别的事了。",
+            "label": "__DEFER__"
+          }
+        ]
+      },
+      {
+        "scenario": "顾客咨询加湿器不出雾",
+        "messages": [
+          {
+            "role": "user",
+            "content": "加湿器开了但不出雾。"
+          },
+          {
+            "role": "assistant",
+            "content": "先看水箱是否缺水，水位过低会自动停。"
+          },
+          {
+            "role": "user",
+            "content": "水是满的，还是没雾。"
+          },
+          {
+            "role": "assistant",
+            "content": "那可能是雾化片有水垢，用棉签蘸白醋轻擦。"
+          }
+        ],
+        "variants": [
+          {
+            "text": "擦完还是不行，能保修吗？",
+            "label": "billing_refund"
+          },
+          {
+            "text": "雾化片在哪，怎么拆开？",
+            "label": "product_technical"
+          },
+          {
+            "text": "算了不弄了，谢谢。",
+            "label": "__DEFER__"
+          }
+        ]
+      }
+    ]
+  },
+  "review_input_sha256": "95a05ddf48ac0c719bd261cd1c1003b8de903b8cedd26c9ce82af112d88f8579",
+  "review_call": {
+    "response": {
+      "content": [
+        {
+          "id": "call_00_5bhH39eCcp6UBMNoLJp04074",
+          "input": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:zh:1:0:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "继续询问耳机降噪模式下的续航，属于产品规格/使用问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:0:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "明确转向查询订单物流，属于订单/配送问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:0:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "表示理解并致谢，无剩余业务目标，属于普通寒暄。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:1:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问恢复出厂是否清除运动记录，属于产品使用/功能问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:1:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "明确表示要退货，属于退款/退货问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:1:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "询问客服电话，属于人工服务/联系方式请求。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:2:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问内胆能否进洗碗机，属于产品使用/兼容性问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:2:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "转向询问订单发货情况，属于订单/物流问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:2:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "表示先这样，无剩余业务目标，属于普通寒暄。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:3:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问除垢过程时长，属于产品使用/操作问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:3:1",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "明确转向登录账号问题，属于账号访问/安全。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:3:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问除垢剂是否有售，仍围绕产品配件/使用，属于产品技术范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:4:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问换滤芯是否需断电断水，属于产品使用/操作问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:4:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "转向查询滤芯订单物流，属于订单/配送问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:4:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "表示明白并致谢，无剩余业务目标，属于普通寒暄。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:5:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "故障无法解决后询问能否换货，属于退换货/售后问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:5:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问滚刷更换周期，属于产品配件/使用问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:5:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "明确要求转人工客服，属于人工服务请求。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:6:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问夏天预约是否变质，属于产品使用/功能问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:6:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "明确表示要退货，属于退款/退货问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:6:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "表示没有其他事，无剩余业务目标，属于普通寒暄。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:7:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "故障无法解决后询问能否保修，属于售后/退换问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:7:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问雾化片位置及拆卸方法，属于产品使用/操作问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:7:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "表示放弃并致谢，无剩余业务目标，属于普通寒暄。"
+              }
+            ]
+          },
+          "name": "ReviewedBatch",
+          "type": "tool_use",
+          "toolset_name": null
+        }
+      ],
+      "additional_kwargs": {},
+      "response_metadata": {
+        "id": "1669a77e-76a8-46e5-87b9-4c8b4d4d7af3",
+        "container": null,
+        "model": "deepseek-v4-pro",
+        "stop_details": null,
+        "stop_reason": "tool_use",
+        "stop_sequence": null,
+        "usage": {
+          "cache_creation": null,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "inference_geo": null,
+          "input_tokens": 3159,
+          "output_tokens": 1281,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard"
+        },
+        "model_name": "deepseek-v4-pro",
+        "model_provider": "anthropic"
+      },
+      "type": "ai",
+      "name": null,
+      "id": "lc_run--01a081cc-29d7-7c80-add4-3e52b86f34cb-0",
+      "tool_calls": [
+        {
+          "name": "ReviewedBatch",
+          "args": {
+            "verdicts": [
+              {
+                "case_id": "domain-v3:zh:1:0:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "继续询问耳机降噪模式下的续航，属于产品规格/使用问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:0:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "明确转向查询订单物流，属于订单/配送问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:0:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "表示理解并致谢，无剩余业务目标，属于普通寒暄。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:1:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问恢复出厂是否清除运动记录，属于产品使用/功能问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:1:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "明确表示要退货，属于退款/退货问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:1:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "询问客服电话，属于人工服务/联系方式请求。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:2:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问内胆能否进洗碗机，属于产品使用/兼容性问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:2:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "转向询问订单发货情况，属于订单/物流问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:2:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "表示先这样，无剩余业务目标，属于普通寒暄。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:3:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问除垢过程时长，属于产品使用/操作问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:3:1",
+                "label": "account_security",
+                "clear_and_natural": true,
+                "reason": "明确转向登录账号问题，属于账号访问/安全。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:3:2",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问除垢剂是否有售，仍围绕产品配件/使用，属于产品技术范畴。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:4:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问换滤芯是否需断电断水，属于产品使用/操作问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:4:1",
+                "label": "order_logistics",
+                "clear_and_natural": true,
+                "reason": "转向查询滤芯订单物流，属于订单/配送问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:4:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "表示明白并致谢，无剩余业务目标，属于普通寒暄。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:5:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "故障无法解决后询问能否换货，属于退换货/售后问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:5:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问滚刷更换周期，属于产品配件/使用问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:5:2",
+                "label": "human_service",
+                "clear_and_natural": true,
+                "reason": "明确要求转人工客服，属于人工服务请求。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:6:0",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问夏天预约是否变质，属于产品使用/功能问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:6:1",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "明确表示要退货，属于退款/退货问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:6:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "表示没有其他事，无剩余业务目标，属于普通寒暄。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:7:0",
+                "label": "billing_refund",
+                "clear_and_natural": true,
+                "reason": "故障无法解决后询问能否保修，属于售后/退换问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:7:1",
+                "label": "product_technical",
+                "clear_and_natural": true,
+                "reason": "询问雾化片位置及拆卸方法，属于产品使用/操作问题。"
+              },
+              {
+                "case_id": "domain-v3:zh:1:7:2",
+                "label": "general",
+                "clear_and_natural": true,
+                "reason": "表示放弃并致谢，无剩余业务目标，属于普通寒暄。"
+              }
+            ]
+          },
+          "id": "call_00_5bhH39eCcp6UBMNoLJp04074",
+          "type": "tool_call"
+        }
+      ],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 3671,
+        "output_tokens": 1281,
+        "total_tokens": 4952,
+        "input_token_details": {
+          "cache_read": 512,
+          "cache_creation": 0
+        }
+      }
+    },
+    "error": null
+  },
+  "reviewed": {
+    "verdicts": [
+      {
+        "case_id": "domain-v3:zh:1:0:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "继续询问耳机降噪模式下的续航，属于产品规格/使用问题。"
+      },
+      {
+        "case_id": "domain-v3:zh:1:0:1",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "明确转向查询订单物流，属于订单/配送问题。"
+      },
+      {
+        "case_id": "domain-v3:zh:1:0:2",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "表示理解并致谢，无剩余业务目标，属于普通寒暄。"
+      },
+      {
+        "case_id": "domain-v3:zh:1:1:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "询问恢复出厂是否清除运动记录，属于产品使用/功能问题。"
+      },
+      {
+        "case_id": "domain-v3:zh:1:1:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "明确表示要退货，属于退款/退货问题。"
+      },
+      {
+        "case_id": "domain-v3:zh:1:1:2",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "询问客服电话，属于人工服务/联系方式请求。"
+      },
+      {
+        "case_id": "domain-v3:zh:1:2:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "询问内胆能否进洗碗机，属于产品使用/兼容性问题。"
+      },
+      {
+        "case_id": "domain-v3:zh:1:2:1",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "转向询问订单发货情况，属于订单/物流问题。"
+      },
+      {
+        "case_id": "domain-v3:zh:1:2:2",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "表示先这样，无剩余业务目标，属于普通寒暄。"
+      },
+      {
+        "case_id": "domain-v3:zh:1:3:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "询问除垢过程时长，属于产品使用/操作问题。"
+      },
+      {
+        "case_id": "domain-v3:zh:1:3:1",
+        "label": "account_security",
+        "clear_and_natural": true,
+        "reason": "明确转向登录账号问题，属于账号访问/安全。"
+      },
+      {
+        "case_id": "domain-v3:zh:1:3:2",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "询问除垢剂是否有售，仍围绕产品配件/使用，属于产品技术范畴。"
+      },
+      {
+        "case_id": "domain-v3:zh:1:4:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "询问换滤芯是否需断电断水，属于产品使用/操作问题。"
+      },
+      {
+        "case_id": "domain-v3:zh:1:4:1",
+        "label": "order_logistics",
+        "clear_and_natural": true,
+        "reason": "转向查询滤芯订单物流，属于订单/配送问题。"
+      },
+      {
+        "case_id": "domain-v3:zh:1:4:2",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "表示明白并致谢，无剩余业务目标，属于普通寒暄。"
+      },
+      {
+        "case_id": "domain-v3:zh:1:5:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "故障无法解决后询问能否换货，属于退换货/售后问题。"
+      },
+      {
+        "case_id": "domain-v3:zh:1:5:1",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "询问滚刷更换周期，属于产品配件/使用问题。"
+      },
+      {
+        "case_id": "domain-v3:zh:1:5:2",
+        "label": "human_service",
+        "clear_and_natural": true,
+        "reason": "明确要求转人工客服，属于人工服务请求。"
+      },
+      {
+        "case_id": "domain-v3:zh:1:6:0",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "询问夏天预约是否变质，属于产品使用/功能问题。"
+      },
+      {
+        "case_id": "domain-v3:zh:1:6:1",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "明确表示要退货，属于退款/退货问题。"
+      },
+      {
+        "case_id": "domain-v3:zh:1:6:2",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "表示没有其他事，无剩余业务目标，属于普通寒暄。"
+      },
+      {
+        "case_id": "domain-v3:zh:1:7:0",
+        "label": "billing_refund",
+        "clear_and_natural": true,
+        "reason": "故障无法解决后询问能否保修，属于售后/退换问题。"
+      },
+      {
+        "case_id": "domain-v3:zh:1:7:1",
+        "label": "product_technical",
+        "clear_and_natural": true,
+        "reason": "询问雾化片位置及拆卸方法，属于产品使用/操作问题。"
+      },
+      {
+        "case_id": "domain-v3:zh:1:7:2",
+        "label": "general",
+        "clear_and_natural": true,
+        "reason": "表示放弃并致谢，无剩余业务目标，属于普通寒暄。"
+      }
+    ]
+  },
+  "rows": [
+    {
+      "case_id": "domain-v3:zh:1:0:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我昨天买的耳机到了，想问问降噪怎么开？"
+        },
+        {
+          "role": "assistant",
+          "content": "长按左耳触控区两秒即可切换降噪模式。"
+        },
+        {
+          "role": "user",
+          "content": "那它连我的旧平板会不会有问题？"
+        },
+        {
+          "role": "assistant",
+          "content": "支持蓝牙5.0以上设备，旧平板若版本低可能断连。"
+        }
+      ],
+      "text": "那降噪模式下续航大概多久？",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:1:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:1:0:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "我昨天买的耳机到了，想问问降噪怎么开？"
+        },
+        {
+          "role": "assistant",
+          "content": "长按左耳触控区两秒即可切换降噪模式。"
+        },
+        {
+          "role": "user",
+          "content": "那它连我的旧平板会不会有问题？"
+        },
+        {
+          "role": "assistant",
+          "content": "支持蓝牙5.0以上设备，旧平板若版本低可能断连。"
+        }
+      ],
+      "text": "算了，先帮我查一下这单到哪了。",
+      "label": "order_logistics",
+      "language": "zh",
+      "group_id": "domain-v3:zh:1:0",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:1:1:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "手表一直连不上手机，重启也没用。"
+        },
+        {
+          "role": "assistant",
+          "content": "请确认手机蓝牙和定位都已开启，再试一次。"
+        },
+        {
+          "role": "user",
+          "content": "都开了，还是搜不到设备。"
+        },
+        {
+          "role": "assistant",
+          "content": "那试试在手表上恢复出厂设置后重新配对。"
+        }
+      ],
+      "text": "恢复出厂会清掉我的运动记录吗？",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:1:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:1:1:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "手表一直连不上手机，重启也没用。"
+        },
+        {
+          "role": "assistant",
+          "content": "请确认手机蓝牙和定位都已开启，再试一次。"
+        },
+        {
+          "role": "user",
+          "content": "都开了，还是搜不到设备。"
+        },
+        {
+          "role": "assistant",
+          "content": "那试试在手表上恢复出厂设置后重新配对。"
+        }
+      ],
+      "text": "先别管这个了，我要退掉这块表。",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:1:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:1:1:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "手表一直连不上手机，重启也没用。"
+        },
+        {
+          "role": "assistant",
+          "content": "请确认手机蓝牙和定位都已开启，再试一次。"
+        },
+        {
+          "role": "user",
+          "content": "都开了，还是搜不到设备。"
+        },
+        {
+          "role": "assistant",
+          "content": "那试试在手表上恢复出厂设置后重新配对。"
+        }
+      ],
+      "text": "好的我试试，顺便问下你们客服电话多少？",
+      "label": "human_service",
+      "language": "zh",
+      "group_id": "domain-v3:zh:1:1",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:1:2:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "炸薯条一般设多少度？"
+        },
+        {
+          "role": "assistant",
+          "content": "建议200度，15到18分钟，中途翻动一次。"
+        },
+        {
+          "role": "user",
+          "content": "那烤鸡翅呢？"
+        },
+        {
+          "role": "assistant",
+          "content": "鸡翅180度烤20分钟，皮会更脆。"
+        }
+      ],
+      "text": "内胆能放进洗碗机洗吗？",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:1:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:1:2:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "炸薯条一般设多少度？"
+        },
+        {
+          "role": "assistant",
+          "content": "建议200度，15到18分钟，中途翻动一次。"
+        },
+        {
+          "role": "user",
+          "content": "那烤鸡翅呢？"
+        },
+        {
+          "role": "assistant",
+          "content": "鸡翅180度烤20分钟，皮会更脆。"
+        }
+      ],
+      "text": "对了，我昨天那单怎么还没发货？",
+      "label": "order_logistics",
+      "language": "zh",
+      "group_id": "domain-v3:zh:1:2",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:1:3:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "咖啡机提示要除垢了，怎么操作？"
+        },
+        {
+          "role": "assistant",
+          "content": "水箱加除垢剂到刻度线，长按除垢键启动。"
+        },
+        {
+          "role": "user",
+          "content": "没有除垢剂能用白醋代替吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "可以，白醋和水1:1混合，但之后要多冲洗两遍。"
+        }
+      ],
+      "text": "除垢过程大概要多久？",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:1:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:1:3:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "咖啡机提示要除垢了，怎么操作？"
+        },
+        {
+          "role": "assistant",
+          "content": "水箱加除垢剂到刻度线，长按除垢键启动。"
+        },
+        {
+          "role": "user",
+          "content": "没有除垢剂能用白醋代替吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "可以，白醋和水1:1混合，但之后要多冲洗两遍。"
+        }
+      ],
+      "text": "我登录不上账号了，能帮我看看吗？",
+      "label": "account_security",
+      "language": "zh",
+      "group_id": "domain-v3:zh:1:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:1:3:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "咖啡机提示要除垢了，怎么操作？"
+        },
+        {
+          "role": "assistant",
+          "content": "水箱加除垢剂到刻度线，长按除垢键启动。"
+        },
+        {
+          "role": "user",
+          "content": "没有除垢剂能用白醋代替吗？"
+        },
+        {
+          "role": "assistant",
+          "content": "可以，白醋和水1:1混合，但之后要多冲洗两遍。"
+        }
+      ],
+      "text": "那除垢剂你们有卖吗？",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:1:3",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:1:4:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "滤芯多久换一次？"
+        },
+        {
+          "role": "assistant",
+          "content": "PP棉3到6个月，活性炭6到12个月，RO膜2年。"
+        },
+        {
+          "role": "user",
+          "content": "怎么知道该换了呢？"
+        },
+        {
+          "role": "assistant",
+          "content": "出水量明显变小或口感变差，就该换了。"
+        }
+      ],
+      "text": "换滤芯要断电断水吗？",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:1:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:1:4:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "滤芯多久换一次？"
+        },
+        {
+          "role": "assistant",
+          "content": "PP棉3到6个月，活性炭6到12个月，RO膜2年。"
+        },
+        {
+          "role": "user",
+          "content": "怎么知道该换了呢？"
+        },
+        {
+          "role": "assistant",
+          "content": "出水量明显变小或口感变差，就该换了。"
+        }
+      ],
+      "text": "我上个月买的滤芯还没到，查一下。",
+      "label": "order_logistics",
+      "language": "zh",
+      "group_id": "domain-v3:zh:1:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:1:4:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "滤芯多久换一次？"
+        },
+        {
+          "role": "assistant",
+          "content": "PP棉3到6个月，活性炭6到12个月，RO膜2年。"
+        },
+        {
+          "role": "user",
+          "content": "怎么知道该换了呢？"
+        },
+        {
+          "role": "assistant",
+          "content": "出水量明显变小或口感变差，就该换了。"
+        }
+      ],
+      "text": "明白了，谢谢。",
+      "label": "general",
+      "language": "zh",
+      "group_id": "domain-v3:zh:1:4",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:1:5:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "机器人一直报错说滚刷卡住。"
+        },
+        {
+          "role": "assistant",
+          "content": "请关机后取出滚刷，清理缠绕的毛发。"
+        },
+        {
+          "role": "user",
+          "content": "清理了还是报错。"
+        },
+        {
+          "role": "assistant",
+          "content": "那检查一下滚刷两端卡扣是否装到位。"
+        }
+      ],
+      "text": "卡扣装好了，还是不行，能换货吗？",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:1:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:1:5:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "机器人一直报错说滚刷卡住。"
+        },
+        {
+          "role": "assistant",
+          "content": "请关机后取出滚刷，清理缠绕的毛发。"
+        },
+        {
+          "role": "user",
+          "content": "清理了还是报错。"
+        },
+        {
+          "role": "assistant",
+          "content": "那检查一下滚刷两端卡扣是否装到位。"
+        }
+      ],
+      "text": "滚刷多久需要换新的？",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:1:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:1:5:2",
+      "messages": [
+        {
+          "role": "user",
+          "content": "机器人一直报错说滚刷卡住。"
+        },
+        {
+          "role": "assistant",
+          "content": "请关机后取出滚刷，清理缠绕的毛发。"
+        },
+        {
+          "role": "user",
+          "content": "清理了还是报错。"
+        },
+        {
+          "role": "assistant",
+          "content": "那检查一下滚刷两端卡扣是否装到位。"
+        }
+      ],
+      "text": "算了，我找人工客服处理吧。",
+      "label": "human_service",
+      "language": "zh",
+      "group_id": "domain-v3:zh:1:5",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:1:6:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "预约煮粥怎么设置？"
+        },
+        {
+          "role": "assistant",
+          "content": "按预约键，再按加减设定完成时间，选煮粥模式。"
+        },
+        {
+          "role": "user",
+          "content": "设的是完成时间还是开始时间？"
+        },
+        {
+          "role": "assistant",
+          "content": "是完成时间，机器会自动倒推开始煮。"
+        }
+      ],
+      "text": "那夏天预约会不会馊掉？",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:1:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:1:6:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "预约煮粥怎么设置？"
+        },
+        {
+          "role": "assistant",
+          "content": "按预约键，再按加减设定完成时间，选煮粥模式。"
+        },
+        {
+          "role": "user",
+          "content": "设的是完成时间还是开始时间？"
+        },
+        {
+          "role": "assistant",
+          "content": "是完成时间，机器会自动倒推开始煮。"
+        }
+      ],
+      "text": "我改主意了，这锅能退吗？",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:1:6",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:1:7:0",
+      "messages": [
+        {
+          "role": "user",
+          "content": "加湿器开了但不出雾。"
+        },
+        {
+          "role": "assistant",
+          "content": "先看水箱是否缺水，水位过低会自动停。"
+        },
+        {
+          "role": "user",
+          "content": "水是满的，还是没雾。"
+        },
+        {
+          "role": "assistant",
+          "content": "那可能是雾化片有水垢，用棉签蘸白醋轻擦。"
+        }
+      ],
+      "text": "擦完还是不行，能保修吗？",
+      "label": "billing_refund",
+      "language": "zh",
+      "group_id": "domain-v3:zh:1:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    },
+    {
+      "case_id": "domain-v3:zh:1:7:1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "加湿器开了但不出雾。"
+        },
+        {
+          "role": "assistant",
+          "content": "先看水箱是否缺水，水位过低会自动停。"
+        },
+        {
+          "role": "user",
+          "content": "水是满的，还是没雾。"
+        },
+        {
+          "role": "assistant",
+          "content": "那可能是雾化片有水垢，用棉签蘸白醋轻擦。"
+        }
+      ],
+      "text": "雾化片在哪，怎么拆开？",
+      "label": "product_technical",
+      "language": "zh",
+      "group_id": "domain-v3:zh:1:7",
+      "source": "blind-reviewed-synthetic-dialogue-v3"
+    }
+  ],
+  "rejected": [
+    {
+      "case_id": "domain-v3:zh:1:0:2",
+      "author": "__DEFER__",
+      "label": "general",
+      "clear_and_natural": true,
+      "reason": "表示理解并致谢，无剩余业务目标，属于普通寒暄。"
+    },
+    {
+      "case_id": "domain-v3:zh:1:2:2",
+      "author": "__DEFER__",
+      "label": "general",
+      "clear_and_natural": true,
+      "reason": "表示先这样，无剩余业务目标，属于普通寒暄。"
+    },
+    {
+      "case_id": "domain-v3:zh:1:6:2",
+      "author": "__DEFER__",
+      "label": "general",
+      "clear_and_natural": true,
+      "reason": "表示没有其他事，无剩余业务目标，属于普通寒暄。"
+    },
+    {
+      "case_id": "domain-v3:zh:1:7:2",
+      "author": "__DEFER__",
+      "label": "general",
+      "clear_and_natural": true,
+      "reason": "表示放弃并致谢，无剩余业务目标，属于普通寒暄。"
+    }
+  ],
+  "status": "reviewed"
+}

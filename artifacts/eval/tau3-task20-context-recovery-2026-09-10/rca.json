@@ -1,0 +1,560 @@
+{
+  "schema_version": "dialogpilot-tau3-rca-v2",
+  "run": {
+    "path": "/home/yang/DialogPilot/artifacts/eval/tau3-task20-context-recovery-2026-09-10",
+    "status": "EVALUATED",
+    "started_at": "2026-09-10T01:58:14.117075+00:00",
+    "finished_at": "2026-09-10T01:59:58.737250+00:00",
+    "project_commit": "a1ada6864b645cee105c524ef127d3b341cff6cd",
+    "tracked_worktree_dirty": true,
+    "task_count": 1
+  },
+  "finding_counts": {},
+  "quality_finding_counts": {
+    "EXACT_READ_REPLAY": 1,
+    "PUBLIC_INTERNAL_REFERENCE_EXPOSURE": 1,
+    "PUBLIC_RAW_ACTION_SCHEMA_EXPOSURE": 1,
+    "RESPONSE_DRAFT_REJECTED": 1
+  },
+  "failure_clusters": [],
+  "quality_clusters": [
+    {
+      "code": "EXACT_READ_REPLAY",
+      "owner_candidate": "agent_read_planning",
+      "case_count": 1,
+      "task_ids": [
+        "20"
+      ]
+    },
+    {
+      "code": "PUBLIC_INTERNAL_REFERENCE_EXPOSURE",
+      "owner_candidate": "response_publication",
+      "case_count": 1,
+      "task_ids": [
+        "20"
+      ]
+    },
+    {
+      "code": "PUBLIC_RAW_ACTION_SCHEMA_EXPOSURE",
+      "owner_candidate": "approval_presentation",
+      "case_count": 1,
+      "task_ids": [
+        "20"
+      ]
+    },
+    {
+      "code": "RESPONSE_DRAFT_REJECTED",
+      "owner_candidate": "response_generation",
+      "case_count": 1,
+      "task_ids": [
+        "20"
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "task_id": "20",
+      "result_file": "task-20.json",
+      "trajectory_file": "task-20-trajectory.json",
+      "artifact_sha256": {
+        "result": "b26fe4542e6d39a7c807e870f747bc64c4aaeff5d0efc9d51e7e3135c0911723",
+        "trajectory": "6d6e353c25278d5f96677328b3830e118e0920951513f2e42de82958f7990e7b"
+      },
+      "langfuse_session_id": "tau3-086de14654764de88a1ebe45937b6686",
+      "outcome": {
+        "status": "EVALUATED",
+        "simulation_status": "COMPLETED",
+        "termination": "user_stop",
+        "official_reward": 1.0,
+        "env_reward": 1.0,
+        "action_reward": 1.0,
+        "evaluation_scope": "official_checks"
+      },
+      "business_status": "PASS",
+      "quality_status": "WARN",
+      "transition_analysis": {
+        "schema_version": "tau3-required-transitions-v1",
+        "phase_order": [
+          "OBJECTIVE",
+          "PLAN",
+          "WORK_ITEM",
+          "ACTION_PREPARED",
+          "APPROVAL",
+          "EXECUTION",
+          "RECEIPT",
+          "STATE",
+          "ANSWER"
+        ],
+        "paths": [
+          {
+            "required_action": "modify_pending_order_items",
+            "phases": [
+              "OBJECTIVE",
+              "PLAN",
+              "WORK_ITEM",
+              "ACTION_PREPARED",
+              "APPROVAL",
+              "EXECUTION",
+              "RECEIPT",
+              "STATE",
+              "ANSWER"
+            ],
+            "transitions": [
+              {
+                "phase": "OBJECTIVE",
+                "status": "SATISFIED",
+                "evidence": "Official evaluator requires the write."
+              },
+              {
+                "phase": "PLAN",
+                "status": "SATISFIED",
+                "evidence": "A later pending action implies upstream planning."
+              },
+              {
+                "phase": "WORK_ITEM",
+                "status": "SATISFIED",
+                "evidence": "Checkpoint lineage contains the pending work item."
+              },
+              {
+                "phase": "ACTION_PREPARED",
+                "status": "SATISFIED",
+                "evidence": "Checkpoint contains pending action modify_pending_order_items."
+              },
+              {
+                "phase": "APPROVAL",
+                "status": "WAITING",
+                "evidence": "No approval response is linked to the pending action."
+              },
+              {
+                "phase": "EXECUTION",
+                "status": "SATISFIED",
+                "evidence": "The required write transition matched."
+              },
+              {
+                "phase": "RECEIPT",
+                "status": "SATISFIED",
+                "evidence": "A committed receipt is projected."
+              },
+              {
+                "phase": "STATE",
+                "status": "SATISFIED",
+                "evidence": "ENV reward is 1.0."
+              },
+              {
+                "phase": "ANSWER",
+                "status": "SATISFIED",
+                "evidence": "Answer quality is evaluated separately from state transitions."
+              }
+            ],
+            "first_divergence": null,
+            "evidence_ids": [
+              "transition-0-lineage"
+            ]
+          }
+        ],
+        "first_divergence": null,
+        "evidence": [
+          {
+            "evidence_id": "transition-0-lineage",
+            "locator": "$.checkpoint_projection|$.target_trace|$.action.action_checks",
+            "summary": "Normalized required-transition evidence for modify_pending_order_items.",
+            "data": {
+              "required_action": "modify_pending_order_items",
+              "pending_actions": [
+                {
+                  "snapshot_index": 154,
+                  "sequence": 155,
+                  "thread_id": "invocation:v1:2fb22a6b62a6a803d6449babe5656e6127c9fefe95e4b1da81a7b141fcd4a18d:step:1",
+                  "path": "$.channel_values.agent_results[0].result.pending_action.allowed_tools",
+                  "allowed_tools": [
+                    "modify_pending_order_items",
+                    "observed_operation_status"
+                  ]
+                },
+                {
+                  "snapshot_index": 155,
+                  "sequence": 156,
+                  "thread_id": "invocation:v1:2fb22a6b62a6a803d6449babe5656e6127c9fefe95e4b1da81a7b141fcd4a18d:step:1",
+                  "path": "$.channel_values.board.results[0].pending_action.allowed_tools",
+                  "allowed_tools": [
+                    "modify_pending_order_items",
+                    "observed_operation_status"
+                  ]
+                },
+                {
+                  "snapshot_index": 156,
+                  "sequence": 157,
+                  "thread_id": "turn:invocation:v1:87b6618597fc38e6cc562bfce57bb0490c1c8a3ecd9635be57b3ed5a64c0dae2",
+                  "path": "$.channel_values.managed.board.results[0].pending_action.allowed_tools",
+                  "allowed_tools": [
+                    "modify_pending_order_items",
+                    "observed_operation_status"
+                  ]
+                },
+                {
+                  "snapshot_index": 164,
+                  "sequence": 165,
+                  "thread_id": "invocation:v1:2fb22a6b62a6a803d6449babe5656e6127c9fefe95e4b1da81a7b141fcd4a18d:step:1",
+                  "path": "$.channel_values.continuation_messages.work:invocation:v1:ed7a8993e3c76315280d9b1042dbb7358fde27e9ddb59f19665d7bda65a78591:step:0:2:continue-domain-objective:control:invocation:v1:2fb22a6b62a6a803d6449babe5656e6127c9fefe95e4b1da81a7b141fcd4a18d:step:1:semantic-1[7].data.artifact.result.pending_action.allowed_tools",
+                  "allowed_tools": [
+                    "modify_pending_order_items",
+                    "observed_operation_status"
+                  ]
+                }
+              ],
+              "approval_requests": [
+                {
+                  "turn": 3,
+                  "trace_index": 6,
+                  "signal_id": "approval:action:v1:5b185a55a6da29c6c71b508f1644d45f42d70a16abdb4a8848c873af4e085637",
+                  "workflow_run_id": "workflow-run:v1:74cd1ae9500f6482719bc4f4ec3f92fbc3b0b8dcd89055d75c152f8f81453e0f"
+                }
+              ],
+              "approval_ids": [
+                "approval:action:v1:5b185a55a6da29c6c71b508f1644d45f42d70a16abdb4a8848c873af4e085637"
+              ],
+              "operation_keys": [
+                "action:v1:5b185a55a6da29c6c71b508f1644d45f42d70a16abdb4a8848c873af4e085637"
+              ],
+              "receipt_ids": [
+                "official-call:tau3-call-a2153089323941b6ae84ab6e72d4793f"
+              ],
+              "same_tool_call_count": 1,
+              "planning_failure": null,
+              "approval_input": null,
+              "conversation_window": []
+            }
+          }
+        ],
+        "hypotheses": []
+      },
+      "root_cause_status": "OPEN",
+      "evidence": [
+        {
+          "evidence_id": "exact-read-replays",
+          "source": "task-20-trajectory.json",
+          "locator": "$.messages[*].tool_calls",
+          "summary": "Exact read requests returned identical results more than once without an intervening write.",
+          "data": {
+            "groups": [
+              {
+                "tool": "calculate",
+                "arguments_sha256": "805bc6d9fcc5f848dfdecb26e9786f46f13e497c66a10758f90592da12e3f5be",
+                "response_sha256": "8e7335d257cc6583ec58355296fc162bcdfd2474da11df4597042a5327e4c1dd",
+                "call_count": 2,
+                "message_indexes": [
+                  22,
+                  46
+                ],
+                "write_epoch": 0
+              },
+              {
+                "tool": "get_order_details",
+                "arguments_sha256": "c0b28182a02ef47f3a533182566af648e13021d4427cf00c16243fcf5e6c66dd",
+                "response_sha256": "9c17c19850cecf998488cf8eddf0f88934bfe51920f4cac5c23f11c3464315ed",
+                "call_count": 2,
+                "message_indexes": [
+                  10,
+                  26
+                ],
+                "write_epoch": 0
+              },
+              {
+                "tool": "get_product_details",
+                "arguments_sha256": "0ff0a11ddb2aa4e6d804e3988ea63e27e0446a02e063d630ec64668379f53b73",
+                "response_sha256": "31e182ab58a0e2bd75dfbd6bce8440466fdfc1bf9fcbc32b4a165f1543774a28",
+                "call_count": 2,
+                "message_indexes": [
+                  16,
+                  40
+                ],
+                "write_epoch": 0
+              },
+              {
+                "tool": "get_product_details",
+                "arguments_sha256": "f795d216f6e6a2403f977525f845ac4ea9a5a57bec4e9b74904569d5a9a4a439",
+                "response_sha256": "6753f2b6a0195816087a99203fd8691d58cd3bc18fd56aa0991cc13c96c18c5d",
+                "call_count": 2,
+                "message_indexes": [
+                  20,
+                  44
+                ],
+                "write_epoch": 0
+              },
+              {
+                "tool": "get_product_details",
+                "arguments_sha256": "fb57f9835ba06a7f28c5667dc268a96a74ab5a1f64f4251259a7eaa4cfe1c576",
+                "response_sha256": "cc5efcbc290947bf7c1cc61f908928a4215ce8a84fd60c360492547143a80445",
+                "call_count": 2,
+                "message_indexes": [
+                  18,
+                  42
+                ],
+                "write_epoch": 0
+              },
+              {
+                "tool": "get_product_details",
+                "arguments_sha256": "a334528da893668bb541642444702d56f40942de47d6f8e684b33614e3f15db2",
+                "response_sha256": "2b2f969253625f83a18997072ff9797e67dd1c83144c473f22092f3ce0b5b605",
+                "call_count": 2,
+                "message_indexes": [
+                  14,
+                  38
+                ],
+                "write_epoch": 0
+              },
+              {
+                "tool": "get_user_details",
+                "arguments_sha256": "222fed94549aac65416ea8bfc3453fb780f4f195b2ab8a4d943d0d9d0dfcfcec",
+                "response_sha256": "78196491150d01c40aa9b1d6a50a13470a6dd8fec76e52f704e24849d937824b",
+                "call_count": 2,
+                "message_indexes": [
+                  6,
+                  28
+                ],
+                "write_epoch": 0
+              }
+            ],
+            "redundant_call_count": 7,
+            "consumed_message_steps": 14
+          }
+        },
+        {
+          "evidence_id": "public-internal-references",
+          "source": "task-20-trajectory.json",
+          "locator": "$.messages[*].content",
+          "summary": "Public assistant messages expose internal evidence or tool-call references.",
+          "data": {
+            "occurrences": [
+              {
+                "message_index": 48,
+                "references": [
+                  "[call_00_Xm96mDoF88Jq7OMo2FNA7177]",
+                  "[call_01_XJhE3fA5CUoWzaXIGFAj0473]"
+                ]
+              },
+              {
+                "message_index": 52,
+                "references": [
+                  "[official-call:tau3-call-a2153089323941b6ae84ab6e72d4793f]",
+                  "[call_00_1fSwlWMp0KkH8rkMNkSS6804]",
+                  "[call_02_gj5kkWUU58ms1O1HR5yv4380]"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "evidence_id": "public-raw-identifier-fields",
+          "source": "task-20-trajectory.json",
+          "locator": "$.messages[*].content",
+          "summary": "Public assistant messages render raw action-schema identifier fields.",
+          "data": {
+            "occurrences": [
+              {
+                "message_index": 48,
+                "field_labels": [
+                  "Item ids",
+                  "New item ids",
+                  "Order id",
+                  "Payment method id"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "evidence_id": "response-review-rejections",
+          "source": "task-20.json",
+          "locator": "$.target_trace[*].verification",
+          "summary": "Response verification rejected one or more candidate replies before publication.",
+          "data": {
+            "count": 2,
+            "rejections": [
+              {
+                "trace_index": 4,
+                "reason_code": "incomplete",
+                "grounded": true,
+                "issues": [
+                  "The reply asks the user for confirmation to proceed with the upgrades, but there is no prepared action selected for approval in this turn (pending_actions is empty). Per the presentation contract, the reply must not solicit unbound execution approval or claim an action is ready for confirmation.",
+                  "The reply states the item modification 'has not been executed' and asks for confirmation, but the retained approval (modify_pending_order_items:v1) is AWAITING_DECISION_NOT_EXECUTED and is not presented as a selected pending action this turn; the reply should explain the prepared change and its status without soliciting a fresh confirmation as if it were ready to execute."
+                ]
+              },
+              {
+                "trace_index": 7,
+                "reason_code": "ungrounded",
+                "grounded": false,
+                "issues": [
+                  "The reply claims the $71.96 price difference was charged to the gift card, but the committed receipt's returned order shows payment_history with a $71.96 gift_card_4332117 payment, which supports the charge. However, the reply's item price table is unsupported: the committed modify_pending_order_items result lists all four items at $261.11 each, not the per-item prices shown ($54.85, $272.33, $155.33, $261.11). The table mixes pre-modification get_item_details prices with the post-modification order state, which is not established by the returned result.",
+                  "The reply states orders #W4967593 and #W5733668 are 'already processed' and cannot be modified/cancelled/returned/exchanged. The evidence shows both orders have status 'processed', which supports that they are processed, but the claim that no returns or exchanges are possible is not established by the supplied evidence; the capability policy only states pending orders cannot be cancelled once processed, and delivered-order return/exchange actions exist but their applicability to 'processed' orders is not evidenced."
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "evidence_id": "transition-0-lineage",
+          "source": "task-20.json",
+          "locator": "$.checkpoint_projection|$.target_trace|$.action.action_checks",
+          "summary": "Normalized required-transition evidence for modify_pending_order_items.",
+          "data": {
+            "required_action": "modify_pending_order_items",
+            "pending_actions": [
+              {
+                "snapshot_index": 154,
+                "sequence": 155,
+                "thread_id": "invocation:v1:2fb22a6b62a6a803d6449babe5656e6127c9fefe95e4b1da81a7b141fcd4a18d:step:1",
+                "path": "$.channel_values.agent_results[0].result.pending_action.allowed_tools",
+                "allowed_tools": [
+                  "modify_pending_order_items",
+                  "observed_operation_status"
+                ]
+              },
+              {
+                "snapshot_index": 155,
+                "sequence": 156,
+                "thread_id": "invocation:v1:2fb22a6b62a6a803d6449babe5656e6127c9fefe95e4b1da81a7b141fcd4a18d:step:1",
+                "path": "$.channel_values.board.results[0].pending_action.allowed_tools",
+                "allowed_tools": [
+                  "modify_pending_order_items",
+                  "observed_operation_status"
+                ]
+              },
+              {
+                "snapshot_index": 156,
+                "sequence": 157,
+                "thread_id": "turn:invocation:v1:87b6618597fc38e6cc562bfce57bb0490c1c8a3ecd9635be57b3ed5a64c0dae2",
+                "path": "$.channel_values.managed.board.results[0].pending_action.allowed_tools",
+                "allowed_tools": [
+                  "modify_pending_order_items",
+                  "observed_operation_status"
+                ]
+              },
+              {
+                "snapshot_index": 164,
+                "sequence": 165,
+                "thread_id": "invocation:v1:2fb22a6b62a6a803d6449babe5656e6127c9fefe95e4b1da81a7b141fcd4a18d:step:1",
+                "path": "$.channel_values.continuation_messages.work:invocation:v1:ed7a8993e3c76315280d9b1042dbb7358fde27e9ddb59f19665d7bda65a78591:step:0:2:continue-domain-objective:control:invocation:v1:2fb22a6b62a6a803d6449babe5656e6127c9fefe95e4b1da81a7b141fcd4a18d:step:1:semantic-1[7].data.artifact.result.pending_action.allowed_tools",
+                "allowed_tools": [
+                  "modify_pending_order_items",
+                  "observed_operation_status"
+                ]
+              }
+            ],
+            "approval_requests": [
+              {
+                "turn": 3,
+                "trace_index": 6,
+                "signal_id": "approval:action:v1:5b185a55a6da29c6c71b508f1644d45f42d70a16abdb4a8848c873af4e085637",
+                "workflow_run_id": "workflow-run:v1:74cd1ae9500f6482719bc4f4ec3f92fbc3b0b8dcd89055d75c152f8f81453e0f"
+              }
+            ],
+            "approval_ids": [
+              "approval:action:v1:5b185a55a6da29c6c71b508f1644d45f42d70a16abdb4a8848c873af4e085637"
+            ],
+            "operation_keys": [
+              "action:v1:5b185a55a6da29c6c71b508f1644d45f42d70a16abdb4a8848c873af4e085637"
+            ],
+            "receipt_ids": [
+              "official-call:tau3-call-a2153089323941b6ae84ab6e72d4793f"
+            ],
+            "same_tool_call_count": 1,
+            "planning_failure": null,
+            "approval_input": null,
+            "conversation_window": []
+          }
+        }
+      ],
+      "findings": [
+        {
+          "code": "PASS",
+          "layer": "outcome",
+          "level": "OBSERVED",
+          "summary": "Available official business checks passed; quality findings are reported separately.",
+          "owner_candidate": null,
+          "evidence_ids": [],
+          "missing_evidence": [],
+          "next_probe": null,
+          "impact": "PASS"
+        },
+        {
+          "code": "EXACT_READ_REPLAY",
+          "layer": "quality",
+          "level": "OBSERVED",
+          "summary": "The run repeated reads that produced no new observable information.",
+          "owner_candidate": "agent_read_planning",
+          "evidence_ids": [
+            "exact-read-replays"
+          ],
+          "missing_evidence": [
+            "The artifact does not encode whether each refresh was explicitly authorized by a freshness policy."
+          ],
+          "next_probe": "Join each replay to owner causal events and the tool freshness contract.",
+          "impact": "EFFICIENCY_DEGRADED"
+        },
+        {
+          "code": "PUBLIC_INTERNAL_REFERENCE_EXPOSURE",
+          "layer": "quality",
+          "level": "VERIFIED",
+          "summary": "A user-visible response exposes implementation-owned reference identifiers.",
+          "owner_candidate": "response_publication",
+          "evidence_ids": [
+            "public-internal-references"
+          ],
+          "missing_evidence": [],
+          "next_probe": null,
+          "impact": "CONVERSATION_QUALITY_DEGRADED"
+        },
+        {
+          "code": "PUBLIC_RAW_ACTION_SCHEMA_EXPOSURE",
+          "layer": "quality",
+          "level": "VERIFIED",
+          "summary": "A user-visible action presentation exposes raw identifier fields instead of customer-facing labels.",
+          "owner_candidate": "approval_presentation",
+          "evidence_ids": [
+            "public-raw-identifier-fields"
+          ],
+          "missing_evidence": [],
+          "next_probe": null,
+          "impact": "CONVERSATION_QUALITY_DEGRADED"
+        },
+        {
+          "code": "RESPONSE_DRAFT_REJECTED",
+          "layer": "quality",
+          "level": "VERIFIED",
+          "summary": "The runtime recovered from candidate replies that violated response contracts.",
+          "owner_candidate": "response_generation",
+          "evidence_ids": [
+            "response-review-rejections"
+          ],
+          "missing_evidence": [],
+          "next_probe": null,
+          "impact": "RECOVERED_QUALITY_DEFECT"
+        }
+      ],
+      "causal_probes": {
+        "contract_status": "MISSING",
+        "event_count": 0,
+        "errors": [
+          "normalized checkpoint transition events are absent or empty"
+        ],
+        "results": [
+          {
+            "probe": "causal_lineage",
+            "status": "INCONCLUSIVE",
+            "reason": "The artifact does not contain normalized checkpoint-transition lineage.",
+            "missing_evidence": [
+              "normalized checkpoint transition events are absent or empty"
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "unbound_run_evidence": [],
+  "limitations": [
+    "Batch-level log lines are not assigned to a task without a task, turn, or trace identifier.",
+    "SUPPORTED hypotheses require the listed probe before they can become verified root causes.",
+    "Visible user assent does not prove consistency with the simulator's hidden goal."
+  ]
+}

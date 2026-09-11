@@ -1,0 +1,317 @@
+{
+  "by_document_length": {
+    "long_document": {
+      "candidate": {
+        "all_evidence_recall": {
+          "passed": 9,
+          "rate": 0.75,
+          "total": 12
+        },
+        "document_recall": 0.75,
+        "evidence_recall": 0.75,
+        "mrr": 0.4486111111111111,
+        "ndcg": 0.5183294265345998
+      },
+      "case_count": 12,
+      "packed": {
+        "all_evidence_recall": {
+          "passed": 8,
+          "rate": 0.6666666666666666,
+          "total": 12
+        },
+        "document_recall": 0.6666666666666666,
+        "evidence_recall": 0.6666666666666666,
+        "mrr": 0.5583333333333333,
+        "ndcg": 0.5848152134004999
+      },
+      "prepack": {
+        "all_evidence_recall": {
+          "passed": 8,
+          "rate": 0.6666666666666666,
+          "total": 12
+        },
+        "document_recall": 0.6666666666666666,
+        "evidence_recall": 0.6666666666666666,
+        "mrr": 0.5583333333333333,
+        "ndcg": 0.5848152134004999
+      }
+    },
+    "medium_document": {
+      "candidate": {
+        "all_evidence_recall": {
+          "passed": 10,
+          "rate": 0.8333333333333334,
+          "total": 12
+        },
+        "document_recall": 0.8333333333333334,
+        "evidence_recall": 0.8333333333333334,
+        "mrr": 0.34229797979797977,
+        "ndcg": 0.4564501720442102
+      },
+      "case_count": 12,
+      "packed": {
+        "all_evidence_recall": {
+          "passed": 7,
+          "rate": 0.5833333333333334,
+          "total": 12
+        },
+        "document_recall": 0.6666666666666666,
+        "evidence_recall": 0.5833333333333334,
+        "mrr": 0.3888888888888889,
+        "ndcg": 0.4384882922619096
+      },
+      "prepack": {
+        "all_evidence_recall": {
+          "passed": 7,
+          "rate": 0.5833333333333334,
+          "total": 12
+        },
+        "document_recall": 0.6666666666666666,
+        "evidence_recall": 0.5833333333333334,
+        "mrr": 0.3888888888888889,
+        "ndcg": 0.4384882922619096
+      }
+    },
+    "short_document": {
+      "candidate": {
+        "all_evidence_recall": {
+          "passed": 9,
+          "rate": 0.75,
+          "total": 12
+        },
+        "document_recall": 0.75,
+        "evidence_recall": 0.75,
+        "mrr": 0.5353535353535354,
+        "ndcg": 0.5867335377328371
+      },
+      "case_count": 12,
+      "packed": {
+        "all_evidence_recall": {
+          "passed": 7,
+          "rate": 0.5833333333333334,
+          "total": 12
+        },
+        "document_recall": 0.5833333333333334,
+        "evidence_recall": 0.5833333333333334,
+        "mrr": 0.5833333333333334,
+        "ndcg": 0.5833333333333334
+      },
+      "prepack": {
+        "all_evidence_recall": {
+          "passed": 7,
+          "rate": 0.5833333333333334,
+          "total": 12
+        },
+        "document_recall": 0.5833333333333334,
+        "evidence_recall": 0.5833333333333334,
+        "mrr": 0.5833333333333334,
+        "ndcg": 0.5833333333333334
+      }
+    }
+  },
+  "by_domain": {
+    "dmv": {
+      "candidate": {
+        "all_evidence_recall": {
+          "passed": 7,
+          "rate": 0.7777777777777778,
+          "total": 9
+        },
+        "document_recall": 0.7777777777777778,
+        "evidence_recall": 0.7777777777777778,
+        "mrr": 0.4351851851851852,
+        "ndcg": 0.5213928961351454
+      },
+      "case_count": 9,
+      "packed": {
+        "all_evidence_recall": {
+          "passed": 5,
+          "rate": 0.5555555555555556,
+          "total": 9
+        },
+        "document_recall": 0.5555555555555556,
+        "evidence_recall": 0.5555555555555556,
+        "mrr": 0.42592592592592593,
+        "ndcg": 0.45899219484127307
+      },
+      "prepack": {
+        "all_evidence_recall": {
+          "passed": 5,
+          "rate": 0.5555555555555556,
+          "total": 9
+        },
+        "document_recall": 0.5555555555555556,
+        "evidence_recall": 0.5555555555555556,
+        "mrr": 0.42592592592592593,
+        "ndcg": 0.45899219484127307
+      }
+    },
+    "ssa": {
+      "candidate": {
+        "all_evidence_recall": {
+          "passed": 7,
+          "rate": 0.7777777777777778,
+          "total": 9
+        },
+        "document_recall": 0.7777777777777778,
+        "evidence_recall": 0.7777777777777778,
+        "mrr": 0.41835016835016836,
+        "ndcg": 0.49872916104173926
+      },
+      "case_count": 9,
+      "packed": {
+        "all_evidence_recall": {
+          "passed": 5,
+          "rate": 0.5555555555555556,
+          "total": 9
+        },
+        "document_recall": 0.5555555555555556,
+        "evidence_recall": 0.5555555555555556,
+        "mrr": 0.3925925925925926,
+        "ndcg": 0.4318725341371713
+      },
+      "prepack": {
+        "all_evidence_recall": {
+          "passed": 5,
+          "rate": 0.5555555555555556,
+          "total": 9
+        },
+        "document_recall": 0.5555555555555556,
+        "evidence_recall": 0.5555555555555556,
+        "mrr": 0.3925925925925926,
+        "ndcg": 0.4318725341371713
+      }
+    },
+    "studentaid": {
+      "candidate": {
+        "all_evidence_recall": {
+          "passed": 7,
+          "rate": 0.7777777777777778,
+          "total": 9
+        },
+        "document_recall": 0.7777777777777778,
+        "evidence_recall": 0.7777777777777778,
+        "mrr": 0.5277777777777778,
+        "ndcg": 0.5828280899447724
+      },
+      "case_count": 9,
+      "packed": {
+        "all_evidence_recall": {
+          "passed": 6,
+          "rate": 0.6666666666666666,
+          "total": 9
+        },
+        "document_recall": 0.6666666666666666,
+        "evidence_recall": 0.6666666666666666,
+        "mrr": 0.6111111111111112,
+        "ndcg": 0.6256588615079397
+      },
+      "prepack": {
+        "all_evidence_recall": {
+          "passed": 6,
+          "rate": 0.6666666666666666,
+          "total": 9
+        },
+        "document_recall": 0.6666666666666666,
+        "evidence_recall": 0.6666666666666666,
+        "mrr": 0.6111111111111112,
+        "ndcg": 0.6256588615079397
+      }
+    },
+    "va": {
+      "candidate": {
+        "all_evidence_recall": {
+          "passed": 7,
+          "rate": 0.7777777777777778,
+          "total": 9
+        },
+        "document_recall": 0.7777777777777778,
+        "evidence_recall": 0.7777777777777778,
+        "mrr": 0.38703703703703707,
+        "ndcg": 0.47906736796053895
+      },
+      "case_count": 9,
+      "packed": {
+        "all_evidence_recall": {
+          "passed": 6,
+          "rate": 0.6666666666666666,
+          "total": 9
+        },
+        "document_recall": 0.7777777777777778,
+        "evidence_recall": 0.6666666666666666,
+        "mrr": 0.6111111111111112,
+        "ndcg": 0.6256588615079397
+      },
+      "prepack": {
+        "all_evidence_recall": {
+          "passed": 6,
+          "rate": 0.6666666666666666,
+          "total": 9
+        },
+        "document_recall": 0.7777777777777778,
+        "evidence_recall": 0.6666666666666666,
+        "mrr": 0.6111111111111112,
+        "ndcg": 0.6256588615079397
+      }
+    }
+  },
+  "candidate": {
+    "all_evidence_recall": {
+      "passed": 28,
+      "rate": 0.7777777777777778,
+      "total": 36
+    },
+    "document_recall": 0.7777777777777778,
+    "evidence_recall": 0.7777777777777778,
+    "mrr": 0.4420875420875421,
+    "ndcg": 0.520504378770549
+  },
+  "candidate_to_prepack_loss_count": 6,
+  "case_count": 36,
+  "end_to_end_latency_ms": {
+    "max": 7582.431191578507,
+    "mean": 5192.669736635354,
+    "p95": 6882.879875600338
+  },
+  "evaluation_role": "FRESH_HELDOUT_REPORT_ONLY",
+  "llm_usage": {
+    "calls": 108,
+    "errors": 0,
+    "input_tokens": 219316,
+    "output_tokens": 6324
+  },
+  "mean_tokens": 2251.3888888888887,
+  "packed": {
+    "all_evidence_recall": {
+      "passed": 22,
+      "rate": 0.6111111111111112,
+      "total": 36
+    },
+    "document_recall": 0.6388888888888888,
+    "evidence_recall": 0.6111111111111112,
+    "mrr": 0.5101851851851852,
+    "ndcg": 0.5355456129985809
+  },
+  "packing_harmful_count": 0,
+  "prepack": {
+    "all_evidence_recall": {
+      "passed": 22,
+      "rate": 0.6111111111111112,
+      "total": 36
+    },
+    "document_recall": 0.6388888888888888,
+    "evidence_recall": 0.6111111111111112,
+    "mrr": 0.5101851851851852,
+    "ndcg": 0.5355456129985809
+  },
+  "rerank_fallback_count": 0,
+  "retrieval_status_counts": {
+    "OK": 36
+  },
+  "run_id": "4251fc2044004440b6febb6bf9e01c34",
+  "run_status": "COMPLETED",
+  "runner_version": "postgres-production-rag-heldout-v2",
+  "schema_version": 1,
+  "selection_performed": false,
+  "system_failure_count": 0
+}

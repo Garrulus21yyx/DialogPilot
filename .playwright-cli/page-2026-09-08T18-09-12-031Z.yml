@@ -1,0 +1,311 @@
+- generic [active] [ref=f1e1]:
+  - banner [ref=f1e2]:
+    - generic [ref=f1e3]:
+      - link "DialogPilot 架构与面试手册" [ref=f1e4] [cursor=pointer]:
+        - /url: /DialogPilot/
+      - navigation [ref=f1e5]:
+        - generic [ref=f1e6]:
+          - link "最新架构与源码讲解" [ref=f1e7] [cursor=pointer]:
+            - /url: /DialogPilot/architecture.html
+          - link "80个详细面试追问" [ref=f1e8] [cursor=pointer]:
+            - /url: /DialogPilot/interview-guide.html
+          - link "RAG 离线在线、选型与评测详解" [ref=f1e9] [cursor=pointer]:
+            - /url: /DialogPilot/rag-study.html
+          - link "项目讲述与完整简历" [ref=f1e10] [cursor=pointer]:
+            - /url: /DialogPilot/project-pitch.html
+          - link "手册源码快照与证据口径" [ref=f1e11] [cursor=pointer]:
+            - /url: /DialogPilot/handbook-evidence.html
+  - main "Content" [ref=f1e12]:
+    - generic [ref=f1e13]:
+      - region [ref=f1e14]:
+        - generic [ref=f1e15]: 代码校准 · 面试防守手册
+        - heading "DialogPilot 面试追问：原理、源码与技术取舍" [level=1] [ref=f1e16]
+        - blockquote [ref=f1e17]:
+          - paragraph [ref=f1e18]:
+            - text: 2026-09-08 校准，围绕开发源码快照
+            - code [ref=f1e19]: ceeab4e
+            - text: （起点59dd33c） 与当时工作区。每题先练短答，再展开具体机制和失败边界。Encoder 当前默认关闭；效果数据必须附split与报告；模拟简历数字不在本页充当实测。配套：
+            - link "架构" [ref=f1e20] [cursor=pointer]:
+              - /url: /DialogPilot/architecture.html
+            - text: ·
+            - link "RAG专题" [ref=f1e21] [cursor=pointer]:
+              - /url: /DialogPilot/rag-study.html
+            - text: ·
+            - link "项目讲述" [ref=f1e22] [cursor=pointer]:
+              - /url: /DialogPilot/project-pitch.html
+            - text: ·
+            - link "来源" [ref=f1e23] [cursor=pointer]:
+              - /url: /DialogPilot/handbook-evidence.html
+            - text: 。
+        - generic [ref=f1e24]:
+          - generic [ref=f1e25]: 主张 ›
+          - generic [ref=f1e26]: 源码 ›
+          - generic [ref=f1e27]: Owner ›
+          - generic [ref=f1e28]: 合同 ›
+          - generic [ref=f1e29]: 取舍 ›
+          - generic [ref=f1e30]: 故障 ›
+          - generic [ref=f1e31]: 指标 ›
+          - generic [ref=f1e32]: Trace ›
+          - generic [ref=f1e33]: 边界 ›
+          - generic [ref=f1e34]: 追问
+        - generic [ref=f1e35]:
+          - generic [ref=f1e36]: 80 个代码校准追问
+          - generic [ref=f1e37]: 答案对应当前实现
+          - generic [ref=f1e38]: 不支持的主张已标记
+          - generic [ref=f1e39]: STAR + 连续追问
+        - region "面试问题搜索" [ref=f1e40]:
+          - generic [ref=f1e41]: 搜索问题与完整答案
+          - searchbox "搜索问题与完整答案" [ref=f1e42]
+          - status [ref=f1e43]: 80 / 80 个问题
+          - button "展开匹配答案" [ref=f1e44] [cursor=pointer]
+          - button "收起全部" [ref=f1e45] [cursor=pointer]
+      - generic [ref=f1e46]:
+        - complementary "答题地图章节导航" [ref=f1e47]:
+          - generic [ref=f1e48]:
+            - generic [ref=f1e49]: 答题地图
+            - strong [ref=f1e50]: 从旧答案到代码证据
+          - navigation [ref=f1e51]:
+            - link "00 项目定位与架构防守" [ref=f1e52] [cursor=pointer]:
+              - /url: "#1-项目定位与架构防守"
+              - generic [ref=f1e53]: "00"
+              - generic [ref=f1e54]: 项目定位与架构防守
+            - link "01 意图识别经典范式与当前选择" [ref=f1e55] [cursor=pointer]:
+              - /url: "#2-意图识别经典范式与当前选择"
+              - generic [ref=f1e56]: "01"
+              - generic [ref=f1e57]: 意图识别经典范式与当前选择
+            - link "02 框架选型与多Agent机制" [ref=f1e58] [cursor=pointer]:
+              - /url: "#3-框架选型与多agent机制"
+              - generic [ref=f1e59]: "02"
+              - generic [ref=f1e60]: 框架选型与多Agent机制
+            - link "03 上下文、记忆与压缩" [ref=f1e61] [cursor=pointer]:
+              - /url: "#4-上下文记忆与压缩"
+              - generic [ref=f1e62]: "03"
+              - generic [ref=f1e63]: 上下文、记忆与压缩
+            - link "04 RAG原理与工程追问" [ref=f1e64] [cursor=pointer]:
+              - /url: "#5-rag原理与工程追问"
+              - generic [ref=f1e65]: "04"
+              - generic [ref=f1e66]: RAG原理与工程追问
+            - link "05 生成、核验与业务事实" [ref=f1e67] [cursor=pointer]:
+              - /url: "#6-生成核验与业务事实"
+              - generic [ref=f1e68]: "05"
+              - generic [ref=f1e69]: 生成、核验与业务事实
+            - link "06 审批、持久化与可靠性" [ref=f1e70] [cursor=pointer]:
+              - /url: "#7-审批持久化与可靠性"
+              - generic [ref=f1e71]: "06"
+              - generic [ref=f1e72]: 审批、持久化与可靠性
+            - link "07 评测、数据与优化闭环" [ref=f1e73] [cursor=pointer]:
+              - /url: "#8-评测数据与优化闭环"
+              - generic [ref=f1e74]: "07"
+              - generic [ref=f1e75]: 评测、数据与优化闭环
+            - link "08 多模态、可观测、扩展与项目边界" [ref=f1e76] [cursor=pointer]:
+              - /url: "#9-多模态可观测扩展与项目边界"
+              - generic [ref=f1e77]: "08"
+              - generic [ref=f1e78]: 多模态、可观测、扩展与项目边界
+            - link "09 状态、长期记忆与后端扩展深挖" [ref=f1e79] [cursor=pointer]:
+              - /url: "#10-状态长期记忆与后端扩展深挖"
+              - generic [ref=f1e80]: "09"
+              - generic [ref=f1e81]: 状态、长期记忆与后端扩展深挖
+        - article [ref=f1e82]:
+          - generic [ref=f1e83]:
+            - heading "00 1. 项目定位与架构防守" [level=2] [ref=f1e84]
+            - group [ref=f1e85]:
+              - generic "Q1：用一分钟介绍项目，怎么避免报技术栈？ −" [ref=f1e86] [cursor=pointer]
+              - generic [ref=f1e87]:
+                - paragraph [ref=f1e88]:
+                  - strong [ref=f1e89]: 短答：
+                  - text: 我做的是可恢复客服Agent后端，解决复合诉求漏执行、长会话丢依据和业务操作中断后难以判断结果的问题。系统把请求编译成有依赖的任务，领域Agent在权限内取证，写操作经审批与对账，回答依据证据核验后持久交付。
+                - paragraph [ref=f1e90]:
+                  - strong [ref=f1e91]: 展开：
+                  - text: 用“查配送、问拆封能否退、暂不提交”串起来：配送是实时工具事实，能否退需要政策条件，暂不提交约束执行。多Agent分别处理领域任务，ResultBoard保留缺失和部分成功。突出你的工程贡献是状态、证据和恢复边界的设计，不是把几个Prompt连起来。
+                - paragraph [ref=f1e92]:
+                  - strong [ref=f1e93]: 继续追问：
+                  - text: 若问业务效果，分别报检索开发对照和业务验收，不拿内部verified代替真实完成率。入口：
+                  - link "application/target_chat_application.py" [ref=f1e94] [cursor=pointer]:
+                    - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/application/target_chat_application.py
+                  - text: 。
+            - group [ref=f1e95]:
+              - generic "Q2：哪些是自己实现，哪些来自框架？ +" [ref=f1e96] [cursor=pointer]
+            - group [ref=f1e97]:
+              - generic "Q3：为什么不是一个大Agent拿全部工具？ +" [ref=f1e98] [cursor=pointer]
+            - group [ref=f1e99]:
+              - generic "Q4：代码目录为什么分application和infrastructure？ +" [ref=f1e100] [cursor=pointer]
+            - group [ref=f1e101]:
+              - generic "Q5：三个图会不会是重复造轮子？ +" [ref=f1e102] [cursor=pointer]
+            - group [ref=f1e103]:
+              - generic "Q6：为什么选PostgreSQL＋Redis，没有直接全放Redis？ +" [ref=f1e104] [cursor=pointer]
+          - generic [ref=f1e105]:
+            - heading "01 2. 意图识别经典范式与当前选择" [level=2] [ref=f1e106]
+            - group [ref=f1e107]:
+              - generic "Q7：意图识别有哪些经典范式？ +" [ref=f1e108] [cursor=pointer]
+            - group [ref=f1e109]:
+              - generic "Q8：为什么不用关键词规则完成路由？ +" [ref=f1e110] [cursor=pointer]
+            - group [ref=f1e111]:
+              - generic "Q9：TF-IDF、BERT分类和向量近邻有什么区别？ +" [ref=f1e112] [cursor=pointer]
+            - group [ref=f1e113]:
+              - generic "Q10：为什么Encoder只选领域，不直接预测工具？ +" [ref=f1e114] [cursor=pointer]
+            - group [ref=f1e115]:
+              - generic "Q11：当前Encoder为什么不开启？你是不是没训练好？ +" [ref=f1e116] [cursor=pointer]
+            - group [ref=f1e117]:
+              - generic "Q12：softmax最高就可以接受吗？阈值怎么选？ +" [ref=f1e118] [cursor=pointer]
+            - group [ref=f1e119]:
+              - generic "Q13：多轮意图的输入怎么构造，怎样防泄漏？ +" [ref=f1e120] [cursor=pointer]
+            - group [ref=f1e121]:
+              - generic "Q14：为什么改成原生tool calling规划，而不是JSON计划？ +" [ref=f1e122] [cursor=pointer]
+            - group [ref=f1e123]:
+              - generic "Q15：意图数据选什么？BANKING77、CLINC、Bitext能直接拿来吗？ +" [ref=f1e124] [cursor=pointer]
+            - group [ref=f1e125]:
+              - generic "Q16：few-shot和微调你怎么取舍？ +" [ref=f1e126] [cursor=pointer]
+          - generic [ref=f1e127]:
+            - heading "02 3. 框架选型与多Agent机制" [level=2] [ref=f1e128]
+            - group [ref=f1e129]:
+              - generic "Q17：为什么同时用LangChain和LangGraph？ +" [ref=f1e130] [cursor=pointer]
+            - group [ref=f1e131]:
+              - generic "Q18：具体用了哪些LangGraph API？ +" [ref=f1e132] [cursor=pointer]
+            - group [ref=f1e133]:
+              - generic "Q19：PydanticAI、直接SDK、其他Agent框架为什么没统一替代？ +" [ref=f1e134] [cursor=pointer]
+            - group [ref=f1e135]:
+              - generic "Q20：为什么不用多个Agent互相辩论来做客服？ +" [ref=f1e136] [cursor=pointer]
+            - group [ref=f1e137]:
+              - generic "Q21：如何防止Worker越权调用别的领域工具？ +" [ref=f1e138] [cursor=pointer]
+            - group [ref=f1e139]:
+              - generic "Q22：并行任务为什么不会把结果合乱？ +" [ref=f1e140] [cursor=pointer]
+            - group [ref=f1e141]:
+              - generic "Q23：怎么检测Agent无进展，不是单纯限制轮数？ +" [ref=f1e142] [cursor=pointer]
+            - group [ref=f1e143]:
+              - generic "Q24：框架默认retry为什么关掉，失败怎么恢复？ +" [ref=f1e144] [cursor=pointer]
+          - generic [ref=f1e145]:
+            - heading "03 4. 上下文、记忆与压缩" [level=2] [ref=f1e146]
+            - group [ref=f1e147]:
+              - generic "Q25：上下文管理与记忆管理有什么区别？ +" [ref=f1e148] [cursor=pointer]
+            - group [ref=f1e149]:
+              - generic "Q26：你的上下文预算具体算哪些部分？ +" [ref=f1e150] [cursor=pointer]
+            - group [ref=f1e151]:
+              - generic "Q27：工具结果为什么归档，不直接截前几千字？ +" [ref=f1e152] [cursor=pointer]
+            - group [ref=f1e153]:
+              - generic "Q28：摘要到底保留什么，如何验证没丢？ +" [ref=f1e154] [cursor=pointer]
+            - group [ref=f1e155]:
+              - generic "Q29：为什么保护最新工具批次，超大结果怎么办？ +" [ref=f1e156] [cursor=pointer]
+            - group [ref=f1e157]:
+              - generic "Q30：归档或摘要失败时会不会丢数据？ +" [ref=f1e158] [cursor=pointer]
+          - generic [ref=f1e159]:
+            - heading "04 5. RAG原理与工程追问" [level=2] [ref=f1e160]
+            - group [ref=f1e161]:
+              - generic "Q31：RAG离线和在线分别做什么？ +" [ref=f1e162] [cursor=pointer]
+            - group [ref=f1e163]:
+              - generic "Q32：BM25和向量检索为什么混合？ +" [ref=f1e164] [cursor=pointer]
+            - group [ref=f1e165]:
+              - generic "Q33：为什么用pgvector，不用独立向量数据库？ +" [ref=f1e166] [cursor=pointer]
+            - group [ref=f1e167]:
+              - generic "Q34：HNSW为什么快，牺牲了什么？ +" [ref=f1e168] [cursor=pointer]
+            - group [ref=f1e169]:
+              - generic "Q35：cosine、内积、L2有什么区别？ +" [ref=f1e170] [cursor=pointer]
+            - group [ref=f1e171]:
+              - generic "Q36：RRF怎么计算，为什么不用归一化分数相加？ +" [ref=f1e172] [cursor=pointer]
+            - group [ref=f1e173]:
+              - generic "Q37：你的两个0.25/0.75到底哪一个？ +" [ref=f1e174] [cursor=pointer]
+            - group [ref=f1e175]:
+              - generic "Q38：rewrite和query expansion、HyDE一样吗？ +" [ref=f1e176] [cursor=pointer]
+            - group [ref=f1e177]:
+              - generic "Q39：chunk、overlap、parent-child怎么定？ +" [ref=f1e178] [cursor=pointer]
+            - group [ref=f1e179]:
+              - generic "Q40：为什么加reranker，embedding更好不就行了？ +" [ref=f1e180] [cursor=pointer]
+            - group [ref=f1e181]:
+              - generic "Q41：为什么扩大TopK反而可能变差？ +" [ref=f1e182] [cursor=pointer]
+            - group [ref=f1e183]:
+              - generic "Q42：知识缓存为什么不能只用query作key？ +" [ref=f1e184] [cursor=pointer]
+            - group [ref=f1e185]:
+              - generic "Q43：metadata是硬过滤还是加权提示？ +" [ref=f1e186] [cursor=pointer]
+            - group [ref=f1e187]:
+              - generic "Q44：为什么EvidencePack要保存那么多来源字段？ +" [ref=f1e188] [cursor=pointer]
+          - generic [ref=f1e189]:
+            - heading "05 6. 生成、核验与业务事实" [level=2] [ref=f1e190]
+            - group [ref=f1e191]:
+              - generic "Q45：Synthesizer是什么，为什么不能直接拼Worker回答？ +" [ref=f1e192] [cursor=pointer]
+            - group [ref=f1e193]:
+              - generic "Q46：Verifier与Synthesizer分开有什么价值？ +" [ref=f1e194] [cursor=pointer]
+            - group [ref=f1e195]:
+              - generic "Q47：规则校验、Coverage、Verifier分别查什么？ +" [ref=f1e196] [cursor=pointer]
+            - group [ref=f1e197]:
+              - generic "Q48：为什么核验失败只修订一次？ +" [ref=f1e198] [cursor=pointer]
+            - group [ref=f1e199]:
+              - generic "Q49：Verifier也会错，你怎么证明它有用？ +" [ref=f1e200] [cursor=pointer]
+            - group [ref=f1e201]:
+              - generic "Q50：为什么“查询不到”不能直接回答“没有”？ +" [ref=f1e202] [cursor=pointer]
+          - generic [ref=f1e203]:
+            - heading "06 7. 审批、持久化与可靠性" [level=2] [ref=f1e204]
+            - group [ref=f1e205]:
+              - generic "Q51：审批到底批准什么，用户说“好”算批准吗？ +" [ref=f1e206] [cursor=pointer]
+            - group [ref=f1e207]:
+              - generic "Q52：如何防止退款重复执行？ +" [ref=f1e208] [cursor=pointer]
+            - group [ref=f1e209]:
+              - generic "Q53：Checkpoint和业务账本为什么不能合并？ +" [ref=f1e210] [cursor=pointer]
+            - group [ref=f1e211]:
+              - generic "Q54：客户端断线后为什么不重新生成答案？ +" [ref=f1e212] [cursor=pointer]
+            - group [ref=f1e213]:
+              - generic "Q55：异步worker重复领取、租约过期怎么办？ +" [ref=f1e214] [cursor=pointer]
+            - group [ref=f1e215]:
+              - generic "Q56：用户改需求或取消后，旧Worker结果怎么办？ +" [ref=f1e216] [cursor=pointer]
+          - generic [ref=f1e217]:
+            - heading "07 8. 评测、数据与优化闭环" [level=2] [ref=f1e218]
+            - group [ref=f1e219]:
+              - generic "Q57：为什么选Doc2Dial、MTRAG、WixQA？ +" [ref=f1e220] [cursor=pointer]
+            - group [ref=f1e221]:
+              - generic "Q58：外部语料怎样转换，怎么避免评测作弊？ +" [ref=f1e222] [cursor=pointer]
+            - group [ref=f1e223]:
+              - generic "Q59：中文模拟集怎样设计才有用？ +" [ref=f1e224] [cursor=pointer]
+            - group [ref=f1e225]:
+              - generic "Q60：Recall、MRR、nDCG和完整必要证据覆盖分别是什么？ +" [ref=f1e226] [cursor=pointer]
+            - group [ref=f1e227]:
+              - generic "Q61：τ³到底测什么，和RAG评测有什么不同？ +" [ref=f1e228] [cursor=pointer]
+            - group [ref=f1e229]:
+              - generic "Q62：为什么不能把Completed或verified当成功？ +" [ref=f1e230] [cursor=pointer]
+            - group [ref=f1e231]:
+              - generic "Q63：对照、消融、配对、重复运行分别是什么？ +" [ref=f1e232] [cursor=pointer]
+            - group [ref=f1e233]:
+              - generic "Q64：你真正做过哪些优化，有失败方案吗？ +" [ref=f1e234] [cursor=pointer]
+            - group [ref=f1e235]:
+              - generic "Q65：怎样区分数据问题、模型问题和工程bug？ +" [ref=f1e236] [cursor=pointer]
+            - group [ref=f1e237]:
+              - generic "Q66：Token和延迟怎么报才有意义？ +" [ref=f1e238] [cursor=pointer]
+          - generic [ref=f1e239]:
+            - heading "08 9. 多模态、可观测、扩展与项目边界" [level=2] [ref=f1e240]
+            - group [ref=f1e241]:
+              - generic "Q67：为什么视觉按需调用，不每轮都看图？ +" [ref=f1e242] [cursor=pointer]
+            - group [ref=f1e243]:
+              - generic "Q68：Langfuse和Prometheus各看什么？ +" [ref=f1e244] [cursor=pointer]
+            - group [ref=f1e245]:
+              - generic "Q69：如何抵御Prompt Injection和越权？ +" [ref=f1e246] [cursor=pointer]
+            - group [ref=f1e247]:
+              - generic "Q70：新增一个领域或业务工具要改哪些地方？ +" [ref=f1e248] [cursor=pointer]
+            - group [ref=f1e249]:
+              - generic "Q71：与SOTA或生产系统相比，优势和不足是什么？ +" [ref=f1e250] [cursor=pointer]
+            - group [ref=f1e251]:
+              - generic "Q72：讲一个最能体现能力的STAR案例。 +" [ref=f1e252] [cursor=pointer]
+          - generic [ref=f1e253]:
+            - heading "09 10. 状态、长期记忆与后端扩展深挖" [level=2] [ref=f1e254]
+            - group [ref=f1e255]:
+              - generic "Q73：意图分类、槽位抽取与DST有什么区别？ +" [ref=f1e256] [cursor=pointer]
+            - group [ref=f1e257]:
+              - generic "Q74：长期记忆检索和知识RAG能共用权重吗？ +" [ref=f1e258] [cursor=pointer]
+            - group [ref=f1e259]:
+              - generic "Q75：Commitment服务承诺是什么，和普通记忆有什么不同？ +" [ref=f1e260] [cursor=pointer]
+            - group [ref=f1e261]:
+              - generic "Q76：转人工为什么不是返回一句“请联系人工”？ +" [ref=f1e262] [cursor=pointer]
+            - group [ref=f1e263]:
+              - generic "Q77：仓库有evolution模块，是自动自我进化吗？ +" [ref=f1e264] [cursor=pointer]
+            - group [ref=f1e265]:
+              - generic "Q78：为什么规划用便宜模型，生成和核验用更强模型？ +" [ref=f1e266] [cursor=pointer]
+            - group [ref=f1e267]:
+              - generic "Q79：部署、性能和容量你能承诺什么？ +" [ref=f1e268] [cursor=pointer]
+            - group [ref=f1e269]:
+              - generic "Q80：什么测试才能证明架构，不只是mock通过？ +" [ref=f1e270] [cursor=pointer]
+  - contentinfo [ref=f1e271]:
+    - generic [ref=f1e272]:
+      - heading "DialogPilot 架构与面试手册" [level=2] [ref=f1e273]
+      - generic [ref=f1e274]:
+        - list [ref=f1e276]:
+          - listitem [ref=f1e277]: DialogPilot 架构与面试手册
+        - generic [ref=f1e278]:
+          - list
+        - paragraph [ref=f1e280]: 最新源码调用链、80个详细追问、RAG离线在线与真实评测证据
+  - button "返回顶部": ↑

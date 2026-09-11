@@ -1,0 +1,1370 @@
+{
+  "task_id": "0",
+  "official_reward": 0.0,
+  "all": {
+    "reward": 0.0,
+    "db_check": {
+      "db_match": false,
+      "db_reward": 0.0
+    },
+    "env_assertions": [],
+    "action_checks": [
+      {
+        "action": {
+          "action_id": "0_0",
+          "requestor": "assistant",
+          "name": "find_user_id_by_name_zip",
+          "arguments": {
+            "first_name": "Yusuf",
+            "last_name": "Rossi",
+            "zip": "19122"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "0_1",
+          "requestor": "assistant",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W2378156"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "0_2",
+          "requestor": "assistant",
+          "name": "get_product_details",
+          "arguments": {
+            "product_id": "1656367028"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "0_3",
+          "requestor": "assistant",
+          "name": "get_product_details",
+          "arguments": {
+            "product_id": "4896585277"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "0_4",
+          "requestor": "assistant",
+          "name": "exchange_delivered_order_items",
+          "arguments": {
+            "order_id": "#W2378156",
+            "item_ids": [
+              "1151293680",
+              "4983901480"
+            ],
+            "new_item_ids": [
+              "7706410293",
+              "7747408585"
+            ],
+            "payment_method_id": "credit_card_9513926"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": false,
+        "action_reward": 0.0,
+        "tool_type": "write"
+      }
+    ],
+    "nl_assertions": [],
+    "communicate_checks": null,
+    "reward_basis": [
+      "DB",
+      "NL_ASSERTION"
+    ],
+    "reward_breakdown": {
+      "DB": 0.0,
+      "NL_ASSERTION": 1.0
+    },
+    "info": {
+      "env": null,
+      "nl": {
+        "note": "No nl_assertions to evaluate"
+      },
+      "communicate": {
+        "note": "No communicate_info to evaluate"
+      },
+      "action": null
+    }
+  },
+  "env": {
+    "reward": 0.0,
+    "db_check": {
+      "db_match": false,
+      "db_reward": 0.0
+    },
+    "env_assertions": [],
+    "action_checks": null,
+    "nl_assertions": null,
+    "communicate_checks": null,
+    "reward_basis": [
+      "DB",
+      "NL_ASSERTION"
+    ],
+    "reward_breakdown": {
+      "DB": 0.0
+    },
+    "info": null
+  },
+  "action": {
+    "reward": 0.0,
+    "db_check": null,
+    "env_assertions": null,
+    "action_checks": [
+      {
+        "action": {
+          "action_id": "0_0",
+          "requestor": "assistant",
+          "name": "find_user_id_by_name_zip",
+          "arguments": {
+            "first_name": "Yusuf",
+            "last_name": "Rossi",
+            "zip": "19122"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "0_1",
+          "requestor": "assistant",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W2378156"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "0_2",
+          "requestor": "assistant",
+          "name": "get_product_details",
+          "arguments": {
+            "product_id": "1656367028"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "0_3",
+          "requestor": "assistant",
+          "name": "get_product_details",
+          "arguments": {
+            "product_id": "4896585277"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "0_4",
+          "requestor": "assistant",
+          "name": "exchange_delivered_order_items",
+          "arguments": {
+            "order_id": "#W2378156",
+            "item_ids": [
+              "1151293680",
+              "4983901480"
+            ],
+            "new_item_ids": [
+              "7706410293",
+              "7747408585"
+            ],
+            "payment_method_id": "credit_card_9513926"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": false,
+        "action_reward": 0.0,
+        "tool_type": "write"
+      }
+    ],
+    "nl_assertions": null,
+    "communicate_checks": null,
+    "reward_basis": [
+      "DB"
+    ],
+    "reward_breakdown": {
+      "ACTION": 0.0
+    },
+    "info": null
+  },
+  "termination": "user_stop",
+  "status": "EVALUATED",
+  "target_trace": [
+    {
+      "turn": 1,
+      "input": "Hi there! I’d like some help with an exchange for two items from my recent order. I have the receipt or order number handy, so I can share that with you when needed. I want to make sure we handle both swaps in one go—thanks!",
+      "outcome": {
+        "response_id": "publication:v1:b8d01991ad6151a4b557f3a028f4d5b1337d6af92964ef188a9d675a49c5a95f",
+        "response": {
+          "intent": "SEMANTIC_INSUFFICIENT_CONTEXT",
+          "conv_id": "tau3-96f8eaddcf4c4cf5ad58828bd4fd83d8",
+          "coverage": {
+            "complete": false,
+            "missing_requirement_ids": [
+              "order_id",
+              "customer_service_goal"
+            ]
+          },
+          "grounded": false,
+          "response": "请补充完成该任务所需的信息。",
+          "verified": false,
+          "escalated": false,
+          "task_plan": {
+            "plan_id": "turn-plan:v1:5f121ccb35e08fe3bdedcf80ad8b166434a8f89ee8e3eda9b5d19c7cc1d1f321",
+            "work_item_ids": []
+          },
+          "ticket_id": null,
+          "agent_type": "general",
+          "latency_ms": 957.1740832179785,
+          "request_id": "turn-1",
+          "agent_types": [],
+          "response_id": "publication:v1:b8d01991ad6151a4b557f3a028f4d5b1337d6af92964ef188a9d675a49c5a95f",
+          "intent_group": "other",
+          "response_seq": 1,
+          "primary_agent": "",
+          "ticket_status": null,
+          "agent_outcomes": [],
+          "bundle_version": "tau3-retail-v1",
+          "routing_reason": "SEMANTIC_INSUFFICIENT_CONTEXT",
+          "delivery_status": "selected",
+          "handoff_created": false,
+          "evaluation_trace": {
+            "cost": {
+              "latency_ms": 957.1740832179785,
+              "work_item_count": 0,
+              "conversation_planner_invoked": false
+            },
+            "outcome": {
+              "kind": "COMPLETED",
+              "verifier_status": "CLARIFY",
+              "missing_requirement_ids": [
+                "order_id",
+                "customer_service_goal"
+              ]
+            },
+            "trigger": {
+              "invocation_admitted": true,
+              "deterministic_resolution": "UNRESOLVED"
+            },
+            "artifact": {
+              "plan_id": "turn-plan:v1:5f121ccb35e08fe3bdedcf80ad8b166434a8f89ee8e3eda9b5d19c7cc1d1f321",
+              "owner_ids": [],
+              "route_mode": "CLARIFY",
+              "registry_fingerprint": "capability-bundle:v1:d97029f228f1b8b68b3f91e89c6d01a1197a34ac7f09b70b5f7b0a993a5b8984",
+              "understanding_reason": "SEMANTIC_INSUFFICIENT_CONTEXT"
+            },
+            "consumption": {
+              "facts": [],
+              "work_items": [],
+              "result_statuses": []
+            },
+            "schema_version": "target-evaluation-trace-v1",
+            "state_side_effect": {
+              "state_version_after": 0,
+              "workstream_statuses": [],
+              "state_version_before": 0,
+              "committed_receipt_refs": []
+            }
+          },
+          "synthesis_reason": "terminal route response",
+          "synthesis_status": "terminal",
+          "supporting_agents": [],
+          "routing_disposition": "clarify",
+          "synthesis_conflicts": [],
+          "verification_status": "clarify",
+          "verification_reason_code": "TARGET_RESULT_INCOMPLETE"
+        },
+        "stages": []
+      }
+    },
+    {
+      "turn": 2,
+      "input": "Sure—here’s what I have handy.\n\nMy order number is #W2378156, and my name is Yusuf Rossi; I’m in zip code 19122.\n\nI received two items I need to exchange:\n- The mechanical keyboard—I’d like the same model but with clicky switches. Ideally it still has RGB backlighting and is full size, but if that exact combo isn’t available, then no backlight is okay.\n- The smart thermostat—I need to swap it for the version that works with Google Home instead of the Apple HomeKit one I received.\n\nCan you help me set up both exchanges at the same time? Let me know if you need anything else from me.",
+      "outcome": {
+        "workflow_run_id": "workflow-run:v1:e7843aceb5633f8d022eec49f89cb8b6329a6d3081e161263fd2cc3dff44cb3a",
+        "signal_id": "interaction:v1:7b74ea3564261e134b0b48fae04682864c4b4f4f6125931c938b88ff910f9cf4",
+        "kind": "FIELDS",
+        "expires_at": "2026-09-13T17:34:52.590224+00:00",
+        "interaction_publication_id": "publication:v1:bd914b57abdc0685f1a2f96e7ad011cb58af7a90bc31e778ad7289f6603947c8"
+      }
+    },
+    {
+      "verification": {
+        "status": "unknown",
+        "grounded": false,
+        "need_escalation": true,
+        "reason": "verification unavailable: ValueError",
+        "reason_code": "invalid_contract",
+        "assessment": null,
+        "request_binding": "ae7dd30acc364e2d6748442f40535a35872585f7b0a03e3137a80fbfcef45445"
+      },
+      "candidate": "此项请求：本次未能完成，请核实相关信息或联系人工客服。\nYour original payment method on order #W2378156 was a Mastercard ending in 2478.\nThe payment on record for that order was $1,819.92, charged to that Mastercard ending in 2478.\nThe $16.63 refund can be sent back to that same original payment method."
+    },
+    {
+      "turn": 3,
+      "input": "Yes, I confirm both exchanges as described:\n\n- Keyboard: same model, but with clicky switches. If only non-backlit is available in that configuration, that’s fine—but please prioritize RGB backlighting and full size if possible.\n- Thermostat: the version compatible with Google Home, replacing the Apple HomeKit version I received.\n\nFor the $16.63 refund, please send it back to the original payment method used on the order. I don’t have the card details in front of me—can you confirm which payment method that was, and I’ll verify?",
+      "outcome": {
+        "response_id": "publication:v1:0b90726ea383082ebe943ba39d6f70e0aef89fbb9a296bfe32bc06f1ad3293ef",
+        "response": {
+          "intent": "PENDING_INPUT_RESUMED",
+          "conv_id": "tau3-96f8eaddcf4c4cf5ad58828bd4fd83d8",
+          "coverage": {
+            "complete": false,
+            "missing_requirement_ids": []
+          },
+          "grounded": false,
+          "response": "此项请求：本次未能完成，请核实相关信息或联系人工客服。",
+          "verified": false,
+          "escalated": false,
+          "task_plan": {
+            "plan_id": "turn-plan:v1:51f9164e649cfe6f66e2116cac43e6a956ae56b83507103d87e561f3d0c2c604",
+            "work_item_ids": [
+              "work:1:resume-input-1"
+            ]
+          },
+          "ticket_id": null,
+          "agent_type": "retail",
+          "latency_ms": 17959.94834974408,
+          "request_id": "turn-3",
+          "agent_types": [
+            "retail"
+          ],
+          "response_id": "publication:v1:0b90726ea383082ebe943ba39d6f70e0aef89fbb9a296bfe32bc06f1ad3293ef",
+          "intent_group": "retail",
+          "response_seq": 3,
+          "primary_agent": "retail",
+          "ticket_status": null,
+          "agent_outcomes": [
+            {
+              "status": "TERMINAL_FAILURE",
+              "owner_agent": "retail",
+              "reason_code": "DOMAIN_OUTCOME_MISSING",
+              "work_item_id": "work:1:resume-input-1"
+            }
+          ],
+          "bundle_version": "tau3-retail-v1",
+          "routing_reason": "PENDING_INPUT_RESUMED",
+          "delivery_status": "selected",
+          "handoff_created": false,
+          "evaluation_trace": {
+            "cost": {
+              "latency_ms": 17959.94834974408,
+              "work_item_count": 1,
+              "conversation_planner_invoked": false
+            },
+            "outcome": {
+              "kind": "COMPLETED",
+              "verifier_status": "UNKNOWN",
+              "missing_requirement_ids": []
+            },
+            "trigger": {
+              "invocation_admitted": true,
+              "deterministic_resolution": "REPLY_PENDING_INPUT"
+            },
+            "artifact": {
+              "plan_id": "turn-plan:v1:51f9164e649cfe6f66e2116cac43e6a956ae56b83507103d87e561f3d0c2c604",
+              "owner_ids": [
+                "retail"
+              ],
+              "route_mode": "AGENT_TASK",
+              "registry_fingerprint": "capability-bundle:v1:d97029f228f1b8b68b3f91e89c6d01a1197a34ac7f09b70b5f7b0a993a5b8984",
+              "understanding_reason": "PENDING_INPUT_RESUMED"
+            },
+            "consumption": {
+              "facts": [
+                {
+                  "source_ref": "call_00_H6rtYmptbjf4TvDEK6xd1281",
+                  "producer_id": "find_user_id_by_name_zip",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.find_user_id_by_name_zip",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_00_NgtSNdq273AlCUSYcqTQ1834",
+                  "producer_id": "get_user_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_user_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_01_0xHPcIG4VaZRd3VNRA7q3483",
+                  "producer_id": "get_order_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_order_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_00_FEdFbPCNpJ1UpbpVfi048365",
+                  "producer_id": "get_product_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_product_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_01_4ggR1UUah82FrxM2wRt80497",
+                  "producer_id": "get_product_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_product_details",
+                  "producer_version": "tool-output-v1"
+                }
+              ],
+              "work_items": [
+                {
+                  "owner_agent": "retail",
+                  "control_mode": "DELEGATED",
+                  "work_item_id": "work:1:resume-input-1",
+                  "allowed_tools": [
+                    "observed_operation_status",
+                    "calculate",
+                    "find_user_id_by_name_zip",
+                    "find_user_id_by_email",
+                    "get_order_details",
+                    "get_product_details",
+                    "get_item_details",
+                    "get_user_details",
+                    "list_all_product_types",
+                    "transfer_to_human_agents"
+                  ],
+                  "allowed_skills": []
+                }
+              ],
+              "result_statuses": [
+                "TERMINAL_FAILURE"
+              ]
+            },
+            "schema_version": "target-evaluation-trace-v1",
+            "state_side_effect": {
+              "state_version_after": 4,
+              "workstream_statuses": [],
+              "state_version_before": 2,
+              "committed_receipt_refs": []
+            }
+          },
+          "synthesis_reason": "ANSWER_SAFE_FALLBACK",
+          "synthesis_status": "template",
+          "supporting_agents": [],
+          "routing_disposition": "agent_task",
+          "synthesis_conflicts": [
+            "work-item:work:1:exchange-setup-w2378156:environment.get_product_details"
+          ],
+          "verification_status": "unknown",
+          "verification_reason_code": "TARGET_RESULT_INCOMPLETE"
+        },
+        "stages": []
+      }
+    },
+    {
+      "verification": {
+        "status": "unknown",
+        "grounded": false,
+        "need_escalation": true,
+        "reason": "verification unavailable: ValueError",
+        "reason_code": "invalid_contract",
+        "assessment": null,
+        "request_binding": "a2b94f5db1394b8da8df64b7c9c84a08fae25eb00d3af642eec89e0d59cdb36f"
+      },
+      "candidate": "此项请求：本次未能完成，请核实相关信息或联系人工客服。\nI appreciate your patience, and I'm sorry for the confusion. I wasn't able to complete this exchange request, but I want to be honest with you about what that means.\nSpecifically, the system did not return a completed domain outcome for this exchange, so the request ended without the exchange being processed.\nBecause of that, I don't have a completed exchange result to share with you, and I'm unable to confirm from the available information exactly what additional detail is needed to finish the process.\nFor the original payment method on your order, I can confirm the order was paid with a Mastercard ending in 2478.\nSince I'm not able to move this request forward on my own, the next step would be to connect you with a human specialist or the appropriate department for direct assistance, rather than restarting the process."
+    },
+    {
+      "turn": 4,
+      "input": "I’m a bit confused—can you let me know what specifically couldn’t be completed? I’d like to make sure I understand what info is needed so we can get both exchanges sorted out.\n\nI have my order number (#W2378156), name, and zip code ready. If you need me to verify anything else from the order, please tell me exactly what you need and I’ll do my best.\n\nIf this needs to go to a human specialist or another department, please let me know how to reach them or if you can transfer me directly. I’d prefer not to restart the process if possible.",
+      "outcome": {
+        "response_id": "publication:v1:686498ee882a8657eecdf7ca3d258563c7c0e756abfb3561a39367b6fb6fc90a",
+        "response": {
+          "intent": "CONVERSATION_AGENT_PLAN",
+          "conv_id": "tau3-96f8eaddcf4c4cf5ad58828bd4fd83d8",
+          "coverage": {
+            "complete": false,
+            "missing_requirement_ids": []
+          },
+          "grounded": false,
+          "response": "此项请求：本次未能完成，请核实相关信息或联系人工客服。",
+          "verified": false,
+          "escalated": false,
+          "task_plan": {
+            "plan_id": "turn-plan:v1:9a04a18f350c500da312a7b61df1ae1fe3bb1a02e673ee68b429a5fbc2db37b6",
+            "work_item_ids": [
+              "work:1:delegate-exchange-w2378156"
+            ]
+          },
+          "ticket_id": null,
+          "agent_type": "retail",
+          "latency_ms": 26751.725997775793,
+          "request_id": "turn-4",
+          "agent_types": [
+            "retail"
+          ],
+          "response_id": "publication:v1:686498ee882a8657eecdf7ca3d258563c7c0e756abfb3561a39367b6fb6fc90a",
+          "intent_group": "retail",
+          "response_seq": 4,
+          "primary_agent": "retail",
+          "ticket_status": null,
+          "agent_outcomes": [
+            {
+              "status": "TERMINAL_FAILURE",
+              "owner_agent": "retail",
+              "reason_code": "DOMAIN_OUTCOME_MISSING",
+              "work_item_id": "work:1:delegate-exchange-w2378156"
+            }
+          ],
+          "bundle_version": "tau3-retail-v1",
+          "routing_reason": "CONVERSATION_AGENT_PLAN",
+          "delivery_status": "selected",
+          "handoff_created": false,
+          "evaluation_trace": {
+            "cost": {
+              "latency_ms": 26751.725997775793,
+              "work_item_count": 1,
+              "conversation_planner_invoked": true
+            },
+            "outcome": {
+              "kind": "COMPLETED",
+              "verifier_status": "UNKNOWN",
+              "missing_requirement_ids": []
+            },
+            "trigger": {
+              "invocation_admitted": true,
+              "deterministic_resolution": "UNRESOLVED"
+            },
+            "artifact": {
+              "plan_id": "turn-plan:v1:9a04a18f350c500da312a7b61df1ae1fe3bb1a02e673ee68b429a5fbc2db37b6",
+              "owner_ids": [
+                "retail"
+              ],
+              "route_mode": "AGENT_TASK",
+              "registry_fingerprint": "capability-bundle:v1:d97029f228f1b8b68b3f91e89c6d01a1197a34ac7f09b70b5f7b0a993a5b8984",
+              "understanding_reason": "CONVERSATION_AGENT_PLAN"
+            },
+            "consumption": {
+              "facts": [
+                {
+                  "source_ref": "call_00_XEw7UjZXdh5oXfuCNfj04139",
+                  "producer_id": "find_user_id_by_name_zip",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.find_user_id_by_name_zip",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_00_kc54EoaZs4rjTE7ICPai4112",
+                  "producer_id": "get_user_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_user_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_01_alEDYK2xReu0BPLZsfuO4452",
+                  "producer_id": "get_order_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_order_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_00_o5ckHEPNUEmUgBZiK2kv8635",
+                  "producer_id": "get_product_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_product_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_01_fYSh2qeFVzjUL0v5Wx4c0545",
+                  "producer_id": "get_product_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_product_details",
+                  "producer_version": "tool-output-v1"
+                }
+              ],
+              "work_items": [
+                {
+                  "owner_agent": "retail",
+                  "control_mode": "DELEGATED",
+                  "work_item_id": "work:1:delegate-exchange-w2378156",
+                  "allowed_tools": [
+                    "observed_operation_status",
+                    "calculate",
+                    "find_user_id_by_name_zip",
+                    "find_user_id_by_email",
+                    "get_order_details",
+                    "get_product_details",
+                    "get_item_details",
+                    "get_user_details",
+                    "list_all_product_types",
+                    "transfer_to_human_agents"
+                  ],
+                  "allowed_skills": []
+                }
+              ],
+              "result_statuses": [
+                "TERMINAL_FAILURE"
+              ]
+            },
+            "schema_version": "target-evaluation-trace-v1",
+            "state_side_effect": {
+              "state_version_after": 5,
+              "workstream_statuses": [],
+              "state_version_before": 4,
+              "committed_receipt_refs": []
+            }
+          },
+          "synthesis_reason": "ANSWER_SAFE_FALLBACK",
+          "synthesis_status": "template",
+          "supporting_agents": [],
+          "routing_disposition": "agent_task",
+          "synthesis_conflicts": [
+            "work-item:work:1:delegate-exchange-w2378156:environment.get_product_details"
+          ],
+          "verification_status": "unknown",
+          "verification_reason_code": "TARGET_RESULT_INCOMPLETE"
+        },
+        "stages": []
+      }
+    },
+    {
+      "verification": {
+        "status": "unknown",
+        "grounded": false,
+        "need_escalation": true,
+        "reason": "verification unavailable: ValueError",
+        "reason_code": "invalid_contract",
+        "assessment": null,
+        "request_binding": "881c015d6a62902ebd99824f30627c3061ba8d2ef628eece9bf07f62a87eabcd"
+      },
+      "candidate": "此项请求：本次未能完成，请核实相关信息或联系人工客服。\n此项请求：目前无法继续处理。\nI wasn't able to complete these exchanges, and I don't have specific details available about what prevented it.\nBecause the exchange couldn't be completed, your request is being routed to customer service.\nI'm unable to transfer you to a live agent myself or confirm what other information is needed, so I'd ask that you continue with customer service to finish both exchanges."
+    },
+    {
+      "turn": 5,
+      "input": "I understand you’re saying this request can’t be completed right now. However, I still need to know what’s missing so I can get it resolved.\n\nI’ve already provided:\n- Order number: #W2378156\n- Name: Yusuf Rossi\n- ZIP code: 19122\n- Both exchange items and replacement specs\n- Refund preference: original payment method\n\nSince I’m being routed to customer service, please either transfer me to a live agent or explain what specific details need to be corrected. I don’t have my email handy, but if you can confirm what other piece of info is missing, I’ll provide it.\n\nIf I’m being transferred, please go ahead and connect me so we can finish both exchanges.",
+      "outcome": {
+        "response_id": "publication:v1:c2abc889f1c3eae7a56f05b1356549670a3db3b3c9d812ccfa15936b07718088",
+        "response": {
+          "intent": "CONVERSATION_AGENT_PLAN",
+          "conv_id": "tau3-96f8eaddcf4c4cf5ad58828bd4fd83d8",
+          "coverage": {
+            "complete": false,
+            "missing_requirement_ids": []
+          },
+          "grounded": false,
+          "response": "此项请求：本次未能完成，请核实相关信息或联系人工客服。\n此项请求：目前无法继续处理。",
+          "verified": false,
+          "escalated": false,
+          "task_plan": {
+            "plan_id": "turn-plan:v1:c1497f4ba82480f84c5992ec201a61651ee54a33b0f3b575ba429611063e2f32",
+            "work_item_ids": [
+              "work:1:exchange-w2378156-continue",
+              "work:2:exchange-w2378156-human-transfer"
+            ]
+          },
+          "ticket_id": null,
+          "agent_type": "retail",
+          "latency_ms": 33409.26143527031,
+          "request_id": "turn-5",
+          "agent_types": [
+            "retail"
+          ],
+          "response_id": "publication:v1:c2abc889f1c3eae7a56f05b1356549670a3db3b3c9d812ccfa15936b07718088",
+          "intent_group": "retail",
+          "response_seq": 5,
+          "primary_agent": "retail",
+          "ticket_status": null,
+          "agent_outcomes": [
+            {
+              "status": "TERMINAL_FAILURE",
+              "owner_agent": "retail",
+              "reason_code": "DOMAIN_OUTCOME_MISSING",
+              "work_item_id": "work:1:exchange-w2378156-continue"
+            },
+            {
+              "status": "BLOCKED",
+              "owner_agent": "retail",
+              "reason_code": "UPSTREAM_NOT_SUCCESSFUL:work:1:exchange-w2378156-continue",
+              "work_item_id": "work:2:exchange-w2378156-human-transfer"
+            }
+          ],
+          "bundle_version": "tau3-retail-v1",
+          "routing_reason": "CONVERSATION_AGENT_PLAN",
+          "delivery_status": "selected",
+          "handoff_created": false,
+          "evaluation_trace": {
+            "cost": {
+              "latency_ms": 33409.26143527031,
+              "work_item_count": 2,
+              "conversation_planner_invoked": true
+            },
+            "outcome": {
+              "kind": "COMPLETED",
+              "verifier_status": "UNKNOWN",
+              "missing_requirement_ids": []
+            },
+            "trigger": {
+              "invocation_admitted": true,
+              "deterministic_resolution": "UNRESOLVED"
+            },
+            "artifact": {
+              "plan_id": "turn-plan:v1:c1497f4ba82480f84c5992ec201a61651ee54a33b0f3b575ba429611063e2f32",
+              "owner_ids": [
+                "retail"
+              ],
+              "route_mode": "AGENT_TASK",
+              "registry_fingerprint": "capability-bundle:v1:d97029f228f1b8b68b3f91e89c6d01a1197a34ac7f09b70b5f7b0a993a5b8984",
+              "understanding_reason": "CONVERSATION_AGENT_PLAN"
+            },
+            "consumption": {
+              "facts": [
+                {
+                  "source_ref": "call_00_lMtZO7DM4OoVpgg5oagO1695",
+                  "producer_id": "find_user_id_by_name_zip",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.find_user_id_by_name_zip",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_00_Eg7LAnto15bb5IezZMIC8997",
+                  "producer_id": "get_user_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_user_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_01_10hTFbXg9OPuOqA4jzCP2759",
+                  "producer_id": "get_order_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_order_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_00_65aSyn8NV5oaECfpF04L8593",
+                  "producer_id": "get_product_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_product_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_01_fTHJoYlkRu7BL8dUDMKn5130",
+                  "producer_id": "get_product_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_product_details",
+                  "producer_version": "tool-output-v1"
+                }
+              ],
+              "work_items": [
+                {
+                  "owner_agent": "retail",
+                  "control_mode": "DELEGATED",
+                  "work_item_id": "work:1:exchange-w2378156-continue",
+                  "allowed_tools": [
+                    "observed_operation_status",
+                    "calculate",
+                    "find_user_id_by_name_zip",
+                    "find_user_id_by_email",
+                    "get_order_details",
+                    "get_product_details",
+                    "get_item_details",
+                    "get_user_details",
+                    "list_all_product_types",
+                    "transfer_to_human_agents"
+                  ],
+                  "allowed_skills": []
+                },
+                {
+                  "owner_agent": "retail",
+                  "control_mode": "DELEGATED",
+                  "work_item_id": "work:2:exchange-w2378156-human-transfer",
+                  "allowed_tools": [
+                    "observed_operation_status",
+                    "calculate",
+                    "find_user_id_by_name_zip",
+                    "find_user_id_by_email",
+                    "get_order_details",
+                    "get_product_details",
+                    "get_item_details",
+                    "get_user_details",
+                    "list_all_product_types",
+                    "transfer_to_human_agents"
+                  ],
+                  "allowed_skills": []
+                }
+              ],
+              "result_statuses": [
+                "TERMINAL_FAILURE",
+                "BLOCKED"
+              ]
+            },
+            "schema_version": "target-evaluation-trace-v1",
+            "state_side_effect": {
+              "state_version_after": 6,
+              "workstream_statuses": [],
+              "state_version_before": 5,
+              "committed_receipt_refs": []
+            }
+          },
+          "synthesis_reason": "ANSWER_SAFE_FALLBACK",
+          "synthesis_status": "template",
+          "supporting_agents": [],
+          "routing_disposition": "agent_task",
+          "synthesis_conflicts": [
+            "work-item:work:1:exchange-w2378156-continue:environment.get_product_details"
+          ],
+          "verification_status": "unknown",
+          "verification_reason_code": "TARGET_RESULT_INCOMPLETE"
+        },
+        "stages": []
+      }
+    },
+    {
+      "verification": {
+        "status": "unknown",
+        "grounded": false,
+        "need_escalation": true,
+        "reason": "verification unavailable: ValueError",
+        "reason_code": "invalid_contract",
+        "assessment": null,
+        "request_binding": "b6ae73c574e21f4487b66efbba99177c4f8d3daff63dbd441025fd3e5b508a58"
+      },
+      "candidate": "此项请求：本次未能完成，请核实相关信息或联系人工客服。\nI'm sorry, but I'm not able to complete either exchange request through this channel right now, and I don't have additional details available about what specifically prevented completion.\nTo finish both exchanges, I'd recommend speaking with a live representative who can access your order directly and guide you through the next steps."
+    },
+    {
+      "turn": 6,
+      "input": "It sounds like you’re not able to complete this through the current channel, and I’m not getting the details I need to move forward.\n\nI’d like to speak with a human representative or be transferred to an agent who can access my order. If you need to verify my identity, please tell me exactly what information you require other than my email. I don’t have that available, but I can confirm my name, ZIP code, order number, phone number on file, or any other order-related detail you can guide me through.\n\nPlease either transfer me to a live agent or let me know the next step so I can complete both exchanges without starting over. Thank you.",
+      "outcome": {
+        "response_id": "publication:v1:433e5c39a84a4a25553f2cef94859280fbe60de591378c8c4600f4570588221a",
+        "response": {
+          "intent": "CONVERSATION_AGENT_PLAN",
+          "conv_id": "tau3-96f8eaddcf4c4cf5ad58828bd4fd83d8",
+          "coverage": {
+            "complete": false,
+            "missing_requirement_ids": []
+          },
+          "grounded": false,
+          "response": "此项请求：本次未能完成，请核实相关信息或联系人工客服。",
+          "verified": false,
+          "escalated": false,
+          "task_plan": {
+            "plan_id": "turn-plan:v1:3544a20dc9203373fa1d70ec64113ad2bab78b3d6869411b47d7142239fcc1cf",
+            "work_item_ids": [
+              "work:1:exchange-complete-human-transfer"
+            ]
+          },
+          "ticket_id": null,
+          "agent_type": "retail",
+          "latency_ms": 26205.422718077898,
+          "request_id": "turn-6",
+          "agent_types": [
+            "retail"
+          ],
+          "response_id": "publication:v1:433e5c39a84a4a25553f2cef94859280fbe60de591378c8c4600f4570588221a",
+          "intent_group": "retail",
+          "response_seq": 6,
+          "primary_agent": "retail",
+          "ticket_status": null,
+          "agent_outcomes": [
+            {
+              "status": "TERMINAL_FAILURE",
+              "owner_agent": "retail",
+              "reason_code": "DOMAIN_OUTCOME_MISSING",
+              "work_item_id": "work:1:exchange-complete-human-transfer"
+            }
+          ],
+          "bundle_version": "tau3-retail-v1",
+          "routing_reason": "CONVERSATION_AGENT_PLAN",
+          "delivery_status": "selected",
+          "handoff_created": false,
+          "evaluation_trace": {
+            "cost": {
+              "latency_ms": 26205.422718077898,
+              "work_item_count": 1,
+              "conversation_planner_invoked": true
+            },
+            "outcome": {
+              "kind": "COMPLETED",
+              "verifier_status": "UNKNOWN",
+              "missing_requirement_ids": []
+            },
+            "trigger": {
+              "invocation_admitted": true,
+              "deterministic_resolution": "UNRESOLVED"
+            },
+            "artifact": {
+              "plan_id": "turn-plan:v1:3544a20dc9203373fa1d70ec64113ad2bab78b3d6869411b47d7142239fcc1cf",
+              "owner_ids": [
+                "retail"
+              ],
+              "route_mode": "AGENT_TASK",
+              "registry_fingerprint": "capability-bundle:v1:d97029f228f1b8b68b3f91e89c6d01a1197a34ac7f09b70b5f7b0a993a5b8984",
+              "understanding_reason": "CONVERSATION_AGENT_PLAN"
+            },
+            "consumption": {
+              "facts": [
+                {
+                  "source_ref": "call_00_XGCQ07gbAuk6BzoNAbqi4657",
+                  "producer_id": "find_user_id_by_name_zip",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.find_user_id_by_name_zip",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_00_GZRW2W6UZmkaJFuIZtv51841",
+                  "producer_id": "get_user_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_user_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_01_zB7IXmpGbghvsapPMu8U0732",
+                  "producer_id": "get_order_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_order_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_00_Rez5DwseJ17LOCpI4yxQ9932",
+                  "producer_id": "get_product_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_product_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_01_NDBdiGCocZUsVdUPniia4984",
+                  "producer_id": "get_product_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_product_details",
+                  "producer_version": "tool-output-v1"
+                }
+              ],
+              "work_items": [
+                {
+                  "owner_agent": "retail",
+                  "control_mode": "DELEGATED",
+                  "work_item_id": "work:1:exchange-complete-human-transfer",
+                  "allowed_tools": [
+                    "observed_operation_status",
+                    "calculate",
+                    "find_user_id_by_name_zip",
+                    "find_user_id_by_email",
+                    "get_order_details",
+                    "get_product_details",
+                    "get_item_details",
+                    "get_user_details",
+                    "list_all_product_types",
+                    "transfer_to_human_agents"
+                  ],
+                  "allowed_skills": []
+                }
+              ],
+              "result_statuses": [
+                "TERMINAL_FAILURE"
+              ]
+            },
+            "schema_version": "target-evaluation-trace-v1",
+            "state_side_effect": {
+              "state_version_after": 7,
+              "workstream_statuses": [],
+              "state_version_before": 6,
+              "committed_receipt_refs": []
+            }
+          },
+          "synthesis_reason": "ANSWER_SAFE_FALLBACK",
+          "synthesis_status": "template",
+          "supporting_agents": [],
+          "routing_disposition": "agent_task",
+          "synthesis_conflicts": [
+            "work-item:work:1:exchange-complete-human-transfer:environment.get_product_details"
+          ],
+          "verification_status": "unknown",
+          "verification_reason_code": "TARGET_RESULT_INCOMPLETE"
+        },
+        "stages": []
+      }
+    },
+    {
+      "turn": 7,
+      "input": "I understand you’re unable to proceed here, and you’re asking me to contact customer service.\n\nPlease transfer me to a live customer service representative so I can complete both exchanges. I’m prepared to verify my order details as needed—I just don’t have my email address available.\n\nIf you’re unable to transfer me, please provide the correct phone number or support link where I can reach the appropriate team. I’d like to resolve this without having to start over, but I need a channel where a human can help me verify and process the request.",
+      "outcome": {
+        "workflow_run_id": "workflow-run:v1:908ce1d74d79a940cc8139f5df803b4a92e9e39425c20123b12bc49ad1515442",
+        "signal_id": "interaction:v1:1dc0fde32ddc352209634eebee3c4c1c382d711e16c0aa32782322ec498fb6b7",
+        "kind": "FIELDS",
+        "expires_at": "2026-09-13T17:37:10.859641+00:00",
+        "interaction_publication_id": "publication:v1:ac4edccd4ce0a918066ff41b32f7402320c2eec80521bb796873a04d6d2274f4"
+      }
+    },
+    {
+      "verification": {
+        "status": "unknown",
+        "grounded": false,
+        "need_escalation": true,
+        "reason": "verification unavailable: ValueError",
+        "reason_code": "invalid_contract",
+        "assessment": null,
+        "request_binding": "a6428e9f09ea639192e4b61c306b6bf8d193cab63ccce04388abd4d051a40747"
+      },
+      "candidate": "此项请求：本次未能完成，请核实相关信息或联系人工客服。\nI understand you've confirmed both exchanges and the refund details, but I'm currently unable to complete this request through this channel.\nThis request could not be completed, and I don't have the information needed to identify the specific missing or incorrect detail that caused it to fail.\nI'm unable to proceed with the exchanges or the refund, transfer you to a live agent, or provide a phone number or support link from the information available to me.\nPlease contact customer service directly for assistance with verifying your details and completing both exchanges."
+    },
+    {
+      "turn": 8,
+      "input": "Yes, I confirm both exchanges as described:\n\n- Mechanical keyboard: same model, but with clicky switches. RGB backlighting and full size preferred; if unavailable, no backlight is acceptable.\n- Smart thermostat: same model, but the version compatible with Google Home instead of Apple HomeKit.\n\nAnd yes, please send the $16.63 refund to the original payment method—Mastercard ending in 2478.\n\nPlease proceed with the exchanges and let me know if you need anything else from me. If there are return labels or any additional steps on my end, please share those details. Thank you.",
+      "outcome": {
+        "response_id": "publication:v1:8e83a2d02f7b7f24f19d1d9b6c400ec2a97bfa3f9cf13998baf47e13e5b18da8",
+        "response": {
+          "intent": "PENDING_INPUT_RESUMED",
+          "conv_id": "tau3-96f8eaddcf4c4cf5ad58828bd4fd83d8",
+          "coverage": {
+            "complete": false,
+            "missing_requirement_ids": []
+          },
+          "grounded": false,
+          "response": "此项请求：本次未能完成，请核实相关信息或联系人工客服。",
+          "verified": false,
+          "escalated": false,
+          "task_plan": {
+            "plan_id": "turn-plan:v1:636a052b416cd8833b91d3853e1cf1df3c7ed5bc2ce1956b98798be6bb06a903",
+            "work_item_ids": [
+              "work:1:resume-input-1"
+            ]
+          },
+          "ticket_id": null,
+          "agent_type": "retail",
+          "latency_ms": 22852.83667780459,
+          "request_id": "turn-8",
+          "agent_types": [
+            "retail"
+          ],
+          "response_id": "publication:v1:8e83a2d02f7b7f24f19d1d9b6c400ec2a97bfa3f9cf13998baf47e13e5b18da8",
+          "intent_group": "retail",
+          "response_seq": 8,
+          "primary_agent": "retail",
+          "ticket_status": null,
+          "agent_outcomes": [
+            {
+              "status": "TERMINAL_FAILURE",
+              "owner_agent": "retail",
+              "reason_code": "DOMAIN_OUTCOME_MISSING",
+              "work_item_id": "work:1:resume-input-1"
+            }
+          ],
+          "bundle_version": "tau3-retail-v1",
+          "routing_reason": "PENDING_INPUT_RESUMED",
+          "delivery_status": "selected",
+          "handoff_created": false,
+          "evaluation_trace": {
+            "cost": {
+              "latency_ms": 22852.83667780459,
+              "work_item_count": 1,
+              "conversation_planner_invoked": false
+            },
+            "outcome": {
+              "kind": "COMPLETED",
+              "verifier_status": "UNKNOWN",
+              "missing_requirement_ids": []
+            },
+            "trigger": {
+              "invocation_admitted": true,
+              "deterministic_resolution": "REPLY_PENDING_INPUT"
+            },
+            "artifact": {
+              "plan_id": "turn-plan:v1:636a052b416cd8833b91d3853e1cf1df3c7ed5bc2ce1956b98798be6bb06a903",
+              "owner_ids": [
+                "retail"
+              ],
+              "route_mode": "AGENT_TASK",
+              "registry_fingerprint": "capability-bundle:v1:d97029f228f1b8b68b3f91e89c6d01a1197a34ac7f09b70b5f7b0a993a5b8984",
+              "understanding_reason": "PENDING_INPUT_RESUMED"
+            },
+            "consumption": {
+              "facts": [
+                {
+                  "source_ref": "call_00_ARMzBis28QOJnm4l8Qyg0750",
+                  "producer_id": "find_user_id_by_name_zip",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.find_user_id_by_name_zip",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_00_arzCVCTJGXA3uBaHHG8x9275",
+                  "producer_id": "get_user_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_user_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_01_MgD8xlVVj2kwykozHeHs6554",
+                  "producer_id": "get_order_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_order_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_00_6vZc0aDw6k1RHYXqfYb96079",
+                  "producer_id": "get_product_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_product_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_01_gi4nUKrbezOc1EZXNu3b5279",
+                  "producer_id": "get_product_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_product_details",
+                  "producer_version": "tool-output-v1"
+                }
+              ],
+              "work_items": [
+                {
+                  "owner_agent": "retail",
+                  "control_mode": "DELEGATED",
+                  "work_item_id": "work:1:resume-input-1",
+                  "allowed_tools": [
+                    "observed_operation_status",
+                    "calculate",
+                    "find_user_id_by_name_zip",
+                    "find_user_id_by_email",
+                    "get_order_details",
+                    "get_product_details",
+                    "get_item_details",
+                    "get_user_details",
+                    "list_all_product_types",
+                    "transfer_to_human_agents"
+                  ],
+                  "allowed_skills": []
+                }
+              ],
+              "result_statuses": [
+                "TERMINAL_FAILURE"
+              ]
+            },
+            "schema_version": "target-evaluation-trace-v1",
+            "state_side_effect": {
+              "state_version_after": 11,
+              "workstream_statuses": [],
+              "state_version_before": 9,
+              "committed_receipt_refs": []
+            }
+          },
+          "synthesis_reason": "ANSWER_SAFE_FALLBACK",
+          "synthesis_status": "template",
+          "supporting_agents": [],
+          "routing_disposition": "agent_task",
+          "synthesis_conflicts": [
+            "work-item:work:1:goals.retail.complete.exchange.human.transfer.v1:environment.get_product_details"
+          ],
+          "verification_status": "unknown",
+          "verification_reason_code": "TARGET_RESULT_INCOMPLETE"
+        },
+        "stages": []
+      }
+    },
+    {
+      "verification": {
+        "status": "unknown",
+        "grounded": false,
+        "need_escalation": true,
+        "reason": "verification unavailable: ValueError",
+        "reason_code": "invalid_contract",
+        "assessment": null,
+        "request_binding": "3785444fd9794bce9eb6873f5b7b1648d23812d0e27620141998d58fc78933a3"
+      },
+      "candidate": "此项请求：本次未能完成，请核实相关信息或联系人工客服。\nI'm sorry — I'm not able to complete this request or connect you to a live agent from this channel right now.\nPlease contact customer service directly for help with order #W2378156."
+    },
+    {
+      "turn": 9,
+      "input": "I think we’re stuck in a loop—I keep confirming the details and requesting human help, but I’m only receiving a generic response saying the request can’t be completed.\n\nI need to speak with a live agent to finish this. Please transfer me to customer service now, or provide a direct phone number or support link where I can reach a human who can access order #W2378156.\n\nI’m ready to verify any information you need, but I can’t do that with automated replies. Please connect me with a person.",
+      "outcome": {
+        "response_id": "publication:v1:cae2e0a403eb893e78c684b5f7063ad199e9d4ea04fdf98b92d5ea88c3153332",
+        "response": {
+          "intent": "CONVERSATION_AGENT_PLAN",
+          "conv_id": "tau3-96f8eaddcf4c4cf5ad58828bd4fd83d8",
+          "coverage": {
+            "complete": false,
+            "missing_requirement_ids": []
+          },
+          "grounded": false,
+          "response": "此项请求：本次未能完成，请核实相关信息或联系人工客服。",
+          "verified": false,
+          "escalated": false,
+          "task_plan": {
+            "plan_id": "turn-plan:v1:8c7b70c2bb17399c8506530cc89d817f96cc31a8bf5f3b36fc0119d11bc06744",
+            "work_item_ids": [
+              "work:1:delegate-exchange-human-transfer-618fa985"
+            ]
+          },
+          "ticket_id": null,
+          "agent_type": "retail",
+          "latency_ms": 24636.669611558318,
+          "request_id": "turn-9",
+          "agent_types": [
+            "retail"
+          ],
+          "response_id": "publication:v1:cae2e0a403eb893e78c684b5f7063ad199e9d4ea04fdf98b92d5ea88c3153332",
+          "intent_group": "retail",
+          "response_seq": 9,
+          "primary_agent": "retail",
+          "ticket_status": null,
+          "agent_outcomes": [
+            {
+              "status": "TERMINAL_FAILURE",
+              "owner_agent": "retail",
+              "reason_code": "DOMAIN_OUTCOME_MISSING",
+              "work_item_id": "work:1:delegate-exchange-human-transfer-618fa985"
+            }
+          ],
+          "bundle_version": "tau3-retail-v1",
+          "routing_reason": "CONVERSATION_AGENT_PLAN",
+          "delivery_status": "selected",
+          "handoff_created": false,
+          "evaluation_trace": {
+            "cost": {
+              "latency_ms": 24636.669611558318,
+              "work_item_count": 1,
+              "conversation_planner_invoked": true
+            },
+            "outcome": {
+              "kind": "COMPLETED",
+              "verifier_status": "UNKNOWN",
+              "missing_requirement_ids": []
+            },
+            "trigger": {
+              "invocation_admitted": true,
+              "deterministic_resolution": "UNRESOLVED"
+            },
+            "artifact": {
+              "plan_id": "turn-plan:v1:8c7b70c2bb17399c8506530cc89d817f96cc31a8bf5f3b36fc0119d11bc06744",
+              "owner_ids": [
+                "retail"
+              ],
+              "route_mode": "AGENT_TASK",
+              "registry_fingerprint": "capability-bundle:v1:d97029f228f1b8b68b3f91e89c6d01a1197a34ac7f09b70b5f7b0a993a5b8984",
+              "understanding_reason": "CONVERSATION_AGENT_PLAN"
+            },
+            "consumption": {
+              "facts": [
+                {
+                  "source_ref": "call_00_P1LVe3tTUOaj5tfLmCL41570",
+                  "producer_id": "find_user_id_by_name_zip",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.find_user_id_by_name_zip",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_00_svIp5RHQb5uKN4G7pmTc9370",
+                  "producer_id": "get_user_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_user_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_01_jNDxuqlGaivLNmJBS5OW1879",
+                  "producer_id": "get_order_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_order_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_00_cJWPUkOiCPO6RaG79LdW5331",
+                  "producer_id": "get_product_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_product_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_01_O3vEcK9d7oNFXDLKVbep5870",
+                  "producer_id": "get_product_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_product_details",
+                  "producer_version": "tool-output-v1"
+                }
+              ],
+              "work_items": [
+                {
+                  "owner_agent": "retail",
+                  "control_mode": "DELEGATED",
+                  "work_item_id": "work:1:delegate-exchange-human-transfer-618fa985",
+                  "allowed_tools": [
+                    "observed_operation_status",
+                    "calculate",
+                    "find_user_id_by_name_zip",
+                    "find_user_id_by_email",
+                    "get_order_details",
+                    "get_product_details",
+                    "get_item_details",
+                    "get_user_details",
+                    "list_all_product_types",
+                    "transfer_to_human_agents"
+                  ],
+                  "allowed_skills": []
+                }
+              ],
+              "result_statuses": [
+                "TERMINAL_FAILURE"
+              ]
+            },
+            "schema_version": "target-evaluation-trace-v1",
+            "state_side_effect": {
+              "state_version_after": 12,
+              "workstream_statuses": [],
+              "state_version_before": 11,
+              "committed_receipt_refs": []
+            }
+          },
+          "synthesis_reason": "ANSWER_SAFE_FALLBACK",
+          "synthesis_status": "template",
+          "supporting_agents": [],
+          "routing_disposition": "agent_task",
+          "synthesis_conflicts": [
+            "work-item:work:1:delegate-exchange-human-transfer-618fa985:environment.get_product_details"
+          ],
+          "verification_status": "unknown",
+          "verification_reason_code": "TARGET_RESULT_INCOMPLETE"
+        },
+        "stages": []
+      }
+    }
+  ]
+}

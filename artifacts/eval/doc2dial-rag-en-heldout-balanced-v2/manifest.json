@@ -1,0 +1,54 @@
+{
+  "case_count": 36,
+  "cases_sha256": "ad1aad05e697964c0773f553358712fa3e0d45622dd1208fdb235375832c77bf",
+  "corpus_sha256": "d1f8a7873fcfa01915d15a67e46108451bfb1dde1de3e267732d6abb04329d05",
+  "dataset_id": "doc2dial-rag-en-heldout-balanced-v2",
+  "document_count": 488,
+  "schema_version": 1,
+  "source": {
+    "archive_sha256": "94499fa5259f69018d2458cb948552e7a05f424711a95a562bb9e816a515dc23",
+    "corpus_policy": "all_official_documents",
+    "dataset": "Doc2Dial v1.0.1",
+    "excluded_datasets": [
+      {
+        "cases_sha256": "cf57b105dba988cb48516238f4c706da52c351e039959a5849c9e85c40fa2f91",
+        "dataset_id": "doc2dial-rag-mini-heldout-v1",
+        "group_count": 9
+      },
+      {
+        "cases_sha256": "3b66cca8206ce148f8ed2828ad2327f4285a7a4e6b3c87f70bae1b990d88cdea",
+        "dataset_id": "doc2dial-rag-en-heldout-balanced-v1",
+        "group_count": 120
+      }
+    ],
+    "excluded_group_count": 129,
+    "excluded_group_ids_sha256": "72b30a61002cf727ab7346b3fd06a4540c6c2e43983d6a00154a71d8b1552a54",
+    "grounding_granularity": "character-span",
+    "length_bucket_chars": {
+      "long": ">=8000",
+      "medium": "4000-7999",
+      "short": "<4000"
+    },
+    "license": "CC-BY-3.0",
+    "locale": "en",
+    "official_split": "test",
+    "selection_policy": "one maximum-history answerable turn per conversation; SHA-256 order within domain/document-length stratum",
+    "selection_profile": "conversation-domain-length-balanced-v1",
+    "selection_seed": "doc2dial-en-heldout-balanced-v2",
+    "strata_counts": {
+      "dmv/long": 3,
+      "dmv/medium": 3,
+      "dmv/short": 3,
+      "ssa/long": 3,
+      "ssa/medium": 3,
+      "ssa/short": 3,
+      "studentaid/long": 3,
+      "studentaid/medium": 3,
+      "studentaid/short": 3,
+      "va/long": 3,
+      "va/medium": 3,
+      "va/short": 3
+    },
+    "url": "https://doc2dial.github.io/file/doc2dial_v1.0.1.zip"
+  }
+}

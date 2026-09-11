@@ -1,0 +1,487 @@
+{
+  "system_messages": [
+    {
+      "role": "system",
+      "content": "# User Simulation Guidelines\nYou are playing the role of a customer contacting a customer service representative. \nYour goal is to simulate realistic customer interactions while following specific scenario instructions.\n\n## Core Principles\n- Generate one message at a time, maintaining natural conversation flow.\n- Strictly follow the scenario instructions you have received.\n- Never make up or hallucinate information not provided in the scenario instructions. Information that is not provided in the scenario instructions should be considered unknown or unavailable.\n- Avoid repeating the exact instructions verbatim. Use paraphrasing and natural language to convey the same information\n- Disclose information progressively. Wait for the agent to ask for specific information before providing it.\n\n## Task Completion\n- The goal is to continue the conversation until the task is complete.\n- If the instruction goal is satisified, generate the '###STOP###' token to end the conversation.\n- If you are transferred to another agent, generate the '###TRANSFER###' token to indicate the transfer.\n- If you find yourself in a situation in which the scenario does not provide enough information for you to continue the conversation, generate the '###OUT-OF-SCOPE###' token to end the conversation.\nRemember: The goal is to create realistic, natural conversations while strictly adhering to the provided instructions and maintaining character consistency.\n\n\n<scenario>\nInstructions:\n\tDomain: retail\n\tReason for call:\n\t\tYou want to know exactly how many tshirt options are available in the online store right now. You want to also return the cleaner, headphone, and smart watch.\n\tKnown info:\n\t\tYou are Yusuf Rossi in zip code 19122.\n\tUnknown info:\n\t\tYou do not remember your email address\n\tTask instructions:\n\t\t.\n</scenario>",
+      "turn_idx": null,
+      "timestamp": "2026-09-07T15:38:43.668003"
+    }
+  ],
+  "messages": [
+    {
+      "role": "assistant",
+      "content": "Hi! How can I help you today?",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-07T15:38:43.668040",
+      "cost": 0.0,
+      "usage": null,
+      "raw_data": null,
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "user",
+      "content": "Hi! I’m looking for a couple of things. First, I’d like to know exactly how many t-shirt options are currently available in your online store. Also, I need to return a cleaner, a headphone, and a smart watch. Can you help me with that?",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-07T15:38:46.264157",
+      "cost": 0.0,
+      "usage": {
+        "completion_tokens": 59,
+        "prompt_tokens": 373
+      },
+      "raw_data": {
+        "id": "chatcmpl-7fa3f1ee-c04a-4aba-a6f2-10b8576ede00",
+        "created": 1788788326,
+        "model": "deepseek-v4-flash",
+        "object": "chat.completion",
+        "system_fingerprint": null,
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "content": "Hi! I’m looking for a couple of things. First, I’d like to know exactly how many t-shirt options are currently available in your online store. Also, I need to return a cleaner, a headphone, and a smart watch. Can you help me with that?",
+              "role": "assistant",
+              "tool_calls": null,
+              "function_call": null,
+              "provider_specific_fields": {
+                "citations": null,
+                "thinking_blocks": null
+              }
+            }
+          }
+        ],
+        "usage": {
+          "completion_tokens": 59,
+          "prompt_tokens": 373,
+          "total_tokens": 432,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "text_tokens": 59
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 256,
+            "image_tokens": null,
+            "text_tokens": null,
+            "video_tokens": null,
+            "cache_creation_tokens": 0
+          },
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 256,
+          "inference_geo": null,
+          "speed": null
+        }
+      },
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "assistant",
+      "content": "I'd be happy to help with both requests! To get started, could you please provide the email address associated with your account? If you don't remember your email, I can look you up by your first name, last name, and zip code instead.",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-07T15:38:56.784053",
+      "cost": null,
+      "usage": null,
+      "raw_data": null,
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "user",
+      "content": "I actually don’t remember my email address, but my name is Yusuf Rossi and my zip code is 19122. Will that work?",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-07T15:38:57.676468",
+      "cost": 0.0,
+      "usage": {
+        "completion_tokens": 30,
+        "prompt_tokens": 488
+      },
+      "raw_data": {
+        "id": "chatcmpl-ccd052a0-2e71-411d-bef3-84013646a9c7",
+        "created": 1788788337,
+        "model": "deepseek-v4-flash",
+        "object": "chat.completion",
+        "system_fingerprint": null,
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "content": "I actually don’t remember my email address, but my name is Yusuf Rossi and my zip code is 19122. Will that work?",
+              "role": "assistant",
+              "tool_calls": null,
+              "function_call": null,
+              "provider_specific_fields": {
+                "citations": null,
+                "thinking_blocks": null
+              }
+            }
+          }
+        ],
+        "usage": {
+          "completion_tokens": 30,
+          "prompt_tokens": 488,
+          "total_tokens": 518,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "text_tokens": 30
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 384,
+            "image_tokens": null,
+            "text_tokens": null,
+            "video_tokens": null,
+            "cache_creation_tokens": 0
+          },
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 384,
+          "inference_geo": null,
+          "speed": null
+        }
+      },
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "assistant",
+      "content": "Yes, that works! I found your account, Yusuf.\n\nFor your first question: there are currently **10 available t-shirt variants** in our store.\n\nFor your return request, I found the three items in your delivered order **#W2378156**:\n\n1. **Vacuum Cleaner** – $561.05\n2. **Headphones** – $342.81\n3. **Smart Watch** – $381.26\n\nTotal refund: **$1,285.12**, which would go back to your original payment method (Mastercard ending in 2478).\n\nCan you confirm you'd like to return these three items from order #W2378156? Also, please confirm these are all the items you wish to return from this order.",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-07T15:39:22.967604",
+      "cost": null,
+      "usage": null,
+      "raw_data": null,
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "user",
+      "content": "Yes, that’s correct—I’d like to return all three items from that order. Please go ahead with the return process.",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-07T15:39:26.204369",
+      "cost": 0.0,
+      "usage": {
+        "completion_tokens": 28,
+        "prompt_tokens": 679
+      },
+      "raw_data": {
+        "id": "chatcmpl-3722f131-3d48-4906-bed4-9bdc7919fdf2",
+        "created": 1788788366,
+        "model": "deepseek-v4-flash",
+        "object": "chat.completion",
+        "system_fingerprint": null,
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "content": "Yes, that’s correct—I’d like to return all three items from that order. Please go ahead with the return process.",
+              "role": "assistant",
+              "tool_calls": null,
+              "function_call": null,
+              "provider_specific_fields": {
+                "citations": null,
+                "thinking_blocks": null
+              }
+            }
+          }
+        ],
+        "usage": {
+          "completion_tokens": 28,
+          "prompt_tokens": 679,
+          "total_tokens": 707,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "text_tokens": 28
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 512,
+            "image_tokens": null,
+            "text_tokens": null,
+            "video_tokens": null,
+            "cache_creation_tokens": 0
+          },
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "inference_geo": null,
+          "speed": null
+        }
+      },
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "assistant",
+      "content": "Thanks for confirming, Yusuf. To recap, I'll request a return for these three items from order **#W2378156**:\n\n1. **Vacuum Cleaner** – $561.05\n2. **Headphones** – $342.81\n3. **Smart Watch** – $381.26\n\nTotal refund: **$1,285.12**, back to your Mastercard ending in 2478.\n\nThis return hasn't been processed yet. Once you approve, the order status will change to \"return requested\" and you'll receive an email with return instructions. Shall I go ahead?",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-07T15:39:40.064388",
+      "cost": null,
+      "usage": null,
+      "raw_data": null,
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "user",
+      "content": "Yes, please go ahead and process the return request. Thank you!",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-07T15:39:40.996770",
+      "cost": 0.0,
+      "usage": {
+        "completion_tokens": 14,
+        "prompt_tokens": 837
+      },
+      "raw_data": {
+        "id": "chatcmpl-a8b270ab-0a31-4976-92d8-f0440aac88c6",
+        "created": 1788788380,
+        "model": "deepseek-v4-flash",
+        "object": "chat.completion",
+        "system_fingerprint": null,
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "content": "Yes, please go ahead and process the return request. Thank you!",
+              "role": "assistant",
+              "tool_calls": null,
+              "function_call": null,
+              "provider_specific_fields": {
+                "citations": null,
+                "thinking_blocks": null
+              }
+            }
+          }
+        ],
+        "usage": {
+          "completion_tokens": 14,
+          "prompt_tokens": 837,
+          "total_tokens": 851,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "text_tokens": 14
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 640,
+            "image_tokens": null,
+            "text_tokens": null,
+            "video_tokens": null,
+            "cache_creation_tokens": 0
+          },
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 640,
+          "inference_geo": null,
+          "speed": null
+        }
+      },
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "assistant",
+      "content": "Your return request has been processed, Yusuf. Order **#W2378156** now shows status **\"return requested\"** for the Vacuum Cleaner, Headphones, and Smart Watch. The refund of **$1,285.12** will go back to your Mastercard ending in 2478, and you'll receive an email with return instructions shortly.\n\nIs there anything else I can help you with?",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-07T15:40:01.042066",
+      "cost": null,
+      "usage": null,
+      "raw_data": null,
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "user",
+      "content": "No, that covers everything I needed. Thanks for your help! ###STOP###",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": null,
+      "timestamp": "2026-09-07T15:40:02.064606",
+      "cost": 0.0,
+      "usage": {
+        "completion_tokens": 17,
+        "prompt_tokens": 941
+      },
+      "raw_data": {
+        "id": "chatcmpl-64c8ab96-6f6b-4d08-9d9f-2dab72d80d41",
+        "created": 1788788402,
+        "model": "deepseek-v4-flash",
+        "object": "chat.completion",
+        "system_fingerprint": null,
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "content": "No, that covers everything I needed. Thanks for your help! ###STOP###",
+              "role": "assistant",
+              "tool_calls": null,
+              "function_call": null,
+              "provider_specific_fields": {
+                "citations": null,
+                "thinking_blocks": null
+              }
+            }
+          }
+        ],
+        "usage": {
+          "completion_tokens": 17,
+          "prompt_tokens": 941,
+          "total_tokens": 958,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "text_tokens": 17
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 768,
+            "image_tokens": null,
+            "text_tokens": null,
+            "video_tokens": null,
+            "cache_creation_tokens": 0
+          },
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 768,
+          "inference_geo": null,
+          "speed": null
+        }
+      },
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    }
+  ]
+}

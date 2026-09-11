@@ -151,6 +151,15 @@ def test_frozen_intent_and_rag_decision_policy_matches_current_owners():
     assert rag["standalone_query_weight"] == DEFAULT_RAG_RETRIEVAL_POLICY[
         "standalone_query_weight"
     ]
+    assert rag["expansion_query_weight"] == DEFAULT_RAG_RETRIEVAL_POLICY[
+        "expansion_query_weight"
+    ]
+    assert rag["query_expansion_count"] == DEFAULT_RAG_RETRIEVAL_POLICY[
+        "query_expansion_count"
+    ]
+    assert rag["metadata_hint_weight"] == DEFAULT_RAG_RETRIEVAL_POLICY[
+        "metadata_hint_weight"
+    ]
     assert rag["dense_weight"] == DEFAULT_RAG_RETRIEVAL_POLICY["vector_weight"]
     assert rag["bm25_weight"] == DEFAULT_RAG_RETRIEVAL_POLICY["lexical_weight"]
     assert rag["rrf_k"] == DEFAULT_RAG_RETRIEVAL_POLICY["rrf_k"]

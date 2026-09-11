@@ -90,7 +90,7 @@ DialogPilot 下一阶段的目标不是把现有系统改造成一个更复杂�
 |---|---|
 | `CURRENT_ACTIVE` | `/chat` 是调用 `ChatApplication.handle()` 的薄 HTTP adapter；PostgreSQL Admission/Conversation/Publication/Delivery、canonical Route/Authority、PostgreSQL KnowledgeRetriever、Memory ProjectionReader、Ticket、Commitment、多模态和持久 Trace 已在 composition root 绑定；Agent 执行仍是直接 Python TaskGraph + bounded ReAct |
 | `CURRENT_LOCAL_BOUNDARY` | ReAct RunStore、Agent Bundle registry、BadCase 和本地业务操作沙箱仍含 SQLite 实现；Redis 只作 working projection/cache/lease，不是 Conversation、Knowledge 或 MemoryFact 权威 |
-| `PLANNED` | LangGraph 薄 runtime、完整 Profile/ServiceContinuity、复杂 PDF/layout 摄取、生产 Collector/W3C outbox 传播、fresh human-reviewed Gold 与生产容量治理仍需完成 |
+| `PLANNED` | LangGraph 薄 runtime、完整 Profile/ServiceContinuity、复杂 PDF/layout 摄取、生产 Collector/W3C outbox 传播、冻结公开测试、80 条合成合同真实 E2E 与生产容量治理仍需完成 |
 | `SUPERSEDED_TO_REMOVE` | 当前分支里已经写出的旧数据迁移、双路径比较、流量试运行和运行时回退辅助代码；它们保留实施历史，但不属于目标架构，直接切换完成时删除 |
 
 因此本文描述的是从当前分支继续完成并直接替换的目标，不宣称新链已经全部启用，也不把已实现能力倒写成待开发。
@@ -538,7 +538,7 @@ version；Eval 分别统计强 Router avoided rate、错误跳过率和由错误
 
 | 策略 Owner | 当前基线 | 目标合同 |
 |---|---|---|
-| `IntentRecognizer / IntentFusionPolicyRegistry` | LLM / n-gram / Pattern = `.70/.20/.10`，accept=`.50`；关闭 n-gram 时 `.85/.15` | 现有 V1 作为离线对照；typed V2 通过 fresh heldout 与本地服务链验收后，在唯一 composition root 中直接接管 |
+| `IntentRecognizer / IntentFusionPolicyRegistry` | LLM / n-gram / Pattern = `.70/.20/.10`，accept=`.50`；关闭 n-gram 时 `.85/.15` | 现有 V1 作为离线对照；typed V2 通过冻结 test/group-heldout 与本地服务链验收后，在唯一 composition root 中直接接管 |
 | `AgentOrchestrator.RouterPlanner / DomainRoutingPolicyRegistry` | General 先验 `.10`；意图加分 General `.55`、Technical/Billing `.75`、Security `.85`；supporting=`.45`，clarify=`.50` | 意图、肯定关键词和实体证据保留可追踪分项；硬规则先于分数；消除未使用的第二套 `_route/_INTENT_ROUTING` 权威 |
 | `AgentOrchestrator.TaskGraphExecutor / MultiAgentExecutionPolicy` | legacy Planner 最多形成 `4` 个领域 Task；request/Worker timeout=`20s/15s`，实际最多执行 `3` 个 Task，Worker ReAct 最多 `4` step | 独立 `max_planned_tasks/max_executed_tasks_per_request/max_parallel_workers`；执行超额 Task 保留 typed outcome，不从计划中消失 |
 | `AgentOrchestrator.WorkerSelector / InstanceSelectionPolicy` | success/verified-quality/latency=`.35/.45/.20`，再乘 health penalty；当前每领域只有一个实例，因此不会真正改选 | 只在同 Owner 多实例时生效，与“选哪个领域”分开命名、评测和版本化 |
@@ -552,7 +552,7 @@ version；Eval 分别统计强 Router avoided rate、错误跳过率和由错误
 
 为了能精确重放，完整基线公式也必须进入 policy version：`quality_ewma` 初值/先验均为 `.50`、更新 `alpha=.25`，样本置信度 `min(1, quality_samples/10)`；`quality_score=(1-confidence)*.50+confidence*quality_ewma`；`latency_score=1/(1+avg_ms/1000)`；`base=.35*success_rate+.45*quality_score+.20*latency_score`。Monitor penalty 为 `min(.90, success_penalty+latency_penalty)`，其中成功率低于 `.90` 时 `success_penalty=min(.50,(.90-success_rate)*2)`，延迟高于 `3000ms` 时 `latency_penalty=min(.40,(avg_ms-3000)/10000)`；最终分为 `base*(1-penalty)`。任何公式、先验、样本收缩或 health snapshot 变化都生成新 fingerprint。
 
-一次 invocation 必须固定有效策略快照。`AgentRunState.pinned_config_ref` 指向 Bundle、intent contract、Knowledge manifest 及上表策略版本，不把每个权重复制进 LangGraph state。调整必须经过同数据的离线重放、不可补偿安全门禁、fresh heldout 与真实 `ChatApplication` 本地验收；通过后直接更新唯一配置绑定。反馈不得直接改当前权重。
+一次 invocation 必须固定有效策略快照。`AgentRunState.pinned_config_ref` 指向 Bundle、intent contract、Knowledge manifest 及上表策略版本，不把每个权重复制进 LangGraph state。调整必须经过同数据的离线重放、不可补偿安全门禁、冻结 test/group-heldout 与真实 `ChatApplication` 本地验收；通过后直接更新唯一配置绑定。反馈不得直接改当前权重。
 
 `max_executed_tasks_per_request=3` 的 legacy 选择也属于策略，不得由容器遍历偶然决定：先按 TaskGraph 生成稳定拓扑 waves，wave 内保持 immutable `TaskPlan.tasks` 原顺序，再展平并取前 3 个执行；其余 task 依原顺序写 `BUDGET_EXCEEDED`。因此选中前缀天然包含其依赖；plan fingerprint 必须覆盖 task 顺序与依赖。目标若改为 value/risk-aware allocation，必须作为新的 `MultiAgentExecutionPolicy` 候选评测，不能在 LangGraph 迁移时暗改。
 
@@ -1350,7 +1350,7 @@ Redis 故障时 Retriever 旁路缓存并执行同一计算，结果语义不变
 
 改写成功时四路 RRF 质量为 `raw:BM25=.1875`、`raw:Dense=.0625`、`standalone:BM25=.5625`、`standalone:Dense=.1875`，公式为 `Σ weight/(k+rank)`。Reranker 没有额外“rerank weight”：它必须返回 Top-20 候选的完整、唯一排列，合同失败则整体保留 first-stage 顺序。无历史或 rewrite 失败时 Raw 以 `1.0` 单路执行。
 
-这些数值必须随 `KnowledgeRetrievalPolicy/AgentBundle` 固定并进入 EvidencePack trace；环境变量只用于构造启动时 bootstrap policy，不允许同一 invocation 内在线自调。`.25/.75` 固定的是现有 Dense/BM25 离线 comparison profile；若 lexical provider 从 Python BM25 换成 PostgreSQL FTS，即使继续使用同一融合数值，也必须产生新的 backend/policy fingerprint 并独立评测。任何新权重、查询分解、视觉候选融合或 cross-encoder 只能作为候选，在同一 capture 上做 paired ablation，通过 fresh heldout 和 harmful/safety gate 后再写入唯一目标配置。
+这些数值必须随 `KnowledgeRetrievalPolicy/AgentBundle` 固定并进入 EvidencePack trace；环境变量只用于构造启动时 bootstrap policy，不允许同一 invocation 内在线自调。`.25/.75` 固定的是现有 Dense/BM25 离线 comparison profile；若 lexical provider 从 Python BM25 换成 PostgreSQL FTS，即使继续使用同一融合数值，也必须产生新的 backend/policy fingerprint 并独立评测。任何新权重、查询分解、视觉候选融合或 cross-encoder 只能作为候选，在同一 capture 上做 paired ablation，通过冻结 test/group-heldout 和 harmful/safety gate 后再写入唯一目标配置。
 
 ### 10.2 知识生命周期
 
@@ -1381,7 +1381,7 @@ chunk 与 PostgreSQL retrieval generation；不从旧 chunk/index 迁移元数�
 owner/reviewer、draft/review、supersede/retract、候选提炼合同可以分任务实现，但首次绑定到
 `ChatApplication` 前必须一起通过引用、有效期、删除和 heldout 验收。
 
-点踩、未回答问题和人工工单只生成脱敏 `KnowledgeCandidate`；候选经人工审核、Dev + fresh heldout
+点踩、未回答问题和人工工单只生成脱敏 `KnowledgeCandidate`；候选经人工审核、Dev + 冻结 test/group-heldout
 后，以一次原子 manifest 更新进入唯一知识读路径。这里的 `ACTIVE/SUPERSEDED/RETRACTED` 是知识
 内容生命周期，不是软件流量灰度。
 
@@ -2052,14 +2052,13 @@ OTel/Langfuse observation + 权威 receipt/event + response-bound feedback
 → group-safe dev/eval；修复后 consumed regression
 ```
 
-稳定失败层至少覆盖 `perception / route-authority / context-memory / retrieval-rerank / tool-selection-parameter-effect / generation-grounding / publication / handoff-delivery / service-outcome`。`FailureObservation` 保存 failure code、evidence refs、owner、retryable/user-visible/safety/effect 属性及各版本；模型提出的 root cause 只能是 candidate，不能覆盖已验证事实，也不能自动进入 Gold。
+稳定失败层至少覆盖 `perception / route-authority / context-memory / retrieval-rerank / tool-selection-parameter-effect / generation-grounding / publication / handoff-delivery / service-outcome`。`FailureObservation` 保存 failure code、evidence refs、owner、retryable/user-visible/safety/effect 属性及各版本；模型提出的 root cause 只能是 candidate，不能覆盖已验证事实，也不能自动进入冻结合同或正式 test。
 
 ### 17.5 数据集与本地验收门禁
 
-- 以成熟公开数据集、人工审核自建 Gold 和可重建 fixtures 为主；未来如有脱敏真实工单，再按意图、产品、风险、渠道、地区和问题复杂度分层抽样；
-- 双人标注与仲裁形成 human-reviewed Gold；
-- 按用户、订单、产品、时间和语义 group 切分，避免泄漏；
-- 真实照片覆盖光照、角度、遮挡、压缩和错误型号；
+- 公开能力使用成熟公开数据集的官方 train/dev/test；项目合同使用冻结的 80 条模型生成 synthetic fixtures，不声称人工 Gold；
+- 按用户、订单、产品、时间和语义 group 隔离 Dev 与 test，历史已消费 ID 只作 regression；
+- 多模态公开能力由 OmniDocBench、ViDoRe 与 PM209 官方数据承担；80 条合成图片只验证项目合同；
 - 已参与修复的 case 只能是 consumed regression；
 - 验收通过后直接更新版本化 target config/binding，并在同一实现阶段删除旧路径；
 - 每个 route 分别比较质量、风险、延迟和成本，不用一个总分掩盖退化。
@@ -2083,10 +2082,10 @@ OTel/Langfuse observation + 权威 receipt/event + response-bound feedback
 保留现有 GEPA-Lite 的候选生成端口与兼容 adapter，但准确定位为 **GEPA-inspired bounded offline candidate optimizer**，不是完整 GEPA 复现、在线自学习系统或 Agent/LangGraph 节点。兼容实现可以继续叫 `GEPALiteProposalGenerator`；架构能力名使用 `ConstrainedCandidateOptimizer`。当前 `CreditAttributor` 的 Memory→Knowledge 合并归因和 `BadCaseMiner` 的宽松输入资格不属于保留语义，必须按下述 Owner/人审合同重构后才能作为优化输入。
 
 ```text
-人工审核的脱敏 BadCase cluster + 明确 credit attribution
+已复现的脱敏 BadCase cluster + 明确 credit attribution
 → ConstrainedCandidateOptimizer 生成 4–8 个不可变 AgentBundle 候选
 → dev/validation 评测与 hard gates
-→ 独立 fresh heldout
+→ 配置冻结后的官方 test / 未消费 group
 → 人工选择并提交版本化 AgentBundle
 ```
 
@@ -2094,9 +2093,9 @@ OTel/Langfuse observation + 权威 receipt/event + response-bound feedback
 
 - 优化器属于 Evaluation control plane，默认关闭，不进入 `/chat` 请求路径；admin 触发也只能注册候选，不能修改服务配置绑定。
 - 只消费脱敏 FailurePacket/统计反馈，不读取原始服务 Trace、图片、Tool payload 或 PII。
-- Credit attribution 先确定责任 Owner 和允许改动面；Prompt、few-shot、路由/检索策略、工具描述或模型策略只能生成 typed patch。权限、审批、tenant、PII、Verifier、Gold、业务 receipt 与安全规则不可进化。
+- Credit attribution 先确定责任 Owner 和允许改动面；Prompt、few-shot、路由/检索策略、工具描述或模型策略只能生成 typed patch。权限、审批、tenant、PII、Verifier、冻结合同/测试标签、业务 receipt 与安全规则不可进化。
 - Knowledge retrieval 与 Memory retrieval 是不同 Owner；Memory failure 不能通过修改知识 RAG 权重“修好”。
-- 候选生成不是启用证据。候选选择、Pareto、fresh heldout、人工 review 和 EvaluationManifest 判定由 Evaluation Owner 负责；只有开发者显式提交的 Bundle/Policy 版本才能成为唯一配置，同一 invocation 始终读取 pinned 版本。
+- 候选生成不是启用证据。候选选择、Pareto、冻结测试、人工 review 和 EvaluationManifest 判定由 Evaluation Owner 负责；只有开发者显式提交的 Bundle/Policy 版本才能成为唯一配置，同一 invocation 始终读取 pinned 版本。
 - 提案数据与最终 test/heldout 分离；参与提案或调参的 case 立即标为 consumed regression，不能再证明泛化。
 
 因此 GEPA-Lite 的价值是缩小人工试配置的搜索空间，而不是取代 Trace 分析、根因归属、评测或发布治理。若未来实现真正的多轮反思/演化优化，应作为这个离线端口的替换 producer，不改变在线 Agent 架构。
@@ -2155,7 +2154,7 @@ OTel/Langfuse observation + 权威 receipt/event + response-bound feedback
 3. **从空状态重建**：清空开发派生数据；Knowledge 从 canonical source documents ingest，Conversation、
    Memory、Episode、Profile 与媒体数据由 fixtures 和后续真实事件建立。旧 raw-memory、assistant 文本、
    Chroma collection 或 SQLite sparse 数据不晋升为目标事实。
-4. **离线与真链验收**：运行 unit/contract/property/integration/E2E/fault-injection/fresh-heldout；旧实现
+4. **离线与真链验收**：运行 unit/contract/property/integration/E2E/fault-injection/frozen-test-or-group-heldout；旧实现
    仅可作为离线 expected-output baseline，不能与新实现共同服务一次请求。
 5. **按 Owner 原子替换**：Conversation/Delivery、Route/Retriever、Agent Runtime、Memory、Ticket/Handoff、
    Media 各自在一个可审查 slice 中同时完成 target binding 与对应旧 reader/writer/fallback 删除；不要求把
@@ -2186,13 +2185,13 @@ PostgreSQL 确定性读取，不进入向量召回。
 11. 多模态默认 L0；无关附件不调用 VLM，OCR 足够时停在 L1；L2 回答可以回到 attachment/page/bbox/crop/model version，不确定时澄清或拒答。
 12. HandoffContract 能让无背景人工正确回答“发生了什么、查过什么、做过什么、还缺什么、谁负责”。
 13. Eval 调用与 `/chat` 相同的 `ChatApplication`，并覆盖发布、送达、Memory、Handoff 和异常路径。
-14. fresh heldout、故障注入和真实 `ChatApplication` E2E 通过，且没有通过为单个新 case 增加特判获得闭环。
+14. 配置冻结后的官方 test、故障注入和真实 `ChatApplication` E2E 通过，且没有通过为单个新 case 增加特判获得闭环。
 15. Agent 执行位置只由 LangGraph checkpointer 表达，公开 ExecutionView 只读；Delivery 有独立 Owner，ACK 丢失不会盲目重发或重新运行 Agent。
 16. AgentRunState 保持薄：没有把 route、Memory、Tool、Media、Ticket、Commitment 的领域状态复制成中央因果链状态机。
 17. 任一 response 可通过一个 OTel 上下文关联 Agent/LLM/Retrieval/Tool observation 与基础设施 span；Trace 不冒充业务事实，Langfuse 样本不冒充未采样 SLO 分母。
-18. GEPA-Lite 不读取 fresh heldout 或原始敏感数据；它生成的任何候选都必须经过不可伪造 EvaluationArtifact、人工选择和完整重测，不能自行修改服务 binding。
+18. GEPA-Lite 不读取冻结 test 或原始敏感数据；它生成的任何候选都必须经过不可伪造 EvaluationArtifact、人工选择和完整重测，不能自行修改服务 binding。
 19. 单 Task、跨 Owner 多 Task、同 Owner 多 Task、依赖阻塞、预算超限和 child resume 均保留全图 Task outcome/Coverage，不存在子 Agent 单独发布或静默丢任务。
-20. 每次 invocation 能报告 Intent、Domain、Instance、Knowledge、Memory 和 ActiveCase 的有效 policy version；现行基线可重放，新权重没有 fresh heldout 与真链验收证据时不能写入目标配置。
+20. 每次 invocation 能报告 Intent、Domain、Instance、Knowledge、Memory 和 ActiveCase 的有效 policy version；现行基线可重放，新权重没有冻结 test 与真链验收证据时不能写入目标配置。
 21. 精确工单引用、SLA/承诺违约、unknown tool effect 和 critical/security case 由 `ServiceContinuityBrief` hard include，不被向量/软排序挤掉；Owner 不可用与“没有服务债务”可区分。
 22. L0、Thread Summary、L1 Atom、L2 Episode、L3 Profile 都能报告 producer/source/watermark/version；摘要损坏、projection lag 和删除 fence 不会改写或隐藏 L0。
 23. Knowledge、ServiceEpisode 与 Media 共用 PostgreSQL retrieval 基础设施但分 corpus/generation/policy；Profile、ActiveCase 与服务债务不进入向量召回。

@@ -152,7 +152,7 @@ class TargetFrameworkAgent:
         compaction = ContextCompaction(self._model, self._archive,
             available_tokens=self._context_budget.available_tokens,
             overhead_tokens=overhead, pinned_message=pinned, max_summary_calls=item.max_steps,
-            post_model_budget=boundary.review_budget)
+            post_model_budget=boundary.review_budget, trace_sink=self._trace_sink)
         graph = create_agent(
             self._model,
             tools,
@@ -164,7 +164,7 @@ class TargetFrameworkAgent:
                 ToolResultPersistence(self._archive, max_inline_tokens=max(1,
                     int((self._context_budget.available_tokens - overhead) * .25))),
                 boundary,
-                AgentProgressMiddleware(),
+                AgentProgressMiddleware(self._trace_sink),
                 compaction,
                 AgentContextMiddleware(self._context_budget),
                 ModelCallLimitMiddleware(thread_limit=item.max_steps, exit_behavior="error"),
@@ -184,7 +184,9 @@ class TargetFrameworkAgent:
                 "langfuse_session_id": context.trusted_context.get("conversation_id"),
             },
         }
-        output = {"messages": working}
+        from application.agent_working_state import working_state
+        initial = {**working_state(context.working_state), "messages": working}
+        output = initial
         failure = None
         try:
             with (propagate_attributes(session_id=context.trusted_context.get("conversation_id"))
@@ -193,7 +195,7 @@ class TargetFrameworkAgent:
                     # Native graph state streaming preserves the last completed step
                     # when a later model/tool step fails. No second loop or recorder.
                     async for output in graph.astream(
-                        {"messages": working},
+                        initial,
                         config=config,
                         context=context,
                         stream_mode="values",
@@ -306,7 +308,8 @@ class TargetFrameworkAgent:
             feedback.append(diagnostic)
             working.append(HumanMessage(content=json.dumps({"execution_feedback": diagnostic}, ensure_ascii=False)))
         feedback.extend({"stage": "domain_outcome", **review} for review in output.get("outcome_feedback", ()))
-        return replace(result, working_messages=tuple(messages_to_dict(working)), execution_feedback=tuple(feedback))
+        return replace(result, working_messages=tuple(messages_to_dict(working)),
+                       working_state=working_state(output), execution_feedback=tuple(feedback))
 
     def _tools(self, context: AgentContextView) -> list[StructuredTool]:
         item = context.work_item
@@ -442,6 +445,22 @@ class TargetFrameworkAgent:
         )
 
     def _atomic_tool(self, definition, trusted_context=None):
+        from copy import deepcopy
+        from mcp.read_reuse import read_key, ReadReusePolicy
+        policy = definition.task_read_reuse
+        if policy is not None:
+            limits = [requirement.freshness_seconds for requirement in self._registry.requirements
+                      if definition.name in requirement.allowed_tools and requirement.freshness_seconds is not None]
+            if policy.max_age_seconds is not None:
+                limits.append(policy.max_age_seconds)
+            policy = ReadReusePolicy(min(limits) if limits else None)
+        schema = deepcopy(definition.input_schema(trusted_context))
+        if definition.task_read_reuse:
+            if "_refresh" in schema.get("properties", {}):
+                raise ValueError("tool schema conflicts with task read refresh control")
+            schema.setdefault("properties", {})["_refresh"] = {"type": "boolean", "default": False,
+                "description": "Request a fresh read for explicit user refresh or known changed conditions; not merely because results were summarized."}
+
         async def execute(runtime: ToolRuntime, **arguments):
             context = runtime.context
             runtime_agent = self._registry.agent(context.work_item.owner_agent).execution_principal
@@ -449,6 +468,37 @@ class TargetFrameworkAgent:
                 self._control_guard.ensure_current(
                     context.work_item, context.trusted_context,
                 )
+            refresh = arguments.pop("_refresh", False) if definition.task_read_reuse else False
+            key = read_key(definition, arguments, context.trusted_context, context.work_item.registry_fingerprint)
+            epoch = list(context.read_epoch)
+            record = runtime.state.get("reusable_reads", {}).get(key)
+            reused = None
+            if (definition.task_read_reuse and context.read_reuse_allowed and not refresh and record
+                    and policy.valid(record, epoch=epoch)):
+                original = await self._archive.load(context, record["reference"])
+                reused = restore_framework_artifact(original["artifact"])
+            if definition.read_only:
+                if refresh:
+                    reuse_decision = "REFRESH_REQUESTED"
+                elif reused is not None:
+                    reuse_decision = "REUSE_VALID_RESULT"
+                elif definition.task_read_reuse is None:
+                    reuse_decision = "POLICY_DISABLED"
+                elif record is None:
+                    reuse_decision = "NO_PRIOR_RESULT"
+                else:
+                    reuse_decision = "PRIOR_RESULT_INVALIDATED"
+                if self._trace_sink is not None:
+                    self._trace_sink.record_causal_event(
+                        "READ_REUSE_DECIDED", owner="tool_read_reuse",
+                        turn_id=str(context.trusted_context.get("invocation_key") or context.work_item.work_item_id),
+                        work_item_id=context.work_item.work_item_id,
+                        read_identity=key, tool_call_id=runtime.tool_call_id,
+                        emitted_business_call_id=runtime.tool_call_id,
+                        reuse_decision=reuse_decision,
+                        refresh_requested=refresh,
+                        prior_result_present=record is not None,
+                    )
             result = await self._tool_manager.execute_for_agent(
                 definition.name,
                 dict(arguments),
@@ -456,18 +506,35 @@ class TargetFrameworkAgent:
                 call_id=runtime.tool_call_id,
                 context=dict(context.trusted_context),
                 allowed_tool_ids=context.work_item.allowed_tools,
+                reuse_result=reused,
+                # One cache owner for this call. Explicit refresh/invalidation
+                # must not fall through to a second, process-local old snapshot.
+                use_cache=definition.task_read_reuse is None,
             )
             if self._control_guard is not None:
                 self._control_guard.ensure_current(
                     context.work_item, context.trusted_context,
                 )
-            return _tool_output(result), framework_artifact(result)
+            artifact = framework_artifact(result)
+            if (definition.task_read_reuse and context.read_reuse_allowed
+                    and result.success and result.observed_at is not None):
+                artifact["task_read"] = {"key": key, "epoch": epoch,
+                    "observed_at": result.observed_at.isoformat()}
+            if reused is not None and self._trace_sink is not None:
+                self._trace_sink.record_causal_event("READ_REUSED", owner="agent_progress",
+                    turn_id=str(context.trusted_context.get("invocation_key") or context.work_item.work_item_id),
+                    work_item_id=context.work_item.work_item_id, read_identity=key,
+                    guard_decision="REUSE_VALID_RESULT", source_ref=record["reference"])
+            return _tool_output(result), artifact
 
         return StructuredTool.from_function(
             coroutine=execute,
             name=definition.name,
-            description=definition.description,
-            args_schema=definition.input_schema(trusted_context),
+            description=definition.description + (
+                " The runtime reuses valid results within this task, preserving original observation time. "
+                "Use existing results to advance; ask for _refresh only for an explicit refresh request or known changed conditions."
+                if definition.task_read_reuse else ""),
+            args_schema=schema,
             infer_schema=False,
             response_format="content_and_artifact",
         )
@@ -560,9 +627,13 @@ class TargetFrameworkAgent:
         return prompt
 
     def _build_prompt(self, context: AgentContextView, *, fact_values=None, overhead_tokens=0) -> list[dict]:
-        from application.business_observation import business_observation_context
+        from application.business_observation import business_observation_context, assigned_business_observations
         item = context.work_item
-        observations = business_observation_context(context.trusted_context.get("business_observations", ()))
+        observations = business_observation_context(assigned_business_observations(
+            context.trusted_context.get("business_observations", ()),
+            work_item_ids=(item.work_item_id, item.continuation_of, *item.dependencies,
+                           *(result.work_item_id for result in context.dependency_results)),
+            source_refs=(*context.evidence_refs, *(fact.source_ref for fact in context.verified_facts))))
         if observations and 'read_conversation_observation' in item.allowed_tools:
             from application.historical_context_budget import fit_historical_payload
             observations = fit_historical_payload(self._context_budget, observations,

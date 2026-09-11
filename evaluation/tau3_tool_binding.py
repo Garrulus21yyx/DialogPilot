@@ -14,6 +14,7 @@ from application.capability_registry import (
     VerificationProfile,
 )
 from mcp.tool_manager import Tool, ToolEffectReceipt, ToolEffectStatus, ToolRisk, ToolRejected
+from mcp.read_reuse import ReadReusePolicy
 
 
 def bind_environment(environment, manager, call):
@@ -36,6 +37,8 @@ def bind_environment(environment, manager, call):
             output_schema_version="environment-output-v1",
             receipt_schema_version=receipt_schema if write else "",
             timeout_s=60,
+            # Records in this environment change only through governed writes.
+            task_read_reuse=ReadReusePolicy(None) if not write and name != status_tool else None,
         ))
         definitions.append(ToolDefinition(
             name, "v1", "environment-input-v1", "environment-output-v1",
@@ -66,7 +69,7 @@ def bind_environment(environment, manager, call):
 
         def handler_for(tool_name, is_write):
             async def handler(params, context):
-                message = await call(tool_name, params)
+                message = await call(tool_name, params, context.get("tool_call_id"))
                 try:
                     value = json.loads(message.content or "null")
                 except json.JSONDecodeError:

@@ -112,13 +112,13 @@ Handoff 是客服闭环的一部分。当前 PostgreSQL TicketService 负责工�
 
 ### Q：为什么不宣称准确率？
 
-仓库评测数据包含 provisional 和公开数据映射，没有完整 human-reviewed Gold；部分 heldout 已被开发过程消费。可以展示分层 scorer 和回归结果，但不能包装成生产准确率。
+仓库评测数据包含 provisional、公开数据映射和 80 条模型生成合成合同；部分 heldout 已被开发过程消费。可以展示分层 scorer 和回归结果，但不能包装成人工 Gold 或生产准确率。
 
 ## 当前限制与后续节点
 
 ### Q：项目还缺什么？
 
-当前已有附件、Tesseract OCR、可配置 DeepSeek Vision、PostgreSQL Ticket/Handoff/Commitment，以及脱敏 PostgreSQL Trace 与可选 Langfuse v4 exporter；仍没有生产 Collector/tail sampling，BadCase、ReAct/Bundle metadata 仍是本地 store，也没有未消费的人工 Gold heldout。
+当前已有附件、Tesseract OCR、可配置 DeepSeek Vision、PostgreSQL Ticket/Handoff/Commitment，以及脱敏 PostgreSQL Trace 与可选 Langfuse v4 exporter；仍没有生产 Collector/tail sampling，BadCase、ReAct/Bundle metadata 仍是本地 store，80 条合成合同也尚未完成真实主链执行。
 
 ### Q：为什么删除 Shadow/Canary？
 
@@ -126,7 +126,7 @@ Handoff 是客服闭环的一部分。当前 PostgreSQL TicketService 负责工�
 
 ### Q：下一步优先做什么？
 
-先完成 fresh human-reviewed Gold 与 Service-chain v2 的真实 runner/独立复核，再按证据决定是否引入更强中文 embedding、复杂文档 ingest 或 LangGraph 薄 runtime。生产 Collector、容量与恢复目标只有在存在真实部署约束时才立项，不能用模拟流程冒充成熟度。
+先锁定 80 条合成合同并完成 Service-chain 的真实 `ChatApplication.handle()` runner；公开能力按官方 Dev 调参、冻结配置、官方 Test 报告。Knowledge/Memory 先接真实且输入对称的 dense embedding，再按证据决定复杂文档 ingest 或 LangGraph 薄 runtime。生产 Collector、容量与恢复目标只有在存在真实部署约束时才立项，不能用模拟流程冒充成熟度。
 
 ---
 

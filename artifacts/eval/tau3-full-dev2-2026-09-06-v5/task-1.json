@@ -1,0 +1,620 @@
+{
+  "task_id": "1",
+  "official_reward": null,
+  "status": "ERROR",
+  "error_type": "ValueError",
+  "error": "UserMessage must have either content or tool_calls. Got UserMessage\nis_final_chunk: True",
+  "target_trace": [
+    {
+      "turn": 1,
+      "input": "Hi, I need to exchange a couple of items from my recent order. I want to swap the mechanical keyboard I got for the same one but with clicky switches, and also exchange the smart thermostat for one that works with Google Home instead of Apple HomeKit. Can you help me with that?",
+      "outcome": {
+        "response_id": "publication:v1:494ed249dc3210acec7a5169e9a2a72fb1e3adf0f09f6770945f077b14bc251b",
+        "response": {
+          "intent": "SEMANTIC_INSUFFICIENT_CONTEXT",
+          "conv_id": "tau3-53fa982041464cebbe967ebde6278778",
+          "coverage": {
+            "complete": false,
+            "missing_requirement_ids": [
+              "order_id"
+            ]
+          },
+          "grounded": false,
+          "response": "请补充完成该任务所需的信息。",
+          "verified": false,
+          "escalated": false,
+          "task_plan": {
+            "plan_id": "turn-plan:v1:7f574427cd54856d0183a91c269a5529cb7a0fd05c26dd6f3228536b885ed3d8",
+            "work_item_ids": []
+          },
+          "ticket_id": null,
+          "agent_type": "general",
+          "latency_ms": 1236.6176638752222,
+          "request_id": "turn-1",
+          "agent_types": [],
+          "response_id": "publication:v1:494ed249dc3210acec7a5169e9a2a72fb1e3adf0f09f6770945f077b14bc251b",
+          "intent_group": "other",
+          "response_seq": 1,
+          "primary_agent": "",
+          "ticket_status": null,
+          "agent_outcomes": [],
+          "bundle_version": "tau3-retail-v1",
+          "routing_reason": "SEMANTIC_INSUFFICIENT_CONTEXT",
+          "delivery_status": "selected",
+          "handoff_created": false,
+          "evaluation_trace": {
+            "cost": {
+              "latency_ms": 1236.6176638752222,
+              "work_item_count": 0,
+              "conversation_planner_invoked": false
+            },
+            "outcome": {
+              "kind": "COMPLETED",
+              "verifier_status": "CLARIFY",
+              "missing_requirement_ids": [
+                "order_id"
+              ]
+            },
+            "trigger": {
+              "invocation_admitted": true,
+              "deterministic_resolution": "UNRESOLVED"
+            },
+            "artifact": {
+              "plan_id": "turn-plan:v1:7f574427cd54856d0183a91c269a5529cb7a0fd05c26dd6f3228536b885ed3d8",
+              "owner_ids": [],
+              "route_mode": "CLARIFY",
+              "registry_fingerprint": "capability-bundle:v1:d97029f228f1b8b68b3f91e89c6d01a1197a34ac7f09b70b5f7b0a993a5b8984",
+              "understanding_reason": "SEMANTIC_INSUFFICIENT_CONTEXT"
+            },
+            "consumption": {
+              "facts": [],
+              "work_items": [],
+              "result_statuses": []
+            },
+            "schema_version": "target-evaluation-trace-v1",
+            "state_side_effect": {
+              "state_version_after": 0,
+              "workstream_statuses": [],
+              "state_version_before": 0,
+              "committed_receipt_refs": []
+            }
+          },
+          "synthesis_reason": "terminal route response",
+          "synthesis_status": "terminal",
+          "supporting_agents": [],
+          "routing_disposition": "clarify",
+          "synthesis_conflicts": [],
+          "verification_status": "clarify",
+          "verification_reason_code": "TARGET_RESULT_INCOMPLETE"
+        },
+        "stages": []
+      }
+    },
+    {
+      "turn": 2,
+      "input": "Sure, I can give you my order number and details. The order is #W2378156, and my name is Yusuf Rossi, zip code 19122. I don’t remember which email I used, though—if you need that, I can try to find it.\n\nJust to be clear, for the keyboard I’d like to swap it for the same model but with clicky switches. For the thermostat, I want the same model but the version that works with Google Home instead of Apple HomeKit. If there isn’t a keyboard that’s clicky, RGB backlit, and full-size in that same model, then I’d actually only want to exchange the thermostat. Can you check if both are available?",
+      "outcome": {
+        "response_id": "publication:v1:ac85b941e5efc0d3dab1d8736adb66ccd7f9618bbd01223b55909fb7dc55d776",
+        "response": {
+          "intent": "CONVERSATION_AGENT_PLAN",
+          "conv_id": "tau3-53fa982041464cebbe967ebde6278778",
+          "coverage": {
+            "complete": false,
+            "missing_requirement_ids": []
+          },
+          "grounded": false,
+          "response": "已取得部分信息，但暂时无法整理为可靠答复。",
+          "verified": false,
+          "escalated": false,
+          "task_plan": {
+            "plan_id": "turn-plan:v1:b3c67102a20dc8bb282c873c054cd13fd0a3052840c17b151e4639ae29339a02",
+            "work_item_ids": [
+              "work:1:semantic-1"
+            ]
+          },
+          "ticket_id": null,
+          "agent_type": "retail",
+          "latency_ms": 30688.44036757946,
+          "request_id": "turn-2",
+          "agent_types": [
+            "retail"
+          ],
+          "response_id": "publication:v1:ac85b941e5efc0d3dab1d8736adb66ccd7f9618bbd01223b55909fb7dc55d776",
+          "intent_group": "retail",
+          "response_seq": 2,
+          "primary_agent": "retail",
+          "ticket_status": null,
+          "agent_outcomes": [
+            {
+              "status": "SUCCEEDED",
+              "owner_agent": "retail",
+              "reason_code": "FRAMEWORK_AGENT_REQUIREMENTS_SATISFIED",
+              "work_item_id": "work:1:semantic-1"
+            }
+          ],
+          "bundle_version": "tau3-retail-v1",
+          "routing_reason": "CONVERSATION_AGENT_PLAN",
+          "delivery_status": "selected",
+          "handoff_created": false,
+          "evaluation_trace": {
+            "cost": {
+              "latency_ms": 30688.44036757946,
+              "work_item_count": 1,
+              "conversation_planner_invoked": true
+            },
+            "outcome": {
+              "kind": "COMPLETED",
+              "verifier_status": "UNKNOWN",
+              "missing_requirement_ids": []
+            },
+            "trigger": {
+              "invocation_admitted": true,
+              "deterministic_resolution": "UNRESOLVED"
+            },
+            "artifact": {
+              "plan_id": "turn-plan:v1:b3c67102a20dc8bb282c873c054cd13fd0a3052840c17b151e4639ae29339a02",
+              "owner_ids": [
+                "retail"
+              ],
+              "route_mode": "AGENT_TASK",
+              "registry_fingerprint": "capability-bundle:v1:d97029f228f1b8b68b3f91e89c6d01a1197a34ac7f09b70b5f7b0a993a5b8984",
+              "understanding_reason": "CONVERSATION_AGENT_PLAN"
+            },
+            "consumption": {
+              "facts": [
+                {
+                  "source_ref": "call_00_pSHqdDQT5n3wgHlbtH5E5227",
+                  "producer_id": "find_user_id_by_name_zip",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.find_user_id_by_name_zip",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_01_y67b76n5RCZTBIJ9smYy1532",
+                  "producer_id": "get_order_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_order_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_00_ZAbkIwp5vaKRot6sjEPZ9652",
+                  "producer_id": "get_product_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_product_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_01_0Dl91c708RmLiy0RdptD7951",
+                  "producer_id": "get_product_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_product_details",
+                  "producer_version": "tool-output-v1"
+                }
+              ],
+              "work_items": [
+                {
+                  "owner_agent": "retail",
+                  "control_mode": "DELEGATED",
+                  "work_item_id": "work:1:semantic-1",
+                  "allowed_tools": [
+                    "observed_operation_status",
+                    "calculate",
+                    "find_user_id_by_name_zip",
+                    "find_user_id_by_email",
+                    "get_order_details",
+                    "get_product_details",
+                    "get_item_details",
+                    "get_user_details",
+                    "list_all_product_types",
+                    "transfer_to_human_agents"
+                  ],
+                  "allowed_skills": []
+                }
+              ],
+              "result_statuses": [
+                "SUCCEEDED"
+              ]
+            },
+            "schema_version": "target-evaluation-trace-v1",
+            "state_side_effect": {
+              "state_version_after": 1,
+              "workstream_statuses": [],
+              "state_version_before": 0,
+              "committed_receipt_refs": []
+            }
+          },
+          "synthesis_reason": "ANSWER_SAFE_FALLBACK",
+          "synthesis_status": "template",
+          "supporting_agents": [],
+          "routing_disposition": "agent_task",
+          "synthesis_conflicts": [
+            "work-item:work:1:semantic-1:environment.get_product_details"
+          ],
+          "verification_status": "unknown",
+          "verification_reason_code": "TARGET_RESULT_INCOMPLETE"
+        },
+        "stages": []
+      }
+    },
+    {
+      "turn": 3,
+      "input": "I understand. Is there anything else you need from me to make this reliable? I can confirm my name is Yusuf Rossi, order number #W2378156, and my zip code is 19122. I don’t remember the email on the order, but if you can pull up the order by number, the items should show a mechanical keyboard—I need the same model but with clicky switches—and a smart thermostat—which I need swapped to the version compatible with Google Home instead of Apple HomeKit. Let me know what you still need and I’ll do my best to provide it.",
+      "outcome": {
+        "response_id": "publication:v1:db00d239cae4b65de4cae326906f63d3cef2507c247e412d2f051df1c23f9004",
+        "response": {
+          "intent": "CONVERSATION_AGENT_PLAN",
+          "conv_id": "tau3-53fa982041464cebbe967ebde6278778",
+          "coverage": {
+            "complete": false,
+            "missing_requirement_ids": []
+          },
+          "grounded": false,
+          "response": "此项请求：本次查询或处理失败，请稍后重试。",
+          "verified": false,
+          "escalated": false,
+          "task_plan": {
+            "plan_id": "turn-plan:v1:3d22a88943a137196379b87c83eb257f809d1e45613129ea13a27d52864b4a8d",
+            "work_item_ids": [
+              "work:1:semantic-1"
+            ]
+          },
+          "ticket_id": null,
+          "agent_type": "retail",
+          "latency_ms": 39852.80644148588,
+          "request_id": "turn-3",
+          "agent_types": [
+            "retail"
+          ],
+          "response_id": "publication:v1:db00d239cae4b65de4cae326906f63d3cef2507c247e412d2f051df1c23f9004",
+          "intent_group": "retail",
+          "response_seq": 3,
+          "primary_agent": "retail",
+          "ticket_status": null,
+          "agent_outcomes": [
+            {
+              "status": "RETRYABLE_FAILURE",
+              "owner_agent": "retail",
+              "reason_code": "FRAMEWORK_AGENT_TOOL_FAILURE",
+              "work_item_id": "work:1:semantic-1"
+            }
+          ],
+          "bundle_version": "tau3-retail-v1",
+          "routing_reason": "CONVERSATION_AGENT_PLAN",
+          "delivery_status": "selected",
+          "handoff_created": false,
+          "evaluation_trace": {
+            "cost": {
+              "latency_ms": 39852.80644148588,
+              "work_item_count": 1,
+              "conversation_planner_invoked": true
+            },
+            "outcome": {
+              "kind": "COMPLETED",
+              "verifier_status": "UNKNOWN",
+              "missing_requirement_ids": []
+            },
+            "trigger": {
+              "invocation_admitted": true,
+              "deterministic_resolution": "UNRESOLVED"
+            },
+            "artifact": {
+              "plan_id": "turn-plan:v1:3d22a88943a137196379b87c83eb257f809d1e45613129ea13a27d52864b4a8d",
+              "owner_ids": [
+                "retail"
+              ],
+              "route_mode": "AGENT_TASK",
+              "registry_fingerprint": "capability-bundle:v1:d97029f228f1b8b68b3f91e89c6d01a1197a34ac7f09b70b5f7b0a993a5b8984",
+              "understanding_reason": "CONVERSATION_AGENT_PLAN"
+            },
+            "consumption": {
+              "facts": [
+                {
+                  "source_ref": "call_00_tyKo7SeGZOE9UXXMInfd8106",
+                  "producer_id": "find_user_id_by_name_zip",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.find_user_id_by_name_zip",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_01_bdxY4mGZF4ah6bJaVf979037",
+                  "producer_id": "get_order_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_order_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_00_cCLL3FfeaDQ5al150c3H7244",
+                  "producer_id": "get_product_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_product_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_01_pGu0qqwFjtWQ2IwcqFsl7591",
+                  "producer_id": "get_product_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_product_details",
+                  "producer_version": "tool-output-v1"
+                }
+              ],
+              "work_items": [
+                {
+                  "owner_agent": "retail",
+                  "control_mode": "DELEGATED",
+                  "work_item_id": "work:1:semantic-1",
+                  "allowed_tools": [
+                    "observed_operation_status",
+                    "calculate",
+                    "find_user_id_by_name_zip",
+                    "find_user_id_by_email",
+                    "get_order_details",
+                    "get_product_details",
+                    "get_item_details",
+                    "get_user_details",
+                    "list_all_product_types",
+                    "transfer_to_human_agents"
+                  ],
+                  "allowed_skills": []
+                }
+              ],
+              "result_statuses": [
+                "RETRYABLE_FAILURE"
+              ]
+            },
+            "schema_version": "target-evaluation-trace-v1",
+            "state_side_effect": {
+              "state_version_after": 2,
+              "workstream_statuses": [],
+              "state_version_before": 1,
+              "committed_receipt_refs": []
+            }
+          },
+          "synthesis_reason": "ANSWER_SAFE_FALLBACK",
+          "synthesis_status": "template",
+          "supporting_agents": [],
+          "routing_disposition": "agent_task",
+          "synthesis_conflicts": [
+            "work-item:work:1:semantic-1:environment.get_product_details"
+          ],
+          "verification_status": "unknown",
+          "verification_reason_code": "TARGET_RESULT_INCOMPLETE"
+        },
+        "stages": []
+      }
+    },
+    {
+      "turn": 4,
+      "input": "That sounds like a system issue on your end. I’d like to get this sorted out if possible. Could you try again or let me know another way you can look up my order? If calling back now would help, I can do that, but I’d prefer to give this another shot first.\n\nJust to recap: order #W2378156, my name is Yusuf Rossi, zip 19122. I’m trying to exchange the mechanical keyboard for the same model but with clicky switches, and the smart thermostat for one that works with Google Home instead of Apple HomeKit. And if there isn’t a keyboard that’s clicky, RGB backlit, and full size, I only want to exchange the thermostat.",
+      "outcome": {
+        "response_id": "publication:v1:30a210ed4a7cdb2d7f6ad90225800a6bcf487493e79a895c16fad8fbea96ed75",
+        "response": {
+          "intent": "SEMANTIC_OUT_OF_SCOPE",
+          "conv_id": "tau3-53fa982041464cebbe967ebde6278778",
+          "coverage": {
+            "complete": true,
+            "missing_requirement_ids": []
+          },
+          "grounded": true,
+          "response": "请补充完成该任务所需的信息。",
+          "verified": true,
+          "escalated": false,
+          "task_plan": {
+            "plan_id": "turn-plan:v1:749be16795e1d4e872a7fce8da6e20dfa9853cbaf0987f341390c6b4457531d5",
+            "work_item_ids": []
+          },
+          "ticket_id": null,
+          "agent_type": "general",
+          "latency_ms": 918.8185315579176,
+          "request_id": "turn-4",
+          "agent_types": [],
+          "response_id": "publication:v1:30a210ed4a7cdb2d7f6ad90225800a6bcf487493e79a895c16fad8fbea96ed75",
+          "intent_group": "other",
+          "response_seq": 4,
+          "primary_agent": "",
+          "ticket_status": null,
+          "agent_outcomes": [],
+          "bundle_version": "tau3-retail-v1",
+          "routing_reason": "SEMANTIC_OUT_OF_SCOPE",
+          "delivery_status": "selected",
+          "handoff_created": false,
+          "evaluation_trace": {
+            "cost": {
+              "latency_ms": 918.8185315579176,
+              "work_item_count": 0,
+              "conversation_planner_invoked": false
+            },
+            "outcome": {
+              "kind": "COMPLETED",
+              "verifier_status": "PASS",
+              "missing_requirement_ids": []
+            },
+            "trigger": {
+              "invocation_admitted": true,
+              "deterministic_resolution": "UNRESOLVED"
+            },
+            "artifact": {
+              "plan_id": "turn-plan:v1:749be16795e1d4e872a7fce8da6e20dfa9853cbaf0987f341390c6b4457531d5",
+              "owner_ids": [],
+              "route_mode": "OUT_OF_SCOPE",
+              "registry_fingerprint": "capability-bundle:v1:d97029f228f1b8b68b3f91e89c6d01a1197a34ac7f09b70b5f7b0a993a5b8984",
+              "understanding_reason": "SEMANTIC_OUT_OF_SCOPE"
+            },
+            "consumption": {
+              "facts": [],
+              "work_items": [],
+              "result_statuses": []
+            },
+            "schema_version": "target-evaluation-trace-v1",
+            "state_side_effect": {
+              "state_version_after": 2,
+              "workstream_statuses": [],
+              "state_version_before": 2,
+              "committed_receipt_refs": []
+            }
+          },
+          "synthesis_reason": "terminal route response",
+          "synthesis_status": "terminal",
+          "supporting_agents": [],
+          "routing_disposition": "out_of_scope",
+          "synthesis_conflicts": [],
+          "verification_status": "pass",
+          "verification_reason_code": "TARGET_REQUIREMENTS_SATISFIED"
+        },
+        "stages": []
+      }
+    },
+    {
+      "turn": 5,
+      "input": "I’m sorry—I’m not sure what else I can provide. I don’t remember the email I used on the order, but my name, order number, and zip code should be enough to look it up.\n\nTo make sure we’re on the same page, I’d like to exchange:\n- The mechanical keyboard for the same model but with **clicky switches**—and only if that version is also RGB backlit and full size.\n- The smart thermostat for the same model but compatible with **Google Home**, not Apple HomeKit.\n\nIf the keyboard with those exact specs isn’t available, then I just want to exchange the thermostat.\n\nIf you need me to verify anything else about the order or my address, please let me know what you’re missing and I’ll try to confirm it.",
+      "outcome": {
+        "response_id": "publication:v1:cc590f8ed1f1da6ed2134ba77b1422bf896990c44302aad42da09b75329c1425",
+        "response": {
+          "intent": "CONVERSATION_AGENT_PLAN",
+          "conv_id": "tau3-53fa982041464cebbe967ebde6278778",
+          "coverage": {
+            "complete": false,
+            "missing_requirement_ids": []
+          },
+          "grounded": false,
+          "response": "已取得部分信息，但暂时无法整理为可靠答复。",
+          "verified": false,
+          "escalated": false,
+          "task_plan": {
+            "plan_id": "turn-plan:v1:45e1542af914b332ad38badc4799268a32668dd657c54ed3749cfec51a9cd83a",
+            "work_item_ids": [
+              "work:1:auth_exchange_W2378156"
+            ]
+          },
+          "ticket_id": null,
+          "agent_type": "retail",
+          "latency_ms": 34571.031268686056,
+          "request_id": "turn-5",
+          "agent_types": [
+            "retail"
+          ],
+          "response_id": "publication:v1:cc590f8ed1f1da6ed2134ba77b1422bf896990c44302aad42da09b75329c1425",
+          "intent_group": "retail",
+          "response_seq": 5,
+          "primary_agent": "retail",
+          "ticket_status": null,
+          "agent_outcomes": [
+            {
+              "status": "SUCCEEDED",
+              "owner_agent": "retail",
+              "reason_code": "FRAMEWORK_AGENT_REQUIREMENTS_SATISFIED",
+              "work_item_id": "work:1:auth_exchange_W2378156"
+            }
+          ],
+          "bundle_version": "tau3-retail-v1",
+          "routing_reason": "CONVERSATION_AGENT_PLAN",
+          "delivery_status": "selected",
+          "handoff_created": false,
+          "evaluation_trace": {
+            "cost": {
+              "latency_ms": 34571.031268686056,
+              "work_item_count": 1,
+              "conversation_planner_invoked": true
+            },
+            "outcome": {
+              "kind": "COMPLETED",
+              "verifier_status": "UNKNOWN",
+              "missing_requirement_ids": []
+            },
+            "trigger": {
+              "invocation_admitted": true,
+              "deterministic_resolution": "UNRESOLVED"
+            },
+            "artifact": {
+              "plan_id": "turn-plan:v1:45e1542af914b332ad38badc4799268a32668dd657c54ed3749cfec51a9cd83a",
+              "owner_ids": [
+                "retail"
+              ],
+              "route_mode": "AGENT_TASK",
+              "registry_fingerprint": "capability-bundle:v1:d97029f228f1b8b68b3f91e89c6d01a1197a34ac7f09b70b5f7b0a993a5b8984",
+              "understanding_reason": "CONVERSATION_AGENT_PLAN"
+            },
+            "consumption": {
+              "facts": [
+                {
+                  "source_ref": "call_00_vs9TXQV18K2HwUe5upHO4500",
+                  "producer_id": "find_user_id_by_name_zip",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.find_user_id_by_name_zip",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_00_TLo5wZddlNCSV3rRbXly2037",
+                  "producer_id": "get_user_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_user_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_01_xVQ2AKaTNPfxyRfOzqKe9639",
+                  "producer_id": "get_order_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_order_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_00_zDIIlKv6T94dIg83Wl6I3933",
+                  "producer_id": "get_product_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_product_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_01_F1DqvQKb2PnrRXKZ6G3S9342",
+                  "producer_id": "get_product_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_product_details",
+                  "producer_version": "tool-output-v1"
+                }
+              ],
+              "work_items": [
+                {
+                  "owner_agent": "retail",
+                  "control_mode": "DELEGATED",
+                  "work_item_id": "work:1:auth_exchange_W2378156",
+                  "allowed_tools": [
+                    "observed_operation_status",
+                    "calculate",
+                    "find_user_id_by_name_zip",
+                    "find_user_id_by_email",
+                    "get_order_details",
+                    "get_product_details",
+                    "get_item_details",
+                    "get_user_details",
+                    "list_all_product_types",
+                    "transfer_to_human_agents"
+                  ],
+                  "allowed_skills": []
+                }
+              ],
+              "result_statuses": [
+                "SUCCEEDED"
+              ]
+            },
+            "schema_version": "target-evaluation-trace-v1",
+            "state_side_effect": {
+              "state_version_after": 3,
+              "workstream_statuses": [],
+              "state_version_before": 2,
+              "committed_receipt_refs": []
+            }
+          },
+          "synthesis_reason": "ANSWER_SAFE_FALLBACK",
+          "synthesis_status": "template",
+          "supporting_agents": [],
+          "routing_disposition": "agent_task",
+          "synthesis_conflicts": [
+            "work-item:work:1:auth_exchange_W2378156:environment.get_product_details"
+          ],
+          "verification_status": "unknown",
+          "verification_reason_code": "TARGET_RESULT_INCOMPLETE"
+        },
+        "stages": []
+      }
+    }
+  ]
+}

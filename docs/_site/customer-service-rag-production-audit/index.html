@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+  <!-- 覆盖 Minima 2.5 的 head，以显式接入教程交互和 Mermaid。 -->
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111c28"><!-- Begin Jekyll SEO tag v2.9.0 -->
+<title>客服 RAG 生产化审计 | DialogPilot 完整架构教程</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="客服 RAG 生产化审计" />
+<meta property="og:locale" content="zh_CN" />
+<meta name="description" content="Python 多 Agent 客服后端的架构、链路、内部实现、改造记录与项目追问" />
+<meta name="twitter:description" property="og:description" content="Python 多 Agent 客服后端的架构、链路、内部实现、改造记录与项目追问" />
+<meta property="og:site_name" content="DialogPilot 完整架构教程" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="客服 RAG 生产化审计" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"Python 多 Agent 客服后端的架构、链路、内部实现、改造记录与项目追问","headline":"客服 RAG 生产化审计","url":"/DialogPilot/customer-service-rag-production-audit/"}</script>
+<!-- End Jekyll SEO tag -->
+<!-- 每次 Pages 构建生成新版本号，避免浏览器继续使用旧 CSS/JS。 -->
+  <link rel="icon" href="/DialogPilot/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/DialogPilot/assets/main.css?v=1788371868"><link type="application/atom+xml" rel="alternate" href="/DialogPilot/feed.xml" title="DialogPilot 完整架构教程" /><!-- defer 保证 Mermaid 先定义，页面增强脚本随后在 DOM 解析完成后运行。 -->
+  <script defer src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <script defer src="/DialogPilot/assets/dialogpilot.js?v=1788371868"></script>
+</head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/DialogPilot/">DialogPilot 完整架构教程</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/DialogPilot/interview-guide.html">DialogPilot 面经校准与追问手册</a><a class="page-link" href="/DialogPilot/architecture.html">架构边界与职责归属</a><a class="page-link" href="/DialogPilot/project-pitch.html">项目讲述与技术取舍</a><a class="page-link" href="/DialogPilot/agent-evolution/">Agent 进化闭环</a><a class="page-link" href="/DialogPilot/evaluation-500/">500 条分层评测：设计与运行</a><a class="page-link" href="/DialogPilot/rag-pipeline-evaluation/">客服 RAG 全链路评测</a><a class="page-link" href="/DialogPilot/customer-service-rag-production-audit/">客服 RAG 生产化审计</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">客服 RAG 生产化审计</h1>
+  </header>
+
+  <div class="post-content">
+    <h1 id="客服-rag-生产化审计从来源事实到可发布回答">客服 RAG 生产化审计：从来源事实到可发布回答</h1>
+
+<blockquote>
+  <p>审计对象是当前分支的单一 PostgreSQL RAG 主链。本文中的“生产化”指生产责任与合同审计，不代表已有生产流量、SLA、Shadow/Canary、人工签署平台或生产发布结论。</p>
+</blockquote>
+
+<h2 id="1-结论先行">1. 结论先行</h2>
+
+<p>当前链路已关闭“检索到文本就算 RAG 成功”的主要责任缺口：</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SourceRevision
+→ active generation
+→ fixed-token chunk
+→ pgvector + PostgreSQL Chinese FTS
+→ weighted RRF
+→ optional rerank / ContextPacker
+→ EvidencePack
+→ FactRequirement / Coverage
+→ grounded answer / Verifier
+→ PostgreSQL publication
+</code></pre></div></div>
+
+<p>可本地复现的能力包括唯一 SourceRevision 生命周期、稳定 chunk identity、混合检索、Evidence provenance、Coverage 和 fail-closed 发布。尚不能据此宣称生产就绪：fresh human-reviewed Gold、生产数据治理、真实负载容量、Collector/告警、生产 RPO/RTO 和组织级发布治理仍未闭合。</p>
+
+<h2 id="2-审计范围与非目标">2. 审计范围与非目标</h2>
+
+<p>本轮审计覆盖：</p>
+
+<ul>
+  <li>文本 Knowledge 的 ingest、索引、检索、packing、生成与发布；</li>
+  <li>公共知识与用户私有业务事实的 authority 隔离；</li>
+  <li>数据身份、缓存、索引 generation 和 provenance；</li>
+  <li>失败语义、可观测性、评测与本地恢复证据；</li>
+  <li>多模态观察如何进入 Evidence，而不越权成为业务事实。</li>
+</ul>
+
+<p>不把以下项目写成已实现：</p>
+
+<ul>
+  <li>生产流量或真实客服 SLA；</li>
+  <li>线上 Shadow/Canary/promotion/rollback；</li>
+  <li>生产级内容审核组织、双盲签署或值班体系；</li>
+  <li>任意格式复杂文档的完整解析；</li>
+  <li>Knowledge Graph 或 GraphRAG；</li>
+  <li>模型生成内容成为权威订单/退款/账户事实。</li>
+</ul>
+
+<h2 id="3-owner-与正向合同">3. Owner 与正向合同</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>关注点</th>
+      <th>Owner</th>
+      <th>正向合同</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>原文版本</td>
+      <td>PostgreSQL SourceRevision</td>
+      <td>checksum、scope、状态和 revision 可追溯</td>
+    </tr>
+    <tr>
+      <td>可服务索引</td>
+      <td>active generation</td>
+      <td>同一语料只有一个在线 generation；不完整索引失败关闭</td>
+    </tr>
+    <tr>
+      <td>Chunk</td>
+      <td>chunker + stable identity</td>
+      <td>512/64 fixed-token；字符范围回指 revision</td>
+    </tr>
+    <tr>
+      <td>Dense / Sparse</td>
+      <td>pgvector / PostgreSQL FTS</td>
+      <td>都是同一原文的派生投影，可重建</td>
+    </tr>
+    <tr>
+      <td>Query variants</td>
+      <td>query policy</td>
+      <td>Raw 与 Standalone 带固定权重和版本</td>
+    </tr>
+    <tr>
+      <td>Fusion</td>
+      <td>weighted RRF</td>
+      <td>rank 输入、权重和 <code class="language-plaintext highlighter-rouge">k</code> 可复现</td>
+    </tr>
+    <tr>
+      <td>Rerank</td>
+      <td>structured permutation adapter</td>
+      <td>短别名输出后映射回 stable chunk id；非法排列 typed failure</td>
+    </tr>
+    <tr>
+      <td>Context budget</td>
+      <td>ContextPacker</td>
+      <td>在最终拼接文本上计费，保留 provenance</td>
+    </tr>
+    <tr>
+      <td>Evidence</td>
+      <td>EvidenceReceipt / EvidencePack</td>
+      <td>source revision、checksum、span、rank、manifest 不丢失</td>
+    </tr>
+    <tr>
+      <td>Requirement</td>
+      <td>AuthorityPolicy / CoverageGate</td>
+      <td>合法 authority 才能满足对应事实需求</td>
+    </tr>
+    <tr>
+      <td>Answer</td>
+      <td>grounded generator + Verifier</td>
+      <td>证据不足拒答；UNKNOWN 失败关闭</td>
+    </tr>
+    <tr>
+      <td>Publication</td>
+      <td>PostgreSQL publication</td>
+      <td>先持久化唯一回答，再返回/投影</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="4-为什么-postgresql-是唯一-knowledge-owner">4. 为什么 PostgreSQL 是唯一 Knowledge Owner</h2>
+
+<p>当前分支已经删除 Chroma Knowledge 与旧 sparse index。选择 PostgreSQL + pgvector + 中文 FTS 的目标不是声称它在所有规模下最快，而是关闭本项目中的双重事实：</p>
+
+<ul>
+  <li>SourceRevision、chunk 和 active generation 在一个事务平台上有唯一身份；</li>
+  <li>Dense 与 sparse 都是可重建投影，不再各自携带一套模糊元数据；</li>
+  <li>publication、conversation 和 evidence 引用同一稳定 revision；</li>
+  <li>空库安装可由 Alembic 完整建立，不依赖隐藏的本地索引目录。</li>
+</ul>
+
+<p>若未来容量或延迟要求需要外部检索服务，迁移边界应是 <code class="language-plaintext highlighter-rouge">HybridRetrievalBackend</code>，而不是让调用者同时查询两个 Owner。</p>
+
+<h2 id="5-当前检索配置与实验解释">5. 当前检索配置与实验解释</h2>
+
+<p>当前本地默认：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>参数</th>
+      <th style="text-align: right">值</th>
+      <th>口径</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Chunk</td>
+      <td style="text-align: right">512 tokens</td>
+      <td>fixed-token</td>
+    </tr>
+    <tr>
+      <td>Overlap</td>
+      <td style="text-align: right">64 tokens</td>
+      <td>相邻 chunk</td>
+    </tr>
+    <tr>
+      <td>Dense weight</td>
+      <td style="text-align: right">0.25</td>
+      <td>weighted RRF 输入</td>
+    </tr>
+    <tr>
+      <td>Lexical weight</td>
+      <td style="text-align: right">0.75</td>
+      <td>PostgreSQL Chinese FTS</td>
+    </tr>
+    <tr>
+      <td>RRF k</td>
+      <td style="text-align: right">10</td>
+      <td>fusion 常量</td>
+    </tr>
+    <tr>
+      <td>Candidate</td>
+      <td style="text-align: right">20</td>
+      <td>rerank/selection 前</td>
+    </tr>
+    <tr>
+      <td>Packed</td>
+      <td style="text-align: right">5</td>
+      <td>回答上下文</td>
+    </tr>
+    <tr>
+      <td>Context budget</td>
+      <td style="text-align: right">2600 estimated tokens</td>
+      <td>packing 上限</td>
+    </tr>
+    <tr>
+      <td>Local embedding</td>
+      <td style="text-align: right">384 dimensions</td>
+      <td>deterministic feature hashing</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>这些参数来自 Doc2Dial Dev 的分层实验和当前本地可复现目标。<code class="language-plaintext highlighter-rouge">dialogpilot-500-v1</code> 的旧 25 文档 fixture 曾选择 BM25-only，只是历史 development baseline，不能覆盖 Doc2Dial 更完整链路的选型，更不能把两个数据集的数字拼成一个总分。</p>
+
+<h2 id="6-evidence-与-authority-隔离">6. Evidence 与 authority 隔离</h2>
+
+<p>Evidence 需要同时回答：内容是什么、来自哪里、哪个版本产生、由谁观察、可支持哪类 claim。</p>
+
+<p>Knowledge Evidence 可支持政策、说明、公开流程；业务工具 receipt 可支持订单、退款和账户的实时状态；Memory Evidence 只支持带来源的历史事实；Media Observation 只描述 OCR 或视觉观察。</p>
+
+<p>以下转换必须拒绝：</p>
+
+<ul>
+  <li>用公共退款政策回答“我的退款已经到账”；</li>
+  <li>用截图里的文字断言订单后台已处理；</li>
+  <li>用相似历史 ServiceEpisode 覆盖本次工具查询结果；</li>
+  <li>用 LLM rerank 或生成文本反向修改 SourceRevision；</li>
+  <li>citation 指向 chunk id，却无法回到 revision/checksum/span。</li>
+</ul>
+
+<p>CoverageGate 根据 FactRequirement 检查 authority，而不是只检查 <code class="language-plaintext highlighter-rouge">evidence_count &gt; 0</code>。</p>
+
+<h2 id="7-queryrerank-与-packing-的边界">7. Query、Rerank 与 Packing 的边界</h2>
+
+<p>Raw query 保留原始措辞；Standalone query 消解对话指代。两者进入同一检索内核并以固定权重融合，不能让改写结果覆盖用户原话。</p>
+
+<p>Rerank 只改变候选排列。当前局部 PydanticAI ToolOutput 约束返回 permutation，使用短别名降低模型输出负担，再映射回稳定 chunk id。缺项、重复项、越界别名或模型故障都是 typed failure。</p>
+
+<p>Packing 的权威是最终拼接文本，不是各 section 的估算和。HTML 转义、分隔符、历史和当前问题都必须计费；当前轮次本身无法装入时显式拒绝。</p>
+
+<h2 id="8-generationcitation-与发布">8. Generation、Citation 与发布</h2>
+
+<p>grounded generator 的输出代数包含：</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">answered</code>：在证据内回答；</li>
+  <li><code class="language-plaintext highlighter-rouge">insufficient_evidence</code>：证据不足；</li>
+  <li><code class="language-plaintext highlighter-rouge">conflicting_evidence</code>：证据冲突。</li>
+</ul>
+
+<p>结构化输出成功不等于答案正确。Claim 必须关联 Evidence，Coverage 必须完整，Verifier 必须 <code class="language-plaintext highlighter-rouge">PASS</code>。解析错误、校验器故障或来源无法验证都进入 <code class="language-plaintext highlighter-rouge">UNKNOWN</code>，不能用默认分数或模板回答伪装成功。</p>
+
+<p>回答发布后仍需区分 publication 与 delivery。数据库成功写入回答，不等于连接器已送达或用户已读。</p>
+
+<h2 id="9-缓存索引和重建">9. 缓存、索引和重建</h2>
+
+<p>缓存 key 至少绑定 corpus、query、retrieval config、generation 和 scope。旧 generation 的命中不能服务新 SourceRevision。</p>
+
+<p>当前单路径要求：</p>
+
+<ol>
+  <li>ingest 产生新 SourceRevision；</li>
+  <li>projection 构建 dense/sparse chunk 事实；</li>
+  <li>generation 只有在完整性检查通过后成为 ACTIVE；</li>
+  <li>reader 只读取唯一 ACTIVE generation；</li>
+  <li>非空索引缺少 source/chunk/vector/lexical/scope 任一合同就失败关闭；</li>
+  <li>重建从权威 SourceRevision 开始，不从缓存或回答反推原文。</li>
+</ol>
+
+<h2 id="10-多模态与复杂文档">10. 多模态与复杂文档</h2>
+
+<p>在线附件由 <code class="language-plaintext highlighter-rouge">/assets/upload</code> 持久化并完成安全扫描。Agent 决定 L0/L1/L2；Tesseract 和 DeepSeek Vision 产生带 asset checksum、page/bbox、producer/model/version 的派生观察。</p>
+
+<p>这已覆盖截图 OCR 和显式启用的视觉理解本地链路，但不等于复杂 PDF 摄取已完成。表格、版面、扫描 PDF、父子结构和跨页证据仍应通过独立 ingest pipeline 与评测门禁进入 SourceRevision，不能把在线 VLM 观察当作稳定知识库原文。</p>
+
+<h2 id="11-分层评测证据">11. 分层评测证据</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>层</th>
+      <th>当前证据</th>
+      <th>能证明</th>
+      <th>不能证明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>500 条 fixture</td>
+      <td>100 Retrieval + 其他三层</td>
+      <td>数据合同和历史回归</td>
+      <td>当前 PostgreSQL 全链的生产质量</td>
+    </tr>
+    <tr>
+      <td>Doc2Dial mini</td>
+      <td>100 文档、300 case、488 span</td>
+      <td>Chunk/Query/Rerank/Packing/Generation 的 Dev 比较</td>
+      <td>中文真实业务分布或生产泛化</td>
+    </tr>
+    <tr>
+      <td>Service-chain v2</td>
+      <td>分层 rubric + Owner probes</td>
+      <td>真实应用边界、工具/发布/Handoff 合同</td>
+      <td>未运行场景的结果</td>
+    </tr>
+    <tr>
+      <td>Local E2E</td>
+      <td>PostgreSQL engine、JWT、回答、OCR/VLM</td>
+      <td>当前环境的一次可复现链路</td>
+      <td>长期稳定性和容量</td>
+    </tr>
+    <tr>
+      <td>Restore report</td>
+      <td>空库到 Alembic head、dump/restore 对账</td>
+      <td>本地 schema 可重建</td>
+      <td>生产 RPO/RTO</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>RAG 实验显示 Query rewrite 在部分集合提升 Candidate recall，但父子拓扑和低成本 cross-encoder 没有通过跨切片非劣门禁，因此未成为当前默认。实验失败是有效结论，不应通过调整一个方便阈值包装成上线能力。</p>
+
+<h2 id="12-安全与隐私审计">12. 安全与隐私审计</h2>
+
+<ul>
+  <li>JWT Principal 决定用户 scope；请求体不能改写身份。</li>
+  <li>SourceRevision、retrieval cache、Memory 和 Tool 都必须保留 tenant/user scope。</li>
+  <li>Prompt injection 文本只是数据，不能改变 Tool allowlist 或 system policy。</li>
+  <li>Trace 默认脱敏，不记录完整 Prompt、工具输出、JWT 或 API Key。</li>
+  <li>媒体观察是不可信输入，不直接授予动作权限。</li>
+  <li>高风险写操作需宿主审批；模型传入的审批字段会被移除。</li>
+  <li>删除/retention 必须覆盖权威事实与派生投影，而不是只清 Redis。</li>
+</ul>
+
+<h2 id="13-生产-readiness-缺口">13. 生产 readiness 缺口</h2>
+
+<p>当前仍需补齐：</p>
+
+<ol>
+  <li>human-reviewed、自然分布、fresh heldout 的中文客服 Gold；</li>
+  <li>对真实业务 corpus 的权限、保留、删除、PII 与审计制度；</li>
+  <li>真实并发、索引增长、P95/P99、成本和故障注入容量测试；</li>
+  <li>生产备份、恢复演练与经业务确认的 RPO/RTO；</li>
+  <li>OTel Collector、集中存储、告警、tail sampling 和值班手册；</li>
+  <li>复杂文档解析、版面证据和多模态摄取的独立门禁；</li>
+  <li>若出现真实流量，再设计 cohort、canary、回退和迁移 ADR。</li>
+</ol>
+
+<h2 id="14-当前分支验收清单">14. 当前分支验收清单</h2>
+
+<ul class="task-list">
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" checked="checked" />PostgreSQL SourceRevision 与唯一 ACTIVE generation。</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" checked="checked" />pgvector + PostgreSQL FTS 单一在线检索路径。</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" checked="checked" />stable chunk id、revision/checksum/span provenance。</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" checked="checked" />Raw + Standalone、weighted RRF、packing 与 grounded structured output。</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" checked="checked" />FactRequirement / Coverage / Verifier fail-closed。</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" checked="checked" />公共 Knowledge 与私有业务 receipt authority 隔离。</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" checked="checked" />真实 JWT、本地 Docker、L1/L2 和 restore 机器报告。</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />fresh human-reviewed Gold 与独立复核闭环。</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />真实生产容量、隐私治理、告警和 RPO/RTO。</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />复杂文档 ingest 与跨页/版面证据门禁。</li>
+</ul>
+
+<p>复现实验细节见<a href="/DialogPilot/rag-pipeline-evaluation/">客服 RAG 全链路评测</a>，系统边界见<a href="/DialogPilot/architecture.html">架构边界</a>。</p>
+
+<hr />
+
+<h2 id="rag-逐阶段评测与生产核查附录">RAG 逐阶段评测与生产核查附录</h2>
+
+<h3 id="1-先拆开离线建库和在线回答">1. 先拆开离线建库和在线回答</h3>
+
+<p>离线建库评测回答“知识是否被正确变成可检索投影”：</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SourceRevision
+→ parse/normalize
+→ 512/64 fixed-token chunks
+→ canonical chunk spec
+→ embedding + Chinese FTS projection
+→ generation manifest
+→ activate
+</code></pre></div></div>
+
+<p>在线回答评测回答“真实请求是否在正确时机检索并安全发布”：</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ChatApplication
+→ RouteDecision
+→ raw/standalone queries
+→ dense + sparse recall
+→ weighted RRF
+→ rerank
+→ context packing
+→ EvidencePack
+→ grounded generation or Agent context
+→ CitationClaimGate/Coverage/Verifier
+→ Publication
+</code></pre></div></div>
+
+<p>两者必须使用相同 SourceRevision、generation 和 manifest 身份。离线索引质量通过，不等于 <code class="language-plaintext highlighter-rouge">/chat</code> 的 route 会触发它；在线回答流畅，也不能证明 chunk、引用或权限正确。</p>
+
+<h3 id="2-数据单位和-group-safe-split">2. 数据单位和 group-safe split</h3>
+
+<p>检索 case 至少包含：<code class="language-plaintext highlighter-rouge">case_id</code>、query、gold source revision、gold span/chunk、route、tenant/scope、标签来源、review 状态和 provenance。相同 source、模板变体或同一对话的相邻问题不能跨 dev/heldout，否则只是在测近重复记忆。</p>
+
+<p>数据状态必须区分：</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">provisional</code>：规则或模型生成，只能做开发反馈；</li>
+  <li><code class="language-plaintext highlighter-rouge">reviewed</code>：人工检查过，但可能参与修复；</li>
+  <li><code class="language-plaintext highlighter-rouge">gold</code>：有明确标注规范与仲裁；</li>
+  <li><code class="language-plaintext highlighter-rouge">fresh-heldout</code>：未被实现和调参过程消费；</li>
+  <li><code class="language-plaintext highlighter-rouge">regression</code>：已知失败见证，不再是无偏准确率样本。</li>
+</ul>
+
+<h3 id="3-chunk-评测">3. Chunk 评测</h3>
+
+<p>不要只比较 chunk 数。对 256/32、512/64、768/96 等候选记录：</p>
+
+<ul>
+  <li>gold span 是否完整落在至少一个 chunk；</li>
+  <li>边界切断率和重复 token 比例；</li>
+  <li>source metadata、字符 offset、revision/checksum 是否可回溯；</li>
+  <li>Top-K 中为覆盖一个答案占用了多少上下文 token；</li>
+  <li>更新一个 source 时需要重建多少投影。</li>
+</ul>
+
+<p>当前 512/64 是默认基线。若标题、列表、表格或条款在固定 token 边界被切坏，可比较结构感知 chunk 或 parent-child retrieval，但只有 heldout 指标证明收益才替换。</p>
+
+<h3 id="4-retrieval-分层指标">4. Retrieval 分层指标</h3>
+
+<p>Dense 与 FTS 先分别报告，再评估融合：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>层</th>
+      <th>指标</th>
+      <th>诊断问题</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Candidate recall</td>
+      <td>Recall@5/10/20</td>
+      <td>gold 是否进入候选</td>
+    </tr>
+    <tr>
+      <td>Ranking</td>
+      <td>MRR、nDCG@K</td>
+      <td>gold 是否排得足够靠前</td>
+    </tr>
+    <tr>
+      <td>Source</td>
+      <td>source exact / revision exact</td>
+      <td>是否命中正确文档版本</td>
+    </tr>
+    <tr>
+      <td>Span</td>
+      <td>overlap / containment</td>
+      <td>是否覆盖正确依据</td>
+    </tr>
+    <tr>
+      <td>Isolation</td>
+      <td>tenant/ACL violation</td>
+      <td>是否跨主体泄漏</td>
+    </tr>
+    <tr>
+      <td>Failure</td>
+      <td>no-evidence precision</td>
+      <td>没有依据时是否克制</td>
+    </tr>
+    <tr>
+      <td>Runtime</td>
+      <td>P50/P95、cache hit</td>
+      <td>延迟和缓存是否可接受</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>weighted RRF 当前使用 <code class="language-plaintext highlighter-rouge">k=10</code>、vector 0.25、lexical 0.75。必须保留 dense-only、sparse-only、RRF 的同集对照；不能只公布选中的最好结果。</p>
+
+<h3 id="5-query-rewrite-评测">5. Query rewrite 评测</h3>
+
+<p>raw query 和 standalone query 都要保留。Standalone rewrite 的成功条件是消解代词与补全上下文，不是变得更长。评测至少检查：</p>
+
+<ul>
+  <li>关键实体、否定词、时间和用户限定是否保留；</li>
+  <li>是否引入原问题没有的订单号、政策名或结论；</li>
+  <li>raw-only、standalone-only、双路融合的 Recall/MRR；</li>
+  <li>rewrite provider 失败时 raw path 是否仍能工作；</li>
+  <li>输入历史是否只来自允许的 conversation range。</li>
+</ul>
+
+<p>当前 raw/standalone 权重 0.25/0.75。对“它什么时候到”这类续问，standalone 往往增益；对错误码和明确标题，raw path 能防止改写漂移。</p>
+
+<h3 id="6-rerank-合同">6. Rerank 合同</h3>
+
+<p>Reranker 接收稳定候选 ID，只能返回这些 ID 的排列和分数。验证重复、未知、遗漏、解析失败和 timeout。失败时走原 RRF 顺序或 typed degradation，不把候选正文交给模型后接受它凭空生成的引用。</p>
+
+<p>报告要分清：Recall@candidate 不会被 rerank 提升；rerank 改善的是 MRR/nDCG 和最终 packing 命中。若 candidate 阶段没有 gold，升级 reranker 没有意义。</p>
+
+<h3 id="7-packing-与上下文预算">7. Packing 与上下文预算</h3>
+
+<p>默认从最多 20 个候选中选 top 5，并把知识 context 控制在约 2600 token。Packer 需要测试：</p>
+
+<ul>
+  <li>required span 是否被截断；</li>
+  <li>同 source 冗余 chunk 是否挤走另一条必需证据；</li>
+  <li>多条件问题是否覆盖所有 fact requirement；</li>
+  <li>citation ID 与实际进入 prompt 的片段是否一致；</li>
+  <li>system、tool schema、Memory 和输出预留加入后是否仍低于 provider 上限。</li>
+</ul>
+
+<p>“检索命中但回答错”常常是 packing 丢证据或 prompt 引用错位，不应全部归咎于生成模型。</p>
+
+<h3 id="8-generationcitation-与-claim">8. Generation、Citation 与 Claim</h3>
+
+<p>生成层至少评分：citation validity、claim coverage、groundedness、correctness、abstention、语言和安全。确定性检查先于 LLM Judge：citation 是否存在、是否属于当前 generation、source revision/checksum 是否匹配、claim 是否引用实际 packed item，都能由代码证明。</p>
+
+<p>LLM Judge 适合判断开放文本是否完整、自然或语义正确，但必须记录 judge model/prompt/version，并在人工子集上校准偏差。Judge <code class="language-plaintext highlighter-rouge">PASS</code> 不能覆盖 Authority、ACL、Coverage 或 Verifier 的 hard failure。</p>
+
+<h3 id="9-route-aware-rag-测试">9. Route-aware RAG 测试</h3>
+
+<p>同一 Retriever 要在不同 route 中验证调用次数和角色：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Route</th>
+      <th style="text-align: right">前置 Retriever</th>
+      <th>最终候选</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">knowledge_qa</code></td>
+      <td style="text-align: right">1 次</td>
+      <td>grounded answer 可以是 final candidate</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">mixed</code></td>
+      <td style="text-align: right">1 次</td>
+      <td>evidence-only，Agent/Reducer 结合业务 receipt</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">agent_task</code></td>
+      <td style="text-align: right">0 次</td>
+      <td>只有声明 Knowledge Authority 的 task 可调 knowledge tool</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">multi_domain</code></td>
+      <td style="text-align: right">0 次</td>
+      <td>task 级按需调用，不能全局重复</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">clarify/handoff/out_of_scope</code></td>
+      <td style="text-align: right">0 次</td>
+      <td>策略终态或工单路径</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>测试既要断言“应该调用”，也要断言“禁止调用”。否则所有请求都预检索也可能让答案测试通过，却浪费延迟并混淆 Authority。</p>
+
+<h3 id="10-serviceepisode-与-knowledge-隔离">10. ServiceEpisode 与 Knowledge 隔离</h3>
+
+<p>两者可复用 pgvector/FTS/RRF 实现，但评测集和安全门禁必须分开：</p>
+
+<ul>
+  <li>Knowledge 是企业公共或受 ACL 保护的 source revision；</li>
+  <li>ServiceEpisode 是已解决用户服务经历，绑定 tenant/user/case/revision；</li>
+  <li>权重、retention、deletion fence、generation 与 cache namespace 独立；</li>
+  <li>任一跨用户 episode 命中都是 hard failure，不能被平均 Recall 抵消。</li>
+</ul>
+
+<h3 id="11-多模态-rag-核查">11. 多模态 RAG 核查</h3>
+
+<p>上传、OCR/VLM 感知和知识检索是三段。测试分别确认：</p>
+
+<ol>
+  <li>asset identity、MIME、checksum、tenant/user/turn binding；</li>
+  <li>OCR 的 page/bbox/text/provider/version 与 VLM observation 的 normalized bbox/confidence；</li>
+  <li>OCR 文本是否作为不可信 query data 进入 KnowledgeRetriever；</li>
+  <li>最终 citation 是否仍指向知识 source revision，而 media observation 指向 asset artifact；</li>
+  <li>VLM 不得把视觉猜测升级为退款资格、账户状态或故障根因。</li>
+</ol>
+
+<p>图片错误码可以由 OCR 产生 query，再检索维修文档；商品外观可以帮助确定候选，但型号确认仍要 SKU/业务 Owner 或人工。</p>
+
+<h3 id="12-缓存与-generation-切换">12. 缓存与 generation 切换</h3>
+
+<p>cache key 应包含 tenant/scope/ACL/deletion epoch、query hash、manifest/generation、embedding/rewrite/rerank/policy 版本。需要故障注入验证：</p>
+
+<ul>
+  <li>Redis 全失效时答案语义不变；</li>
+  <li>active generation 切换后旧 cache 不命中；</li>
+  <li>source retract/deletion fence 前移后旧 evidence 不复用；</li>
+  <li>并发 cold query 可以 single-flight，但 waiter 超时不改变权威结果；</li>
+  <li>corrupted cache 不能绕过 Evidence validator。</li>
+</ul>
+
+<h3 id="13-postgresql-生产核查">13. PostgreSQL 生产核查</h3>
+
+<p><code class="language-plaintext highlighter-rouge">postgresql+pgvector+pg_fts</code> 的 readiness 不只看能否 SELECT：</p>
+
+<ul>
+  <li>extension、index、operator 与中文分词配置是否符合 migration；</li>
+  <li>source revision、chunk spec、projection receipt 和 generation manifest 是否可对账；</li>
+  <li>active generation 是否唯一；</li>
+  <li>query plan、连接池、锁等待和 P95/P99 是否在目标内；</li>
+  <li>rebuild 能否从 SourceRevision 恢复而不依赖旧索引；</li>
+  <li>backup/restore 后 revision、manifest 和 chunk checksum 是否一致。</li>
+</ul>
+
+<p>当前本地 384 维 feature hashing 是可复现基线，不代表生产语义质量。替换 embedding 时必须新建 generation，不能在旧向量字段中静默混用维度或模型。</p>
+
+<h3 id="14-失败注入矩阵">14. 失败注入矩阵</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>故障</th>
+      <th>预期结果</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>rewrite timeout</td>
+      <td>raw query 继续，记录 degraded</td>
+    </tr>
+    <tr>
+      <td>dense 不可用</td>
+      <td>sparse 可独立工作；证据标明路径</td>
+    </tr>
+    <tr>
+      <td>sparse 不可用</td>
+      <td>dense 可独立工作</td>
+    </tr>
+    <tr>
+      <td>两路不可用</td>
+      <td><code class="language-plaintext highlighter-rouge">UNAVAILABLE</code>，不是 <code class="language-plaintext highlighter-rouge">NO_EVIDENCE</code></td>
+    </tr>
+    <tr>
+      <td>rerank 非法排列</td>
+      <td>原顺序/typed degradation</td>
+    </tr>
+    <tr>
+      <td>manifest 冲突</td>
+      <td><code class="language-plaintext highlighter-rouge">CONFLICT</code>，禁止发布旧证据</td>
+    </tr>
+    <tr>
+      <td>Evidence checksum 错</td>
+      <td><code class="language-plaintext highlighter-rouge">INVALID_CONTRACT</code></td>
+    </tr>
+    <tr>
+      <td>无 gold evidence</td>
+      <td>abstain/clarify，不用模型常识补齐</td>
+    </tr>
+    <tr>
+      <td>Verifier timeout</td>
+      <td><code class="language-plaintext highlighter-rouge">UNKNOWN</code>，安全降级或 handoff</td>
+    </tr>
+    <tr>
+      <td>Redis 失效</td>
+      <td>旁路缓存，同语义重算</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="15-报告应该怎样写">15. 报告应该怎样写</h3>
+
+<p>每份报告固定记录 commit SHA、dataset checksum、split/provenance、review 状态、Bundle、模型矩阵、retrieval policy、generation manifest、seed、运行时间、scope limit 和失败 case。结果表同时给分母、绝对数与置信区间；小样本 pilot 明确写 pilot。</p>
+
+<p>不能只写“准确率 90%”：至少区分 route exact、Recall@K、MRR/nDCG、citation validity、claim coverage、groundedness、abstention、hard safety failures、P95 latency 与 cost proxy。生产结论必须来自 fresh human-reviewed heldout，回归集只证明已知问题未复发。</p>
+
+<h3 id="16-高频追问">16. 高频追问</h3>
+
+<p><strong>为什么 lexical 权重大？</strong> 当前客服语料有大量精确规则名、错误码和业务短语，本地实验选择该基线；它不是普适结论，必须在 fresh heldout 重估。</p>
+
+<p><strong>为什么不能只用向量库？</strong> 精确词和版本号可能被稠密语义稀释；同时只有一种召回路径会形成单点失败。混合召回提供互补证据。</p>
+
+<p><strong>为什么不能把 Memory 和 Knowledge 放一张表？</strong> 权威、ACL、删除、retention 和用途不同；共享 backend 不等于共享 corpus。</p>
+
+<p><strong>没有证据时怎样答？</strong> 返回 NO_EVIDENCE 并澄清、拒答或 handoff；不能用模型参数知识伪造 citation。</p>
+
+<p><strong>如何证明新 embedding 更好？</strong> 在相同 revision、chunk、candidate budget 和 fresh group-safe heldout 上比较 Recall/MRR、延迟、成本与安全隔离，并至少重复运行；只有增益超过门槛才激活新 generation。</p>
+
+<p><strong>线上指标下降先查哪里？</strong> 按 route → query rewrite → candidate recall → fusion/rerank → packing → claim/citation → verifier → delivery 分层定位，不先改一个全局阈值。</p>
+
+
+  </div>
+
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/DialogPilot/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">DialogPilot 完整架构教程</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">DialogPilot 完整架构教程</li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Python 多 Agent 客服后端的架构、链路、内部实现、改造记录与项目追问</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

@@ -1,0 +1,18 @@
+{
+  "scope": "ResponseAssembler only, single successful refund query; hostile verifier, no provider calls",
+  "valid_cases": 6,
+  "valid_verified": 6,
+  "invalid_cases": 30,
+  "invalid_extra_promise_output": 0,
+  "api_calls": 0,
+  "out_of_scope_partial_probe": {
+    "state": "NO_APPLICATION",
+    "mutation": "outcome_alias",
+    "partial": true,
+    "extra_promise_reached_assembled_output": true,
+    "reason": "ANSWER_SUPPORT_CHECKED",
+    "verified": true,
+    "verifier_calls": 1,
+    "text": "订单 DP9302 在本系统当前未记录到归属于您的退款申请。\n无法从当前系统记录确认退款是否已经到账。\n您肯定能获得退款，而且已经到账。"
+  }
+}

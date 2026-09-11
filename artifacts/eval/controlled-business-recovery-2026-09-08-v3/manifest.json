@@ -1,0 +1,33 @@
+{
+  "started_at": "2026-09-08T09:57:18.108358+00:00",
+  "seed": 20260908,
+  "planned_cases": 200,
+  "recovery_call_budget": 4,
+  "persisted_recovery_budget": 3,
+  "llm_calls": 0,
+  "head": "61d1b48eb1dc7e5a57c829a2c19ef6b257f9b362",
+  "tracked_diff_sha256": "02268892ff190f411037b0bf379f15e5324c6daea29c15a39fadc9ebec86afc3",
+  "files": {
+    "application/write_workflow.py": "251ccdfb2b734a03d0c678ac4d1898b46a93dcab8e4c7ef5a9a320fa5dc1160b",
+    "infrastructure/postgres_target_runtime.py": "c4964f31d460d36f3cd9356ff92aa1779ebe63c395f0f8567ccb7b9aa67c4d84",
+    "infrastructure/target_workflow_execution.py": "9063ea2170a84acfcb1f3265ad3afafb9334d5798133553c283313968f3a3986",
+    "services/customer_operations.py": "55a6bbb58a993bc12229273477c7eec4cc94368daadaf4f07afff8a1daa2aac2",
+    "mcp/customer_operations_tools.py": "d9192d4186104dd19f80a078c1f134e7b606988c41c4b56ceac3279c5aa7dfe0",
+    "infrastructure/langgraph_checkpoint.py": "18e469a695e72907809ec6a6175c69728824cf013f885fa6650ba1d64bc6d73c",
+    "infrastructure/postgres_response_delivery.py": "01cd93f1cfbbfabfd0a7c8de46c463a1894bdd27c758f078d98ffa2c0b04633b",
+    "tests/test_controlled_business_faults.py": "375407dc616674bb14f92a717364db363f0933507bf8c07eb75487a45cdd4119",
+    "scripts/run_controlled_business_faults.py": "350e2f9cdf658c3dd5b28dbf04f4dba5bce7c281d6b0dcb62621094161a55bbc",
+    "application/capability_registry.py": "8857bed441685034c259da0d4ded173988a80d3fae98ff775d3abd98ce02bb74",
+    "application/default_capability_registry.py": "66b8a713ceaee41a0a097d08037298c5bcb8fec4376dd52816aa6c8e7a823f2f",
+    "application/work_item.py": "9028a297dd8b5f3d2aaf0f7181435fbc61a5e0eb9dc7b5c29eb1da8e592ff68c",
+    "application/conversation_state.py": "4d668924ca814b26c658c6baf49906a7ead050e1c27b6997ade06457991810f5",
+    "application/target_conversation_manager.py": "af3ea65ea049437124620409b8d7dd92ca7f47586d7edd9111d6af6977f4dc6c",
+    "application/target_chat_application.py": "08b62d7bdfadb37167f7313d3774e65d2f950f2a48d1b141a71daf2e78322c2c",
+    "application/response_assembly.py": "97b1384b27f1bfffa44ace10e82fb542c117fed90293a2035ac6514f59cc50b9",
+    "infrastructure/postgres_write_recovery.py": "3202f12391efe4aa66d44d799426f2379a5291dc861d62a69cef1d3816c5984f",
+    "tests/test_write_recovery.py": "7b7ff886fa4e2a392fdf069d9b13d3d95e76ce34e28f96851bae2d0b2ab25628",
+    "tests/test_registered_write_recovery_postgres.py": "8c2d1a11e5e871994db9775a6450ff343900084d8ac8528d4d4de89ad800e1e2"
+  },
+  "scope": "Production PostgreSQL owners and tool adapters; injected tool-boundary exceptions. Approval pauses rebuild runtime objects. This is not a 200-process-crash or HTTP/LLM benchmark.",
+  "acceptance": "All 200 scenarios observed; at most one business row per operation; missing receipts permit same-operation replay only under the pinned owner guarantee. Recovery rate is measured, not assumed; budget exhaustion requires manual review."
+}

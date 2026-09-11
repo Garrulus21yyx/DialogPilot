@@ -1,0 +1,40 @@
+{
+  "scope": "Replay one captured domain decision with/without working history; no tools execute.\n\nThe history-free arm is a diagnostic ablation, NOT a lossless context projection.\n",
+  "source_observation": "c27f46378bd94a40",
+  "source_input_sha256": "05c731784407446f90917685431f677254aecd39b50490a23d5582989947a4c5",
+  "system_sha256": "ed9b57de3fe8bba7e1f0f5ad6b15ba72a6b5c38f5188d73226134e037c0820e5",
+  "profiles": [
+    {
+      "model": "deepseek-v4-pro",
+      "reasoning": "none",
+      "min_completion_tokens": 4096,
+      "max_context_tokens": 32768
+    }
+  ],
+  "repeats": 2,
+  "max_api_calls": 4,
+  "max_tokens": 4096,
+  "timeout_seconds": 90,
+  "business_tools_enabled": false,
+  "ablation": "original_tool_descriptions",
+  "original_tool_descriptions": {
+    "calculate": "Calculate the result of a mathematical expression.",
+    "cancel_pending_order": "Cancel a pending order. If the order is already processed or delivered,\n\nit cannot be cancelled. The agent needs to explain the cancellation detail\nand ask for explicit user confirmation (yes/no) to proceed. If the user confirms,\nthe order status will be changed to 'cancelled' and the payment will be refunded.\nThe refund will be added to the user's gift card balance immediately if the payment\nwas made using a gift card, otherwise the refund would take 5-7 business days to process.\nThe function returns the order details after the cancellation.",
+    "exchange_delivered_order_items": "Exchange items in a delivered order to new items of the same product type.\n\nFor a delivered order, return or exchange can be only done once by the agent.\nThe agent needs to explain the exchange detail and ask for explicit user confirmation (yes/no) to proceed.",
+    "find_user_id_by_name_zip": "Find user id by first name, last name, and zip code. If the user is not found, the function\n\nwill return an error message. By default, find user id by email, and only call this function\nif the user is not found by email or cannot remember email.",
+    "find_user_id_by_email": "Find user id by email. If the user is not found, the function will return an error message.",
+    "get_order_details": "Get the status and details of an order.",
+    "get_product_details": "Get the inventory details of a product.",
+    "get_item_details": "Get the inventory details of an item.",
+    "get_user_details": "Get the details of a user, including their orders.",
+    "list_all_product_types": "List the name and product id of all product types.\n\nEach product type has a variety of different items with unique item ids and options.\nThere are only 50 product types in the store.",
+    "modify_pending_order_address": "Modify the shipping address of a pending order. The agent needs to explain the modification detail and ask for explicit user confirmation (yes/no) to proceed.",
+    "modify_pending_order_items": "Modify items in a pending order to new items of the same product type. For a pending order, this function can only be called once. The agent needs to explain the exchange detail and ask for explicit user confirmation (yes/no) to proceed.",
+    "modify_pending_order_payment": "Modify the payment method of a pending order. The agent needs to explain the modification detail and ask for explicit user confirmation (yes/no) to proceed.",
+    "modify_user_address": "Modify the default address of a user. The agent needs to explain the modification detail and ask for explicit user confirmation (yes/no) to proceed.",
+    "return_delivered_order_items": "Return some items of a delivered order.\n\nThe order status will be changed to 'return requested'.\nThe agent needs to explain the return detail and ask for explicit user confirmation (yes/no) to proceed.\nThe user will receive follow-up email for how and where to return the item.",
+    "transfer_to_human_agents": "Transfer the user to a human agent, with a summary of the user's issue.\n\nOnly transfer if\n -  the user explicitly asks for a human agent\n -  given the policy and the available tools, you cannot solve the user's issue."
+  },
+  "expected_accepted": false,
+  "interpretation": "development diagnostic, not held-out closure"
+}

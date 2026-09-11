@@ -1,0 +1,337 @@
+{
+  "by_document_length": {
+    "long_document": {
+      "candidate": {
+        "all_evidence_recall": {
+          "passed": 30,
+          "rate": 0.7692307692307693,
+          "total": 39
+        },
+        "document_recall": 0.8717948717948718,
+        "evidence_recall": 0.7692307692307693,
+        "mrr": 0.5101454101454101,
+        "ndcg": 0.5701655123182139
+      },
+      "case_count": 39,
+      "packed": {
+        "all_evidence_recall": {
+          "passed": 23,
+          "rate": 0.5897435897435898,
+          "total": 39
+        },
+        "document_recall": 0.6923076923076923,
+        "evidence_recall": 0.5897435897435898,
+        "mrr": 0.45811965811965816,
+        "ndcg": 0.49160080329905864
+      },
+      "prepack": {
+        "all_evidence_recall": {
+          "passed": 23,
+          "rate": 0.5897435897435898,
+          "total": 39
+        },
+        "document_recall": 0.6923076923076923,
+        "evidence_recall": 0.5897435897435898,
+        "mrr": 0.45811965811965816,
+        "ndcg": 0.49160080329905864
+      }
+    },
+    "medium_document": {
+      "candidate": {
+        "all_evidence_recall": {
+          "passed": 46,
+          "rate": 0.8070175438596491,
+          "total": 57
+        },
+        "document_recall": 0.8245614035087719,
+        "evidence_recall": 0.8070175438596491,
+        "mrr": 0.4189798992430572,
+        "ndcg": 0.5081344547944523
+      },
+      "case_count": 57,
+      "packed": {
+        "all_evidence_recall": {
+          "passed": 38,
+          "rate": 0.6666666666666666,
+          "total": 57
+        },
+        "document_recall": 0.7368421052631579,
+        "evidence_recall": 0.6666666666666666,
+        "mrr": 0.460233918128655,
+        "ndcg": 0.5123897504118133
+      },
+      "prepack": {
+        "all_evidence_recall": {
+          "passed": 38,
+          "rate": 0.6666666666666666,
+          "total": 57
+        },
+        "document_recall": 0.7368421052631579,
+        "evidence_recall": 0.6666666666666666,
+        "mrr": 0.460233918128655,
+        "ndcg": 0.5123897504118133
+      }
+    },
+    "short_document": {
+      "candidate": {
+        "all_evidence_recall": {
+          "passed": 49,
+          "rate": 0.8166666666666667,
+          "total": 60
+        },
+        "document_recall": 0.8333333333333334,
+        "evidence_recall": 0.8166666666666667,
+        "mrr": 0.545280536457007,
+        "ndcg": 0.6081682240634837
+      },
+      "case_count": 60,
+      "packed": {
+        "all_evidence_recall": {
+          "passed": 41,
+          "rate": 0.6833333333333333,
+          "total": 60
+        },
+        "document_recall": 0.7,
+        "evidence_recall": 0.6833333333333333,
+        "mrr": 0.5463888888888888,
+        "ndcg": 0.5810827898979932
+      },
+      "prepack": {
+        "all_evidence_recall": {
+          "passed": 41,
+          "rate": 0.6833333333333333,
+          "total": 60
+        },
+        "document_recall": 0.7,
+        "evidence_recall": 0.6833333333333333,
+        "mrr": 0.5463888888888888,
+        "ndcg": 0.5810827898979932
+      }
+    }
+  },
+  "by_domain": {
+    "dmv": {
+      "candidate": {
+        "all_evidence_recall": {
+          "passed": 32,
+          "rate": 0.8205128205128205,
+          "total": 39
+        },
+        "document_recall": 0.8461538461538461,
+        "evidence_recall": 0.8205128205128205,
+        "mrr": 0.481085581085581,
+        "ndcg": 0.5607774668035064
+      },
+      "case_count": 39,
+      "packed": {
+        "all_evidence_recall": {
+          "passed": 28,
+          "rate": 0.717948717948718,
+          "total": 39
+        },
+        "document_recall": 0.7435897435897436,
+        "evidence_recall": 0.717948717948718,
+        "mrr": 0.5606837606837607,
+        "ndcg": 0.600879252200159
+      },
+      "prepack": {
+        "all_evidence_recall": {
+          "passed": 28,
+          "rate": 0.717948717948718,
+          "total": 39
+        },
+        "document_recall": 0.7435897435897436,
+        "evidence_recall": 0.717948717948718,
+        "mrr": 0.5606837606837607,
+        "ndcg": 0.600879252200159
+      }
+    },
+    "ssa": {
+      "candidate": {
+        "all_evidence_recall": {
+          "passed": 28,
+          "rate": 0.717948717948718,
+          "total": 39
+        },
+        "document_recall": 0.7692307692307693,
+        "evidence_recall": 0.717948717948718,
+        "mrr": 0.3981092981092981,
+        "ndcg": 0.47125021303431974
+      },
+      "case_count": 39,
+      "packed": {
+        "all_evidence_recall": {
+          "passed": 21,
+          "rate": 0.5384615384615384,
+          "total": 39
+        },
+        "document_recall": 0.6153846153846154,
+        "evidence_recall": 0.5384615384615384,
+        "mrr": 0.35000000000000003,
+        "ndcg": 0.3971784793325954
+      },
+      "prepack": {
+        "all_evidence_recall": {
+          "passed": 21,
+          "rate": 0.5384615384615384,
+          "total": 39
+        },
+        "document_recall": 0.6153846153846154,
+        "evidence_recall": 0.5384615384615384,
+        "mrr": 0.35000000000000003,
+        "ndcg": 0.3971784793325954
+      }
+    },
+    "studentaid": {
+      "candidate": {
+        "all_evidence_recall": {
+          "passed": 33,
+          "rate": 0.8461538461538461,
+          "total": 39
+        },
+        "document_recall": 0.9230769230769231,
+        "evidence_recall": 0.8461538461538461,
+        "mrr": 0.5819920819920821,
+        "ndcg": 0.6423810970896235
+      },
+      "case_count": 39,
+      "packed": {
+        "all_evidence_recall": {
+          "passed": 29,
+          "rate": 0.7435897435897436,
+          "total": 39
+        },
+        "document_recall": 0.8205128205128205,
+        "evidence_recall": 0.7435897435897436,
+        "mrr": 0.6004273504273504,
+        "ndcg": 0.6371073034121435
+      },
+      "prepack": {
+        "all_evidence_recall": {
+          "passed": 29,
+          "rate": 0.7435897435897436,
+          "total": 39
+        },
+        "document_recall": 0.8205128205128205,
+        "evidence_recall": 0.7435897435897436,
+        "mrr": 0.6004273504273504,
+        "ndcg": 0.6371073034121435
+      }
+    },
+    "va": {
+      "candidate": {
+        "all_evidence_recall": {
+          "passed": 32,
+          "rate": 0.8205128205128205,
+          "total": 39
+        },
+        "document_recall": 0.8205128205128205,
+        "evidence_recall": 0.8205128205128205,
+        "mrr": 0.5002068193244664,
+        "ndcg": 0.5740582063418616
+      },
+      "case_count": 39,
+      "packed": {
+        "all_evidence_recall": {
+          "passed": 24,
+          "rate": 0.6153846153846154,
+          "total": 39
+        },
+        "document_recall": 0.6666666666666666,
+        "evidence_recall": 0.6153846153846154,
+        "mrr": 0.46025641025641023,
+        "ndcg": 0.49928661879910824
+      },
+      "prepack": {
+        "all_evidence_recall": {
+          "passed": 24,
+          "rate": 0.6153846153846154,
+          "total": 39
+        },
+        "document_recall": 0.6666666666666666,
+        "evidence_recall": 0.6153846153846154,
+        "mrr": 0.46025641025641023,
+        "ndcg": 0.49928661879910824
+      }
+    }
+  },
+  "candidate": {
+    "all_evidence_recall": {
+      "passed": 125,
+      "rate": 0.8012820512820513,
+      "total": 156
+    },
+    "document_recall": 0.8397435897435898,
+    "evidence_recall": 0.8012820512820513,
+    "mrr": 0.49034844512785686,
+    "ndcg": 0.5621167458173277
+  },
+  "candidate_to_prepack_loss_count": 23,
+  "case_count": 156,
+  "components": [
+    {
+      "case_count": 36,
+      "cases_sha256": "ad1aad05e697964c0773f553358712fa3e0d45622dd1208fdb235375832c77bf",
+      "dataset_id": "doc2dial-rag-en-heldout-balanced-v2",
+      "path": "artifacts/eval/doc2dial-rag-en-heldout-balanced-v2-production-retry-1",
+      "predictions_sha256": "80cb43b44814324e5a33e98b0c0c8f91c9ec4f0959e4698c43be32c69a083414",
+      "report_sha256": "61875d0ee0ade91e024b1b9d9013986a13a979cb1a41e48467cad7fc859d3f30",
+      "run_id": "4251fc2044004440b6febb6bf9e01c34"
+    },
+    {
+      "case_count": 120,
+      "cases_sha256": "6ae0c43dc6a2b3f3d3f88685e900e50477a0fd182057cbd78f098c51a0e759fd",
+      "dataset_id": "doc2dial-rag-en-heldout-supplement-v1",
+      "path": "artifacts/eval/doc2dial-rag-en-heldout-supplement-v1-production-run",
+      "predictions_sha256": "c1a05c44779182bdc8ae5b3cadf78949fb00be48cfdadfbb22c82041c8c65c34",
+      "report_sha256": "0ad9e423a7004f36a8b1dcf3226b22586e68c02eb8b536e7b441804c8e595d08",
+      "run_id": "9003da638eed4b4a92baeb9eacd280c0"
+    }
+  ],
+  "end_to_end_latency_ms": {
+    "max": 7918.954908847809,
+    "mean": 5129.663391755177,
+    "p95": 6390.695603564382
+  },
+  "evaluation_role": "FRESH_HELDOUT_COMBINED_PROJECTION",
+  "llm_usage": {
+    "calls": 468,
+    "errors": 0,
+    "input_tokens": 963759,
+    "output_tokens": 27545
+  },
+  "mean_tokens": 2285.980769230769,
+  "packed": {
+    "all_evidence_recall": {
+      "passed": 102,
+      "rate": 0.6538461538461539,
+      "total": 156
+    },
+    "document_recall": 0.7115384615384616,
+    "evidence_recall": 0.6538461538461539,
+    "mrr": 0.49284188034188037,
+    "ndcg": 0.5336129134360015
+  },
+  "packing_harmful_count": 0,
+  "prepack": {
+    "all_evidence_recall": {
+      "passed": 102,
+      "rate": 0.6538461538461539,
+      "total": 156
+    },
+    "document_recall": 0.7115384615384616,
+    "evidence_recall": 0.6538461538461539,
+    "mrr": 0.49284188034188037,
+    "ndcg": 0.5336129134360015
+  },
+  "rerank_fallback_count": 0,
+  "retrieval_status_counts": {
+    "OK": 156
+  },
+  "run_id": "241e3227a8ab45b8b6db6ed094f24e68",
+  "run_status": "COMPLETED",
+  "runner_version": "postgres-production-rag-heldout-v2",
+  "schema_version": 1,
+  "selection_performed": false,
+  "system_failure_count": 0
+}

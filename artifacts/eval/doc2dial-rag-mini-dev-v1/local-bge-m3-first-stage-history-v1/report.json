@@ -1,0 +1,74 @@
+{
+  "case_count": 300,
+  "chunk_count": 314,
+  "created_at": "2026-09-03T13:01:50.010090+00:00",
+  "dataset_cases_sha256": "f0e282d4e6b0594dfc98267322bd865e846b4cc00dbbe8d534d2e6ebc6ec6363",
+  "dataset_corpus_sha256": "89a8828b798c97946e6d150851fe046692f1c8c58e1795648223345a5d526281",
+  "dataset_id": "doc2dial-rag-mini-dev-v1",
+  "encoding_latency_ms": 3494.8099963366985,
+  "evaluation_role": "PUBLIC_DEV_ABLATION",
+  "external_inference_api_calls": 0,
+  "flag_embedding_version": "1.3.5",
+  "metrics": {
+    "bm25": {
+      "document_recall": 0.98,
+      "evidence_recall": 0.9516666666666667,
+      "mrr": 0.679957101378154,
+      "ndcg": 0.7455612493648824,
+      "recall@20": 0.9516666666666667,
+      "recall@5": 0.856111111111111,
+      "recall@50": 0.9783333333333334
+    },
+    "dense": {
+      "document_recall": 0.98,
+      "evidence_recall": 0.965,
+      "mrr": 0.6421948339614748,
+      "ndcg": 0.7189415704931353,
+      "recall@20": 0.965,
+      "recall@5": 0.8361111111111111,
+      "recall@50": 0.99
+    },
+    "dense_bm25_rrf": {
+      "document_recall": 0.9833333333333333,
+      "evidence_recall": 0.965,
+      "mrr": 0.6981101610807493,
+      "ndcg": 0.7623925645979427,
+      "recall@20": 0.965,
+      "recall@5": 0.8727777777777778,
+      "recall@50": 0.995
+    },
+    "dense_sparse_bm25_rrf": {
+      "document_recall": 0.9966666666666667,
+      "evidence_recall": 0.9816666666666667,
+      "mrr": 0.702676448207795,
+      "ndcg": 0.7704678539645013,
+      "recall@20": 0.9816666666666667,
+      "recall@5": 0.8827777777777777,
+      "recall@50": 0.9966666666666667
+    },
+    "dense_sparse_rrf": {
+      "document_recall": 0.9966666666666667,
+      "evidence_recall": 0.9783333333333334,
+      "mrr": 0.6829373404373404,
+      "ndcg": 0.7543461188650217,
+      "recall@20": 0.9783333333333334,
+      "recall@5": 0.8577777777777778,
+      "recall@50": 0.9933333333333333
+    },
+    "learned_sparse": {
+      "document_recall": 0.9933333333333333,
+      "evidence_recall": 0.965,
+      "mrr": 0.6690160840621368,
+      "ndcg": 0.7401339451772859,
+      "recall@20": 0.965,
+      "recall@5": 0.8455555555555555,
+      "recall@50": 0.9833333333333333
+    }
+  },
+  "model": "BAAI/bge-m3",
+  "model_revision": "5617a9f61b028005a4858fdac845db406aefb181",
+  "model_weights_sha256": "b5e0ce3470abf5ef3831aa1bd5553b486803e83251590ab7ff35a117cf6aad38",
+  "query_mode": "history",
+  "ranking_and_metric_latency_ms": 386.1903063952923,
+  "schema_version": 1
+}

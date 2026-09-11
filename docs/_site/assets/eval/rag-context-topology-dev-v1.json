@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "run_date": "2026-09-01",
+  "dataset": {
+    "id": "doc2dial-rag-mini-dev-v1",
+    "document_count": 100,
+    "selected_model_case_count": 48,
+    "multi_condition_case_count": 23,
+    "corpus_sha256": "89a8828b798c97946e6d150851fe046692f1c8c58e1795648223345a5d526281",
+    "cases_sha256": "f0e282d4e6b0594dfc98267322bd865e846b4cc00dbbe8d534d2e6ebc6ec6363"
+  },
+  "fixed_contract": {
+    "query": "Raw 0.25 + captured Standalone 0.75",
+    "retrieval": "BM25 0.75 + Dense 0.25 + weighted RRF k=10",
+    "rerank": "20 to 5 exact permutation or first-stage fallback",
+    "packing": "top 5 within 2600 estimated tokens",
+    "models": {
+      "rerank": "deepseek-v4-flash reasoning=none",
+      "generation": "deepseek-v4-pro reasoning=none",
+      "judge": "deepseek-v4-pro reasoning=none"
+    }
+  },
+  "results": {
+    "baseline-512": {
+      "candidate_evidence_recall_at_20": 0.8333333333333334,
+      "reranked_mrr_at_5": 0.6597222222222222,
+      "reranked_evidence_recall_at_5": 0.7708333333333334,
+      "context_evidence_recall": 0.7708333333333334,
+      "multi_condition_context_completeness": 0.8260869565217391,
+      "p95_context_tokens": 2562.0,
+      "p95_pipeline_latency_ms": 17985.896841687598,
+      "harmful_context_rate_vs_baseline": 0.0,
+      "rerank_failure_rate": 0.020833333333333332,
+      "generation_failure_rate": 0.8958333333333334,
+      "claim_support_rate": 0.10416666666666667,
+      "citation_correctness_rate": 0.10416666666666667
+    },
+    "neighbor-512": {
+      "candidate_evidence_recall_at_20": 0.8333333333333334,
+      "reranked_mrr_at_5": 0.6597222222222222,
+      "reranked_evidence_recall_at_5": 0.7708333333333334,
+      "context_evidence_recall": 0.7708333333333334,
+      "multi_condition_context_completeness": 0.782608695652174,
+      "p95_context_tokens": 2507.0,
+      "p95_pipeline_latency_ms": 18829.4421441823,
+      "harmful_context_rate_vs_baseline": 0.041666666666666664,
+      "rerank_failure_rate": 0.020833333333333332,
+      "generation_failure_rate": 0.8541666666666666,
+      "claim_support_rate": 0.14583333333333334,
+      "citation_correctness_rate": 0.14583333333333334
+    },
+    "parent-child-256-1024": {
+      "candidate_evidence_recall_at_20": 0.9166666666666666,
+      "reranked_mrr_at_5": 0.7284722222222223,
+      "reranked_evidence_recall_at_5": 0.875,
+      "context_evidence_recall": 0.8125,
+      "multi_condition_context_completeness": 0.782608695652174,
+      "p95_context_tokens": 2551.45,
+      "p95_pipeline_latency_ms": 18021.046365184444,
+      "harmful_context_rate_vs_baseline": 0.041666666666666664,
+      "rerank_failure_rate": 0.0625,
+      "generation_failure_rate": 0.875,
+      "claim_support_rate": 0.125,
+      "citation_correctness_rate": 0.125
+    }
+  },
+  "decision": {
+    "recommended": "baseline-512",
+    "neighbor_passes_all_gates": false,
+    "parent_child_passes_all_gates": false,
+    "heldout_opened": false,
+    "reason": "Both expansion candidates failed Dev multi-condition, harmful-context, rerank-failure, and generation-failure gates."
+  },
+  "limitations": [
+    "Doc2Dial Gold spans are not exhaustive relevance annotations.",
+    "Judge has not been calibrated against a fresh human-labelled sample.",
+    "P95 is a small serial experiment and not a production load test."
+  ]
+}

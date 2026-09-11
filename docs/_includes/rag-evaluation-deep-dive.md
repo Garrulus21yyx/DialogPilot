@@ -7,7 +7,7 @@
 ```text
 SourceRevision
 → parse/normalize
-→ 512/64 fixed-token chunks
+→ 512/64 structure-aware chunks
 → canonical chunk spec
 → embedding + Chinese FTS projection
 → generation manifest
@@ -36,17 +36,16 @@ ChatApplication
 
 检索 case 至少包含：`case_id`、query、gold source revision、gold span/chunk、route、tenant/scope、标签来源、review 状态和 provenance。相同 source、模板变体或同一对话的相邻问题不能跨 dev/heldout，否则只是在测近重复记忆。
 
-数据状态必须区分：
+数据角色必须区分：
 
-- `provisional`：规则或模型生成，只能做开发反馈；
-- `reviewed`：人工检查过，但可能参与修复；
-- `gold`：有明确标注规范与仲裁；
-- `fresh-heldout`：未被实现和调参过程消费；
-- `regression`：已知失败见证，不再是无偏准确率样本。
+- 官方 `train/dev`：只用于 mapping、训练、调参与校准；
+- `consumed-regression`：已经参与修复或选择，只证明已知失败不复发；
+- 配置冻结后的官方 `test` 或预先锁定的 group-heldout：承担能力结果；
+- `SYNTHETIC_CONTRACT_LOCKED`：80 条模型生成项目合同，只证明架构不变量，不是人工 Gold、自然分布或生产准确率。
 
 ### 3. Chunk 评测
 
-不要只比较 chunk 数。对 256/32、512/64、768/96 等候选记录：
+不要只比较 chunk 数。对 structure-aware `256/32`、`384/48`、`512/64` 与 fixed `512/64` 等候选记录：
 
 - gold span 是否完整落在至少一个 chunk；
 - 边界切断率和重复 token 比例；
@@ -54,7 +53,7 @@ ChatApplication
 - Top-K 中为覆盖一个答案占用了多少上下文 token；
 - 更新一个 source 时需要重建多少投影。
 
-当前 512/64 是默认基线。若标题、列表、表格或条款在固定 token 边界被切坏，可比较结构感知 chunk 或 parent-child retrieval，但只有 heldout 指标证明收益才替换。
+当前 PostgreSQL 默认基线是 structure-aware `512/64`；历史 Doc2Dial winner 是 fixed `512/64`，二者不能简称成同一配置。Parent/Window 不进入首轮网格；只有 anchor 已召回、局部边界不足已被证明是主要 loss 时才重开，并在冻结测试证明跨 slice 非劣后替换。
 
 ### 4. Retrieval 分层指标
 
@@ -185,11 +184,11 @@ cache key 应包含 tenant/scope/ACL/deletion epoch、query hash、manifest/gene
 
 每份报告固定记录 commit SHA、dataset checksum、split/provenance、review 状态、Bundle、模型矩阵、retrieval policy、generation manifest、seed、运行时间、scope limit 和失败 case。结果表同时给分母、绝对数与置信区间；小样本 pilot 明确写 pilot。
 
-不能只写“准确率 90%”：至少区分 route exact、Recall@K、MRR/nDCG、citation validity、claim coverage、groundedness、abstention、hard safety failures、P95 latency 与 cost proxy。生产结论必须来自 fresh human-reviewed heldout，回归集只证明已知问题未复发。
+不能只写“准确率 90%”：至少区分 route exact、Recall@K、MRR/nDCG、citation validity、claim coverage、groundedness、abstention、hard safety failures、P95 latency 与 cost proxy。公开能力结论必须来自配置冻结后的官方 test；80 条合成合同只证明项目不变量，已消费回归只证明已知问题未复发。
 
 ### 16. 高频追问
 
-**为什么 lexical 权重大？** 当前客服语料有大量精确规则名、错误码和业务短语，本地实验选择该基线；它不是普适结论，必须在 fresh heldout 重估。
+**为什么 lexical 权重大？** 当前客服语料有大量精确规则名、错误码和业务短语，本地实验选择该基线；它不是普适结论，必须在配置冻结后的官方 test 或预锁定 group-heldout 重估。
 
 **为什么不能只用向量库？** 精确词和版本号可能被稠密语义稀释；同时只有一种召回路径会形成单点失败。混合召回提供互补证据。
 

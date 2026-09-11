@@ -1,0 +1,88 @@
+{
+  "api_calls": 0,
+  "rows": 100,
+  "verified": {
+    "fusion25": {
+      "cases": 20,
+      "candidate_complete": 19,
+      "top5_complete": 17,
+      "packed_complete": 17,
+      "visible_complete": 17
+    },
+    "fusion50": {
+      "cases": 20,
+      "candidate_complete": 19,
+      "top5_complete": 17,
+      "packed_complete": 17,
+      "visible_complete": 17
+    },
+    "ce25": {
+      "cases": 20,
+      "candidate_complete": 19,
+      "top5_complete": 18,
+      "packed_complete": 18,
+      "visible_complete": 18
+    },
+    "ce50": {
+      "cases": 20,
+      "candidate_complete": 19,
+      "top5_complete": 18,
+      "packed_complete": 18,
+      "visible_complete": 18
+    },
+    "listwise25": {
+      "cases": 20,
+      "candidate_complete": 19,
+      "top5_complete": 19,
+      "packed_complete": 19,
+      "visible_complete": 19
+    }
+  },
+  "released_tool_calls": [
+    {
+      "arm": "fusion25",
+      "case_id": "doc2dial-dev-a7fe7aa38830465e8a73320e9320b305-5"
+    },
+    {
+      "arm": "fusion25",
+      "case_id": "doc2dial-dev-07d2d3b557c6d5d18ee0e7d37e986f08-9"
+    },
+    {
+      "arm": "fusion50",
+      "case_id": "doc2dial-dev-a7fe7aa38830465e8a73320e9320b305-5"
+    },
+    {
+      "arm": "fusion50",
+      "case_id": "doc2dial-dev-07d2d3b557c6d5d18ee0e7d37e986f08-9"
+    },
+    {
+      "arm": "ce25",
+      "case_id": "doc2dial-dev-07d2d3b557c6d5d18ee0e7d37e986f08-9"
+    },
+    {
+      "arm": "ce25",
+      "case_id": "doc2dial-dev-2be506ef6926fe365c87941f7ef14862-12"
+    },
+    {
+      "arm": "ce50",
+      "case_id": "doc2dial-dev-07d2d3b557c6d5d18ee0e7d37e986f08-9"
+    },
+    {
+      "arm": "ce50",
+      "case_id": "doc2dial-dev-2be506ef6926fe365c87941f7ef14862-12"
+    },
+    {
+      "arm": "listwise25",
+      "case_id": "doc2dial-dev-07d2d3b557c6d5d18ee0e7d37e986f08-9"
+    }
+  ],
+  "artifact_sha256": {
+    "artifacts/eval/rag-production-reranker-pair20-2026-09-07/cases.jsonl.gz": "bffc63cfad8f9351e2a31b954fd35ecd7c37cf788f73d7fbe58f7f9da46e6061",
+    "artifacts/eval/rag-production-reranker-replay20-2026-09-07/cases.jsonl.gz": "b46636f5cb9ae22dec458823cfd752b0e1aa8b164da6097fcf1a5ed9fc54a13c"
+  },
+  "limitations": [
+    "original packed_complete measured post-guard data, not original pre-guard pack",
+    "saved replay latency excludes model scoring",
+    "no final answer evaluation"
+  ]
+}

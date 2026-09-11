@@ -54,6 +54,26 @@ def test_verifier_diagnostics_preserve_positional_request_and_verdict():
     assert trace == [{"verification": {"grounded": False}, "candidate": "answer"}]
 
 
+def test_business_call_binding_joins_internal_and_benchmark_call_ids():
+    from tau2.data_model.message import ToolMessage
+    async def run():
+        agent = Tau3TargetAgent(SimpleNamespace(get_tools=lambda: [], get_policy=lambda: "policy"),
+                               loop=asyncio.get_running_loop())
+        waiting = asyncio.create_task(agent.call_tool("get_order_details", {"order_id": "O1"},
+                                                       "internal-call-1"))
+        await asyncio.sleep(0)
+        event = agent.events.get_nowait()
+        assert agent.trace == [{"causal_link": {
+            "schema_version": "tau3-business-call-binding-v1", "turn": 0,
+            "internal_tool_call_id": "internal-call-1",
+            "business_call_id": event.tool_calls[0].id,
+            "tool_name": "get_order_details",
+        }}]
+        agent._resolve_tool(ToolMessage(role="tool", id=event.tool_calls[0].id, content="{}"))
+        await waiting
+    asyncio.run(run())
+
+
 def test_ambiguous_approval_remains_user_input_without_grant():
     from application.chat_contracts import Completed
     calls = []

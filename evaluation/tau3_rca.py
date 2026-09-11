@@ -59,6 +59,13 @@ _AFFIRMATIVE_PATTERN = re.compile(
     r"\b(?:yes|approve|proceed|go ahead|sounds good|that's right|all (?:three|four|five))\b",
     re.IGNORECASE,
 )
+_INTERNAL_REFERENCE_PATTERN = re.compile(
+    r"\[(?:(?:official-)?call(?:_|:)|work:|control:|approval:)[^\]\s]+\]",
+    re.IGNORECASE,
+)
+_RAW_IDENTIFIER_FIELD_PATTERN = re.compile(
+    r"(?im)^\s*-\s+([a-z][a-z ]*\bids?)\s*:",
+)
 
 
 def analyze_run(run_dir: Path) -> Mapping[str, Any]:
@@ -76,6 +83,12 @@ def analyze_run(run_dir: Path) -> Mapping[str, Any]:
         for finding in task["findings"]
         if finding["layer"] in {"violation", "mechanism"}
     )
+    quality_counts = Counter(
+        finding["code"]
+        for task in tasks
+        for finding in task["findings"]
+        if finding["layer"] == "quality"
+    )
     unbound = _unbound_run_errors(run_dir / "application-errors.log")
     failure_clusters = _failure_clusters(tasks)
     return {
@@ -90,7 +103,9 @@ def analyze_run(run_dir: Path) -> Mapping[str, Any]:
             "task_count": len(tasks),
         },
         "finding_counts": dict(sorted(counts.items())),
+        "quality_finding_counts": dict(sorted(quality_counts.items())),
         "failure_clusters": failure_clusters,
+        "quality_clusters": quality_clusters(tasks),
         "tasks": tasks,
         "unbound_run_evidence": unbound,
         "limitations": [
@@ -121,21 +136,105 @@ def analyze_task(
     failed_writes = [action for action in failed_expected if action["tool_type"] == "write"]
     actual_writes = [action for action in actual_actions if _is_write(action["name"])]
 
+    replay_groups = _unchanged_read_replays(messages, actual_actions)
+    if replay_groups:
+        redundant_calls = sum(group["call_count"] - 1 for group in replay_groups)
+        evidence.append(Evidence(
+            "exact-read-replays",
+            trajectory_path.name if trajectory_path else result_path.name,
+            "$.messages[*].tool_calls",
+            "Exact read requests returned identical results more than once without an intervening write.",
+            {
+                "groups": replay_groups,
+                "redundant_call_count": redundant_calls,
+                "consumed_message_steps": redundant_calls * 2,
+            },
+        ))
+        findings.append(Finding(
+            "EXACT_READ_REPLAY", "quality", FindingLevel.OBSERVED,
+            "The run repeated reads that produced no new observable information.",
+            "agent_read_planning", ("exact-read-replays",),
+            ("The artifact does not encode whether each refresh was explicitly authorized by a freshness policy.",),
+            "Join each replay to owner causal events and the tool freshness contract.",
+            impact="EFFICIENCY_DEGRADED",
+        ))
+
+    internal_references = _public_internal_references(messages)
+    if internal_references:
+        evidence.append(Evidence(
+            "public-internal-references",
+            trajectory_path.name if trajectory_path else result_path.name,
+            "$.messages[*].content",
+            "Public assistant messages expose internal evidence or tool-call references.",
+            {"occurrences": internal_references},
+        ))
+        findings.append(Finding(
+            "PUBLIC_INTERNAL_REFERENCE_EXPOSURE", "quality", FindingLevel.VERIFIED,
+            "A user-visible response exposes implementation-owned reference identifiers.",
+            "response_publication", ("public-internal-references",),
+            impact="CONVERSATION_QUALITY_DEGRADED",
+        ))
+
+    raw_identifier_fields = _public_raw_identifier_fields(messages)
+    if raw_identifier_fields:
+        evidence.append(Evidence(
+            "public-raw-identifier-fields",
+            trajectory_path.name if trajectory_path else result_path.name,
+            "$.messages[*].content",
+            "Public assistant messages render raw action-schema identifier fields.",
+            {"occurrences": raw_identifier_fields},
+        ))
+        findings.append(Finding(
+            "PUBLIC_RAW_ACTION_SCHEMA_EXPOSURE", "quality", FindingLevel.VERIFIED,
+            "A user-visible action presentation exposes raw identifier fields instead of customer-facing labels.",
+            "approval_presentation", ("public-raw-identifier-fields",),
+            impact="CONVERSATION_QUALITY_DEGRADED",
+        ))
+
+    response_rejections = _response_review_rejections(result)
+    if response_rejections:
+        evidence.append(Evidence(
+            "response-review-rejections", result_path.name,
+            "$.target_trace[*].verification",
+            "Response verification rejected one or more candidate replies before publication.",
+            {"count": len(response_rejections), "rejections": response_rejections},
+        ))
+        findings.append(Finding(
+            "RESPONSE_DRAFT_REJECTED", "quality", FindingLevel.VERIFIED,
+            "The runtime recovered from candidate replies that violated response contracts.",
+            "response_generation", ("response-review-rejections",),
+            impact="RECOVERED_QUALITY_DEFECT",
+        ))
+
     step_budget = _step_budget_exhaustion(
         result, messages, actual_actions, run_context or {},
     )
     if step_budget:
+        completed_at_boundary = step_budget["terminal_completion"] is not None
+        budget_impact = "EVALUATION_BLOCKING" if completed_at_boundary else "TASK_BLOCKING"
         evidence.append(Evidence(
             "episode-step-budget", result_path.name,
             "$.termination|$.evaluation_scope|trajectory:$.messages",
             "The episode terminated at its configured message-step budget.",
             step_budget["budget"],
         ))
+        if completed_at_boundary:
+            evidence.append(Evidence(
+                "runtime-completion-at-step-limit", result_path.name,
+                step_budget["terminal_completion"]["locator"],
+                "The runtime published a completed outcome with committed state before Tau applied its termination gate.",
+                step_budget["terminal_completion"]["data"],
+            ))
         findings.append(Finding(
             "EPISODE_STEP_BUDGET_EXHAUSTED", "mechanism", FindingLevel.VERIFIED,
-            "The benchmark stopped before a terminal business outcome because its step budget was exhausted.",
+            (
+                "The benchmark exhausted its step budget after the runtime completed the task, "
+                "but before a terminal participant acknowledgement could be observed."
+                if completed_at_boundary else
+                "The benchmark stopped before a terminal business outcome because its step budget was exhausted."
+            ),
             "episode_orchestration", ("episode-step-budget",),
-            impact="TASK_BLOCKING",
+            impact=budget_impact,
         ))
         if step_budget["replays"]:
             evidence.append(Evidence(
@@ -152,19 +251,39 @@ def analyze_task(
                 impact="PRESENT_DURING_FAILURE",
             ))
         if step_budget["causal"]:
-            evidence.append(Evidence(
-                "pending-signal-at-step-limit", result_path.name,
-                step_budget["causal"]["locator"],
-                "A prepared interaction was still waiting when the episode budget was exhausted.",
-                step_budget["causal"]["pending_signal"],
-            ))
+            causal = step_budget["causal"]
+            causal_evidence_id = (
+                "runtime-completion-at-step-limit"
+                if causal["kind"] == "TERMINAL_ACK" else "pending-signal-at-step-limit"
+            )
+            if causal["kind"] == "PENDING_INTERACTION":
+                evidence.append(Evidence(
+                    causal_evidence_id, result_path.name,
+                    causal["locator"],
+                    "A prepared interaction was still waiting when the episode budget was exhausted.",
+                    causal["data"],
+                ))
+            finding_code = (
+                "REDUNDANT_READ_REPLAY_EXHAUSTED_TERMINATION_BUDGET"
+                if causal["kind"] == "TERMINAL_ACK" else
+                "REDUNDANT_READ_REPLAY_EXHAUSTED_STEP_BUDGET"
+            )
+            finding_summary = (
+                "Unchanged read replays consumed enough steps that Tau reached its limit immediately "
+                "after the completed response, before the simulator could acknowledge termination."
+                if causal["kind"] == "TERMINAL_ACK" else
+                "Unchanged read replays consumed enough steps to prevent the pending interaction from continuing; "
+                "the producer-side reason for replay still requires causal events."
+            )
             findings.append(Finding(
-                "REDUNDANT_READ_REPLAY_EXHAUSTED_STEP_BUDGET",
-                "root_cause", FindingLevel.VERIFIED,
-                "Unchanged read replays consumed enough steps to prevent the pending interaction from continuing.",
+                finding_code,
+                "mechanism", FindingLevel.VERIFIED,
+                finding_summary,
                 "agent_read_planning",
-                ("episode-step-budget", "unchanged-read-replays", "pending-signal-at-step-limit"),
-                impact="TASK_BLOCKING",
+                ("episode-step-budget", "unchanged-read-replays", causal_evidence_id),
+                ("The first owner transition that made an unchanged read execute again is not present in the trajectory.",),
+                "Join READ_OBSERVED, context transitions, READ_REPLAYED, and the replay guard decision by read_identity and work_item_id.",
+                impact=budget_impact,
             ))
 
     if result.get("evaluation_errors"):
@@ -370,10 +489,11 @@ def analyze_task(
                 impact="CAUSAL_CANDIDATE",
             ))
 
-    if not findings and _official_pass(result):
-        findings.append(Finding(
+    if _official_pass(result):
+        findings.insert(0, Finding(
             "PASS", "outcome", FindingLevel.OBSERVED,
-            "Available official checks passed and no typed local failure was found.", None, (), impact="PASS",
+            "Available official business checks passed; quality findings are reported separately.",
+            None, (), impact="PASS",
         ))
 
     root_cause_status = "VERIFIED" if any(
@@ -389,6 +509,11 @@ def analyze_task(
         },
         "langfuse_session_id": result.get("langfuse_session_id"),
         "outcome": _outcome(result),
+        "business_status": _business_status(result, messages),
+        "quality_status": _quality_status(findings, trajectory_path),
+        "quality_root_cause_status": (
+            "OPEN" if any(item.layer == "quality" for item in findings) else "NOT_APPLICABLE"
+        ),
         "transition_analysis": transition_analysis,
         "root_cause_status": root_cause_status,
         "evidence": [asdict(item) for item in evidence],
@@ -437,23 +562,38 @@ def _step_budget_exhaustion(
     redundant_calls = sum(group["call_count"] - 1 for group in replay_groups)
     replay_steps = redundant_calls * 2
     pending = _last_pending_signal(result)
-    minimum_continuation_steps = 3 if pending else 0
+    terminal_completion = _terminal_business_completion(result, messages)
+    minimum_continuation_steps = 1 if terminal_completion else (3 if pending else 0)
+    completed_steps = max(0, len(messages) - 1)
     required_savings = (
-        max(1, len(messages) + minimum_continuation_steps - configured)
+        max(1, completed_steps + minimum_continuation_steps - configured)
         if configured is not None else None
     )
-    causal = (
+    replay_exhausted_budget = required_savings is not None and replay_steps >= required_savings
+    causal = None
+    if terminal_completion is not None and replay_exhausted_budget:
+        causal = {
+            "kind": "TERMINAL_ACK",
+            "locator": terminal_completion["locator"],
+            "data": terminal_completion["data"],
+        }
+    elif (
         pending is not None
         and not any(_is_write(action["name"]) for action in actual_actions)
-        and required_savings is not None
-        and replay_steps >= required_savings
-    )
+        and replay_exhausted_budget
+    ):
+        causal = {
+            "kind": "PENDING_INTERACTION",
+            "locator": pending["locator"],
+            "data": pending["data"],
+        }
     return {
         "budget": {
             "termination": "max_steps",
             "evaluation_scope": "termination_gate_only",
             "configured_max_steps": configured,
             "trajectory_message_count": len(messages),
+            "completed_step_count": completed_steps,
             "minimum_pending_continuation_steps": minimum_continuation_steps,
             "required_step_savings": required_savings,
         },
@@ -465,11 +605,50 @@ def _step_budget_exhaustion(
                 1 for action in actual_actions if _is_write(action["name"])
             ),
         } if replay_groups else {},
-        "causal": {
-            "locator": pending["locator"],
-            "pending_signal": pending["data"],
-        } if causal else None,
+        "terminal_completion": terminal_completion,
+        "causal": causal,
     }
+
+
+def _terminal_business_completion(
+    result: Mapping[str, Any], messages: Sequence[Mapping[str, Any]],
+) -> Mapping[str, Any] | None:
+    """Return a checkpoint-backed completion only when it is the published final reply."""
+    final_assistant = next((
+        message for message in reversed(messages)
+        if message["role"] == "assistant" and message["content"]
+    ), None)
+    if final_assistant is None:
+        return None
+    records = result.get("target_trace") or []
+    if not isinstance(records, Sequence) or isinstance(records, (str, bytes)):
+        return None
+    for index in range(len(records) - 1, -1, -1):
+        record = records[index]
+        outcome = record.get("outcome") if isinstance(record, Mapping) else None
+        response = outcome.get("response") if isinstance(outcome, Mapping) else None
+        if not isinstance(response, Mapping) or response.get("task_completed") is not True:
+            continue
+        evaluation_trace = response.get("evaluation_trace") or {}
+        evaluated_outcome = evaluation_trace.get("outcome") or {}
+        if evaluated_outcome.get("kind") != "COMPLETED" or evaluated_outcome.get("task_completed") is not True:
+            continue
+        if response.get("delivery_status") != "selected" or response.get("response") != final_assistant["content"]:
+            continue
+        side_effect = evaluation_trace.get("state_side_effect") or {}
+        return {
+            "locator": f"$.target_trace[{index}].outcome.response.evaluation_trace",
+            "data": {
+                "turn": record.get("turn"),
+                "response_id": response.get("response_id"),
+                "task_completed": True,
+                "outcome_kind": "COMPLETED",
+                "delivery_status": "selected",
+                "committed_receipt_refs": list(side_effect.get("committed_receipt_refs") or []),
+                "final_message_index": final_assistant["index"],
+            },
+        }
+    return None
 
 
 def _unchanged_read_replays(
@@ -481,17 +660,19 @@ def _unchanged_read_replays(
         for message in messages
         if message["role"] == "tool" and message["raw"].get("id")
     }
-    grouped: dict[str, list[Mapping[str, Any]]] = {}
+    grouped: dict[tuple[int, str], list[Mapping[str, Any]]] = {}
+    write_epoch = 0
     for action in actual_actions:
         if _is_write(action["name"]):
+            write_epoch += 1
             continue
         signature = json.dumps(
             {"name": action["name"], "arguments": action["arguments"]},
             ensure_ascii=False, sort_keys=True, separators=(",", ":"), default=str,
         )
-        grouped.setdefault(signature, []).append(action)
+        grouped.setdefault((write_epoch, signature), []).append(action)
     replays = []
-    for signature, calls in sorted(grouped.items()):
+    for (epoch, signature), calls in sorted(grouped.items()):
         if len(calls) < 2:
             continue
         responses = [response_by_call.get(str(call.get("call_id"))) for call in calls]
@@ -506,9 +687,74 @@ def _unchanged_read_replays(
             ).encode()).hexdigest(),
             "response_sha256": hashlib.sha256(responses[0].encode()).hexdigest(),
             "call_count": len(calls),
+            "call_ids": [str(call.get("call_id") or "") for call in calls],
+            "repeated_call_ids": [str(call.get("call_id") or "") for call in calls[1:]],
             "message_indexes": [call["message_index"] for call in calls],
+            "write_epoch": epoch,
         })
     return replays
+
+
+def _public_internal_references(
+    messages: Sequence[Mapping[str, Any]],
+) -> list[Mapping[str, Any]]:
+    occurrences = []
+    for message in messages:
+        if message["role"] != "assistant":
+            continue
+        references = _INTERNAL_REFERENCE_PATTERN.findall(message["content"])
+        if references:
+            occurrences.append({
+                "message_index": message["index"],
+                "references": references,
+            })
+    return occurrences
+
+
+def _public_raw_identifier_fields(
+    messages: Sequence[Mapping[str, Any]],
+) -> list[Mapping[str, Any]]:
+    occurrences = []
+    for message in messages:
+        if message["role"] != "assistant":
+            continue
+        labels = [match.group(1) for match in _RAW_IDENTIFIER_FIELD_PATTERN.finditer(message["content"])]
+        if labels:
+            occurrences.append({
+                "message_index": message["index"],
+                "field_labels": labels,
+            })
+    return occurrences
+
+
+def _response_review_rejections(result: Mapping[str, Any]) -> list[Mapping[str, Any]]:
+    rejections = []
+    records = result.get("target_trace") or []
+    if not isinstance(records, Sequence) or isinstance(records, (str, bytes)):
+        return rejections
+    for index, record in enumerate(records):
+        if not isinstance(record, Mapping):
+            continue
+        verification = record.get("verification")
+        if not isinstance(verification, Mapping) or verification.get("status") != "reject":
+            continue
+        assessment = verification.get("assessment")
+        issues = assessment.get("issues") if isinstance(assessment, Mapping) else []
+        rejections.append({
+            "trace_index": index,
+            "reason_code": verification.get("reason_code"),
+            "grounded": verification.get("grounded"),
+            "issues": list(issues) if isinstance(issues, list) else [],
+        })
+    return rejections
+
+
+def _quality_status(findings: Sequence[Finding], trajectory_path: Path | None) -> str:
+    if any(item.layer == "quality" for item in findings):
+        return "WARN"
+    if trajectory_path is None or not trajectory_path.exists():
+        return "UNKNOWN"
+    return "PASS"
 
 
 def _last_pending_signal(result: Mapping[str, Any]) -> Mapping[str, Any] | None:
@@ -679,6 +925,19 @@ def _business_checks_pass(result: Mapping[str, Any]) -> bool:
     return bool(available) and all(float(score) == 1.0 for score in available)
 
 
+def _business_status(
+    result: Mapping[str, Any], messages: Sequence[Mapping[str, Any]],
+) -> str:
+    if _official_pass(result):
+        return "PASS"
+    if (
+        result.get("evaluation_scope") == "termination_gate_only"
+        and _terminal_business_completion(result, messages) is not None
+    ):
+        return "COMPLETED_UNSCORED"
+    return "NOT_PASS"
+
+
 def _is_write(name: str) -> bool:
     return name.startswith(_WRITE_PREFIXES)
 
@@ -698,9 +957,22 @@ def _finding_dict(item: Finding) -> Mapping[str, Any]:
     return data
 
 
-def _failure_clusters(tasks: Sequence[Mapping[str, Any]]) -> list[Mapping[str, Any]]:
+def failure_clusters(tasks: Sequence[Mapping[str, Any]]) -> list[Mapping[str, Any]]:
+    """Cluster verified roots structurally; fall back to earliest divergence."""
     clusters: dict[tuple[str, str, str], list[str]] = {}
+    root_clusters: dict[tuple[str, str, str, str, str], list[str]] = {}
     for task in tasks:
+        root = next((finding for finding in task.get("findings", ())
+                     if finding.get("layer") == "root_cause"
+                     and finding.get("level") == FindingLevel.VERIFIED.value
+                     and isinstance(finding.get("causal_signature"), Mapping)), None)
+        if root is not None:
+            signature = root["causal_signature"]
+            key = tuple(str(signature.get(field) or "UNKNOWN") for field in (
+                "owner", "violated_invariant", "trigger", "mechanism", "guard_failure",
+            ))
+            root_clusters.setdefault(key, []).append(str(task["task_id"]))
+            continue
         divergence = (task.get("transition_analysis") or {}).get("first_divergence")
         if not isinstance(divergence, Mapping):
             continue
@@ -710,7 +982,18 @@ def _failure_clusters(tasks: Sequence[Mapping[str, Any]]) -> list[Mapping[str, A
             str(divergence.get("owner_candidate") or "unassigned"),
         )
         clusters.setdefault(key, []).append(str(task["task_id"]))
-    return [
+    roots = [
+        {
+            "cluster_kind": "VERIFIED_ROOT_CAUSE",
+            "owner": owner, "violated_invariant": invariant, "trigger": trigger,
+            "mechanism": mechanism, "guard_failure": guard,
+            "case_count": len(task_ids), "task_ids": sorted(task_ids, key=_task_sort_key),
+        }
+        for (owner, invariant, trigger, mechanism, guard), task_ids in sorted(
+            root_clusters.items(), key=lambda item: (-len(item[1]), item[0]),
+        )
+    ]
+    divergences = [
         {
             "phase": phase, "code": code, "owner_candidate": owner,
             "case_count": len(task_ids), "task_ids": sorted(task_ids, key=_task_sort_key),
@@ -719,6 +1002,64 @@ def _failure_clusters(tasks: Sequence[Mapping[str, Any]]) -> list[Mapping[str, A
             clusters.items(), key=lambda item: (-len(item[1]), item[0]),
         )
     ]
+    return [*roots, *divergences]
+
+
+def quality_clusters(tasks: Sequence[Mapping[str, Any]]) -> list[Mapping[str, Any]]:
+    """Cluster non-blocking quality findings independently of business outcome."""
+    clusters: dict[tuple[str, str], list[str]] = {}
+    for task in tasks:
+        for finding in task.get("findings", ()):
+            if finding.get("layer") != "quality":
+                continue
+            key = (
+                str(finding.get("code") or "UNKNOWN"),
+                str(finding.get("owner_candidate") or "unassigned"),
+            )
+            clusters.setdefault(key, []).append(str(task["task_id"]))
+    return [
+        {
+            "code": code,
+            "owner_candidate": owner,
+            "case_count": len(set(task_ids)),
+            "task_ids": sorted(set(task_ids), key=_task_sort_key),
+        }
+        for (code, owner), task_ids in sorted(
+            clusters.items(), key=lambda item: (-len(set(item[1])), item[0]),
+        )
+    ]
+
+
+def quality_root_clusters(tasks: Sequence[Mapping[str, Any]]) -> list[Mapping[str, Any]]:
+    """Cluster verified quality roots by their owner-level causal signature."""
+    clusters: dict[tuple[str, str, str, str, str], list[str]] = {}
+    for task in tasks:
+        for finding in task.get("findings", ()):
+            signature = finding.get("causal_signature")
+            if finding.get("layer") != "quality_root_cause" or not isinstance(signature, Mapping):
+                continue
+            key = tuple(str(signature.get(field) or "UNKNOWN") for field in (
+                "owner", "violated_invariant", "trigger", "mechanism", "guard_failure",
+            ))
+            clusters.setdefault(key, []).append(str(task["task_id"]))
+    return [
+        {
+            "cluster_kind": "VERIFIED_QUALITY_ROOT_CAUSE",
+            "owner": owner,
+            "violated_invariant": invariant,
+            "trigger": trigger,
+            "mechanism": mechanism,
+            "guard_failure": guard,
+            "case_count": len(set(task_ids)),
+            "task_ids": sorted(set(task_ids), key=_task_sort_key),
+        }
+        for (owner, invariant, trigger, mechanism, guard), task_ids in sorted(
+            clusters.items(), key=lambda item: (-len(set(item[1])), item[0]),
+        )
+    ]
+
+
+_failure_clusters = failure_clusters
 
 
 def _task_sort_key(task_id: str) -> tuple[int, Any]:

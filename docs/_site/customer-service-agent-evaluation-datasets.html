@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+  <!-- 覆盖 Minima 2.5 的 head，以显式接入教程交互和 Mermaid。 -->
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111c28"><!-- Begin Jekyll SEO tag v2.9.0 -->
+<title>DialogPilot 客服 Agent 数据集与多模态 RAG 评测方案 | DialogPilot 完整架构教程</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="DialogPilot 客服 Agent 数据集与多模态 RAG 评测方案" />
+<meta property="og:locale" content="zh_CN" />
+<meta name="description" content="Python 多 Agent 客服后端的架构、链路、内部实现、改造记录与项目追问" />
+<meta name="twitter:description" property="og:description" content="Python 多 Agent 客服后端的架构、链路、内部实现、改造记录与项目追问" />
+<meta property="og:site_name" content="DialogPilot 完整架构教程" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="DialogPilot 客服 Agent 数据集与多模态 RAG 评测方案" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"Python 多 Agent 客服后端的架构、链路、内部实现、改造记录与项目追问","headline":"DialogPilot 客服 Agent 数据集与多模态 RAG 评测方案","url":"/DialogPilot/customer-service-agent-evaluation-datasets.html"}</script>
+<!-- End Jekyll SEO tag -->
+<!-- 每次 Pages 构建生成新版本号，避免浏览器继续使用旧 CSS/JS。 -->
+  <link rel="icon" href="/DialogPilot/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/DialogPilot/assets/main.css?v=1788371868"><link type="application/atom+xml" rel="alternate" href="/DialogPilot/feed.xml" title="DialogPilot 完整架构教程" /><!-- defer 保证 Mermaid 先定义，页面增强脚本随后在 DOM 解析完成后运行。 -->
+  <script defer src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <script defer src="/DialogPilot/assets/dialogpilot.js?v=1788371868"></script>
+</head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/DialogPilot/">DialogPilot 完整架构教程</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/DialogPilot/interview-guide.html">DialogPilot 面经校准与追问手册</a><a class="page-link" href="/DialogPilot/architecture.html">架构边界与职责归属</a><a class="page-link" href="/DialogPilot/project-pitch.html">项目讲述与技术取舍</a><a class="page-link" href="/DialogPilot/agent-evolution/">Agent 进化闭环</a><a class="page-link" href="/DialogPilot/evaluation-500/">500 条分层评测：设计与运行</a><a class="page-link" href="/DialogPilot/rag-pipeline-evaluation/">客服 RAG 全链路评测</a><a class="page-link" href="/DialogPilot/customer-service-rag-production-audit/">客服 RAG 生产化审计</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <h1 id="dialogpilot-客服-agent-数据集与多模态-rag-评测方案">DialogPilot 客服 Agent 数据集与多模态 RAG 评测方案</h1>
+
+<blockquote>
+  <p>状态：目标架构完成后的评测设计</p>
+
+  <p>版本：v1.0</p>
+
+  <p>日期：2026-09-02</p>
+
+  <p>配套文档：<a href="./customer-service-agent-target-architecture.zh-CN.md">总体目标架构</a> · <a href="./customer-service-agent-implementation-plan.zh-CN.md">颗粒度实施计划</a></p>
+</blockquote>
+
+<h2 id="1-执行摘要">1. 执行摘要</h2>
+
+<p>DialogPilot 不使用一个数据集证明全部能力，也不把 Intent、RAG、Agent、Memory 和多模态压成一个总准确率。目标评测体系分为四个相互独立的证据面：</p>
+
+<ol>
+  <li><strong>外部客服 Agent E2E</strong>：使用 <code class="language-plaintext highlighter-rouge">τ³-bench v1.0.1</code>，验证政策、工具、用户协作和业务终态。</li>
+  <li><strong>外部文本 RAG</strong>：使用 WixQA 和 MTRAG，分别验证企业知识库与连续对话检索。</li>
+  <li><strong>外部多模态 RAG</strong>：使用 OmniDocBench、ViDoRe v3 和 PM209/MPMQA，分别验证解析、视觉检索和产品手册问答。</li>
+  <li><strong>DialogPilot 业务 Gold</strong>：补齐公开数据集无法覆盖的中文客服、服务连续性、Memory、Handoff、商品照片、安装过程和真实业务副作用。</li>
+</ol>
+
+<p>最终采用的最小组合如下：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>能力面</th>
+      <th>主数据集</th>
+      <th>主要证明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>客服 Agent E2E</td>
+      <td>τ³ <code class="language-plaintext highlighter-rouge">retail + telecom + banking_knowledge</code></td>
+      <td>多轮服务完成、RAG + Tool、用户与 Agent 双向协作</td>
+    </tr>
+    <tr>
+      <td>企业知识 RAG</td>
+      <td>WixQA ExpertWritten + Simulated</td>
+      <td>企业文档检索、多文档证据和 Grounded answer</td>
+    </tr>
+    <tr>
+      <td>连续对话 RAG</td>
+      <td>MTRAG</td>
+      <td>指代、追问、澄清、不可回答和增量检索</td>
+    </tr>
+    <tr>
+      <td>文档解析</td>
+      <td>OmniDocBench</td>
+      <td>OCR、布局、阅读顺序、表格和公式解析</td>
+    </tr>
+    <tr>
+      <td>视觉文档检索</td>
+      <td>ViDoRe v3</td>
+      <td>页面级视觉检索、Hybrid retrieval 和 Rerank</td>
+    </tr>
+    <tr>
+      <td>产品手册多模态问答</td>
+      <td>PM209/MPMQA</td>
+      <td>手册页面、视觉区域证据和端到端回答</td>
+    </tr>
+    <tr>
+      <td>客服业务闭环</td>
+      <td>DialogPilot 80–120 条内部 Gold</td>
+      <td>服务债务、Memory、Handoff、图片安装、业务工具和安全边界</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>关键边界：</p>
+
+<ul>
+  <li>τ³ 必须使用，但它是外部客服 Agent 基准，不是 DialogPilot 的总验收。</li>
+  <li>τ³ 中的多模态主要指语音，不包含商品图、破损照片、截图 OCR 或视觉 RAG。</li>
+  <li>多模态 RAG 必须拆成 Media 路由、解析、检索、Oracle-evidence 生成、Retrieved-evidence E2E 和客服业务结果六层。</li>
+  <li>公开数据集使用官方 split 和 evaluator；DialogPilot 只实现薄适配器，不重建 benchmark runtime。</li>
+  <li>最终发布仍以真实 <code class="language-plaintext highlighter-rouge">ChatApplication.handle()</code>、权威业务终态和内部 Gold 为准。</li>
+</ul>
+
+<h2 id="2-评测边界与-owner">2. 评测边界与 Owner</h2>
+
+<h3 id="21-评测入口">2.1 评测入口</h3>
+
+<p>所有端到端评测都必须调用生产同源入口：</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Benchmark Case
+→ Benchmark Adapter
+→ ChatApplication.handle()
+→ Router / Planner / Agent / KnowledgeRetriever / Tools / Media
+→ Publication Candidate
+→ Authoritative State &amp; Receipt Grader
+</code></pre></div></div>
+
+<p>Benchmark Adapter 只负责：</p>
+
+<ul>
+  <li>将官方消息和环境状态转换为 DialogPilot 输入；</li>
+  <li>将 benchmark tools 暴露为符合项目 Tool Contract 的测试工具；</li>
+  <li>将 DialogPilot 输出转换回官方 evaluator 格式；</li>
+  <li>绑定 task、trace、invocation、response 和环境终态 ID。</li>
+</ul>
+
+<p>Adapter 不拥有：</p>
+
+<ul>
+  <li>路由、任务规划、RAG 或工具选择；</li>
+  <li>业务事实和工具副作用；</li>
+  <li>官方 task reward；</li>
+  <li>自定义一套只为通过 benchmark 的 Agent 主链。</li>
+</ul>
+
+<h3 id="22-三类分数不能混成一个总分">2.2 三类分数不能混成一个总分</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>分数类型</th>
+      <th>Owner</th>
+      <th>示例</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>官方 benchmark 分数</td>
+      <td>官方 evaluator</td>
+      <td>τ³ task reward、ViDoRe nDCG@5、OmniDocBench TEDS</td>
+    </tr>
+    <tr>
+      <td>DialogPilot 确定性分数</td>
+      <td>Evaluation + 领域 Owner</td>
+      <td>required-authority recall、receipt validity、duplicate effect</td>
+    </tr>
+    <tr>
+      <td>模型或人工评分</td>
+      <td>Versioned Judge / Human Gold</td>
+      <td>长回答完整性、表达质量、复杂视觉判断</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>模型 Judge 不能覆盖确定性失败。例如，退款工具产生了错误业务终态，即使回答文本语气很好，也必须判任务失败。</p>
+
+<h3 id="23-datasetlockmanifest">2.3 DatasetLockManifest</h3>
+
+<p>除 τ³ 已固定为 <code class="language-plaintext highlighter-rouge">v1.0.1</code> 外，其余公开数据集在第一次正式运行前必须生成不可变 <code class="language-plaintext highlighter-rouge">DatasetLockManifest</code>。未完成锁定时只允许本地探索，不得生成 RC、对外报告或简历数字。</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">dataset_id</span><span class="pi">:</span>
+<span class="na">upstream_uri</span><span class="pi">:</span>
+<span class="na">release_or_commit</span><span class="pi">:</span>
+<span class="na">data_archive_sha256</span><span class="pi">:</span>
+<span class="na">evaluator_release_or_commit</span><span class="pi">:</span>
+<span class="na">config_or_task_ids</span><span class="pi">:</span>
+<span class="na">split</span><span class="pi">:</span>
+<span class="na">case_ids_sha256</span><span class="pi">:</span>
+<span class="na">license_snapshot</span><span class="pi">:</span>
+<span class="na">adapter_version</span><span class="pi">:</span>
+</code></pre></div></div>
+
+<p>正式锁定规则：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>数据集</th>
+      <th>正式 corpus / split</th>
+      <th>锁定要求</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>τ³</td>
+      <td><code class="language-plaintext highlighter-rouge">v1.0.1</code> 官方 base tasks</td>
+      <td>release、commit、domain、task IDs、simulator 全部固定</td>
+    </tr>
+    <tr>
+      <td>WixQA</td>
+      <td><code class="language-plaintext highlighter-rouge">ExpertWritten + Simulated</code> 官方测试数据</td>
+      <td>Hugging Face dataset revision、config、row IDs 和数据 checksum</td>
+    </tr>
+    <tr>
+      <td>MTRAG</td>
+      <td>官方 released corpus 与 test tasks</td>
+      <td>仓库/数据 revision、conversation/task IDs 和 corpus checksum</td>
+    </tr>
+    <tr>
+      <td>OmniDocBench</td>
+      <td>官方发布数据及官方 evaluator</td>
+      <td>数据包 checksum、annotation version、evaluator commit、页面 IDs</td>
+    </tr>
+    <tr>
+      <td>ViDoRe v3</td>
+      <td>官方 v3/MTEB 完整 public test suite</td>
+      <td>MTEB/benchmark version、全部 task IDs、corpus/query/qrels checksum；headline 不使用自选语言子集</td>
+    </tr>
+    <tr>
+      <td>PM209/MPMQA</td>
+      <td>官方 test split</td>
+      <td>仓库 revision、数据包 checksum、manual/query IDs 和 evaluator version</td>
+    </tr>
+    <tr>
+      <td>DialogPilot Gold</td>
+      <td><code class="language-plaintext highlighter-rouge">dialogpilot-cs-gold-v1</code></td>
+      <td>schema version、group-safe split、case/media checksum 和 reviewer sign-off</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>开发阶段允许使用小子集，但必须另建带全部 case IDs 的 <code class="language-plaintext highlighter-rouge">dev_subset</code> manifest，不能与正式 full-suite 结果混写。上游数据或 evaluator revision 发生变化时创建新 manifest 和新结果序列，禁止覆盖旧报告。</p>
+
+<h2 id="3-τ-bench外部客服-agent-主基准">3. τ³-bench：外部客服 Agent 主基准</h2>
+
+<h3 id="31-是否采用">3.1 是否采用</h3>
+
+<p>采用，并固定 <a href="https://github.com/sierra-research/tau2-bench/releases/tag/v1.0.1"><code class="language-plaintext highlighter-rouge">sierra-research/tau2-bench v1.0.1</code></a>。官方在 v1.0.1 修复了 <code class="language-plaintext highlighter-rouge">banking_knowledge</code> 的任务和评分错误，因此 <code class="language-plaintext highlighter-rouge">&lt;1.0.1</code> 与 <code class="language-plaintext highlighter-rouge">&gt;=1.0.1</code> 的结果不得直接比较。</p>
+
+<p><code class="language-plaintext highlighter-rouge">τ³-bench</code> 是当前官方总发布名称，但 Python package 和 CLI 仍使用 <code class="language-plaintext highlighter-rouge">tau2</code>。DialogPilot 在 manifest 中必须同时记录：</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>benchmark_name = tau3-bench
+repository = sierra-research/tau2-bench
+release = v1.0.1
+commit_sha
+domain
+task_ids
+trial_count
+user_simulator_model
+agent_model
+</code></pre></div></div>
+
+<h3 id="32-采用的领域">3.2 采用的领域</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>领域</th>
+      <th>是否首轮采用</th>
+      <th>对 DialogPilot 的意义</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">retail</code></td>
+      <td>是</td>
+      <td>订单、退换货、政策约束和工具调用，最接近电商客服</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">telecom</code></td>
+      <td>是</td>
+      <td>用户需要按步骤操作，适合验证持续安装/故障排查式双向协作</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">banking_knowledge</code></td>
+      <td>是</td>
+      <td>约 700 份政策文档，要求知识检索、业务工具和政策推理结合；对应 <a href="https://arxiv.org/abs/2603.04370">τ-Knowledge</a></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">airline</code></td>
+      <td>可选</td>
+      <td>可增加跨领域泛化证明，但与首轮目标相比优先级较低</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">voice</code></td>
+      <td>暂不采用</td>
+      <td>只有语音客服进入产品范围后才启用；不能作为图片多模态证明</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="33-运行层级">3.3 运行层级</h3>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>PR smoke
+  20 tasks × 1 trial
+
+开发回归
+  retail + banking_knowledge × 1 trial
+
+Release Candidate
+  retail + telecom + banking_knowledge × 3 trials
+
+公开最终结果（预算允许）
+  全 375 个 base tasks × 3 trials
+</code></pre></div></div>
+
+<p>开发阶段只在 dev/smoke 上调整 Prompt、路由、检索和工具描述。正式 task IDs、模型、检索 generation 和 policy fingerprint 冻结后才运行 RC 或最终评测。</p>
+
+<h3 id="34-接入方式">3.4 接入方式</h3>
+
+<p>直接使用<a href="https://github.com/sierra-research/tau2-bench">官方仓库</a>的 programmatic API，实现一个薄适配器：</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">DialogPilotTauAgent</span><span class="p">:</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">respond</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">benchmark_message</span><span class="p">,</span> <span class="n">benchmark_state</span><span class="p">):</span>
+        <span class="n">request</span> <span class="o">=</span> <span class="nf">tau_to_chat_request</span><span class="p">(</span><span class="n">benchmark_message</span><span class="p">,</span> <span class="n">benchmark_state</span><span class="p">)</span>
+        <span class="n">outcome</span> <span class="o">=</span> <span class="k">await</span> <span class="n">chat_application</span><span class="p">.</span><span class="nf">handle</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nf">chat_outcome_to_tau_message</span><span class="p">(</span><span class="n">outcome</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>约束：</p>
+
+<ul>
+  <li>不使用额外 sidecar；</li>
+  <li>不复制或修改官方 evaluator；</li>
+  <li><code class="language-plaintext highlighter-rouge">banking_knowledge</code> 的正式结果必须使用 DialogPilot <code class="language-plaintext highlighter-rouge">KnowledgeRetriever</code>；</li>
+  <li>官方 <code class="language-plaintext highlighter-rouge">golden retrieval</code>、BM25、Dense 等配置只用于检索上限和消融，不作为主系统结果；</li>
+  <li>每个 task 运行前重置 benchmark 环境，运行后读取权威环境终态。</li>
+</ul>
+
+<h3 id="35-报告指标">3.5 报告指标</h3>
+
+<p>主报告保留官方指标：</p>
+
+<ul>
+  <li>binary task reward；</li>
+  <li><code class="language-plaintext highlighter-rouge">pass^1</code>；</li>
+  <li><code class="language-plaintext highlighter-rouge">pass^3</code>。</li>
+</ul>
+
+<p>同时从 DialogPilot Trace 追加：</p>
+
+<ul>
+  <li>required-authority recall；</li>
+  <li>forbidden-tool / forbidden-effect rate；</li>
+  <li>工具参数正确率；</li>
+  <li>duplicate effect；</li>
+  <li><code class="language-plaintext highlighter-rouge">OUTCOME_UNKNOWN</code> 对账完成率；</li>
+  <li>每成功任务的 Retriever、Tool、LLM 和 Worker 调用数；</li>
+  <li>P50/P95 延迟；</li>
+  <li>Token、模型费用和每成功任务成本。</li>
+</ul>
+
+<p>τ³ 不证明以下能力：</p>
+
+<ul>
+  <li>跨会话 Memory；</li>
+  <li>未完成工单或服务债务；</li>
+  <li>checkpoint 崩溃恢复；</li>
+  <li>HandoffContract；</li>
+  <li>商品图片、破损照片或视觉 RAG。</li>
+</ul>
+
+<p>这些能力必须由 DialogPilot Gold 和故障注入验证。</p>
+
+<h2 id="4-文本-rag-与连续对话数据集">4. 文本 RAG 与连续对话数据集</h2>
+
+<h3 id="41-wixqa企业知识库-rag">4.1 WixQA：企业知识库 RAG</h3>
+
+<p><a href="https://arxiv.org/abs/2505.08643">WixQA</a>用于验证企业网站/知识库问答。正式结果只使用：</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">ExpertWritten</code>：真实用户问题和专家答案；</li>
+  <li><code class="language-plaintext highlighter-rouge">Simulated</code>：经过专家验证的对话式问题。</li>
+</ul>
+
+<p>大规模 <code class="language-plaintext highlighter-rouge">Synthetic</code> 部分只用于：</p>
+
+<ul>
+  <li>索引和吞吐压力；</li>
+  <li>Query rewrite 开发；</li>
+  <li>负样本与 hard-negative 构造。</li>
+</ul>
+
+<p>Synthetic 不得作为简历 headline test。</p>
+
+<p>主要指标：</p>
+
+<ul>
+  <li>article/page Recall@K；</li>
+  <li>MRR、nDCG@K；</li>
+  <li>gold-article coverage；</li>
+  <li>All-evidence Recall；</li>
+  <li>claim-level citation precision/recall；</li>
+  <li>unsupported claim rate；</li>
+  <li>无证据时的正确拒答率。</li>
+</ul>
+
+<h3 id="42-mtrag连续对话检索">4.2 MTRAG：连续对话检索</h3>
+
+<p><a href="https://github.com/IBM/mt-rag-benchmark">MTRAG</a>用于验证：</p>
+
+<ul>
+  <li>后续轮指代和省略；</li>
+  <li><code class="language-plaintext highlighter-rouge">CONTINUE / EXPAND / SWITCH / AMBIGUOUS</code>；</li>
+  <li>需要澄清、部分可回答和不可回答；</li>
+  <li>是否复用已有 EvidencePack；</li>
+  <li>是否只为新增 requirement 增量检索。</li>
+</ul>
+
+<p>除了官方答案与检索指标，还要记录：</p>
+
+<ul>
+  <li>full-router avoided rate；</li>
+  <li>duplicate retrieval rate；</li>
+  <li>stale-evidence reuse；</li>
+  <li>later-turn Recall@K；</li>
+  <li>follow-up P50/P95；</li>
+  <li>每个后续轮新增模型和检索成本。</li>
+</ul>
+
+<h3 id="43-仅作单元回归的数据集">4.3 仅作单元回归的数据集</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>数据集</th>
+      <th>用途</th>
+      <th>不允许的表述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CLINC150</td>
+      <td>OOS 和粗粒度多域路由</td>
+      <td>Agent E2E 成功率</td>
+    </tr>
+    <tr>
+      <td>Banking77</td>
+      <td>同一业务域内的细粒度 Intent 混淆</td>
+      <td>RAG 或工具能力</td>
+    </tr>
+    <tr>
+      <td>MultiWOZ</td>
+      <td>DST、slot/entity correction、跨域切换辅助</td>
+      <td>现代客服 Agent 业务终态</td>
+    </tr>
+    <tr>
+      <td>Doc2Dial</td>
+      <td>保留现有检索回归</td>
+      <td>完整多文档、工具或服务连续性证明</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>如果已经采用 MTRAG，不再为了数字数量同时把 Doc2Dial、MultiDoc2Dial 和 MultiWOZ 都放入主报告。</p>
+
+<h2 id="5-多模态-rag-数据集组合">5. 多模态 RAG 数据集组合</h2>
+
+<h3 id="51-omnidocbench摄取与解析门禁">5.1 OmniDocBench：摄取与解析门禁</h3>
+
+<p><a href="https://github.com/opendatalab/OmniDocBench">OmniDocBench</a>只验证文档入库前的解析质量：</p>
+
+<ul>
+  <li>OCR 文本；</li>
+  <li>页面布局；</li>
+  <li>阅读顺序；</li>
+  <li>表格；</li>
+  <li>公式。</li>
+</ul>
+
+<p>主要指标：</p>
+
+<ul>
+  <li>normalized edit distance；</li>
+  <li>reading-order edit distance；</li>
+  <li>Table TEDS；</li>
+  <li>Layout mAP/mAR；</li>
+  <li>公式指标仅在产品文档确实需要时启用。</li>
+</ul>
+
+<p>报告必须按扫描件、双栏、旋转页面、复杂表格和语言分桶。OmniDocBench 分数不能冒充 RAG 或回答正确率。</p>
+
+<h3 id="52-vidore-v3视觉页面检索">5.2 ViDoRe v3：视觉页面检索</h3>
+
+<p><a href="https://github.com/illuin-tech/vidore-benchmark">ViDoRe benchmark</a>用于比较：</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>OCR text only
+vs page image only
+vs text + image hybrid
+vs hybrid + rerank
+</code></pre></div></div>
+
+<p>开发阶段可以使用 manifest 中明确列出的 industrial、finance、HR 小子集；正式 headline 运行官方 ViDoRe v3/MTEB 完整 public test suite，不临时挑选语言或任务。所有方案固定相同 corpus、filter、Top-K、generation 与 query set。</p>
+
+<p>主要指标：</p>
+
+<ul>
+  <li>nDCG@5；</li>
+  <li>Recall@1/5；</li>
+  <li>MRR；</li>
+  <li>P50/P95 检索延迟；</li>
+  <li>索引时间、大小和重建时间。</li>
+</ul>
+
+<h3 id="53-pm209mpmqa产品手册端到端问答">5.3 PM209/MPMQA：产品手册端到端问答</h3>
+
+<p><a href="https://github.com/AIM3-RUC/MPMQA">PM209/MPMQA</a>包含消费电子产品手册、人工问题、文本答案和相关视觉区域，与产品咨询、安装和维修问答最贴合。</p>
+
+<p>每个问题必须运行两种模式：</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Oracle Evidence
+  直接提供正确页面/区域
+  → 测试 VLM 在正确证据下的回答上限
+
+Retrieved Evidence
+  DialogPilot 检索页面/区域
+  → VLM 基于实际召回答案
+  → 测试完整多模态 RAG
+</code></pre></div></div>
+
+<p>两者的差距用于区分检索错误和生成错误。</p>
+
+<p>主要指标：</p>
+
+<ul>
+  <li>Page Recall@1/5；</li>
+  <li>MRR、nDCG@5；</li>
+  <li>region/bbox Evidence Precision、Recall、F1；</li>
+  <li>answer EM/token-F1 或官方答案指标；</li>
+  <li>claim-level grounding；</li>
+  <li>retrieved-evidence E2E success。</li>
+</ul>
+
+<h3 id="54-可选专项集">5.4 可选专项集</h3>
+
+<ul>
+  <li><a href="https://github.com/vis-nlp/ChartQA">ChartQA</a>：只测已给定页面后的图表推理，不作为完整检索证明。</li>
+  <li>MMDocRAG / REAL-MM-RAG：在首轮核心套件稳定后，用于多页、跨模态、相似页面 hard-negative 挑战。</li>
+  <li>ABO：只作 image-to-SKU 商品识别诊断，使用前单独核验许可证。</li>
+  <li>MVTec LOCO / MMAD：只作缺陷感知辅助，不能替代真实客服图片和业务判定。</li>
+</ul>
+
+<h2 id="6-多模态-rag-的六层评测">6. 多模态 RAG 的六层评测</h2>
+
+<p>多模态系统必须逐层评分，不能只报告最终答案。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>层级</th>
+      <th>输入与输出</th>
+      <th>主指标</th>
+      <th>主要数据</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>A. Media 路由</td>
+      <td>文本/附件 → L0/L1/L2</td>
+      <td>Macro-F1、Need-Vision Recall、Unnecessary-VLM</td>
+      <td>DialogPilot Gold</td>
+    </tr>
+    <tr>
+      <td>B. 解析</td>
+      <td>原始页 → OCR/Layout/Table</td>
+      <td>Edit Distance、TEDS、mAP</td>
+      <td>OmniDocBench</td>
+    </tr>
+    <tr>
+      <td>C. 检索</td>
+      <td>Query → page/region</td>
+      <td>Recall@K、nDCG、MRR、All-evidence Recall</td>
+      <td>ViDoRe、PM209</td>
+    </tr>
+    <tr>
+      <td>D. Oracle-evidence 生成</td>
+      <td>Gold page/region → Answer + Citation</td>
+      <td>VLM 上限、Correctness、Citation P/R</td>
+      <td>PM209</td>
+    </tr>
+    <tr>
+      <td>E. Retrieved-evidence E2E</td>
+      <td>实际召回 page/region → Answer + Citation</td>
+      <td>E2E Correctness、Grounding、Unsupported Claim</td>
+      <td>PM209</td>
+    </tr>
+    <tr>
+      <td>F. 客服结果</td>
+      <td>Answer/Action → 权威业务终态</td>
+      <td>E2E Task Success、pass³、Authority/Effect Correctness</td>
+      <td>DialogPilot Gold</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>正式报告 schema 固定输出 A–F 六个 section。D 与 E 必须分别报告，不能把 Oracle 和实际检索结果平均成一个“多模态准确率”。</p>
+
+<h3 id="61-media-路由">6.1 Media 路由</h3>
+
+<p>固定评测以下路径：</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>L0：纯文本/业务工具，无视觉调用
+L1：OCR、表格或布局解析
+L2：VLM 视觉理解与区域证据
+</code></pre></div></div>
+
+<p>硬指标：</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">Need-Vision Recall</code>：真正需要 L2 的样本不能被压到 L0/L1；</li>
+  <li><code class="language-plaintext highlighter-rouge">Unnecessary-VLM Rate</code>：纯文本/OCR 足够的样本不应调用 VLM；</li>
+  <li>risk-critical false downgrade：高风险安装或维修不得错误降级；</li>
+  <li>typed invalid/unavailable：损坏、隔离或无权限媒体不能被解释为“没有视觉信息”。</li>
+</ul>
+
+<h3 id="62-检索与证据">6.2 检索与证据</h3>
+
+<p>除页面相关性外，必须验证：</p>
+
+<ul>
+  <li>引用是否绑定正确 asset、page、bbox/crop；</li>
+  <li>多页问题是否召回全部必要证据；</li>
+  <li>OCR 文本与视觉区域冲突时是否正确降级；</li>
+  <li>不相关图片是否被排除；</li>
+  <li>无证据时是否拒答或请求补充材料。</li>
+</ul>
+
+<h3 id="63-生成与业务权威">6.3 生成与业务权威</h3>
+
+<p>图片只能证明“看到了什么”，不能替代订单、政策和业务工具。例如破损退款：</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>视觉证据：照片中可见的破损位置
+订单工具：用户买了什么、何时签收
+政策证据：是否满足售后条件
+最终业务动作：由权限、风险与工具回执决定
+</code></pre></div></div>
+
+<p>评分必须分别验证视觉 claim、业务 claim 和政策 claim 的权威来源。</p>
+
+<h2 id="7-连续图片对话与缓存评测">7. 连续图片对话与缓存评测</h2>
+
+<p>多模态评测必须覆盖同一图片跨轮复用，不能只测单轮 VQA。</p>
+
+<h3 id="71-必测场景">7.1 必测场景</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>对话变化</th>
+      <th>期望行为</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>同一图：“下一步呢？”</td>
+      <td>复用 asset、OCR、layout、embedding 和已有观察；通常 0 次新 VLM</td>
+    </tr>
+    <tr>
+      <td>同一图：“这个孔是不是歪了？”</td>
+      <td>只对新增区域做 crop + L2，不全图重跑</td>
+    </tr>
+    <tr>
+      <td>新图：“现在这样对吗？”</td>
+      <td>只处理新 checksum，保留旧步骤与手册证据</td>
+    </tr>
+    <tr>
+      <td>换 SKU/设备</td>
+      <td>旧实体与相关证据失效，重新绑定产品资料</td>
+    </tr>
+    <tr>
+      <td>“坏了能退吗？”</td>
+      <td>增加 Billing/Knowledge requirement；照片不能单独决定退款</td>
+    </tr>
+    <tr>
+      <td>知识/模型/预处理版本变化</td>
+      <td>对应 artifact 或 EvidencePack 必须失效</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="72-缓存指标">7.2 缓存指标</h3>
+
+<ul>
+  <li>correctness-conditioned media cache hit rate；</li>
+  <li>OCR/layout/artifact reuse rate；</li>
+  <li>unnecessary full-image VLM rate；</li>
+  <li>targeted crop escalation success；</li>
+  <li>wrong-image/stale-artifact reuse，目标 <code class="language-plaintext highlighter-rouge">0/N</code>；</li>
+  <li>冷缓存与热缓存的 P50/P95；</li>
+  <li>每解决一个视觉工单的增量成本。</li>
+</ul>
+
+<p>Provider prompt/KV cache 只作为算力优化单独记录，不能计作业务证据缓存命中。</p>
+
+<h2 id="8-dialogpilot-内部客服-gold">8. DialogPilot 内部客服 Gold</h2>
+
+<p>公开数据集无法证明服务连续性、真实副作用和商品照片业务判断，因此必须维护一个小而精、可确定性评分的内部集。</p>
+
+<h3 id="81-首版规模">8.1 首版规模</h3>
+
+<p>首版 80 条，发布前扩展到 120 条：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Slice</th>
+      <th style="text-align: right">首版数量</th>
+      <th>内容</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>商品/型号/零件识别</td>
+      <td style="text-align: right">20</td>
+      <td>多型号、相似外观、图片不充分、需要查 SKU</td>
+    </tr>
+    <tr>
+      <td>持续安装/维修</td>
+      <td style="text-align: right">20</td>
+      <td>下一步、新区域、新图片、用户执行失败、高风险升级</td>
+    </tr>
+    <tr>
+      <td>破损/故障/截图</td>
+      <td style="text-align: right">20</td>
+      <td>破损定位、报错截图、OCR-only 与 L2 分界</td>
+    </tr>
+    <tr>
+      <td>图片 + 政策 + 业务工具</td>
+      <td style="text-align: right">20</td>
+      <td>退货、换货、订单状态、服务债务和 Handoff</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>扩展的 40 条优先增加：</p>
+
+<ul>
+  <li>跨会话 Memory；</li>
+  <li>未完成工单和开放承诺；</li>
+  <li><code class="language-plaintext highlighter-rouge">OUTCOME_UNKNOWN</code> 工具副作用；</li>
+  <li>人工交接后的连续服务；</li>
+  <li>tenant/用户隔离和删除后防复活。</li>
+</ul>
+
+<h3 id="82-每条-gold-的最小结构">8.2 每条 Gold 的最小结构</h3>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">case_id</span><span class="pi">:</span>
+<span class="na">group_id</span><span class="pi">:</span>
+<span class="na">initial_business_state</span><span class="pi">:</span>
+<span class="na">conversation_turns</span><span class="pi">:</span>
+<span class="na">media_assets</span><span class="pi">:</span>
+<span class="na">expected_media_need</span><span class="pi">:</span>
+<span class="na">expected_regions</span><span class="pi">:</span>
+<span class="na">required_authorities</span><span class="pi">:</span>
+<span class="na">required_tools</span><span class="pi">:</span>
+<span class="na">forbidden_tools</span><span class="pi">:</span>
+<span class="na">required_evidence</span><span class="pi">:</span>
+<span class="na">expected_business_state</span><span class="pi">:</span>
+<span class="na">expected_handoff</span><span class="pi">:</span>
+<span class="na">continuation_expectation</span><span class="pi">:</span>
+<span class="na">cache_expectation</span><span class="pi">:</span>
+<span class="na">deterministic_assertions</span><span class="pi">:</span>
+<span class="na">human_annotation_refs</span><span class="pi">:</span>
+</code></pre></div></div>
+
+<p>切分必须按 user/order/product/issue/time/semantic family 整组进行，禁止把同一工单的不同 turn 随机拆到 dev 和 heldout。</p>
+
+<h2 id="9-固定消融矩阵">9. 固定消融矩阵</h2>
+
+<h3 id="91-文本-rag">9.1 文本 RAG</h3>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Lexical only
+Dense only
+Lexical + Dense + RRF
+Hybrid + Rerank
+Hybrid + Rerank + Evidence packing
+</code></pre></div></div>
+
+<h3 id="92-多模态-rag">9.2 多模态 RAG</h3>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>OCR text only
+Page image only
+Text + image hybrid
+Hybrid + rerank
+</code></pre></div></div>
+
+<h3 id="93-证据与生成">9.3 证据与生成</h3>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Oracle evidence generation
+Retrieved evidence generation
+No-evidence / distractor evidence
+</code></pre></div></div>
+
+<h3 id="94-成本路由">9.4 成本路由</h3>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>VLM always-on
+L0/L1/L2 adaptive routing
+
+Cold cache
+Warm artifact cache
+
+Full re-analysis
+Continuation + delta analysis
+</code></pre></div></div>
+
+<p>所有消融使用相同 case、模型版本、温度、最大输出、工具 schema、语料 generation 和 Trial 数。</p>
+
+<h2 id="10-统计与发布规则">10. 统计与发布规则</h2>
+
+<h3 id="101-运行规范">10.1 运行规范</h3>
+
+<ul>
+  <li>官方 benchmark 使用官方 split，不修改 test 标签。</li>
+  <li>所有 manifest 在运行前冻结并记录 SHA-256。</li>
+  <li>新旧方案采用 paired evaluation。</li>
+  <li>非确定性 Agent 每条至少运行 3 次，报告 <code class="language-plaintext highlighter-rouge">pass^1</code> 与 <code class="language-plaintext highlighter-rouge">pass^3</code>。</li>
+  <li>比例报告 <code class="language-plaintext highlighter-rouge">x/n</code> 和 95% CI，不只报告百分比。</li>
+  <li><code class="language-plaintext highlighter-rouge">0/N</code> 不能写成零风险；需要同时给样本数。</li>
+  <li>Judge 必须固定 model、prompt、schema 和 calibration version。</li>
+  <li>Judge 失败输出 typed invalid score，不得用中性分参与平均。</li>
+  <li>在线 A/B 按 user 或 service case 分桶，不按单 request 分桶。</li>
+</ul>
+
+<h3 id="102-硬门禁">10.2 硬门禁</h3>
+
+<p>以下失败不能被其他平均分抵消：</p>
+
+<ul>
+  <li>跨 tenant/用户证据泄漏；</li>
+  <li>重复业务副作用；</li>
+  <li>禁止工具或越权动作；</li>
+  <li>stale/wrong-image evidence 被用于发布；</li>
+  <li><code class="language-plaintext highlighter-rouge">UNAVAILABLE</code> 被解释为 <code class="language-plaintext highlighter-rouge">NO_EVIDENCE/NO_MATCH</code>；</li>
+  <li>required L2 被错误降级且影响安全；</li>
+  <li>无效引用或不可解引用 MediaLocator；</li>
+  <li>Memory/服务债务事实被摘要或模型猜测覆盖。</li>
+</ul>
+
+<h3 id="103-非劣与成本门禁">10.3 非劣与成本门禁</h3>
+
+<p>自适应路由、缓存和上下文优化必须同时满足：</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>E2E Task Success：相对冻结 baseline 非劣
+Required-authority Recall：非劣
+Hard safety failures：不得增加
+P95 / Token / VLM calls：至少一项显著改善
+</code></pre></div></div>
+
+<p>命中率、Token 降幅或 VLM 调用减少不能单独作为成功指标。</p>
+
+<h2 id="11-执行顺序">11. 执行顺序</h2>
+
+<h3 id="阶段-a文本与-agent-基线">阶段 A：文本与 Agent 基线</h3>
+
+<ol>
+  <li>固定 τ³ v1.0.1 及薄 Adapter。</li>
+  <li>跑 20 条 smoke。</li>
+  <li>跑 WixQA ExpertWritten/Simulated 和 MTRAG。</li>
+  <li>跑 τ³ <code class="language-plaintext highlighter-rouge">retail + banking_knowledge</code> 开发回归。</li>
+</ol>
+
+<h3 id="阶段-b多模态组件">阶段 B：多模态组件</h3>
+
+<ol>
+  <li>OmniDocBench 解析分桶。</li>
+  <li>ViDoRe v3 视觉检索消融。</li>
+  <li>PM209 Oracle/Retrieved 两段评测。</li>
+  <li>冻结 L0/L1/L2 路由 policy。</li>
+</ol>
+
+<h3 id="阶段-cdialogpilot-业务闭环">阶段 C：DialogPilot 业务闭环</h3>
+
+<ol>
+  <li>完成首版 80 条内部 Gold。</li>
+  <li>运行持续安装、破损、图片+政策+工具混合场景。</li>
+  <li>加入 Memory、服务债务、Handoff 与故障注入。</li>
+  <li>扩展到 120 条并冻结 fresh heldout。</li>
+</ol>
+
+<h3 id="阶段-d最终对外结果">阶段 D：最终对外结果</h3>
+
+<ol>
+  <li>τ³ <code class="language-plaintext highlighter-rouge">retail + telecom + banking_knowledge</code> × 3 trials。</li>
+  <li>ViDoRe、PM209 和内部 Gold 使用冻结模型/manifest。</li>
+  <li>输出分层报告，不生成虚假的综合总分。</li>
+  <li>将报告、预测、Trace 引用、环境版本和 checksum 一并归档。</li>
+</ol>
+
+<h2 id="12-产物与可追溯性">12. 产物与可追溯性</h2>
+
+<p>每次正式运行至少生成：</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>artifacts/eval/&lt;run_id&gt;/
+├─ manifest.json
+├─ dataset-contract.json
+├─ predictions.jsonl
+├─ official-scores.json
+├─ dialogpilot-scores.json
+├─ per-slice-report.json
+├─ latency-cost-report.json
+├─ failures.jsonl
+├─ trace-refs.jsonl
+└─ checksums.sha256
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">manifest.json</code> 至少包含：</p>
+
+<ul>
+  <li>dataset/release/split/task IDs；</li>
+  <li>dataset license 与来源；</li>
+  <li>DialogPilot commit；</li>
+  <li>model/provider/prompt/tool schema；</li>
+  <li>route、knowledge、memory、media policy fingerprint；</li>
+  <li>corpus/source revision/retrieval generation；</li>
+  <li>random seed 与 trial；</li>
+  <li>evaluator/judge version；</li>
+  <li>开始和结束时间。</li>
+</ul>
+
+<h2 id="13-简历与报告口径">13. 简历与报告口径</h2>
+
+<p>完成正式评测前不得填入虚构百分比。可使用以下模板：</p>
+
+<blockquote>
+  <p>在 <code class="language-plaintext highlighter-rouge">τ³-bench v1.0.1</code> 的 retail、telecom 与 banking_knowledge 共 <code class="language-plaintext highlighter-rouge">N</code> 个任务、每题 3 次运行中，取得 <code class="language-plaintext highlighter-rouge">pass^1=X</code>、<code class="language-plaintext highlighter-rouge">pass^3=Y</code>；同时将每成功任务平均 Retriever/Tool/LLM 调用降至 <code class="language-plaintext highlighter-rouge">A/B/C</code>，禁止副作用为 <code class="language-plaintext highlighter-rouge">0/N</code>。</p>
+</blockquote>
+
+<blockquote>
+  <p>在 ViDoRe v3 与 PM209 冻结测试集上，Hybrid retrieval 的 nDCG@5 为 <code class="language-plaintext highlighter-rouge">X</code>、All-evidence Recall 为 <code class="language-plaintext highlighter-rouge">Y</code>；相较 VLM always-on，L0/L1/L2 路由将 VLM 调用率降低 <code class="language-plaintext highlighter-rouge">Z%</code>，并保持端到端任务成功率满足非劣门禁。</p>
+</blockquote>
+
+<blockquote>
+  <p>在 <code class="language-plaintext highlighter-rouge">N</code> 条中文多轮客服 Gold 上，实现持续安装对话中同图后续轮 OCR/VLM 零重复调用率 <code class="language-plaintext highlighter-rouge">X%</code>，错误视觉证据复用 <code class="language-plaintext highlighter-rouge">0/N</code>，图片、政策与业务工具的 required-authority recall 为 <code class="language-plaintext highlighter-rouge">Y%</code>。</p>
+</blockquote>
+
+<p>这些结果分别证明外部可比能力、多模态检索能力和 DialogPilot 业务闭环，不能互相替代或拼接成一个“总体准确率”。</p>
+
+<h2 id="14-最终决策">14. 最终决策</h2>
+
+<p>DialogPilot 的正式评测栈固定为：</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>τ³ v1.0.1
++ WixQA
++ MTRAG
++ OmniDocBench
++ ViDoRe v3
++ PM209/MPMQA
++ DialogPilot 80–120 条内部客服 Gold
+</code></pre></div></div>
+
+<p>τ³ 负责证明 Agent 能完成真实客服服务链；WixQA 与 MTRAG 负责文本知识和连续追问；OmniDocBench、ViDoRe 与 PM209 分别证明多模态摄取、检索和回答；内部 Gold 负责服务债务、Memory、Handoff、商品图片和真实业务终态。</p>
+
+<p>这套组合优先复用官方数据、split、evaluator 和指标。DialogPilot 只实现生产入口适配、权威业务状态评分、缓存/路由观测和内部客服 Gold，不重新发明 benchmark 框架。</p>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/DialogPilot/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">DialogPilot 完整架构教程</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">DialogPilot 完整架构教程</li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Python 多 Agent 客服后端的架构、链路、内部实现、改造记录与项目追问</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

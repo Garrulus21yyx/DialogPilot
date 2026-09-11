@@ -1,0 +1,150 @@
+{
+  "artifacts": {
+    "predictions.jsonl": "58af4f61a9e0091df7115d3071964230155f4115082cf8f9d1ff4dec97358415",
+    "report.json": "ad190a7f5479869a282ff4e8c6a73ef9ec3936ba1f473b8797d0cba41449e962"
+  },
+  "chunk_count": 1469,
+  "configuration_fixed_before_run": true,
+  "configuration_selection_allowed": false,
+  "created_at": "2026-09-03T11:01:51.703179+00:00",
+  "dataset": {
+    "case_count": 36,
+    "cases_sha256": "ad1aad05e697964c0773f553358712fa3e0d45622dd1208fdb235375832c77bf",
+    "corpus_sha256": "d1f8a7873fcfa01915d15a67e46108451bfb1dde1de3e267732d6abb04329d05",
+    "dataset_id": "doc2dial-rag-en-heldout-balanced-v2",
+    "document_count": 488,
+    "source": {
+      "archive_sha256": "94499fa5259f69018d2458cb948552e7a05f424711a95a562bb9e816a515dc23",
+      "corpus_policy": "all_official_documents",
+      "dataset": "Doc2Dial v1.0.1",
+      "excluded_datasets": [
+        {
+          "cases_sha256": "cf57b105dba988cb48516238f4c706da52c351e039959a5849c9e85c40fa2f91",
+          "dataset_id": "doc2dial-rag-mini-heldout-v1",
+          "group_count": 9
+        },
+        {
+          "cases_sha256": "3b66cca8206ce148f8ed2828ad2327f4285a7a4e6b3c87f70bae1b990d88cdea",
+          "dataset_id": "doc2dial-rag-en-heldout-balanced-v1",
+          "group_count": 120
+        }
+      ],
+      "excluded_group_count": 129,
+      "excluded_group_ids_sha256": "72b30a61002cf727ab7346b3fd06a4540c6c2e43983d6a00154a71d8b1552a54",
+      "grounding_granularity": "character-span",
+      "length_bucket_chars": {
+        "long": ">=8000",
+        "medium": "4000-7999",
+        "short": "<4000"
+      },
+      "license": "CC-BY-3.0",
+      "locale": "en",
+      "official_split": "test",
+      "selection_policy": "one maximum-history answerable turn per conversation; SHA-256 order within domain/document-length stratum",
+      "selection_profile": "conversation-domain-length-balanced-v1",
+      "selection_seed": "doc2dial-en-heldout-balanced-v2",
+      "strata_counts": {
+        "dmv/long": 3,
+        "dmv/medium": 3,
+        "dmv/short": 3,
+        "ssa/long": 3,
+        "ssa/medium": 3,
+        "ssa/short": 3,
+        "studentaid/long": 3,
+        "studentaid/medium": 3,
+        "studentaid/short": 3,
+        "va/long": 3,
+        "va/medium": 3,
+        "va/short": 3
+      },
+      "url": "https://doc2dial.github.io/file/doc2dial_v1.0.1.zip"
+    }
+  },
+  "embedding_profile": {
+    "dimension": 1024,
+    "document_preprocessing": "raw-text-unmodified+model-tokenizer+no-prompt+l2-normalized-v1",
+    "fingerprint": "9cae2189438f71b8a4b39c32b9269a1d08c0cf9e56f86160ccb97b73d186b824",
+    "model": "BAAI/bge-m3",
+    "model_digest": "b5e0ce3470abf5ef3831aa1bd5553b486803e83251590ab7ff35a117cf6aad38",
+    "model_version": "5617a9f61b028005a4858fdac845db406aefb181",
+    "provider": "dialogpilot-sentence-transformers-5.7.0-local-bge-m3-v1",
+    "provider_kind": "MODEL",
+    "query_preprocessing": "raw-text-unmodified+model-tokenizer+no-prompt+l2-normalized-v1"
+  },
+  "evaluation_role": "FRESH_HELDOUT_REPORT_ONLY",
+  "generation": {
+    "backend_fingerprint": "POSTGRES_PGVECTOR_PG_BM25_ZH_V1",
+    "backend_id": "POSTGRES_PG_BM25_ZH_V1",
+    "corpus": "KNOWLEDGE",
+    "generation_id": "knowledge-generation-11b28e2f587f3d2a86495bad583b0811",
+    "immutable_fingerprint": "5374f24539bcbbf4247f5c64f916fc6dfa6ecddc7c4e746e374897a1a632f0db",
+    "index_method": "HNSW",
+    "index_params": {
+      "ef_construction": 64,
+      "m": 16
+    },
+    "manifest_fingerprint": "027b16fa425bbe77a8e4d7c432f2a104f10396e112d222517c89adbfacd65e3d",
+    "schema_version": "retrieval-v1",
+    "source_watermark": "f1457f0fe6d9f9989ecc3668466a07d6d686b3ec085eebee4e027d689f28d918",
+    "state": "ACTIVE"
+  },
+  "index_prepare_latency_ms": 1406640.295399353,
+  "model_policy": {
+    "base_url": "https://api.deepseek.com/anthropic",
+    "provider": "deepseek",
+    "rerank": {
+      "max_context_tokens": 32768,
+      "min_completion_tokens": 0,
+      "model": "deepseek-v4-flash",
+      "reasoning": "none"
+    },
+    "rewrite": {
+      "max_context_tokens": 32768,
+      "min_completion_tokens": 0,
+      "model": "deepseek-v4-flash",
+      "reasoning": "none"
+    }
+  },
+  "policy": {
+    "backend_fingerprint": "POSTGRES_PGVECTOR_PG_BM25_ZH_V1",
+    "candidate_k": 20,
+    "context_max_tokens": 2600,
+    "dense_weight": 0.25,
+    "embedding_version": "9cae2189438f71b8a4b39c32b9269a1d08c0cf9e56f86160ccb97b73d186b824",
+    "expansion_query_weight": 0.2,
+    "final_k": 5,
+    "fingerprint": "8a4fa6f1762ffb0ec92d02051faae840ceff6cb4347f259490e35cd047c7e225",
+    "lexical_provider": "PG_BM25_ZH_V1",
+    "lexical_weight": 0.75,
+    "metadata_hint_weight": 0.5,
+    "packer_version": "context-packer-v1",
+    "policy_version": "knowledge-production-heldout-v2",
+    "query_expansion_count": 2,
+    "raw_query_weight": 0.2,
+    "reranker_version": "customer-support-listwise-v3-pydanticai-aliases",
+    "rrf_k": 10,
+    "standalone_query_weight": 0.6,
+    "transformer_version": "customer-support-query-v1"
+  },
+  "run_id": "eece863341cc4819b7b7a0229817c2d8",
+  "runner_version": "postgres-production-rag-heldout-v2",
+  "schema_version": 1,
+  "stages_executed": [
+    "contextual_child_embedding",
+    "raw_query",
+    "standalone_query",
+    "bounded_query_expansion",
+    "dense_top20",
+    "bm25_top20",
+    "weighted_rrf_candidate_top20",
+    "listwise_llm_rerank",
+    "top5_pack_2600",
+    "evidence_pack"
+  ],
+  "stages_not_run": [
+    "hyde",
+    "parent_window_expansion",
+    "generation",
+    "judge"
+  ]
+}

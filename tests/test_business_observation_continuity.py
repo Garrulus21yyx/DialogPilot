@@ -118,6 +118,8 @@ def test_domain_receives_historical_observation_separately_from_verified_facts()
         review_available_tokens=14200, result_store=InMemoryStore(),
         registry=build_default_capability_registry('tenant-a'), system_prompt='product')
     context = _context(business_observations=(observation,))
+    context = replace(context, evidence_refs=tuple(
+        fact['source_ref'] for fact in observation['observation']['facts']))
     blocks = agent._build_prompt(context)
     runtime = json.loads(blocks[1]['text'])['runtime_context']
     assert runtime['business_observations'] == [observation]

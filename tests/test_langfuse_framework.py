@@ -75,6 +75,32 @@ def test_langfuse_disabled_and_missing_credentials(monkeypatch):
         LangfuseTraceSink.from_env()
 
 
+def test_owner_causal_event_exports_join_keys_without_business_payload():
+    exporter = InMemorySpanExporter()
+    client = Langfuse(public_key="pk-lf-test-" + uuid4().hex, secret_key="test-only",
+        base_url="http://127.0.0.1:1", tracer_provider=TracerProvider(),
+        span_exporter=exporter, mask_otel_spans=mask_otel_spans)
+    sink = object.__new__(LangfuseTraceSink)
+    sink.client, sink.public_key = client, "test"
+    try:
+        with client.start_as_current_observation(name="turn"):
+            sink.record_causal_event(
+                "READ_REPLAYED", owner="agent_progress", turn_id="turn-1",
+                work_item_id="work-1", read_identity="a" * 64,
+                guard_decision="ALLOW_FIRST_REPLAY", stagnant_rounds=1,
+            )
+        client.flush()
+        event = next(span for span in exporter.get_finished_spans()
+                     if span.name == "read_replayed")
+        attributes = dict(event.attributes)
+        assert attributes["langfuse.observation.type"] == "span"
+        metadata = str(attributes)
+        assert "ALLOW_FIRST_REPLAY" in metadata and "work-1" in metadata
+        assert "causal.event_id" in metadata and "causal.sequence" in metadata
+    finally:
+        client.shutdown()
+
+
 def test_conversation_failure_keeps_generation_and_diagnostic_in_same_trace():
     from core.model_policy import ModelProfile
     from infrastructure.target_conversation_provider import AnthropicConversationPlanningProvider

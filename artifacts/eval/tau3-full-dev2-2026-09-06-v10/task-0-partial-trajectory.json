@@ -1,0 +1,111 @@
+[
+  {
+    "role": "assistant",
+    "content": "Hi! How can I help you today?",
+    "tool_calls": null,
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-06T19:29:59.763729",
+    "cost": 0.0,
+    "usage": null,
+    "raw_data": null,
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  },
+  {
+    "role": "user",
+    "content": "Hi, I just received my order—number W2378156—and I’d like to set up exchanges for two items. I want to make sure we cover everything in one go, if possible.",
+    "tool_calls": null,
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-06T19:30:01.050036",
+    "cost": 0.0,
+    "usage": {
+      "completion_tokens": 91,
+      "prompt_tokens": 498
+    },
+    "raw_data": {
+      "id": "chatcmpl-e712a823-26b3-4734-a1bd-1547e612d975",
+      "created": 1788715801,
+      "model": "deepseek-v4-flash",
+      "object": "chat.completion",
+      "system_fingerprint": null,
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "message": {
+            "content": "Hi, I just received my order—number W2378156—and I’d like to set up exchanges for two items. I want to make sure we cover everything in one go, if possible.",
+            "role": "assistant",
+            "tool_calls": null,
+            "function_call": null,
+            "reasoning_content": "First, I need to introduce myself as Yusuf and explain why I'm contacting customer service. I received order #W2378156 and want to make two exchanges: the mechanical keyboard and the smart thermostat. Let me state that clearly.",
+            "thinking_blocks": [
+              {
+                "type": "thinking",
+                "thinking": "First, I need to introduce myself as Yusuf and explain why I'm contacting customer service. I received order #W2378156 and want to make two exchanges: the mechanical keyboard and the smart thermostat. Let me state that clearly.",
+                "signature": "f26e7080-c8df-4bf3-b73a-94bb05e9b951"
+              }
+            ],
+            "provider_specific_fields": {
+              "citations": null,
+              "thinking_blocks": [
+                {
+                  "type": "thinking",
+                  "thinking": "First, I need to introduce myself as Yusuf and explain why I'm contacting customer service. I received order #W2378156 and want to make two exchanges: the mechanical keyboard and the smart thermostat. Let me state that clearly.",
+                  "signature": "f26e7080-c8df-4bf3-b73a-94bb05e9b951"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "usage": {
+        "completion_tokens": 91,
+        "prompt_tokens": 498,
+        "total_tokens": 589,
+        "completion_tokens_details": {
+          "reasoning_tokens": 48,
+          "text_tokens": 43
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 384,
+          "image_tokens": null,
+          "text_tokens": null,
+          "video_tokens": null,
+          "cache_creation_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 384,
+        "inference_geo": null,
+        "speed": null
+      }
+    },
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  }
+]

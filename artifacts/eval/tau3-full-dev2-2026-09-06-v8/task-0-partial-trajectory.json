@@ -1,0 +1,415 @@
+[
+  {
+    "role": "assistant",
+    "content": "Hi! How can I help you today?",
+    "tool_calls": null,
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-06T19:19:54.384150",
+    "cost": 0.0,
+    "usage": null,
+    "raw_data": null,
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  },
+  {
+    "role": "user",
+    "content": "Hi there! I just received my order and I need to make some exchanges. I want to swap out two items—I’ve got the order number and everything. I’m hoping we can get this sorted in one go so I don’t have to deal with multiple shipments or back-and-forth.",
+    "tool_calls": null,
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-06T19:19:56.197587",
+    "cost": 0.0,
+    "usage": {
+      "completion_tokens": 138,
+      "prompt_tokens": 498
+    },
+    "raw_data": {
+      "id": "chatcmpl-b8cf3d0f-69c8-46db-979f-a6b90c05eab6",
+      "created": 1788715196,
+      "model": "deepseek-v4-flash",
+      "object": "chat.completion",
+      "system_fingerprint": null,
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "message": {
+            "content": "Hi there! I just received my order and I need to make some exchanges. I want to swap out two items—I’ve got the order number and everything. I’m hoping we can get this sorted in one go so I don’t have to deal with multiple shipments or back-and-forth.",
+            "role": "assistant",
+            "tool_calls": null,
+            "function_call": null,
+            "reasoning_content": "Okay, I need to start the conversation. The user asked how they can help, so I’ll describe my situation. I received an order and want to make exchanges for two items. I need to mention the order number and the specific changes I want. Since I’m detail-oriented, I’ll ensure I list all the requirements clearly. Let me begin.",
+            "thinking_blocks": [
+              {
+                "type": "thinking",
+                "thinking": "Okay, I need to start the conversation. The user asked how they can help, so I’ll describe my situation. I received an order and want to make exchanges for two items. I need to mention the order number and the specific changes I want. Since I’m detail-oriented, I’ll ensure I list all the requirements clearly. Let me begin.",
+                "signature": "24f740df-828a-4941-a115-6cc8716b8a95"
+              }
+            ],
+            "provider_specific_fields": {
+              "citations": null,
+              "thinking_blocks": [
+                {
+                  "type": "thinking",
+                  "thinking": "Okay, I need to start the conversation. The user asked how they can help, so I’ll describe my situation. I received an order and want to make exchanges for two items. I need to mention the order number and the specific changes I want. Since I’m detail-oriented, I’ll ensure I list all the requirements clearly. Let me begin.",
+                  "signature": "24f740df-828a-4941-a115-6cc8716b8a95"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "usage": {
+        "completion_tokens": 138,
+        "prompt_tokens": 498,
+        "total_tokens": 636,
+        "completion_tokens_details": {
+          "reasoning_tokens": 71,
+          "text_tokens": 67
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 384,
+          "image_tokens": null,
+          "text_tokens": null,
+          "video_tokens": null,
+          "cache_creation_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 384,
+        "inference_geo": null,
+        "speed": null
+      }
+    },
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  },
+  {
+    "role": "assistant",
+    "content": "What is the email address associated with your account?",
+    "tool_calls": null,
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-06T19:19:59.457418",
+    "cost": null,
+    "usage": null,
+    "raw_data": null,
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  },
+  {
+    "role": "user",
+    "content": "I actually don’t remember which email I used for this order—sorry about that. I have the order number and my shipping zip code if that helps. Can we look it up that way, or is there another option to find my account?",
+    "tool_calls": null,
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-06T19:20:00.959363",
+    "cost": 0.0,
+    "usage": {
+      "completion_tokens": 123,
+      "prompt_tokens": 575
+    },
+    "raw_data": {
+      "id": "chatcmpl-ce60dd95-7792-4f7c-9141-5e1c0bfa2a7b",
+      "created": 1788715200,
+      "model": "deepseek-v4-flash",
+      "object": "chat.completion",
+      "system_fingerprint": null,
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "message": {
+            "content": "I actually don’t remember which email I used for this order—sorry about that. I have the order number and my shipping zip code if that helps. Can we look it up that way, or is there another option to find my account?",
+            "role": "assistant",
+            "tool_calls": null,
+            "function_call": null,
+            "reasoning_content": "I should not provide my email address because I don't remember it. I need to share the order number and let them know I don’t recall the email. Maybe they can look up the order another way. I’ll mention that I have details from the packing slip or can share shipping info if needed, but I won’t invent an email.",
+            "thinking_blocks": [
+              {
+                "type": "thinking",
+                "thinking": "I should not provide my email address because I don't remember it. I need to share the order number and let them know I don’t recall the email. Maybe they can look up the order another way. I’ll mention that I have details from the packing slip or can share shipping info if needed, but I won’t invent an email.",
+                "signature": "e3612ec6-1b4c-458e-8284-d3a07bbf653d"
+              }
+            ],
+            "provider_specific_fields": {
+              "citations": null,
+              "thinking_blocks": [
+                {
+                  "type": "thinking",
+                  "thinking": "I should not provide my email address because I don't remember it. I need to share the order number and let them know I don’t recall the email. Maybe they can look up the order another way. I’ll mention that I have details from the packing slip or can share shipping info if needed, but I won’t invent an email.",
+                  "signature": "e3612ec6-1b4c-458e-8284-d3a07bbf653d"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "usage": {
+        "completion_tokens": 123,
+        "prompt_tokens": 575,
+        "total_tokens": 698,
+        "completion_tokens_details": {
+          "reasoning_tokens": 69,
+          "text_tokens": 54
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 384,
+          "image_tokens": null,
+          "text_tokens": null,
+          "video_tokens": null,
+          "cache_creation_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 384,
+        "inference_geo": null,
+        "speed": null
+      }
+    },
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  },
+  {
+    "role": "assistant",
+    "content": "What is your first name?\nWhat is your last name?\nWhat is your zip code?",
+    "tool_calls": null,
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-06T19:20:03.152578",
+    "cost": null,
+    "usage": null,
+    "raw_data": null,
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  },
+  {
+    "role": "user",
+    "content": "Sure—my first name is Yusuf, last name is Rossi, and my zip code is 19122. I also have the order number on hand if that’s easier. I just don’t have the email accessible right now.",
+    "tool_calls": null,
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-06T19:20:04.871687",
+    "cost": 0.0,
+    "usage": {
+      "completion_tokens": 159,
+      "prompt_tokens": 647
+    },
+    "raw_data": {
+      "id": "chatcmpl-b4f380c5-7627-41f7-9df5-641d91a68026",
+      "created": 1788715204,
+      "model": "deepseek-v4-flash",
+      "object": "chat.completion",
+      "system_fingerprint": null,
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "message": {
+            "content": "Sure—my first name is Yusuf, last name is Rossi, and my zip code is 19122. I also have the order number on hand if that’s easier. I just don’t have the email accessible right now.",
+            "role": "assistant",
+            "tool_calls": null,
+            "function_call": null,
+            "reasoning_content": "Okay, they're asking for the usual identity confirmation. My first name is Yusuf, last name is Rossi, and I’m in zip code 19122. That’s all I have to give them to look up my order.\n\nI should let them know I remember my order number too in case that speeds things up. Since I don’t have my email handy, I’m hoping this info is enough to get me to the exchange process.\n\nI’ll keep it straightforward and provide exactly what they’re asking for.",
+            "thinking_blocks": [
+              {
+                "type": "thinking",
+                "thinking": "Okay, they're asking for the usual identity confirmation. My first name is Yusuf, last name is Rossi, and I’m in zip code 19122. That’s all I have to give them to look up my order.\n\nI should let them know I remember my order number too in case that speeds things up. Since I don’t have my email handy, I’m hoping this info is enough to get me to the exchange process.\n\nI’ll keep it straightforward and provide exactly what they’re asking for.",
+                "signature": "4d14d918-c64a-452d-abc6-2715ec800190"
+              }
+            ],
+            "provider_specific_fields": {
+              "citations": null,
+              "thinking_blocks": [
+                {
+                  "type": "thinking",
+                  "thinking": "Okay, they're asking for the usual identity confirmation. My first name is Yusuf, last name is Rossi, and I’m in zip code 19122. That’s all I have to give them to look up my order.\n\nI should let them know I remember my order number too in case that speeds things up. Since I don’t have my email handy, I’m hoping this info is enough to get me to the exchange process.\n\nI’ll keep it straightforward and provide exactly what they’re asking for.",
+                  "signature": "4d14d918-c64a-452d-abc6-2715ec800190"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "usage": {
+        "completion_tokens": 159,
+        "prompt_tokens": 647,
+        "total_tokens": 806,
+        "completion_tokens_details": {
+          "reasoning_tokens": 103,
+          "text_tokens": 56
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 512,
+          "image_tokens": null,
+          "text_tokens": null,
+          "video_tokens": null,
+          "cache_creation_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 512,
+        "inference_geo": null,
+        "speed": null
+      }
+    },
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  },
+  {
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+      {
+        "id": "tau3-call-8f9f827bc03140fe8565c3d58c2fcaa6",
+        "name": "find_user_id_by_name_zip",
+        "arguments": {
+          "first_name": "Yusuf",
+          "last_name": "Rossi",
+          "zip": "19122"
+        },
+        "requestor": "assistant"
+      }
+    ],
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-06T19:20:07.901466",
+    "cost": null,
+    "usage": null,
+    "raw_data": null,
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  },
+  {
+    "id": "tau3-call-8f9f827bc03140fe8565c3d58c2fcaa6",
+    "role": "tool",
+    "content": "yusuf_rossi_9620",
+    "requestor": "assistant",
+    "error": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-06T19:20:07.901598"
+  },
+  {
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+      {
+        "id": "tau3-call-4b551a46e0864c27b9c5fde92247ca61",
+        "name": "get_user_details",
+        "arguments": {
+          "user_id": "yusuf_rossi_9620"
+        },
+        "requestor": "assistant"
+      }
+    ],
+    "is_audio": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-06T19:20:08.921951",
+    "cost": null,
+    "usage": null,
+    "raw_data": null,
+    "generation_time_seconds": null,
+    "audio_format": null,
+    "audio_path": null,
+    "audio_script_gold": null,
+    "speech_effects": null,
+    "source_effects": null,
+    "channel_effects": null,
+    "turn_taking_action": null,
+    "utterance_ids": null,
+    "chunk_id": null,
+    "is_final_chunk": true,
+    "source": null,
+    "contains_speech": true
+  },
+  {
+    "id": "tau3-call-4b551a46e0864c27b9c5fde92247ca61",
+    "role": "tool",
+    "content": "{\"user_id\": \"yusuf_rossi_9620\", \"name\": {\"first_name\": \"Yusuf\", \"last_name\": \"Rossi\"}, \"address\": {\"address1\": \"763 Broadway\", \"address2\": \"Suite 135\", \"city\": \"Philadelphia\", \"country\": \"USA\", \"state\": \"PA\", \"zip\": \"19122\"}, \"email\": \"yusuf.rossi7301@example.com\", \"payment_methods\": {\"credit_card_9513926\": {\"source\": \"credit_card\", \"id\": \"credit_card_9513926\", \"brand\": \"mastercard\", \"last_four\": \"2478\"}}, \"orders\": [\"#W6247578\", \"#W9711842\", \"#W4776164\", \"#W6679257\", \"#W2378156\"]}",
+    "requestor": "assistant",
+    "error": false,
+    "turn_idx": null,
+    "timestamp": "2026-09-06T19:20:08.922205"
+  }
+]

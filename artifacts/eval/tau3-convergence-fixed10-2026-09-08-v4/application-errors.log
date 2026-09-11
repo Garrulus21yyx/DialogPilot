@@ -1,0 +1,50 @@
+Target turn execution failed invocation_key=invocation:v1:cb056c34a46d32809f2e072e77ad5db303e108f7a96d6eaac2f66ea4800b0861
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/target_chat_application.py", line 201, in execute_admitted
+    turn_result = await self._turn_runtime.execute(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        identity, observations, execution_context=execution_context,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/yang/DialogPilot/application/turn_runtime.py", line 230, in execute
+    result = await self.graph.ainvoke(graph_input, config=config)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/main.py", line 4090, in ainvoke
+    async for chunk in self.astream(
+    ...<30 lines>...
+            chunks.append(chunk)
+  File "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/main.py", line 3440, in astream
+    async for _ in runner.atick(
+    ...<16 lines>...
+            yield o
+  File "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/_runner.py", line 396, in atick
+    await arun_with_retry(
+    ...<15 lines>...
+    )
+  File "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/_retry.py", line 744, in arun_with_retry
+    return await task.proc.ainvoke(task.input, config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/_internal/_runnable.py", line 756, in ainvoke
+    input = await asyncio.create_task(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+        step.ainvoke(input, config, **kwargs), context=context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/_internal/_runnable.py", line 522, in ainvoke
+    ret = await self.afunc(*args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/application/turn_runtime.py", line 95, in _prepare_turn
+    prepared = await self._manager.prepare(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/application/target_conversation_manager.py", line 297, in prepare
+    proposal = StateBoundTargetUnderstanding.merge_approval_plan(
+        semantic, bound, approval_state, deterministic)
+  File "/home/yang/DialogPilot/application/target_understanding.py", line 144, in merge_approval_plan
+    raise TurnPlanningError("approval cannot authorize an action whose goal is changed in the same plan")
+application.turn_planning.TurnPlanningError: approval cannot authorize an action whose goal is changed in the same plan
+During task with name 'prepare_turn' and id 'e37c1c91-2f32-8975-632a-23b4b01fcae9'

@@ -1,0 +1,249 @@
+{
+  "schema_version": "dialogpilot-tau3-rca-v1",
+  "run": {
+    "path": "/home/yang/DialogPilot/artifacts/eval/tau3-task20-source-continuity-2026-09-10",
+    "status": "EVALUATED",
+    "started_at": "2026-09-10T01:01:03.791507+00:00",
+    "finished_at": "2026-09-10T01:04:10.821236+00:00",
+    "project_commit": "bb0c2bf16389a82ea3b3043d9d12847e2cc6e728",
+    "tracked_worktree_dirty": true,
+    "task_count": 1
+  },
+  "finding_counts": {
+    "CITATION_VALIDATION_FAILURE": 1,
+    "EPISODE_STEP_BUDGET_EXHAUSTED": 1,
+    "UNCHANGED_READ_REPLAY": 1
+  },
+  "failure_clusters": [],
+  "tasks": [
+    {
+      "task_id": "20",
+      "result_file": "task-20.json",
+      "trajectory_file": "task-20-trajectory.json",
+      "artifact_sha256": {
+        "result": "7bd4dbe90a71f2edbe7b001a360dcecfec2db752cbc1decb9b1b838fed030707",
+        "trajectory": "577189fd1f3e0dcc9fa35506ad8a32c4528935c9af09d350b6e6f80252b7acef"
+      },
+      "langfuse_session_id": "tau3-3a44dce6bdea42ea8e4c4cddb74ced1d",
+      "outcome": {
+        "status": "EVALUATED",
+        "simulation_status": "COMPLETED",
+        "termination": "max_steps",
+        "official_reward": 0.0,
+        "env_reward": 0.0,
+        "action_reward": 0.0,
+        "evaluation_scope": "termination_gate_only"
+      },
+      "transition_analysis": {
+        "schema_version": "tau3-required-transitions-v1",
+        "phase_order": [
+          "OBJECTIVE",
+          "PLAN",
+          "WORK_ITEM",
+          "ACTION_PREPARED",
+          "APPROVAL",
+          "EXECUTION",
+          "RECEIPT",
+          "STATE",
+          "ANSWER"
+        ],
+        "paths": [],
+        "first_divergence": null,
+        "evidence": [],
+        "hypotheses": []
+      },
+      "root_cause_status": "OPEN",
+      "evidence": [
+        {
+          "evidence_id": "episode-step-budget",
+          "source": "task-20.json",
+          "locator": "$.termination|$.evaluation_scope|trajectory:$.messages",
+          "summary": "The episode terminated at its configured message-step budget.",
+          "data": {
+            "termination": "max_steps",
+            "evaluation_scope": "termination_gate_only",
+            "configured_max_steps": 80,
+            "trajectory_message_count": 82,
+            "minimum_pending_continuation_steps": 0,
+            "required_step_savings": 2
+          }
+        },
+        {
+          "evidence_id": "unchanged-read-replays",
+          "source": "task-20-trajectory.json",
+          "locator": "$.messages[*].tool_calls",
+          "summary": "Exact read requests returned identical results more than once without an intervening write.",
+          "data": {
+            "groups": [
+              {
+                "tool": "find_user_id_by_name_zip",
+                "arguments_sha256": "af4461bd2142473d1f2c683ee98ba02c1d08e8762ff8b53cc753ce1628650224",
+                "response_sha256": "9859b25cae9b050e0a1176cd6a4112c6664cfed3412ce2b692e42c517ddc78b4",
+                "call_count": 2,
+                "message_indexes": [
+                  4,
+                  36
+                ]
+              },
+              {
+                "tool": "get_order_details",
+                "arguments_sha256": "59bb5df4087bd17e35ce3bb50feef0d9c0b0a47c757c4d50c2a761f7a674e951",
+                "response_sha256": "519968483e96cabd748d72490b837538ec375d014feccf6fd14e8a38f568bfd2",
+                "call_count": 2,
+                "message_indexes": [
+                  8,
+                  40
+                ]
+              },
+              {
+                "tool": "get_order_details",
+                "arguments_sha256": "09eef2f1f618dd4b61dc7e206369d1c770ef9fb376ab0c6cbbfff289897e4735",
+                "response_sha256": "73479dd305d6e658931867c05be7e7e9176815e3ccef436a1ffe0567b6cf7e51",
+                "call_count": 2,
+                "message_indexes": [
+                  12,
+                  44
+                ]
+              },
+              {
+                "tool": "get_order_details",
+                "arguments_sha256": "c0b28182a02ef47f3a533182566af648e13021d4427cf00c16243fcf5e6c66dd",
+                "response_sha256": "9c17c19850cecf998488cf8eddf0f88934bfe51920f4cac5c23f11c3464315ed",
+                "call_count": 5,
+                "message_indexes": [
+                  10,
+                  42,
+                  48,
+                  60,
+                  72
+                ]
+              },
+              {
+                "tool": "get_product_details",
+                "arguments_sha256": "0ff0a11ddb2aa4e6d804e3988ea63e27e0446a02e063d630ec64668379f53b73",
+                "response_sha256": "31e182ab58a0e2bd75dfbd6bce8440466fdfc1bf9fcbc32b4a165f1543774a28",
+                "call_count": 4,
+                "message_indexes": [
+                  16,
+                  52,
+                  64,
+                  76
+                ]
+              },
+              {
+                "tool": "get_product_details",
+                "arguments_sha256": "f795d216f6e6a2403f977525f845ac4ea9a5a57bec4e9b74904569d5a9a4a439",
+                "response_sha256": "6753f2b6a0195816087a99203fd8691d58cd3bc18fd56aa0991cc13c96c18c5d",
+                "call_count": 4,
+                "message_indexes": [
+                  20,
+                  56,
+                  68,
+                  80
+                ]
+              },
+              {
+                "tool": "get_product_details",
+                "arguments_sha256": "fb57f9835ba06a7f28c5667dc268a96a74ab5a1f64f4251259a7eaa4cfe1c576",
+                "response_sha256": "cc5efcbc290947bf7c1cc61f908928a4215ce8a84fd60c360492547143a80445",
+                "call_count": 4,
+                "message_indexes": [
+                  18,
+                  54,
+                  66,
+                  78
+                ]
+              },
+              {
+                "tool": "get_product_details",
+                "arguments_sha256": "a334528da893668bb541642444702d56f40942de47d6f8e684b33614e3f15db2",
+                "response_sha256": "2b2f969253625f83a18997072ff9797e67dd1c83144c473f22092f3ce0b5b605",
+                "call_count": 4,
+                "message_indexes": [
+                  14,
+                  50,
+                  62,
+                  74
+                ]
+              }
+            ],
+            "redundant_call_count": 19,
+            "consumed_message_steps": 38,
+            "intervening_write_count": 0
+          }
+        },
+        {
+          "evidence_id": "citation-validation-errors",
+          "source": "task-20.json",
+          "locator": "$.target_trace[3].outcome.response.synthesis_reason",
+          "summary": "Response assembly or verification failed citation validation.",
+          "data": {
+            "occurrences": 3,
+            "locators": [
+              "$.target_trace[3].outcome.response.synthesis_reason",
+              "$.target_trace[3].outcome.response.verification_reason_code",
+              "$.target_trace[3].outcome.stages[0].stage"
+            ]
+          }
+        }
+      ],
+      "findings": [
+        {
+          "code": "EPISODE_STEP_BUDGET_EXHAUSTED",
+          "layer": "mechanism",
+          "level": "VERIFIED",
+          "summary": "The benchmark stopped before a terminal business outcome because its step budget was exhausted.",
+          "owner_candidate": "episode_orchestration",
+          "evidence_ids": [
+            "episode-step-budget"
+          ],
+          "missing_evidence": [],
+          "next_probe": null,
+          "impact": "TASK_BLOCKING"
+        },
+        {
+          "code": "UNCHANGED_READ_REPLAY",
+          "layer": "mechanism",
+          "level": "VERIFIED",
+          "summary": "The agent repeated read calls that produced no new observable information.",
+          "owner_candidate": "agent_read_planning",
+          "evidence_ids": [
+            "unchanged-read-replays"
+          ],
+          "missing_evidence": [],
+          "next_probe": null,
+          "impact": "PRESENT_DURING_FAILURE"
+        },
+        {
+          "code": "CITATION_VALIDATION_FAILURE",
+          "layer": "mechanism",
+          "level": "VERIFIED",
+          "summary": "A candidate response failed the citation contract.",
+          "owner_candidate": "response_assembly",
+          "evidence_ids": [
+            "citation-validation-errors"
+          ],
+          "missing_evidence": [
+            "The artifact does not establish whether evidence production or citation consumption violated the contract."
+          ],
+          "next_probe": "Compare the candidate citation references with the admitted evidence IDs at response assembly.",
+          "impact": "PRESENT_DURING_FAILURE"
+        }
+      ]
+    }
+  ],
+  "unbound_run_evidence": [
+    {
+      "code": "CITATION_VALIDATION",
+      "count": 1,
+      "source": "application-errors.log",
+      "binding": "RUN_ONLY",
+      "note": "Not attributed to a task because the log line lacks a stable task/turn/trace join key."
+    }
+  ],
+  "limitations": [
+    "Batch-level log lines are not assigned to a task without a task, turn, or trace identifier.",
+    "SUPPORTED hypotheses require the listed probe before they can become verified root causes.",
+    "Visible user assent does not prove consistency with the simulator's hidden goal."
+  ]
+}

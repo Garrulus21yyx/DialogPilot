@@ -1,0 +1,41 @@
+{
+  "scope": "First-decision actor and fixed-candidate reviewer probes, not business E2E.\n\nUses production prompt, tool wrappers and review contracts over synthetic fixtures.\nNo tools execute; first-decision observations are reviewed separately from verdicts.\n",
+  "cases": [
+    {
+      "id": "independent_shipments",
+      "goal": "Cancel shipment S1 and redirect shipment S2 to Berlin.",
+      "facts": "Shipments S1 and S2 are pending. Destination for S2 is Berlin.",
+      "tools": {
+        "cancel": "Requires a pending shipment; changes only that shipment to cancelled.",
+        "redirect": "Requires a pending shipment; changes only its destination, leaving it pending."
+      },
+      "candidate": "cancel",
+      "expected": true,
+      "actor_expected": "Either operation can be prepared on its corresponding shipment.",
+      "actor_forbidden": [],
+      "arguments": {
+        "object_id": "S1"
+      }
+    }
+  ],
+  "cases_sha256": "58b23e2b618f9f8e04ff094788f7aac60ba2db01f7a16b878ba00faa40e4d9cb",
+  "profiles": {
+    "worker": {
+      "model": "deepseek-v4-flash",
+      "reasoning": "none",
+      "min_completion_tokens": 0,
+      "max_context_tokens": 32768
+    },
+    "verifier": {
+      "model": "deepseek-v4-pro",
+      "reasoning": "none",
+      "min_completion_tokens": 0,
+      "max_context_tokens": 32768
+    }
+  },
+  "mode": "full-worker",
+  "max_api_calls": 8,
+  "business_tools_enabled": false,
+  "max_tokens_per_call": 4096,
+  "timeout_seconds": 360
+}

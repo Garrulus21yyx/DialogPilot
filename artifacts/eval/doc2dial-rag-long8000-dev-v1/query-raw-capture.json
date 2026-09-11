@@ -1,0 +1,957 @@
+{
+  "case_count": 36,
+  "dataset_id": "doc2dial-rag-long8000-dev-v1",
+  "error_case_count": 0,
+  "expansion_count": 0,
+  "model_policy": {
+    "provider": "none",
+    "rewrite": {
+      "model": "none"
+    }
+  },
+  "prompt_version": "raw-only-v1",
+  "rows": [
+    {
+      "case_id": "doc2dial-dev-00a4a05f229e5cee83e7b10f2e20873d-12",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-00a4a05f229e5cee83e7b10f2e20873d",
+      "history_turns": 11,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "studentaid",
+        "long_document"
+      ],
+      "raw_query": "I looked at your page, what are Corinthian colleges?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-dev-07d2d3b557c6d5d18ee0e7d37e986f08-9",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-07d2d3b557c6d5d18ee0e7d37e986f08",
+      "history_turns": 8,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "studentaid",
+        "long_document"
+      ],
+      "raw_query": "What is the logic behind the notifications regarding the Sweet v. DeVos Lawsuit?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-dev-0f04d497049c31faebfa20487a25c0f1-12",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-0f04d497049c31faebfa20487a25c0f1",
+      "history_turns": 11,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "studentaid",
+        "long_document"
+      ],
+      "raw_query": "How will I know how much I have left after the interest is calculated?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-dev-0f20051cca23859b571386e82fff9ac8-12",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-0f20051cca23859b571386e82fff9ac8",
+      "history_turns": 11,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "ssa",
+        "long_document"
+      ],
+      "raw_query": "Sure. Why not?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-dev-13f5099fe2dc8875b44e6b15ad7c2dd1-15",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-13f5099fe2dc8875b44e6b15ad7c2dd1",
+      "history_turns": 14,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "va",
+        "long_document"
+      ],
+      "raw_query": "where to get more information about priority groups?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-dev-1ce198bc767426637a333a1adc62e37a-12",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-1ce198bc767426637a333a1adc62e37a",
+      "history_turns": 11,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "dmv",
+        "long_document"
+      ],
+      "raw_query": "How would I go about appealing a decision?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-dev-2278013a80847dedecfc48d80391fb36-13",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-2278013a80847dedecfc48d80391fb36",
+      "history_turns": 12,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "ssa",
+        "long_document"
+      ],
+      "raw_query": "when do benefits come?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-dev-247f23e580bce66d852b143a622f29d7-12",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-247f23e580bce66d852b143a622f29d7",
+      "history_turns": 11,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "ssa",
+        "long_document"
+      ],
+      "raw_query": "Get Your Social Security Benefit Verification Letter Online",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-dev-2b9a9e5d3fb7afbd0daabf0fb8b00a54-11",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-2b9a9e5d3fb7afbd0daabf0fb8b00a54",
+      "history_turns": 10,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "ssa",
+        "long_document"
+      ],
+      "raw_query": "But what happens if I die and you still send the payments?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-dev-2be506ef6926fe365c87941f7ef14862-12",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-2be506ef6926fe365c87941f7ef14862",
+      "history_turns": 11,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "studentaid",
+        "long_document"
+      ],
+      "raw_query": "Yes, I recently received a response in this regard from the ED",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-dev-3031352d8fd5954f88459c455d57a1b2-11",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-3031352d8fd5954f88459c455d57a1b2",
+      "history_turns": 10,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "va",
+        "long_document"
+      ],
+      "raw_query": "No, I have not made enough progress according to my school.",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-dev-3f3aa224b819953746fd223c1e30eb73-16",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-3f3aa224b819953746fd223c1e30eb73",
+      "history_turns": 15,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "dmv",
+        "long_document"
+      ],
+      "raw_query": "what if im issued a ticket?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-dev-4a335b1ca0ddb7d0465b81f2d318afd3-11",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-4a335b1ca0ddb7d0465b81f2d318afd3",
+      "history_turns": 10,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "ssa",
+        "long_document"
+      ],
+      "raw_query": "can the widow get monthly benefits if she is caring for the dead guy's daughter?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-dev-4d5350dc20418f7f89900dfa1a61b0cd-9",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-4d5350dc20418f7f89900dfa1a61b0cd",
+      "history_turns": 8,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "ssa",
+        "long_document"
+      ],
+      "raw_query": "Makes sense. What can you tell me about monthly Medicare premiums?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-dev-50b28aeda7cf80e1959ac907127bb5d9-12",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-50b28aeda7cf80e1959ac907127bb5d9",
+      "history_turns": 11,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "ssa",
+        "long_document"
+      ],
+      "raw_query": "how I requested?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-dev-56ecb9ca49fe6db3568b935cff6c0510-11",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-56ecb9ca49fe6db3568b935cff6c0510",
+      "history_turns": 10,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "studentaid",
+        "long_document"
+      ],
+      "raw_query": "Do I need information related to mitigating circumstances?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-dev-5899911400e0d2472aff3e4e11142a7c-13",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-5899911400e0d2472aff3e4e11142a7c",
+      "history_turns": 12,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "va",
+        "long_document"
+      ],
+      "raw_query": "Can I qualify for 5 years of free assistance?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-dev-58d176e50ed5e9d07e84c19f97406e03-11",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-58d176e50ed5e9d07e84c19f97406e03",
+      "history_turns": 10,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "ssa",
+        "long_document"
+      ],
+      "raw_query": "Is there a maximum limit to the amount a family could get?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-dev-5c539f53cdb29706da2eac1fd093fb8a-10",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-5c539f53cdb29706da2eac1fd093fb8a",
+      "history_turns": 9,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "studentaid",
+        "long_document"
+      ],
+      "raw_query": "What should I do if I have defaulted on my federal student loan and have entered a rehabilitation plan?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-dev-6c00f80fa975923b3af5df055f965f2b-12",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-6c00f80fa975923b3af5df055f965f2b",
+      "history_turns": 11,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "studentaid",
+        "long_document"
+      ],
+      "raw_query": "What is involved in complying with the Program Quality Assurance?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-dev-739518d13fc2a96c4ad09409fa8d3982-10",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-739518d13fc2a96c4ad09409fa8d3982",
+      "history_turns": 9,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "ssa",
+        "long_document"
+      ],
+      "raw_query": "That's what I thought. And how high are the monthly medicare premiums?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-dev-971be81a501acb52e143a12890772498-10",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-971be81a501acb52e143a12890772498",
+      "history_turns": 9,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "studentaid",
+        "long_document"
+      ],
+      "raw_query": "If that is my case, what else?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-dev-9c7626c8c2aa2b927759e64a2323d8a9-12",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-9c7626c8c2aa2b927759e64a2323d8a9",
+      "history_turns": 11,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "va",
+        "long_document"
+      ],
+      "raw_query": "yes",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-dev-a7fe7aa38830465e8a73320e9320b305-9",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-a7fe7aa38830465e8a73320e9320b305",
+      "history_turns": 8,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "studentaid",
+        "long_document"
+      ],
+      "raw_query": "Is there a section on the website dedicated to common questions and answers regarding borrower defense decision notifications?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-dev-a9e6b11deba64bccfa874f154eef44b4-10",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-a9e6b11deba64bccfa874f154eef44b4",
+      "history_turns": 9,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "ssa",
+        "long_document"
+      ],
+      "raw_query": "What if I filed a federal income tax return for the year?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-dev-abba59c477b0cf795c20d5b0b83e4634-11",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-abba59c477b0cf795c20d5b0b83e4634",
+      "history_turns": 10,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "va",
+        "long_document"
+      ],
+      "raw_query": "ok, can I file by mail when I am ready to add my daughter?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-dev-b09922c61586b9398efe4bd77271deef-11",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-b09922c61586b9398efe4bd77271deef",
+      "history_turns": 10,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "ssa",
+        "long_document"
+      ],
+      "raw_query": "Is there other related information I would need to know?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-dev-b30d73c202844505549d00218083577d-11",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-b30d73c202844505549d00218083577d",
+      "history_turns": 10,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "studentaid",
+        "long_document"
+      ],
+      "raw_query": "Are FFEL Program Loans eligible?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-dev-b3f2ae2fd2ddac2fb7a1a898690a6a8c-11",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-b3f2ae2fd2ddac2fb7a1a898690a6a8c",
+      "history_turns": 10,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "studentaid",
+        "long_document"
+      ],
+      "raw_query": "Can I have my borrower defense discharge applied to my FFEL or Federal Perkins loans?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-dev-d4cfd673f6cfcced5363949506e31e8c-11",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-d4cfd673f6cfcced5363949506e31e8c",
+      "history_turns": 10,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "ssa",
+        "long_document"
+      ],
+      "raw_query": "and can benefits be paid to the worker's children and the surviving spouse who cares for the children, even if the worker does not have the required amount of credits?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-dev-e557d33d054041f0aac44defb1a207ef-12",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-e557d33d054041f0aac44defb1a207ef",
+      "history_turns": 11,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "studentaid",
+        "long_document"
+      ],
+      "raw_query": "Are there any additional documents that I can submit as part of my application for borrower defense?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-dev-e7545e6f53bbe7d12b6846061f8dd6ed-13",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-e7545e6f53bbe7d12b6846061f8dd6ed",
+      "history_turns": 12,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "dmv",
+        "long_document"
+      ],
+      "raw_query": "Can i keep my CDL but with restrictions on it?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-dev-e8b67b06f57ae86344dcf9f6ff9cac43-11",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-e8b67b06f57ae86344dcf9f6ff9cac43",
+      "history_turns": 10,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "va",
+        "long_document"
+      ],
+      "raw_query": "are there other resources?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-dev-e96c4558ac2013c8f787498f67652362-11",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-e96c4558ac2013c8f787498f67652362",
+      "history_turns": 10,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "studentaid",
+        "long_document"
+      ],
+      "raw_query": "I have applied for borrower defense by way of email but now have found further information that I want to send, can I do this?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-dev-f9aa69339de7652e855b2c941a24d7c9-10",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-f9aa69339de7652e855b2c941a24d7c9",
+      "history_turns": 9,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "studentaid",
+        "long_document"
+      ],
+      "raw_query": "What information can you give me regarding adverse credit is incorrect?",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-dev-fcc47e7aa1e49bd0de037d783936592b-13",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-fcc47e7aa1e49bd0de037d783936592b",
+      "history_turns": 12,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "multi_turn",
+        "ssa",
+        "long_document"
+      ],
+      "raw_query": "Yes, my child is 18 years or older.",
+      "standalone": "",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    }
+  ],
+  "sample_policy": "one case per article group, deterministic domain round-robin",
+  "schema_version": 1,
+  "split": "dev",
+  "total_calls": 0,
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

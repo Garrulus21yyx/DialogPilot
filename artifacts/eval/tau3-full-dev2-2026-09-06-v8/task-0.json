@@ -1,0 +1,42 @@
+{
+  "task_id": "0",
+  "official_reward": null,
+  "status": "ERROR",
+  "error_type": "RuntimeError",
+  "error": "Target did not publish a completed reply: Failed",
+  "target_trace": [
+    {
+      "turn": 1,
+      "input": "Hi there! I just received my order and I need to make some exchanges. I want to swap out two items—I’ve got the order number and everything. I’m hoping we can get this sorted in one go so I don’t have to deal with multiple shipments or back-and-forth.",
+      "outcome": {
+        "workflow_run_id": "workflow-run:v1:e915d671f3d978a4fab45362edd868e073a4fdb4343b38f63c85fffc0992f4da",
+        "signal_id": "interaction:v1:a1c2d1be8223d106dad9c491de38d8d3dd77eaca1dfe9504af88176414eda781",
+        "kind": "FIELDS",
+        "expires_at": "2026-09-13T17:19:59.449132+00:00",
+        "interaction_publication_id": "publication:v1:4d2bd9d93700efdd42fec1b1b4d438ef0bfd0ba15ac5bce919c465859f072465"
+      }
+    },
+    {
+      "turn": 2,
+      "input": "I actually don’t remember which email I used for this order—sorry about that. I have the order number and my shipping zip code if that helps. Can we look it up that way, or is there another option to find my account?",
+      "outcome": {
+        "workflow_run_id": "workflow-run:v1:9e4a75b7a5fa91b12ba58417157d3294180b905fb800eee8e04dc4eac1e0c741",
+        "signal_id": "interaction:v1:7e99939e0c167c258b8da97175e37caae8d2eb01817a99b8c80741d90565a152",
+        "kind": "FIELDS",
+        "expires_at": "2026-09-13T17:20:03.145932+00:00",
+        "interaction_publication_id": "publication:v1:28bda20d11bec31d0bf7e37e85da72a260252e3e6d3ec0b9814474caca193353"
+      }
+    },
+    {
+      "turn": 3,
+      "input": "Sure—my first name is Yusuf, last name is Rossi, and my zip code is 19122. I also have the order number on hand if that’s easier. I just don’t have the email accessible right now.",
+      "outcome": {
+        "code": "target_runtime_failed",
+        "retryable": false,
+        "correlation_id": "invocation:v1:a2e6d7c480492612b438013db88a0c425f5383d6e558a667838aea2892dc7985",
+        "safe_message": "Target runtime failed closed: ConversationStateConflict",
+        "stages": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "case_count": 36,
+  "cases_sha256": "e80d80f3204b5cca1763d9ef339535bab62f82cd93da0529cbde50e09e9504ee",
+  "corpus_sha256": "442609f7b89804aa36a60e456185f5019f6cba5db45b74668fa810615d8ecfd0",
+  "dataset_id": "wixqa-rag-long8000-dev-v1",
+  "document_count": 39,
+  "schema_version": 1,
+  "source": {
+    "dataset": "WixQA",
+    "grounding_granularity": "article-level; not character-span Gold",
+    "license": "MIT",
+    "min_relevant_document_chars": 8000,
+    "selection": "article-id-group-safe deterministic 80/20 split",
+    "snapshot": "2024-12-02",
+    "url": "https://huggingface.co/datasets/Wix/WixQA"
+  }
+}

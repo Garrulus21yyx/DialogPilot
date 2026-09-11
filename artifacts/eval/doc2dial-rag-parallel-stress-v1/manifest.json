@@ -1,0 +1,15 @@
+{
+  "case_count": 12,
+  "cases_sha256": "2803bd621bd0564569a9c7e5641f485afcdfcfcc305f7bd4525ed3ea68dc3cea",
+  "corpus_sha256": "ce4db3f15c1efd3aed1d42f09fe3d22fb10920f913aaf8673058919df061109e",
+  "dataset_id": "doc2dial-rag-parallel-stress-v1",
+  "document_count": 100,
+  "schema_version": 1,
+  "source": {
+    "construction": "12 same-domain pairs; query concatenation; Gold evidence union",
+    "dataset": "Doc2Dial v1.0.1",
+    "derived_from_dataset_id": "doc2dial-rag-long8000-dev-v1",
+    "grounding_granularity": "character-span grouped by explicit requirement",
+    "license": "CC-BY-3.0"
+  }
+}

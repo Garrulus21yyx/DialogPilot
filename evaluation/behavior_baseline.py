@@ -57,8 +57,11 @@ DECISION_POLICY_BASELINE_V1: Mapping[str, Any] = {
         "multi_instance_status": "NOT_APPLICABLE",
     },
     "knowledge_retrieval": {
-        "raw_query_weight": 0.25,
-        "standalone_query_weight": 0.75,
+        "raw_query_weight": 0.20,
+        "standalone_query_weight": 0.60,
+        "expansion_query_weight": 0.20,
+        "query_expansion_count": 2,
+        "metadata_hint_weight": 0.50,
         "dense_weight": 0.25,
         "bm25_weight": 0.75,
         "rrf_k": 10,

@@ -1,5 +1,13 @@
 # 客服 RAG 多条件检索收敛实验
 
+> 历史归档（2026-09-02）：本页记录 Chroma-era 的已完成实验与当时产物。
+> `evaluation/rag_multi_condition_ablation.py`、`evaluation/rag_cross_encoder_ablation.py`
+> 及旧 retrieval/query/rerank producer 已在 PostgreSQL 直接替换中删除；当前 HEAD
+> 只保留报告、发布摘要、可复用合同与 Git 历史。后续不得按本页命令恢复旧主链，
+> 应依照[评测收敛执行手册](../docs/customer-service-agent-evaluation-plan.zh-CN.md)
+> 在 PostgreSQL + 真实 dense owner 上重建 runner。这里的 CrossEncoder 与 Dynamic
+> Parent 结果属于拒绝/定位证据，不是当前候选默认。
+
 ## 状态
 
 - [x] 明确重复重开后的共同根因与本轮边界
@@ -26,8 +34,8 @@
 
 ## 对照组
 
-1. `baseline-512-64`：Raw/Standalone → Hybrid → Listwise rerank → 普通 packing。
-2. `requirements-512-64`：条件拆分 → 每条件 Hybrid → 集合选择 → 512/64 packing。
+1. `baseline-512-64`：当时的 fixed `512/64`，Raw/Standalone → Hybrid → Listwise rerank → 普通 packing。
+2. `requirements-512-64`：条件拆分 → 每条件 Hybrid → 集合选择 → fixed `512/64` child packing。
 3. `requirements-dynamic-parent`：同上，选中锚点后再做动态 Parent/Window/Child 扩展。
 
 ## 数据标签审计
@@ -58,6 +66,9 @@ Doc2Dial Dev 当前 16 条所谓 multi-condition 是按 `evidence_count >= 2` �
 - Dynamic Parent 没有修复 cross-encoder 候选/选择缺口；不进入 Generation/Judge。
 
 ## 产物
+
+以下清单是实验提交 `6e0bd8c` / 文档提交 `f5b1aa1` 时的产物清单，
+不是当前 HEAD 的文件存在性声明：
 
 - `mcp/query_requirements.py`：typed requirement Owner 与 Raw fallback。
 - `mcp/evidence_set_selector.py`：typed set selector 与确定性 quota fallback。

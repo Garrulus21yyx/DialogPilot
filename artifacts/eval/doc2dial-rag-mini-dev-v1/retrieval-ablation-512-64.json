@@ -1,0 +1,1143 @@
+{
+  "candidate_k": 20,
+  "case_count": 300,
+  "chunk_config": {
+    "max_tokens": 512,
+    "overlap_tokens": 64,
+    "strategy": "fixed_tokens"
+  },
+  "dataset_id": "doc2dial-rag-mini-dev-v1",
+  "document_count": 100,
+  "inserted_chunks": 314,
+  "ranking_capture": "bm25/vector captured once per case; RRF replayed offline",
+  "recommended_paired_bootstrap_vs": {
+    "bm25-only": {
+      "evidence_recall": {
+        "ci95_high": 0.09114583333333334,
+        "ci95_low": 0.03194888178913738,
+        "delta": 0.06055555555555556,
+        "samples": 1000.0
+      },
+      "mrr": {
+        "ci95_high": 0.012075641775235431,
+        "ci95_low": -0.04151030685313188,
+        "delta": -0.014916639804410702,
+        "samples": 1000.0
+      },
+      "ndcg": {
+        "ci95_high": 0.02460799013706983,
+        "ci95_low": -0.017418684960337463,
+        "delta": 0.0034713352685804386,
+        "samples": 1000.0
+      }
+    },
+    "dense-only": {
+      "evidence_recall": {
+        "ci95_high": 0.20066889632107024,
+        "ci95_low": 0.12040133779264214,
+        "delta": 0.16,
+        "samples": 1000.0
+      },
+      "mrr": {
+        "ci95_high": 0.14495128511266284,
+        "ci95_low": 0.041410961723461724,
+        "delta": 0.09270218187671748,
+        "samples": 1000.0
+      },
+      "ndcg": {
+        "ci95_high": 0.15946324980192464,
+        "ci95_low": 0.06440870829031894,
+        "delta": 0.11153035159330882,
+        "samples": 1000.0
+      }
+    },
+    "rrf-b25-v75-k10": {
+      "evidence_recall": {
+        "ci95_high": 0.14636752136752135,
+        "ci95_low": 0.07182940516273849,
+        "delta": 0.11,
+        "samples": 1000.0
+      },
+      "mrr": {
+        "ci95_high": 0.12557276015800625,
+        "ci95_low": 0.02854034028214227,
+        "delta": 0.07806518952610284,
+        "samples": 1000.0
+      },
+      "ndcg": {
+        "ci95_high": 0.1297452025943141,
+        "ci95_low": 0.045583169514470265,
+        "delta": 0.08765417689753403,
+        "samples": 1000.0
+      }
+    },
+    "rrf-b25-v75-k30": {
+      "evidence_recall": {
+        "ci95_high": 0.14636752136752135,
+        "ci95_low": 0.07182940516273849,
+        "delta": 0.11,
+        "samples": 1000.0
+      },
+      "mrr": {
+        "ci95_high": 0.11979450513760811,
+        "ci95_low": 0.04182137672341569,
+        "delta": 0.07981594461896319,
+        "samples": 1000.0
+      },
+      "ndcg": {
+        "ci95_high": 0.12496987454367312,
+        "ci95_low": 0.0536463669307818,
+        "delta": 0.08903567650325227,
+        "samples": 1000.0
+      }
+    },
+    "rrf-b25-v75-k60": {
+      "evidence_recall": {
+        "ci95_high": 0.14636752136752135,
+        "ci95_low": 0.07182940516273849,
+        "delta": 0.11,
+        "samples": 1000.0
+      },
+      "mrr": {
+        "ci95_high": 0.12770269125725783,
+        "ci95_low": 0.05453183239865471,
+        "delta": 0.08915346358148216,
+        "samples": 1000.0
+      },
+      "ndcg": {
+        "ci95_high": 0.1321179384177306,
+        "ci95_low": 0.06296142290542392,
+        "delta": 0.09698232062800487,
+        "samples": 1000.0
+      }
+    },
+    "rrf-b50-v50-k10": {
+      "evidence_recall": {
+        "ci95_high": 0.017241379310344827,
+        "ci95_low": -0.010309278350515464,
+        "delta": 0.0033333333333333335,
+        "samples": 1000.0
+      },
+      "mrr": {
+        "ci95_high": 0.07967464775310629,
+        "ci95_low": 0.02921681802156857,
+        "delta": 0.05355508958991931,
+        "samples": 1000.0
+      },
+      "ndcg": {
+        "ci95_high": 0.06240375372194735,
+        "ci95_low": 0.02360738911978672,
+        "delta": 0.04245567698192536,
+        "samples": 1000.0
+      }
+    },
+    "rrf-b50-v50-k30": {
+      "evidence_recall": {
+        "ci95_high": 0.017241379310344827,
+        "ci95_low": -0.010309278350515464,
+        "delta": 0.0033333333333333335,
+        "samples": 1000.0
+      },
+      "mrr": {
+        "ci95_high": 0.09696869853119854,
+        "ci95_low": 0.04101601895719543,
+        "delta": 0.06804943647397209,
+        "samples": 1000.0
+      },
+      "ndcg": {
+        "ci95_high": 0.07739390963334071,
+        "ci95_low": 0.03369853986210744,
+        "delta": 0.05521150904964026,
+        "samples": 1000.0
+      }
+    },
+    "rrf-b50-v50-k60": {
+      "evidence_recall": {
+        "ci95_high": 0.017241379310344827,
+        "ci95_low": -0.010309278350515464,
+        "delta": 0.0033333333333333335,
+        "samples": 1000.0
+      },
+      "mrr": {
+        "ci95_high": 0.098623410274994,
+        "ci95_low": 0.043098742552957224,
+        "delta": 0.06999388091841652,
+        "samples": 1000.0
+      },
+      "ndcg": {
+        "ci95_high": 0.07865284222998227,
+        "ci95_low": 0.035628707075034766,
+        "delta": 0.05667282134415743,
+        "samples": 1000.0
+      }
+    },
+    "rrf-b75-v25-k30": {
+      "evidence_recall": {
+        "ci95_high": 0.0,
+        "ci95_low": 0.0,
+        "delta": 0.0,
+        "samples": 1000.0
+      },
+      "mrr": {
+        "ci95_high": 0.07709987893934382,
+        "ci95_low": 0.035434245603737126,
+        "delta": 0.055017158767158764,
+        "samples": 1000.0
+      },
+      "ndcg": {
+        "ci95_high": 0.06137185184040269,
+        "ci95_low": 0.028987217639325567,
+        "delta": 0.04427567243531541,
+        "samples": 1000.0
+      }
+    },
+    "rrf-b75-v25-k60": {
+      "evidence_recall": {
+        "ci95_high": 0.0,
+        "ci95_low": 0.0,
+        "delta": 0.0,
+        "samples": 1000.0
+      },
+      "mrr": {
+        "ci95_high": 0.08337125536800861,
+        "ci95_low": 0.03689108244477372,
+        "delta": 0.05883855033855034,
+        "samples": 1000.0
+      },
+      "ndcg": {
+        "ci95_high": 0.06771082989300599,
+        "ci95_low": 0.03087199760153422,
+        "delta": 0.048377243968119314,
+        "samples": 1000.0
+      }
+    }
+  },
+  "results": [
+    {
+      "bm25_weight": 1.0,
+      "config_id": "bm25-only",
+      "document_recall_at_20": 0.7233333333333334,
+      "evidence_recall_at_20": 0.5638888888888889,
+      "mean_estimated_retrieval_latency_ms": 72.23124019180734,
+      "mrr": 0.420335557960558,
+      "ndcg_at_20": 0.4561493905885724,
+      "rrf_k": 30,
+      "slices": {
+        "customer_support": {
+          "evidence_recall_at_20": 0.5638888888888889,
+          "mrr": 0.420335557960558
+        },
+        "dmv": {
+          "evidence_recall_at_20": 0.5888888888888889,
+          "mrr": 0.5702020202020202
+        },
+        "multi_turn": {
+          "evidence_recall_at_20": 0.5307898259705488,
+          "mrr": 0.3920374861639922
+        },
+        "ssa": {
+          "evidence_recall_at_20": 0.52,
+          "mrr": 0.26131481481481483
+        },
+        "standalone": {
+          "evidence_recall_at_20": 0.7254901960784313,
+          "mrr": 0.5584967320261438
+        },
+        "studentaid": {
+          "evidence_recall_at_20": 0.5466666666666666,
+          "mrr": 0.381
+        },
+        "va": {
+          "evidence_recall_at_20": 0.6,
+          "mrr": 0.46882539682539687
+        }
+      },
+      "vector_weight": 0.0
+    },
+    {
+      "bm25_weight": 0.0,
+      "config_id": "dense-only",
+      "document_recall_at_20": 0.7566666666666667,
+      "evidence_recall_at_20": 0.4644444444444445,
+      "mean_estimated_retrieval_latency_ms": 157.81574853385487,
+      "mrr": 0.3127167362794298,
+      "ndcg_at_20": 0.34809037426384404,
+      "rrf_k": 30,
+      "slices": {
+        "customer_support": {
+          "evidence_recall_at_20": 0.4644444444444445,
+          "mrr": 0.3127167362794298
+        },
+        "dmv": {
+          "evidence_recall_at_20": 0.4222222222222222,
+          "mrr": 0.34366310160427804
+        },
+        "multi_turn": {
+          "evidence_recall_at_20": 0.42704149933065594,
+          "mrr": 0.2866279261967277
+        },
+        "ssa": {
+          "evidence_recall_at_20": 0.5155555555555555,
+          "mrr": 0.32300312650312646
+        },
+        "standalone": {
+          "evidence_recall_at_20": 0.6470588235294118,
+          "mrr": 0.4400915149185045
+        },
+        "studentaid": {
+          "evidence_recall_at_20": 0.4666666666666667,
+          "mrr": 0.31443951662372716
+        },
+        "va": {
+          "evidence_recall_at_20": 0.4533333333333333,
+          "mrr": 0.2697612003865874
+        }
+      },
+      "vector_weight": 1.0
+    },
+    {
+      "bm25_weight": 0.75,
+      "config_id": "rrf-b75-v25-k10",
+      "document_recall_at_20": 0.7533333333333333,
+      "evidence_recall_at_20": 0.6244444444444445,
+      "mean_estimated_retrieval_latency_ms": 157.88399109616876,
+      "mrr": 0.4054189181561473,
+      "ndcg_at_20": 0.45962072585715286,
+      "rrf_k": 10,
+      "slices": {
+        "customer_support": {
+          "evidence_recall_at_20": 0.6244444444444445,
+          "mrr": 0.4054189181561473
+        },
+        "dmv": {
+          "evidence_recall_at_20": 0.6488888888888888,
+          "mrr": 0.49034780578898224
+        },
+        "multi_turn": {
+          "evidence_recall_at_20": 0.5836680053547524,
+          "mrr": 0.37069248530325033
+        },
+        "ssa": {
+          "evidence_recall_at_20": 0.5955555555555555,
+          "mrr": 0.2682242612908248
+        },
+        "standalone": {
+          "evidence_recall_at_20": 0.8235294117647058,
+          "mrr": 0.5749656197320557
+        },
+        "studentaid": {
+          "evidence_recall_at_20": 0.6266666666666667,
+          "mrr": 0.44053217697335345
+        },
+        "va": {
+          "evidence_recall_at_20": 0.6266666666666667,
+          "mrr": 0.4225714285714286
+        }
+      },
+      "vector_weight": 0.25
+    },
+    {
+      "bm25_weight": 0.75,
+      "config_id": "rrf-b75-v25-k30",
+      "document_recall_at_20": 0.7533333333333333,
+      "evidence_recall_at_20": 0.6244444444444445,
+      "mean_estimated_retrieval_latency_ms": 157.88399109616876,
+      "mrr": 0.3504017593889885,
+      "ndcg_at_20": 0.4153450534218374,
+      "rrf_k": 30,
+      "slices": {
+        "customer_support": {
+          "evidence_recall_at_20": 0.6244444444444445,
+          "mrr": 0.3504017593889885
+        },
+        "dmv": {
+          "evidence_recall_at_20": 0.6488888888888888,
+          "mrr": 0.39105150949268597
+        },
+        "multi_turn": {
+          "evidence_recall_at_20": 0.5836680053547524,
+          "mrr": 0.318102805906342
+        },
+        "ssa": {
+          "evidence_recall_at_20": 0.5955555555555555,
+          "mrr": 0.2581501872167507
+        },
+        "standalone": {
+          "evidence_recall_at_20": 0.8235294117647058,
+          "mrr": 0.5080966499219094
+        },
+        "studentaid": {
+          "evidence_recall_at_20": 0.6266666666666667,
+          "mrr": 0.3772681077092842
+        },
+        "va": {
+          "evidence_recall_at_20": 0.6266666666666667,
+          "mrr": 0.37513723313723313
+        }
+      },
+      "vector_weight": 0.25
+    },
+    {
+      "bm25_weight": 0.75,
+      "config_id": "rrf-b75-v25-k60",
+      "document_recall_at_20": 0.7533333333333333,
+      "evidence_recall_at_20": 0.6244444444444445,
+      "mean_estimated_retrieval_latency_ms": 157.88399109616876,
+      "mrr": 0.34658036781759693,
+      "ndcg_at_20": 0.4112434818890335,
+      "rrf_k": 60,
+      "slices": {
+        "customer_support": {
+          "evidence_recall_at_20": 0.6244444444444445,
+          "mrr": 0.34658036781759693
+        },
+        "dmv": {
+          "evidence_recall_at_20": 0.6488888888888888,
+          "mrr": 0.3791879286291051
+        },
+        "multi_turn": {
+          "evidence_recall_at_20": 0.5836680053547524,
+          "mrr": 0.31523752081214124
+        },
+        "ssa": {
+          "evidence_recall_at_20": 0.5955555555555555,
+          "mrr": 0.2576956417622052
+        },
+        "standalone": {
+          "evidence_recall_at_20": 0.8235294117647058,
+          "mrr": 0.49960720907952744
+        },
+        "studentaid": {
+          "evidence_recall_at_20": 0.6266666666666667,
+          "mrr": 0.3795692140103905
+        },
+        "va": {
+          "evidence_recall_at_20": 0.6266666666666667,
+          "mrr": 0.36986868686868685
+        }
+      },
+      "vector_weight": 0.25
+    },
+    {
+      "bm25_weight": 0.5,
+      "config_id": "rrf-b50-v50-k10",
+      "document_recall_at_20": 0.7566666666666667,
+      "evidence_recall_at_20": 0.6211111111111112,
+      "mean_estimated_retrieval_latency_ms": 157.88399109616876,
+      "mrr": 0.35186382856622794,
+      "ndcg_at_20": 0.41716504887522743,
+      "rrf_k": 10,
+      "slices": {
+        "customer_support": {
+          "evidence_recall_at_20": 0.6211111111111112,
+          "mrr": 0.35186382856622794
+        },
+        "dmv": {
+          "evidence_recall_at_20": 0.6355555555555555,
+          "mrr": 0.3765848040848041
+        },
+        "multi_turn": {
+          "evidence_recall_at_20": 0.5796519410977242,
+          "mrr": 0.32158711951645297
+        },
+        "ssa": {
+          "evidence_recall_at_20": 0.5955555555555555,
+          "mrr": 0.27643309030151136
+        },
+        "standalone": {
+          "evidence_recall_at_20": 0.8235294117647058,
+          "mrr": 0.49968540804454115
+        },
+        "studentaid": {
+          "evidence_recall_at_20": 0.6266666666666667,
+          "mrr": 0.3831314611314611
+        },
+        "va": {
+          "evidence_recall_at_20": 0.6266666666666667,
+          "mrr": 0.37130595874713523
+        }
+      },
+      "vector_weight": 0.5
+    },
+    {
+      "bm25_weight": 0.5,
+      "config_id": "rrf-b50-v50-k30",
+      "document_recall_at_20": 0.7566666666666667,
+      "evidence_recall_at_20": 0.6211111111111112,
+      "mean_estimated_retrieval_latency_ms": 157.88399109616876,
+      "mrr": 0.3373694816821752,
+      "ndcg_at_20": 0.4044092168075126,
+      "rrf_k": 30,
+      "slices": {
+        "customer_support": {
+          "evidence_recall_at_20": 0.6211111111111112,
+          "mrr": 0.3373694816821752
+        },
+        "dmv": {
+          "evidence_recall_at_20": 0.6355555555555555,
+          "mrr": 0.3613035668035668
+        },
+        "multi_turn": {
+          "evidence_recall_at_20": 0.5796519410977242,
+          "mrr": 0.3113387238587731
+        },
+        "ssa": {
+          "evidence_recall_at_20": 0.5955555555555555,
+          "mrr": 0.27263300150142256
+        },
+        "standalone": {
+          "evidence_recall_at_20": 0.8235294117647058,
+          "mrr": 0.4644608287023148
+        },
+        "studentaid": {
+          "evidence_recall_at_20": 0.6266666666666667,
+          "mrr": 0.3776115420527185
+        },
+        "va": {
+          "evidence_recall_at_20": 0.6266666666666667,
+          "mrr": 0.33792981637099284
+        }
+      },
+      "vector_weight": 0.5
+    },
+    {
+      "bm25_weight": 0.5,
+      "config_id": "rrf-b50-v50-k60",
+      "document_recall_at_20": 0.7566666666666667,
+      "evidence_recall_at_20": 0.6211111111111112,
+      "mean_estimated_retrieval_latency_ms": 157.88399109616876,
+      "mrr": 0.33542503723773076,
+      "ndcg_at_20": 0.4029479045129954,
+      "rrf_k": 60,
+      "slices": {
+        "customer_support": {
+          "evidence_recall_at_20": 0.6211111111111112,
+          "mrr": 0.33542503723773076
+        },
+        "dmv": {
+          "evidence_recall_at_20": 0.6355555555555555,
+          "mrr": 0.3613035668035668
+        },
+        "multi_turn": {
+          "evidence_recall_at_20": 0.5796519410977242,
+          "mrr": 0.30899601970884005
+        },
+        "ssa": {
+          "evidence_recall_at_20": 0.5955555555555555,
+          "mrr": 0.27263300150142256
+        },
+        "standalone": {
+          "evidence_recall_at_20": 0.8235294117647058,
+          "mrr": 0.4644608287023148
+        },
+        "studentaid": {
+          "evidence_recall_at_20": 0.6266666666666667,
+          "mrr": 0.37094487538605186
+        },
+        "va": {
+          "evidence_recall_at_20": 0.6266666666666667,
+          "mrr": 0.3368187052598817
+        }
+      },
+      "vector_weight": 0.5
+    },
+    {
+      "bm25_weight": 0.25,
+      "config_id": "rrf-b25-v75-k10",
+      "document_recall_at_20": 0.7566666666666667,
+      "evidence_recall_at_20": 0.5144444444444445,
+      "mean_estimated_retrieval_latency_ms": 157.88399109616876,
+      "mrr": 0.3273537286300444,
+      "ndcg_at_20": 0.3719665489596188,
+      "rrf_k": 10,
+      "slices": {
+        "customer_support": {
+          "evidence_recall_at_20": 0.5144444444444445,
+          "mrr": 0.3273537286300444
+        },
+        "dmv": {
+          "evidence_recall_at_20": 0.4622222222222222,
+          "mrr": 0.3454035087719298
+        },
+        "multi_turn": {
+          "evidence_recall_at_20": 0.4752342704149933,
+          "mrr": 0.29651051642174026
+        },
+        "ssa": {
+          "evidence_recall_at_20": 0.5422222222222222,
+          "mrr": 0.34105096073517127
+        },
+        "standalone": {
+          "evidence_recall_at_20": 0.7058823529411765,
+          "mrr": 0.47794117647058826
+        },
+        "studentaid": {
+          "evidence_recall_at_20": 0.56,
+          "mrr": 0.32119072155914263
+        },
+        "va": {
+          "evidence_recall_at_20": 0.49333333333333335,
+          "mrr": 0.301769723453934
+        }
+      },
+      "vector_weight": 0.75
+    },
+    {
+      "bm25_weight": 0.25,
+      "config_id": "rrf-b25-v75-k30",
+      "document_recall_at_20": 0.7566666666666667,
+      "evidence_recall_at_20": 0.5144444444444445,
+      "mean_estimated_retrieval_latency_ms": 157.88399109616876,
+      "mrr": 0.3256029735371841,
+      "ndcg_at_20": 0.3705850493539006,
+      "rrf_k": 30,
+      "slices": {
+        "customer_support": {
+          "evidence_recall_at_20": 0.5144444444444445,
+          "mrr": 0.3256029735371841
+        },
+        "dmv": {
+          "evidence_recall_at_20": 0.4622222222222222,
+          "mrr": 0.3330958164642375
+        },
+        "multi_turn": {
+          "evidence_recall_at_20": 0.4752342704149933,
+          "mrr": 0.2991535156405163
+        },
+        "ssa": {
+          "evidence_recall_at_20": 0.5422222222222222,
+          "mrr": 0.32816450216450216
+        },
+        "standalone": {
+          "evidence_recall_at_20": 0.7058823529411765,
+          "mrr": 0.45473856209150326
+        },
+        "studentaid": {
+          "evidence_recall_at_20": 0.56,
+          "mrr": 0.32378925947347
+        },
+        "va": {
+          "evidence_recall_at_20": 0.49333333333333335,
+          "mrr": 0.3173623160465266
+        }
+      },
+      "vector_weight": 0.75
+    },
+    {
+      "bm25_weight": 0.25,
+      "config_id": "rrf-b25-v75-k60",
+      "document_recall_at_20": 0.7566666666666667,
+      "evidence_recall_at_20": 0.5144444444444445,
+      "mean_estimated_retrieval_latency_ms": 157.88399109616876,
+      "mrr": 0.3162654545746651,
+      "ndcg_at_20": 0.362638405229148,
+      "rrf_k": 60,
+      "slices": {
+        "customer_support": {
+          "evidence_recall_at_20": 0.5144444444444445,
+          "mrr": 0.3162654545746651
+        },
+        "dmv": {
+          "evidence_recall_at_20": 0.4622222222222222,
+          "mrr": 0.3152025985710196
+        },
+        "multi_turn": {
+          "evidence_recall_at_20": 0.4752342704149933,
+          "mrr": 0.2885376310788486
+        },
+        "ssa": {
+          "evidence_recall_at_20": 0.5422222222222222,
+          "mrr": 0.3089158249158249
+        },
+        "standalone": {
+          "evidence_recall_at_20": 0.7058823529411765,
+          "mrr": 0.45164247517188694
+        },
+        "studentaid": {
+          "evidence_recall_at_20": 0.56,
+          "mrr": 0.3213429835271941
+        },
+        "va": {
+          "evidence_recall_at_20": 0.49333333333333335,
+          "mrr": 0.3196004112846218
+        }
+      },
+      "vector_weight": 0.75
+    }
+  ],
+  "selection": {
+    "eligible_count": 11,
+    "hard_constraints": {},
+    "metric_priority": [
+      [
+        "evidence_recall_at_20",
+        "max"
+      ],
+      [
+        "mrr",
+        "max"
+      ],
+      [
+        "ndcg_at_20",
+        "max"
+      ]
+    ],
+    "ranked": [
+      {
+        "bm25_weight": 0.75,
+        "config_id": "rrf-b75-v25-k10",
+        "document_recall_at_20": 0.7533333333333333,
+        "evidence_recall_at_20": 0.6244444444444445,
+        "mean_estimated_retrieval_latency_ms": 157.88399109616876,
+        "mrr": 0.4054189181561473,
+        "ndcg_at_20": 0.45962072585715286,
+        "rrf_k": 10,
+        "slices": {
+          "customer_support": {
+            "evidence_recall_at_20": 0.6244444444444445,
+            "mrr": 0.4054189181561473
+          },
+          "dmv": {
+            "evidence_recall_at_20": 0.6488888888888888,
+            "mrr": 0.49034780578898224
+          },
+          "multi_turn": {
+            "evidence_recall_at_20": 0.5836680053547524,
+            "mrr": 0.37069248530325033
+          },
+          "ssa": {
+            "evidence_recall_at_20": 0.5955555555555555,
+            "mrr": 0.2682242612908248
+          },
+          "standalone": {
+            "evidence_recall_at_20": 0.8235294117647058,
+            "mrr": 0.5749656197320557
+          },
+          "studentaid": {
+            "evidence_recall_at_20": 0.6266666666666667,
+            "mrr": 0.44053217697335345
+          },
+          "va": {
+            "evidence_recall_at_20": 0.6266666666666667,
+            "mrr": 0.4225714285714286
+          }
+        },
+        "vector_weight": 0.25
+      },
+      {
+        "bm25_weight": 0.75,
+        "config_id": "rrf-b75-v25-k30",
+        "document_recall_at_20": 0.7533333333333333,
+        "evidence_recall_at_20": 0.6244444444444445,
+        "mean_estimated_retrieval_latency_ms": 157.88399109616876,
+        "mrr": 0.3504017593889885,
+        "ndcg_at_20": 0.4153450534218374,
+        "rrf_k": 30,
+        "slices": {
+          "customer_support": {
+            "evidence_recall_at_20": 0.6244444444444445,
+            "mrr": 0.3504017593889885
+          },
+          "dmv": {
+            "evidence_recall_at_20": 0.6488888888888888,
+            "mrr": 0.39105150949268597
+          },
+          "multi_turn": {
+            "evidence_recall_at_20": 0.5836680053547524,
+            "mrr": 0.318102805906342
+          },
+          "ssa": {
+            "evidence_recall_at_20": 0.5955555555555555,
+            "mrr": 0.2581501872167507
+          },
+          "standalone": {
+            "evidence_recall_at_20": 0.8235294117647058,
+            "mrr": 0.5080966499219094
+          },
+          "studentaid": {
+            "evidence_recall_at_20": 0.6266666666666667,
+            "mrr": 0.3772681077092842
+          },
+          "va": {
+            "evidence_recall_at_20": 0.6266666666666667,
+            "mrr": 0.37513723313723313
+          }
+        },
+        "vector_weight": 0.25
+      },
+      {
+        "bm25_weight": 0.75,
+        "config_id": "rrf-b75-v25-k60",
+        "document_recall_at_20": 0.7533333333333333,
+        "evidence_recall_at_20": 0.6244444444444445,
+        "mean_estimated_retrieval_latency_ms": 157.88399109616876,
+        "mrr": 0.34658036781759693,
+        "ndcg_at_20": 0.4112434818890335,
+        "rrf_k": 60,
+        "slices": {
+          "customer_support": {
+            "evidence_recall_at_20": 0.6244444444444445,
+            "mrr": 0.34658036781759693
+          },
+          "dmv": {
+            "evidence_recall_at_20": 0.6488888888888888,
+            "mrr": 0.3791879286291051
+          },
+          "multi_turn": {
+            "evidence_recall_at_20": 0.5836680053547524,
+            "mrr": 0.31523752081214124
+          },
+          "ssa": {
+            "evidence_recall_at_20": 0.5955555555555555,
+            "mrr": 0.2576956417622052
+          },
+          "standalone": {
+            "evidence_recall_at_20": 0.8235294117647058,
+            "mrr": 0.49960720907952744
+          },
+          "studentaid": {
+            "evidence_recall_at_20": 0.6266666666666667,
+            "mrr": 0.3795692140103905
+          },
+          "va": {
+            "evidence_recall_at_20": 0.6266666666666667,
+            "mrr": 0.36986868686868685
+          }
+        },
+        "vector_weight": 0.25
+      },
+      {
+        "bm25_weight": 0.5,
+        "config_id": "rrf-b50-v50-k10",
+        "document_recall_at_20": 0.7566666666666667,
+        "evidence_recall_at_20": 0.6211111111111112,
+        "mean_estimated_retrieval_latency_ms": 157.88399109616876,
+        "mrr": 0.35186382856622794,
+        "ndcg_at_20": 0.41716504887522743,
+        "rrf_k": 10,
+        "slices": {
+          "customer_support": {
+            "evidence_recall_at_20": 0.6211111111111112,
+            "mrr": 0.35186382856622794
+          },
+          "dmv": {
+            "evidence_recall_at_20": 0.6355555555555555,
+            "mrr": 0.3765848040848041
+          },
+          "multi_turn": {
+            "evidence_recall_at_20": 0.5796519410977242,
+            "mrr": 0.32158711951645297
+          },
+          "ssa": {
+            "evidence_recall_at_20": 0.5955555555555555,
+            "mrr": 0.27643309030151136
+          },
+          "standalone": {
+            "evidence_recall_at_20": 0.8235294117647058,
+            "mrr": 0.49968540804454115
+          },
+          "studentaid": {
+            "evidence_recall_at_20": 0.6266666666666667,
+            "mrr": 0.3831314611314611
+          },
+          "va": {
+            "evidence_recall_at_20": 0.6266666666666667,
+            "mrr": 0.37130595874713523
+          }
+        },
+        "vector_weight": 0.5
+      },
+      {
+        "bm25_weight": 0.5,
+        "config_id": "rrf-b50-v50-k30",
+        "document_recall_at_20": 0.7566666666666667,
+        "evidence_recall_at_20": 0.6211111111111112,
+        "mean_estimated_retrieval_latency_ms": 157.88399109616876,
+        "mrr": 0.3373694816821752,
+        "ndcg_at_20": 0.4044092168075126,
+        "rrf_k": 30,
+        "slices": {
+          "customer_support": {
+            "evidence_recall_at_20": 0.6211111111111112,
+            "mrr": 0.3373694816821752
+          },
+          "dmv": {
+            "evidence_recall_at_20": 0.6355555555555555,
+            "mrr": 0.3613035668035668
+          },
+          "multi_turn": {
+            "evidence_recall_at_20": 0.5796519410977242,
+            "mrr": 0.3113387238587731
+          },
+          "ssa": {
+            "evidence_recall_at_20": 0.5955555555555555,
+            "mrr": 0.27263300150142256
+          },
+          "standalone": {
+            "evidence_recall_at_20": 0.8235294117647058,
+            "mrr": 0.4644608287023148
+          },
+          "studentaid": {
+            "evidence_recall_at_20": 0.6266666666666667,
+            "mrr": 0.3776115420527185
+          },
+          "va": {
+            "evidence_recall_at_20": 0.6266666666666667,
+            "mrr": 0.33792981637099284
+          }
+        },
+        "vector_weight": 0.5
+      },
+      {
+        "bm25_weight": 0.5,
+        "config_id": "rrf-b50-v50-k60",
+        "document_recall_at_20": 0.7566666666666667,
+        "evidence_recall_at_20": 0.6211111111111112,
+        "mean_estimated_retrieval_latency_ms": 157.88399109616876,
+        "mrr": 0.33542503723773076,
+        "ndcg_at_20": 0.4029479045129954,
+        "rrf_k": 60,
+        "slices": {
+          "customer_support": {
+            "evidence_recall_at_20": 0.6211111111111112,
+            "mrr": 0.33542503723773076
+          },
+          "dmv": {
+            "evidence_recall_at_20": 0.6355555555555555,
+            "mrr": 0.3613035668035668
+          },
+          "multi_turn": {
+            "evidence_recall_at_20": 0.5796519410977242,
+            "mrr": 0.30899601970884005
+          },
+          "ssa": {
+            "evidence_recall_at_20": 0.5955555555555555,
+            "mrr": 0.27263300150142256
+          },
+          "standalone": {
+            "evidence_recall_at_20": 0.8235294117647058,
+            "mrr": 0.4644608287023148
+          },
+          "studentaid": {
+            "evidence_recall_at_20": 0.6266666666666667,
+            "mrr": 0.37094487538605186
+          },
+          "va": {
+            "evidence_recall_at_20": 0.6266666666666667,
+            "mrr": 0.3368187052598817
+          }
+        },
+        "vector_weight": 0.5
+      },
+      {
+        "bm25_weight": 1.0,
+        "config_id": "bm25-only",
+        "document_recall_at_20": 0.7233333333333334,
+        "evidence_recall_at_20": 0.5638888888888889,
+        "mean_estimated_retrieval_latency_ms": 72.23124019180734,
+        "mrr": 0.420335557960558,
+        "ndcg_at_20": 0.4561493905885724,
+        "rrf_k": 30,
+        "slices": {
+          "customer_support": {
+            "evidence_recall_at_20": 0.5638888888888889,
+            "mrr": 0.420335557960558
+          },
+          "dmv": {
+            "evidence_recall_at_20": 0.5888888888888889,
+            "mrr": 0.5702020202020202
+          },
+          "multi_turn": {
+            "evidence_recall_at_20": 0.5307898259705488,
+            "mrr": 0.3920374861639922
+          },
+          "ssa": {
+            "evidence_recall_at_20": 0.52,
+            "mrr": 0.26131481481481483
+          },
+          "standalone": {
+            "evidence_recall_at_20": 0.7254901960784313,
+            "mrr": 0.5584967320261438
+          },
+          "studentaid": {
+            "evidence_recall_at_20": 0.5466666666666666,
+            "mrr": 0.381
+          },
+          "va": {
+            "evidence_recall_at_20": 0.6,
+            "mrr": 0.46882539682539687
+          }
+        },
+        "vector_weight": 0.0
+      },
+      {
+        "bm25_weight": 0.25,
+        "config_id": "rrf-b25-v75-k10",
+        "document_recall_at_20": 0.7566666666666667,
+        "evidence_recall_at_20": 0.5144444444444445,
+        "mean_estimated_retrieval_latency_ms": 157.88399109616876,
+        "mrr": 0.3273537286300444,
+        "ndcg_at_20": 0.3719665489596188,
+        "rrf_k": 10,
+        "slices": {
+          "customer_support": {
+            "evidence_recall_at_20": 0.5144444444444445,
+            "mrr": 0.3273537286300444
+          },
+          "dmv": {
+            "evidence_recall_at_20": 0.4622222222222222,
+            "mrr": 0.3454035087719298
+          },
+          "multi_turn": {
+            "evidence_recall_at_20": 0.4752342704149933,
+            "mrr": 0.29651051642174026
+          },
+          "ssa": {
+            "evidence_recall_at_20": 0.5422222222222222,
+            "mrr": 0.34105096073517127
+          },
+          "standalone": {
+            "evidence_recall_at_20": 0.7058823529411765,
+            "mrr": 0.47794117647058826
+          },
+          "studentaid": {
+            "evidence_recall_at_20": 0.56,
+            "mrr": 0.32119072155914263
+          },
+          "va": {
+            "evidence_recall_at_20": 0.49333333333333335,
+            "mrr": 0.301769723453934
+          }
+        },
+        "vector_weight": 0.75
+      },
+      {
+        "bm25_weight": 0.25,
+        "config_id": "rrf-b25-v75-k30",
+        "document_recall_at_20": 0.7566666666666667,
+        "evidence_recall_at_20": 0.5144444444444445,
+        "mean_estimated_retrieval_latency_ms": 157.88399109616876,
+        "mrr": 0.3256029735371841,
+        "ndcg_at_20": 0.3705850493539006,
+        "rrf_k": 30,
+        "slices": {
+          "customer_support": {
+            "evidence_recall_at_20": 0.5144444444444445,
+            "mrr": 0.3256029735371841
+          },
+          "dmv": {
+            "evidence_recall_at_20": 0.4622222222222222,
+            "mrr": 0.3330958164642375
+          },
+          "multi_turn": {
+            "evidence_recall_at_20": 0.4752342704149933,
+            "mrr": 0.2991535156405163
+          },
+          "ssa": {
+            "evidence_recall_at_20": 0.5422222222222222,
+            "mrr": 0.32816450216450216
+          },
+          "standalone": {
+            "evidence_recall_at_20": 0.7058823529411765,
+            "mrr": 0.45473856209150326
+          },
+          "studentaid": {
+            "evidence_recall_at_20": 0.56,
+            "mrr": 0.32378925947347
+          },
+          "va": {
+            "evidence_recall_at_20": 0.49333333333333335,
+            "mrr": 0.3173623160465266
+          }
+        },
+        "vector_weight": 0.75
+      },
+      {
+        "bm25_weight": 0.25,
+        "config_id": "rrf-b25-v75-k60",
+        "document_recall_at_20": 0.7566666666666667,
+        "evidence_recall_at_20": 0.5144444444444445,
+        "mean_estimated_retrieval_latency_ms": 157.88399109616876,
+        "mrr": 0.3162654545746651,
+        "ndcg_at_20": 0.362638405229148,
+        "rrf_k": 60,
+        "slices": {
+          "customer_support": {
+            "evidence_recall_at_20": 0.5144444444444445,
+            "mrr": 0.3162654545746651
+          },
+          "dmv": {
+            "evidence_recall_at_20": 0.4622222222222222,
+            "mrr": 0.3152025985710196
+          },
+          "multi_turn": {
+            "evidence_recall_at_20": 0.4752342704149933,
+            "mrr": 0.2885376310788486
+          },
+          "ssa": {
+            "evidence_recall_at_20": 0.5422222222222222,
+            "mrr": 0.3089158249158249
+          },
+          "standalone": {
+            "evidence_recall_at_20": 0.7058823529411765,
+            "mrr": 0.45164247517188694
+          },
+          "studentaid": {
+            "evidence_recall_at_20": 0.56,
+            "mrr": 0.3213429835271941
+          },
+          "va": {
+            "evidence_recall_at_20": 0.49333333333333335,
+            "mrr": 0.3196004112846218
+          }
+        },
+        "vector_weight": 0.75
+      },
+      {
+        "bm25_weight": 0.0,
+        "config_id": "dense-only",
+        "document_recall_at_20": 0.7566666666666667,
+        "evidence_recall_at_20": 0.4644444444444445,
+        "mean_estimated_retrieval_latency_ms": 157.81574853385487,
+        "mrr": 0.3127167362794298,
+        "ndcg_at_20": 0.34809037426384404,
+        "rrf_k": 30,
+        "slices": {
+          "customer_support": {
+            "evidence_recall_at_20": 0.4644444444444445,
+            "mrr": 0.3127167362794298
+          },
+          "dmv": {
+            "evidence_recall_at_20": 0.4222222222222222,
+            "mrr": 0.34366310160427804
+          },
+          "multi_turn": {
+            "evidence_recall_at_20": 0.42704149933065594,
+            "mrr": 0.2866279261967277
+          },
+          "ssa": {
+            "evidence_recall_at_20": 0.5155555555555555,
+            "mrr": 0.32300312650312646
+          },
+          "standalone": {
+            "evidence_recall_at_20": 0.6470588235294118,
+            "mrr": 0.4400915149185045
+          },
+          "studentaid": {
+            "evidence_recall_at_20": 0.4666666666666667,
+            "mrr": 0.31443951662372716
+          },
+          "va": {
+            "evidence_recall_at_20": 0.4533333333333333,
+            "mrr": 0.2697612003865874
+          }
+        },
+        "vector_weight": 1.0
+      }
+    ],
+    "recommended": "rrf-b75-v25-k10",
+    "selection_allowed": true,
+    "split": "dev"
+  },
+  "split": "dev"
+}

@@ -1,0 +1,784 @@
+{
+  "task_id": "13",
+  "official_reward": 1.0,
+  "langfuse_session_id": "tau3-72cd15ae49fb4c888638390d2c706234",
+  "termination": "user_stop",
+  "simulation_status": "COMPLETED",
+  "evaluation_errors": {},
+  "all": {
+    "reward": 1.0,
+    "db_check": {
+      "db_match": true,
+      "db_reward": 1.0
+    },
+    "env_assertions": [],
+    "action_checks": [
+      {
+        "action": {
+          "action_id": "13_0",
+          "requestor": "assistant",
+          "name": "find_user_id_by_email",
+          "arguments": {
+            "email": "mia.garcia2723@example.com"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "13_1",
+          "requestor": "assistant",
+          "name": "get_user_details",
+          "arguments": {
+            "user_id": "mia_garcia_4516"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "13_2",
+          "requestor": "assistant",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W5490111"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "13_3",
+          "requestor": "assistant",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W7387996"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "13_4",
+          "requestor": "assistant",
+          "name": "return_delivered_order_items",
+          "arguments": {
+            "order_id": "#W5490111",
+            "item_ids": [
+              "4579334072",
+              "6117189161",
+              "4947717507"
+            ],
+            "payment_method_id": "credit_card_3124723"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "write"
+      }
+    ],
+    "nl_assertions": [],
+    "communicate_checks": null,
+    "reward_basis": [
+      "DB",
+      "NL_ASSERTION"
+    ],
+    "reward_breakdown": {
+      "DB": 1.0,
+      "NL_ASSERTION": 1.0
+    },
+    "info": {
+      "env": null,
+      "nl": {
+        "note": "No nl_assertions to evaluate"
+      },
+      "communicate": {
+        "note": "No communicate_info to evaluate"
+      },
+      "action": null
+    }
+  },
+  "env": {
+    "reward": 1.0,
+    "db_check": {
+      "db_match": true,
+      "db_reward": 1.0
+    },
+    "env_assertions": [],
+    "action_checks": null,
+    "nl_assertions": null,
+    "communicate_checks": null,
+    "reward_basis": [
+      "DB",
+      "NL_ASSERTION"
+    ],
+    "reward_breakdown": {
+      "DB": 1.0
+    },
+    "info": null
+  },
+  "action": {
+    "reward": 1.0,
+    "db_check": null,
+    "env_assertions": null,
+    "action_checks": [
+      {
+        "action": {
+          "action_id": "13_0",
+          "requestor": "assistant",
+          "name": "find_user_id_by_email",
+          "arguments": {
+            "email": "mia.garcia2723@example.com"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "13_1",
+          "requestor": "assistant",
+          "name": "get_user_details",
+          "arguments": {
+            "user_id": "mia_garcia_4516"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "13_2",
+          "requestor": "assistant",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W5490111"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "13_3",
+          "requestor": "assistant",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W7387996"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "13_4",
+          "requestor": "assistant",
+          "name": "return_delivered_order_items",
+          "arguments": {
+            "order_id": "#W5490111",
+            "item_ids": [
+              "4579334072",
+              "6117189161",
+              "4947717507"
+            ],
+            "payment_method_id": "credit_card_3124723"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "write"
+      }
+    ],
+    "nl_assertions": null,
+    "communicate_checks": null,
+    "reward_basis": [
+      "DB"
+    ],
+    "reward_breakdown": {
+      "ACTION": 1.0
+    },
+    "info": null
+  },
+  "status": "EVALUATED",
+  "simulator_diagnostics": {
+    "capture_complete": true,
+    "capture_errors": [],
+    "calls": [
+      {
+        "call_id": "0d9aae59-4e5c-4928-a45e-e10c18deae68",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 51,
+            "prompt_tokens": 392,
+            "total_tokens": 443,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 51
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 384,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 384,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "ce41e26c-8ca1-4d8e-af5c-d5b21075ef8d",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 27,
+            "prompt_tokens": 489,
+            "total_tokens": 516,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 27
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 384,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 384,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "9cf09abb-7932-4f64-8656-378757344da8",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 66,
+            "prompt_tokens": 634,
+            "total_tokens": 700,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 66
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 512,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 512,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "f4624953-1542-41ac-b7e9-54c768a318ed",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 45,
+            "prompt_tokens": 768,
+            "total_tokens": 813,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 45
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 640,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 640,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "89057340-8009-4478-b4c6-3850010aaa89",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 24,
+            "prompt_tokens": 969,
+            "total_tokens": 993,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 24
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 640,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 640,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "f729f03a-aee9-49a5-a9b9-593292e6a89c",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 18,
+            "prompt_tokens": 1109,
+            "total_tokens": 1127,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 18
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 896,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 896,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      }
+    ]
+  },
+  "target_trace": [
+    {
+      "verification": {
+        "status": "pass",
+        "grounded": true,
+        "need_escalation": false,
+        "reason": "answer supported and request addressed",
+        "reason_code": "passed",
+        "assessment": {
+          "request_hash": "a0755b39b8298e2e3de9d0ad946ff125b872a27c649a058425e4bd4f36be0873",
+          "supported": true,
+          "answered": true,
+          "approval_terms_complete": false,
+          "issues": [],
+          "rejected_input_work_items": []
+        },
+        "request_binding": "749a6f4c9538037f75723a79b7ce431a1c85e3f19032f20cd828a5bce3567d8c"
+      },
+      "candidate": "I'd be happy to help with that. First, I need to verify your identity. Could you please provide the email address associated with your account, or your first name, last name, and zip code?"
+    },
+    {
+      "turn": 1,
+      "input": "Hi! I need some help with my recent orders. I’ve realized I need to focus more on my studies, so I’d like to cancel or return everything I bought that isn’t related to gaming. Can you help me with that?",
+      "outcome": {
+        "workflow_run_id": "workflow-run:v1:0d266d47278d3a1da30037edb3992af2ea046da12cc6a689283a3195a1cd46b6",
+        "signal_id": "interaction:v1:0b4410d73402cae7981caf089a83c841532b997a945478866d022e62378f0aff",
+        "kind": "FIELDS",
+        "expires_at": "2026-09-15T02:52:49.488497+00:00",
+        "interaction_publication_id": "publication:v1:7df7d7cde1b4736dd8b3a02d5a1ee4a771fb506bca195bb96530f37abcf05977"
+      }
+    },
+    {
+      "verification": {
+        "status": "pass",
+        "grounded": true,
+        "need_escalation": false,
+        "reason": "answer supported and request addressed",
+        "reason_code": "passed",
+        "assessment": {
+          "request_hash": "5ee411331ccbf95a22c82b2fb87e760ceed91a87c32d2f1603d2a3035be8b6a9",
+          "supported": true,
+          "answered": true,
+          "approval_terms_complete": false,
+          "issues": [],
+          "rejected_input_work_items": []
+        },
+        "request_binding": "505381444126f1d81b48aeea0fe06425dcf79c6eddbcdac03c243e8e1a1b35df"
+      },
+      "candidate": "Thanks, Mia! I've verified your account. Here's what I found:\n\n- **Order #W5490111** (delivered) contains 4 non-gaming items: Water Bottle, Mechanical Keyboard, Action Camera, and Backpack.\n- **Order #W7387996** (delivered) contains only a Gaming Mouse, which is gaming-related, so nothing to return there.\n\nFor the return refund, which payment method would you like to use: your original payment method (credit card ending in 7285) or an existing gift card?"
+    },
+    {
+      "turn": 2,
+      "input": "Sure! My email is mia.garcia2723@example.com. Let me know if you need anything else to verify my account.",
+      "outcome": {
+        "workflow_run_id": "workflow-run:v1:28b780eb69c83590c7d6817de5a7aa333bc255a851afc21b131d7fb4debe938e",
+        "signal_id": "interaction:v1:7ab285d2283a4ce0b91ba3e5cd99cbb6b9d6aaf303620928e131dc57a9d539c7",
+        "kind": "FIELDS",
+        "expires_at": "2026-09-15T02:53:13.152326+00:00",
+        "interaction_publication_id": "publication:v1:b87e21c404cef2d67acbdfb122683db7fb4524c110a6786209bf6618c979c7d0"
+      }
+    },
+    {
+      "verification": {
+        "status": "pass",
+        "grounded": true,
+        "need_escalation": false,
+        "reason": "answer supported and request addressed",
+        "reason_code": "passed",
+        "assessment": {
+          "request_hash": "ae77b8977c091a158384fee53eef794b154131bc6f69d8214fd13d4874b4c193",
+          "supported": true,
+          "answered": true,
+          "approval_terms_complete": false,
+          "issues": [],
+          "rejected_input_work_items": []
+        },
+        "request_binding": "61b4a7a3eb887ca28acba8cc12a4131186f41f6cff0dd38e200c000412951328"
+      },
+      "candidate": "Thanks for clarifying! Just to confirm, the Gaming Mouse is in order #W7387996, not the first order. So you'd like to return the Water Bottle, Action Camera, and Backpack from order #W5490111, and keep the Mechanical Keyboard and the Gaming Mouse — is that correct?"
+    },
+    {
+      "turn": 3,
+      "input": "I’d prefer to get the refund through PayPal if that’s possible. If not, the credit card ending in 7285 is fine. Also, I want to return everything from that first order except the keyboard and the mouse—those are the only things I want to keep. Can you help me set that up?",
+      "outcome": {
+        "workflow_run_id": "workflow-run:v1:7bcb8b2ec2e73c0e1a0fa33ee99e98c506c2c001279091ee60154bb2d75d43c6",
+        "signal_id": "interaction:v1:28a5e1639ce85a5ce6e6f67adc91782ea88f967954509efa5167eefc66c1f016",
+        "kind": "FIELDS",
+        "expires_at": "2026-09-15T02:53:35.728535+00:00",
+        "interaction_publication_id": "publication:v1:9466618e1c551d5e7c3aea29392169797799fac04588fd208bb5f2d36768e29f"
+      }
+    },
+    {
+      "verification": {
+        "status": "pass",
+        "grounded": true,
+        "need_escalation": false,
+        "reason": "answer supported and request addressed",
+        "reason_code": "passed",
+        "assessment": {
+          "request_hash": "cdefab7b36c9550f34f73000d6ec6f25144cbb0382e01bf5645323acfc540526",
+          "supported": true,
+          "answered": true,
+          "approval_terms_complete": true,
+          "issues": [],
+          "rejected_input_work_items": []
+        },
+        "request_binding": "8a275e337b473edaa09b609cb2da110b595e203167bbae0db3df1a4d59ed4280"
+      },
+      "candidate": "Yes, I can help with that. Here's the return I've prepared for your approval:\n\n**Order #W5490111** — return these 3 items:\n- Water Bottle — $54.85\n- Action Camera — $481.50\n- Backpack — $218.04\n\n**Refund method:** your original credit card ending in 7285. PayPal isn't available for this return because the order was originally paid by credit card, and refunds must go back to the original payment method or an existing gift card.\n\nThe Mechanical Keyboard stays with you, and the Gaming Mouse in order #W7387996 is untouched.\n\nThis return has **not been executed yet**. Would you like me to go ahead and process it?"
+    },
+    {
+      "turn": 4,
+      "input": "Yes, that’s exactly right. I want to return the Water Bottle, Action Camera, and Backpack from that first order, and keep the keyboard and the mouse. Can you help me with the return process?",
+      "outcome": {
+        "workflow_run_id": "workflow-run:v1:5af66d758c4e79bd212b4c794afcd8e5e75d24643148604ba9e8ed86d3b7a577",
+        "signal_id": "approval:action:v1:1ead9697c3f95e09786bb548836c7cbd7b22f17ae4b6aecd6fd8a6e26670fdc4",
+        "kind": "APPROVAL",
+        "expires_at": "2026-09-08T03:08:48.188751+00:00",
+        "interaction_publication_id": "publication:v1:3b236e0f37a55aa3f026fad13c1f4b039f5c9e3c687fda53d1022a7934ce2a75"
+      }
+    },
+    {
+      "verification": {
+        "status": "pass",
+        "grounded": true,
+        "need_escalation": false,
+        "reason": "answer supported and request addressed",
+        "reason_code": "passed",
+        "assessment": {
+          "request_hash": "74edcbb606f858c596a8163ef42ab81060e2ddb8c308b937f9c89e608657f60b",
+          "supported": true,
+          "answered": true,
+          "approval_terms_complete": false,
+          "issues": [],
+          "rejected_input_work_items": []
+        },
+        "request_binding": "6cd282f5856760c97bc1dc5393cfe46e5795e484a541c901d9ac171e13cc758b"
+      },
+      "candidate": "Your return has been processed! Here's a summary:\n\n**Order #W5490111** — return requested for:\n- Water Bottle — $54.85\n- Action Camera — $481.50\n- Backpack — $218.04\n\n**Refund method:** original credit card ending in 7285\n\nYou'll receive an email with instructions on how to send the items back. The Mechanical Keyboard stays with you, and the Gaming Mouse in order #W7387996 is untouched. Is there anything else I can help you with?"
+    },
+    {
+      "turn": 5,
+      "input": "Yes, please go ahead and process the return for those three items. The credit card refund is fine. Thank you!",
+      "outcome": {
+        "response_id": "publication:v1:72e621847a6ec860e0155bb69fe62c8782c58c90b8b182681fe88a01fc06c348",
+        "response": {
+          "intent": "APPROVED_WORKFLOW_RESUME",
+          "conv_id": "tau3-72cd15ae49fb4c888638390d2c706234",
+          "coverage": {
+            "complete": true,
+            "missing_requirement_ids": []
+          },
+          "grounded": true,
+          "response": "Your return has been processed! Here's a summary:\n\n**Order #W5490111** — return requested for:\n- Water Bottle — $54.85\n- Action Camera — $481.50\n- Backpack — $218.04\n\n**Refund method:** original credit card ending in 7285\n\nYou'll receive an email with instructions on how to send the items back. The Mechanical Keyboard stays with you, and the Gaming Mouse in order #W7387996 is untouched. Is there anything else I can help you with?",
+          "verified": true,
+          "escalated": false,
+          "task_plan": {
+            "plan_id": "turn-plan:v1:a1f06366d220ba51cd1ed3a14513e438b883cec8c9aed434aa7d42b560a33cce",
+            "work_item_ids": [
+              "work:1:continue-approved-workflow",
+              "work:2:continue-domain-objective:control:invocation:v1:9e469499c1e9a36b10113500332ef4a4522bc435861d5955c58f45c016529616:retail_cancel_return_non_gaming"
+            ]
+          },
+          "ticket_id": null,
+          "agent_type": "retail",
+          "latency_ms": 14382.890213280916,
+          "request_id": "turn-5",
+          "agent_types": [
+            "retail"
+          ],
+          "response_id": "publication:v1:72e621847a6ec860e0155bb69fe62c8782c58c90b8b182681fe88a01fc06c348",
+          "intent_group": "retail",
+          "response_seq": 5,
+          "primary_agent": "retail",
+          "ticket_status": null,
+          "agent_outcomes": [
+            {
+              "status": "SUCCEEDED",
+              "control": {
+                "revision": 1,
+                "control_id": "control:invocation:v1:b23596a6d08f64495c6ef052249891f5bddca5b70598781df35e737f1b8e6c9c:continue-approved-workflow"
+              },
+              "owner_agent": "retail",
+              "reason_code": "TOOL_COMMITTED",
+              "work_item_id": "work:1:continue-approved-workflow"
+            },
+            {
+              "status": "SUCCEEDED",
+              "control": {
+                "revision": 5,
+                "control_id": "control:invocation:v1:9e469499c1e9a36b10113500332ef4a4522bc435861d5955c58f45c016529616:retail_cancel_return_non_gaming"
+              },
+              "owner_agent": "retail",
+              "reason_code": "FRAMEWORK_AGENT_REQUIREMENTS_SATISFIED",
+              "work_item_id": "work:2:continue-domain-objective:control:invocation:v1:9e469499c1e9a36b10113500332ef4a4522bc435861d5955c58f45c016529616:retail_cancel_return_non_gaming"
+            }
+          ],
+          "bundle_version": "tau3-retail-v1",
+          "routing_reason": "APPROVED_WORKFLOW_RESUME",
+          "task_completed": true,
+          "delivery_status": "selected",
+          "handoff_created": false,
+          "evaluation_trace": {
+            "cost": {
+              "latency_ms": 14382.890213280916,
+              "work_item_count": 2,
+              "conversation_planner_invoked": false
+            },
+            "outcome": {
+              "kind": "COMPLETED",
+              "task_completed": true,
+              "verifier_status": "PASS",
+              "coverage_complete": true,
+              "missing_requirement_ids": []
+            },
+            "trigger": {
+              "invocation_admitted": true,
+              "deterministic_resolution": "APPROVAL_DECISION"
+            },
+            "artifact": {
+              "plan_id": "turn-plan:v1:a1f06366d220ba51cd1ed3a14513e438b883cec8c9aed434aa7d42b560a33cce",
+              "owner_ids": [
+                "retail"
+              ],
+              "route_mode": "AGENT_TASK",
+              "registry_fingerprint": "capability-bundle:v1:3b6d277e66dda28d864ed33af998551145d185fc79366a6bef1bfc46c0be4339",
+              "understanding_reason": "APPROVED_WORKFLOW_RESUME"
+            },
+            "consumption": {
+              "facts": [
+                {
+                  "source_ref": "official-call:tau3-call-9b807df6a2af46218ee71c92e72becb1",
+                  "producer_id": "return_delivered_order_items",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.return_delivered_order_items",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_00_bgSCzL1JqNKGWQ6BnEKY4297",
+                  "producer_id": "find_user_id_by_email",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.find_user_id_by_email",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_00_GxStNRQiMcvKNtQkxDL17625",
+                  "producer_id": "get_user_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_user_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_00_gYdXxg6A3oJyJws660ye7510",
+                  "producer_id": "get_order_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_order_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "call_01_mOmHyqRpdFSH5GwQzkNJ2455",
+                  "producer_id": "get_order_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_order_details",
+                  "producer_version": "tool-output-v1"
+                }
+              ],
+              "work_items": [
+                {
+                  "control": {
+                    "revision": 1,
+                    "control_id": "control:invocation:v1:b23596a6d08f64495c6ef052249891f5bddca5b70598781df35e737f1b8e6c9c:continue-approved-workflow"
+                  },
+                  "owner_agent": "retail",
+                  "control_mode": "ACTION",
+                  "work_item_id": "work:1:continue-approved-workflow",
+                  "allowed_tools": [
+                    "return_delivered_order_items",
+                    "observed_operation_status"
+                  ],
+                  "allowed_skills": []
+                },
+                {
+                  "control": {
+                    "revision": 5,
+                    "control_id": "control:invocation:v1:9e469499c1e9a36b10113500332ef4a4522bc435861d5955c58f45c016529616:retail_cancel_return_non_gaming"
+                  },
+                  "owner_agent": "retail",
+                  "control_mode": "DELEGATED",
+                  "work_item_id": "work:2:continue-domain-objective:control:invocation:v1:9e469499c1e9a36b10113500332ef4a4522bc435861d5955c58f45c016529616:retail_cancel_return_non_gaming",
+                  "allowed_tools": [
+                    "calculate",
+                    "find_user_id_by_name_zip",
+                    "find_user_id_by_email",
+                    "get_order_details",
+                    "get_product_details",
+                    "get_item_details",
+                    "get_user_details",
+                    "list_all_product_types",
+                    "transfer_to_human_agents"
+                  ],
+                  "allowed_skills": []
+                }
+              ],
+              "result_statuses": [
+                "SUCCEEDED",
+                "SUCCEEDED"
+              ]
+            },
+            "schema_version": "target-evaluation-trace-v1",
+            "state_side_effect": {
+              "state_version_after": 11,
+              "workstream_statuses": [
+                "COMPLETED"
+              ],
+              "state_version_before": 8,
+              "committed_receipt_refs": [
+                "official-call:tau3-call-9b807df6a2af46218ee71c92e72becb1"
+              ]
+            }
+          },
+          "synthesis_reason": "ANSWER_SUPPORT_CHECKED",
+          "synthesis_status": "conversation_compose",
+          "supporting_agents": [],
+          "routing_disposition": "agent_task",
+          "synthesis_conflicts": [],
+          "verification_status": "pass",
+          "verification_reason_code": "ANSWER_SUPPORT_CHECKED"
+        },
+        "stages": []
+      }
+    }
+  ]
+}

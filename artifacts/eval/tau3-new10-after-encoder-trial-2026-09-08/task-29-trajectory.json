@@ -1,0 +1,884 @@
+{
+  "id": "d3d4936e-5fec-49d5-a2f4-4dceccb7f2ce",
+  "task_id": "29",
+  "timestamp": "2026-09-08T19:46:58.789965",
+  "start_time": "2026-09-08T19:46:23.637899",
+  "end_time": "2026-09-08T19:46:58.789946",
+  "duration": 35.15095090121031,
+  "termination_reason": "user_stop",
+  "agent_cost": null,
+  "user_cost": 0.0,
+  "agent_usage": null,
+  "reward_info": null,
+  "messages": [
+    {
+      "role": "assistant",
+      "content": "Hi! How can I help you today?",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": 0,
+      "timestamp": "2026-09-08T19:46:23.638055",
+      "cost": 0.0,
+      "usage": null,
+      "raw_data": null,
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "user",
+      "content": "Hey there! I’ve got a couple of things I’d like to sort out. First, I want to exchange my skateboard for a shorter one made of bamboo. Also, I need to swap the garden hose I received for the type that’s in my pending order. Can you help me with both?",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": 1,
+      "timestamp": "2026-09-08T19:46:25.048710",
+      "cost": 0.0,
+      "usage": {
+        "completion_tokens": 65,
+        "prompt_tokens": 479
+      },
+      "raw_data": {
+        "id": "chatcmpl-bbba575c-b504-4cb4-b710-1e6cf0127a0c",
+        "created": 1788889585,
+        "model": "deepseek-v4-flash",
+        "object": "chat.completion",
+        "system_fingerprint": null,
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "content": "Hey there! I’ve got a couple of things I’d like to sort out. First, I want to exchange my skateboard for a shorter one made of bamboo. Also, I need to swap the garden hose I received for the type that’s in my pending order. Can you help me with both?",
+              "role": "assistant",
+              "tool_calls": null,
+              "function_call": null,
+              "provider_specific_fields": {
+                "citations": null,
+                "thinking_blocks": null
+              }
+            }
+          }
+        ],
+        "usage": {
+          "completion_tokens": 65,
+          "prompt_tokens": 479,
+          "total_tokens": 544,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "text_tokens": 65
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 256,
+            "image_tokens": null,
+            "text_tokens": null,
+            "video_tokens": null,
+            "cache_creation_tokens": 0
+          },
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 256,
+          "inference_geo": null,
+          "speed": null
+        }
+      },
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "assistant",
+      "content": "I'd be happy to help you with both of these requests. First, I need to authenticate your identity before I can assist you.\n\nCould you please provide me with your email address, or your name along with your zip code?",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": 2,
+      "timestamp": "2026-09-08T19:46:28.188677",
+      "cost": null,
+      "usage": null,
+      "raw_data": null,
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "user",
+      "content": "Sure thing! My name is Isabella Johansson, and my zip code is 32286. I don’t remember the email I used, but hopefully that’s enough to get started.",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": 3,
+      "timestamp": "2026-09-08T19:46:29.767427",
+      "cost": 0.0,
+      "usage": {
+        "completion_tokens": 39,
+        "prompt_tokens": 594
+      },
+      "raw_data": {
+        "id": "chatcmpl-1e79e38f-014c-443a-94a4-cc730c83d5fd",
+        "created": 1788889589,
+        "model": "deepseek-v4-flash",
+        "object": "chat.completion",
+        "system_fingerprint": null,
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "content": "Sure thing! My name is Isabella Johansson, and my zip code is 32286. I don’t remember the email I used, but hopefully that’s enough to get started.",
+              "role": "assistant",
+              "tool_calls": null,
+              "function_call": null,
+              "provider_specific_fields": {
+                "citations": null,
+                "thinking_blocks": null
+              }
+            }
+          }
+        ],
+        "usage": {
+          "completion_tokens": 39,
+          "prompt_tokens": 594,
+          "total_tokens": 633,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "text_tokens": 39
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 512,
+            "image_tokens": null,
+            "text_tokens": null,
+            "video_tokens": null,
+            "cache_creation_tokens": 0
+          },
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "inference_geo": null,
+          "speed": null
+        }
+      },
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "assistant",
+      "content": "I could not complete this turn. Please contact support to check the saved processing records; do not resubmit the same business operation.",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": 4,
+      "timestamp": "2026-09-08T19:46:31.785052",
+      "cost": null,
+      "usage": null,
+      "raw_data": null,
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "user",
+      "content": "No worries, I’ll wait for you to check the records. Just let me know when you’re ready to help with the skateboard exchange and the garden hose swap.",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": 5,
+      "timestamp": "2026-09-08T19:46:33.045545",
+      "cost": 0.0,
+      "usage": {
+        "completion_tokens": 36,
+        "prompt_tokens": 664
+      },
+      "raw_data": {
+        "id": "chatcmpl-3d1bfafd-af7f-497c-9f4f-a4ebf15865e2",
+        "created": 1788889593,
+        "model": "deepseek-v4-flash",
+        "object": "chat.completion",
+        "system_fingerprint": null,
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "content": "No worries, I’ll wait for you to check the records. Just let me know when you’re ready to help with the skateboard exchange and the garden hose swap.",
+              "role": "assistant",
+              "tool_calls": null,
+              "function_call": null,
+              "provider_specific_fields": {
+                "citations": null,
+                "thinking_blocks": null
+              }
+            }
+          }
+        ],
+        "usage": {
+          "completion_tokens": 36,
+          "prompt_tokens": 664,
+          "total_tokens": 700,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "text_tokens": 36
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 512,
+            "image_tokens": null,
+            "text_tokens": null,
+            "video_tokens": null,
+            "cache_creation_tokens": 0
+          },
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "inference_geo": null,
+          "speed": null
+        }
+      },
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "assistant",
+      "content": "I could not complete this turn. Please contact support to check the saved processing records; do not resubmit the same business operation.",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": 6,
+      "timestamp": "2026-09-08T19:46:34.790654",
+      "cost": null,
+      "usage": null,
+      "raw_data": null,
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "user",
+      "content": "Okay, I understand. I’ll hold off on resubmitting anything. Just let me know what you find and we can pick up from there.",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": 7,
+      "timestamp": "2026-09-08T19:46:35.986367",
+      "cost": 0.0,
+      "usage": {
+        "completion_tokens": 31,
+        "prompt_tokens": 731
+      },
+      "raw_data": {
+        "id": "chatcmpl-057a782c-127d-44c1-b005-9edcbc6e1fb6",
+        "created": 1788889595,
+        "model": "deepseek-v4-flash",
+        "object": "chat.completion",
+        "system_fingerprint": null,
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "content": "Okay, I understand. I’ll hold off on resubmitting anything. Just let me know what you find and we can pick up from there.",
+              "role": "assistant",
+              "tool_calls": null,
+              "function_call": null,
+              "provider_specific_fields": {
+                "citations": null,
+                "thinking_blocks": null
+              }
+            }
+          }
+        ],
+        "usage": {
+          "completion_tokens": 31,
+          "prompt_tokens": 731,
+          "total_tokens": 762,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "text_tokens": 31
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 640,
+            "image_tokens": null,
+            "text_tokens": null,
+            "video_tokens": null,
+            "cache_creation_tokens": 0
+          },
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 640,
+          "inference_geo": null,
+          "speed": null
+        }
+      },
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "assistant",
+      "content": "I could not complete this turn. Please contact support to check the saved processing records; do not resubmit the same business operation.",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": 8,
+      "timestamp": "2026-09-08T19:46:37.205910",
+      "cost": null,
+      "usage": null,
+      "raw_data": null,
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "user",
+      "content": "Got it, I’ll wait for you to check the records. Whenever you’re ready, I’m still hoping to get the skateboard and garden hose sorted out.",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": 9,
+      "timestamp": "2026-09-08T19:46:38.414175",
+      "cost": 0.0,
+      "usage": {
+        "completion_tokens": 36,
+        "prompt_tokens": 793
+      },
+      "raw_data": {
+        "id": "chatcmpl-7637b7fd-67de-48a7-a0fc-a6320a77b7a0",
+        "created": 1788889598,
+        "model": "deepseek-v4-flash",
+        "object": "chat.completion",
+        "system_fingerprint": null,
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "content": "Got it, I’ll wait for you to check the records. Whenever you’re ready, I’m still hoping to get the skateboard and garden hose sorted out.",
+              "role": "assistant",
+              "tool_calls": null,
+              "function_call": null,
+              "provider_specific_fields": {
+                "citations": null,
+                "thinking_blocks": null
+              }
+            }
+          }
+        ],
+        "usage": {
+          "completion_tokens": 36,
+          "prompt_tokens": 793,
+          "total_tokens": 829,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "text_tokens": 36
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 640,
+            "image_tokens": null,
+            "text_tokens": null,
+            "video_tokens": null,
+            "cache_creation_tokens": 0
+          },
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 640,
+          "inference_geo": null,
+          "speed": null
+        }
+      },
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "assistant",
+      "content": "I could not complete this turn. Please contact support to check the saved processing records; do not resubmit the same business operation.",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": 10,
+      "timestamp": "2026-09-08T19:46:39.903482",
+      "cost": null,
+      "usage": null,
+      "raw_data": null,
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "user",
+      "content": "Alright, I’ll just wait here for you to sort things out on your end. Let me know when you’re ready to continue with the exchanges.",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": 11,
+      "timestamp": "2026-09-08T19:46:40.673443",
+      "cost": 0.0,
+      "usage": {
+        "completion_tokens": 32,
+        "prompt_tokens": 860
+      },
+      "raw_data": {
+        "id": "chatcmpl-61331df6-b889-4bed-a6e0-a185bc708383",
+        "created": 1788889600,
+        "model": "deepseek-v4-flash",
+        "object": "chat.completion",
+        "system_fingerprint": null,
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "content": "Alright, I’ll just wait here for you to sort things out on your end. Let me know when you’re ready to continue with the exchanges.",
+              "role": "assistant",
+              "tool_calls": null,
+              "function_call": null,
+              "provider_specific_fields": {
+                "citations": null,
+                "thinking_blocks": null
+              }
+            }
+          }
+        ],
+        "usage": {
+          "completion_tokens": 32,
+          "prompt_tokens": 860,
+          "total_tokens": 892,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "text_tokens": 32
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 768,
+            "image_tokens": null,
+            "text_tokens": null,
+            "video_tokens": null,
+            "cache_creation_tokens": 0
+          },
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 768,
+          "inference_geo": null,
+          "speed": null
+        }
+      },
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "assistant",
+      "content": "Thanks for your patience, Isabella. I don't have any new information yet about the skateboard exchange or the garden hose swap, so I'm not able to move forward with either one right now. I'll let you know as soon as there's an update on my end.",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": 12,
+      "timestamp": "2026-09-08T19:46:48.974264",
+      "cost": null,
+      "usage": null,
+      "raw_data": null,
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "user",
+      "content": "No problem, I appreciate you checking. I’ll be here whenever you have an update—just let me know when we can get the skateboard and garden hose sorted out.",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": 13,
+      "timestamp": "2026-09-08T19:46:50.307618",
+      "cost": 0.0,
+      "usage": {
+        "completion_tokens": 36,
+        "prompt_tokens": 952
+      },
+      "raw_data": {
+        "id": "chatcmpl-be680e77-314c-443f-b366-4d48543c77ab",
+        "created": 1788889610,
+        "model": "deepseek-v4-flash",
+        "object": "chat.completion",
+        "system_fingerprint": null,
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "content": "No problem, I appreciate you checking. I’ll be here whenever you have an update—just let me know when we can get the skateboard and garden hose sorted out.",
+              "role": "assistant",
+              "tool_calls": null,
+              "function_call": null,
+              "provider_specific_fields": {
+                "citations": null,
+                "thinking_blocks": null
+              }
+            }
+          }
+        ],
+        "usage": {
+          "completion_tokens": 36,
+          "prompt_tokens": 952,
+          "total_tokens": 988,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "text_tokens": 36
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 768,
+            "image_tokens": null,
+            "text_tokens": null,
+            "video_tokens": null,
+            "cache_creation_tokens": 0
+          },
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 768,
+          "inference_geo": null,
+          "speed": null
+        }
+      },
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "assistant",
+      "content": "I understand you're waiting on the skateboard exchange and garden hose swap, but I don't have any new information or records available to act on those requests right now. I'm not able to move forward with either one until I have the necessary details on my end.\n\nI'll let you know as soon as there's an update. Thanks for your patience.",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": 14,
+      "timestamp": "2026-09-08T19:46:53.384195",
+      "cost": null,
+      "usage": null,
+      "raw_data": null,
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "user",
+      "content": "Thanks for letting me know. I’ll wait for your update—just reach out when you’re ready to help with the skateboard and garden hose.",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": 15,
+      "timestamp": "2026-09-08T19:46:54.525285",
+      "cost": 0.0,
+      "usage": {
+        "completion_tokens": 32,
+        "prompt_tokens": 1064
+      },
+      "raw_data": {
+        "id": "chatcmpl-69b84058-21ed-45f8-8436-384d28920dcb",
+        "created": 1788889614,
+        "model": "deepseek-v4-flash",
+        "object": "chat.completion",
+        "system_fingerprint": null,
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "content": "Thanks for letting me know. I’ll wait for your update—just reach out when you’re ready to help with the skateboard and garden hose.",
+              "role": "assistant",
+              "tool_calls": null,
+              "function_call": null,
+              "provider_specific_fields": {
+                "citations": null,
+                "thinking_blocks": null
+              }
+            }
+          }
+        ],
+        "usage": {
+          "completion_tokens": 32,
+          "prompt_tokens": 1064,
+          "total_tokens": 1096,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "text_tokens": 32
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 896,
+            "image_tokens": null,
+            "text_tokens": null,
+            "video_tokens": null,
+            "cache_creation_tokens": 0
+          },
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 896,
+          "inference_geo": null,
+          "speed": null
+        }
+      },
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "assistant",
+      "content": "I understand you're waiting to hear back about the skateboard and garden hose. I don't have any new information or records available to act on those requests at this time, so I'm not able to move forward with either one yet.\n\nI'll reach out as soon as there's an update on my end. Thanks for your patience.",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": 16,
+      "timestamp": "2026-09-08T19:46:57.622135",
+      "cost": null,
+      "usage": null,
+      "raw_data": null,
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    },
+    {
+      "role": "user",
+      "content": "Alright, sounds good. I’ll be here whenever you have an update. Thanks for keeping me posted! \n\n###STOP###",
+      "tool_calls": null,
+      "is_audio": false,
+      "turn_idx": 17,
+      "timestamp": "2026-09-08T19:46:58.788796",
+      "cost": 0.0,
+      "usage": {
+        "completion_tokens": 27,
+        "prompt_tokens": 1168
+      },
+      "raw_data": {
+        "id": "chatcmpl-4a9632fe-1815-44d9-8d61-a0920d5024f3",
+        "created": 1788889618,
+        "model": "deepseek-v4-flash",
+        "object": "chat.completion",
+        "system_fingerprint": null,
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "content": "Alright, sounds good. I’ll be here whenever you have an update. Thanks for keeping me posted! \n\n###STOP###",
+              "role": "assistant",
+              "tool_calls": null,
+              "function_call": null,
+              "provider_specific_fields": {
+                "citations": null,
+                "thinking_blocks": null
+              }
+            }
+          }
+        ],
+        "usage": {
+          "completion_tokens": 27,
+          "prompt_tokens": 1168,
+          "total_tokens": 1195,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "text_tokens": 27
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 1024,
+            "image_tokens": null,
+            "text_tokens": null,
+            "video_tokens": null,
+            "cache_creation_tokens": 0
+          },
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 1024,
+          "inference_geo": null,
+          "speed": null
+        }
+      },
+      "generation_time_seconds": null,
+      "audio_format": null,
+      "audio_path": null,
+      "audio_script_gold": null,
+      "speech_effects": null,
+      "source_effects": null,
+      "channel_effects": null,
+      "turn_taking_action": null,
+      "utterance_ids": null,
+      "chunk_id": null,
+      "is_final_chunk": true,
+      "source": null,
+      "contains_speech": true
+    }
+  ],
+  "ticks": null,
+  "trial": null,
+  "seed": 300,
+  "mode": "half_duplex",
+  "speech_environment": null,
+  "review": null,
+  "user_only_review": null,
+  "info": null,
+  "auth_classification": null,
+  "hallucination_retries_used": 0,
+  "hallucination_check": null,
+  "provider_session_id": null,
+  "policy": null,
+  "effect_timeline": null
+}

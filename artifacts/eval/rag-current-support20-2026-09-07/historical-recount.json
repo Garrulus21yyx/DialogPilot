@@ -1,0 +1,32 @@
+{
+  "A": {
+    "cases": 20,
+    "categories": {
+      "passed": 10,
+      "support_rejection": 9,
+      "protocol_or_api_failure": 1
+    },
+    "unsupported": 10,
+    "detected_unsupported": 9,
+    "unsupported_passed": 1,
+    "unsupported_needs_only": 0,
+    "unsupported_protocol_failure": 0,
+    "supported": 10,
+    "supported_passed": 9
+  },
+  "B": {
+    "cases": 20,
+    "categories": {
+      "passed": 9,
+      "support_rejection": 7,
+      "protocol_or_api_failure": 4
+    },
+    "unsupported": 10,
+    "detected_unsupported": 7,
+    "unsupported_passed": 0,
+    "unsupported_needs_only": 0,
+    "unsupported_protocol_failure": 3,
+    "supported": 10,
+    "supported_passed": 9
+  }
+}

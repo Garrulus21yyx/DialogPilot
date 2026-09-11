@@ -1,0 +1,3735 @@
+{
+  "case_count": 12,
+  "dataset_id": "doc2dial-rag-parallel-stress-v1",
+  "experiment_contract": {
+    "baseline": "Raw/Standalone hybrid → listwise rerank → 512/64 Top-5 packing",
+    "candidate_union": "one rank-depth opportunity per explicit requirement, then Raw safety branch; stable-ID dedup; no Gold",
+    "hierarchy": {
+      "auto_merge_threshold": 0.5,
+      "auto_merger": "haystack.AutoMergingRetriever",
+      "block_sizes_words": [
+        768,
+        384,
+        192
+      ],
+      "gold_used_by_selection": false,
+      "mixed_packing_utility": "lexicographic marginal retrieved-leaf reciprocal-rank evidence, then token cost; rejected parents descend",
+      "rank_aggregation": "sum(1/(10+child_rerank)); max child + sibling support",
+      "split_by": "word",
+      "split_overlap_words": 24,
+      "splitter": "haystack.HierarchicalDocumentSplitter",
+      "target_estimated_token_levels": [
+        1024,
+        512,
+        256
+      ]
+    },
+    "prompt_versions": {
+      "baseline_rerank": "customer-support-listwise-v3-pydanticai-aliases",
+      "requirements": "customer-support-requirements-v1",
+      "set_selector": "customer-support-evidence-set-v1"
+    },
+    "requirements_dynamic_parent": "same requirement path over 256-level Haystack leaves; only selected anchors enter dynamic auto-merge and budget fallback",
+    "requirements_fixed": "typed requirements → per-requirement BM25/Dense → round-robin Top-20 union → typed set selector Top-5 → 512/64 packing",
+    "selector": "requirement-to-candidate mapping, union <=5, exact input IDs, explicit missing"
+  },
+  "gates_vs_baseline": {
+    "requirements-512-64": {
+      "candidate_recall_not_lower": true,
+      "harmful_context_rate_zero": false,
+      "multi_span_completeness_improves": false,
+      "p95_context_within_2600": true,
+      "p95_latency_growth_le_20pct": false,
+      "passes_all": false,
+      "selection_failure_rate_le_1pct": true
+    },
+    "requirements-dynamic-parent": {
+      "candidate_recall_not_lower": false,
+      "harmful_context_rate_zero": true,
+      "multi_span_completeness_improves": true,
+      "p95_context_within_2600": true,
+      "p95_latency_growth_le_20pct": false,
+      "passes_all": false,
+      "selection_failure_rate_le_1pct": false
+    }
+  },
+  "harmful_context_rate_vs_baseline": {
+    "requirements-512-64": 0.3333333333333333,
+    "requirements-dynamic-parent": 0.0
+  },
+  "limitations": [
+    "Doc2Dial evidence_count>=2 usually denotes adjacent annotation spans, not necessarily independent user conditions.",
+    "This Dev run selects an architecture candidate; it is not an untouched Heldout or production load test.",
+    "The 20% latency gate is the existing project experiment budget, not a universal RAG constant.",
+    "Generation/Judge is intentionally gated until retrieval, set selection, and packing pass."
+  ],
+  "recommended": "baseline-512-64",
+  "requirement_capture_summary": {
+    "error_case_count": 0,
+    "query_kind_counts": {
+      "dependent": 0,
+      "parallel_composite": 12,
+      "simple": 0
+    },
+    "total_calls": 12,
+    "total_input_tokens": 6768,
+    "total_output_tokens": 1138
+  },
+  "rows": {
+    "baseline-512-64": [
+      {
+        "candidate_ids": [
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-19",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-7",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-22",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-23",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-20",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-21",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-0",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-18",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-16",
+          "Become a driving school instructor#3_0::chunk-0",
+          "Aid And Attendance Benefits And Housebound Allowance | VA.gov#1_0::chunk-1",
+          "Choosing a School | Federal Student Aid#1_0::chunk-0",
+          "Benefits Planner: Disability | Are You Working | Social Security Administration#2_0::chunk-0",
+          "Camp Lejeune Water Contamination Health Issues | Veterans Affairs#1_0::chunk-2",
+          "Benefits Planner: Disability | Are You Working | Social Security Administration#1_0::chunk-0",
+          "Choosing a School | Federal Student Aid#1_0::chunk-1",
+          "Camp Lejeune Water Contamination Health Issues | Veterans Affairs#1_0::chunk-3",
+          "Change Your GI Bill School Or Program | Veterans Affairs#1_0::chunk-0",
+          "Commercial Driver License Downgrades#3_0::chunk-0",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-9"
+        ],
+        "candidate_recall": 1.0,
+        "case_id": "doc2dial-parallel-stress-01",
+        "context_spans": [
+          {
+            "context_id": "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-19",
+            "end_char": 36096,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 34048
+          },
+          {
+            "context_id": "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-20",
+            "end_char": 37888,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 35840
+          },
+          {
+            "context_id": "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-22",
+            "end_char": 41472,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 39424
+          },
+          {
+            "context_id": "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-21",
+            "end_char": 39680,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 37632
+          },
+          {
+            "context_id": "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-0",
+            "end_char": 2048,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 0
+          }
+        ],
+        "context_tokens": 2562,
+        "evidence_count": 4,
+        "missing_requirement_ids": [],
+        "packed_recall": 1.0,
+        "query": "I need help with two things: What are Corinthian colleges? Also, What is the logic behind the notifications regarding the Sweet v. DeVos Lawsuit?",
+        "query_kind": "baseline",
+        "requirements": [],
+        "retrieval_latency_ms": 43.74624788761139,
+        "selected_ids": [
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-19",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-20",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-22",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-21",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-0",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-7",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-23",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-18",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-9",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-16",
+          "Choosing a School | Federal Student Aid#1_0::chunk-0",
+          "Choosing a School | Federal Student Aid#1_0::chunk-1",
+          "Become a driving school instructor#3_0::chunk-0",
+          "Aid And Attendance Benefits And Housebound Allowance | VA.gov#1_0::chunk-1",
+          "Benefits Planner: Disability | Are You Working | Social Security Administration#2_0::chunk-0",
+          "Camp Lejeune Water Contamination Health Issues | Veterans Affairs#1_0::chunk-2",
+          "Benefits Planner: Disability | Are You Working | Social Security Administration#1_0::chunk-0",
+          "Camp Lejeune Water Contamination Health Issues | Veterans Affairs#1_0::chunk-3",
+          "Change Your GI Bill School Or Program | Veterans Affairs#1_0::chunk-0",
+          "Commercial Driver License Downgrades#3_0::chunk-0"
+        ],
+        "selected_recall": 1.0,
+        "selection_assignments": {},
+        "selection_error": null,
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 384,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 5784,
+          "latency_ms": {
+            "max": 2210.346,
+            "p50": 2210.346,
+            "p95": 2210.346,
+            "sum": 2210.346
+          },
+          "output_tokens": 125,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      },
+      {
+        "candidate_ids": [
+          "Dependency Status | Federal Student Aid#1_0::chunk-3",
+          "After You Apply For An Eligibility Determination | Veterans Affairs#1_0::chunk-0",
+          "Change Your GI Bill School Or Program | Veterans Affairs#1_0::chunk-0",
+          "Aid for Military Families | Federal Student Aid#1_0::chunk-3",
+          "Agent Orange Exposure From C-123 Aircraft | Veterans Affairs#1_0::chunk-2",
+          "Benefits Planner: Disability | Are You Working | Social Security Administration#2_0::chunk-0",
+          "Apply for Income-Driven Student Loan Repayment | Federal Student Aid#1_0::chunk-0",
+          "About VA Disability Ratings | Veterans Affairs#1_0::chunk-1",
+          "Benefits Planner: Disability | Approval Process | Social Security Administration#1_0::chunk-0",
+          "About VA Disability Ratings | Veterans Affairs#1_0::chunk-0",
+          "Board hearings with a Veterans Law Judge | Veterans Affairs#1_0::chunk-0",
+          "Medical Certification FAQ's#3_0::chunk-3",
+          "Your Health Care Costs | Veterans Affairs#1_0::chunk-2",
+          "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-3",
+          "Your Health Care Costs | Veterans Affairs#1_0::chunk-0",
+          "Aid for International Study | Federal Student Aid#1_0::chunk-4",
+          "Collections | Federal Student Aid#1_0::chunk-6",
+          "About point reduction#3_0::chunk-0",
+          "Your Health Care Costs | Veterans Affairs#1_0::chunk-4",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-15"
+        ],
+        "candidate_recall": 0.0,
+        "case_id": "doc2dial-parallel-stress-02",
+        "context_spans": [
+          {
+            "context_id": "Apply for Income-Driven Student Loan Repayment | Federal Student Aid#1_0::chunk-0",
+            "end_char": 1924,
+            "source_id": "Apply for Income-Driven Student Loan Repayment | Federal Student Aid#1_0",
+            "start_char": 0
+          },
+          {
+            "context_id": "Collections | Federal Student Aid#1_0::chunk-6",
+            "end_char": 12800,
+            "source_id": "Collections | Federal Student Aid#1_0",
+            "start_char": 10752
+          },
+          {
+            "context_id": "Benefits Planner: Disability | Approval Process | Social Security Administration#1_0::chunk-0",
+            "end_char": 2048,
+            "source_id": "Benefits Planner: Disability | Approval Process | Social Security Administration#1_0",
+            "start_char": 0
+          },
+          {
+            "context_id": "Benefits Planner: Disability | Are You Working | Social Security Administration#2_0::chunk-0",
+            "end_char": 2048,
+            "source_id": "Benefits Planner: Disability | Are You Working | Social Security Administration#2_0",
+            "start_char": 0
+          },
+          {
+            "context_id": "About VA Disability Ratings | Veterans Affairs#1_0::chunk-1",
+            "end_char": 3840,
+            "source_id": "About VA Disability Ratings | Veterans Affairs#1_0",
+            "start_char": 1792
+          }
+        ],
+        "context_tokens": 2531,
+        "evidence_count": 2,
+        "missing_requirement_ids": [],
+        "packed_recall": 0.0,
+        "query": "I need help with two things: How will I know how much I have left after the interest is calculated? Also, Do I need information related to mitigating circumstances?",
+        "query_kind": "baseline",
+        "requirements": [],
+        "retrieval_latency_ms": 47.95148968696594,
+        "selected_ids": [
+          "Apply for Income-Driven Student Loan Repayment | Federal Student Aid#1_0::chunk-0",
+          "Collections | Federal Student Aid#1_0::chunk-6",
+          "Benefits Planner: Disability | Approval Process | Social Security Administration#1_0::chunk-0",
+          "Benefits Planner: Disability | Are You Working | Social Security Administration#2_0::chunk-0",
+          "About VA Disability Ratings | Veterans Affairs#1_0::chunk-1",
+          "About VA Disability Ratings | Veterans Affairs#1_0::chunk-0",
+          "Dependency Status | Federal Student Aid#1_0::chunk-3",
+          "Aid for Military Families | Federal Student Aid#1_0::chunk-3",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-15",
+          "Aid for International Study | Federal Student Aid#1_0::chunk-4",
+          "After You Apply For An Eligibility Determination | Veterans Affairs#1_0::chunk-0",
+          "Change Your GI Bill School Or Program | Veterans Affairs#1_0::chunk-0",
+          "Agent Orange Exposure From C-123 Aircraft | Veterans Affairs#1_0::chunk-2",
+          "Board hearings with a Veterans Law Judge | Veterans Affairs#1_0::chunk-0",
+          "Medical Certification FAQ's#3_0::chunk-3",
+          "Your Health Care Costs | Veterans Affairs#1_0::chunk-2",
+          "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-3",
+          "Your Health Care Costs | Veterans Affairs#1_0::chunk-0",
+          "About point reduction#3_0::chunk-0",
+          "Your Health Care Costs | Veterans Affairs#1_0::chunk-4"
+        ],
+        "selected_recall": 0.0,
+        "selection_assignments": {},
+        "selection_error": null,
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 384,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 5839,
+          "latency_ms": {
+            "max": 2220.959,
+            "p50": 2220.959,
+            "p95": 2220.959,
+            "sum": 2220.959
+          },
+          "output_tokens": 125,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      },
+      {
+        "candidate_ids": [
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-5",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-17",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-15",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-0",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-6",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-7",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-1",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-16",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-4",
+          "Co-sign Your Spouse's Income-Driven Repayment Plan Application | Federal Student Aid#1_0::chunk-0",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-8",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-10",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-14",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-23",
+          "Apply for Income-Driven Student Loan Repayment | Federal Student Aid#1_0::chunk-0",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-11",
+          "Collections | Federal Student Aid#1_0::chunk-1",
+          "Collections | Federal Student Aid#1_0::chunk-6",
+          "Aid for International Study | Federal Student Aid#1_0::chunk-3",
+          "Collections | Federal Student Aid#1_0::chunk-5"
+        ],
+        "candidate_recall": 1.0,
+        "case_id": "doc2dial-parallel-stress-03",
+        "context_spans": [
+          {
+            "context_id": "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-5",
+            "end_char": 11008,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 8960
+          },
+          {
+            "context_id": "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-1",
+            "end_char": 3840,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 1792
+          },
+          {
+            "context_id": "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-4",
+            "end_char": 9216,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 7168
+          },
+          {
+            "context_id": "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-6",
+            "end_char": 12800,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 10752
+          },
+          {
+            "context_id": "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-0",
+            "end_char": 2048,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 0
+          }
+        ],
+        "context_tokens": 2562,
+        "evidence_count": 2,
+        "missing_requirement_ids": [],
+        "packed_recall": 1.0,
+        "query": "I need help with two things: What should I do if I have defaulted on my federal student loan and have entered a rehabilitation plan? Also, Are there any additional documents that I can submit as part of my application for borrower defense?",
+        "query_kind": "baseline",
+        "requirements": [],
+        "retrieval_latency_ms": 55.178554728627205,
+        "selected_ids": [
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-5",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-1",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-4",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-6",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-0",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-17",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-15",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-7",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-16",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-8",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-14",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-10",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-11",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-23",
+          "Collections | Federal Student Aid#1_0::chunk-1",
+          "Collections | Federal Student Aid#1_0::chunk-6",
+          "Collections | Federal Student Aid#1_0::chunk-5",
+          "Co-sign Your Spouse's Income-Driven Repayment Plan Application | Federal Student Aid#1_0::chunk-0",
+          "Apply for Income-Driven Student Loan Repayment | Federal Student Aid#1_0::chunk-0",
+          "Aid for International Study | Federal Student Aid#1_0::chunk-3"
+        ],
+        "selected_recall": 1.0,
+        "selection_assignments": {},
+        "selection_error": null,
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 384,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 5753,
+          "latency_ms": {
+            "max": 2205.899,
+            "p50": 2205.899,
+            "p95": 2205.899,
+            "sum": 2205.899
+          },
+          "output_tokens": 125,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      },
+      {
+        "candidate_ids": [
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-19",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-22",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-20",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-7",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-23",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-8",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-16",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-4",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-15",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-3",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-21",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-14",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-9",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-17",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-11",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-10",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-6",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-2",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-5",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-13"
+        ],
+        "candidate_recall": 1.0,
+        "case_id": "doc2dial-parallel-stress-04",
+        "context_spans": [
+          {
+            "context_id": "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-19",
+            "end_char": 36096,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 34048
+          },
+          {
+            "context_id": "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-20",
+            "end_char": 37888,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 35840
+          },
+          {
+            "context_id": "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-22",
+            "end_char": 41472,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 39424
+          },
+          {
+            "context_id": "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-9",
+            "end_char": 18176,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 16128
+          },
+          {
+            "context_id": "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-3",
+            "end_char": 7424,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 5376
+          }
+        ],
+        "context_tokens": 2562,
+        "evidence_count": 3,
+        "missing_requirement_ids": [],
+        "packed_recall": 0.3333333333333333,
+        "query": "I need help with two things: Is there a section on the website dedicated to common questions and answers regarding borrower defense decision notifications? Also, Are FFEL Program Loans eligible for the Sweet v. DeVos lawsuit?",
+        "query_kind": "baseline",
+        "requirements": [],
+        "retrieval_latency_ms": 51.356494426727295,
+        "selected_ids": [
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-19",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-20",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-22",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-9",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-3",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-4",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-21",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-7",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-23",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-8",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-16",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-15",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-14",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-17",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-11",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-10",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-6",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-2",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-5",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-13"
+        ],
+        "selected_recall": 0.3333333333333333,
+        "selection_assignments": {},
+        "selection_error": null,
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 384,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 5695,
+          "latency_ms": {
+            "max": 1958.77,
+            "p50": 1958.77,
+            "p95": 1958.77,
+            "sum": 1958.77
+          },
+          "output_tokens": 125,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      },
+      {
+        "candidate_ids": [
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-8",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-15",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-6",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-9",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-7",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-11",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-14",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-17",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-10",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-16",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-2",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-1",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-4",
+          "Closed School Discharge | Federal Student Aid#1_0::chunk-1",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-23",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-5",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-19",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-20",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-12",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-22"
+        ],
+        "candidate_recall": 1.0,
+        "case_id": "doc2dial-parallel-stress-05",
+        "context_spans": [
+          {
+            "context_id": "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-9",
+            "end_char": 18176,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 16128
+          },
+          {
+            "context_id": "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-1",
+            "end_char": 3840,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 1792
+          },
+          {
+            "context_id": "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-17",
+            "end_char": 32512,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 30464
+          },
+          {
+            "context_id": "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-16",
+            "end_char": 30720,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 28672
+          },
+          {
+            "context_id": "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-15",
+            "end_char": 28928,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 26880
+          }
+        ],
+        "context_tokens": 2562,
+        "evidence_count": 2,
+        "missing_requirement_ids": [],
+        "packed_recall": 1.0,
+        "query": "I need help with two things: Can I have my borrower defense discharge applied to my FFEL or Federal Perkins loans? Also, I have applied for borrower defense by way of email but now have found further information that I want to send, can I do this?",
+        "query_kind": "baseline",
+        "requirements": [],
+        "retrieval_latency_ms": 48.912305384874344,
+        "selected_ids": [
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-9",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-1",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-17",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-16",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-15",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-8",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-6",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-7",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-11",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-14",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-10",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-2",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-4",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-5",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-20",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-12",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-23",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-19",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-22",
+          "Closed School Discharge | Federal Student Aid#1_0::chunk-1"
+        ],
+        "selected_recall": 1.0,
+        "selection_assignments": {},
+        "selection_error": null,
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 384,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 5750,
+          "latency_ms": {
+            "max": 1967.069,
+            "p50": 1967.069,
+            "p95": 1967.069,
+            "sum": 1967.069
+          },
+          "output_tokens": 125,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      },
+      {
+        "candidate_ids": [
+          "IT Standards Library | Federal Student Aid#1_0::chunk-2",
+          "Complete Federal Student Loan Counseling | Federal Student Aid#1_0::chunk-0",
+          "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0::chunk-0",
+          "Avoiding Student Aid Scams | Federal Student Aid#1_0::chunk-0",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-16",
+          "Aidan | The FSA Virtual Assistant | Federal Student Aid#1_0::chunk-0",
+          "Closed School Discharge | Federal Student Aid#1_0::chunk-2",
+          "Collections | Federal Student Aid#1_0::chunk-1",
+          "Aid And Attendance Benefits And Housebound Allowance | VA.gov#1_0::chunk-1",
+          "IT Standards Library | Federal Student Aid#1_0::chunk-3",
+          "About online and alternative delivery method courses (I-PIRP/ADM)#3_0::chunk-2",
+          "Camp Lejeune Water Contamination Health Issues | Veterans Affairs#1_0::chunk-2",
+          "Closed School Discharge | Federal Student Aid#1_0::chunk-1",
+          "Change Your GI Bill School Or Program | Veterans Affairs#1_0::chunk-0",
+          "Choosing a School | Federal Student Aid#1_0::chunk-0",
+          "VA Mental Health Services | Veterans Affairs#1_0::chunk-1",
+          "Benefits Planner: Disability | Are You Working | Social Security Administration#2_0::chunk-0",
+          "IT Standards Library | Federal Student Aid#1_0::chunk-1",
+          "Collections | Federal Student Aid#1_0::chunk-6",
+          "Dependency Status | Federal Student Aid#1_0::chunk-2"
+        ],
+        "candidate_recall": 1.0,
+        "case_id": "doc2dial-parallel-stress-06",
+        "context_spans": [
+          {
+            "context_id": "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0::chunk-0",
+            "end_char": 2048,
+            "source_id": "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0",
+            "start_char": 0
+          },
+          {
+            "context_id": "Complete Federal Student Loan Counseling | Federal Student Aid#1_0::chunk-0",
+            "end_char": 1841,
+            "source_id": "Complete Federal Student Loan Counseling | Federal Student Aid#1_0",
+            "start_char": 0
+          },
+          {
+            "context_id": "IT Standards Library | Federal Student Aid#1_0::chunk-1",
+            "end_char": 3840,
+            "source_id": "IT Standards Library | Federal Student Aid#1_0",
+            "start_char": 1792
+          },
+          {
+            "context_id": "IT Standards Library | Federal Student Aid#1_0::chunk-2",
+            "end_char": 5632,
+            "source_id": "IT Standards Library | Federal Student Aid#1_0",
+            "start_char": 3584
+          },
+          {
+            "context_id": "IT Standards Library | Federal Student Aid#1_0::chunk-3",
+            "end_char": 7424,
+            "source_id": "IT Standards Library | Federal Student Aid#1_0",
+            "start_char": 5376
+          }
+        ],
+        "context_tokens": 2511,
+        "evidence_count": 2,
+        "missing_requirement_ids": [],
+        "packed_recall": 1.0,
+        "query": "I need help with two things: What is involved in complying with the Program Quality Assurance? Also, What information can you give me regarding adverse credit is incorrect?",
+        "query_kind": "baseline",
+        "requirements": [],
+        "retrieval_latency_ms": 42.10132919251919,
+        "selected_ids": [
+          "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0::chunk-0",
+          "Complete Federal Student Loan Counseling | Federal Student Aid#1_0::chunk-0",
+          "IT Standards Library | Federal Student Aid#1_0::chunk-1",
+          "IT Standards Library | Federal Student Aid#1_0::chunk-2",
+          "IT Standards Library | Federal Student Aid#1_0::chunk-3",
+          "Collections | Federal Student Aid#1_0::chunk-6",
+          "Collections | Federal Student Aid#1_0::chunk-1",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-16",
+          "Closed School Discharge | Federal Student Aid#1_0::chunk-1",
+          "Closed School Discharge | Federal Student Aid#1_0::chunk-2",
+          "Aidan | The FSA Virtual Assistant | Federal Student Aid#1_0::chunk-0",
+          "Avoiding Student Aid Scams | Federal Student Aid#1_0::chunk-0",
+          "Choosing a School | Federal Student Aid#1_0::chunk-0",
+          "Dependency Status | Federal Student Aid#1_0::chunk-2",
+          "About online and alternative delivery method courses (I-PIRP/ADM)#3_0::chunk-2",
+          "Aid And Attendance Benefits And Housebound Allowance | VA.gov#1_0::chunk-1",
+          "Camp Lejeune Water Contamination Health Issues | Veterans Affairs#1_0::chunk-2",
+          "Change Your GI Bill School Or Program | Veterans Affairs#1_0::chunk-0",
+          "VA Mental Health Services | Veterans Affairs#1_0::chunk-1",
+          "Benefits Planner: Disability | Are You Working | Social Security Administration#2_0::chunk-0"
+        ],
+        "selected_recall": 1.0,
+        "selection_assignments": {},
+        "selection_error": null,
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 384,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 5723,
+          "latency_ms": {
+            "max": 1958.407,
+            "p50": 1958.407,
+            "p95": 1958.407,
+            "sum": 1958.407
+          },
+          "output_tokens": 125,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      },
+      {
+        "candidate_ids": [
+          "Benefits Planner: Disability | Are You Working | Social Security Administration#2_0::chunk-0",
+          "Benefits Planner: Disability | Are You Working | Social Security Administration#1_0::chunk-0",
+          "Medical Certification FAQ's#3_0::chunk-3",
+          "Aid And Attendance Benefits And Housebound Allowance | VA.gov#1_0::chunk-0",
+          "Your Health Care Costs | Veterans Affairs#1_0::chunk-4",
+          "After You Apply For Health Care Benefits | Veterans Affairs#1_0::chunk-0",
+          "After You Apply For An Eligibility Determination | Veterans Affairs#1_0::chunk-0",
+          "After You Apply For An Eligibility Determination | Veterans Affairs#1_0::chunk-1",
+          "Change Your GI Bill School Or Program | Veterans Affairs#1_0::chunk-0",
+          "Your Health Care Costs | Veterans Affairs#1_0::chunk-3",
+          "Board hearings with a Veterans Law Judge | Veterans Affairs#1_0::chunk-2",
+          "Benefits Planner: Disability | Family Benefits | Social Security Administration#1_0::chunk-2",
+          "Agent Orange Exposure From C-123 Aircraft | Veterans Affairs#1_0::chunk-1",
+          "Automatic license and registration extension for military personnel#3_0::chunk-0",
+          "CHAMPVA Benefits | Veterans Affairs#1_0::chunk-3",
+          "Aid And Attendance Benefits And Housebound Allowance | VA.gov#1_0::chunk-1",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-10",
+          "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-3",
+          "Closed School Discharge | Federal Student Aid#1_0::chunk-1",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-6"
+        ],
+        "candidate_recall": 0.0,
+        "case_id": "doc2dial-parallel-stress-07",
+        "context_spans": [
+          {
+            "context_id": "Benefits Planner: Disability | Are You Working | Social Security Administration#2_0::chunk-0",
+            "end_char": 2048,
+            "source_id": "Benefits Planner: Disability | Are You Working | Social Security Administration#2_0",
+            "start_char": 0
+          },
+          {
+            "context_id": "Benefits Planner: Disability | Are You Working | Social Security Administration#1_0::chunk-0",
+            "end_char": 2048,
+            "source_id": "Benefits Planner: Disability | Are You Working | Social Security Administration#1_0",
+            "start_char": 0
+          },
+          {
+            "context_id": "Benefits Planner: Disability | Family Benefits | Social Security Administration#1_0::chunk-2",
+            "end_char": 4049,
+            "source_id": "Benefits Planner: Disability | Family Benefits | Social Security Administration#1_0",
+            "start_char": 3584
+          },
+          {
+            "context_id": "Aid And Attendance Benefits And Housebound Allowance | VA.gov#1_0::chunk-0",
+            "end_char": 2048,
+            "source_id": "Aid And Attendance Benefits And Housebound Allowance | VA.gov#1_0",
+            "start_char": 0
+          },
+          {
+            "context_id": "Aid And Attendance Benefits And Housebound Allowance | VA.gov#1_0::chunk-1",
+            "end_char": 2654,
+            "source_id": "Aid And Attendance Benefits And Housebound Allowance | VA.gov#1_0",
+            "start_char": 1792
+          }
+        ],
+        "context_tokens": 1870,
+        "evidence_count": 4,
+        "missing_requirement_ids": [],
+        "packed_recall": 0.0,
+        "query": "I need help with two things: when do benefits come? Also, What happens if I die and you still send the payments?",
+        "query_kind": "baseline",
+        "requirements": [],
+        "retrieval_latency_ms": 43.76152344048023,
+        "selected_ids": [
+          "Benefits Planner: Disability | Are You Working | Social Security Administration#2_0::chunk-0",
+          "Benefits Planner: Disability | Are You Working | Social Security Administration#1_0::chunk-0",
+          "Benefits Planner: Disability | Family Benefits | Social Security Administration#1_0::chunk-2",
+          "Aid And Attendance Benefits And Housebound Allowance | VA.gov#1_0::chunk-0",
+          "Aid And Attendance Benefits And Housebound Allowance | VA.gov#1_0::chunk-1",
+          "After You Apply For Health Care Benefits | Veterans Affairs#1_0::chunk-0",
+          "After You Apply For An Eligibility Determination | Veterans Affairs#1_0::chunk-0",
+          "After You Apply For An Eligibility Determination | Veterans Affairs#1_0::chunk-1",
+          "CHAMPVA Benefits | Veterans Affairs#1_0::chunk-3",
+          "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-3",
+          "Your Health Care Costs | Veterans Affairs#1_0::chunk-4",
+          "Your Health Care Costs | Veterans Affairs#1_0::chunk-3",
+          "Medical Certification FAQ's#3_0::chunk-3",
+          "Change Your GI Bill School Or Program | Veterans Affairs#1_0::chunk-0",
+          "Board hearings with a Veterans Law Judge | Veterans Affairs#1_0::chunk-2",
+          "Agent Orange Exposure From C-123 Aircraft | Veterans Affairs#1_0::chunk-1",
+          "Automatic license and registration extension for military personnel#3_0::chunk-0",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-10",
+          "Closed School Discharge | Federal Student Aid#1_0::chunk-1",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-6"
+        ],
+        "selected_recall": 0.0,
+        "selection_assignments": {},
+        "selection_error": null,
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 384,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 5772,
+          "latency_ms": {
+            "max": 2039.943,
+            "p50": 2039.943,
+            "p95": 2039.943,
+            "sum": 2039.943
+          },
+          "output_tokens": 125,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      },
+      {
+        "candidate_ids": [
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-4",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-4",
+          "Benefits Planner: Disability | Family Benefits | Social Security Administration#1_0::chunk-0",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-1",
+          "Benefits Planner: Disability | Family Benefits | Social Security Administration#2_0::chunk-0",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-1",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-5",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-5",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-0",
+          "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0::chunk-3",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-2",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-3",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-3",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-2",
+          "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0::chunk-3",
+          "Avoiding Default | Federal Student Aid#1_0::chunk-1",
+          "Aid And Attendance Benefits And Housebound Allowance | VA.gov#1_0::chunk-0",
+          "Benefits Planner | Social Security Administration#2_0::chunk-1",
+          "Benefits Planner | Social Security Administration#1_0::chunk-1",
+          "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0::chunk-2"
+        ],
+        "candidate_recall": 1.0,
+        "case_id": "doc2dial-parallel-stress-08",
+        "context_spans": [
+          {
+            "context_id": "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-2",
+            "end_char": 5632,
+            "source_id": "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0",
+            "start_char": 3584
+          },
+          {
+            "context_id": "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-2",
+            "end_char": 5632,
+            "source_id": "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0",
+            "start_char": 3584
+          },
+          {
+            "context_id": "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-5",
+            "end_char": 11008,
+            "source_id": "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0",
+            "start_char": 8960
+          },
+          {
+            "context_id": "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-5",
+            "end_char": 11008,
+            "source_id": "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0",
+            "start_char": 8960
+          },
+          {
+            "context_id": "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-3",
+            "end_char": 7424,
+            "source_id": "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0",
+            "start_char": 5376
+          }
+        ],
+        "context_tokens": 2562,
+        "evidence_count": 4,
+        "missing_requirement_ids": [],
+        "packed_recall": 0.0,
+        "query": "I need help with two things: can the widow get monthly benefits if she is caring for the deceased person's daughter? Also, Is there a maximum limit to the amount a family could get?",
+        "query_kind": "baseline",
+        "requirements": [],
+        "retrieval_latency_ms": 46.718187630176544,
+        "selected_ids": [
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-2",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-2",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-5",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-5",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-3",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-3",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-4",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-4",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-0",
+          "Benefits Planner: Disability | Family Benefits | Social Security Administration#1_0::chunk-0",
+          "Benefits Planner: Disability | Family Benefits | Social Security Administration#2_0::chunk-0",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-1",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-1",
+          "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0::chunk-3",
+          "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0::chunk-3",
+          "Benefits Planner | Social Security Administration#2_0::chunk-1",
+          "Benefits Planner | Social Security Administration#1_0::chunk-1",
+          "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0::chunk-2",
+          "Aid And Attendance Benefits And Housebound Allowance | VA.gov#1_0::chunk-0",
+          "Avoiding Default | Federal Student Aid#1_0::chunk-1"
+        ],
+        "selected_recall": 0.0,
+        "selection_assignments": {},
+        "selection_error": null,
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 384,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 6069,
+          "latency_ms": {
+            "max": 1910.917,
+            "p50": 1910.917,
+            "p95": 1910.917,
+            "sum": 1910.917
+          },
+          "output_tokens": 125,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      },
+      {
+        "candidate_ids": [
+          "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0::chunk-3",
+          "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::chunk-3",
+          "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::chunk-1",
+          "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0::chunk-0",
+          "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0::chunk-1",
+          "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::chunk-0",
+          "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::chunk-2",
+          "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0::chunk-2",
+          "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0::chunk-4",
+          "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::chunk-4",
+          "Benefits Planner: Disability | Approval Process | Social Security Administration#1_0::chunk-1",
+          "Benefits Planner: Disability | Approval Process | Social Security Administration#2_0::chunk-1",
+          "Apply for Retirement Benefits | SSA#1_0::chunk-2",
+          "Income-Driven Repayment Plans | Federal Student Aid#1_0::chunk-9",
+          "Income-Driven Repayment Plans | Federal Student Aid#1_0::chunk-8",
+          "Benefits Planner: Disability | Are You Working | Social Security Administration#2_0::chunk-0",
+          "Benefits Planner: Disability | Are You Working | Social Security Administration#1_0::chunk-0",
+          "Avoiding Default | Federal Student Aid#1_0::chunk-1",
+          "Apply for Income-Driven Student Loan Repayment | Federal Student Aid#1_0::chunk-0",
+          "Board hearings with a Veterans Law Judge | Veterans Affairs#1_0::chunk-1"
+        ],
+        "candidate_recall": 1.0,
+        "case_id": "doc2dial-parallel-stress-09",
+        "context_spans": [
+          {
+            "context_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0::chunk-3",
+            "end_char": 7424,
+            "source_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0",
+            "start_char": 5376
+          },
+          {
+            "context_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::chunk-3",
+            "end_char": 7424,
+            "source_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0",
+            "start_char": 5376
+          },
+          {
+            "context_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::chunk-0",
+            "end_char": 2048,
+            "source_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0",
+            "start_char": 0
+          },
+          {
+            "context_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0::chunk-0",
+            "end_char": 2048,
+            "source_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0",
+            "start_char": 0
+          },
+          {
+            "context_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::chunk-1",
+            "end_char": 3840,
+            "source_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0",
+            "start_char": 1792
+          }
+        ],
+        "context_tokens": 2562,
+        "evidence_count": 3,
+        "missing_requirement_ids": [],
+        "packed_recall": 1.0,
+        "query": "I need help with two things: What can you tell me about monthly Medicare premiums? Also, What if I filed a federal income tax return for the year?",
+        "query_kind": "baseline",
+        "requirements": [],
+        "retrieval_latency_ms": 45.88282108306885,
+        "selected_ids": [
+          "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0::chunk-3",
+          "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::chunk-3",
+          "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::chunk-0",
+          "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0::chunk-0",
+          "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::chunk-1",
+          "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0::chunk-1",
+          "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::chunk-2",
+          "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0::chunk-2",
+          "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0::chunk-4",
+          "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::chunk-4",
+          "Benefits Planner: Disability | Approval Process | Social Security Administration#1_0::chunk-1",
+          "Benefits Planner: Disability | Approval Process | Social Security Administration#2_0::chunk-1",
+          "Apply for Retirement Benefits | SSA#1_0::chunk-2",
+          "Income-Driven Repayment Plans | Federal Student Aid#1_0::chunk-9",
+          "Income-Driven Repayment Plans | Federal Student Aid#1_0::chunk-8",
+          "Benefits Planner: Disability | Are You Working | Social Security Administration#2_0::chunk-0",
+          "Benefits Planner: Disability | Are You Working | Social Security Administration#1_0::chunk-0",
+          "Avoiding Default | Federal Student Aid#1_0::chunk-1",
+          "Apply for Income-Driven Student Loan Repayment | Federal Student Aid#1_0::chunk-0",
+          "Board hearings with a Veterans Law Judge | Veterans Affairs#1_0::chunk-1"
+        ],
+        "selected_recall": 1.0,
+        "selection_assignments": {},
+        "selection_error": null,
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 384,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 6002,
+          "latency_ms": {
+            "max": 2439.198,
+            "p50": 2439.198,
+            "p95": 2439.198,
+            "sum": 2439.198
+          },
+          "output_tokens": 125,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      },
+      {
+        "candidate_ids": [
+          "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0::chunk-5",
+          "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0::chunk-5",
+          "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0::chunk-4",
+          "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0::chunk-4",
+          "Benefits Planner: Disability | Family Benefits | Social Security Administration#1_0::chunk-2",
+          "Benefits Planner: Disability | Family Benefits | Social Security Administration#2_0::chunk-2",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-4",
+          "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0::chunk-1",
+          "Apply For A Child (Under Age 18) | Disability Benefits | SSA#1_0::chunk-0",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-4",
+          "Benefits Planner: Disability | Family Benefits | Social Security Administration#1_0::chunk-1",
+          "Benefits Planner: Disability | Family Benefits | Social Security Administration#2_0::chunk-1",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-2",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-1",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-1",
+          "Benefits Planner: Disability | Family Benefits | Social Security Administration#1_0::chunk-0",
+          "Benefits Planner: Disability | Family Benefits | Social Security Administration#2_0::chunk-0",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-3",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-3",
+          "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0::chunk-4"
+        ],
+        "candidate_recall": 1.0,
+        "case_id": "doc2dial-parallel-stress-10",
+        "context_spans": [
+          {
+            "context_id": "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0::chunk-5",
+            "end_char": 10244,
+            "source_id": "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0",
+            "start_char": 8960
+          },
+          {
+            "context_id": "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0::chunk-5",
+            "end_char": 10294,
+            "source_id": "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0",
+            "start_char": 8960
+          },
+          {
+            "context_id": "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0::chunk-4",
+            "end_char": 9216,
+            "source_id": "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0",
+            "start_char": 7168
+          },
+          {
+            "context_id": "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0::chunk-4",
+            "end_char": 9216,
+            "source_id": "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0",
+            "start_char": 7168
+          },
+          {
+            "context_id": "Apply For A Child (Under Age 18) | Disability Benefits | SSA#1_0::chunk-0",
+            "end_char": 1521,
+            "source_id": "Apply For A Child (Under Age 18) | Disability Benefits | SSA#1_0",
+            "start_char": 0
+          }
+        ],
+        "context_tokens": 2061,
+        "evidence_count": 4,
+        "missing_requirement_ids": [],
+        "packed_recall": 1.0,
+        "query": "I need help with two things: Is there other related information I would need to know about disability for a child under 18? Also, How is it determined if an adult \"child\" is disabled for SSDI benefits when the child is age 18 or older?",
+        "query_kind": "baseline",
+        "requirements": [],
+        "retrieval_latency_ms": 49.22465980052948,
+        "selected_ids": [
+          "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0::chunk-5",
+          "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0::chunk-5",
+          "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0::chunk-4",
+          "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0::chunk-4",
+          "Apply For A Child (Under Age 18) | Disability Benefits | SSA#1_0::chunk-0",
+          "Benefits Planner: Disability | Family Benefits | Social Security Administration#1_0::chunk-2",
+          "Benefits Planner: Disability | Family Benefits | Social Security Administration#2_0::chunk-2",
+          "Benefits Planner: Disability | Family Benefits | Social Security Administration#1_0::chunk-0",
+          "Benefits Planner: Disability | Family Benefits | Social Security Administration#2_0::chunk-0",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-2",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-3",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-3",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-4",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-4",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-1",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-1",
+          "Benefits Planner: Disability | Family Benefits | Social Security Administration#1_0::chunk-1",
+          "Benefits Planner: Disability | Family Benefits | Social Security Administration#2_0::chunk-1",
+          "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0::chunk-1",
+          "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0::chunk-4"
+        ],
+        "selected_recall": 1.0,
+        "selection_assignments": {},
+        "selection_error": null,
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 384,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 5786,
+          "latency_ms": {
+            "max": 2044.747,
+            "p50": 2044.747,
+            "p95": 2044.747,
+            "sum": 2044.747
+          },
+          "output_tokens": 125,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      },
+      {
+        "candidate_ids": [
+          "Medical Certification FAQ's#3_0::chunk-1",
+          "Medical Certification FAQ's#3_0::chunk-2",
+          "Medical Certification FAQ's#3_0::chunk-3",
+          "Board hearings with a Veterans Law Judge | Veterans Affairs#1_0::chunk-0",
+          "Medical Certification FAQ's#3_0::chunk-0",
+          "About problem driver restrictions#3_0::chunk-0",
+          "Benefits Planner: Disability | Are You Working | Social Security Administration#2_0::chunk-0",
+          "Benefits Planner: Disability | Are You Working | Social Security Administration#1_0::chunk-0",
+          "Board hearings with a Veterans Law Judge | Veterans Affairs#1_0::chunk-2",
+          "About problem driver restrictions#3_0::chunk-1",
+          "After You Apply For An Eligibility Determination | Veterans Affairs#1_0::chunk-0",
+          "Aid for Military Families | Federal Student Aid#1_0::chunk-3",
+          "Aid And Attendance Benefits And Housebound Allowance | VA.gov#1_0::chunk-1",
+          "After You Apply For Health Care Benefits | Veterans Affairs#1_0::chunk-1",
+          "Change Your GI Bill School Or Program | Veterans Affairs#1_0::chunk-0",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-15",
+          "After You Apply For An Eligibility Determination | Veterans Affairs#1_0::chunk-1",
+          "Your Health Care Costs | Veterans Affairs#1_0::chunk-4",
+          "Access Your VA Life Insurance Policy Online | Veterans Affairs#1_0::chunk-0",
+          "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-3"
+        ],
+        "candidate_recall": 0.5,
+        "case_id": "doc2dial-parallel-stress-11",
+        "context_spans": [
+          {
+            "context_id": "Board hearings with a Veterans Law Judge | Veterans Affairs#1_0::chunk-0",
+            "end_char": 2048,
+            "source_id": "Board hearings with a Veterans Law Judge | Veterans Affairs#1_0",
+            "start_char": 0
+          },
+          {
+            "context_id": "Board hearings with a Veterans Law Judge | Veterans Affairs#1_0::chunk-2",
+            "end_char": 5632,
+            "source_id": "Board hearings with a Veterans Law Judge | Veterans Affairs#1_0",
+            "start_char": 3584
+          },
+          {
+            "context_id": "Medical Certification FAQ's#3_0::chunk-1",
+            "end_char": 3840,
+            "source_id": "Medical Certification FAQ's#3_0",
+            "start_char": 1792
+          },
+          {
+            "context_id": "Medical Certification FAQ's#3_0::chunk-0",
+            "end_char": 2048,
+            "source_id": "Medical Certification FAQ's#3_0",
+            "start_char": 0
+          },
+          {
+            "context_id": "Medical Certification FAQ's#3_0::chunk-2",
+            "end_char": 5632,
+            "source_id": "Medical Certification FAQ's#3_0",
+            "start_char": 3584
+          }
+        ],
+        "context_tokens": 2562,
+        "evidence_count": 6,
+        "missing_requirement_ids": [],
+        "packed_recall": 0.5,
+        "query": "I need help with two things: How would I go about appealing a decision? Also, Can I keep my CDL but with restrictions on it?",
+        "query_kind": "baseline",
+        "requirements": [],
+        "retrieval_latency_ms": 43.27128827571869,
+        "selected_ids": [
+          "Board hearings with a Veterans Law Judge | Veterans Affairs#1_0::chunk-0",
+          "Board hearings with a Veterans Law Judge | Veterans Affairs#1_0::chunk-2",
+          "Medical Certification FAQ's#3_0::chunk-1",
+          "Medical Certification FAQ's#3_0::chunk-0",
+          "Medical Certification FAQ's#3_0::chunk-2",
+          "Medical Certification FAQ's#3_0::chunk-3",
+          "About problem driver restrictions#3_0::chunk-0",
+          "About problem driver restrictions#3_0::chunk-1",
+          "Benefits Planner: Disability | Are You Working | Social Security Administration#2_0::chunk-0",
+          "Benefits Planner: Disability | Are You Working | Social Security Administration#1_0::chunk-0",
+          "After You Apply For An Eligibility Determination | Veterans Affairs#1_0::chunk-0",
+          "After You Apply For An Eligibility Determination | Veterans Affairs#1_0::chunk-1",
+          "Aid And Attendance Benefits And Housebound Allowance | VA.gov#1_0::chunk-1",
+          "After You Apply For Health Care Benefits | Veterans Affairs#1_0::chunk-1",
+          "Your Health Care Costs | Veterans Affairs#1_0::chunk-4",
+          "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-3",
+          "Aid for Military Families | Federal Student Aid#1_0::chunk-3",
+          "Change Your GI Bill School Or Program | Veterans Affairs#1_0::chunk-0",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-15",
+          "Access Your VA Life Insurance Policy Online | Veterans Affairs#1_0::chunk-0"
+        ],
+        "selected_recall": 0.5,
+        "selection_assignments": {},
+        "selection_error": null,
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 384,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 5975,
+          "latency_ms": {
+            "max": 1864.028,
+            "p50": 1864.028,
+            "p95": 1864.028,
+            "sum": 1864.028
+          },
+          "output_tokens": 125,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      },
+      {
+        "candidate_ids": [
+          "Change Your VA Direct Deposit Information | Veterans Affairs#1_0::chunk-1",
+          "Your Health Care Costs | Veterans Affairs#1_0::chunk-1",
+          "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0::chunk-1",
+          "About VA Health Benefits | Veterans Affairs#1_0::chunk-0",
+          "Agent Orange Exposure From C-123 Aircraft | Veterans Affairs#1_0::chunk-1",
+          "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0::chunk-0",
+          "Medical Certification FAQ's#3_0::chunk-3",
+          "Dependency Status | Federal Student Aid#1_0::chunk-2",
+          "Your Health Care Costs | Veterans Affairs#1_0::chunk-0",
+          "Aid And Attendance Benefits And Housebound Allowance | VA.gov#1_0::chunk-1",
+          "Board hearings with a Veterans Law Judge | Veterans Affairs#1_0::chunk-0",
+          "Change Your GI Bill School Or Program | Veterans Affairs#1_0::chunk-0",
+          "Automatic license and registration extension for military personnel#3_0::chunk-0",
+          "After You Apply For Health Care Benefits | Veterans Affairs#1_0::chunk-0",
+          "Agent Orange Exposure From C-123 Aircraft | Veterans Affairs#1_0::chunk-2",
+          "Apply for Retirement Benefits | SSA#1_0::chunk-0",
+          "Income-Driven Repayment Plans | Federal Student Aid#1_0::chunk-10",
+          "Agent Orange Exposure On Navy Or Coast Guard Ships | Veterans Affairs#1_0::chunk-2",
+          "Collections | Federal Student Aid#1_0::chunk-7",
+          "Medical Certification FAQ's#3_0::chunk-2"
+        ],
+        "candidate_recall": 0.25,
+        "case_id": "doc2dial-parallel-stress-12",
+        "context_spans": [
+          {
+            "context_id": "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0::chunk-0",
+            "end_char": 2048,
+            "source_id": "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0",
+            "start_char": 0
+          },
+          {
+            "context_id": "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0::chunk-1",
+            "end_char": 3840,
+            "source_id": "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0",
+            "start_char": 1792
+          },
+          {
+            "context_id": "Your Health Care Costs | Veterans Affairs#1_0::chunk-1",
+            "end_char": 3840,
+            "source_id": "Your Health Care Costs | Veterans Affairs#1_0",
+            "start_char": 1792
+          },
+          {
+            "context_id": "About VA Health Benefits | Veterans Affairs#1_0::chunk-0",
+            "end_char": 2048,
+            "source_id": "About VA Health Benefits | Veterans Affairs#1_0",
+            "start_char": 0
+          },
+          {
+            "context_id": "Your Health Care Costs | Veterans Affairs#1_0::chunk-0",
+            "end_char": 2048,
+            "source_id": "Your Health Care Costs | Veterans Affairs#1_0",
+            "start_char": 0
+          }
+        ],
+        "context_tokens": 2562,
+        "evidence_count": 4,
+        "missing_requirement_ids": [],
+        "packed_recall": 0.25,
+        "query": "I need help with two things: where to get more information about priority groups? Also, can I file by mail when I am ready to add my daughter?",
+        "query_kind": "baseline",
+        "requirements": [],
+        "retrieval_latency_ms": 44.87418010830879,
+        "selected_ids": [
+          "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0::chunk-0",
+          "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0::chunk-1",
+          "Your Health Care Costs | Veterans Affairs#1_0::chunk-1",
+          "About VA Health Benefits | Veterans Affairs#1_0::chunk-0",
+          "Your Health Care Costs | Veterans Affairs#1_0::chunk-0",
+          "After You Apply For Health Care Benefits | Veterans Affairs#1_0::chunk-0",
+          "Change Your VA Direct Deposit Information | Veterans Affairs#1_0::chunk-1",
+          "Aid And Attendance Benefits And Housebound Allowance | VA.gov#1_0::chunk-1",
+          "Board hearings with a Veterans Law Judge | Veterans Affairs#1_0::chunk-0",
+          "Change Your GI Bill School Or Program | Veterans Affairs#1_0::chunk-0",
+          "Agent Orange Exposure From C-123 Aircraft | Veterans Affairs#1_0::chunk-1",
+          "Agent Orange Exposure From C-123 Aircraft | Veterans Affairs#1_0::chunk-2",
+          "Agent Orange Exposure On Navy Or Coast Guard Ships | Veterans Affairs#1_0::chunk-2",
+          "Medical Certification FAQ's#3_0::chunk-3",
+          "Medical Certification FAQ's#3_0::chunk-2",
+          "Dependency Status | Federal Student Aid#1_0::chunk-2",
+          "Automatic license and registration extension for military personnel#3_0::chunk-0",
+          "Apply for Retirement Benefits | SSA#1_0::chunk-0",
+          "Income-Driven Repayment Plans | Federal Student Aid#1_0::chunk-10",
+          "Collections | Federal Student Aid#1_0::chunk-7"
+        ],
+        "selected_recall": 0.25,
+        "selection_assignments": {},
+        "selection_error": null,
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 384,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 5650,
+          "latency_ms": {
+            "max": 2181.665,
+            "p50": 2181.665,
+            "p95": 2181.665,
+            "sum": 2181.665
+          },
+          "output_tokens": 125,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      }
+    ],
+    "requirements-512-64": [
+      {
+        "candidate_ids": [
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-0",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-19",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-7",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-22",
+          "Choosing a School | Federal Student Aid#1_0::chunk-1",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-20",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-18",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-21",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-23",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-9",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-16",
+          "Yellow Ribbon Program | Veterans Affairs#1_0::chunk-3",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-8",
+          "Choosing a School | Federal Student Aid#1_0::chunk-0",
+          "Camp Lejeune Water Contamination Health Issues | Veterans Affairs#1_0::chunk-3",
+          "Choosing a School | Federal Student Aid#1_0::chunk-2",
+          "Camp Lejeune Water Contamination Health Issues | Veterans Affairs#1_0::chunk-2",
+          "Become a driving school instructor#3_0::chunk-0",
+          "Aid And Attendance Benefits And Housebound Allowance | VA.gov#1_0::chunk-1",
+          "Yellow Ribbon Program | Veterans Affairs#1_0::chunk-2"
+        ],
+        "candidate_recall": 1.0,
+        "case_id": "doc2dial-parallel-stress-01",
+        "context_spans": [
+          {
+            "context_id": "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-0",
+            "end_char": 2048,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 0
+          },
+          {
+            "context_id": "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-19",
+            "end_char": 36096,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 34048
+          },
+          {
+            "context_id": "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-20",
+            "end_char": 37888,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 35840
+          }
+        ],
+        "context_tokens": 1537,
+        "evidence_count": 4,
+        "missing_requirement_ids": [],
+        "packed_recall": 1.0,
+        "query": "I need help with two things: What are Corinthian colleges? Also, What is the logic behind the notifications regarding the Sweet v. DeVos Lawsuit?",
+        "query_kind": "parallel_composite",
+        "requirements": [
+          {
+            "query": "What are Corinthian colleges?",
+            "requirement_id": "R1"
+          },
+          {
+            "query": "What is the logic behind the notifications regarding the Sweet v. DeVos Lawsuit?",
+            "requirement_id": "R2"
+          }
+        ],
+        "retrieval_latency_ms": 136.49273663759232,
+        "selected_ids": [
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-0",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-19",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-20"
+        ],
+        "selected_recall": 1.0,
+        "selection_assignments": {
+          "R1": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-0"
+          ],
+          "R2": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-19",
+            "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-20"
+          ]
+        },
+        "selection_error": null,
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 5893,
+          "latency_ms": {
+            "max": 1821.532,
+            "p50": 1821.532,
+            "p95": 1821.532,
+            "sum": 1821.532
+          },
+          "output_tokens": 108,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      },
+      {
+        "candidate_ids": [
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-11",
+          "Your Health Care Costs | Veterans Affairs#1_0::chunk-2",
+          "Dependency Status | Federal Student Aid#1_0::chunk-3",
+          "Income-Driven Repayment Plans | Federal Student Aid#1_0::chunk-1",
+          "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0::chunk-0",
+          "After You Apply For An Eligibility Determination | Veterans Affairs#1_0::chunk-0",
+          "About VA Disability Ratings | Veterans Affairs#1_0::chunk-1",
+          "Change Your GI Bill School Or Program | Veterans Affairs#1_0::chunk-0",
+          "After You Apply For An Eligibility Determination | Veterans Affairs#1_0::chunk-2",
+          "Aid for Military Families | Federal Student Aid#1_0::chunk-3",
+          "Agent Orange Exposure On Navy Or Coast Guard Ships | Veterans Affairs#1_0::chunk-1",
+          "Agent Orange Exposure From C-123 Aircraft | Veterans Affairs#1_0::chunk-2",
+          "Board hearings with a Veterans Law Judge | Veterans Affairs#1_0::chunk-0",
+          "Complete Federal Student Loan Counseling | Federal Student Aid#1_0::chunk-0",
+          "Benefits Planner: Disability | Are You Working | Social Security Administration#2_0::chunk-0",
+          "Aid for International Study | Federal Student Aid#1_0::chunk-4",
+          "Apply for Income-Driven Student Loan Repayment | Federal Student Aid#1_0::chunk-0",
+          "Collections | Federal Student Aid#1_0::chunk-6",
+          "Aid And Attendance Benefits And Housebound Allowance | VA.gov#1_0::chunk-0",
+          "About VA Disability Ratings | Veterans Affairs#1_0::chunk-3"
+        ],
+        "candidate_recall": 0.5,
+        "case_id": "doc2dial-parallel-stress-02",
+        "context_spans": [
+          {
+            "context_id": "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-11",
+            "end_char": 21760,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 19712
+          },
+          {
+            "context_id": "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0::chunk-0",
+            "end_char": 2048,
+            "source_id": "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0",
+            "start_char": 0
+          },
+          {
+            "context_id": "Complete Federal Student Loan Counseling | Federal Student Aid#1_0::chunk-0",
+            "end_char": 1841,
+            "source_id": "Complete Federal Student Loan Counseling | Federal Student Aid#1_0",
+            "start_char": 0
+          }
+        ],
+        "context_tokens": 1486,
+        "evidence_count": 2,
+        "missing_requirement_ids": [],
+        "packed_recall": 0.5,
+        "query": "I need help with two things: How will I know how much I have left after the interest is calculated? Also, Do I need information related to mitigating circumstances?",
+        "query_kind": "parallel_composite",
+        "requirements": [
+          {
+            "query": "How will I know how much I have left after the interest is calculated?",
+            "requirement_id": "R1"
+          },
+          {
+            "query": "Do I need information related to mitigating circumstances?",
+            "requirement_id": "R2"
+          }
+        ],
+        "retrieval_latency_ms": 145.08716017007828,
+        "selected_ids": [
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-11",
+          "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0::chunk-0",
+          "Complete Federal Student Loan Counseling | Federal Student Aid#1_0::chunk-0"
+        ],
+        "selected_recall": 0.5,
+        "selection_assignments": {
+          "R1": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-11"
+          ],
+          "R2": [
+            "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0::chunk-0",
+            "Complete Federal Student Loan Counseling | Federal Student Aid#1_0::chunk-0"
+          ]
+        },
+        "selection_error": null,
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 6074,
+          "latency_ms": {
+            "max": 1886.342,
+            "p50": 1886.342,
+            "p95": 1886.342,
+            "sum": 1886.342
+          },
+          "output_tokens": 108,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      },
+      {
+        "candidate_ids": [
+          "Collections | Federal Student Aid#1_0::chunk-2",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-0",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-5",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-1",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-17",
+          "Collections | Federal Student Aid#1_0::chunk-1",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-15",
+          "Collections | Federal Student Aid#1_0::chunk-7",
+          "Apply for Income-Driven Student Loan Repayment | Federal Student Aid#1_0::chunk-0",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-7",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-6",
+          "Income-Driven Repayment Plans | Federal Student Aid#1_0::chunk-2",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-16",
+          "Aid for International Study | Federal Student Aid#1_0::chunk-3",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-8",
+          "Collections | Federal Student Aid#1_0::chunk-6",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-11",
+          "Collections | Federal Student Aid#1_0::chunk-5",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-14",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-4"
+        ],
+        "candidate_recall": 1.0,
+        "case_id": "doc2dial-parallel-stress-03",
+        "context_spans": [
+          {
+            "context_id": "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-5",
+            "end_char": 11008,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 8960
+          },
+          {
+            "context_id": "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-1",
+            "end_char": 3840,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 1792
+          }
+        ],
+        "context_tokens": 1025,
+        "evidence_count": 2,
+        "missing_requirement_ids": [],
+        "packed_recall": 0.5,
+        "query": "I need help with two things: What should I do if I have defaulted on my federal student loan and have entered a rehabilitation plan? Also, Are there any additional documents that I can submit as part of my application for borrower defense?",
+        "query_kind": "parallel_composite",
+        "requirements": [
+          {
+            "query": "What should I do if I have defaulted on my federal student loan and have entered a rehabilitation plan?",
+            "requirement_id": "R1"
+          },
+          {
+            "query": "Are there any additional documents that I can submit as part of my application for borrower defense?",
+            "requirement_id": "R2"
+          }
+        ],
+        "retrieval_latency_ms": 161.51654347777367,
+        "selected_ids": [
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-5",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-1"
+        ],
+        "selected_recall": 0.5,
+        "selection_assignments": {
+          "R1": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-5"
+          ],
+          "R2": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-1"
+          ]
+        },
+        "selection_error": null,
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 5852,
+          "latency_ms": {
+            "max": 2310.425,
+            "p50": 2310.425,
+            "p95": 2310.425,
+            "sum": 2310.425
+          },
+          "output_tokens": 104,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      },
+      {
+        "candidate_ids": [
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-7",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-19",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-22",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-20",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-16",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-23",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-8",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-4",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-21",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-14",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-9",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-15",
+          "Income-Driven Repayment Plans | Federal Student Aid#1_0::chunk-2",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-17",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-3",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-11",
+          "Closed School Discharge | Federal Student Aid#1_0::chunk-0",
+          "Income-Driven Repayment Plans | Federal Student Aid#1_0::chunk-3",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-18",
+          "Collections | Federal Student Aid#1_0::chunk-2"
+        ],
+        "candidate_recall": 1.0,
+        "case_id": "doc2dial-parallel-stress-04",
+        "context_spans": [
+          {
+            "context_id": "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-19",
+            "end_char": 36096,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 34048
+          },
+          {
+            "context_id": "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-22",
+            "end_char": 41472,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 39424
+          },
+          {
+            "context_id": "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-20",
+            "end_char": 37888,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 35840
+          }
+        ],
+        "context_tokens": 1537,
+        "evidence_count": 3,
+        "missing_requirement_ids": [],
+        "packed_recall": 0.0,
+        "query": "I need help with two things: Is there a section on the website dedicated to common questions and answers regarding borrower defense decision notifications? Also, Are FFEL Program Loans eligible for the Sweet v. DeVos lawsuit?",
+        "query_kind": "parallel_composite",
+        "requirements": [
+          {
+            "query": "Is there a section on the website dedicated to common questions and answers regarding borrower defense decision notifications?",
+            "requirement_id": "R1"
+          },
+          {
+            "query": "Are FFEL Program Loans eligible for the Sweet v. DeVos lawsuit?",
+            "requirement_id": "R2"
+          }
+        ],
+        "retrieval_latency_ms": 151.39740891754627,
+        "selected_ids": [
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-19",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-22",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-20"
+        ],
+        "selected_recall": 0.0,
+        "selection_assignments": {
+          "R1": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-19",
+            "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-22"
+          ],
+          "R2": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-20"
+          ]
+        },
+        "selection_error": null,
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 6003,
+          "latency_ms": {
+            "max": 2205.848,
+            "p50": 2205.848,
+            "p95": 2205.848,
+            "sum": 2205.848
+          },
+          "output_tokens": 108,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      },
+      {
+        "candidate_ids": [
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-9",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-16",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-8",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-15",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-6",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-11",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-14",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-2",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-17",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-7",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-10",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-1",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-3",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-23",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-22",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-19",
+          "Closed School Discharge | Federal Student Aid#1_0::chunk-0",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-4",
+          "Avoiding Student Aid Scams | Federal Student Aid#1_0::chunk-4",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-12"
+        ],
+        "candidate_recall": 1.0,
+        "case_id": "doc2dial-parallel-stress-05",
+        "context_spans": [
+          {
+            "context_id": "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-9",
+            "end_char": 18176,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 16128
+          },
+          {
+            "context_id": "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-1",
+            "end_char": 3840,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 1792
+          }
+        ],
+        "context_tokens": 1025,
+        "evidence_count": 2,
+        "missing_requirement_ids": [],
+        "packed_recall": 1.0,
+        "query": "I need help with two things: Can I have my borrower defense discharge applied to my FFEL or Federal Perkins loans? Also, I have applied for borrower defense by way of email but now have found further information that I want to send, can I do this?",
+        "query_kind": "parallel_composite",
+        "requirements": [
+          {
+            "query": "Can I have my borrower defense discharge applied to my FFEL or Federal Perkins loans?",
+            "requirement_id": "R1"
+          },
+          {
+            "query": "I have applied for borrower defense by way of email but now have found further information that I want to send, can I do this?",
+            "requirement_id": "R2"
+          }
+        ],
+        "retrieval_latency_ms": 158.91035832464695,
+        "selected_ids": [
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-9",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-1"
+        ],
+        "selected_recall": 1.0,
+        "selection_assignments": {
+          "R1": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-9"
+          ],
+          "R2": [
+            "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-1"
+          ]
+        },
+        "selection_error": null,
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 5966,
+          "latency_ms": {
+            "max": 3070.075,
+            "p50": 3070.075,
+            "p95": 3070.075,
+            "sum": 3070.075
+          },
+          "output_tokens": 104,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      },
+      {
+        "candidate_ids": [
+          "IT Standards Library | Federal Student Aid#1_0::chunk-2",
+          "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0::chunk-0",
+          "IT Standards Library | Federal Student Aid#1_0::chunk-1",
+          "Complete Federal Student Loan Counseling | Federal Student Aid#1_0::chunk-0",
+          "IT Standards Library | Federal Student Aid#1_0::chunk-3",
+          "Avoiding Student Aid Scams | Federal Student Aid#1_0::chunk-0",
+          "Aidan | The FSA Virtual Assistant | Federal Student Aid#1_0::chunk-0",
+          "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0::chunk-4",
+          "Affordable Care Act (ACA) And Your Coverage | Veterans Affairs#1_0::chunk-0",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-16",
+          "About VA Health Benefits | Veterans Affairs#1_0::chunk-4",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-7",
+          "Yellow Ribbon Program | Veterans Affairs#1_0::chunk-1",
+          "About online and alternative delivery method courses (I-PIRP/ADM)#3_0::chunk-2",
+          "Closed School Discharge | Federal Student Aid#1_0::chunk-2",
+          "About VA Health Benefits | Veterans Affairs#1_0::chunk-0",
+          "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0::chunk-3",
+          "Collections | Federal Student Aid#1_0::chunk-1",
+          "ATVs: Information for Owners and Operators#3_0::chunk-6",
+          "Collections | Federal Student Aid#1_0::chunk-6"
+        ],
+        "candidate_recall": 1.0,
+        "case_id": "doc2dial-parallel-stress-06",
+        "context_spans": [
+          {
+            "context_id": "IT Standards Library | Federal Student Aid#1_0::chunk-1",
+            "end_char": 3840,
+            "source_id": "IT Standards Library | Federal Student Aid#1_0",
+            "start_char": 1792
+          },
+          {
+            "context_id": "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0::chunk-0",
+            "end_char": 2048,
+            "source_id": "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0",
+            "start_char": 0
+          }
+        ],
+        "context_tokens": 1025,
+        "evidence_count": 2,
+        "missing_requirement_ids": [],
+        "packed_recall": 0.5,
+        "query": "I need help with two things: What is involved in complying with the Program Quality Assurance? Also, What information can you give me regarding adverse credit is incorrect?",
+        "query_kind": "parallel_composite",
+        "requirements": [
+          {
+            "query": "What is involved in complying with the Program Quality Assurance?",
+            "requirement_id": "R1"
+          },
+          {
+            "query": "What information can you give me regarding adverse credit is incorrect?",
+            "requirement_id": "R2"
+          }
+        ],
+        "retrieval_latency_ms": 147.49195612967014,
+        "selected_ids": [
+          "IT Standards Library | Federal Student Aid#1_0::chunk-1",
+          "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0::chunk-0"
+        ],
+        "selected_recall": 0.5,
+        "selection_assignments": {
+          "R1": [
+            "IT Standards Library | Federal Student Aid#1_0::chunk-1"
+          ],
+          "R2": [
+            "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0::chunk-0"
+          ]
+        },
+        "selection_error": null,
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 5981,
+          "latency_ms": {
+            "max": 1834.938,
+            "p50": 1834.938,
+            "p95": 1834.938,
+            "sum": 1834.938
+          },
+          "output_tokens": 104,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      },
+      {
+        "candidate_ids": [
+          "Aid for International Study | Federal Student Aid#1_0::chunk-5",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-6",
+          "Benefits Planner: Disability | Are You Working | Social Security Administration#2_0::chunk-0",
+          "Yellow Ribbon Program | Veterans Affairs#1_0::chunk-1",
+          "Automatic license and registration extension for military personnel#3_0::chunk-0",
+          "Benefits Planner: Disability | Are You Working | Social Security Administration#1_0::chunk-0",
+          "Aid for International Study | Federal Student Aid#1_0::chunk-4",
+          "Closed School Discharge | Federal Student Aid#1_0::chunk-1",
+          "Medical Certification FAQ's#3_0::chunk-3",
+          "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0::chunk-0",
+          "Board hearings with a Veterans Law Judge | Veterans Affairs#1_0::chunk-2",
+          "Aid And Attendance Benefits And Housebound Allowance | VA.gov#1_0::chunk-0",
+          "Avoiding Student Aid Scams | Federal Student Aid#1_0::chunk-4",
+          "CHAMPVA Benefits | Veterans Affairs#1_0::chunk-4",
+          "Your Health Care Costs | Veterans Affairs#1_0::chunk-4",
+          "Avoiding Student Aid Scams | Federal Student Aid#1_0::chunk-5",
+          "Board hearings with a Veterans Law Judge | Veterans Affairs#1_0::chunk-3",
+          "After You Apply For Health Care Benefits | Veterans Affairs#1_0::chunk-0",
+          "Apply for Retirement Benefits | SSA#1_0::chunk-3",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-7"
+        ],
+        "candidate_recall": 0.0,
+        "case_id": "doc2dial-parallel-stress-07",
+        "context_spans": [],
+        "context_tokens": 0,
+        "evidence_count": 4,
+        "missing_requirement_ids": [
+          "R1",
+          "R2"
+        ],
+        "packed_recall": 0.0,
+        "query": "I need help with two things: when do benefits come? Also, What happens if I die and you still send the payments?",
+        "query_kind": "parallel_composite",
+        "requirements": [
+          {
+            "query": "When do benefits come?",
+            "requirement_id": "R1"
+          },
+          {
+            "query": "What happens if I die and you still send the payments?",
+            "requirement_id": "R2"
+          }
+        ],
+        "retrieval_latency_ms": 143.7026485800743,
+        "selected_ids": [],
+        "selected_recall": 0.0,
+        "selection_assignments": {},
+        "selection_error": null,
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 6400,
+          "calls": 2,
+          "errors": 0,
+          "input_tokens": 11950,
+          "latency_ms": {
+            "max": 2872.866,
+            "p50": 2872.866,
+            "p95": 2872.866,
+            "sum": 5745.732
+          },
+          "output_tokens": 417,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      },
+      {
+        "candidate_ids": [
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-1",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-4",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-1",
+          "Benefits Planner: Disability | Family Benefits | Social Security Administration#1_0::chunk-0",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-4",
+          "Benefits Planner: Disability | Family Benefits | Social Security Administration#2_0::chunk-0",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-2",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-5",
+          "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0::chunk-3",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-5",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-3",
+          "Benefits Planner | Social Security Credits and Benefit Eligibility | SSA#1_0::chunk-0",
+          "Benefits Planner | Social Security Credits and Benefit Eligibility | SSA#2_0::chunk-0",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-2",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-3",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-0",
+          "Income-Driven Repayment Plans | Federal Student Aid#1_0::chunk-6",
+          "Income-Driven Repayment Plans | Federal Student Aid#1_0::chunk-0",
+          "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0::chunk-3",
+          "Yellow Ribbon Program | Veterans Affairs#1_0::chunk-1"
+        ],
+        "candidate_recall": 1.0,
+        "case_id": "doc2dial-parallel-stress-08",
+        "context_spans": [
+          {
+            "context_id": "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-2",
+            "end_char": 5632,
+            "source_id": "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0",
+            "start_char": 3584
+          },
+          {
+            "context_id": "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-2",
+            "end_char": 5632,
+            "source_id": "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0",
+            "start_char": 3584
+          },
+          {
+            "context_id": "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-5",
+            "end_char": 11008,
+            "source_id": "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0",
+            "start_char": 8960
+          },
+          {
+            "context_id": "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-5",
+            "end_char": 11008,
+            "source_id": "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0",
+            "start_char": 8960
+          }
+        ],
+        "context_tokens": 2050,
+        "evidence_count": 4,
+        "missing_requirement_ids": [],
+        "packed_recall": 0.0,
+        "query": "I need help with two things: can the widow get monthly benefits if she is caring for the deceased person's daughter? Also, Is there a maximum limit to the amount a family could get?",
+        "query_kind": "parallel_composite",
+        "requirements": [
+          {
+            "query": "Can the widow get monthly benefits if she is caring for the deceased person's daughter?",
+            "requirement_id": "R1"
+          },
+          {
+            "query": "Is there a maximum limit to the amount a family could get?",
+            "requirement_id": "R2"
+          }
+        ],
+        "retrieval_latency_ms": 153.49406376481056,
+        "selected_ids": [
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-2",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-2",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-5",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-5"
+        ],
+        "selected_recall": 0.0,
+        "selection_assignments": {
+          "R1": [
+            "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-2",
+            "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-2"
+          ],
+          "R2": [
+            "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-5",
+            "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-5"
+          ]
+        },
+        "selection_error": null,
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 6321,
+          "latency_ms": {
+            "max": 1912.536,
+            "p50": 1912.536,
+            "p95": 1912.536,
+            "sum": 1912.536
+          },
+          "output_tokens": 112,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      },
+      {
+        "candidate_ids": [
+          "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::chunk-0",
+          "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0::chunk-2",
+          "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0::chunk-3",
+          "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::chunk-1",
+          "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::chunk-2",
+          "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::chunk-3",
+          "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0::chunk-0",
+          "Income-Driven Repayment Plans | Federal Student Aid#1_0::chunk-9",
+          "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0::chunk-1",
+          "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0::chunk-4",
+          "Benefits Planner: Disability | Approval Process | Social Security Administration#2_0::chunk-1",
+          "Income-Driven Repayment Plans | Federal Student Aid#1_0::chunk-6",
+          "Benefits Planner: Disability | Approval Process | Social Security Administration#1_0::chunk-1",
+          "Income-Driven Repayment Plans | Federal Student Aid#1_0::chunk-8",
+          "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::chunk-4",
+          "Collections | Federal Student Aid#1_0::chunk-2",
+          "Your Health Care Costs | Veterans Affairs#1_0::chunk-3",
+          "CHAMPVA Benefits | Veterans Affairs#1_0::chunk-3",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-11",
+          "Benefits Planner | Social Security Administration#1_0::chunk-0"
+        ],
+        "candidate_recall": 1.0,
+        "case_id": "doc2dial-parallel-stress-09",
+        "context_spans": [
+          {
+            "context_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::chunk-0",
+            "end_char": 2048,
+            "source_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0",
+            "start_char": 0
+          },
+          {
+            "context_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0::chunk-3",
+            "end_char": 7424,
+            "source_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0",
+            "start_char": 5376
+          },
+          {
+            "context_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0::chunk-2",
+            "end_char": 5632,
+            "source_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0",
+            "start_char": 3584
+          }
+        ],
+        "context_tokens": 1537,
+        "evidence_count": 3,
+        "missing_requirement_ids": [],
+        "packed_recall": 0.6666666666666666,
+        "query": "I need help with two things: What can you tell me about monthly Medicare premiums? Also, What if I filed a federal income tax return for the year?",
+        "query_kind": "parallel_composite",
+        "requirements": [
+          {
+            "query": "What can you tell me about monthly Medicare premiums?",
+            "requirement_id": "R1"
+          },
+          {
+            "query": "What if I filed a federal income tax return for the year?",
+            "requirement_id": "R2"
+          }
+        ],
+        "retrieval_latency_ms": 153.70143204927444,
+        "selected_ids": [
+          "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::chunk-0",
+          "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0::chunk-3",
+          "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0::chunk-2"
+        ],
+        "selected_recall": 0.6666666666666666,
+        "selection_assignments": {
+          "R1": [
+            "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0::chunk-0",
+            "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0::chunk-3"
+          ],
+          "R2": [
+            "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0::chunk-2",
+            "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0::chunk-3"
+          ]
+        },
+        "selection_error": null,
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 6656,
+          "calls": 2,
+          "errors": 0,
+          "input_tokens": 12368,
+          "latency_ms": {
+            "max": 2430.229,
+            "p50": 2430.229,
+            "p95": 2430.229,
+            "sum": 4860.458
+          },
+          "output_tokens": 409,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      },
+      {
+        "candidate_ids": [
+          "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0::chunk-5",
+          "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0::chunk-4",
+          "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0::chunk-5",
+          "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0::chunk-4",
+          "Benefits Planner: Disability | Family Benefits | Social Security Administration#1_0::chunk-2",
+          "Benefits Planner: Disability | Family Benefits | Social Security Administration#2_0::chunk-2",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-1",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-2",
+          "Apply For A Child (Under Age 18) | Disability Benefits | SSA#1_0::chunk-0",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-1",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-4",
+          "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0::chunk-1",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0::chunk-4",
+          "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0::chunk-4",
+          "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0::chunk-3",
+          "Benefits Planner: Disability | Family Benefits | Social Security Administration#1_0::chunk-1",
+          "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0::chunk-0",
+          "Benefits Planner: Disability | Family Benefits | Social Security Administration#2_0::chunk-1",
+          "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0::chunk-2",
+          "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0::chunk-2"
+        ],
+        "candidate_recall": 1.0,
+        "case_id": "doc2dial-parallel-stress-10",
+        "context_spans": [
+          {
+            "context_id": "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0::chunk-4",
+            "end_char": 9216,
+            "source_id": "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0",
+            "start_char": 7168
+          },
+          {
+            "context_id": "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0::chunk-4",
+            "end_char": 9216,
+            "source_id": "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0",
+            "start_char": 7168
+          },
+          {
+            "context_id": "Apply For A Child (Under Age 18) | Disability Benefits | SSA#1_0::chunk-0",
+            "end_char": 1521,
+            "source_id": "Apply For A Child (Under Age 18) | Disability Benefits | SSA#1_0",
+            "start_char": 0
+          },
+          {
+            "context_id": "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0::chunk-5",
+            "end_char": 10244,
+            "source_id": "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0",
+            "start_char": 8960
+          },
+          {
+            "context_id": "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0::chunk-5",
+            "end_char": 10294,
+            "source_id": "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0",
+            "start_char": 8960
+          }
+        ],
+        "context_tokens": 2061,
+        "evidence_count": 4,
+        "missing_requirement_ids": [],
+        "packed_recall": 1.0,
+        "query": "I need help with two things: Is there other related information I would need to know about disability for a child under 18? Also, How is it determined if an adult \"child\" is disabled for SSDI benefits when the child is age 18 or older?",
+        "query_kind": "parallel_composite",
+        "requirements": [
+          {
+            "query": "What other related information is needed to know about disability for a child under 18?",
+            "requirement_id": "R1"
+          },
+          {
+            "query": "How is it determined if an adult \"child\" is disabled for SSDI benefits when the child is age 18 or older?",
+            "requirement_id": "R2"
+          }
+        ],
+        "retrieval_latency_ms": 160.2043379098177,
+        "selected_ids": [
+          "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0::chunk-4",
+          "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0::chunk-4",
+          "Apply For A Child (Under Age 18) | Disability Benefits | SSA#1_0::chunk-0",
+          "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0::chunk-5",
+          "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0::chunk-5"
+        ],
+        "selected_recall": 1.0,
+        "selection_assignments": {
+          "R1": [
+            "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0::chunk-4",
+            "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0::chunk-4",
+            "Apply For A Child (Under Age 18) | Disability Benefits | SSA#1_0::chunk-0"
+          ],
+          "R2": [
+            "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0::chunk-5",
+            "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0::chunk-5"
+          ]
+        },
+        "selection_error": null,
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 6064,
+          "latency_ms": {
+            "max": 2253.781,
+            "p50": 2253.781,
+            "p95": 2253.781,
+            "sum": 2253.781
+          },
+          "output_tokens": 116,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      },
+      {
+        "candidate_ids": [
+          "Board hearings with a Veterans Law Judge | Veterans Affairs#1_0::chunk-0",
+          "Medical Certification FAQ's#3_0::chunk-1",
+          "Medical Certification FAQ's#3_0::chunk-3",
+          "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-7",
+          "Medical Certification FAQ's#3_0::chunk-2",
+          "After You Apply For An Eligibility Determination | Veterans Affairs#1_0::chunk-0",
+          "About problem driver restrictions#3_0::chunk-0",
+          "Dependency Status | Federal Student Aid#1_0::chunk-3",
+          "Medical Certification FAQ's#3_0::chunk-0",
+          "Apply for Retirement Benefits | SSA#1_0::chunk-5",
+          "About VA Disability Ratings | Veterans Affairs#1_0::chunk-3",
+          "About problem driver restrictions#3_0::chunk-1",
+          "Benefits Planner: Disability | Are You Working | Social Security Administration#1_0::chunk-0",
+          "ATVs: Information for Owners and Operators#3_0::chunk-5",
+          "Benefits Planner: Disability | Are You Working | Social Security Administration#2_0::chunk-0",
+          "After You Apply For An Eligibility Determination | Veterans Affairs#1_0::chunk-2",
+          "Conditional and restricted use licenses#3_0::chunk-0",
+          "Apply for Retirement Benefits | SSA#1_0::chunk-0",
+          "Commercial Driver License Downgrades#3_0::chunk-0",
+          "Board hearings with a Veterans Law Judge | Veterans Affairs#1_0::chunk-2"
+        ],
+        "candidate_recall": 0.5,
+        "case_id": "doc2dial-parallel-stress-11",
+        "context_spans": [
+          {
+            "context_id": "Apply for Retirement Benefits | SSA#1_0::chunk-5",
+            "end_char": 10177,
+            "source_id": "Apply for Retirement Benefits | SSA#1_0",
+            "start_char": 8960
+          },
+          {
+            "context_id": "Medical Certification FAQ's#3_0::chunk-1",
+            "end_char": 3840,
+            "source_id": "Medical Certification FAQ's#3_0",
+            "start_char": 1792
+          },
+          {
+            "context_id": "Medical Certification FAQ's#3_0::chunk-2",
+            "end_char": 5632,
+            "source_id": "Medical Certification FAQ's#3_0",
+            "start_char": 3584
+          }
+        ],
+        "context_tokens": 1330,
+        "evidence_count": 6,
+        "missing_requirement_ids": [],
+        "packed_recall": 0.5,
+        "query": "I need help with two things: How would I go about appealing a decision? Also, Can I keep my CDL but with restrictions on it?",
+        "query_kind": "parallel_composite",
+        "requirements": [
+          {
+            "query": "How would I go about appealing a decision?",
+            "requirement_id": "R1"
+          },
+          {
+            "query": "Can I keep my CDL but with restrictions on it?",
+            "requirement_id": "R2"
+          }
+        ],
+        "retrieval_latency_ms": 142.1288177371025,
+        "selected_ids": [
+          "Apply for Retirement Benefits | SSA#1_0::chunk-5",
+          "Medical Certification FAQ's#3_0::chunk-1",
+          "Medical Certification FAQ's#3_0::chunk-2"
+        ],
+        "selected_recall": 0.5,
+        "selection_assignments": {
+          "R1": [
+            "Apply for Retirement Benefits | SSA#1_0::chunk-5"
+          ],
+          "R2": [
+            "Medical Certification FAQ's#3_0::chunk-1",
+            "Medical Certification FAQ's#3_0::chunk-2"
+          ]
+        },
+        "selection_error": null,
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 6238,
+          "latency_ms": {
+            "max": 1978.488,
+            "p50": 1978.488,
+            "p95": 1978.488,
+            "sum": 1978.488
+          },
+          "output_tokens": 108,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      },
+      {
+        "candidate_ids": [
+          "Your Health Care Costs | Veterans Affairs#1_0::chunk-1",
+          "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0::chunk-0",
+          "Change Your VA Direct Deposit Information | Veterans Affairs#1_0::chunk-1",
+          "About VA Health Benefits | Veterans Affairs#1_0::chunk-0",
+          "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0::chunk-1",
+          "Aid And Attendance Benefits And Housebound Allowance | VA.gov#1_0::chunk-1",
+          "Your Health Care Costs | Veterans Affairs#1_0::chunk-0",
+          "Medical Certification FAQ's#3_0::chunk-2",
+          "About VA Disability Ratings | Veterans Affairs#1_0::chunk-3",
+          "Medical Certification FAQ's#3_0::chunk-0",
+          "Agent Orange Exposure From C-123 Aircraft | Veterans Affairs#1_0::chunk-1",
+          "Active-Duty Service Members And VA Health Care | Veterans Affairs#1_0::chunk-1",
+          "Apply for Retirement Benefits | SSA#1_0::chunk-0",
+          "Your Health Care Costs | Veterans Affairs#1_0::chunk-2",
+          "Automatic license and registration extension for military personnel#3_0::chunk-0",
+          "Medical Certification FAQ's#3_0::chunk-3",
+          "Dependency Status | Federal Student Aid#1_0::chunk-2",
+          "About VA Disability Ratings | Veterans Affairs#1_0::chunk-1",
+          "Change Your GI Bill School Or Program | Veterans Affairs#1_0::chunk-0",
+          "Dependency Status | Federal Student Aid#1_0::chunk-3"
+        ],
+        "candidate_recall": 0.25,
+        "case_id": "doc2dial-parallel-stress-12",
+        "context_spans": [
+          {
+            "context_id": "Your Health Care Costs | Veterans Affairs#1_0::chunk-1",
+            "end_char": 3840,
+            "source_id": "Your Health Care Costs | Veterans Affairs#1_0",
+            "start_char": 1792
+          },
+          {
+            "context_id": "About VA Health Benefits | Veterans Affairs#1_0::chunk-0",
+            "end_char": 2048,
+            "source_id": "About VA Health Benefits | Veterans Affairs#1_0",
+            "start_char": 0
+          },
+          {
+            "context_id": "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0::chunk-1",
+            "end_char": 3840,
+            "source_id": "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0",
+            "start_char": 1792
+          }
+        ],
+        "context_tokens": 1537,
+        "evidence_count": 4,
+        "missing_requirement_ids": [],
+        "packed_recall": 0.25,
+        "query": "I need help with two things: where to get more information about priority groups? Also, can I file by mail when I am ready to add my daughter?",
+        "query_kind": "parallel_composite",
+        "requirements": [
+          {
+            "query": "Where to get more information about priority groups?",
+            "requirement_id": "R1"
+          },
+          {
+            "query": "Can I file by mail when I am ready to add my daughter?",
+            "requirement_id": "R2"
+          }
+        ],
+        "retrieval_latency_ms": 144.68440599739552,
+        "selected_ids": [
+          "Your Health Care Costs | Veterans Affairs#1_0::chunk-1",
+          "About VA Health Benefits | Veterans Affairs#1_0::chunk-0",
+          "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0::chunk-1"
+        ],
+        "selected_recall": 0.25,
+        "selection_assignments": {
+          "R1": [
+            "Your Health Care Costs | Veterans Affairs#1_0::chunk-1",
+            "About VA Health Benefits | Veterans Affairs#1_0::chunk-0"
+          ],
+          "R2": [
+            "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0::chunk-1"
+          ]
+        },
+        "selection_error": null,
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 6105,
+          "latency_ms": {
+            "max": 2360.114,
+            "p50": 2360.114,
+            "p95": 2360.114,
+            "sum": 2360.114
+          },
+          "output_tokens": 108,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      }
+    ],
+    "requirements-dynamic-parent": [
+      {
+        "candidate_ids": [
+          "3cf097e346b1c70d6795bb7c5f2993f7bb2a2a59d67e8f41f60ff64ddb97b696::chunk-0",
+          "58cc3b2a88c8872db137f7216280a555b761752ec44a1942f680a72b8e19cb7e::chunk-0",
+          "490ab7a9b85222ac3d9912074dc1afef69641dc46c83d81bc45d19306fc8c8ab::chunk-0",
+          "e0c4b0be9cbec3e1421bd11f383973c55a5a620fe99e43f6fbd3e689190a21a1::chunk-0",
+          "ce0e4f373635484734323833516bd48da18da7ef8c4abcd988e4a4b93a6750d2::chunk-0",
+          "06cd559688960f9b8bfc6724fb1cfd455143731d7a39c40f01a2371ba9c55599::chunk-0",
+          "a747486b603a41c64f7e81c319227b2baf2d7e5ca5d034d2510964a9c2bbcae7::chunk-0",
+          "8c2f1ca2ea51d198d6e0e0ce1aa8acee06451c6f6f1a2c55206fce0e6aa06b65::chunk-0",
+          "5915db1d2e8428fc380560b37e8b20dde87af6adc485c8c786674b76c66a2036::chunk-0",
+          "7a79e7f47a5878c3e49e8547a940b1a8a59957c2e3ff47b9274c80e41c7119bf::chunk-0",
+          "1586c047ad2b1c0252bddceb237135b53fcb8260aeaa921a73ddbc292af596b5::chunk-0",
+          "cba3f849619b7f4aa18ad033fcad1e3b6141c66bdd60ae24bbaeedd3525a8491::chunk-0",
+          "771928525dd34fad9c511841d09b1daba7f511ea6a3974ad2039bab67284fabd::chunk-0",
+          "c99d6fdb2487e0f2f2499c26c0aee3f063e61a4e5ca75e316d58c4609af64106::chunk-0",
+          "82d2054105d5650b5133ba6664edbb479155ac118277e7c8b2979aa4b30ed31b::chunk-0",
+          "9691cba58c785f65f708c8bba9a906f21d99a3d37ba330a94218e52723c59cae::chunk-0",
+          "c935a65d211c001ba1076e2774b7ac7078bba2855420616dc44778e37fc4e142::chunk-0",
+          "4b26b2058af93e8ae53bdba03e87f0ee553f7c2f233766880acc2aea793073fd::chunk-0",
+          "ce2a7354ce5fb85d9f788b50367c5bdaede5d3c5ea09d2ee729b9a730bd3d013::chunk-0",
+          "b3d0c9b7f0b27be1f44a54bf87af116840c59e68b455fbdc40fb232b0f876223::chunk-0"
+        ],
+        "candidate_recall": 1.0,
+        "case_id": "doc2dial-parallel-stress-01",
+        "context_spans": [
+          {
+            "context_id": "mixed::0c24f590944567628000707a7b0a28c07d456f2613fac118def10d83c50c8962",
+            "end_char": 36362,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 33996
+          },
+          {
+            "context_id": "mixed-window::74a2900bbfcd058da88e37c7222913b31183b74fea583cc39179565a1b327189",
+            "end_char": 2495,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 0
+          }
+        ],
+        "context_tokens": 1216,
+        "evidence_count": 4,
+        "missing_requirement_ids": [],
+        "packed_recall": 1.0,
+        "query": "I need help with two things: What are Corinthian colleges? Also, What is the logic behind the notifications regarding the Sweet v. DeVos Lawsuit?",
+        "query_kind": "parallel_composite",
+        "requirements": [
+          {
+            "query": "What are Corinthian colleges?",
+            "requirement_id": "R1"
+          },
+          {
+            "query": "What is the logic behind the notifications regarding the Sweet v. DeVos Lawsuit?",
+            "requirement_id": "R2"
+          }
+        ],
+        "retrieval_latency_ms": 190.4723383486271,
+        "selected_ids": [
+          "3cf097e346b1c70d6795bb7c5f2993f7bb2a2a59d67e8f41f60ff64ddb97b696::chunk-0",
+          "58cc3b2a88c8872db137f7216280a555b761752ec44a1942f680a72b8e19cb7e::chunk-0",
+          "06cd559688960f9b8bfc6724fb1cfd455143731d7a39c40f01a2371ba9c55599::chunk-0"
+        ],
+        "selected_recall": 1.0,
+        "selection_assignments": {
+          "R1": [
+            "3cf097e346b1c70d6795bb7c5f2993f7bb2a2a59d67e8f41f60ff64ddb97b696::chunk-0"
+          ],
+          "R2": [
+            "58cc3b2a88c8872db137f7216280a555b761752ec44a1942f680a72b8e19cb7e::chunk-0",
+            "06cd559688960f9b8bfc6724fb1cfd455143731d7a39c40f01a2371ba9c55599::chunk-0"
+          ]
+        },
+        "selection_error": null,
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 4812,
+          "latency_ms": {
+            "max": 2494.784,
+            "p50": 2494.784,
+            "p95": 2494.784,
+            "sum": 2494.784
+          },
+          "output_tokens": 108,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      },
+      {
+        "candidate_ids": [
+          "71107ab643d105a9178c3154212c6738f8662549b729e6667e394227510b2d84::chunk-0",
+          "f282fc763ba92b451535f93770cf7c68ecd4e0c6234ca618e230bb58d034f7ed::chunk-0",
+          "e85b07a534f00dfc19463563bcf5798c6bca03e90df36da6021f24fc97e6f5d8::chunk-0",
+          "bf5e5dc5917ac4185d8117d1fdead7d889a132d92738955958277d59f6e9344a::chunk-0",
+          "e937666c09f2eb9dea5470492c05010bb8aa86f508a8fbc145ef8f1cc0ae6e7c::chunk-0",
+          "cc97fedb5e04db5b5fef29ea6bad6f7669b205bd384c90ec8c0161e172cb4367::chunk-0",
+          "b38db5c08dcf990b96935b5a820d521d9006da3fc39507ae9bee07c4b2f5af2c::chunk-0",
+          "589d1156b5964e7502cea463fb1261eedb02fa53de9f1cda6f2993a6264ebc7d::chunk-0",
+          "f6bde88c83ba006e2515ec7c1c50899914e10d77ed9ac3dfc49890be4a5f9a7b::chunk-0",
+          "a6515993aec680df0a0546a7e4ec485fba84d5def9491d752e3ed4317355af0c::chunk-0",
+          "ef91cbcc3da01b9daff72fe6faf1edd45bd46d8b26e305fbadc48451a4f156e2::chunk-0",
+          "71ca60fbb4cd383126e095e60899b469dcb8913c83b30b8f5f5057ef2ba90d77::chunk-0",
+          "70a2cbf75a12fd316a50fe216fe62638b2f0ce8182e6604d3f63cc2fa8cf17f2::chunk-0",
+          "946e3c4ceb87849bc36257d5bbb921e7b6c9fe4a08d667cc0f82353472aae782::chunk-0",
+          "ffcad328bd3b90a98c13ecfc0fda9b687f74d7747d43c535ceaf806319290d8b::chunk-0",
+          "ceea2dc85837b62d0e2d0f5f276f5845e71c3adc1ed6808ddae49ee4e35feb59::chunk-0",
+          "e86a34a282880245b1e6881ba888063e1ad7a161525313e3ed5267c00fc8e955::chunk-0",
+          "70b023955804c390b37ccd5ec7e27bc8db4be8150ac96e05735d33dbb90c5aec::chunk-0",
+          "bee2dac0dd7b9adf9ffaabdc19904bf74417e046f41634b1ead57c34d586d359::chunk-0",
+          "443cad53017c281d726ac273c3a0de09fc4b3656732087e34349946f439a47ea::chunk-0"
+        ],
+        "candidate_recall": 0.5,
+        "case_id": "doc2dial-parallel-stress-02",
+        "context_spans": [
+          {
+            "context_id": "mixed::ca270972d9a12f448541c6ef2cae29b425634bea6095045a0d2657883129666e",
+            "end_char": 20857,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 18613
+          },
+          {
+            "context_id": "mixed-window::61a022a0d87272294d2b9346ea749986a8f3aaeff49d67eeb7c7234c0bc89459",
+            "end_char": 2389,
+            "source_id": "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0",
+            "start_char": 0
+          }
+        ],
+        "context_tokens": 1159,
+        "evidence_count": 2,
+        "missing_requirement_ids": [],
+        "packed_recall": 1.0,
+        "query": "I need help with two things: How will I know how much I have left after the interest is calculated? Also, Do I need information related to mitigating circumstances?",
+        "query_kind": "parallel_composite",
+        "requirements": [
+          {
+            "query": "How will I know how much I have left after the interest is calculated?",
+            "requirement_id": "R1"
+          },
+          {
+            "query": "Do I need information related to mitigating circumstances?",
+            "requirement_id": "R2"
+          }
+        ],
+        "retrieval_latency_ms": 206.0017753392458,
+        "selected_ids": [
+          "71107ab643d105a9178c3154212c6738f8662549b729e6667e394227510b2d84::chunk-0",
+          "589d1156b5964e7502cea463fb1261eedb02fa53de9f1cda6f2993a6264ebc7d::chunk-0",
+          "f282fc763ba92b451535f93770cf7c68ecd4e0c6234ca618e230bb58d034f7ed::chunk-0"
+        ],
+        "selected_recall": 0.5,
+        "selection_assignments": {
+          "R1": [
+            "71107ab643d105a9178c3154212c6738f8662549b729e6667e394227510b2d84::chunk-0",
+            "589d1156b5964e7502cea463fb1261eedb02fa53de9f1cda6f2993a6264ebc7d::chunk-0"
+          ],
+          "R2": [
+            "f282fc763ba92b451535f93770cf7c68ecd4e0c6234ca618e230bb58d034f7ed::chunk-0"
+          ]
+        },
+        "selection_error": null,
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 5229,
+          "latency_ms": {
+            "max": 2453.565,
+            "p50": 2453.565,
+            "p95": 2453.565,
+            "sum": 2453.565
+          },
+          "output_tokens": 108,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      },
+      {
+        "candidate_ids": [
+          "11df9b248678bbca08ac859e0a63b177a6d483e471da8093666af7ad3473735d::chunk-0",
+          "31692525eff36ac4f22386094674b9e0b909d88838d164cf22eb9f9d8c7dfc7a::chunk-0",
+          "3b9351aff28381f026e65f88e06c475c21c43ee9445b60ea94e4d3147bb7a546::chunk-0",
+          "16541a69a5197c8583bad8294a2c086a254cd0c06029a0ea407d66af4f6d473c::chunk-0",
+          "1e63551307a21d36dd5421d56909a02f9d856020e742b3fe5a458575ae198e01::chunk-0",
+          "105b1c04a85d95904d60ecab3527a88e5bcb5e854d5221618a49e4d78751f1f2::chunk-0",
+          "ef96374f971b83a2de51f3576b21496379f5de308f5e8e5071c9c5f50840a980::chunk-0",
+          "e1b72c6b7e7309f4059fb65da7629fb947c612b364b09d1df0ffde1633be5f9f::chunk-0",
+          "30fead21e586775e479375307463f7440b42d941706f7e5faeb6e34bea7a5bcb::chunk-0",
+          "77a4f327f2c253a61f7ee441e4e590fac612018c90543d69d4f51633b9d3eefb::chunk-0",
+          "490ab7a9b85222ac3d9912074dc1afef69641dc46c83d81bc45d19306fc8c8ab::chunk-0",
+          "efbf6257552e594e487e8b0c905e92eb3e99d3c89d6db1e8e7356df1aadcaa0c::chunk-0",
+          "e85b07a534f00dfc19463563bcf5798c6bca03e90df36da6021f24fc97e6f5d8::chunk-0",
+          "75ca08d318f6798e11280f04c0ccdaae277eb224c5bca780fe83156dbd48a76a::chunk-0",
+          "1c0fb4fe8e9fca7d06d1418bc21e7d36d0d37f4096b30f038c721c700ff9e365::chunk-0",
+          "771928525dd34fad9c511841d09b1daba7f511ea6a3974ad2039bab67284fabd::chunk-0",
+          "277ff4dd36f9d03d28f9f1c869bca5e541ec24af9fea13ad6eeda1523e1fbf1b::chunk-0",
+          "1ceaa0012a5b18910fef1e8e7eafd099e8b24dfa2f315f94d5510186dbe9eb2a::chunk-0",
+          "80987833bba99fe9efad01c9eacb505704d6495e425ec45e3e7c2b19394fdd1f::chunk-0",
+          "443cad53017c281d726ac273c3a0de09fc4b3656732087e34349946f439a47ea::chunk-0"
+        ],
+        "candidate_recall": 1.0,
+        "case_id": "doc2dial-parallel-stress-03",
+        "context_spans": [
+          {
+            "context_id": "mixed-window::d2e9dd1172e1c9f9cd0adc3e522c0a79222f4aeca0d57345f9de43200ef2a5ef",
+            "end_char": 11742,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 9411
+          },
+          {
+            "context_id": "mixed::31692525eff36ac4f22386094674b9e0b909d88838d164cf22eb9f9d8c7dfc7a",
+            "end_char": 2372,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 1105
+          },
+          {
+            "context_id": "mixed-window::006c9029bdc908ed39b2f65916a6daed1884ce320d7fac40b75ee1094293efea",
+            "end_char": 4645,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 2372
+          }
+        ],
+        "context_tokens": 1469,
+        "evidence_count": 2,
+        "missing_requirement_ids": [],
+        "packed_recall": 1.0,
+        "query": "I need help with two things: What should I do if I have defaulted on my federal student loan and have entered a rehabilitation plan? Also, Are there any additional documents that I can submit as part of my application for borrower defense?",
+        "query_kind": "parallel_composite",
+        "requirements": [
+          {
+            "query": "What should I do if I have defaulted on my federal student loan and have entered a rehabilitation plan?",
+            "requirement_id": "R1"
+          },
+          {
+            "query": "Are there any additional documents that I can submit as part of my application for borrower defense?",
+            "requirement_id": "R2"
+          }
+        ],
+        "retrieval_latency_ms": 227.57890075445175,
+        "selected_ids": [
+          "16541a69a5197c8583bad8294a2c086a254cd0c06029a0ea407d66af4f6d473c::chunk-0",
+          "31692525eff36ac4f22386094674b9e0b909d88838d164cf22eb9f9d8c7dfc7a::chunk-0",
+          "1e63551307a21d36dd5421d56909a02f9d856020e742b3fe5a458575ae198e01::chunk-0"
+        ],
+        "selected_recall": 1.0,
+        "selection_assignments": {
+          "R1": [
+            "16541a69a5197c8583bad8294a2c086a254cd0c06029a0ea407d66af4f6d473c::chunk-0"
+          ],
+          "R2": [
+            "31692525eff36ac4f22386094674b9e0b909d88838d164cf22eb9f9d8c7dfc7a::chunk-0",
+            "1e63551307a21d36dd5421d56909a02f9d856020e742b3fe5a458575ae198e01::chunk-0"
+          ]
+        },
+        "selection_error": null,
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 5497,
+          "latency_ms": {
+            "max": 2484.858,
+            "p50": 2484.858,
+            "p95": 2484.858,
+            "sum": 2484.858
+          },
+          "output_tokens": 108,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      },
+      {
+        "candidate_ids": [
+          "771928525dd34fad9c511841d09b1daba7f511ea6a3974ad2039bab67284fabd::chunk-0",
+          "06cd559688960f9b8bfc6724fb1cfd455143731d7a39c40f01a2371ba9c55599::chunk-0",
+          "c935a65d211c001ba1076e2774b7ac7078bba2855420616dc44778e37fc4e142::chunk-0",
+          "30fead21e586775e479375307463f7440b42d941706f7e5faeb6e34bea7a5bcb::chunk-0",
+          "58cc3b2a88c8872db137f7216280a555b761752ec44a1942f680a72b8e19cb7e::chunk-0",
+          "105b1c04a85d95904d60ecab3527a88e5bcb5e854d5221618a49e4d78751f1f2::chunk-0",
+          "e0c4b0be9cbec3e1421bd11f383973c55a5a620fe99e43f6fbd3e689190a21a1::chunk-0",
+          "1586c047ad2b1c0252bddceb237135b53fcb8260aeaa921a73ddbc292af596b5::chunk-0",
+          "a747486b603a41c64f7e81c319227b2baf2d7e5ca5d034d2510964a9c2bbcae7::chunk-0",
+          "ce0e4f373635484734323833516bd48da18da7ef8c4abcd988e4a4b93a6750d2::chunk-0",
+          "82d2054105d5650b5133ba6664edbb479155ac118277e7c8b2979aa4b30ed31b::chunk-0",
+          "0e16778d2438607cf32ae448d9c23627cb4fff3b49b5184799e93644c69b765d::chunk-0",
+          "7a79e7f47a5878c3e49e8547a940b1a8a59957c2e3ff47b9274c80e41c7119bf::chunk-0",
+          "75ca08d318f6798e11280f04c0ccdaae277eb224c5bca780fe83156dbd48a76a::chunk-0",
+          "5915db1d2e8428fc380560b37e8b20dde87af6adc485c8c786674b76c66a2036::chunk-0",
+          "ea31a77804572db1f63dbab4ea0ffd4407a290b981d2bfc60e53883450f8884e::chunk-0",
+          "5b0c29de100ace9a9bdc49f6dcdb7d6dde2b3d21d5b2e026ddcec9d74d347114::chunk-0",
+          "3b9351aff28381f026e65f88e06c475c21c43ee9445b60ea94e4d3147bb7a546::chunk-0",
+          "7a1c0c2058e94cc7ce501c7c065f416166ae3572ad8d2200c300c487019758ec::chunk-0",
+          "d01513a42ee1bdbeb9ac12df597c3afa13a7392efde95043d1391aa905bcc577::chunk-0"
+        ],
+        "candidate_recall": 1.0,
+        "case_id": "doc2dial-parallel-stress-04",
+        "context_spans": [
+          {
+            "context_id": "mixed-window::d137d1c82962183b5874e9f3b723325913d47f2e89af73f95e29e9675462b503",
+            "end_char": 16420,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 13987
+          },
+          {
+            "context_id": "mixed-window::77445ba01c30ef9b67d031892627dc0234738d9a1cdeba8c756b5d80e8b23932",
+            "end_char": 38645,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 36362
+          }
+        ],
+        "context_tokens": 1180,
+        "evidence_count": 3,
+        "missing_requirement_ids": [],
+        "packed_recall": 1.0,
+        "query": "I need help with two things: Is there a section on the website dedicated to common questions and answers regarding borrower defense decision notifications? Also, Are FFEL Program Loans eligible for the Sweet v. DeVos lawsuit?",
+        "query_kind": "parallel_composite",
+        "requirements": [
+          {
+            "query": "Is there a section on the website dedicated to common questions and answers regarding borrower defense decision notifications?",
+            "requirement_id": "R1"
+          },
+          {
+            "query": "Are FFEL Program Loans eligible for the Sweet v. DeVos lawsuit?",
+            "requirement_id": "R2"
+          }
+        ],
+        "retrieval_latency_ms": 228.77479903399944,
+        "selected_ids": [
+          "771928525dd34fad9c511841d09b1daba7f511ea6a3974ad2039bab67284fabd::chunk-0",
+          "c935a65d211c001ba1076e2774b7ac7078bba2855420616dc44778e37fc4e142::chunk-0"
+        ],
+        "selected_recall": 0.6666666666666666,
+        "selection_assignments": {
+          "R1": [
+            "771928525dd34fad9c511841d09b1daba7f511ea6a3974ad2039bab67284fabd::chunk-0"
+          ],
+          "R2": [
+            "c935a65d211c001ba1076e2774b7ac7078bba2855420616dc44778e37fc4e142::chunk-0"
+          ]
+        },
+        "selection_error": null,
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 4836,
+          "latency_ms": {
+            "max": 2227.146,
+            "p50": 2227.146,
+            "p95": 2227.146,
+            "sum": 2227.146
+          },
+          "output_tokens": 104,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      },
+      {
+        "candidate_ids": [
+          "7a1c0c2058e94cc7ce501c7c065f416166ae3572ad8d2200c300c487019758ec::chunk-0",
+          "30fead21e586775e479375307463f7440b42d941706f7e5faeb6e34bea7a5bcb::chunk-0",
+          "ea31a77804572db1f63dbab4ea0ffd4407a290b981d2bfc60e53883450f8884e::chunk-0",
+          "105b1c04a85d95904d60ecab3527a88e5bcb5e854d5221618a49e4d78751f1f2::chunk-0",
+          "b83de88c6639efc54cfa6679830d8c1eaab6a94279815616fb010d98cea3c0a9::chunk-0",
+          "75ca08d318f6798e11280f04c0ccdaae277eb224c5bca780fe83156dbd48a76a::chunk-0",
+          "9ef39e0e0aa33f9a8f1f0793cb524bad78ea072da89eaee45dbe0fe792cb8e0b::chunk-0",
+          "771928525dd34fad9c511841d09b1daba7f511ea6a3974ad2039bab67284fabd::chunk-0",
+          "8b56ea7d581fe0db3c444d5f0d48281fc9dcf02320a9370343589530b7965eca::chunk-0",
+          "3b9351aff28381f026e65f88e06c475c21c43ee9445b60ea94e4d3147bb7a546::chunk-0",
+          "277ff4dd36f9d03d28f9f1c869bca5e541ec24af9fea13ad6eeda1523e1fbf1b::chunk-0",
+          "703c6defc580c5e4ea4f56565bdd23fdcb0ff79dd22063a8ef1a3e0a06d2430f::chunk-0",
+          "1e63551307a21d36dd5421d56909a02f9d856020e742b3fe5a458575ae198e01::chunk-0",
+          "490ab7a9b85222ac3d9912074dc1afef69641dc46c83d81bc45d19306fc8c8ab::chunk-0",
+          "06cd559688960f9b8bfc6724fb1cfd455143731d7a39c40f01a2371ba9c55599::chunk-0",
+          "11df9b248678bbca08ac859e0a63b177a6d483e471da8093666af7ad3473735d::chunk-0",
+          "80987833bba99fe9efad01c9eacb505704d6495e425ec45e3e7c2b19394fdd1f::chunk-0",
+          "589d1156b5964e7502cea463fb1261eedb02fa53de9f1cda6f2993a6264ebc7d::chunk-0",
+          "ce0e4f373635484734323833516bd48da18da7ef8c4abcd988e4a4b93a6750d2::chunk-0",
+          "7e24039c0e675716c28f7e7d53d2b979e597626179080b4f80fd9bbee1f3c1af::chunk-0"
+        ],
+        "candidate_recall": 1.0,
+        "case_id": "doc2dial-parallel-stress-05",
+        "context_spans": [
+          {
+            "context_id": "mixed::ea31a77804572db1f63dbab4ea0ffd4407a290b981d2bfc60e53883450f8884e",
+            "end_char": 16420,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 16132
+          },
+          {
+            "context_id": "mixed::b83de88c6639efc54cfa6679830d8c1eaab6a94279815616fb010d98cea3c0a9",
+            "end_char": 17459,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 16283
+          },
+          {
+            "context_id": "mixed-window::006c9029bdc908ed39b2f65916a6daed1884ce320d7fac40b75ee1094293efea",
+            "end_char": 4645,
+            "source_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+            "start_char": 2372
+          }
+        ],
+        "context_tokens": 936,
+        "evidence_count": 2,
+        "missing_requirement_ids": [],
+        "packed_recall": 1.0,
+        "query": "I need help with two things: Can I have my borrower defense discharge applied to my FFEL or Federal Perkins loans? Also, I have applied for borrower defense by way of email but now have found further information that I want to send, can I do this?",
+        "query_kind": "parallel_composite",
+        "requirements": [
+          {
+            "query": "Can I have my borrower defense discharge applied to my FFEL or Federal Perkins loans?",
+            "requirement_id": "R1"
+          },
+          {
+            "query": "I have applied for borrower defense by way of email but now have found further information that I want to send, can I do this?",
+            "requirement_id": "R2"
+          }
+        ],
+        "retrieval_latency_ms": 248.41651692986488,
+        "selected_ids": [
+          "ea31a77804572db1f63dbab4ea0ffd4407a290b981d2bfc60e53883450f8884e::chunk-0",
+          "b83de88c6639efc54cfa6679830d8c1eaab6a94279815616fb010d98cea3c0a9::chunk-0",
+          "1e63551307a21d36dd5421d56909a02f9d856020e742b3fe5a458575ae198e01::chunk-0"
+        ],
+        "selected_recall": 1.0,
+        "selection_assignments": {
+          "R1": [
+            "ea31a77804572db1f63dbab4ea0ffd4407a290b981d2bfc60e53883450f8884e::chunk-0",
+            "b83de88c6639efc54cfa6679830d8c1eaab6a94279815616fb010d98cea3c0a9::chunk-0"
+          ],
+          "R2": [
+            "1e63551307a21d36dd5421d56909a02f9d856020e742b3fe5a458575ae198e01::chunk-0"
+          ]
+        },
+        "selection_error": null,
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 5551,
+          "latency_ms": {
+            "max": 2418.189,
+            "p50": 2418.189,
+            "p95": 2418.189,
+            "sum": 2418.189
+          },
+          "output_tokens": 108,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      },
+      {
+        "candidate_ids": [
+          "97d145f53463d57ec09bd4e41fbf55658d0d38303ebbe125f810853cff5c8fff::chunk-0",
+          "f282fc763ba92b451535f93770cf7c68ecd4e0c6234ca618e230bb58d034f7ed::chunk-0",
+          "1db311bf1d1588838c0cb83ace7a6a762dfd95914cb42952b07e568239133e86::chunk-0",
+          "be34615ac5ac97685bf051f237ce2c65a1a35b610788aaa07313db330c979434::chunk-0",
+          "7c8ec4d21d99f8e9b1eedf1610baf9594acdd54e2e33faff3cc0692648d074cc::chunk-0",
+          "a8c13e4829513ba40a9792378f32fbc39f363b214bd281d6f3bfa4d68db4b9d7::chunk-0",
+          "51fb3bf7b9804fc78cee20d656faa3ed35461e0e4f53c07c809c263b6b29bddf::chunk-0",
+          "fba8291aaa57fd33c6539f9183cddd2dc862c7ca67d7068f0cae54c8dbf5c023::chunk-0",
+          "2f65b3c7db2a578dfaaa1963aa9d02f4a0103310a026b726d3b593c0df9d21f8::chunk-0",
+          "2b2561e5aad0ed2d5d7d72ed1528afe8d1664d1f26ed423902421e80e39afe80::chunk-0",
+          "32fb2af4101a6f6e38fb192ff2e6db1829ab0dd67068a74c24f2a61127755354::chunk-0",
+          "71597fc0ac01f768b53e5d545d8c6ad4d8713e5b57037bcf9dd8b73345a78d48::chunk-0",
+          "8d9f5e7536c61136478a32ecc86c9ebc3dae10ceee39ed17a137cbf52555009d::chunk-0",
+          "d01513a42ee1bdbeb9ac12df597c3afa13a7392efde95043d1391aa905bcc577::chunk-0",
+          "a3b91f580483ddde23a8d79b3accef33304b4de3442bb43e1ba26350312f75c8::chunk-0",
+          "b9285dbf33f1913b31821e8a8332f005cffa53ccd118999fd3804f2abaa217d8::chunk-0",
+          "f362d5af8b56a66d2088e4e5ab2c7653a231a73d8555b8ee2ab3ae198bac99a7::chunk-0",
+          "31ba9ae6f417c76816a9e164501de9a5b1a54cd88e8ed584ccbd796689109f43::chunk-0",
+          "5c8fcad4264c81c16c152fc2b89cdc6620ca2311a44aa3277b2546bb0aa14d06::chunk-0",
+          "02099ec371b6a51fc78439a64065a5880f1b66ab5d29dd881a275d8bf245d150::chunk-0"
+        ],
+        "candidate_recall": 1.0,
+        "case_id": "doc2dial-parallel-stress-06",
+        "context_spans": [
+          {
+            "context_id": "mixed::61a022a0d87272294d2b9346ea749986a8f3aaeff49d67eeb7c7234c0bc89459",
+            "end_char": 2389,
+            "source_id": "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0",
+            "start_char": 0
+          },
+          {
+            "context_id": "mixed::97d145f53463d57ec09bd4e41fbf55658d0d38303ebbe125f810853cff5c8fff",
+            "end_char": 5360,
+            "source_id": "IT Standards Library | Federal Student Aid#1_0",
+            "start_char": 5014
+          },
+          {
+            "context_id": "mixed-window::ec85f1d1f9c797d3b695ffb1262c94b14d26bc412ac673c03876da3ca19a20f4",
+            "end_char": 2666,
+            "source_id": "IT Standards Library | Federal Student Aid#1_0",
+            "start_char": 0
+          }
+        ],
+        "context_tokens": 1352,
+        "evidence_count": 2,
+        "missing_requirement_ids": [],
+        "packed_recall": 1.0,
+        "query": "I need help with two things: What is involved in complying with the Program Quality Assurance? Also, What information can you give me regarding adverse credit is incorrect?",
+        "query_kind": "parallel_composite",
+        "requirements": [
+          {
+            "query": "What is involved in complying with the Program Quality Assurance?",
+            "requirement_id": "R1"
+          },
+          {
+            "query": "What information can you give me regarding adverse credit is incorrect?",
+            "requirement_id": "R2"
+          }
+        ],
+        "retrieval_latency_ms": 220.61696089804173,
+        "selected_ids": [
+          "97d145f53463d57ec09bd4e41fbf55658d0d38303ebbe125f810853cff5c8fff::chunk-0",
+          "be34615ac5ac97685bf051f237ce2c65a1a35b610788aaa07313db330c979434::chunk-0",
+          "f282fc763ba92b451535f93770cf7c68ecd4e0c6234ca618e230bb58d034f7ed::chunk-0",
+          "51fb3bf7b9804fc78cee20d656faa3ed35461e0e4f53c07c809c263b6b29bddf::chunk-0"
+        ],
+        "selected_recall": 1.0,
+        "selection_assignments": {
+          "R1": [
+            "97d145f53463d57ec09bd4e41fbf55658d0d38303ebbe125f810853cff5c8fff::chunk-0",
+            "be34615ac5ac97685bf051f237ce2c65a1a35b610788aaa07313db330c979434::chunk-0"
+          ],
+          "R2": [
+            "f282fc763ba92b451535f93770cf7c68ecd4e0c6234ca618e230bb58d034f7ed::chunk-0",
+            "51fb3bf7b9804fc78cee20d656faa3ed35461e0e4f53c07c809c263b6b29bddf::chunk-0"
+          ]
+        },
+        "selection_error": null,
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 5092,
+          "latency_ms": {
+            "max": 2429.832,
+            "p50": 2429.832,
+            "p95": 2429.832,
+            "sum": 2429.832
+          },
+          "output_tokens": 112,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      },
+      {
+        "candidate_ids": [
+          "70a2cbf75a12fd316a50fe216fe62638b2f0ce8182e6604d3f63cc2fa8cf17f2::chunk-0",
+          "7d53a7d690af2af85d02f6395f7632c7ed59d91e18482e6980277901333720cb::chunk-0",
+          "059f4ba2a0f8ae241e8ab238315dd64226174562ad1aec0f47932a99fe84d1b1::chunk-0",
+          "703c6defc580c5e4ea4f56565bdd23fdcb0ff79dd22063a8ef1a3e0a06d2430f::chunk-0",
+          "1fc0dd2ebe1a24d4456dc5d2b134318ab6b194ec7222421b41a196cf156e2cb6::chunk-0",
+          "cc97fedb5e04db5b5fef29ea6bad6f7669b205bd384c90ec8c0161e172cb4367::chunk-0",
+          "490ab7a9b85222ac3d9912074dc1afef69641dc46c83d81bc45d19306fc8c8ab::chunk-0",
+          "9843b21fca42029dd37073f70cc180e46c6ff4ad709ca16443410ae8950b088e::chunk-0",
+          "0507738b7bf5169cf855625d07eb4daa3e5d9c254bc8a2d864d0514785bb167f::chunk-0",
+          "172c66c36c6c43a2192dded281dc080d08e8fdee3d63797962ade47f7c0890be::chunk-0",
+          "22a000f1af063c5aa0c790b81ae9a6fe7d0e9cdc5cbb24ee42af68d6f6d1f4c4::chunk-0",
+          "6097920128219ec22f544d066d4036e8b10fd7e06e38425717850d6adee82851::chunk-0",
+          "ba35704739fb2f0c19654b97dbce4dae476e68c81df8394f1cf87a1f1d47a2a2::chunk-0",
+          "e86a34a282880245b1e6881ba888063e1ad7a161525313e3ed5267c00fc8e955::chunk-0",
+          "9c432fd54c33b9c57f8d2cbce13f67ea94e73d68d941a1708b89065ea3a2ce7d::chunk-0",
+          "bcf139c28a7d88740e3b1e2db619526cd37d839a32020ac7e0886a860f61f41e::chunk-0",
+          "30fead21e586775e479375307463f7440b42d941706f7e5faeb6e34bea7a5bcb::chunk-0",
+          "b6c104f377424d3889716bb8613f57c22ada257640929b3d2deb686e8f5aacc4::chunk-0",
+          "c1a477ec555649bf9c57c49edb1bd5571bb0c385925e8e92252ce31b13f3209a::chunk-0",
+          "344f4298ce7da92a9ebd85723dcf48a648b3396b711b9c417b2c3b2aab0935f3::chunk-0"
+        ],
+        "candidate_recall": 0.0,
+        "case_id": "doc2dial-parallel-stress-07",
+        "context_spans": [],
+        "context_tokens": 0,
+        "evidence_count": 4,
+        "missing_requirement_ids": [
+          "R1",
+          "R2"
+        ],
+        "packed_recall": 0.0,
+        "query": "I need help with two things: when do benefits come? Also, What happens if I die and you still send the payments?",
+        "query_kind": "parallel_composite",
+        "requirements": [
+          {
+            "query": "When do benefits come?",
+            "requirement_id": "R1"
+          },
+          {
+            "query": "What happens if I die and you still send the payments?",
+            "requirement_id": "R2"
+          }
+        ],
+        "retrieval_latency_ms": 210.297467187047,
+        "selected_ids": [],
+        "selected_recall": 0.0,
+        "selection_assignments": {},
+        "selection_error": null,
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 5888,
+          "calls": 2,
+          "errors": 0,
+          "input_tokens": 10680,
+          "latency_ms": {
+            "max": 3508.94,
+            "p50": 3508.94,
+            "p95": 3508.94,
+            "sum": 7017.88
+          },
+          "output_tokens": 601,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      },
+      {
+        "candidate_ids": [
+          "7ba2d2d83b9d0cb53e514d287edbfcf3b4359fbdc444eefedaa3763f42c0b37a::chunk-0",
+          "8ffdbaeb17f76a6c270a4095a7cadd8da4b7bc896865d5ab313f9c07d35435e1::chunk-0",
+          "41a01b2e69c0d038410848c96210304d3adcf4a25a888a2c1c71fdea89dc5a64::chunk-0",
+          "fc39e38e275ac47e6a97254269a51150500a5d12bac3543242db5e9d50a211e0::chunk-0",
+          "127e2e93167f075f639d186f103ea8cd1b343963771172d56b305d8f27a973b6::chunk-0",
+          "cb1fe233f303de4a6529d8e1fa028a63839c3bcf2298155b4ee53712ead401bc::chunk-0",
+          "dbae2e82bebb2373b64006c6bec3bcf1883ffe4cc7bb1cbbc26c247486532443::chunk-0",
+          "c899116c2dc2d50a3b845259b50eed8d6242435d9c5f469c9bbb196385037e19::chunk-0",
+          "a3b90a5a9507fe923d6166b63d44220c5f94568060aceb33ce2cd576f13372f2::chunk-0",
+          "b6925d36028b6ad4d84c9c6d4bbd95aeff018d53fa3ebdcbc592ccc05b9b6d80::chunk-0",
+          "580ddceb915f801594cc7abdf3a04ff7cd553dcb150a82599f1b5bcbf1604dd2::chunk-0",
+          "3f2a31afe71e0bfbdba79ca4b026cbd8b124f8c71fb91f5aab41f6f40d649efc::chunk-0",
+          "883128998457addfefa937a871a150e46190aaffd94a42dd3ae41b811ca7e912::chunk-0",
+          "00de4ae2ee66a7cb7411a2691aa31fed7ebe12729dac6daf03fe9b586db893e9::chunk-0",
+          "a587e44652fb1f96d50da5053b0f425f3f0fb0281f4c2d10673d21dcd3ac4b6c::chunk-0",
+          "f8cf57836c0524a3f45ffa1b30d69479761e99fcb3dabefdbdfd9a0ea07bd563::chunk-0",
+          "453ead42e66a5a12b828e8e87851033f4f09393fc32fe0ffe85025eb8da77fe8::chunk-0",
+          "0507738b7bf5169cf855625d07eb4daa3e5d9c254bc8a2d864d0514785bb167f::chunk-0",
+          "903bfdcaa98d0afcb78e7c5370baf7f9c15b1fe7393f2bcf2ffcd392b53657f8::chunk-0",
+          "6097920128219ec22f544d066d4036e8b10fd7e06e38425717850d6adee82851::chunk-0"
+        ],
+        "candidate_recall": 1.0,
+        "case_id": "doc2dial-parallel-stress-08",
+        "context_spans": [
+          {
+            "context_id": "mixed-window::2a8a77cd17ccaa3752acefbabf49713e549d14930cbc7f7051379d0b62d3f508",
+            "end_char": 4035,
+            "source_id": "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0",
+            "start_char": 1946
+          },
+          {
+            "context_id": "mixed-window::1ab9c9a19d378bec7261fdd10644fd7c8490107dd850d9cea8e40ef5614d258a",
+            "end_char": 4050,
+            "source_id": "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0",
+            "start_char": 1949
+          },
+          {
+            "context_id": "mixed-window::4d27f68133d1c3d3832d1e507d603991d00200001a971f270a4f81b206541486",
+            "end_char": 10361,
+            "source_id": "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0",
+            "start_char": 8223
+          },
+          {
+            "context_id": "mixed-window::8967ec4f321b298d8a34e1a39915b781dc565008f3e8085418661eccd9dc911f",
+            "end_char": 10367,
+            "source_id": "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0",
+            "start_char": 8236
+          }
+        ],
+        "context_tokens": 2117,
+        "evidence_count": 4,
+        "missing_requirement_ids": [],
+        "packed_recall": 1.0,
+        "query": "I need help with two things: can the widow get monthly benefits if she is caring for the deceased person's daughter? Also, Is there a maximum limit to the amount a family could get?",
+        "query_kind": "parallel_composite",
+        "requirements": [
+          {
+            "query": "Can the widow get monthly benefits if she is caring for the deceased person's daughter?",
+            "requirement_id": "R1"
+          },
+          {
+            "query": "Is there a maximum limit to the amount a family could get?",
+            "requirement_id": "R2"
+          }
+        ],
+        "retrieval_latency_ms": 167.14658215641975,
+        "selected_ids": [
+          "7ba2d2d83b9d0cb53e514d287edbfcf3b4359fbdc444eefedaa3763f42c0b37a::chunk-0",
+          "127e2e93167f075f639d186f103ea8cd1b343963771172d56b305d8f27a973b6::chunk-0",
+          "8ffdbaeb17f76a6c270a4095a7cadd8da4b7bc896865d5ab313f9c07d35435e1::chunk-0",
+          "fc39e38e275ac47e6a97254269a51150500a5d12bac3543242db5e9d50a211e0::chunk-0"
+        ],
+        "selected_recall": 1.0,
+        "selection_assignments": {
+          "R1": [
+            "7ba2d2d83b9d0cb53e514d287edbfcf3b4359fbdc444eefedaa3763f42c0b37a::chunk-0",
+            "127e2e93167f075f639d186f103ea8cd1b343963771172d56b305d8f27a973b6::chunk-0"
+          ],
+          "R2": [
+            "8ffdbaeb17f76a6c270a4095a7cadd8da4b7bc896865d5ab313f9c07d35435e1::chunk-0",
+            "fc39e38e275ac47e6a97254269a51150500a5d12bac3543242db5e9d50a211e0::chunk-0"
+          ]
+        },
+        "selection_error": null,
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 5090,
+          "latency_ms": {
+            "max": 2240.049,
+            "p50": 2240.049,
+            "p95": 2240.049,
+            "sum": 2240.049
+          },
+          "output_tokens": 112,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      },
+      {
+        "candidate_ids": [
+          "0ab4c40d448776c2c20f16a54ec7688c71ebe3672d78d4a33cb6f0faf56fa6ec::chunk-0",
+          "e919791948829a4d2a61e262f8595222d151362850b1f91dd9d53f51bd536025::chunk-0",
+          "2e2d3c92163245305cfcc579de32c71dfb78d13d05c0f74f9a926defb549f932::chunk-0",
+          "e2282e57056c0ce1c42c131914278f1808060fa6ad9cb3689a4c2548ef3f6039::chunk-0",
+          "b1056d373f1c79ed29d9c858f93750311359457b35b09e9eeb235471ebe76716::chunk-0",
+          "c345fd2f58bacda49751afd8d99ae8de2be7a442ed67fa6ea2ed157e2d548d63::chunk-0",
+          "a327295f7cf941de9dac3d093a9fa7dd4161f2657df128407cd2233bc0a1cb83::chunk-0",
+          "d7ca72f03c4e94c36fbd6c256698f43e2fe3b573fe3fa8d5e879f5902c4e92d9::chunk-0",
+          "4f02aaaa9f02c815b6b742db3bb347192a8ecd4dc902f11300d1dc30c4c83bab::chunk-0",
+          "b45a9e1c29cbaf72f72cee25c9b7ab48d89f83e3af951f97a15f4646833e01d5::chunk-0",
+          "94f139571af4edabd7a15d0c5502a60d348ec09226ea44d67b84ced5055196dc::chunk-0",
+          "01c57294685399e0809567f4c485ace947fe44dccc615daf18d84b2be954a9f9::chunk-0",
+          "6c92215c6c9528921db6d1664f8e54a7c5e1e3498c72d0b11e3bafb094e74de5::chunk-0",
+          "727fbb90fe238b1d410271a6cac2252b2fef0c9c16c1f0bbd13b640d61e14165::chunk-0",
+          "b372ad470671ea242fdfc583db973107f418252df2151443398aa917150fee6c::chunk-0",
+          "e764335b722ce5084effe859076448921eb36bb67c98743232ccf30167764250::chunk-0",
+          "3b266b5ee5df8ebb2b441954d51b6e89a359a93beb4c43a74e6422dcb263acec::chunk-0",
+          "420b82921c5575317ac339b07de651db4487b35de51d0ac5b350bfc01b89f13e::chunk-0",
+          "1fcd70461e321fd4877a0751144a52ca66599ad703b3cc8ae3d684cb663b9926::chunk-0",
+          "d6ab3248e73b0ad027543a11ec9da23090bdb5e23b186a0839513172f52ab6e1::chunk-0"
+        ],
+        "candidate_recall": 0.3333333333333333,
+        "case_id": "doc2dial-parallel-stress-09",
+        "context_spans": [
+          {
+            "context_id": "mixed-window::1341deb111bd85b6cc118ac40341785e17bcd3bd88db02e2b874a42583afa051",
+            "end_char": 8309,
+            "source_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0",
+            "start_char": 6261
+          },
+          {
+            "context_id": "mixed-window::cc8787c85319d5fabd6084efdab3a4716fa056ff76cef0da7c3098914e592009",
+            "end_char": 2240,
+            "source_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0",
+            "start_char": 0
+          },
+          {
+            "context_id": "mixed::94f139571af4edabd7a15d0c5502a60d348ec09226ea44d67b84ced5055196dc",
+            "end_char": 5267,
+            "source_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0",
+            "start_char": 4240
+          },
+          {
+            "context_id": "mixed-window::02bd0acd35237a23a8287845da6c6ea10e00220e9da6a5b1b6eb332e7c799fd5",
+            "end_char": 6361,
+            "source_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0",
+            "start_char": 4214
+          }
+        ],
+        "context_tokens": 1867,
+        "evidence_count": 3,
+        "missing_requirement_ids": [],
+        "packed_recall": 1.0,
+        "query": "I need help with two things: What can you tell me about monthly Medicare premiums? Also, What if I filed a federal income tax return for the year?",
+        "query_kind": "parallel_composite",
+        "requirements": [
+          {
+            "query": "What can you tell me about monthly Medicare premiums?",
+            "requirement_id": "R1"
+          },
+          {
+            "query": "What if I filed a federal income tax return for the year?",
+            "requirement_id": "R2"
+          }
+        ],
+        "retrieval_latency_ms": 177.34727635979652,
+        "selected_ids": [
+          "c345fd2f58bacda49751afd8d99ae8de2be7a442ed67fa6ea2ed157e2d548d63::chunk-0",
+          "3b266b5ee5df8ebb2b441954d51b6e89a359a93beb4c43a74e6422dcb263acec::chunk-0",
+          "94f139571af4edabd7a15d0c5502a60d348ec09226ea44d67b84ced5055196dc::chunk-0",
+          "6c92215c6c9528921db6d1664f8e54a7c5e1e3498c72d0b11e3bafb094e74de5::chunk-0"
+        ],
+        "selected_recall": 0.3333333333333333,
+        "selection_assignments": {
+          "R1": [
+            "c345fd2f58bacda49751afd8d99ae8de2be7a442ed67fa6ea2ed157e2d548d63::chunk-0",
+            "3b266b5ee5df8ebb2b441954d51b6e89a359a93beb4c43a74e6422dcb263acec::chunk-0"
+          ],
+          "R2": [
+            "94f139571af4edabd7a15d0c5502a60d348ec09226ea44d67b84ced5055196dc::chunk-0",
+            "6c92215c6c9528921db6d1664f8e54a7c5e1e3498c72d0b11e3bafb094e74de5::chunk-0"
+          ]
+        },
+        "selection_error": null,
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 4562,
+          "latency_ms": {
+            "max": 2240.624,
+            "p50": 2240.624,
+            "p95": 2240.624,
+            "sum": 2240.624
+          },
+          "output_tokens": 112,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      },
+      {
+        "candidate_ids": [
+          "a2116f426f4338bda6d8d52a04287ab17a49e5275bdcb10a656757e6fb1e10c9::chunk-0",
+          "e7593d252868c22be7472451ce6c8983c461566ce7f730073358f7af1c782e9a::chunk-0",
+          "5cfda90a8572ddc6d24db32fa1bcf2f07fd8362a10c39e186d07dc2318ffa763::chunk-0",
+          "ade487c8530b3ceeb7206f920288bb77004cb57e51abdd8d5f0b3df48da2573e::chunk-0",
+          "42a5b2c4977485a977492e60d7095cdabc071246cc37067872b9c86d714065d2::chunk-0",
+          "172c66c36c6c43a2192dded281dc080d08e8fdee3d63797962ade47f7c0890be::chunk-0",
+          "4f0da6bda6fcc410315b5ea40002eaaffd0b4b26c649324d53470db4500c1b37::chunk-0",
+          "7b82afd4cb20c5a97990bfb1034ca301847af84ee2a41a3bf5b6c2b283edfbe4::chunk-0",
+          "ba35704739fb2f0c19654b97dbce4dae476e68c81df8394f1cf87a1f1d47a2a2::chunk-0",
+          "3484760decc51374297f46a60bd9a38ef05cd68d22a318c5ec3f052b59f54c74::chunk-0",
+          "e7fa94c184822d9874275e78df2b762488f6ea45c132769bd5a616fe8a2cde45::chunk-0",
+          "fe6282bfc1c4c433863f8a76ef118f3acaf0dc482abb6844f5765357287951a5::chunk-0",
+          "8ffdbaeb17f76a6c270a4095a7cadd8da4b7bc896865d5ab313f9c07d35435e1::chunk-0",
+          "7ba2d2d83b9d0cb53e514d287edbfcf3b4359fbdc444eefedaa3763f42c0b37a::chunk-0",
+          "92db42a47f7848330d29ccffc68cbcc7fd1353e56bc1267450e9ab8f8fbaedaa::chunk-0",
+          "127e2e93167f075f639d186f103ea8cd1b343963771172d56b305d8f27a973b6::chunk-0",
+          "d0dbd0eabb37750d9eeef2633577216613bc6245ece0c0263234a7056c416d21::chunk-0",
+          "2392b904c61c286bf1c02f2118a1f066a25cffc31798bbbf600361cf01339171::chunk-0",
+          "7b4c3504583c9f3665ccce292f9edd8483db12e374ea67fc995735b6627331e4::chunk-0",
+          "fc39e38e275ac47e6a97254269a51150500a5d12bac3543242db5e9d50a211e0::chunk-0"
+        ],
+        "candidate_recall": 1.0,
+        "case_id": "doc2dial-parallel-stress-10",
+        "context_spans": [
+          {
+            "context_id": "mixed::ba4c8c4a3bf7d65b46a2c8f5bdf00be321bad56f8f5f4cf1ec7dbf91ade33660",
+            "end_char": 10244,
+            "source_id": "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0",
+            "start_char": 8440
+          },
+          {
+            "context_id": "mixed-window::985b94305cffebeefb84859a4fa45f04e6c867d8827035860826b2fb0e8c4243",
+            "end_char": 8440,
+            "source_id": "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0",
+            "start_char": 6245
+          },
+          {
+            "context_id": "mixed::7b82afd4cb20c5a97990bfb1034ca301847af84ee2a41a3bf5b6c2b283edfbe4",
+            "end_char": 1131,
+            "source_id": "Apply For A Child (Under Age 18) | Disability Benefits | SSA#1_0",
+            "start_char": 0
+          },
+          {
+            "context_id": "mixed::ba35704739fb2f0c19654b97dbce4dae476e68c81df8394f1cf87a1f1d47a2a2",
+            "end_char": 9557,
+            "source_id": "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0",
+            "start_char": 8453
+          }
+        ],
+        "context_tokens": 1560,
+        "evidence_count": 4,
+        "missing_requirement_ids": [],
+        "packed_recall": 1.0,
+        "query": "I need help with two things: Is there other related information I would need to know about disability for a child under 18? Also, How is it determined if an adult \"child\" is disabled for SSDI benefits when the child is age 18 or older?",
+        "query_kind": "parallel_composite",
+        "requirements": [
+          {
+            "query": "What other related information is needed to know about disability for a child under 18?",
+            "requirement_id": "R1"
+          },
+          {
+            "query": "How is it determined if an adult \"child\" is disabled for SSDI benefits when the child is age 18 or older?",
+            "requirement_id": "R2"
+          }
+        ],
+        "retrieval_latency_ms": 178.84204722940922,
+        "selected_ids": [
+          "e7593d252868c22be7472451ce6c8983c461566ce7f730073358f7af1c782e9a::chunk-0",
+          "5cfda90a8572ddc6d24db32fa1bcf2f07fd8362a10c39e186d07dc2318ffa763::chunk-0",
+          "7b82afd4cb20c5a97990bfb1034ca301847af84ee2a41a3bf5b6c2b283edfbe4::chunk-0",
+          "172c66c36c6c43a2192dded281dc080d08e8fdee3d63797962ade47f7c0890be::chunk-0",
+          "ba35704739fb2f0c19654b97dbce4dae476e68c81df8394f1cf87a1f1d47a2a2::chunk-0"
+        ],
+        "selected_recall": 1.0,
+        "selection_assignments": {
+          "R1": [
+            "e7593d252868c22be7472451ce6c8983c461566ce7f730073358f7af1c782e9a::chunk-0",
+            "5cfda90a8572ddc6d24db32fa1bcf2f07fd8362a10c39e186d07dc2318ffa763::chunk-0",
+            "7b82afd4cb20c5a97990bfb1034ca301847af84ee2a41a3bf5b6c2b283edfbe4::chunk-0"
+          ],
+          "R2": [
+            "172c66c36c6c43a2192dded281dc080d08e8fdee3d63797962ade47f7c0890be::chunk-0",
+            "ba35704739fb2f0c19654b97dbce4dae476e68c81df8394f1cf87a1f1d47a2a2::chunk-0"
+          ]
+        },
+        "selection_error": null,
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 512,
+          "calls": 1,
+          "errors": 0,
+          "input_tokens": 5285,
+          "latency_ms": {
+            "max": 2119.571,
+            "p50": 2119.571,
+            "p95": 2119.571,
+            "sum": 2119.571
+          },
+          "output_tokens": 116,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      },
+      {
+        "candidate_ids": [
+          "fe3d40eff3b293397703b9dd7441ae3102f98037b5e080c29c9b98c98361a00a::chunk-0",
+          "72be72faad8f5798c7915e57773141ec3fafa17e2bad5befb4462a6c6d9011cd::chunk-0",
+          "7d3dd93e21cc30a99573b4e1275aa7c8a8b4e8ba3650008dda1d8185a45a23f6::chunk-0",
+          "dba599601eea5b649b7dae122542f39eaedd5be38d1c0395819b0726e9c6743a::chunk-0",
+          "b19964e46020bc5b2788f5e0fb7ac867de1d7102ba7da964b252e973ba26f9dd::chunk-0",
+          "44898bfcc29c22aff397c5456f1017e2f8d43c0dcb944974105499eaa0416d3e::chunk-0",
+          "bc5d85cf26fb3de58f1f2ee81f8415d2921cb6f76cea0c32eb57496e716c788f::chunk-0",
+          "d5264f62262a2a56e5ea541033de8474cfc3b5a0df291d44e67cbc7404384d7e::chunk-0",
+          "1c48b74ac7b36a392499894ee836c455c41fa2d7de2589dc3aa8719293f5f959::chunk-0",
+          "30fead21e586775e479375307463f7440b42d941706f7e5faeb6e34bea7a5bcb::chunk-0",
+          "ec26c031f9e2b708cca955b9c6e3aa33b27e4c14ba78b99b52734f6e912a639a::chunk-0",
+          "e86a34a282880245b1e6881ba888063e1ad7a161525313e3ed5267c00fc8e955::chunk-0",
+          "cc97fedb5e04db5b5fef29ea6bad6f7669b205bd384c90ec8c0161e172cb4367::chunk-0",
+          "f19a6af3db42f5e2b1b62d4bbb73d48830fe40537be86e72e8dc09e37037f950::chunk-0",
+          "2c5da7462df075b0b054f1e3847c8bdf91344c9e26964187c8f21c06fad6c9f5::chunk-0",
+          "03c93bb4d5c0627654a10c96c6acbfba8e33b0f5608bb87c24b599bbe0a32bab::chunk-0",
+          "bf5e5dc5917ac4185d8117d1fdead7d889a132d92738955958277d59f6e9344a::chunk-0",
+          "08d9f6b13d0c1267d87d720c42f9a49542b93e200382bc928db1cb83af439457::chunk-0",
+          "9d39b9399e72c5ac66191d8048bbe3b04f8f4b652cc1c43353d03a8231be5921::chunk-0",
+          "35d23fa734bce59059578bbb8689538d34eb878e758115cf6434f575d9b6a752::chunk-0"
+        ],
+        "candidate_recall": 0.5,
+        "case_id": "doc2dial-parallel-stress-11",
+        "context_spans": [
+          {
+            "context_id": "mixed::accad4dee258bc011476ebc09f6a2c7369e938c5f975c28a2312dc4320fce5d0",
+            "end_char": 4320,
+            "source_id": "Medical Certification FAQ's#3_0",
+            "start_char": 2127
+          },
+          {
+            "context_id": "mixed-window::fbbd5ceaabb0a37411fa4c380288bd0399cf22f7350e729055cca5bd4df44b03",
+            "end_char": 2140,
+            "source_id": "Board hearings with a Veterans Law Judge | Veterans Affairs#1_0",
+            "start_char": 0
+          },
+          {
+            "context_id": "mixed::44898bfcc29c22aff397c5456f1017e2f8d43c0dcb944974105499eaa0416d3e",
+            "end_char": 5221,
+            "source_id": "After You Apply For An Eligibility Determination | Veterans Affairs#1_0",
+            "start_char": 4159
+          },
+          {
+            "context_id": "mixed::bc5d85cf26fb3de58f1f2ee81f8415d2921cb6f76cea0c32eb57496e716c788f",
+            "end_char": 2127,
+            "source_id": "Medical Certification FAQ's#3_0",
+            "start_char": 1055
+          }
+        ],
+        "context_tokens": 1619,
+        "evidence_count": 6,
+        "missing_requirement_ids": [],
+        "packed_recall": 0.5,
+        "query": "I need help with two things: How would I go about appealing a decision? Also, Can I keep my CDL but with restrictions on it?",
+        "query_kind": "parallel_composite",
+        "requirements": [
+          {
+            "query": "How would I go about appealing a decision?",
+            "requirement_id": "R1"
+          },
+          {
+            "query": "Can I keep my CDL but with restrictions on it?",
+            "requirement_id": "R2"
+          }
+        ],
+        "retrieval_latency_ms": 154.73159216344357,
+        "selected_ids": [
+          "fe3d40eff3b293397703b9dd7441ae3102f98037b5e080c29c9b98c98361a00a::chunk-0",
+          "44898bfcc29c22aff397c5456f1017e2f8d43c0dcb944974105499eaa0416d3e::chunk-0",
+          "72be72faad8f5798c7915e57773141ec3fafa17e2bad5befb4462a6c6d9011cd::chunk-0",
+          "b19964e46020bc5b2788f5e0fb7ac867de1d7102ba7da964b252e973ba26f9dd::chunk-0",
+          "bc5d85cf26fb3de58f1f2ee81f8415d2921cb6f76cea0c32eb57496e716c788f::chunk-0"
+        ],
+        "selected_recall": 0.5,
+        "selection_assignments": {
+          "R1": [
+            "fe3d40eff3b293397703b9dd7441ae3102f98037b5e080c29c9b98c98361a00a::chunk-0",
+            "44898bfcc29c22aff397c5456f1017e2f8d43c0dcb944974105499eaa0416d3e::chunk-0"
+          ],
+          "R2": [
+            "72be72faad8f5798c7915e57773141ec3fafa17e2bad5befb4462a6c6d9011cd::chunk-0",
+            "b19964e46020bc5b2788f5e0fb7ac867de1d7102ba7da964b252e973ba26f9dd::chunk-0",
+            "bc5d85cf26fb3de58f1f2ee81f8415d2921cb6f76cea0c32eb57496e716c788f::chunk-0"
+          ]
+        },
+        "selection_error": null,
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 5760,
+          "calls": 2,
+          "errors": 0,
+          "input_tokens": 10546,
+          "latency_ms": {
+            "max": 3760.636,
+            "p50": 3760.636,
+            "p95": 3760.636,
+            "sum": 7521.271
+          },
+          "output_tokens": 627,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      },
+      {
+        "candidate_ids": [
+          "82c2aa06156952a09670cdfc18eb26b36a5dd2f71094aaa83dc73a97615c2148::chunk-0",
+          "e7fa94c184822d9874275e78df2b762488f6ea45c132769bd5a616fe8a2cde45::chunk-0",
+          "86b529f5645cb5ff98262cfaf1b96d32b61302c7a0e48f9171d54c99534c7ba3::chunk-0",
+          "1b70b1ca4a165be523a2aca1eef584fc98d7bf5235c4a0fd15c62cc371115c83::chunk-0",
+          "bc5d85cf26fb3de58f1f2ee81f8415d2921cb6f76cea0c32eb57496e716c788f::chunk-0",
+          "e937666c09f2eb9dea5470492c05010bb8aa86f508a8fbc145ef8f1cc0ae6e7c::chunk-0",
+          "df562406481e0b8f3ee3eda71a5e1a1bf64f51442f37fb9413f37b52d3f568ab::chunk-0",
+          "b19964e46020bc5b2788f5e0fb7ac867de1d7102ba7da964b252e973ba26f9dd::chunk-0",
+          "5001e699fc033bf96a0d159819651a4b48fbaf610b35eb8db30eeaf136f74dac::chunk-0",
+          "e1d8e5985876ab7f534a36f4a12fd456631f803156ae298196523512b920fd55::chunk-0",
+          "70a2cbf75a12fd316a50fe216fe62638b2f0ce8182e6604d3f63cc2fa8cf17f2::chunk-0",
+          "01862da11af3aef4979c67c2e56043c69c7af0e88fdc11364914067823e051bb::chunk-0",
+          "9df1c319f02ef66fee43aeba6fa542d72955f39d0e65a5a100edec9a1a81f329::chunk-0",
+          "77a4f327f2c253a61f7ee441e4e590fac612018c90543d69d4f51633b9d3eefb::chunk-0",
+          "9b543b93caee6ec1fffeb8626f739c0a876e235e20fcb96575ae3f418db45ee8::chunk-0",
+          "f6bde88c83ba006e2515ec7c1c50899914e10d77ed9ac3dfc49890be4a5f9a7b::chunk-0",
+          "b1ae0a8c95b5610ea8186aae9ad774c33b95469f0f14a1ea3e72eb28f27d72b4::chunk-0",
+          "8b5a8129bbffe1033eb5edaaf9df79569688c665cab673d934f3df61cba5e072::chunk-0",
+          "b5c183291c389a122b528ebacc708ed309a83fe6c9d253b6df21ebb0c1cc6dda::chunk-0",
+          "4eb6436c49225f49a81eec9bfd7400b4eaaa09aa2810fcf7192688aaaa93924b::chunk-0"
+        ],
+        "candidate_recall": 0.25,
+        "case_id": "doc2dial-parallel-stress-12",
+        "context_spans": [
+          {
+            "context_id": "mixed-window::7c4702ea894138e4b6fdee19394a9d8e97cf21be743cbdb36b282c17fde5215e",
+            "end_char": 2195,
+            "source_id": "Your Health Care Costs | Veterans Affairs#1_0",
+            "start_char": 0
+          },
+          {
+            "context_id": "mixed-window::b5f52a629bd1ecf67c251cd4ce47e560bbc92bf7c20ddcfade3a52e3d89892ed",
+            "end_char": 4163,
+            "source_id": "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0",
+            "start_char": 2098
+          },
+          {
+            "context_id": "mixed-window::5547fb7672aa314ca9759606eb50c87f7f0ee492021ada0580c0118e5443b88e",
+            "end_char": 6299,
+            "source_id": "Dependency Status | Federal Student Aid#1_0",
+            "start_char": 4164
+          },
+          {
+            "context_id": "mixed-window::a964fbbb21d50c4fd547e543a347cbc3862889320ac1f55b91209e6624fa70fa",
+            "end_char": 2330,
+            "source_id": "About VA Health Benefits | Veterans Affairs#1_0",
+            "start_char": 0
+          },
+          {
+            "context_id": "mixed::bc5d85cf26fb3de58f1f2ee81f8415d2921cb6f76cea0c32eb57496e716c788f",
+            "end_char": 2127,
+            "source_id": "Medical Certification FAQ's#3_0",
+            "start_char": 1055
+          }
+        ],
+        "context_tokens": 2452,
+        "evidence_count": 4,
+        "missing_requirement_ids": [],
+        "packed_recall": 0.25,
+        "query": "I need help with two things: where to get more information about priority groups? Also, can I file by mail when I am ready to add my daughter?",
+        "query_kind": "parallel_composite",
+        "requirements": [
+          {
+            "query": "Where to get more information about priority groups?",
+            "requirement_id": "R1"
+          },
+          {
+            "query": "Can I file by mail when I am ready to add my daughter?",
+            "requirement_id": "R2"
+          }
+        ],
+        "retrieval_latency_ms": 151.63492411375046,
+        "selected_ids": [
+          "82c2aa06156952a09670cdfc18eb26b36a5dd2f71094aaa83dc73a97615c2148::chunk-0",
+          "e7fa94c184822d9874275e78df2b762488f6ea45c132769bd5a616fe8a2cde45::chunk-0",
+          "86b529f5645cb5ff98262cfaf1b96d32b61302c7a0e48f9171d54c99534c7ba3::chunk-0",
+          "1b70b1ca4a165be523a2aca1eef584fc98d7bf5235c4a0fd15c62cc371115c83::chunk-0",
+          "bc5d85cf26fb3de58f1f2ee81f8415d2921cb6f76cea0c32eb57496e716c788f::chunk-0"
+        ],
+        "selected_recall": 0.25,
+        "selection_assignments": {
+          "R1": [
+            "82c2aa06156952a09670cdfc18eb26b36a5dd2f71094aaa83dc73a97615c2148::chunk-0"
+          ],
+          "R2": [
+            "e7fa94c184822d9874275e78df2b762488f6ea45c132769bd5a616fe8a2cde45::chunk-0"
+          ]
+        },
+        "selection_error": "UnexpectedModelBehavior",
+        "selection_usage": {
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 5504,
+          "calls": 2,
+          "errors": 1,
+          "input_tokens": 10008,
+          "latency_ms": {
+            "max": 5347.86,
+            "p50": 5347.86,
+            "p95": 5347.86,
+            "sum": 10695.72
+          },
+          "output_tokens": 1148,
+          "reasoning_tokens": null,
+          "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+          "thinking_calls": 0
+        }
+      }
+    ]
+  },
+  "schema_version": 1,
+  "stage": "requirement_retrieval_set_selection_and_packing",
+  "summaries": {
+    "baseline-512-64": {
+      "candidate_evidence_recall_at_20": 0.7291666666666666,
+      "candidate_to_selected_loss": 0.13888888888888884,
+      "case_count": 12,
+      "cases_with_missing_requirements_rate": 0.0,
+      "mean_context_tokens": 2455.75,
+      "method": "baseline-512-64",
+      "model_calls": 12,
+      "model_input_tokens": 69798,
+      "model_output_tokens": 1500,
+      "multi_span_candidate_recall_at_20": 0.7291666666666666,
+      "multi_span_case_count": 12,
+      "multi_span_packed_completeness": 0.5902777777777778,
+      "multi_span_selected_recall_at_5": 0.5902777777777778,
+      "p95_context_tokens": 2562.0,
+      "p95_retrieval_selection_latency_ms": 2366.187138815212,
+      "packed_evidence_recall": 0.5902777777777778,
+      "planner_parallel_case_count": 0,
+      "planner_parallel_packed_completeness": 0.0,
+      "selected_evidence_recall_at_5": 0.5902777777777778,
+      "selected_to_packed_loss": 0.0,
+      "selection_failure_rate": 0.0
+    },
+    "requirements-512-64": {
+      "candidate_evidence_recall_at_20": 0.7708333333333334,
+      "candidate_to_selected_loss": 0.2777777777777778,
+      "case_count": 12,
+      "cases_with_missing_requirements_rate": 0.08333333333333333,
+      "mean_context_tokens": 1345.8333333333333,
+      "method": "requirements-512-64",
+      "model_calls": 14,
+      "model_input_tokens": 84815,
+      "model_output_tokens": 1906,
+      "multi_span_candidate_recall_at_20": 0.7708333333333334,
+      "multi_span_case_count": 12,
+      "multi_span_packed_completeness": 0.4930555555555556,
+      "multi_span_selected_recall_at_5": 0.4930555555555556,
+      "p95_context_tokens": 2054.95,
+      "p95_retrieval_selection_latency_ms": 5408.033279488134,
+      "packed_evidence_recall": 0.4930555555555556,
+      "planner_parallel_case_count": 12,
+      "planner_parallel_packed_completeness": 0.4930555555555556,
+      "selected_evidence_recall_at_5": 0.4930555555555556,
+      "selected_to_packed_loss": 0.0,
+      "selection_failure_rate": 0.0
+    },
+    "requirements-dynamic-parent": {
+      "candidate_evidence_recall_at_20": 0.7152777777777778,
+      "candidate_to_selected_loss": 0.02777777777777779,
+      "case_count": 12,
+      "cases_with_missing_requirements_rate": 0.08333333333333333,
+      "mean_context_tokens": 1410.5833333333333,
+      "method": "requirements-dynamic-parent",
+      "model_calls": 15,
+      "model_input_tokens": 77188,
+      "model_output_tokens": 3364,
+      "multi_span_candidate_recall_at_20": 0.7152777777777778,
+      "multi_span_case_count": 12,
+      "multi_span_packed_completeness": 0.8125,
+      "multi_span_selected_recall_at_5": 0.6875,
+      "p95_context_tokens": 2267.75,
+      "p95_retrieval_selection_latency_ms": 9103.11114154108,
+      "packed_evidence_recall": 0.8125,
+      "planner_parallel_case_count": 12,
+      "planner_parallel_packed_completeness": 0.8125,
+      "selected_evidence_recall_at_5": 0.6875,
+      "selected_to_packed_loss": -0.125,
+      "selection_failure_rate": 0.08333333333333333
+    }
+  }
+}

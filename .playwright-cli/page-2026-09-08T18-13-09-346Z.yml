@@ -1,0 +1,577 @@
+- generic [active] [ref=f3e1]:
+  - banner [ref=f3e2]:
+    - generic [ref=f3e3]:
+      - link "DialogPilot 架构与面试手册" [ref=f3e4] [cursor=pointer]:
+        - /url: /DialogPilot/
+      - navigation [ref=f3e5]:
+        - generic [ref=f3e6] [cursor=pointer]
+  - main "Content" [ref=f3e10]:
+    - generic [ref=f3e11]:
+      - region [ref=f3e12]:
+        - generic [ref=f3e13]: 架构证据 · DialogPilot
+        - heading "DialogPilot 架构边界" [level=1] [ref=f3e14]
+        - blockquote [ref=f3e15]:
+          - paragraph [ref=f3e16]:
+            - text: 校准日期：2026-09-08。源码基点
+            - code [ref=f3e17]: ceeab4e1ab06414cdee1ce2a527095686743580b
+            - text: （写作起点59dd33c），并检查了当时工作区的未提交修改。本页描述开发分支的最新设计，不代表 main 的应用代码已同步部署。逐文件身份见
+            - link "源码快照" [ref=f3e18] [cursor=pointer]:
+              - /url: /DialogPilot/assets/handbook/source-snapshot.json
+            - text: 。数字仅引用明确范围的报告；候选、实现、通过测试、真实质量达标分别说明。
+        - generic [ref=f3e19]:
+          - generic [ref=f3e20]: 身份 ›
+          - generic [ref=f3e21]: 记忆 ›
+          - generic [ref=f3e22]: 意图 ›
+          - generic [ref=f3e23]: RAG ›
+          - generic [ref=f3e24]: TaskGraph ›
+          - generic [ref=f3e25]: ReAct ›
+          - generic [ref=f3e26]: 工具 ›
+          - generic [ref=f3e27]: 校验 ›
+          - generic [ref=f3e28]: 工单 ›
+          - generic [ref=f3e29]: 进化
+        - generic [ref=f3e30]:
+          - generic [ref=f3e31]: 15 个架构切面
+          - generic [ref=f3e32]: 单一事实 Owner
+          - generic [ref=f3e33]: 依赖感知 TaskGraph
+          - generic [ref=f3e34]: 发布与学习分离
+      - generic [ref=f3e35]:
+        - complementary "架构地图章节导航" [ref=f3e36]:
+          - navigation [ref=f3e37]:
+            - link "00 快速导航" [ref=f3e38] [cursor=pointer]:
+              - /url: "#快速导航"
+              - generic [ref=f3e39]: "00"
+              - generic [ref=f3e40]: 快速导航
+            - link "01 用一件客服任务解释整个系统" [ref=f3e41] [cursor=pointer]:
+              - /url: "#1-用一件客服任务解释整个系统"
+              - generic [ref=f3e42]: "01"
+              - generic [ref=f3e43]: 用一件客服任务解释整个系统
+            - link "02 当前代码与旧介绍的关键差异" [ref=f3e44] [cursor=pointer]:
+              - /url: "#2-当前代码与旧介绍的关键差异"
+              - generic [ref=f3e45]: "02"
+              - generic [ref=f3e46]: 当前代码与旧介绍的关键差异
+            - link "03 代码库怎么读：目录是分工，不是流水线顺序" [ref=f3e47] [cursor=pointer]:
+              - /url: "#3-代码库怎么读目录是分工不是流水线顺序"
+              - generic [ref=f3e48]: "03"
+              - generic [ref=f3e49]: 代码库怎么读：目录是分工，不是流水线顺序
+            - link "04 三层图与实际调用链" [ref=f3e50] [cursor=pointer]:
+              - /url: "#4-三层图与实际调用链"
+              - generic [ref=f3e51]: "04"
+              - generic [ref=f3e52]: 三层图与实际调用链
+            - link "05 意图、规划、授权为何分开" [ref=f3e53] [cursor=pointer]:
+              - /url: "#5-意图规划授权为何分开"
+              - generic [ref=f3e54]: "05"
+              - generic [ref=f3e55]: 意图、规划、授权为何分开
+            - link "06 多 Agent 具体怎么协作" [ref=f3e56] [cursor=pointer]:
+              - /url: "#6-多-agent-具体怎么协作"
+              - generic [ref=f3e57]: "06"
+              - generic [ref=f3e58]: 多 Agent 具体怎么协作
+            - link "07 LangChain 与 LangGraph 各用到哪里" [ref=f3e59] [cursor=pointer]:
+              - /url: "#7-langchain-与-langgraph-各用到哪里"
+              - generic [ref=f3e60]: "07"
+              - generic [ref=f3e61]: LangChain 与 LangGraph 各用到哪里
+            - link "08 上下文与记忆不是一个大字符串" [ref=f3e62] [cursor=pointer]:
+              - /url: "#8-上下文与记忆不是一个大字符串"
+              - generic [ref=f3e63]: "08"
+              - generic [ref=f3e64]: 上下文与记忆不是一个大字符串
+            - link "09 RAG 的离线在线边界" [ref=f3e65] [cursor=pointer]:
+              - /url: "#9-rag-的离线在线边界"
+              - generic [ref=f3e66]: "09"
+              - generic [ref=f3e67]: RAG 的离线在线边界
+            - link "10 Synthesizer、Verifier 和发布各管什么" [ref=f3e68] [cursor=pointer]:
+              - /url: "#10-synthesizerverifier-和发布各管什么"
+              - generic [ref=f3e69]: "10"
+              - generic [ref=f3e70]: Synthesizer、Verifier 和发布各管什么
+            - link "11 写操作、审批与恢复" [ref=f3e71] [cursor=pointer]:
+              - /url: "#11-写操作审批与恢复"
+              - generic [ref=f3e72]: "11"
+              - generic [ref=f3e73]: 写操作、审批与恢复
+            - link "12 多模态、工具、安全与可观测" [ref=f3e74] [cursor=pointer]:
+              - /url: "#12-多模态工具安全与可观测"
+              - generic [ref=f3e75]: "12"
+              - generic [ref=f3e76]: 多模态、工具、安全与可观测
+            - link "13 评测怎样形成优化闭环" [ref=f3e77] [cursor=pointer]:
+              - /url: "#13-评测怎样形成优化闭环"
+              - generic [ref=f3e78]: "13"
+              - generic [ref=f3e79]: 评测怎样形成优化闭环
+            - link "14 怎样完整讲十五分钟" [ref=f3e80] [cursor=pointer]:
+              - /url: "#14-怎样完整讲十五分钟"
+              - generic [ref=f3e81]: "14"
+              - generic [ref=f3e82]: 怎样完整讲十五分钟
+        - article [ref=f3e83]:
+          - generic [ref=f3e84]:
+            - heading "00 快速导航" [level=2] [ref=f3e85]
+            - paragraph [ref=f3e86]:
+              - text: 先读本页把调用链串起来，再用
+              - link "详细面试追问" [ref=f3e87] [cursor=pointer]:
+                - /url: /DialogPilot/interview-guide.html
+              - text: 练原理、取舍与反问，最后用
+              - link "项目讲述与简历" [ref=f3e88] [cursor=pointer]:
+                - /url: /DialogPilot/project-pitch.html
+              - text: 组织开场。RAG 专题见
+              - link "离线在线与评测手册" [ref=f3e89] [cursor=pointer]:
+                - /url: /DialogPilot/rag-study.html
+              - text: ，外部依据见
+              - link "来源与证据" [ref=f3e90] [cursor=pointer]:
+                - /url: /DialogPilot/handbook-evidence.html
+              - text: 。
+            - paragraph [ref=f3e91]: 本文有意区分三层：模型负责判断要做什么；应用合同决定什么可以执行；持久业务记录决定实际上发生了什么。会说“退款完成”的模型、已跑完的图、数据库中的退款回执是三个不同事实。
+          - generic [ref=f3e92]:
+            - heading "01 1. 用一件客服任务解释整个系统" [level=2] [ref=f3e93]
+            - paragraph [ref=f3e94]: 用户说：“查一下订单配送，如果已经签收，看看这个产品拆封后还能不能退，先别提交退款。”系统需要识别三个信息：订单是谁、配送是否完成、退货政策适用什么条件；同时保留“先别提交”的限制。
+            - paragraph [ref=f3e95]: 入口先从 JWT 得到可信用户，保存请求身份，才开始模型工作。ConversationAgent 可以选择直接订单查询，也可以把政策咨询交给领域 Worker；明确依赖时，政策任务等订单事实到达再执行，独立的产品说明可以并行。每个任务带自己的 Owner、允许工具、依赖和预算。Worker 获得订单回执和知识证据后返回类型化结果。ResultBoard 判断各项是否完成、缺什么；ResponseAssembler 把结果组织成自然语言，Verifier 检查结论是否受证据支持、是否回答了需求。最终回答持久化后交付。
+            - paragraph [ref=f3e96]: 即使发现可退，也不能把“可以退”变成“已经退”。模型若提出退款，只能生成待审批动作；用户批准后还要核对操作绑定和目标版本。若请求中断，恢复图位置不等于重做退款，已提交回执可以重放，结果未知先对账。这就是项目的主线：理解、执行和交付都保留可以核查的状态。
+          - generic [ref=f3e97]:
+            - heading "02 2. 当前代码与旧介绍的关键差异" [level=2] [ref=f3e98]
+            - table [ref=f3e99]:
+              - rowgroup [ref=f3e100]:
+                - row [ref=f3e101]:
+                  - columnheader "问题" [ref=f3e102]
+                  - columnheader "当前可以讲的事实" [ref=f3e103]
+                  - columnheader "不应继续沿用的旧结论" [ref=f3e104]
+              - rowgroup [ref=f3e105]:
+                - row [ref=f3e106]:
+                  - cell "是否使用框架" [ref=f3e107]
+                  - cell [ref=f3e108]:
+                    - text: LangChain
+                    - code [ref=f3e109]: create_agent
+                    - text: 承载领域工具循环，LangGraph 管任务图和恢复
+                  - cell "“全部手写循环、没有使用 LangChain/LangGraph”" [ref=f3e110]
+                - row [ref=f3e111]:
+                  - cell "Encoder" [ref=f3e112]
+                  - cell "六域加 DEFER 的上下文分类入口，默认关闭；候选未通过采用门槛" [ref=f3e113]
+                  - cell "“高精度 Encoder 已常态绕过模型”“分类直接批准写操作”" [ref=f3e114]
+                - row [ref=f3e115]:
+                  - cell "主规划接口" [ref=f3e116]
+                  - cell [ref=f3e117]:
+                    - code [ref=f3e118]: bind_tools
+                    - text: 原生动作选择，经 action_proposal、Policy、Compiler 转成内部任务
+                  - cell "“让模型自由输出整份内部任务 JSON 就直接执行”" [ref=f3e119]
+                - row [ref=f3e120]:
+                  - cell "知识词法排序" [ref=f3e121]
+                  - cell [ref=f3e122]:
+                    - text: Knowledge generation 声明
+                    - code [ref=f3e123]: PG_BM25_ZH_V1
+                    - text: ，底层仍支持 FTS 排序路径
+                  - cell "“ts_rank_cd 就是 BM25”" [ref=f3e124]
+                - row [ref=f3e125]:
+                  - cell "Dense" [ref=f3e126]
+                  - cell "可选 hash_baseline/BGE-M3；示例环境默认 hash，语义实验明确选择 BGE" [ref=f3e127]
+                  - cell "“所有本地默认都是训练好的 BGE”" [ref=f3e128]
+                - row [ref=f3e129]:
+                  - cell "索引" [ref=f3e130]
+                  - cell "Knowledge 导入创建 generation 级 HNSW；查询是否实际使用须看执行计划" [ref=f3e131]
+                  - cell "“有 HNSW 配置就等于所有请求都走 ANN”" [ref=f3e132]
+                - row [ref=f3e133]:
+                  - cell "融合" [ref=f3e134]
+                  - cell "Dense/Lexical 启动默认 0.5/0.5，在线受 Bundle/环境覆盖影响" [ref=f3e135]
+                  - cell "“当前唯一权重是 0.25/0.75”" [ref=f3e136]
+                - row [ref=f3e137]:
+                  - cell "核验效果" [ref=f3e138]
+                  - cell "有 PASS/REJECT/UNKNOWN 合同，也有误通过的开发证据" [ref=f3e139]
+                  - cell "“verified=true 就是正确率”“已达生产质量”" [ref=f3e140]
+            - paragraph [ref=f3e141]:
+              - text: 源码：
+              - link "infrastructure/target_runtime_composition.py" [ref=f3e142] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/infrastructure/target_runtime_composition.py
+              - text: 、
+              - link "application/target_encoder_understanding.py" [ref=f3e143] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/application/target_encoder_understanding.py
+              - text: 、
+              - link "infrastructure/target_conversation_provider.py" [ref=f3e144] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/infrastructure/target_conversation_provider.py
+              - text: 、
+              - link "infrastructure/postgres_knowledge_store.py" [ref=f3e145] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/infrastructure/postgres_knowledge_store.py
+              - text: 、
+              - link "core/rag_policy.py" [ref=f3e146] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/core/rag_policy.py
+              - text: 。
+          - generic [ref=f3e147]:
+            - heading "03 3. 代码库怎么读：目录是分工，不是流水线顺序" [level=2] [ref=f3e148]
+            - table [ref=f3e149]:
+              - rowgroup [ref=f3e150]:
+                - row [ref=f3e151]:
+                  - columnheader "目录" [ref=f3e152]
+                  - columnheader "具体职责与起点" [ref=f3e153]
+                  - columnheader "修改一个需求时应想到谁" [ref=f3e154]
+              - rowgroup [ref=f3e155]:
+                - row [ref=f3e156]:
+                  - cell [ref=f3e157]:
+                    - code [ref=f3e158]: api/
+                  - cell [ref=f3e159]:
+                    - code [ref=f3e160]: main.py
+                    - text: 启动装配、鉴权依赖、HTTP 请求和结果映射
+                  - cell "新增接口字段、上传或响应协议" [ref=f3e161]
+                - row [ref=f3e162]:
+                  - cell [ref=f3e163]:
+                    - code [ref=f3e164]: application/
+                  - cell [ref=f3e165]:
+                    - code [ref=f3e166]: target_run.py
+                    - text: 、
+                    - code [ref=f3e167]: turn_runtime.py
+                    - text: 、
+                    - code [ref=f3e168]: turn_planning.py
+                    - text: 、
+                    - code [ref=f3e169]: write_workflow.py
+                    - text: 、
+                    - code [ref=f3e170]: result_board.py
+                  - cell "业务状态、合法转移、任务和返回值的含义" [ref=f3e171]
+                - row [ref=f3e172]:
+                  - cell [ref=f3e173]:
+                    - code [ref=f3e174]: infrastructure/
+                  - cell "PG 存储、LangChain/LangGraph 绑定、模型和检索适配" [ref=f3e175]
+                  - cell "框架协议、数据库 SQL、外部依赖失败" [ref=f3e176]
+                - row [ref=f3e177]:
+                  - cell [ref=f3e178]:
+                    - code [ref=f3e179]: core/
+                  - cell "identity、auth、model_policy、输入安全、结构化调用、预算和 trace" [ref=f3e180]
+                  - cell "跨模块身份与公共运行约束" [ref=f3e181]
+                - row [ref=f3e182]:
+                  - cell [ref=f3e183]:
+                    - code [ref=f3e184]: mcp/
+                  - cell "ToolManager、业务工具包装、query transformer、packer、evidence pack" [ref=f3e185]
+                  - cell "工具输入输出、检索证据转换；目录名不等于全部走远端 MCP" [ref=f3e186]
+                - row [ref=f3e187]:
+                  - cell [ref=f3e188]:
+                    - code [ref=f3e189]: services/
+                  - cell "customer_operations、claim_verification、answer_verifier、ticket、commitment" [ref=f3e190]
+                  - cell "业务行为与候选答复语义评审" [ref=f3e191]
+                - row [ref=f3e192]:
+                  - cell [ref=f3e193]:
+                    - code [ref=f3e194]: memory/
+                  - cell "会话窗口与上下文兼容层；长期事实由 application/infrastructure 实现" [ref=f3e195]
+                  - cell "窗口、摘要与持久来源如何拼接" [ref=f3e196]
+                - row [ref=f3e197]:
+                  - cell [ref=f3e198]:
+                    - code [ref=f3e199]: agents/
+                    - text: 、
+                    - code [ref=f3e200]: skills/
+                  - cell "媒体需求与可选复合能力资源" [ref=f3e201]
+                  - cell "领域策略和按需复合工具；不是六套复制的 Agent 类" [ref=f3e202]
+                - row [ref=f3e203]:
+                  - cell [ref=f3e204]:
+                    - code [ref=f3e205]: evaluation/
+                  - cell "数据合同、scorer、τ³ adapter、纯 RAG、训练与校准" [ref=f3e206]
+                  - cell "输入与 gold 隔离、指标分母、模型评估" [ref=f3e207]
+                - row [ref=f3e208]:
+                  - cell [ref=f3e209]:
+                    - code [ref=f3e210]: scripts/
+                  - cell "可复现运行、导入、评测、恢复、汇总入口" [ref=f3e211]
+                  - cell "固定一次实验的命令与产物" [ref=f3e212]
+                - row [ref=f3e213]:
+                  - cell [ref=f3e214]:
+                    - code [ref=f3e215]: migrations/
+                  - cell "PostgreSQL schema 演进" [ref=f3e216]
+                  - cell "新字段、约束、索引和恢复兼容" [ref=f3e217]
+                - row [ref=f3e218]:
+                  - cell [ref=f3e219]:
+                    - code [ref=f3e220]: tests/
+                  - cell "合同、性质、状态转移、真实 PG 与 HTTP 回归" [ref=f3e221]
+                  - cell "某个设计到底保证什么" [ref=f3e222]
+                - row [ref=f3e223]:
+                  - cell [ref=f3e224]:
+                    - code [ref=f3e225]: data/
+                    - text: 、
+                    - code [ref=f3e226]: artifacts/
+                  - cell "数据 manifest、分组 split、运行记录与模型产物" [ref=f3e227]
+                  - cell "结果能否对应同一输入/代码/预算" [ref=f3e228]
+                - row [ref=f3e229]:
+                  - cell [ref=f3e230]:
+                    - code [ref=f3e231]: docs/
+                    - text: 、
+                    - code [ref=f3e232]: plans/
+                  - cell "解释、证据、活动状态" [ref=f3e233]
+                  - cell "历史结果不能覆盖最新未完成状态" [ref=f3e234]
+            - paragraph [ref=f3e235]:
+              - text: 阅读顺序是
+              - code [ref=f3e236]: api/main.py → target_runtime_composition.py → target_run.py → turn_runtime.py → target_conversation_manager.py → orchestration_runtime.py → 具体 executor → response_assembly.py → publication
+              - text: 。找一个类名不等于确定它在线使用；必须确认启动时的装配和调用点。
+          - generic [ref=f3e237]:
+            - heading "04 4. 三层图与实际调用链" [level=2] [ref=f3e238]
+            - button "架构图 01，点击放大" [ref=f3e239]:
+              - generic [ref=f3e240]: 架构图 01
+              - document [ref=f3e242]:
+                - generic [ref=f3e250]:
+                  - paragraph [ref=f3e257]: FastAPI JWT ChatCommand
+                  - paragraph [ref=f3e264]: 持久准入与 Run Coordinator
+                  - paragraph [ref=f3e271]: TurnRuntime 轮次图
+                  - paragraph [ref=f3e278]: 状态加载与上下文 准备计划
+                  - paragraph [ref=f3e285]: 状态续接 可选 Encoder 主 Agent 动作选择
+                  - paragraph [ref=f3e292]: RoutePolicy 与 TurnPlanCompiler
+                  - paragraph [ref=f3e299]: OrchestrationRuntime 工作图
+                  - paragraph [ref=f3e306]: DIRECT 原子工具
+                  - paragraph [ref=f3e313]: DELEGATED LangChain create_agent
+                  - paragraph [ref=f3e320]: ACTION WORKFLOW 审批执行与对账
+                  - paragraph [ref=f3e327]: AgentResult 与 ResultBoard
+                  - paragraph [ref=f3e334]: ResponseAssembler 与 Verifier
+                  - paragraph [ref=f3e341]: PostgreSQL Publication
+                  - paragraph [ref=f3e348]: 响应序号 ACK 断线续取
+              - generic [aria-hidden]: 点击放大 ↗
+            - paragraph [ref=f3e349]: 第一层是 durable run：负责请求被接收后谁执行、租约是否仍属于它、什么时候选择终态。第二层是 TurnRuntime：准备当前轮、执行任务、提交进度、处理后续、组织回答。第三层是工作图，按依赖调度 WorkItem；其中一个领域 Worker 内部还有框架模型—工具循环。它们不是三次重复规划：每层的状态粒度不同。
+            - paragraph [ref=f3e350]:
+              - code [ref=f3e351]: TargetRunCoordinator.handle
+              - text: 准入请求；
+              - code [ref=f3e352]: TargetRunWorker
+              - text: claim/renew/assert_owned，避免失去租约的旧 worker 随意写终态。
+              - code [ref=f3e353]: TurnRuntime
+              - text: 使用 checkpointer 保存轮次阶段。
+              - code [ref=f3e354]: TargetConversationManager
+              - text: 负责状态解释、接受计划和工作流生命周期。
+              - code [ref=f3e355]: OrchestrationRuntime
+              - text: 根据 ResultBoard 的 ready_items 分发
+              - code [ref=f3e356]: Send
+              - text: 。领域执行器统一由
+              - code [ref=f3e357]: TargetFrameworkAgent
+              - text: 装配
+              - code [ref=f3e358]: create_agent
+              - text: ，直接调用与受控写则走独立执行边界。
+            - paragraph [ref=f3e359]:
+              - text: 源码：
+              - link "application/target_run.py" [ref=f3e360] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/application/target_run.py
+              - text: 、
+              - link "application/turn_runtime.py" [ref=f3e361] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/application/turn_runtime.py
+              - text: 、
+              - link "application/target_conversation_manager.py" [ref=f3e362] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/application/target_conversation_manager.py
+              - text: 、
+              - link "application/orchestration_runtime.py" [ref=f3e363] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/application/orchestration_runtime.py
+              - text: 。
+          - generic [ref=f3e364]:
+            - heading "05 5. 意图、规划、授权为何分开" [level=2] [ref=f3e365]
+            - paragraph [ref=f3e366]: 意图分类回答“这轮主要属于什么领域”；动作选择回答“当前需要调用哪些能力”；任务编译回答“哪些动作合法、依赖怎样满足”。这三个问题的输入和风险不同。用户说“退款”，可能在问政策、查到账、申请退款或者取消申请，分类成 billing_refund 仍不能决定执行哪一个工具。
+            - paragraph [ref=f3e367]:
+              - text: 当前
+              - code [ref=f3e368]: TargetDomainEncoder
+              - text: 使用标准 Transformers 序列分类器，输入序列化的最近对话、当前目标和当前用户消息；输出六领域及 DEFER。领域有 general、product_technical、order_logistics、billing_refund、account_security、human_service。在线只加载 ACTIVE 且通过 manifest 校验的产物。接受时生成 DELEGATE_TASK，仍经相同 Policy；不会生成业务成功回执。
+            - paragraph [ref=f3e369]:
+              - text: 已有审批、输入等待、活动工作控制、未校准摘要等情形优先进入主链。可选分类器需要高置信及 margin，不能“总选第一名”。当前示例默认
+              - code [ref=f3e370]: TARGET_ENCODER_ENABLED=false
+              - text: ；最新试训退化为全预测退款，独立复核也失败，所以本页不会声称已实现线上分类提速。
+            - paragraph [ref=f3e371]:
+              - text: 主 Agent 当前通过
+              - code [ref=f3e372]: planning_actions(payload)
+              - text: 把当前可选动作变成模型工具 schema，调用
+              - code [ref=f3e373]: bind_tools(..., tool_choice='auto')
+              - text: 。模型返回的 tool calls 转换为
+              - code [ref=f3e374]: TurnProposal
+              - text: ，再由 RoutePolicy 检查 Registry、实体绑定、动作与状态约束，编译 WorkPlan。模型看到的是任务动作接口，内部的审批、幂等和版本字段由程序持有。
+            - paragraph [ref=f3e375]:
+              - text: 源码：
+              - link "infrastructure/target_domain_encoder.py" [ref=f3e376] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/infrastructure/target_domain_encoder.py
+              - text: 、
+              - link "application/domain_encoder.py" [ref=f3e377] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/application/domain_encoder.py
+              - text: 、
+              - link "application/conversation_actions.py" [ref=f3e378] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/application/conversation_actions.py
+              - text: 、
+              - link "application/turn_planning.py" [ref=f3e379] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/application/turn_planning.py
+              - text: 。
+          - generic [ref=f3e380]:
+            - heading "06 6. 多 Agent 具体怎么协作" [level=2] [ref=f3e381]
+            - paragraph [ref=f3e382]:
+              - text: 这里是“主规划＋领域 Worker＋依赖调度”，不是多个角色自由辩论。每个 Worker 的
+              - code [ref=f3e383]: AgentContextView
+              - text: 包含自己的 WorkItem、用户当前请求、可用事实、相关历史、声明的依赖结果、预算和可信身份。工具集合按领域 principal 与任务 allowed_tools 求交，另可暴露允许的 Skill、动作提案和归档读取。
+            - paragraph [ref=f3e384]: 调度器只派发依赖就绪任务，独立只读任务可以同一波运行。当前一个会话只有一个待审批槽位，因此同波最多放行一个可提案/可写任务，避免互相覆盖审批。某节点失败，依赖它的任务 BLOCKED；其他独立任务的成功留在 ResultBoard。跨任务事实需要 requirement 匹配，不能把产品信息冒充退款状态。
+            - paragraph [ref=f3e385]:
+              - text: 工作图对
+              - code [ref=f3e386]: NEEDS_EVIDENCE
+              - text: 有界补充证据，记录已请求的 requirement/provider 组合；若新增事实没有进展就返回类型化缺证据，避免无限“再找一次”。测试对并行结果的全部完成顺序排列进行比较，验证 ResultBoard 不依赖哪个 Worker 先结束。
+            - paragraph [ref=f3e387]:
+              - text: 源码：
+              - link "application/orchestration_runtime.py" [ref=f3e388] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/application/orchestration_runtime.py
+              - text: 、
+              - link "application/result_board.py" [ref=f3e389] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/application/result_board.py
+              - text: 、
+              - link "tests/test_target_orchestration_runtime.py" [ref=f3e390] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/tests/test_target_orchestration_runtime.py
+              - text: 。
+          - generic [ref=f3e391]:
+            - heading "07 7. LangChain 与 LangGraph 各用到哪里" [level=2] [ref=f3e392]
+            - paragraph [ref=f3e393]:
+              - text: LangChain 复用模型适配、StructuredTool、消息结构、create_agent 和 middleware。LangGraph 复用 StateGraph、条件边、Send、interrupt/resume、checkpointer 和流式状态。项目自研的是上述组件周围的业务合同、权限、状态、证据和发布规则。
+              - code [ref=f3e394]: create_agent
+              - text: 本身基于 LangGraph，因此两者不是并列的两个竞争引擎。
+            - paragraph [ref=f3e395]:
+              - text: Worker middleware 处理工作版本检查、工具结果归档、交互边界、进展检查、上下文压缩、输入预算、模型/工具步数限制与异常转换。执行使用
+              - code [ref=f3e396]: astream(stream_mode='values')
+              - text: 保存最后完成的状态，以便后续模型失败时仍知道已有工具结果。超时、步数耗尽、模型故障、结果归档不可用分别转换为类型化失败。
+            - paragraph [ref=f3e397]:
+              - text: 框架提供恢复设施但不会自动证明退款只执行一次。
+              - code [ref=f3e398]: interrupt
+              - text: 恢复涉及节点重入，所以副作用必须在项目写操作边界用幂等标识和回执保护。也不能把
+              - code [ref=f3e399]: recursion_limit
+              - text: 当模型调用预算，两者粒度不同。框架官方机制见
+              - link "LangGraph persistence" [ref=f3e400] [cursor=pointer]:
+                - /url: https://docs.langchain.com/oss/python/langgraph/persistence
+              - text: 及
+              - link "interrupts" [ref=f3e401] [cursor=pointer]:
+                - /url: https://docs.langchain.com/oss/python/langgraph/interrupts
+              - text: 。
+            - paragraph [ref=f3e402]:
+              - text: 源码：
+              - link "infrastructure/target_framework_agent.py" [ref=f3e403] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/infrastructure/target_framework_agent.py
+              - text: 、
+              - link "infrastructure/target_agent_middleware.py" [ref=f3e404] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/infrastructure/target_agent_middleware.py
+              - text: 、
+              - link "infrastructure/langgraph_checkpoint.py" [ref=f3e405] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/infrastructure/langgraph_checkpoint.py
+              - text: 。
+          - generic [ref=f3e406]:
+            - heading "08 8. 上下文与记忆不是一个大字符串" [level=2] [ref=f3e407]
+            - paragraph [ref=f3e408]:
+              - text: 会话状态存审批、活动目标和控制版本；最近消息和摘要帮助理解表达；业务事实带来源与版本；知识证据带 revision 和原文位置；执行历史帮助 Worker 继续工作。历史助手一句“可以退款”不是当前政策，用户说“已经到账”也不是支付系统回执。
+              - code [ref=f3e409]: TargetTurnContext
+              - text: 保留 role、source_ref、seq、watermark、projection_status；读取投影失败明确降级，不造“空历史代表无任务”的结论。
+            - paragraph [ref=f3e410]: 预算按实际模型调用计入 system、工具 schema、任务输入、历史、输出预留和协议开销。工具结果先存 TargetResultArchive；接近预算时清理旧 ToolMessage，保留可回读引用；再触发语义摘要，保留目标、否定、未完成事项、已执行操作和不确定性。最新工具调用批次整体保护，避免 AI tool_call 与 ToolMessage 对不上。只有受保护后缀本身也装不下，才卸载其中大结果并让模型分页回读。
+            - paragraph [ref=f3e411]: 回读原始快照是读取存储，不重新查订单。归档失败保留当前原始消息并停止该段，避免丢了唯一证据后继续回答。摘要也需要预算，失败不能悄悄用伪摘要替代。压缩日志保存 before/after token、原始引用、是否摘要和卸载调用，可从 Trace 查成本与信息损失。
+            - paragraph [ref=f3e412]: 长期 ServiceEpisode 保存一次服务经历，MemoryFact 保存带来源的用户事实；它们帮助跨会话回忆，不可覆盖实时订单状态。检索历史经历还要检查身份、范围、有效性及删除状态。详细追问见 Q25—Q30。
+            - paragraph [ref=f3e413]:
+              - text: 源码：
+              - link "infrastructure/target_turn_context.py" [ref=f3e414] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/infrastructure/target_turn_context.py
+              - text: 、
+              - link "application/context_budget.py" [ref=f3e415] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/application/context_budget.py
+              - text: 、
+              - link "infrastructure/target_context_compaction.py" [ref=f3e416] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/infrastructure/target_context_compaction.py
+              - text: 、
+              - link "infrastructure/target_result_archive.py" [ref=f3e417] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/infrastructure/target_result_archive.py
+              - text: 、
+              - link "application/service_episode.py" [ref=f3e418] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/application/service_episode.py
+              - text: 。
+          - generic [ref=f3e419]:
+            - heading "09 9. RAG 的离线在线边界" [level=2] [ref=f3e420]
+            - paragraph [ref=f3e421]: 离线从结构化文本资料导入 SourceRevision、切块并保存原文偏移，产生 embedding、词法项、retrieval projection 和 generation；构建 HNSW 后使 generation READY，再激活。替换 embedding 需要新的匹配维度与处理方式的 generation，不能把同维度不同模型的向量混用。
+            - paragraph [ref=f3e422]: 在线从完整查询和系统注入的身份/范围出发，多路召回、RRF 融合、去重、截候选、精排、预算打包，产出 EvidencePack。原文 checksum、revision、chunk offset 和 generation 用来验证证据仍可用。查询变换、候选、精排和 pack 有不同缓存身份，模型版本、语料版本、范围或预算变化都可能使缓存失效。
+            - paragraph [ref=f3e423]: KnowledgeRetriever 区分 HISTORY 与 RESOLVED：前者允许改写，后者表示主 Agent 已经给出完整问题，不再无条件二次改写。Dense/Lexical 权重与 raw/standalone 查询权重是两个维度。当前 defaults 里 raw=.20、standalone=.60；无扩展时归一化相当于 .25/.75，示例环境直接写 .25/.75。若两条 query 一样会合并权重，不把重复文本当独立证据。
+            - paragraph [ref=f3e424]:
+              - text: 默认示例保留 hash embedding 方便启动；BGE-M3 是明确配置的语义模型路径。Knowledge 使用 PG 内 BM25 SQL，基础 backend 同时支持 ts_rank_cd，两者不要混说。完整原理、权重实验与 HNSW 在
+              - link "RAG 专题" [ref=f3e425] [cursor=pointer]:
+                - /url: /DialogPilot/rag-study.html
+              - text: 。
+            - paragraph [ref=f3e426]:
+              - text: 源码：
+              - link "infrastructure/postgres_knowledge_store.py" [ref=f3e427] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/infrastructure/postgres_knowledge_store.py
+              - text: 、
+              - link "infrastructure/hybrid_retrieval_backend.py" [ref=f3e428] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/infrastructure/hybrid_retrieval_backend.py
+              - text: 、
+              - link "application/knowledge_retriever.py" [ref=f3e429] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/application/knowledge_retriever.py
+              - text: 、
+              - link "core/rag_policy.py" [ref=f3e430] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/core/rag_policy.py
+              - text: 。
+          - generic [ref=f3e431]:
+            - heading "10 10. Synthesizer、Verifier 和发布各管什么" [level=2] [ref=f3e432]
+            - paragraph [ref=f3e433]: Synthesizer 在项目中主要对应 ResponseAssembler 调用 ConversationProvider.compose：把多个任务结果变成用户能读懂的答案，既表达成功，也说明缺失、失败或等待审批。它没有再次执行写操作的权力。简单类型化结果可直接渲染，复杂答复才需要 compose，不能把整条链想成固定调用 N 次 LLM。
+            - paragraph [ref=f3e434]: ResultBoard 的结构性覆盖先检查任务与证据是否就绪；语义 Verifier 再判断候选是否 supported、answered、审批条款是否完整，并返回 issues。结果绑定 question、answer、context、task/coverage/outcomes/evidence 的指纹，防止把旧 PASS 用在新回答上。只有明确受支持的结果才获得正常回答的发布资格。
+            - paragraph [ref=f3e435]: 核验不通过可根据反馈从同一个 board 修订一次，随后再核验，不重跑业务工具。发布前还校验引用 ID 和 source revision。Unknown 是不能判断，不等于已证明答案错；系统可以发布类型化服务提示或请求输入，所以“只有 PASS 的任何文字才会出现在屏幕”也不准确，应说“正常事实性候选答复受核验约束”。
+            - paragraph [ref=f3e436]: Verifier 仍是模型，会共同遗漏条件。开发报告已出现自动 PASS 但人工审计有问题的情况，因此在线核验是防线，离线独立评分才衡量防线是否有效；绝不能以内部 PASS 率自证正确率。
+            - paragraph [ref=f3e437]:
+              - text: 源码：
+              - link "application/response_assembly.py" [ref=f3e438] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/application/response_assembly.py
+              - text: 、
+              - link "services/answer_verifier.py" [ref=f3e439] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/services/answer_verifier.py
+              - text: 、
+              - link "services/claim_verification.py" [ref=f3e440] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/services/claim_verification.py
+              - text: 、
+              - link "application/publication.py" [ref=f3e441] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/application/publication.py
+              - text: 。
+          - generic [ref=f3e442]:
+            - heading "11 11. 写操作、审批与恢复" [level=2] [ref=f3e443]
+            - paragraph [ref=f3e444]:
+              - code [ref=f3e445]: TargetActionPreparation
+              - text: 校验提案是否在任务允许范围，必要时调用只读准备工具获得业务 readiness 和目标版本，再生成 operation_key 与审批绑定。审批针对准备好的动作与参数，用户改变金额、商品或目标版本后不能沿用之前许可。
+            - paragraph [ref=f3e446]:
+              - code [ref=f3e447]: GovernedWriteRuntime
+              - text: acquire 操作记录，已 COMMITTED 返回回执；EXECUTING、OUTCOME_UNKNOWN、RECONCILING 先进入对账；待批准则暂停。执行异常不能证明未提交，因此转 OUTCOME_UNKNOWN。业务工具明确报告 NOT_COMMITTED 才有安全重试依据。PostgreSQL ledger 的 CAS 阻止两个执行者同时取得同一状态转移的权利。快照工作区还接入恢复policy的对账次数、时间退避及manual review边界；它属于未提交实现检查，不据此新增恢复率成绩。
+            - paragraph [ref=f3e448]: Checkpoint 存图的运行位置，OperationLedger 存业务操作状态，业务系统/沙箱回执证明实际提交；三者不能互换。Publication 存正式答复，response_seq 支持客户端断线续取，ACK 的 delivered/read 单调推进。HTTP 连接断开不能回滚已经提交的退款，也不能靠重新生成一段话代替响应重放。
+            - paragraph [ref=f3e449]:
+              - text: 源码：
+              - link "infrastructure/target_action_preparation.py" [ref=f3e450] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/infrastructure/target_action_preparation.py
+              - text: 、
+              - link "application/write_workflow.py" [ref=f3e451] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/application/write_workflow.py
+              - text: 、
+              - link "infrastructure/target_workflow_execution.py" [ref=f3e452] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/infrastructure/target_workflow_execution.py
+              - text: 、
+              - link "infrastructure/postgres_response_delivery.py" [ref=f3e453] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/infrastructure/postgres_response_delivery.py
+              - text: 。
+          - generic [ref=f3e454]:
+            - heading "12 12. 多模态、工具、安全与可观测" [level=2] [ref=f3e455]
+            - paragraph [ref=f3e456]: 附件通过认证上传、大小/格式/安全检查及本轮绑定后，Agent 按任务决定 L0 不读取、L1 OCR、L2 视觉增强。OCR/VLM 结果保存 checksum、page/bbox、producer/model/version，作为派生观察进入声明需要它的任务。截图中的“已付款”可帮助理解，但订单是否付款仍应查业务事实，附件内容也不能修改 system 指令。
+            - paragraph [ref=f3e457]: ToolManager 负责工具注册、schema、领域权限、可信身份注入、审批约束和审计；业务服务提供订单、退款、账号等能力。并非每个工具都经远端 MCP 网络；可选 Skill 是复合能力组织方式，不等于新的全局决策框架。
+            - paragraph [ref=f3e458]: PostgreSQL span 是本地持久 Trace，Langfuse 是可选 exporter，Prometheus 记录运行指标。Trace 应串起 invocation、work item、模型调用、检索阶段、工具回执、核验和 publication。原始日志不能无差别导出用户敏感数据；脱敏链与可选 exporter 失败不能变成业务是否成功的第二个裁判。
+            - paragraph [ref=f3e459]:
+              - text: 源码：
+              - link "api/main.py" [ref=f3e460] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/api/main.py
+              - text: 、
+              - link "application/media_requirement.py" [ref=f3e461] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/application/media_requirement.py
+              - text: 、
+              - link "infrastructure/tesseract_ocr_provider.py" [ref=f3e462] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/infrastructure/tesseract_ocr_provider.py
+              - text: 、
+              - link "infrastructure/deepseek_vision_provider.py" [ref=f3e463] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/infrastructure/deepseek_vision_provider.py
+              - text: 、
+              - link "mcp/tool_manager.py" [ref=f3e464] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/mcp/tool_manager.py
+              - text: 、
+              - link "infrastructure/postgres_trace_sink.py" [ref=f3e465] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/infrastructure/postgres_trace_sink.py
+              - text: 、
+              - link "infrastructure/langfuse_trace_sink.py" [ref=f3e466] [cursor=pointer]:
+                - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/infrastructure/langfuse_trace_sink.py
+              - text: 。
+          - generic [ref=f3e467]:
+            - heading "13 13. 评测怎样形成优化闭环" [level=2] [ref=f3e468]
+            - paragraph [ref=f3e469]: 首先选问题：候选没召回、Top5 丢必要证据、Agent 没发检索、改写丢否定、生成漏条件，还是工具提交状态误判。然后冻结数据、split、代码/模型/索引身份和预算，只改变待验证变量；保存原始失败，逐题统计救回和误伤。采用标准在实验前确定，开发结果好才进入未见验收，不能反复看 heldout 再称盲测。
+            - paragraph [ref=f3e470]: 外部 RAG 数据分别承担文档依据、多轮查询和产品支持问答的能力检查；中文电商模拟集用于政策条件和跨来源必要证据；混合订单取证需真实 Agent 与业务 fixture；τ³ 用环境工具和原生评估检验交互任务。纯检索、完整问答、业务完成是三个分母。
+            - paragraph [ref=f3e471]: 当前报告提供了反例驱动的真实闭环：扩大候选池曾让最终 pack 更差，因此不采用；均衡融合在三个已消费集方向一致，采用为实用默认；复杂中文小库完整证据率 62.5%→77.5%，但全库只有17 chunks，不能证明大库召回。最新扩库6287文档结果完整覆盖仅30%→32.5%，双臂均OK的39题没有净增，下一步应验证结构化适用范围，而不是宣称改写已改善大库质量。Encoder 未通过独立复核保持关闭。正负结果同时保留，才叫可解释的选型。
+            - paragraph [ref=f3e472]:
+              - text: 完整数字和边界在
+              - link "RAG 专题" [ref=f3e473] [cursor=pointer]:
+                - /url: /DialogPilot/rag-study.html
+              - text: 与
+              - link "来源记录" [ref=f3e474] [cursor=pointer]:
+                - /url: /DialogPilot/handbook-evidence.html
+              - text: 。本轮只更新文档，没有运行新模型实验，也没有将未完成质量项改成已完成。
+          - generic [ref=f3e475]:
+            - heading "14 14. 怎样完整讲十五分钟" [level=2] [ref=f3e476]
+            - paragraph [ref=f3e477]: 前两分钟用“查配送＋问退货但先别执行”的例子讲目标。第三到第五分钟讲三层运行链和主 Agent/领域 Worker 边界。第六到第八分钟展开一个最熟的技术点：压缩可回读、RAG 权重与证据覆盖，或未知结果对账。第九到第十一分钟讲一次失败及如何用逐层指标定位，必须包括未采用的方案。最后讲验证边界：本地运行、开发集、模拟业务、候选未启用，以及下一步如何做独立验收。
+            - paragraph [ref=f3e478]: 面试官若追问某个类，就从输入、输出、持有的事实、失败状态、一个测试五个角度讲。不要背所有目录；记住你能沿一个真实请求找到对应 Owner，并说明为什么修复必须在那里。
+  - contentinfo [ref=f3e479]:
+    - generic [ref=f3e480]:
+      - heading "DialogPilot 架构与面试手册" [level=2] [ref=f3e481]
+      - generic [ref=f3e482]:
+        - list [ref=f3e484]:
+          - listitem [ref=f3e485]: DialogPilot 架构与面试手册
+        - generic:
+          - list
+        - paragraph [ref=f3e487]: 最新源码调用链、80个详细追问、RAG离线在线与真实评测证据
+  - button "返回顶部": ↑

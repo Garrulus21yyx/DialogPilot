@@ -60,6 +60,7 @@ class ProgressState(AgentState):
     progress_warning: bool
     progress_blocked: bool
     consumed_progress_calls: list[str]
+    causal_read_lineage: list[dict]
 
 
 class AgentProgressMiddleware(AgentMiddleware):
@@ -72,9 +73,13 @@ class AgentProgressMiddleware(AgentMiddleware):
 
     state_schema = ProgressState
 
+    def __init__(self, trace_sink=None):
+        self.trace_sink = trace_sink
+
     @hook_config(can_jump_to=["end"])
     async def abefore_model(self, state, runtime):
         batch = []
+        lineage = []
         consumed = set(state.get("consumed_progress_calls", ()))
         calls = {call["id"]: call for message in state["messages"] if isinstance(message, AIMessage)
                  for call in message.tool_calls}
@@ -98,15 +103,76 @@ class AgentProgressMiddleware(AgentMiddleware):
             # Successful knowledge novelty is per evidence, not query rephrasing.
             uses_arguments = artifact.get("observation_uses_arguments", tool_observation_uses_arguments(result))
             arguments = calls.get(message.tool_call_id, {}).get("args") if uses_arguments else None
-            batch.extend(observation_key(message.name, arguments, digest) for digest in digests)
+            identities = [observation_key(message.name, arguments, digest) for digest in digests]
+            batch.extend(identities)
+            source_call_ids = tuple(dict.fromkeys(
+                str(call_id) for call_id in result.get("causal_source_call_ids", ()) if str(call_id)
+            ))
+            lineage.extend({
+                "read_identity": identity,
+                "observation_read_call_id": str(message.tool_call_id),
+                "source_business_call_ids": source_call_ids,
+            } for identity in identities if source_call_ids)
         if not batch:
             return None
-        update = {**advance_progress(state, batch), "consumed_progress_calls": sorted(consumed)}
+        prior = set(state.get("observed_results", ()))
+        update = {**advance_progress(state, batch), "consumed_progress_calls": sorted(consumed),
+                  "causal_read_lineage": lineage}
+        if self.trace_sink is not None:
+            context = runtime.context
+            item = context.work_item
+            decision = (
+                "BLOCK" if update["progress_blocked"] else
+                "WARN" if update["progress_warning"] else
+                "ALLOW_FIRST_REPLAY" if all(key in prior for key in batch) else "ALLOW_NEW_EVIDENCE"
+            )
+            lineage_by_identity = {entry["read_identity"]: entry for entry in lineage}
+            for identity in dict.fromkeys(batch):
+                source = lineage_by_identity.get(identity, {})
+                self.trace_sink.record_causal_event(
+                    "READ_REPLAYED" if identity in prior else "READ_OBSERVED",
+                    owner="agent_progress", turn_id=str(
+                        context.trusted_context.get("invocation_key") or item.work_item_id
+                    ), work_item_id=item.work_item_id,
+                    control_id=item.control.control_id if item.control else None,
+                    control_revision=item.control.revision if item.control else None,
+                    read_identity=identity, guard_decision=decision,
+                    stagnant_rounds=update["stagnant_rounds"],
+                    observation_read_call_id=source.get("observation_read_call_id"),
+                    source_business_call_ids=json.dumps(
+                        source.get("source_business_call_ids", ()), separators=(",", ":")
+                    ),
+                )
         if update["progress_blocked"]:
             return {**update, "jump_to": "end"}
         if update["progress_warning"]:
             update["messages"] = [HumanMessage(content=PROGRESS_FEEDBACK)]
         return update
+
+    async def aafter_model(self, state, runtime):
+        lineage = state.get("causal_read_lineage", ())
+        message = state["messages"][-1] if state.get("messages") else None
+        if self.trace_sink is not None and lineage and isinstance(message, AIMessage):
+            context = runtime.context
+            item = context.work_item
+            for call in message.tool_calls:
+                for source in lineage:
+                    self.trace_sink.record_causal_event(
+                        "READ_INFORMED_TOOL_EMISSION",
+                        owner="agent_progress",
+                        turn_id=str(context.trusted_context.get("invocation_key") or item.work_item_id),
+                        work_item_id=item.work_item_id,
+                        control_id=item.control.control_id if item.control else None,
+                        control_revision=item.control.revision if item.control else None,
+                        read_identity=source["read_identity"],
+                        observation_read_call_id=source["observation_read_call_id"],
+                        source_business_call_ids=json.dumps(
+                            source["source_business_call_ids"], separators=(",", ":")
+                        ),
+                        emitted_business_call_id=str(call["id"]),
+                        action_name=str(call["name"]),
+                    )
+        return {"causal_read_lineage": []} if lineage else None
 
 
 class OutcomeState(AgentState):

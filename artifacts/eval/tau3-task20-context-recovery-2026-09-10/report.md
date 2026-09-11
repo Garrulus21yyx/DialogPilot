@@ -43,9 +43,22 @@ defects or isolating causal improvement from a single stochastic run.
 - LiteLLM could not cost the provider-returned model alias. Cost completeness is
   not established; these log errors did not interrupt the business simulation.
 
-Automated RCA marks PASS (official checks and typed local failures); that is NOT
-a comprehensive conversational-quality pass. HTTP/SSE, multiple domains, heldout
-generalization and real-model compaction fidelity were not tested by this one case.
+Automated RCA now separates `business_status=PASS` from `quality_status=WARN`.
+The quality lane detects seven exact unchanged read replays, public internal-reference
+leakage, raw action-schema identifier fields, and two recovered response-review
+rejections. Naturalness/tone still requires a calibrated semantic judge. HTTP/SSE,
+multiple domains, heldout generalization and real-model compaction fidelity were not
+tested by this one case.
 
 Evidence: manifest.json, task-20.json, task-20-trajectory.json, rca.json,
-simulator-calls/. Session: tau3-086de14654764de88a1ebe45937b6686.
+inspection.json, simulator-calls/. The unified inspection contains 32 Langfuse
+traces, 348 compact chain nodes, 23 causal events, zero error observations, two
+expected control-status events, and complete usage for 35 generations (529,758
+provider-total tokens, including 220,032 cache-read tokens). Session:
+tau3-086de14654764de88a1ebe45937b6686.
+
+The repeated-read quality root is now verified independently of business success:
+the `agent_progress` novelty authority is scoped to one worker graph, so the
+compacted continuation classified seven previously completed read identities as
+`ALLOW_NEW_EVIDENCE`. See `quality_root_cause_status`, `quality_root_clusters`, and
+the `cross_continuation_read_reuse` probe in inspection.json.

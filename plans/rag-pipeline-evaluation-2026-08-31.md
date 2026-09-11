@@ -49,7 +49,7 @@ Build a small, reproducible, customer-support-oriented RAG evaluation harness th
 - Found and repaired source-offset drift caused by trimming a source document before chunking; prior exploratory numbers were invalidated and rerun after the owner repair.
 - Doc2Dial Dev chunk projection after repair: fixed 512/64 preserved 100% of 488 evidence spans with 314 chunks.
 - Real retrieval, 300 cases: fixed 512/64 + BM25 0.75 / dense 0.25 / RRF k=10 achieved Evidence Recall@20 0.6244, MRR 0.4054, nDCG@20 0.4596.
-- Comparative retrieval after repair: 256/32 Evidence Recall@20 0.5622; 384/48 0.5944; 512/64 0.6244.
+- Comparative retrieval after repair: fixed 256/32 Evidence Recall@20 0.5622; fixed 384/48 0.5944; fixed 512/64 0.6244.
 - Recommended fusion vs BM25-only Evidence Recall delta +0.0606, group-paired bootstrap 95% CI [+0.0319, +0.0911].
 - Chroma emits a non-fatal anonymous telemetry signature warning in this installed dependency combination; experiment completion and result files are unaffected.
 - Full repository verification after the first implementation increment: 293 passed.

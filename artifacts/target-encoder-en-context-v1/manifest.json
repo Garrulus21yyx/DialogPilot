@@ -1,0 +1,118 @@
+{
+  "adoption_passed": true,
+  "artifact_version": "target-encoder-en-context-v1",
+  "bundle_version": "customer-service-v1",
+  "classes": [
+    {
+      "calibration_accepted": 283,
+      "calibration_correct": 272,
+      "calibration_precision_lower_bound": 0.9374548707082709,
+      "capability_id": "knowledge_search",
+      "capability_kind": "tool",
+      "enabled": true,
+      "heldout_accepted": 259,
+      "heldout_correct": 259,
+      "heldout_precision_lower_bound": 0.9896618794604555,
+      "label": "general_qa",
+      "owner_agent": "general",
+      "required_arguments": [
+        "query"
+      ],
+      "threshold": 0.4254930317401886
+    },
+    {
+      "calibration_accepted": 25,
+      "calibration_correct": 25,
+      "calibration_precision_lower_bound": 0.9023464939939491,
+      "capability_id": "product_identification",
+      "capability_kind": "skill",
+      "enabled": true,
+      "heldout_accepted": 20,
+      "heldout_correct": 20,
+      "heldout_precision_lower_bound": 0.8808421626390356,
+      "label": "product_identification",
+      "owner_agent": "product_technical",
+      "required_arguments": [
+        "asset_id"
+      ],
+      "threshold": 0.9642392992973328
+    },
+    {
+      "calibration_accepted": 169,
+      "calibration_correct": 156,
+      "calibration_precision_lower_bound": 0.8823037754992894,
+      "capability_id": "refund_status",
+      "capability_kind": "tool",
+      "enabled": true,
+      "heldout_accepted": 103,
+      "heldout_correct": 103,
+      "heldout_precision_lower_bound": 0.9744049047411563,
+      "label": "refund_status_summary",
+      "owner_agent": "billing_refund",
+      "required_arguments": [
+        "order_id"
+      ],
+      "threshold": 0.6312469840049744
+    }
+  ],
+  "datasets": [
+    {
+      "sha256": "fd2d2d5ec3798640a81a8f05e5c13079e72146b4a99c4fd7ddad1c494c144c06",
+      "split": "train"
+    },
+    {
+      "sha256": "64383bac232151bb1b135005f1581d3e02e84d4faeb9f32c0cc8d72898aedf53",
+      "split": "calibration"
+    },
+    {
+      "sha256": "5ce19d4653f24f20c37a23f1bb79cdefc39abf12dad71b923e607aaf228af768",
+      "split": "heldout"
+    }
+  ],
+  "heldout_min_accepts": 10,
+  "heldout_summary": {
+    "accepted": 382,
+    "accepted_precision": 1.0,
+    "correct": 382,
+    "coverage": 0.46642246642246643,
+    "total": 819
+  },
+  "heldout_target_precision": 0.98,
+  "language_reports": {
+    "general_qa": {
+      "en": {
+        "accepted": 259,
+        "correct": 259,
+        "enabled": true,
+        "precision_lower_bound": 0.9896618794604555,
+        "threshold": 0.4254930317401886
+      }
+    },
+    "product_identification": {
+      "en": {
+        "accepted": 20,
+        "correct": 20,
+        "enabled": true,
+        "precision_lower_bound": 0.8808421626390356,
+        "threshold": 0.9642392992973328
+      }
+    },
+    "refund_status_summary": {
+      "en": {
+        "accepted": 103,
+        "correct": 103,
+        "enabled": true,
+        "precision_lower_bound": 0.9744049047411563,
+        "threshold": 0.6312469840049744
+      }
+    }
+  },
+  "model_filename": "model.json",
+  "model_sha256": "705676da117a20a751e2ef174023089771e3eb0b6d1e12bff9c15c29f7e65252",
+  "required_languages": [
+    "en"
+  ],
+  "schema_version": "dialogpilot-target-encoder-v2",
+  "status": "ACTIVE",
+  "target_precision": 0.88
+}

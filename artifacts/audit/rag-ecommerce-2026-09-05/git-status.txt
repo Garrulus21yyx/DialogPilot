@@ -1,0 +1,307 @@
+ M README.md
+ M api/main.py
+ M application/hybrid_retrieval.py
+ M application/knowledge_retriever.py
+ M application/knowledge_source.py
+ M core/rag_policy.py
+ M core/schema_version_registry.py
+ M docs/_config.yml
+ M docs/_includes/current-runtime-deep-dive.md
+ M docs/_includes/customer-service-agent-target-architecture-body.md
+ M docs/_includes/rag-evaluation-deep-dive.md
+ M docs/agent-evolution.md
+ M docs/architecture.md
+ M docs/customer-service-agent-implementation-plan.zh-CN.md
+ M docs/customer-service-rag-production-audit.zh-CN.md
+ M docs/interview-guide.md
+ M docs/model-ablation-report.zh-CN.md
+ M docs/rag-pipeline-evaluation.zh-CN.md
+ M evaluation/behavior_baseline.py
+ M evaluation/stateful_runner.py
+ M infrastructure/hybrid_retrieval_backend.py
+ M infrastructure/knowledge_retriever_adapters.py
+ M infrastructure/postgres_knowledge_retriever.py
+ M infrastructure/postgres_knowledge_source.py
+ M infrastructure/postgres_knowledge_store.py
+ M infrastructure/postgres_retrieval_projection.py
+ M infrastructure/target_framework_agent.py
+ M plans/rag-hierarchical-retrieval-convergence-2026-09-01.md
+ M plans/rag-multi-condition-retrieval-convergence-2026-09-01.md
+ M plans/rag-pipeline-evaluation-2026-08-31.md
+ M tests/test_behavior_baseline.py
+ M tests/test_data_location_registry.py
+ M tests/test_hybrid_retrieval_backends.py
+ M tests/test_knowledge_retriever.py
+ M tests/test_knowledge_source_postgres.py
+ M tests/test_postgres_foundation.py
+ M tests/test_postgres_knowledge_retriever.py
+ M tests/test_postgres_knowledge_store.py
+ M tests/test_postgres_retrieval_foundation.py
+ M tests/test_stateful_runner.py
+ M tests/test_target_framework_agent.py
+?? artifacts/audit/rag-ecommerce-2026-09-05/diagnostics.json
+?? artifacts/audit/rag-ecommerce-2026-09-05/git-status.txt
+?? artifacts/audit/rag-ecommerce-2026-09-05/independent-review.md
+?? artifacts/audit/rag-ecommerce-2026-09-05/tests.txt
+?? artifacts/eval/doc2dial-rag-en-heldout-balanced-v2-production-retry-1/manifest.json
+?? artifacts/eval/doc2dial-rag-en-heldout-balanced-v2-production-retry-1/predictions.jsonl
+?? artifacts/eval/doc2dial-rag-en-heldout-balanced-v2-production-retry-1/report.json
+?? artifacts/eval/doc2dial-rag-en-heldout-balanced-v2-production-run/manifest.json
+?? artifacts/eval/doc2dial-rag-en-heldout-balanced-v2-production-run/predictions.jsonl
+?? artifacts/eval/doc2dial-rag-en-heldout-balanced-v2-production-run/report.json
+?? artifacts/eval/doc2dial-rag-en-heldout-balanced-v2/cases.jsonl
+?? artifacts/eval/doc2dial-rag-en-heldout-balanced-v2/corpus.jsonl
+?? artifacts/eval/doc2dial-rag-en-heldout-balanced-v2/manifest.json
+?? artifacts/eval/doc2dial-rag-en-heldout-combined-v2-production-report/analysis.md
+?? artifacts/eval/doc2dial-rag-en-heldout-combined-v2-production-report/manifest.json
+?? artifacts/eval/doc2dial-rag-en-heldout-combined-v2-production-report/report.json
+?? artifacts/eval/doc2dial-rag-en-heldout-fresh-local-v1/local-bge-m3-fixed-heldout-v1/manifest.json
+?? artifacts/eval/doc2dial-rag-en-heldout-fresh-local-v1/local-bge-m3-fixed-heldout-v1/report.json
+?? artifacts/eval/doc2dial-rag-en-heldout-supplement-v1-production-run/manifest.json
+?? artifacts/eval/doc2dial-rag-en-heldout-supplement-v1-production-run/predictions.jsonl
+?? artifacts/eval/doc2dial-rag-en-heldout-supplement-v1-production-run/report.json
+?? artifacts/eval/doc2dial-rag-en-heldout-supplement-v1/cases.jsonl
+?? artifacts/eval/doc2dial-rag-en-heldout-supplement-v1/corpus.jsonl
+?? artifacts/eval/doc2dial-rag-en-heldout-supplement-v1/manifest.json
+?? artifacts/eval/doc2dial-rag-long8000-dev-v1/cases.jsonl
+?? artifacts/eval/doc2dial-rag-long8000-dev-v1/context-topology-conditional-structural-report.json
+?? artifacts/eval/doc2dial-rag-long8000-dev-v1/context-topology-fixed-parent-v3-alias-rerank-report.json
+?? artifacts/eval/doc2dial-rag-long8000-dev-v1/context-topology-haystack-mixed-v2-structural-report.json
+?? artifacts/eval/doc2dial-rag-long8000-dev-v1/context-topology-haystack-mixed-v3-alias-rerank-report.json
+?? artifacts/eval/doc2dial-rag-long8000-dev-v1/context-topology-haystack-mixed-v3-rerank-report.json
+?? artifacts/eval/doc2dial-rag-long8000-dev-v1/context-topology-haystack-mixed-v3-structural-report.json
+?? artifacts/eval/doc2dial-rag-long8000-dev-v1/context-topology-haystack-structural-report.json
+?? artifacts/eval/doc2dial-rag-long8000-dev-v1/context-topology-haystack-three-way-v3-rerank-report.json
+?? artifacts/eval/doc2dial-rag-long8000-dev-v1/context-topology-pydanticai-v5-full-report.json
+?? artifacts/eval/doc2dial-rag-long8000-dev-v1/context-topology-standalone-full-report.json
+?? artifacts/eval/doc2dial-rag-long8000-dev-v1/context-topology-standalone-structural-report.json
+?? artifacts/eval/doc2dial-rag-long8000-dev-v1/context-topology-structural-report-repeat.json
+?? artifacts/eval/doc2dial-rag-long8000-dev-v1/context-topology-structural-report.json
+?? artifacts/eval/doc2dial-rag-long8000-dev-v1/corpus.jsonl
+?? artifacts/eval/doc2dial-rag-long8000-dev-v1/cross-encoder-ablation-v2.json
+?? artifacts/eval/doc2dial-rag-long8000-dev-v1/cross-encoder-ablation-v3.json
+?? artifacts/eval/doc2dial-rag-long8000-dev-v1/cross-encoder-ablation-v4.json
+?? artifacts/eval/doc2dial-rag-long8000-dev-v1/manifest.json
+?? artifacts/eval/doc2dial-rag-long8000-dev-v1/multi-condition-ablation-v1.json
+?? artifacts/eval/doc2dial-rag-long8000-dev-v1/query-ablation-report.json
+?? artifacts/eval/doc2dial-rag-long8000-dev-v1/query-raw-capture.json
+?? artifacts/eval/doc2dial-rag-long8000-dev-v1/query-requirement-capture-v1.json
+?? artifacts/eval/doc2dial-rag-long8000-dev-v1/query-transform-capture.json
+?? artifacts/eval/doc2dial-rag-mini-dev-v1/cases.jsonl
+?? artifacts/eval/doc2dial-rag-mini-dev-v1/chunk-ablation.json
+?? artifacts/eval/doc2dial-rag-mini-dev-v1/context-topology-full-report-v2.json
+?? artifacts/eval/doc2dial-rag-mini-dev-v1/context-topology-full-report.json
+?? artifacts/eval/doc2dial-rag-mini-dev-v1/context-topology-structural-report-v2.json
+?? artifacts/eval/doc2dial-rag-mini-dev-v1/context-topology-structural-report.json
+?? artifacts/eval/doc2dial-rag-mini-dev-v1/corpus.jsonl
+?? artifacts/eval/doc2dial-rag-mini-dev-v1/generation-evaluation-report-v2.json
+?? artifacts/eval/doc2dial-rag-mini-dev-v1/generation-evaluation-report-v3.json
+?? artifacts/eval/doc2dial-rag-mini-dev-v1/generation-evaluation-report.json
+?? artifacts/eval/doc2dial-rag-mini-dev-v1/local-bge-m3-first-stage-history-v1/manifest.json
+?? artifacts/eval/doc2dial-rag-mini-dev-v1/local-bge-m3-first-stage-history-v1/report.json
+?? artifacts/eval/doc2dial-rag-mini-dev-v1/local-bge-m3-first-stage-raw-v1/manifest.json
+?? artifacts/eval/doc2dial-rag-mini-dev-v1/local-bge-m3-first-stage-raw-v1/report.json
+?? artifacts/eval/doc2dial-rag-mini-dev-v1/local-bge-m3-first-stage-user-history-colbert-v1/manifest.json
+?? artifacts/eval/doc2dial-rag-mini-dev-v1/local-bge-m3-first-stage-user-history-colbert-v1/report.json
+?? artifacts/eval/doc2dial-rag-mini-dev-v1/local-bge-m3-first-stage-user-history-v1/manifest.json
+?? artifacts/eval/doc2dial-rag-mini-dev-v1/local-bge-m3-first-stage-user-history-v1/report.json
+?? artifacts/eval/doc2dial-rag-mini-dev-v1/manifest.json
+?? artifacts/eval/doc2dial-rag-mini-dev-v1/packing-ablation-report.json
+?? artifacts/eval/doc2dial-rag-mini-dev-v1/query-ablation-report.json
+?? artifacts/eval/doc2dial-rag-mini-dev-v1/query-transform-capture.json
+?? artifacts/eval/doc2dial-rag-mini-dev-v1/rerank-ablation-report-v2.json
+?? artifacts/eval/doc2dial-rag-mini-dev-v1/rerank-ablation-report.json
+?? artifacts/eval/doc2dial-rag-mini-dev-v1/retrieval-ablation-256-32.json
+?? artifacts/eval/doc2dial-rag-mini-dev-v1/retrieval-ablation-384-48.json
+?? artifacts/eval/doc2dial-rag-mini-dev-v1/retrieval-ablation-512-64.json
+?? artifacts/eval/doc2dial-rag-mini-heldout-v1/cases.jsonl
+?? artifacts/eval/doc2dial-rag-mini-heldout-v1/corpus.jsonl
+?? artifacts/eval/doc2dial-rag-mini-heldout-v1/generation-evaluation-report.json
+?? artifacts/eval/doc2dial-rag-mini-heldout-v1/manifest.json
+?? artifacts/eval/doc2dial-rag-mini-heldout-v1/packing-ablation-report.json
+?? artifacts/eval/doc2dial-rag-mini-heldout-v1/query-ablation-report.json
+?? artifacts/eval/doc2dial-rag-mini-heldout-v1/query-transform-capture.json
+?? artifacts/eval/doc2dial-rag-mini-heldout-v1/rerank-ablation-report.json
+?? artifacts/eval/doc2dial-rag-mini-heldout-v1/retrieval-heldout.json
+?? artifacts/eval/doc2dial-rag-parallel-stress-v1/cases.jsonl
+?? artifacts/eval/doc2dial-rag-parallel-stress-v1/corpus.jsonl
+?? artifacts/eval/doc2dial-rag-parallel-stress-v1/cross-encoder-ablation-v1.json
+?? artifacts/eval/doc2dial-rag-parallel-stress-v1/cross-encoder-ablation-v2.json
+?? artifacts/eval/doc2dial-rag-parallel-stress-v1/cross-encoder-ablation-v3.json
+?? artifacts/eval/doc2dial-rag-parallel-stress-v1/manifest.json
+?? artifacts/eval/doc2dial-rag-parallel-stress-v1/multi-condition-ablation-v1.json
+?? artifacts/eval/doc2dial-rag-parallel-stress-v1/query-capture.json
+?? artifacts/eval/doc2dial-rag-parallel-stress-v1/query-requirement-capture-v1.json
+?? artifacts/eval/doc2dial-rag-parallel-stress-v1/requirement-gold.json
+?? artifacts/eval/encoder-llm-cascade-2026-08-31/development-oof-predictions.jsonl
+?? artifacts/eval/encoder-llm-cascade-2026-08-31/heldout-primary-predictions.jsonl
+?? artifacts/eval/encoder-llm-cascade-2026-08-31/manifest.json
+?? artifacts/eval/encoder-llm-cascade-2026-08-31/multilingual_synthetic_diagnostic-primary-predictions.jsonl
+?? artifacts/eval/encoder-llm-cascade-2026-08-31/report.json
+?? artifacts/eval/encoder-llm-cascade-2026-08-31/verification-primary-predictions.jsonl
+?? artifacts/eval/fresh-intent-v1-v2-2026-08-31/cases.jsonl
+?? artifacts/eval/fresh-intent-v1-v2-2026-08-31/report.json
+?? artifacts/eval/fresh-intent-v1-v2-2026-08-31/source-outputs.jsonl
+?? artifacts/eval/fresh-intent-v1-v2-2026-08-31/templates.json
+?? artifacts/eval/fresh-intent-v3-regression-2026-08-31/cases.jsonl
+?? artifacts/eval/fresh-intent-v3-regression-2026-08-31/report.json
+?? artifacts/eval/fresh-intent-v3-regression-2026-08-31/source-outputs.jsonl
+?? artifacts/eval/fresh-intent-v3-regression-2026-08-31/templates.json
+?? artifacts/eval/intent-fusion-mini-2026-08-31/cases.jsonl
+?? artifacts/eval/intent-fusion-mini-2026-08-31/report.json
+?? artifacts/eval/intent-fusion-mini-2026-08-31/source-outputs.jsonl
+?? artifacts/eval/intent-fusion-mini-2026-08-31/templates.json
+?? artifacts/eval/intent-fusion-mini-v3-regression-2026-08-31/cases.jsonl
+?? artifacts/eval/intent-fusion-mini-v3-regression-2026-08-31/report.json
+?? artifacts/eval/intent-fusion-mini-v3-regression-2026-08-31/source-outputs.jsonl
+?? artifacts/eval/intent-fusion-mini-v3-regression-2026-08-31/templates.json
+?? artifacts/eval/intent-weight-calibration-2026-08-31/dev-v3/cases.jsonl
+?? artifacts/eval/intent-weight-calibration-2026-08-31/dev-v3/selection.json
+?? artifacts/eval/intent-weight-calibration-2026-08-31/dev-v3/source-outputs.jsonl
+?? artifacts/eval/intent-weight-calibration-2026-08-31/dev-v3/templates.json
+?? artifacts/eval/intent-weight-calibration-2026-08-31/dev/cases.jsonl
+?? artifacts/eval/intent-weight-calibration-2026-08-31/dev/selection.json
+?? artifacts/eval/intent-weight-calibration-2026-08-31/dev/source-outputs.jsonl
+?? artifacts/eval/intent-weight-calibration-2026-08-31/dev/templates.json
+?? artifacts/eval/intent-weight-calibration-2026-08-31/fresh-verification-v3/cases.jsonl
+?? artifacts/eval/intent-weight-calibration-2026-08-31/fresh-verification-v3/report.json
+?? artifacts/eval/intent-weight-calibration-2026-08-31/fresh-verification-v3/source-outputs.jsonl
+?? artifacts/eval/intent-weight-calibration-2026-08-31/fresh-verification-v3/templates.json
+?? artifacts/eval/intent-weight-calibration-2026-08-31/heldout/cases.jsonl
+?? artifacts/eval/intent-weight-calibration-2026-08-31/heldout/report.json
+?? artifacts/eval/intent-weight-calibration-2026-08-31/heldout/source-outputs.jsonl
+?? artifacts/eval/intent-weight-calibration-2026-08-31/heldout/templates.json
+?? artifacts/eval/local-encoder-chinese-augmented-2026-08-31/classifier.joblib
+?? artifacts/eval/local-encoder-chinese-augmented-2026-08-31/diagnostic-predictions.jsonl
+?? artifacts/eval/local-encoder-chinese-augmented-2026-08-31/heldout-predictions.jsonl
+?? artifacts/eval/local-encoder-chinese-augmented-2026-08-31/manifest.json
+?? artifacts/eval/local-encoder-chinese-augmented-2026-08-31/report.json
+?? artifacts/eval/local-encoder-chinese-augmented-2026-08-31/verification-predictions.jsonl
+?? artifacts/eval/local-encoder-feasibility-2026-08-31/classifier.joblib
+?? artifacts/eval/local-encoder-feasibility-2026-08-31/diagnostic-predictions.jsonl
+?? artifacts/eval/local-encoder-feasibility-2026-08-31/heldout-predictions.jsonl
+?? artifacts/eval/local-encoder-feasibility-2026-08-31/manifest.json
+?? artifacts/eval/local-encoder-feasibility-2026-08-31/report.json
+?? artifacts/eval/local-encoder-feasibility-2026-08-31/verification-predictions.jsonl
+?? artifacts/eval/retrieval-dev.report.json
+?? artifacts/eval/reviews/dialogpilot-500-v1-reviewer-codex-a.contract.md
+?? artifacts/eval/reviews/dialogpilot-500-v1-reviewer-codex-a.human-queue.jsonl
+?? artifacts/eval/reviews/dialogpilot-500-v1-reviewer-codex-a.jsonl
+?? artifacts/eval/reviews/dialogpilot-500-v1-reviewer-codex-a.summary.json
+?? artifacts/eval/reviews/render_dialogpilot_500_reviewer_codex_a.py
+?? artifacts/eval/sgd-command-dev-smoke-v1/predictions.jsonl
+?? artifacts/eval/sgd-command-dev-smoke-v1/report.json
+?? artifacts/eval/sgd-command-dev-smoke-v1/run-manifest.json
+?? artifacts/eval/sgd-command-dev-smoke-v1/selected-cases.jsonl
+?? artifacts/eval/sgd-command-dev-smoke-v2/predictions.jsonl
+?? artifacts/eval/sgd-command-dev-smoke-v2/report.json
+?? artifacts/eval/sgd-command-dev-smoke-v2/run-manifest.json
+?? artifacts/eval/sgd-command-dev-smoke-v2/selected-cases.jsonl
+?? artifacts/eval/sgd-command-dev-smoke-v3/predictions.jsonl
+?? artifacts/eval/sgd-command-dev-smoke-v3/report.json
+?? artifacts/eval/sgd-command-dev-smoke-v3/run-manifest.json
+?? artifacts/eval/sgd-command-dev-smoke-v3/selected-cases.jsonl
+?? artifacts/eval/stateful-dev.report.json
+?? artifacts/eval/stateful-heldout.report.json
+?? artifacts/eval/wixqa-rag-long8000-dev-v1/cases.jsonl
+?? artifacts/eval/wixqa-rag-long8000-dev-v1/context-topology-conditional-structural-report.json
+?? artifacts/eval/wixqa-rag-long8000-dev-v1/context-topology-structural-report.json
+?? artifacts/eval/wixqa-rag-long8000-dev-v1/corpus.jsonl
+?? artifacts/eval/wixqa-rag-long8000-dev-v1/manifest.json
+?? artifacts/eval/wixqa-rag-long8000-dev-v1/query-raw-capture.json
+?? data/eval/sgd-command-balanced-v1/README.md
+?? data/eval/sgd-command-balanced-v1/dev/cases.jsonl
+?? data/eval/sgd-command-balanced-v1/dev/conversations.jsonl
+?? data/eval/sgd-command-balanced-v1/dev/selection-report.json
+?? data/eval/sgd-command-balanced-v1/manifest.json
+?? data/eval/sgd-command-balanced-v1/registry.json
+?? data/eval/sgd-command-balanced-v1/test/cases.jsonl
+?? data/eval/sgd-command-balanced-v1/test/conversations.jsonl
+?? data/eval/sgd-command-balanced-v1/test/selection-report.json
+?? data/training/intent-chinese-augmentation-2026-08-31/cases.jsonl
+?? data/training/intent-chinese-augmentation-2026-08-31/dedup-corrections.jsonl
+?? data/training/intent-chinese-augmentation-2026-08-31/insufficient-candidates.jsonl
+?? data/training/intent-chinese-augmentation-2026-08-31/manifest.json
+?? data/training/intent-chinese-augmentation-2026-08-31/reviews.jsonl
+?? data/training/intent-chinese-augmentation-2026-08-31/translation-candidates.jsonl
+?? docs/_site/adr/0001-postgresql-platform-foundation.zh-CN.md
+?? docs/_site/agent-evolution/index.html
+?? docs/_site/architecture.html
+?? docs/_site/assets/dialogpilot.js
+?? docs/_site/assets/eval/rag-context-topology-dev-v1.json
+?? docs/_site/assets/eval/rag-hierarchical-retrieval-dev-v1.json
+?? docs/_site/assets/eval/rag-long-document-dev-v1.json
+?? docs/_site/assets/eval/rag-multi-condition-cascade-dev-v1.json
+?? docs/_site/assets/favicon.svg
+?? docs/_site/assets/main.css
+?? docs/_site/assets/main.css.map
+?? docs/_site/assets/minima-social-icons.svg
+?? docs/_site/chinese-encoder-augmentation-2026-08-31.zh-CN.md
+?? docs/_site/contracts/admission-execution-chat-v1.zh-CN.md
+?? docs/_site/customer-service-agent-evaluation-datasets.html
+?? docs/_site/customer-service-agent-implementation-plan.html
+?? docs/_site/customer-service-agent-target-architecture.html
+?? docs/_site/customer-service-rag-production-audit/index.html
+?? docs/_site/customer-service-security-incident-disable-runbook.zh-CN.md
+?? docs/_site/data/evaluation-convergence-2026-08-30.summary.json
+?? docs/_site/data/model-ablation-2026-08-30.summary.json
+?? docs/_site/data/postgres-foundation-restore-evidence-2026-09-02.json
+?? docs/_site/data/rag-chunk-repair-2026-08-30.summary.json
+?? docs/_site/data/rag-heldout-summary-2026-09-01.json
+?? docs/_site/data/retrieval-eval-2026-08-30.summary.json
+?? docs/_site/data/stateful-eval-2026-08-30.summary.json
+?? docs/_site/dialogpilot-gold-authoring-prompts.html
+?? docs/_site/encoder-llm-cascade-2026-08-31.zh-CN.md
+?? docs/_site/evaluation-500/index.html
+?? docs/_site/feed.xml
+?? docs/_site/fresh-intent-v1-v2-validation-2026-08-31.zh-CN.md
+?? docs/_site/full-architecture-tutorial.zh-CN.md
+?? docs/_site/implementation-plan-memory-react-trace.md
+?? docs/_site/implementation-plan-sota-multi-agent.md
+?? docs/_site/index.html
+?? docs/_site/intent-fusion-mini-ablation-2026-08-31.zh-CN.md
+?? docs/_site/intent-weight-calibration-2026-08-31.zh-CN.md
+?? docs/_site/interview-guide.html
+?? docs/_site/local-encoder-feasibility-2026-08-31.zh-CN.md
+?? docs/_site/model-ablation-report.zh-CN.md
+?? docs/_site/project-pitch.html
+?? docs/_site/rag-pipeline-evaluation/index.html
+?? docs/customer-service-agent-evaluation-datasets.zh-CN.md
+?? docs/customer-service-agent-evaluation-plan.zh-CN.md
+?? docs/dialogpilot-gold-authoring-prompts.zh-CN.md
+?? docs/fresh-intent-v1-v2-validation-2026-08-31.zh-CN.md
+?? docs/rag-ecommerce-audit-and-optimization-2026-09-05.zh-CN.md
+?? evaluation/intent_cascade.py
+?? evaluation/local_encoder_classifier.py
+?? evaluation/postgres_rag_production_heldout_eval.py
+?? evaluation/rag_production_heldout_artifacts.py
+?? fresh-intent-candidate.jsonl
+?? fresh-intent-candidate.jsonl.sha256
+?? fresh-intent-review.md
+?? migrations/versions/20260903_0030_knowledge_contextual_bm25.py
+?? migrations/versions/20260903_0031_knowledge_source_metadata_revision.py
+?? plans/chinese-encoder-augmentation-2026-08-31.md
+?? plans/customer-service-memory-pgvector-doc-update-2026-09-01.md
+?? plans/dialogpilot-gold-dataset-authoring-2026-09-02.md
+?? plans/encoder-llm-cascade-2026-08-31.md
+?? plans/evaluation-benchmark-convergence-2026-09-02.md
+?? plans/fresh-intent-v1-v2-validation-2026-08-31.md
+?? plans/intent-fusion-mini-ablation-2026-08-31.md
+?? plans/intent-fusion-v2-steps-1-6-2026-08-31.md
+?? plans/intent-weight-calibration-2026-08-31.md
+?? plans/llm-review-dialogpilot-500-2026-08-30.md
+?? plans/local-encoder-feasibility-2026-08-31.md
+?? plans/rag-ecommerce-audit-2026-09-05.md
+?? plans/rag-fresh-heldout-v2-run-2026-09-03.md
+?? plans/rag-hybrid-metadata-retrieval-implementation-2026-09-03.md
+?? scripts/build_chinese_intent_training_data.py
+?? scripts/build_rag_production_heldout_combined.py
+?? scripts/run_augmented_local_encoder_experiment.py
+?? scripts/run_encoder_llm_cascade.py
+?? scripts/run_local_encoder_experiment.py
+?? scripts/run_postgres_rag_production_heldout.py
+?? tests/test_chinese_intent_training_data.py
+?? tests/test_intent_cascade.py
+?? tests/test_local_encoder_classifier.py
+?? tests/test_postgres_rag_production_heldout_eval.py
+?? tests/test_rag_production_heldout_artifacts.py

@@ -1,0 +1,31 @@
+{
+  "status": "INCOMPLETE",
+  "split": "train",
+  "task_ids": [
+    "0",
+    "1"
+  ],
+  "started_at": "2026-09-06T16:48:20.021877+00:00",
+  "project_commit": "fccfc42e2f9e37d38a1f33c5642a78033efa9f70",
+  "tau_commit": "a2c024725189473d2d7cea3a5cfdbcc67478e41f",
+  "configuration": "Target production application, one registered retail domain, encoder disabled",
+  "max_steps": 80,
+  "max_model_calls_per_work_item": 20,
+  "model_context_budget": 64000,
+  "worker_profile": {
+    "model": "deepseek-v4-flash",
+    "reasoning": "none",
+    "min_completion_tokens": 0,
+    "max_context_tokens": 32768
+  },
+  "user_model": "anthropic/deepseek-v4-flash",
+  "seed": 300,
+  "evaluation": "official ENV and ACTION, strict replay",
+  "limitations": [
+    "two development tasks are not heldout performance",
+    "no communication/LLM-judge score",
+    "no remote idempotency or atomic entity CAS API",
+    "text-only approval classifier is evaluation UI adaptation",
+    "HTTP/SSE and multiple domain routing not exercised"
+  ]
+}

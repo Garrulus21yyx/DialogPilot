@@ -1,0 +1,21 @@
+{
+  "scope": "Replay one captured domain decision with/without working history; no tools execute.\n\nThe history-free arm is a diagnostic ablation, NOT a lossless context projection.\n",
+  "source_observation": "c27f46378bd94a40",
+  "source_input_sha256": "05c731784407446f90917685431f677254aecd39b50490a23d5582989947a4c5",
+  "system_sha256": "ed9b57de3fe8bba7e1f0f5ad6b15ba72a6b5c38f5188d73226134e037c0820e5",
+  "profiles": [
+    {
+      "model": "deepseek-v4-pro",
+      "reasoning": "none",
+      "min_completion_tokens": 4096,
+      "max_context_tokens": 32768
+    }
+  ],
+  "repeats": 2,
+  "max_api_calls": 4,
+  "max_tokens": 4096,
+  "business_tools_enabled": false,
+  "ablation": "runtime_advice",
+  "expected_accepted": false,
+  "interpretation": "development diagnostic, not held-out closure"
+}

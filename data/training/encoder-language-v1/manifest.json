@@ -1,0 +1,41 @@
+{
+  "source_revision": "430d1a89bd93bd1fa23c16f29dd53e73f0087443",
+  "source_url": "https://huggingface.co/datasets/bitext/Bitext-customer-support-llm-chatbot-training-dataset",
+  "source_sha256": "6f81102b0100b97b8468eb04368033a23206bf1fde9d53500d5806ec1001a434",
+  "seeds_sha256": "9c7c24f98eeb9462ffd777b9aad445ee5eaade3fa2866830ef822762fe1e3a6a",
+  "limitations": [
+    "Synthetic/templated data, not real customer gold",
+    "Legacy zh heldout already consumed",
+    "Bitext seed families unavailable; exact-normalized grouping only"
+  ],
+  "splits": {
+    "zh": {
+      "train": {
+        "count": 1645,
+        "sha256": "9c8f438a22d3a104cd2bd177973ba88c4c1c2cc1d79063b80e2e7b73ccde5fc7"
+      },
+      "calibration": {
+        "count": 359,
+        "sha256": "5daf9d7ca28037c1a2a7e7a4a6b411186962ed2d42e3d79050e9a6e0a7e84b2b"
+      },
+      "heldout": {
+        "count": 264,
+        "sha256": "84ffd591639e7888efeebfa191b0d66a9e8dced6f7ce674619bc11e6692cee10"
+      }
+    },
+    "en": {
+      "train": {
+        "count": 4096,
+        "sha256": "b5c4717e3e9e8861ea2ed31ce8912698d3afa39238299296b97a3aae2e6fa39d"
+      },
+      "calibration": {
+        "count": 971,
+        "sha256": "d14c4734910a9bb4a795b467d5ce261ae0ed23e5a7ee9b33e37498a33ee3fcc4"
+      },
+      "heldout": {
+        "count": 819,
+        "sha256": "0d9f41788a9bb4a78631400dd67e00497f318b57abbe3f18496b222d7292a5cb"
+      }
+    }
+  }
+}

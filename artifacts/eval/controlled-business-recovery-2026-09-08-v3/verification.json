@@ -1,0 +1,39 @@
+{
+  "verified_at": "2026-09-08T10:05:48.081758+00:00",
+  "source_mismatches": [],
+  "checks": {
+    "matrix": {
+      "tests": 200,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "gates": {
+      "tests": 281,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2
+    },
+    "http-gates": {
+      "tests": 62,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "projection-gates": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "passed": 545,
+  "skipped": 2,
+  "supplementary_test_sha256": {
+    "tests/test_target_http_postgres_e2e.py": "991e07e31d5f2e9fc8690568733cf1581d74927f3b89a539ff9817b5679861d7",
+    "tests/test_target_chat_cutover.py": "3971092655e6806b5999c71f2050576362f575a50f5211f8051aa0616a211a54",
+    "tests/test_write_recovery_projection.py": "eb4845bcaf25f0818b4496aa1e9bd43e3be464b19880113909862c9dfbe3c26e"
+  },
+  "delivery": "working tree only; not committed or pushed",
+  "scope": "200 fixed faults plus separate bounded recovery, concurrency, HTTP and projection gates; not a production reliability estimate"
+}

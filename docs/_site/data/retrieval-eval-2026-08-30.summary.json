@@ -1,0 +1,25 @@
+{
+  "dataset_checksum": "07de2bba52155be143cb865f6572405bc93370610f1b119ab2c494be377112fd",
+  "dataset_id": "dialogpilot-500-v1",
+  "evaluation_layer": "retrieval",
+  "execution_mode": "isolated-embedded-production-knowledge-base",
+  "review_scope": "provisional_dev",
+  "corpus_documents": 25,
+  "inserted_chunks": 25,
+  "case_count": 80,
+  "metrics": {
+    "recall_at_5": 0.9125,
+    "mrr": 0.7504,
+    "ndcg_at_5": 0.7914,
+    "all_metrics_perfect_pass_rate": 0.6375
+  },
+  "vector_only_reference_before_hybrid": {
+    "recall_at_5": 0.6125,
+    "mrr": 0.4852,
+    "ndcg_at_5": 0.5169,
+    "all_metrics_perfect_pass_rate": 0.4125
+  },
+  "heldout_status": "not_run",
+  "chunk_repair": "RB-RAG-001 implemented with chunk-id candidate identity and token-aware overlap; see rag-chunk-repair-2026-08-30.summary.json",
+  "warning": "This is a development-set baseline on provisional project-authored cases, not production accuracy."
+}

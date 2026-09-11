@@ -1,0 +1,222 @@
+{
+  "case_count": 40,
+  "dimensions": {
+    "arguments": {
+      "correct": 12,
+      "rate": 0.6,
+      "total": 20
+    },
+    "command": {
+      "correct": 14,
+      "rate": 0.7,
+      "total": 20
+    },
+    "exact": {
+      "correct": 28,
+      "rate": 0.7,
+      "total": 40
+    },
+    "flow": {
+      "correct": 14,
+      "rate": 0.7,
+      "total": 20
+    },
+    "next_state": {
+      "correct": 30,
+      "rate": 0.75,
+      "total": 40
+    },
+    "status": {
+      "correct": 30,
+      "rate": 0.75,
+      "total": 40
+    }
+  },
+  "extra_prediction_ids": [],
+  "failures": [
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:10_00004:turn-12",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:10_00022:turn-0",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:10_00026:turn-4",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:10_00035:turn-2",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:10_00048:turn-4",
+      "expected_status": "NO_SUPPORTED_FLOW",
+      "failed_dimensions": [
+        "status",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:10_00050:turn-8",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:10_00098:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "NO_SUPPORTED_FLOW",
+      "case_id": "sgd:dev:10_00109:turn-12",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "INVALID_PROVIDER_OUTPUT",
+      "case_id": "sgd:dev:10_00119:turn-14",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:11_00062:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "CLARIFY",
+      "case_id": "sgd:dev:11_00066:turn-10",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "status",
+        "command",
+        "flow",
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    },
+    {
+      "actual_status": "RESOLVED",
+      "case_id": "sgd:dev:12_00002:turn-6",
+      "expected_status": "RESOLVED",
+      "failed_dimensions": [
+        "arguments",
+        "next_state",
+        "exact"
+      ]
+    }
+  ],
+  "macro_mapping_rule_exact": 0.7,
+  "mapping_rule_exact": {
+    "SGD_REQUIRED_SLOT_REQUEST": {
+      "correct": 10,
+      "rate": 1.0,
+      "total": 10
+    },
+    "SGD_SERVICE_CALL_FIRST": {
+      "correct": 3,
+      "rate": 0.3,
+      "total": 10
+    },
+    "SGD_SERVICE_CALL_REPEAT": {
+      "correct": 9,
+      "rate": 0.9,
+      "total": 10
+    },
+    "SGD_SERVICE_OUTSIDE_TRAIN_REGISTRY": {
+      "correct": 6,
+      "rate": 0.6,
+      "total": 10
+    }
+  },
+  "missing_prediction_count": 0,
+  "prediction_count": 40,
+  "schema_version": "dialogpilot-public-command-score-v1",
+  "status_confusion": {
+    "CLARIFY": {
+      "CLARIFY": 10
+    },
+    "NO_SUPPORTED_FLOW": {
+      "CLARIFY": 2,
+      "NO_SUPPORTED_FLOW": 6,
+      "RESOLVED": 2
+    },
+    "RESOLVED": {
+      "CLARIFY": 3,
+      "INVALID_PROVIDER_OUTPUT": 1,
+      "NO_SUPPORTED_FLOW": 2,
+      "RESOLVED": 14
+    }
+  }
+}

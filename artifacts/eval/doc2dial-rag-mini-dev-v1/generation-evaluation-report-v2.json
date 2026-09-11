@@ -1,0 +1,2761 @@
+{
+  "case_count": 48,
+  "dataset_id": "doc2dial-rag-mini-dev-v1",
+  "deployment_gates": {
+    "evidence_citation_recall_ge_90pct_when_available": true,
+    "generator_failure_rate_le_1pct": false,
+    "judge_citation_relevance_rate_ge_90pct": true,
+    "judge_correct_rate_ge_75pct": true,
+    "judge_failure_rate_le_5pct": true,
+    "judge_grounded_rate_ge_95pct": true,
+    "language_match_rate_ge_95pct": false
+  },
+  "fixed_context_config": "top5-2600",
+  "generation_prompt_version": "customer-support-grounded-v2",
+  "judge_note": "LLM judgement is secondary and must be calibrated on a human-reviewed subset; deterministic citation-ID, language, and failure metrics remain authoritative; gold-evidence citation precision is diagnostic because Doc2Dial annotations are not exhaustive",
+  "judge_prompt_version": "customer-support-rag-judge-v2",
+  "metrics": {
+    "abstention_rate": 0.0625,
+    "evidence_citation_recall_when_context_contains_evidence": 0.9444444444444444,
+    "generation_input_tokens": 113028,
+    "generation_output_tokens": 5686,
+    "generator_failure_count": 1,
+    "gold_evidence_citation_precision_when_available": 0.7430555555555556,
+    "judge_citation_relevance_rate": 0.9791666666666666,
+    "judge_complete_rate": 0.7916666666666666,
+    "judge_correct_rate": 0.7916666666666666,
+    "judge_failure_count": 0,
+    "judge_grounded_rate": 0.9791666666666666,
+    "judge_input_tokens": 40355,
+    "judge_output_tokens": 1380,
+    "language_match_rate": 0.4375,
+    "mean_token_f1_vs_reference": 0.13812673957675206
+  },
+  "models": {
+    "judge": {
+      "min_completion_tokens": 0,
+      "model": "deepseek-v4-pro",
+      "reasoning": "none"
+    },
+    "synthesis": {
+      "min_completion_tokens": 0,
+      "model": "deepseek-v4-pro",
+      "reasoning": "none"
+    }
+  },
+  "passes_all_gates": false,
+  "rows": [
+    {
+      "abstained": false,
+      "answer": "根据给定资料，Corinthian Colleges 包括 Everest、Heald 和 WyoTech 等学校。资料中未提供 Corinthian Colleges 的完整定义或背景介绍。",
+      "case_id": "doc2dial-dev-00a4a05f229e5cee83e7b10f2e20873d-12",
+      "citations": [
+        "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2215,
+        "latency_ms": {
+          "max": 2374.032,
+          "p50": 2374.032,
+          "p95": 2374.032,
+          "sum": 2374.032
+        },
+        "output_tokens": 74,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 565,
+        "latency_ms": {
+          "max": 1354.247,
+          "p50": 1354.247,
+          "p95": 1354.247,
+          "sum": 1354.247
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "They are Everest, Heald, and WyoTech",
+      "token_f1": 0.14634146341463414
+    },
+    {
+      "abstained": false,
+      "answer": "Aidan can also help you quickly find pages on the website, retrieve your loan balance, make a payment, understand your repayment plan, find customer support information, and find your loan servicer(s).",
+      "case_id": "doc2dial-dev-0847d31eaab4dd943f8e9b0f6de370cb-10",
+      "citations": [
+        "Aidan | The FSA Virtual Assistant | Federal Student Aid#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2112,
+        "latency_ms": {
+          "max": 1935.983,
+          "p50": 1935.983,
+          "p95": 1935.983,
+          "sum": 1935.983
+        },
+        "output_tokens": 92,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 678,
+        "latency_ms": {
+          "max": 1346.929,
+          "p50": 1346.929,
+          "p95": 1346.929,
+          "sum": 1346.929
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "You can find out your current loan account balance, learn more about grants, or get help contacting your loan servicer.",
+      "token_f1": 0.38461538461538464
+    },
+    {
+      "abstained": false,
+      "answer": "不会。延期贴纸不会在纽约州 DMV 记录中生成检验记录。",
+      "case_id": "doc2dial-dev-09f69dbfbbb5ab0b90ce0faf73e5166b-13",
+      "citations": [
+        "About New York State Inspections#3_0::chunk-1",
+        "About New York State Inspections#3_0::chunk-2"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2556,
+        "latency_ms": {
+          "max": 2285.864,
+          "p50": 2285.864,
+          "p95": 2285.864,
+          "sum": 2285.864
+        },
+        "output_tokens": 69,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1060,
+        "latency_ms": {
+          "max": 1475.657,
+          "p50": 1475.657,
+          "p95": 1475.657,
+          "sum": 1475.657
+        },
+        "output_tokens": 21,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 0.0,
+      "reference": "No, it will not. This also means that you can not renew the registration, if there is no record of inspection within the past 12 months.",
+      "token_f1": 0.0
+    },
+    {
+      "abstained": true,
+      "answer": "知识库回答暂时不可用，请转人工客服核实。",
+      "case_id": "doc2dial-dev-0f20051cca23859b571386e82fff9ac8-12",
+      "citations": [],
+      "context_contains_evidence": 0.0,
+      "evidence_cited": 0.0,
+      "generation_error": "ValueError",
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2660,
+        "latency_ms": {
+          "max": 2416.998,
+          "p50": 2416.998,
+          "p95": 2416.998,
+          "sum": 2416.998
+        },
+        "output_tokens": 51,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": false,
+        "correct": false,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 158,
+        "latency_ms": {
+          "max": 1261.423,
+          "p50": 1261.423,
+          "p95": 1261.423,
+          "sum": 1261.423
+        },
+        "output_tokens": 21,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 0.0,
+      "reference": "Online Services.",
+      "token_f1": 0.0
+    },
+    {
+      "abstained": false,
+      "answer": "如果您的申请获批，您需要等待 VA 的欢迎来电。我们会致电欢迎您加入 VA 医疗保健计划，帮助您安排第一次医生预约，并回答您关于医疗保健福利的任何问题。您还应阅读我们邮寄给您的《退伍军人健康福利手册》，并获取您的退伍军人健康身份卡（VHIC）。如果您在申请时已要求医生预约，我们会为您安排并邮寄预约时间通知；如果没有，我们会在欢迎来电中帮您安排。",
+      "case_id": "doc2dial-dev-13e5b0e028d5aa4d2523b5ebbfe77977-13",
+      "citations": [
+        "After You Apply For Health Care Benefits | Veterans Affairs#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2028,
+        "latency_ms": {
+          "max": 3391.646,
+          "p50": 3391.646,
+          "p95": 3391.646,
+          "sum": 3391.646
+        },
+        "output_tokens": 149,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 703,
+        "latency_ms": {
+          "max": 1047.168,
+          "p50": 1047.168,
+          "p95": 1047.168,
+          "sum": 1047.168
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 0.0,
+      "reference": " Read your Veterans Health Benefits Handbook ",
+      "token_f1": 0.0
+    },
+    {
+      "abstained": false,
+      "answer": "在“About VA health benefits”页面中，有“Learn more about priority groups”的链接可获取更多优先组信息。此外，若申请已获批准，VA 寄送的 Veterans Health Benefits Handbook 会说明你被分配的优先组及相关福利。",
+      "case_id": "doc2dial-dev-13f5099fe2dc8875b44e6b15ad7c2dd1-15",
+      "citations": [
+        "About VA Health Benefits | Veterans Affairs#1_0::chunk-0",
+        "After You Apply For Health Care Benefits | Veterans Affairs#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2160,
+        "latency_ms": {
+          "max": 2909.525,
+          "p50": 2909.525,
+          "p95": 2909.525,
+          "sum": 2909.525
+        },
+        "output_tokens": 106,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.5,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1045,
+        "latency_ms": {
+          "max": 975.501,
+          "p50": 975.501,
+          "p95": 975.501,
+          "sum": 975.501
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "you can browse our website",
+      "token_f1": 0.0
+    },
+    {
+      "abstained": false,
+      "answer": "如果您的吊销是因酒驾相关事件，限制自您取得驾照或许可证之日起持续五年；如果不是因酒驾相关事件，限制持续两年。该限制不能提前解除。",
+      "case_id": "doc2dial-dev-23178e836c47051d9cc2be93932f6757-1",
+      "citations": [
+        "About problem driver restrictions#3_0::chunk-1"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2358,
+        "latency_ms": {
+          "max": 2493.778,
+          "p50": 2493.778,
+          "p95": 2493.778,
+          "sum": 2493.778
+        },
+        "output_tokens": 78,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": false,
+        "correct": false,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 617,
+        "latency_ms": {
+          "max": 868.757,
+          "p50": 868.757,
+          "p95": 868.757,
+          "sum": 868.757
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 0.0,
+      "reference": "You would have to either log into our portal or check the court order against you.",
+      "token_f1": 0.0
+    },
+    {
+      "abstained": false,
+      "answer": "您可以登录您的 my Social Security 账户在线获取福利验证信。登录后，在页面右侧的“Replacement Documents”（替换文件）中选择“Get a Benefit Verification Letter”（获取福利验证信），即可查看、保存并打印您的个性化信函。如果您还没有 my Social Security 账户，可以免费创建一个，通常不到10分钟即可完成，之后即可下载或打印福利验证信。",
+      "case_id": "doc2dial-dev-247f23e580bce66d852b143a622f29d7-12",
+      "citations": [
+        "Benefit Verification Letter  | Social Security Administration#1_0::chunk-0",
+        "Benefit Verification Letter  | Social Security Administration#2_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 0.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2229,
+        "latency_ms": {
+          "max": 3138.8,
+          "p50": 3138.8,
+          "p95": 3138.8,
+          "sum": 3138.8
+        },
+        "output_tokens": 151,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 991,
+        "latency_ms": {
+          "max": 1325.2,
+          "p50": 1325.2,
+          "p95": 1325.2,
+          "sum": 1325.2
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 0.0,
+      "reference": "Your Right To Question The Decision Made On Your Claim",
+      "token_f1": 0.0
+    },
+    {
+      "abstained": false,
+      "answer": "Creating a free my Social Security account takes less than 10 minutes.",
+      "case_id": "doc2dial-dev-28c759aa607520e8e07e080847e19054-11",
+      "citations": [
+        "Benefit Verification Letter  | Social Security Administration#2_0::chunk-0",
+        "Benefit Verification Letter  | Social Security Administration#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2443,
+        "latency_ms": {
+          "max": 1985.574,
+          "p50": 1985.574,
+          "p95": 1985.574,
+          "sum": 1985.574
+        },
+        "output_tokens": 67,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.5,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 924,
+        "latency_ms": {
+          "max": 1019.261,
+          "p50": 1019.261,
+          "p95": 1019.261,
+          "sum": 1019.261
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "It should only take 10 minutes of your time.",
+      "token_f1": 0.1904761904761905
+    },
+    {
+      "abstained": false,
+      "answer": "对于退休福利，您可以在希望开始领取福利的日期前四个月申请。例如，如果您想在62岁开始领取，可以在61岁零8个月时申请。对于残疾福利，您应在成为残疾后尽快申请。",
+      "case_id": "doc2dial-dev-2a86125210a3fd5b3a548d32717abf8e-11",
+      "citations": [
+        "Apply for Retirement Benefits | SSA#1_0::chunk-0",
+        "Benefits Planner: Disability | How You Apply | Social Security Administration#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 0.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2451,
+        "latency_ms": {
+          "max": 2931.612,
+          "p50": 2931.612,
+          "p95": 2931.612,
+          "sum": 2931.612
+        },
+        "output_tokens": 118,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": false,
+        "correct": false,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1072,
+        "latency_ms": {
+          "max": 1385.718,
+          "p50": 1385.718,
+          "p95": 1385.718,
+          "sum": 1385.718
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 0.0,
+      "reference": "If you are a spouse of a retired or disabled worker then you should apply within 3 months of age 62 or older and fill out the application online for monthly benefits.",
+      "token_f1": 0.0196078431372549
+    },
+    {
+      "abstained": true,
+      "answer": "根据现有资料，无法确认您收到的ED回复具体属于哪种情况，也无法判断后续应如何操作。资料中仅提到，如果您的借款人抗辩申请被拒绝或部分批准，可能涉及上诉等程序，但未提供ED对您当前回复的具体处理指引。",
+      "case_id": "doc2dial-dev-2be506ef6926fe365c87941f7ef14862-12",
+      "citations": [],
+      "context_contains_evidence": 0.0,
+      "evidence_cited": 0.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2720,
+        "latency_ms": {
+          "max": 4330.776,
+          "p50": 4330.776,
+          "p95": 4330.776,
+          "sum": 4330.776
+        },
+        "output_tokens": 83,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.0,
+      "judge": {
+        "citations_relevant": false,
+        "complete": false,
+        "correct": false,
+        "grounded": false
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 277,
+        "latency_ms": {
+          "max": 1275.433,
+          "p50": 1275.433,
+          "p95": 1275.433,
+          "sum": 1275.433
+        },
+        "output_tokens": 21,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 0.0,
+      "reference": "Well for your information, when your loan is taken out of forbearance or stopped collections status, any interest that accumulated for the length of time that you were in forbearance or stopped collections is then added to the amount you owe when you entered into either of these status'. This may result in the total amount you owe in the future being higher",
+      "token_f1": 0.0
+    },
+    {
+      "abstained": false,
+      "answer": "Yes. You can use the Social Security benefit calculators to get estimates of benefits you and your family may be eligible for. If you already have enough Social Security credits to qualify for benefits, you can use the Retirement Estimator to get a personalized, instant estimate of your retirement benefits. For survivors or disability benefits, or if you do not already have enough credits, you can use one of the benefit calculators to estimate your future retirement, disability, and survivors benefits.",
+      "case_id": "doc2dial-dev-2e4dd0f220c11f620c803bc75605946a-9",
+      "citations": [
+        "Benefits Planner | Social Security Administration#1_0::chunk-0",
+        "Benefits Planner | Social Security Administration#2_0::chunk-1",
+        "Benefits Planner | Social Security Administration#1_0::chunk-1"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2164,
+        "latency_ms": {
+          "max": 3170.532,
+          "p50": 3170.532,
+          "p95": 3170.532,
+          "sum": 3170.532
+        },
+        "output_tokens": 173,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.3333333333333333,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1249,
+        "latency_ms": {
+          "max": 1266.232,
+          "p50": 1266.232,
+          "p95": 1266.232,
+          "sum": 1266.232
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "You can use one of our benefit calculators to estimate your future retirement, disability, and survivors benefits ",
+      "token_f1": 0.326530612244898
+    },
+    {
+      "abstained": false,
+      "answer": "If the sticker is not usable, you can have your vehicle re-inspected or order a replacement sticker using the form Request for Replacement Inspection Sticker (VS-118). Complete the form and mail it to the address on the form.",
+      "case_id": "doc2dial-dev-2e9623b209161de6e9448f0c0d2b113b-11",
+      "citations": [
+        "About New York State Inspections#3_0::chunk-2"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2497,
+        "latency_ms": {
+          "max": 2395.883,
+          "p50": 2395.883,
+          "p95": 2395.883,
+          "sum": 2395.883
+        },
+        "output_tokens": 85,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 640,
+        "latency_ms": {
+          "max": 1252.959,
+          "p50": 1252.959,
+          "p95": 1252.959,
+          "sum": 1252.959
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "You could have your vehicle reinspected or you can order a replacement sticker.",
+      "token_f1": 0.37735849056603776
+    },
+    {
+      "abstained": false,
+      "answer": "En relación con los contratos de préstamo, el pagaré (promissory note) es un documento legal. Al firmarlo, usted acepta reembolsar el préstamo según los términos establecidos en ese documento. Debe reembolsar todos los préstamos que reciba, incluso si no completa su educación.",
+      "case_id": "doc2dial-dev-3231fc98c27c1216a21ec9baf5abd0ea-11",
+      "citations": [
+        "Avoiding Default | Federal Student Aid#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2492,
+        "latency_ms": {
+          "max": 3171.209,
+          "p50": 3171.209,
+          "p95": 3171.209,
+          "sum": 3171.209
+        },
+        "output_tokens": 103,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 689,
+        "latency_ms": {
+          "max": 1178.042,
+          "p50": 1178.042,
+          "p95": 1178.042,
+          "sum": 1178.042
+        },
+        "output_tokens": 21,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "Read your promissory note. It is a legal document. Signing a promissory note means that you agree to repay the loan in accordance with the terms of the promissory note.",
+      "token_f1": 0.07594936708860761
+    },
+    {
+      "abstained": false,
+      "answer": "You should fill out the online Child Disability Report. At the end of the report, you will be asked to sign a form that gives the child's doctor permission to provide information about the child's disability. If you do not want to complete the report online or need help, you can call toll-free at 1-800-772-1213.",
+      "case_id": "doc2dial-dev-386b9ab9d08e5166377f9854763b16f9-11",
+      "citations": [
+        "Apply For A Child (Under Age 18) | Disability Benefits | SSA#1_0::chunk-0",
+        "Apply For A Child (Under Age 18) | Disability Benefits | SSA#2_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2285,
+        "latency_ms": {
+          "max": 2638.865,
+          "p50": 2638.865,
+          "p95": 2638.865,
+          "sum": 2638.865
+        },
+        "output_tokens": 154,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.5,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 890,
+        "latency_ms": {
+          "max": 1591.346,
+          "p50": 1591.346,
+          "p95": 1591.346,
+          "sum": 1591.346
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "COMPLETE the Child Disability Report online.",
+      "token_f1": 0.1791044776119403
+    },
+    {
+      "abstained": false,
+      "answer": "To qualify for ACA minimum essential coverage, you must have been enrolled in one of these programs: the VA health care program, CHAMPVA, CHAMPVA through the Program of Comprehensive Assistance to Family Caregivers, the Spina Bifida Health Care Benefits Program, or a Department of Defense TRICARE plan that provides minimum essential coverage.",
+      "case_id": "doc2dial-dev-406b5f89f61e55f3a77ff0e41f4f3e66-11",
+      "citations": [
+        "Affordable Care Act (ACA) And Your Coverage | Veterans Affairs#1_0::chunk-1",
+        "Affordable Care Act (ACA) And Your Coverage | Veterans Affairs#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2296,
+        "latency_ms": {
+          "max": 2764.665,
+          "p50": 2764.665,
+          "p95": 2764.665,
+          "sum": 2764.665
+        },
+        "output_tokens": 135,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 908,
+        "latency_ms": {
+          "max": 1243.555,
+          "p50": 1243.555,
+          "p95": 1243.555,
+          "sum": 1243.555
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "You would have to been enrolled in one or more of the programs such as VA health care.",
+      "token_f1": 0.39999999999999997
+    },
+    {
+      "abstained": false,
+      "answer": "根据资料，如果您符合 VA Aid and Attendance 或 Housebound 福利的资格要求，您需要申请该福利。申请方式包括：填写 VA Form 21-2680（Examination for Housebound Status or Permanent Need for Regular Aid and Attendance）并邮寄至您所在州的养老金管理中心（PMC），可由医生填写检查信息部分；您还可以随表格附上其他证据，例如医生报告，以证明您需要 Aid and Attendance 或 Housebound 护理。资料未说明申请获批后的具体结果或时间。",
+      "case_id": "doc2dial-dev-4630990a8988bc91fd954aa6056dbfb1-12",
+      "citations": [
+        "Aid And Attendance Benefits And Housebound Allowance | VA.gov#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2509,
+        "latency_ms": {
+          "max": 4869.286,
+          "p50": 4869.286,
+          "p95": 4869.286,
+          "sum": 4869.286
+        },
+        "output_tokens": 162,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 707,
+        "latency_ms": {
+          "max": 1397.718,
+          "p50": 1397.718,
+          "p95": 1397.718,
+          "sum": 1397.718
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "Yes You may qualify",
+      "token_f1": 0.0
+    },
+    {
+      "abstained": false,
+      "answer": "如果您的车辆检验标签在过去60天内过期，罚款为25至50美元。",
+      "case_id": "doc2dial-dev-46c0f3dbe110f020aaf0358ae35d4283-13",
+      "citations": [
+        "About New York State Inspections#3_0::chunk-2"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2415,
+        "latency_ms": {
+          "max": 2040.752,
+          "p50": 2040.752,
+          "p95": 2040.752,
+          "sum": 2040.752
+        },
+        "output_tokens": 63,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 614,
+        "latency_ms": {
+          "max": 1150.285,
+          "p50": 1150.285,
+          "p95": 1150.285,
+          "sum": 1150.285
+        },
+        "output_tokens": 34,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 0.0,
+      "reference": "You may be fined $ 25 to $ 50.",
+      "token_f1": 0.12121212121212123
+    },
+    {
+      "abstained": false,
+      "answer": "根据现有资料，无法确认您是否已经满足所有要求并可以直接申请 SSI。资料仅说明 SSI 适用于收入和资源有限的残疾成人和儿童，以及申请时需要提供医疗、工作和教育等信息，但未说明您当前情况下的具体申请资格或下一步操作。",
+      "case_id": "doc2dial-dev-4a856ad6df4f53edcd00f1aaa7cffdbc-11",
+      "citations": [
+        "Benefits Planner: Disability | Social Security Administration#2_0::chunk-0",
+        "Benefits Planner: Disability | Social Security Administration#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 0.0,
+      "evidence_cited": 0.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1940,
+        "latency_ms": {
+          "max": 2780.801,
+          "p50": 2780.801,
+          "p95": 2780.801,
+          "sum": 2780.801
+        },
+        "output_tokens": 112,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": false,
+        "correct": false,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1007,
+        "latency_ms": {
+          "max": 1008.933,
+          "p50": 1008.933,
+          "p95": 1008.933,
+          "sum": 1008.933
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 0.0,
+      "reference": "Yes, that's correct.",
+      "token_f1": 0.0
+    },
+    {
+      "abstained": false,
+      "answer": "是的。如果您因不利信用记录被拒绝 Direct PLUS Loan，您可以提交一份说明，解释您的减轻情节（extenuating circumstances），并附上适用/适当的证明文件。美国教育部（Secretary）会根据您的情况酌情考虑是否让您符合贷款资格。但请注意：审查不等于保证批准；之前的批准也不保证后续批准；除基本要求外可能还需要补充文件；仅失业、经济不景气等通常不被视为减轻情节。",
+      "case_id": "doc2dial-dev-56ecb9ca49fe6db3568b935cff6c0510-11",
+      "citations": [
+        "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 0.0,
+      "evidence_cited": 0.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2193,
+        "latency_ms": {
+          "max": 4034.805,
+          "p50": 4034.805,
+          "p95": 4034.805,
+          "sum": 4034.805
+        },
+        "output_tokens": 149,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 639,
+        "latency_ms": {
+          "max": 1250.301,
+          "p50": 1250.301,
+          "p95": 1250.301,
+          "sum": 1250.301
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 0.0,
+      "reference": "You are primarily an authorized user on the account.",
+      "token_f1": 0.0
+    },
+    {
+      "abstained": false,
+      "answer": "If you previously defaulted on your federal student loan and have entered a rehabilitation plan, contact the collection agency that you have been working with to set up that plan. They can help determine whether there may be any negative consequences if you choose to enter stopped collections status.",
+      "case_id": "doc2dial-dev-5c539f53cdb29706da2eac1fd093fb8a-10",
+      "citations": [
+        "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-5"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2512,
+        "latency_ms": {
+          "max": 2561.379,
+          "p50": 2561.379,
+          "p95": 2561.379,
+          "sum": 2561.379
+        },
+        "output_tokens": 99,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 623,
+        "latency_ms": {
+          "max": 1214.755,
+          "p50": 1214.755,
+          "p95": 1214.755,
+          "sum": 1214.755
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "Go ahead and contact the collection agency that you have been working with to set up that plan in order to determine whether there may be any negative consequences if you choose to enter stopped collections status.",
+      "token_f1": 0.7441860465116279
+    },
+    {
+      "abstained": false,
+      "answer": "如果验车贴纸脱落，您可以用透明胶带或少量透明粘合剂将其重新贴到挡风玻璃上。注意，下次验车时验车站必须能够取下贴纸。如果贴纸已无法使用，您可以重新验车，或使用表格“Request for Replacement Inspection Sticker (VS-118)”申请补发贴纸，填写后邮寄到表格上的地址。",
+      "case_id": "doc2dial-dev-5d87b04944b11a9a535998c5c0e1b075-8",
+      "citations": [
+        "About New York State Inspections#3_0::chunk-2"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2551,
+        "latency_ms": {
+          "max": 2832.367,
+          "p50": 2832.367,
+          "p95": 2832.367,
+          "sum": 2832.367
+        },
+        "output_tokens": 127,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 679,
+        "latency_ms": {
+          "max": 1323.789,
+          "p50": 1323.789,
+          "p95": 1323.789,
+          "sum": 1323.789
+        },
+        "output_tokens": 34,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 0.0,
+      "reference": "Clear tape works great to reattach it to the windshield.",
+      "token_f1": 0.0
+    },
+    {
+      "abstained": false,
+      "answer": "After you return your vehicle to New York State, write the date the vehicle returned to New York on the extension sticker, attach the sticker to your windshield, and get your vehicle inspected within 10 days.",
+      "case_id": "doc2dial-dev-6977cbb3bed8f0e8480018cb3cac6716-13",
+      "citations": [
+        "About New York State Inspections#3_0::chunk-2"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2314,
+        "latency_ms": {
+          "max": 2432.064,
+          "p50": 2432.064,
+          "p95": 2432.064,
+          "sum": 2432.064
+        },
+        "output_tokens": 82,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 653,
+        "latency_ms": {
+          "max": 1230.899,
+          "p50": 1230.899,
+          "p95": 1230.899,
+          "sum": 1230.899
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "After returning your vehicle to New York State\n    write the date the vehicle returned to New York on the extension sticker\n   stick the sticker to your windshield",
+      "token_f1": 0.7936507936507936
+    },
+    {
+      "abstained": false,
+      "answer": "You can check the status of your disability and SSI hearing using your personal my Social Security account. If you don't have one, you can create one online.",
+      "case_id": "doc2dial-dev-69a1ae6bc0b246b8725a70ae49745fe8-11",
+      "citations": [
+        "Appeal A Decision | Social Security Administration#1_0::chunk-1",
+        "Appeal A Decision | Social Security Administration#2_0::chunk-1"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2257,
+        "latency_ms": {
+          "max": 2207.183,
+          "p50": 2207.183,
+          "p95": 2207.183,
+          "sum": 2207.183
+        },
+        "output_tokens": 100,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.5,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1026,
+        "latency_ms": {
+          "max": 1019.704,
+          "p50": 1019.704,
+          "p95": 1019.704,
+          "sum": 1019.704
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "A my Social Security account is an easy , convenient , and secure way to do business with us ",
+      "token_f1": 0.2173913043478261
+    },
+    {
+      "abstained": false,
+      "answer": "Inspections expire the last day of the month punched on the inspection sticker.",
+      "case_id": "doc2dial-dev-6f9180a71a8195073fd4fe17e708cee9-12",
+      "citations": [
+        "About New York State Inspections#3_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2403,
+        "latency_ms": {
+          "max": 2110.057,
+          "p50": 2110.057,
+          "p95": 2110.057,
+          "sum": 2110.057
+        },
+        "output_tokens": 60,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 639,
+        "latency_ms": {
+          "max": 1186.088,
+          "p50": 1186.088,
+          "p95": 1186.088,
+          "sum": 1186.088
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "A valid inspection tag must be displayed on your vehicle. Inspections expire on the last day of the month marked on the inspection label.",
+      "token_f1": 0.5945945945945945
+    },
+    {
+      "abstained": false,
+      "answer": "是的。根据《2019年蓝水海军越战退伍军人法案》（Public Law 116-23），蓝水海军退伍军人现在有权获得与橙剂暴露相关疾病的推定服役关联。该法律于2019年6月25日签署，并于2020年1月1日生效。",
+      "case_id": "doc2dial-dev-7ebc042e7cd8ad9be3ac94158aac5ffb-14",
+      "citations": [
+        "Agent Orange Exposure On Navy Or Coast Guard Ships | Veterans Affairs#1_0::chunk-0",
+        "Benefits For Spouses And Dependents (VA DIC) | Veterans Affairs#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2676,
+        "latency_ms": {
+          "max": 3288.85,
+          "p50": 3288.85,
+          "p95": 3288.85,
+          "sum": 3288.85
+        },
+        "output_tokens": 143,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.5,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1159,
+        "latency_ms": {
+          "max": 1260.554,
+          "p50": 1260.554,
+          "p95": 1260.554,
+          "sum": 1260.554
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 0.0,
+      "reference": "Of course, they are now entitled to a presumption of service connection for illnesses related to Agent Orange exposure, this law was signed on 2019 and takes effect on January 2020",
+      "token_f1": 0.05714285714285714
+    },
+    {
+      "abstained": false,
+      "answer": "是的，您可以在线查看保费。如果您有 VA 人寿保险，可以通过 VA 在线门户网站支付保费（即您每月为维持保险而支付的金额）。",
+      "case_id": "doc2dial-dev-87921ca5728f6fdad0c8639539661493-14",
+      "citations": [
+        "Access Your VA Life Insurance Policy Online | Veterans Affairs#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2599,
+        "latency_ms": {
+          "max": 2856.081,
+          "p50": 2856.081,
+          "p95": 2856.081,
+          "sum": 2856.081
+        },
+        "output_tokens": 84,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 510,
+        "latency_ms": {
+          "max": 955.347,
+          "p50": 955.347,
+          "p95": 955.347,
+          "sum": 955.347
+        },
+        "output_tokens": 21,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 0.0,
+      "reference": "Yes, you can check your premium online and pay it there too.",
+      "token_f1": 0.0
+    },
+    {
+      "abstained": false,
+      "answer": "如果您不想在线填写该报告或需要帮助，可以拨打免费电话 1-800-772-1213。如果您是聋人或听力障碍者，请拨打免费 TTY 号码 1-800-325-0778。代表服务时间为周一至周五上午 8 点至下午 5:30。",
+      "case_id": "doc2dial-dev-94c86cc0695d314271835dc8d5ae3493-11",
+      "citations": [
+        "Apply For A Child (Under Age 18) | Disability Benefits | SSA#2_0::chunk-0",
+        "Apply For A Child (Under Age 18) | Disability Benefits | SSA#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2495,
+        "latency_ms": {
+          "max": 3874.551,
+          "p50": 3874.551,
+          "p95": 3874.551,
+          "sum": 3874.551
+        },
+        "output_tokens": 151,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.5,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 906,
+        "latency_ms": {
+          "max": 1198.329,
+          "p50": 1198.329,
+          "p95": 1198.329,
+          "sum": 1198.329
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 0.0,
+      "reference": " you can call us toll - free at 1 - 800 - 772 - 1213 ",
+      "token_f1": 0.09411764705882354
+    },
+    {
+      "abstained": false,
+      "answer": "如果你正在考虑私人学生贷款，建议你了解联邦贷款与私人贷款之间的区别，并特别关注私人贷款的条款和条件，以明确你的还款义务。",
+      "case_id": "doc2dial-dev-95eb1569c01691ed454fe5a51d485884-13",
+      "citations": [
+        "Accepting Aid | Federal Student Aid#1_0::chunk-0",
+        "Comparing School Aid Offers | Federal Student Aid#1_0::chunk-1"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2103,
+        "latency_ms": {
+          "max": 2146.269,
+          "p50": 2146.269,
+          "p95": 2146.269,
+          "sum": 2146.269
+        },
+        "output_tokens": 100,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.5,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 786,
+        "latency_ms": {
+          "max": 852.116,
+          "p50": 852.116,
+          "p95": 852.116,
+          "sum": 852.116
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 0.0,
+      "reference": "You should learn the differences between federal and other loans then.",
+      "token_f1": 0.0
+    },
+    {
+      "abstained": false,
+      "answer": "CHAMPVA 是 VA 的 Civilian Health and Medical Program，主要为符合条件的退伍军人配偶、遗属或子女提供健康保险。通过 CHAMPVA，当 VA 认定服务或用品在医疗上是必要的、且由授权提供者提供时，可以获得保障。CHAMPVA 始终是 Medicare 的第二付款方。是否可以获得 CHAMPVA 还受多种因素影响，例如：新生儿需要先取得社会安全号码并登记为退伍军人受抚养人；未满 55 岁再婚的遗属会失去资格，55 岁后再婚则可保留；年满 18 岁后通常需要提供全日制在读证明才能继续获得福利；作为继子女因离婚或再婚离开退伍军人家庭后不再符合资格；照顾残疾退伍军人的家庭照护者在没有其他健康计划覆盖时也可能符合资格。",
+      "case_id": "doc2dial-dev-9c7626c8c2aa2b927759e64a2323d8a9-8",
+      "citations": [
+        "CHAMPVA Benefits | Veterans Affairs#1_0::chunk-2",
+        "CHAMPVA Benefits | Veterans Affairs#1_0::chunk-1"
+      ],
+      "context_contains_evidence": 0.0,
+      "evidence_cited": 0.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2370,
+        "latency_ms": {
+          "max": 5428.869,
+          "p50": 5428.869,
+          "p95": 5428.869,
+          "sum": 5428.869
+        },
+        "output_tokens": 242,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1232,
+        "latency_ms": {
+          "max": 1174.403,
+          "p50": 1174.403,
+          "p95": 1174.403,
+          "sum": 1174.403
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 0.0,
+      "reference": "you may be able to get health insurance through the Civilian Health and Medical Program of the Department of Veterans Affairs CHAMPVA .",
+      "token_f1": 0.047244094488188976
+    },
+    {
+      "abstained": false,
+      "answer": "是的。根据资料，对于基于 ED 对 CCI 调查结果而成功提出借款人抗辩（borrower defense）的借款人，ED 已确定在 2010 年至 2014 年期间首次注册 CCI 旗下某些学校某些课程的学生，因学校发布误导性就业率数据而具有借款人抗辩理由，并有资格获得部分或全部贷款的免除。ED 还建立了专门流程来审查这些基于 CCI 就业率数据的申请。",
+      "case_id": "doc2dial-dev-a7fe7aa38830465e8a73320e9320b305-5",
+      "citations": [
+        "Borrower Defense to Repayment | Federal Student Aid#1_0::chunk-12"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1601,
+        "latency_ms": {
+          "max": 3839.733,
+          "p50": 3839.733,
+          "p95": 3839.733,
+          "sum": 3839.733
+        },
+        "output_tokens": 151,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 723,
+        "latency_ms": {
+          "max": 1306.168,
+          "p50": 1306.168,
+          "p95": 1306.168,
+          "sum": 1306.168
+        },
+        "output_tokens": 34,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 0.0,
+      "reference": "Yes, the ED have set up a process for the review of such cases for job placement rates asserted by borrowers enrolled in the covered programs at CCI schools during the eligibility period",
+      "token_f1": 0.024999999999999998
+    },
+    {
+      "abstained": false,
+      "answer": "If you die, your family members may be protected through Social Security survivors benefits. You can use the Survivors Planner to learn how your family members are protected or how they may qualify as survivors on your Social Security record. This protection is particularly important for young families with children, and even very young workers may have this protection. Eligibility for your family’s survivors benefits can depend on the work credits you have earned.",
+      "case_id": "doc2dial-dev-ab1414c04aac7b762752cef10b2e59b8-11",
+      "citations": [
+        "Benefits Planner | Social Security Administration#2_0::chunk-1",
+        "Benefits Planner | Social Security Administration#1_0::chunk-1",
+        "Benefits Planner | Social Security Credits and Benefit Eligibility | SSA#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2282,
+        "latency_ms": {
+          "max": 5568.805,
+          "p50": 5568.805,
+          "p95": 5568.805,
+          "sum": 5568.805
+        },
+        "output_tokens": 166,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.3333333333333333,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1276,
+        "latency_ms": {
+          "max": 1914.419,
+          "p50": 1914.419,
+          "p95": 1914.419,
+          "sum": 1914.419
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "You can use our Survivors Planner to learn how your family members will be protected in the event of your passing. ",
+      "token_f1": 0.3125
+    },
+    {
+      "abstained": false,
+      "answer": "根据现有资料，无法确认您是否可以通过邮寄方式添加女儿为受扶养人。资料中仅提到可通过 eBenefits 在线提交或更新受扶养人信息，未说明邮寄提交该申请的方式。",
+      "case_id": "doc2dial-dev-abba59c477b0cf795c20d5b0b83e4634-11",
+      "citations": [
+        "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0::chunk-4"
+      ],
+      "context_contains_evidence": 0.0,
+      "evidence_cited": 0.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2438,
+        "latency_ms": {
+          "max": 2759.756,
+          "p50": 2759.756,
+          "p95": 2759.756,
+          "sum": 2759.756
+        },
+        "output_tokens": 86,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": false,
+        "correct": false,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 553,
+        "latency_ms": {
+          "max": 1285.902,
+          "p50": 1285.902,
+          "p95": 1285.902,
+          "sum": 1285.902
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 0.0,
+      "reference": "Yes you can, but we encourage you to file online. The online process is simple, and you can upload your supporting documents along with your claim.",
+      "token_f1": 0.0
+    },
+    {
+      "abstained": false,
+      "answer": "如果调查后你拒绝了他们提出的和解/听证豁免方案，则必须举行听证会。听证结果可能是：不采取行动、处以民事罚款、暂停或撤销你在纽约州经营车辆相关业务的资格。",
+      "case_id": "doc2dial-dev-ad94c0dc42f749c2b0e2349d830b4827-12",
+      "citations": [
+        "About complaints and charges for dealer and transporter businesses#3_0::chunk-1",
+        "About complaints and charges for inspection stations and certified inspectors#3_0::chunk-1",
+        "About complaints and charges for repair and body shops#3_0::chunk-1",
+        "A Guide for Facilities:#3_0::chunk-1"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2556,
+        "latency_ms": {
+          "max": 3662.723,
+          "p50": 3662.723,
+          "p95": 3662.723,
+          "sum": 3662.723
+        },
+        "output_tokens": 151,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.25,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1896,
+        "latency_ms": {
+          "max": 1205.962,
+          "p50": 1205.962,
+          "p95": 1205.962,
+          "sum": 1205.962
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 0.0,
+      "reference": "If an offer is rejected a hearing will be held .",
+      "token_f1": 0.0
+    },
+    {
+      "abstained": false,
+      "answer": "要申请延期，您需要将以下信息邮寄至 NYS DMV Bureau of Consumer and Facility Services Inspection Extension, P.O. Box 2700-ESP, Albany, NY 12220-0700：您的姓名和当前州外邮寄地址、车辆年份和品牌、车牌号、检验贴纸编号和到期日期。请预留 14 天供 DMV 处理并邮寄您的延期贴纸。",
+      "case_id": "doc2dial-dev-b55dafba91b47f076435e58d02a0659b-10",
+      "citations": [
+        "About New York State Inspections#3_0::chunk-1"
+      ],
+      "context_contains_evidence": 0.0,
+      "evidence_cited": 0.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2284,
+        "latency_ms": {
+          "max": 3773.562,
+          "p50": 3773.562,
+          "p95": 3773.562,
+          "sum": 3773.562
+        },
+        "output_tokens": 129,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": false,
+        "correct": false,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 674,
+        "latency_ms": {
+          "max": 1280.066,
+          "p50": 1280.066,
+          "p95": 1280.066,
+          "sum": 1280.066
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "please call 518 - 486 - 9786. we will be happy to help you",
+      "token_f1": 0.0
+    },
+    {
+      "abstained": false,
+      "answer": "可以。根据资料，停在路边的车辆如果没有检验标签或检验标签已过期，都可能收到停车罚单。",
+      "case_id": "doc2dial-dev-caa2d4ca2a98cc6f57a5628d9e128db9-12",
+      "citations": [
+        "About New York State Inspections#3_0::chunk-3"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2227,
+        "latency_ms": {
+          "max": 2801.164,
+          "p50": 2801.164,
+          "p95": 2801.164,
+          "sum": 2801.164
+        },
+        "output_tokens": 66,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 371,
+        "latency_ms": {
+          "max": 1183.546,
+          "p50": 1183.546,
+          "p95": 1183.546,
+          "sum": 1183.546
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 0.0,
+      "reference": "Yes, A parked vehicle without an inspection tag, or with an expired inspection tag, may receive a parking ticket.",
+      "token_f1": 0.0
+    },
+    {
+      "abstained": false,
+      "answer": "“Presumption of contact” means VA presumes you had contact with Agent Orange based on certain qualifying service, such as serving in Vietnam, in or near the Korean DMZ during the Vietnam Era, or on certain Navy/Coast Guard ships offshore of Vietnam during specified dates.",
+      "case_id": "doc2dial-dev-cb7b4dd9f52ce66b315e7709dbbfd2ff-12",
+      "citations": [
+        "Agent Orange Exposure On Navy Or Coast Guard Ships | Veterans Affairs#1_0::chunk-0",
+        "Agent Orange Exposure | Veterans Affairs#1_0::chunk-0",
+        "Agent Orange Exposure In Vietnam Or Korea | Veterans Affairs#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2692,
+        "latency_ms": {
+          "max": 4045.595,
+          "p50": 4045.595,
+          "p95": 4045.595,
+          "sum": 4045.595
+        },
+        "output_tokens": 147,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.3333333333333333,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1630,
+        "latency_ms": {
+          "max": 888.687,
+          "p50": 888.687,
+          "p95": 888.687,
+          "sum": 888.687
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "if you have had contact with Agent Orange, a herbicide that the US Army. USA Used to clean plants and trees during the war. We refer to this as a presumption of contact",
+      "token_f1": 0.3333333333333333
+    },
+    {
+      "abstained": false,
+      "answer": "是的，资料中提到了几种与住房相关的帮助：1）残疾住房补助金（Disability housing grants），适用于有特定服役相关残疾的退伍军人和军人，用于购买或改造房屋，例如安装坡道或加宽门道。2）合作教育（Co-op training）项目可能帮助支付部分住房费用，但前提是你正在使用 VA 教育援助、就读于经批准的高等教育机构，并且参加要求兼职学习和兼职工作/培训的项目。3）如果你无家可归或有成为无家可归者的风险，可以联系 VA 获取帮助，包括联系社区资源（如无家可归者收容所），或拨打 National Call Center for Homeless Veterans 电话 877-424-3838。",
+      "case_id": "doc2dial-dev-d2eaa023dd3ba0cee48adb6d3bab5396-14",
+      "citations": [
+        "Disability Housing Grants For Veterans | Veterans Affairs#1_0::chunk-0",
+        "Co-op Training | Veterans Affairs#1_0::chunk-0",
+        "Careers And Employment | Veterans Affairs#2_0::chunk-0"
+      ],
+      "context_contains_evidence": 0.0,
+      "evidence_cited": 0.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2404,
+        "latency_ms": {
+          "max": 4770.495,
+          "p50": 4770.495,
+          "p95": 4770.495,
+          "sum": 4770.495
+        },
+        "output_tokens": 240,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1534,
+        "latency_ms": {
+          "max": 2169.108,
+          "p50": 2169.108,
+          "p95": 2169.108,
+          "sum": 2169.108
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 0.0,
+      "reference": "If you have a severe service-connected disability you may be able to get mortgage protection insurance for a home that has been adapted to meet your needs.",
+      "token_f1": 0.01769911504424779
+    },
+    {
+      "abstained": false,
+      "answer": "根据资料，如果你认为学校计算你的联邦学生助学金、贷款或勤工俭学资格有误，或发放金额不对，并且你已经尝试与学校沟通但未能解决，可以联系 Federal Student Aid Feedback Center 或拨打 1-844-651-0077。",
+      "case_id": "doc2dial-dev-dd8eb49fdbf955282d36e8d39d10e452-10",
+      "citations": [
+        "Aid for Military Families | Federal Student Aid#1_0::chunk-3"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1923,
+        "latency_ms": {
+          "max": 3184.859,
+          "p50": 3184.859,
+          "p95": 3184.859,
+          "sum": 3184.859
+        },
+        "output_tokens": 107,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 630,
+        "latency_ms": {
+          "max": 1231.75,
+          "p50": 1231.75,
+          "p95": 1231.75,
+          "sum": 1231.75
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 0.0,
+      "reference": "You don't think it was correct the way the school calculated your eligibility for federal student grants",
+      "token_f1": 0.04395604395604396
+    },
+    {
+      "abstained": false,
+      "answer": "是的，I-PIRP 网站是安全的。DMV 要求课程赞助商及其交付代理提供安全网站，以保护学员的个人信息。",
+      "case_id": "doc2dial-dev-ddce2ae456060c8c50cb8717afeaaec5-11",
+      "citations": [
+        "About online and alternative delivery method courses (I-PIRP/ADM)#3_0::chunk-3"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2016,
+        "latency_ms": {
+          "max": 2492.821,
+          "p50": 2492.821,
+          "p95": 2492.821,
+          "sum": 2492.821
+        },
+        "output_tokens": 86,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 595,
+        "latency_ms": {
+          "max": 902.542,
+          "p50": 902.542,
+          "p95": 902.542,
+          "sum": 902.542
+        },
+        "output_tokens": 21,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 0.0,
+      "reference": "Very secure. DMV requires sponsors and their delivery agents to provide secure websites that protect your personal information.",
+      "token_f1": 0.03448275862068966
+    },
+    {
+      "abstained": false,
+      "answer": "You may be able to get disability benefits from VA if you have an illness VA believes is caused by Agent Orange, called a presumptive disease, and at least one of these is true: you came into contact with Agent Orange while serving in the military, served in or near the Korean DMZ between September 1, 1967, and August 31, 1971, or served in the Republic of Vietnam between January 9, 1962, and May 7, 1975. You will need to file a claim for disability compensation.",
+      "case_id": "doc2dial-dev-df084f0bfd2a11429ec36b331b048c6d-11",
+      "citations": [
+        "Agent Orange Exposure In Vietnam Or Korea | Veterans Affairs#1_0::chunk-0",
+        "Agent Orange Exposure | Veterans Affairs#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2725,
+        "latency_ms": {
+          "max": 3372.537,
+          "p50": 3372.537,
+          "p95": 3372.537,
+          "sum": 3372.537
+        },
+        "output_tokens": 180,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.5,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1189,
+        "latency_ms": {
+          "max": 1511.035,
+          "p50": 1511.035,
+          "p95": 1511.035,
+          "sum": 1511.035
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "You may be able to get disability benefits if the below descriptions are true for you",
+      "token_f1": 0.2549019607843137
+    },
+    {
+      "abstained": false,
+      "answer": "资料中未列出哪些车辆可免于排放检验的具体清单。资料仅说明“大多数车辆”必须在安全检验时同时进行排放检验或柴油排放检验，并提到符合加州排放标准的车辆即使达标仍须接受纽约州安全与排放检验要求。",
+      "case_id": "doc2dial-dev-dfe69859eb7ea18e177951165518bee0-12",
+      "citations": [
+        "About New York State Inspections#3_0::chunk-0",
+        "California emissions standards#3_0::chunk-1"
+      ],
+      "context_contains_evidence": 0.0,
+      "evidence_cited": 0.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2513,
+        "latency_ms": {
+          "max": 3419.069,
+          "p50": 3419.069,
+          "p95": 3419.069,
+          "sum": 3419.069
+        },
+        "output_tokens": 111,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": false,
+        "correct": false,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 966,
+        "latency_ms": {
+          "max": 1315.86,
+          "p50": 1315.86,
+          "p95": 1315.86,
+          "sum": 1315.86
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 0.0,
+      "reference": "Motorcycles, vehicles that are less than two model years old model year is greater than or equal to calendar year minus one, and more than 25 model years old model year is less than or equal to calendar year minus 25",
+      "token_f1": 0.0
+    },
+    {
+      "abstained": false,
+      "answer": "Yes. To request your benefit verification letter online, sign in to your my Social Security account, go to Replacement Documents on the right side of the screen, then choose “get a Benefit Verification Letter” to view, save, and print your personalized letter. If you don’t have an account, you can create a free my Social Security account, which takes less than 10 minutes.",
+      "case_id": "doc2dial-dev-e5e710f355a743db30e61032c000ec2c-11",
+      "citations": [
+        "Benefit Verification Letter  | Social Security Administration#1_0::chunk-0",
+        "Benefit Verification Letter  | Social Security Administration#2_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2320,
+        "latency_ms": {
+          "max": 2900.232,
+          "p50": 2900.232,
+          "p95": 2900.232,
+          "sum": 2900.232
+        },
+        "output_tokens": 143,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.5,
+      "judge": {
+        "citations_relevant": true,
+        "complete": false,
+        "correct": false,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1008,
+        "latency_ms": {
+          "max": 1213.403,
+          "p50": 1213.403,
+          "p95": 1213.403,
+          "sum": 1213.403
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "In that case you can call our toll-free number at 1-800-772-1213 or visit your Social Security office, we'll walk you through the process.",
+      "token_f1": 0.1956521739130435
+    },
+    {
+      "abstained": false,
+      "answer": "If you disagree with the hearing decision, you may request an Appeals Council review of the decision or dismissal made by the administrative law judge. The Appeals Council looks at all requests for review, but it may deny a request if it believes the hearing decision was supported and in accordance with Social Security law and regulations. If the Appeals Council decides to review your case, it will either decide your case itself or return it to an administrative law judge for further review.",
+      "case_id": "doc2dial-dev-e8e7ac1b799ac6a132bd803307d4b707-12",
+      "citations": [
+        "Appeal A Decision | Social Security Administration#2_0::chunk-1",
+        "Appeal A Decision | Social Security Administration#1_0::chunk-1"
+      ],
+      "context_contains_evidence": 0.0,
+      "evidence_cited": 0.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2193,
+        "latency_ms": {
+          "max": 2668.955,
+          "p50": 2668.955,
+          "p95": 2668.955,
+          "sum": 2668.955
+        },
+        "output_tokens": 145,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1075,
+        "latency_ms": {
+          "max": 1123.599,
+          "p50": 1123.599,
+          "p95": 1123.599,
+          "sum": 1123.599
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "you may request a review by Social Security s Appeals Council online",
+      "token_f1": 0.20833333333333331
+    },
+    {
+      "abstained": false,
+      "answer": "You need a verified FSA ID to complete the income-driven repayment process.",
+      "case_id": "doc2dial-dev-ee7631c809126d88bff37909a0d0fa2e-11",
+      "citations": [
+        "Apply for Income-Driven Student Loan Repayment | Federal Student Aid#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2544,
+        "latency_ms": {
+          "max": 1737.188,
+          "p50": 1737.188,
+          "p95": 1737.188,
+          "sum": 1737.188
+        },
+        "output_tokens": 56,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 593,
+        "latency_ms": {
+          "max": 1222.981,
+          "p50": 1222.981,
+          "p95": 1222.981,
+          "sum": 1222.981
+        },
+        "output_tokens": 21,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 1.0,
+      "reference": "FSA Verified ID",
+      "token_f1": 0.375
+    },
+    {
+      "abstained": false,
+      "answer": "您可以在 VA 的 Agent Orange exposure 页面上获取更多信息，包括查看与 Agent Orange 相关的疾病列表、可能使您接触 Agent Orange 的服务类型，以及如何申请残疾补偿。",
+      "case_id": "doc2dial-dev-f4fc4a6d5d6b9723f50202a5637ade64-11",
+      "citations": [
+        "Agent Orange Exposure | Veterans Affairs#1_0::chunk-0",
+        "Agent Orange Exposure From C-123 Aircraft | Veterans Affairs#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 0.0,
+      "evidence_cited": 0.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2686,
+        "latency_ms": {
+          "max": 2708.057,
+          "p50": 2708.057,
+          "p95": 2708.057,
+          "sum": 2708.057
+        },
+        "output_tokens": 110,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 1093,
+        "latency_ms": {
+          "max": 1213.554,
+          "p50": 1213.554,
+          "p95": 1213.554,
+          "sum": 1213.554
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 0.0,
+      "reference": "Do you want more information about C-123 aircraft Agent Orange claims?",
+      "token_f1": 0.05970149253731343
+    },
+    {
+      "abstained": false,
+      "answer": "如果导致不利信用决定的信息不正确，您可以对此提出异议/说明。资料中提到，在申请 Direct PLUS Loan 时，若因不利信用记录被拒，您可以采取的行动之一是：说明“导致不利信用决定的信息不正确”。此外，若涉及可减轻情况（extenuating circumstances），需要提供解释说明和支持文件，由相关部门根据您的情况酌情审查；但审查不等于保证批准，且先前的批准也不保证后续会再次批准。资料未提供关于“信息不正确”时应提交哪些具体文件、向哪个地址提交或处理时限的进一步细节。",
+      "case_id": "doc2dial-dev-f9aa69339de7652e855b2c941a24d7c9-10",
+      "citations": [
+        "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0::chunk-0"
+      ],
+      "context_contains_evidence": 1.0,
+      "evidence_cited": 1.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2344,
+        "latency_ms": {
+          "max": 5110.567,
+          "p50": 5110.567,
+          "p95": 5110.567,
+          "sum": 5110.567
+        },
+        "output_tokens": 160,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 1.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": true,
+        "correct": true,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 667,
+        "latency_ms": {
+          "max": 1294.936,
+          "p50": 1294.936,
+          "p95": 1294.936,
+          "sum": 1294.936
+        },
+        "output_tokens": 30,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 0.0,
+      "reference": "It all depends on the information you supply.",
+      "token_f1": 0.0
+    },
+    {
+      "abstained": true,
+      "answer": "无法确认您所指的“procedures for this purpose”具体对应哪项业务。请补充说明您想办理的事项（例如：申请Aid and Attendance福利、更改GI Bill学校、申请残疾福利、申请儿童残疾福利，或申请Private Service Bureau执照），我可以按对应资料提供步骤。",
+      "case_id": "doc2dial-dev-ff81921e81d6e595b1b47916a1d2f59a-13",
+      "citations": [],
+      "context_contains_evidence": 0.0,
+      "evidence_cited": 0.0,
+      "generation_error": null,
+      "generation_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 2277,
+        "latency_ms": {
+          "max": 2772.466,
+          "p50": 2772.466,
+          "p95": 2772.466,
+          "sum": 2772.466
+        },
+        "output_tokens": 90,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "gold_evidence_citation_precision": 0.0,
+      "judge": {
+        "citations_relevant": true,
+        "complete": false,
+        "correct": false,
+        "grounded": true
+      },
+      "judge_error": null,
+      "judge_usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "calls": 1,
+        "errors": 0,
+        "input_tokens": 236,
+        "latency_ms": {
+          "max": 1392.187,
+          "p50": 1392.187,
+          "p95": 1392.187,
+          "sum": 1392.187
+        },
+        "output_tokens": 21,
+        "reasoning_tokens": null,
+        "reasoning_tokens_note": "DeepSeek Anthropic usage does not expose reasoning tokens separately; output_tokens is the provider-reported billable total.",
+        "thinking_calls": 0
+      },
+      "language_match": 0.0,
+      "reference": "As a first objective you must have been under 24 years old or be enrolled at least part-time in a university or vocational school.",
+      "token_f1": 0.0
+    }
+  ],
+  "split": "dev"
+}

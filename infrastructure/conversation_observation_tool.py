@@ -1,6 +1,7 @@
 """Authenticated, bounded access to existing private conversation originals."""
 import asyncio
 import json
+import re
 from dataclasses import fields, replace
 from types import SimpleNamespace
 
@@ -9,7 +10,7 @@ from jsonpointer import JsonPointerException, resolve_pointer
 from application.authority_policy import AuthoritySupport, FactRequirement, RequirementEffect
 from application.capability_registry import CapabilityEffect, CapabilityRisk, ToolDefinition
 from infrastructure.postgres_conversation_evidence import BusinessObservationUnavailable
-from mcp.tool_manager import Tool, ToolRejected
+from mcp.tool_manager import Tool, ToolObservationEnvelope, ToolRejected
 
 TOOL_ID = "read_conversation_observation"
 AUTHORITY = "memory.business_observation"
@@ -20,6 +21,18 @@ def observation_document(original):
     for fact in document["facts"]:
         fact["value"] = json.loads(fact.pop("value_json"))
     return document
+
+
+def selected_source_call_ids(original, pointer):
+    """Return only fact sources actually covered by the selected JSON Pointer."""
+    match = re.match(r"^/facts/(\d+)(?:/|$)", pointer)
+    facts = original.facts if pointer in {"", "/facts"} else (
+        (original.facts[int(match.group(1))],)
+        if match and int(match.group(1)) < len(original.facts) else ()
+    )
+    return tuple(dict.fromkeys(
+        fact.source_ref for fact in facts if isinstance(fact.source_ref, str) and fact.source_ref
+    ))
 
 
 def build_observation_tool(reader, principals):
@@ -43,18 +56,21 @@ def build_observation_tool(reader, principals):
         if offset > len(content):
             raise ToolRejected("Offset exceeds the selected historical value")
         end = min(offset + limit, len(content))
-        return {"status": "HISTORICAL", "publication_id": params["publication_id"],
+        payload = {"status": "HISTORICAL", "publication_id": params["publication_id"],
             "observation_id": original.observation_id, "pointer": params.get("pointer", ""),
             "encoding": "json", "offset": offset, "text": content[offset:end],
             "total_characters": len(content), "next_offset": end if end < len(content) else None,
             "complete": offset == 0 and end == len(content)}
+        return ToolObservationEnvelope(payload, selected_source_call_ids(
+            original, params.get("pointer", "")
+        ))
 
     return Tool(name=TOOL_ID, description=(
         "Read an original observation from this conversation without rerunning business tools. "
         "Use publication_id and observation_id from historical context. JSON Pointer selects a value, "
         "for example /facts/0/value; empty pointer reads the observation. Output is a bounded JSON text "
-        "page; follow next_offset or select a narrower pointer. It proves historical contents, not "
-        "current business state, approval, or permission to retry a write."), handler=handler,
+        "page; follow next_offset or select a narrower pointer. Original observation times still apply: "
+        "archiving does not invalidate a result or grant approval/permission to retry a write."), handler=handler,
         schema={"type": "object", "additionalProperties": False, "properties": {
             "publication_id": {"type": "string", "minLength": 1, "maxLength": 256},
             "observation_id": {"type": "string", "pattern": "^[a-f0-9]{64}$"},

@@ -1,0 +1,942 @@
+{
+  "candidate_k": 20,
+  "case_count": 48,
+  "chunk_config": {
+    "max_tokens": 512,
+    "overlap_tokens": 64,
+    "strategy": "fixed_tokens"
+  },
+  "dataset_id": "doc2dial-rag-mini-heldout-v1",
+  "document_count": 40,
+  "inserted_chunks": 153,
+  "ranking_capture": "bm25/vector captured once per case; RRF replayed offline",
+  "recommended_paired_bootstrap_vs": {},
+  "results": [
+    {
+      "bm25_weight": 1.0,
+      "config_id": "bm25-only",
+      "document_recall_at_20": 0.75,
+      "evidence_recall_at_20": 0.6875,
+      "mean_estimated_retrieval_latency_ms": 24.292803447072703,
+      "mrr": 0.4478016774891775,
+      "ndcg_at_20": 0.5119572427269194,
+      "rrf_k": 30,
+      "slices": {
+        "customer_support": {
+          "evidence_recall_at_20": 0.6875,
+          "mrr": 0.4478016774891775
+        },
+        "dmv": {
+          "evidence_recall_at_20": 0.75,
+          "mrr": 0.6785714285714285
+        },
+        "multi_turn": {
+          "evidence_recall_at_20": 0.6410256410256411,
+          "mrr": 0.4297119547119547
+        },
+        "ssa": {
+          "evidence_recall_at_20": 0.75,
+          "mrr": 0.3590277777777778
+        },
+        "standalone": {
+          "evidence_recall_at_20": 0.8888888888888888,
+          "mrr": 0.5261904761904762
+        },
+        "studentaid": {
+          "evidence_recall_at_20": 0.75,
+          "mrr": 0.47371031746031744
+        },
+        "va": {
+          "evidence_recall_at_20": 0.5,
+          "mrr": 0.2798971861471861
+        }
+      },
+      "vector_weight": 0.0
+    },
+    {
+      "bm25_weight": 0.0,
+      "config_id": "dense-only",
+      "document_recall_at_20": 0.7708333333333334,
+      "evidence_recall_at_20": 0.7291666666666666,
+      "mean_estimated_retrieval_latency_ms": 25.33976372797042,
+      "mrr": 0.3827314178876679,
+      "ndcg_at_20": 0.4661111358283059,
+      "rrf_k": 30,
+      "slices": {
+        "customer_support": {
+          "evidence_recall_at_20": 0.7291666666666666,
+          "mrr": 0.3827314178876679
+        },
+        "dmv": {
+          "evidence_recall_at_20": 0.9166666666666666,
+          "mrr": 0.46127136752136755
+        },
+        "multi_turn": {
+          "evidence_recall_at_20": 0.6666666666666666,
+          "mrr": 0.34769222942299866
+        },
+        "ssa": {
+          "evidence_recall_at_20": 0.75,
+          "mrr": 0.49553571428571425
+        },
+        "standalone": {
+          "evidence_recall_at_20": 1.0,
+          "mrr": 0.5345679012345679
+        },
+        "studentaid": {
+          "evidence_recall_at_20": 0.75,
+          "mrr": 0.31022970085470086
+        },
+        "va": {
+          "evidence_recall_at_20": 0.5,
+          "mrr": 0.2638888888888889
+        }
+      },
+      "vector_weight": 1.0
+    },
+    {
+      "bm25_weight": 0.75,
+      "config_id": "rrf-b75-v25-k10",
+      "document_recall_at_20": 0.75,
+      "evidence_recall_at_20": 0.6875,
+      "mean_estimated_retrieval_latency_ms": 27.046736096963286,
+      "mrr": 0.4711309523809524,
+      "ndcg_at_20": 0.535302388708269,
+      "rrf_k": 10,
+      "slices": {
+        "customer_support": {
+          "evidence_recall_at_20": 0.6875,
+          "mrr": 0.4711309523809524
+        },
+        "dmv": {
+          "evidence_recall_at_20": 0.75,
+          "mrr": 0.6833333333333332
+        },
+        "multi_turn": {
+          "evidence_recall_at_20": 0.6410256410256411,
+          "mrr": 0.4458485958485959
+        },
+        "ssa": {
+          "evidence_recall_at_20": 0.75,
+          "mrr": 0.4384920634920635
+        },
+        "standalone": {
+          "evidence_recall_at_20": 0.8888888888888888,
+          "mrr": 0.5806878306878307
+        },
+        "studentaid": {
+          "evidence_recall_at_20": 0.75,
+          "mrr": 0.47222222222222227
+        },
+        "va": {
+          "evidence_recall_at_20": 0.5,
+          "mrr": 0.2904761904761905
+        }
+      },
+      "vector_weight": 0.25
+    },
+    {
+      "bm25_weight": 0.75,
+      "config_id": "rrf-b75-v25-k30",
+      "document_recall_at_20": 0.75,
+      "evidence_recall_at_20": 0.6875,
+      "mean_estimated_retrieval_latency_ms": 27.046736096963286,
+      "mrr": 0.49623015873015874,
+      "ndcg_at_20": 0.554732205617781,
+      "rrf_k": 30,
+      "slices": {
+        "customer_support": {
+          "evidence_recall_at_20": 0.6875,
+          "mrr": 0.49623015873015874
+        },
+        "dmv": {
+          "evidence_recall_at_20": 0.75,
+          "mrr": 0.6833333333333332
+        },
+        "multi_turn": {
+          "evidence_recall_at_20": 0.6410256410256411,
+          "mrr": 0.46605616605616607
+        },
+        "ssa": {
+          "evidence_recall_at_20": 0.75,
+          "mrr": 0.4924603174603175
+        },
+        "standalone": {
+          "evidence_recall_at_20": 0.8888888888888888,
+          "mrr": 0.626984126984127
+        },
+        "studentaid": {
+          "evidence_recall_at_20": 0.75,
+          "mrr": 0.4888888888888889
+        },
+        "va": {
+          "evidence_recall_at_20": 0.5,
+          "mrr": 0.32023809523809527
+        }
+      },
+      "vector_weight": 0.25
+    },
+    {
+      "bm25_weight": 0.75,
+      "config_id": "rrf-b75-v25-k60",
+      "document_recall_at_20": 0.75,
+      "evidence_recall_at_20": 0.6875,
+      "mean_estimated_retrieval_latency_ms": 27.046736096963286,
+      "mrr": 0.49573412698412694,
+      "ndcg_at_20": 0.554255666997475,
+      "rrf_k": 60,
+      "slices": {
+        "customer_support": {
+          "evidence_recall_at_20": 0.6875,
+          "mrr": 0.49573412698412694
+        },
+        "dmv": {
+          "evidence_recall_at_20": 0.75,
+          "mrr": 0.6833333333333332
+        },
+        "multi_turn": {
+          "evidence_recall_at_20": 0.6410256410256411,
+          "mrr": 0.46544566544566546
+        },
+        "ssa": {
+          "evidence_recall_at_20": 0.75,
+          "mrr": 0.4904761904761905
+        },
+        "standalone": {
+          "evidence_recall_at_20": 0.8888888888888888,
+          "mrr": 0.626984126984127
+        },
+        "studentaid": {
+          "evidence_recall_at_20": 0.75,
+          "mrr": 0.4888888888888889
+        },
+        "va": {
+          "evidence_recall_at_20": 0.5,
+          "mrr": 0.32023809523809527
+        }
+      },
+      "vector_weight": 0.25
+    },
+    {
+      "bm25_weight": 0.5,
+      "config_id": "rrf-b50-v50-k10",
+      "document_recall_at_20": 0.7916666666666666,
+      "evidence_recall_at_20": 0.7291666666666666,
+      "mean_estimated_retrieval_latency_ms": 27.046736096963286,
+      "mrr": 0.5061507936507936,
+      "ndcg_at_20": 0.5717066566157605,
+      "rrf_k": 10,
+      "slices": {
+        "customer_support": {
+          "evidence_recall_at_20": 0.7291666666666666,
+          "mrr": 0.5061507936507936
+        },
+        "dmv": {
+          "evidence_recall_at_20": 0.8333333333333334,
+          "mrr": 0.5333333333333333
+        },
+        "multi_turn": {
+          "evidence_recall_at_20": 0.6666666666666666,
+          "mrr": 0.47954822954822957
+        },
+        "ssa": {
+          "evidence_recall_at_20": 0.8333333333333334,
+          "mrr": 0.523015873015873
+        },
+        "standalone": {
+          "evidence_recall_at_20": 1.0,
+          "mrr": 0.6214285714285714
+        },
+        "studentaid": {
+          "evidence_recall_at_20": 0.75,
+          "mrr": 0.611111111111111
+        },
+        "va": {
+          "evidence_recall_at_20": 0.5,
+          "mrr": 0.35714285714285715
+        }
+      },
+      "vector_weight": 0.5
+    },
+    {
+      "bm25_weight": 0.5,
+      "config_id": "rrf-b50-v50-k30",
+      "document_recall_at_20": 0.7916666666666666,
+      "evidence_recall_at_20": 0.7291666666666666,
+      "mean_estimated_retrieval_latency_ms": 27.046736096963286,
+      "mrr": 0.5061507936507936,
+      "ndcg_at_20": 0.5689789534163551,
+      "rrf_k": 30,
+      "slices": {
+        "customer_support": {
+          "evidence_recall_at_20": 0.7291666666666666,
+          "mrr": 0.5061507936507936
+        },
+        "dmv": {
+          "evidence_recall_at_20": 0.8333333333333334,
+          "mrr": 0.5333333333333333
+        },
+        "multi_turn": {
+          "evidence_recall_at_20": 0.6666666666666666,
+          "mrr": 0.47954822954822957
+        },
+        "ssa": {
+          "evidence_recall_at_20": 0.8333333333333334,
+          "mrr": 0.523015873015873
+        },
+        "standalone": {
+          "evidence_recall_at_20": 1.0,
+          "mrr": 0.6214285714285714
+        },
+        "studentaid": {
+          "evidence_recall_at_20": 0.75,
+          "mrr": 0.611111111111111
+        },
+        "va": {
+          "evidence_recall_at_20": 0.5,
+          "mrr": 0.35714285714285715
+        }
+      },
+      "vector_weight": 0.5
+    },
+    {
+      "bm25_weight": 0.5,
+      "config_id": "rrf-b50-v50-k60",
+      "document_recall_at_20": 0.7916666666666666,
+      "evidence_recall_at_20": 0.7291666666666666,
+      "mean_estimated_retrieval_latency_ms": 27.046736096963286,
+      "mrr": 0.4929563492063492,
+      "ndcg_at_20": 0.5589327567664801,
+      "rrf_k": 60,
+      "slices": {
+        "customer_support": {
+          "evidence_recall_at_20": 0.7291666666666666,
+          "mrr": 0.4929563492063492
+        },
+        "dmv": {
+          "evidence_recall_at_20": 0.8333333333333334,
+          "mrr": 0.5333333333333333
+        },
+        "multi_turn": {
+          "evidence_recall_at_20": 0.6666666666666666,
+          "mrr": 0.46330891330891333
+        },
+        "ssa": {
+          "evidence_recall_at_20": 0.8333333333333334,
+          "mrr": 0.511904761904762
+        },
+        "standalone": {
+          "evidence_recall_at_20": 1.0,
+          "mrr": 0.6214285714285714
+        },
+        "studentaid": {
+          "evidence_recall_at_20": 0.75,
+          "mrr": 0.5694444444444444
+        },
+        "va": {
+          "evidence_recall_at_20": 0.5,
+          "mrr": 0.35714285714285715
+        }
+      },
+      "vector_weight": 0.5
+    },
+    {
+      "bm25_weight": 0.25,
+      "config_id": "rrf-b25-v75-k10",
+      "document_recall_at_20": 0.7708333333333334,
+      "evidence_recall_at_20": 0.7291666666666666,
+      "mean_estimated_retrieval_latency_ms": 27.046736096963286,
+      "mrr": 0.42321301383801385,
+      "ndcg_at_20": 0.5027392832040002,
+      "rrf_k": 10,
+      "slices": {
+        "customer_support": {
+          "evidence_recall_at_20": 0.7291666666666666,
+          "mrr": 0.42321301383801385
+        },
+        "dmv": {
+          "evidence_recall_at_20": 0.9166666666666666,
+          "mrr": 0.48488247863247863
+        },
+        "multi_turn": {
+          "evidence_recall_at_20": 0.6666666666666666,
+          "mrr": 0.3761482107635954
+        },
+        "ssa": {
+          "evidence_recall_at_20": 0.75,
+          "mrr": 0.498015873015873
+        },
+        "standalone": {
+          "evidence_recall_at_20": 1.0,
+          "mrr": 0.6271604938271605
+        },
+        "studentaid": {
+          "evidence_recall_at_20": 0.75,
+          "mrr": 0.36041666666666666
+        },
+        "va": {
+          "evidence_recall_at_20": 0.5,
+          "mrr": 0.34953703703703703
+        }
+      },
+      "vector_weight": 0.75
+    },
+    {
+      "bm25_weight": 0.25,
+      "config_id": "rrf-b25-v75-k30",
+      "document_recall_at_20": 0.7708333333333334,
+      "evidence_recall_at_20": 0.7291666666666666,
+      "mean_estimated_retrieval_latency_ms": 27.046736096963286,
+      "mrr": 0.45151162494912495,
+      "ndcg_at_20": 0.5261018190667293,
+      "rrf_k": 30,
+      "slices": {
+        "customer_support": {
+          "evidence_recall_at_20": 0.7291666666666666,
+          "mrr": 0.45151162494912495
+        },
+        "dmv": {
+          "evidence_recall_at_20": 0.9166666666666666,
+          "mrr": 0.48488247863247863
+        },
+        "multi_turn": {
+          "evidence_recall_at_20": 0.6666666666666666,
+          "mrr": 0.4131140227294073
+        },
+        "ssa": {
+          "evidence_recall_at_20": 0.75,
+          "mrr": 0.4771825396825397
+        },
+        "standalone": {
+          "evidence_recall_at_20": 1.0,
+          "mrr": 0.6179012345679012
+        },
+        "studentaid": {
+          "evidence_recall_at_20": 0.75,
+          "mrr": 0.4930555555555556
+        },
+        "va": {
+          "evidence_recall_at_20": 0.5,
+          "mrr": 0.3509259259259259
+        }
+      },
+      "vector_weight": 0.75
+    },
+    {
+      "bm25_weight": 0.25,
+      "config_id": "rrf-b25-v75-k60",
+      "document_recall_at_20": 0.7708333333333334,
+      "evidence_recall_at_20": 0.7291666666666666,
+      "mean_estimated_retrieval_latency_ms": 27.046736096963286,
+      "mrr": 0.45272690272690275,
+      "ndcg_at_20": 0.5272902705374451,
+      "rrf_k": 60,
+      "slices": {
+        "customer_support": {
+          "evidence_recall_at_20": 0.7291666666666666,
+          "mrr": 0.45272690272690275
+        },
+        "dmv": {
+          "evidence_recall_at_20": 0.9166666666666666,
+          "mrr": 0.48488247863247863
+        },
+        "multi_turn": {
+          "evidence_recall_at_20": 0.6666666666666666,
+          "mrr": 0.4158918005071851
+        },
+        "ssa": {
+          "evidence_recall_at_20": 0.75,
+          "mrr": 0.47301587301587306
+        },
+        "standalone": {
+          "evidence_recall_at_20": 1.0,
+          "mrr": 0.6123456790123457
+        },
+        "studentaid": {
+          "evidence_recall_at_20": 0.75,
+          "mrr": 0.5
+        },
+        "va": {
+          "evidence_recall_at_20": 0.5,
+          "mrr": 0.35300925925925924
+        }
+      },
+      "vector_weight": 0.75
+    }
+  ],
+  "selection": {
+    "eligible_count": 11,
+    "hard_constraints": {},
+    "metric_priority": [
+      [
+        "evidence_recall_at_20",
+        "max"
+      ],
+      [
+        "mrr",
+        "max"
+      ],
+      [
+        "ndcg_at_20",
+        "max"
+      ]
+    ],
+    "ranked": [
+      {
+        "bm25_weight": 0.5,
+        "config_id": "rrf-b50-v50-k10",
+        "document_recall_at_20": 0.7916666666666666,
+        "evidence_recall_at_20": 0.7291666666666666,
+        "mean_estimated_retrieval_latency_ms": 27.046736096963286,
+        "mrr": 0.5061507936507936,
+        "ndcg_at_20": 0.5717066566157605,
+        "rrf_k": 10,
+        "slices": {
+          "customer_support": {
+            "evidence_recall_at_20": 0.7291666666666666,
+            "mrr": 0.5061507936507936
+          },
+          "dmv": {
+            "evidence_recall_at_20": 0.8333333333333334,
+            "mrr": 0.5333333333333333
+          },
+          "multi_turn": {
+            "evidence_recall_at_20": 0.6666666666666666,
+            "mrr": 0.47954822954822957
+          },
+          "ssa": {
+            "evidence_recall_at_20": 0.8333333333333334,
+            "mrr": 0.523015873015873
+          },
+          "standalone": {
+            "evidence_recall_at_20": 1.0,
+            "mrr": 0.6214285714285714
+          },
+          "studentaid": {
+            "evidence_recall_at_20": 0.75,
+            "mrr": 0.611111111111111
+          },
+          "va": {
+            "evidence_recall_at_20": 0.5,
+            "mrr": 0.35714285714285715
+          }
+        },
+        "vector_weight": 0.5
+      },
+      {
+        "bm25_weight": 0.5,
+        "config_id": "rrf-b50-v50-k30",
+        "document_recall_at_20": 0.7916666666666666,
+        "evidence_recall_at_20": 0.7291666666666666,
+        "mean_estimated_retrieval_latency_ms": 27.046736096963286,
+        "mrr": 0.5061507936507936,
+        "ndcg_at_20": 0.5689789534163551,
+        "rrf_k": 30,
+        "slices": {
+          "customer_support": {
+            "evidence_recall_at_20": 0.7291666666666666,
+            "mrr": 0.5061507936507936
+          },
+          "dmv": {
+            "evidence_recall_at_20": 0.8333333333333334,
+            "mrr": 0.5333333333333333
+          },
+          "multi_turn": {
+            "evidence_recall_at_20": 0.6666666666666666,
+            "mrr": 0.47954822954822957
+          },
+          "ssa": {
+            "evidence_recall_at_20": 0.8333333333333334,
+            "mrr": 0.523015873015873
+          },
+          "standalone": {
+            "evidence_recall_at_20": 1.0,
+            "mrr": 0.6214285714285714
+          },
+          "studentaid": {
+            "evidence_recall_at_20": 0.75,
+            "mrr": 0.611111111111111
+          },
+          "va": {
+            "evidence_recall_at_20": 0.5,
+            "mrr": 0.35714285714285715
+          }
+        },
+        "vector_weight": 0.5
+      },
+      {
+        "bm25_weight": 0.5,
+        "config_id": "rrf-b50-v50-k60",
+        "document_recall_at_20": 0.7916666666666666,
+        "evidence_recall_at_20": 0.7291666666666666,
+        "mean_estimated_retrieval_latency_ms": 27.046736096963286,
+        "mrr": 0.4929563492063492,
+        "ndcg_at_20": 0.5589327567664801,
+        "rrf_k": 60,
+        "slices": {
+          "customer_support": {
+            "evidence_recall_at_20": 0.7291666666666666,
+            "mrr": 0.4929563492063492
+          },
+          "dmv": {
+            "evidence_recall_at_20": 0.8333333333333334,
+            "mrr": 0.5333333333333333
+          },
+          "multi_turn": {
+            "evidence_recall_at_20": 0.6666666666666666,
+            "mrr": 0.46330891330891333
+          },
+          "ssa": {
+            "evidence_recall_at_20": 0.8333333333333334,
+            "mrr": 0.511904761904762
+          },
+          "standalone": {
+            "evidence_recall_at_20": 1.0,
+            "mrr": 0.6214285714285714
+          },
+          "studentaid": {
+            "evidence_recall_at_20": 0.75,
+            "mrr": 0.5694444444444444
+          },
+          "va": {
+            "evidence_recall_at_20": 0.5,
+            "mrr": 0.35714285714285715
+          }
+        },
+        "vector_weight": 0.5
+      },
+      {
+        "bm25_weight": 0.25,
+        "config_id": "rrf-b25-v75-k60",
+        "document_recall_at_20": 0.7708333333333334,
+        "evidence_recall_at_20": 0.7291666666666666,
+        "mean_estimated_retrieval_latency_ms": 27.046736096963286,
+        "mrr": 0.45272690272690275,
+        "ndcg_at_20": 0.5272902705374451,
+        "rrf_k": 60,
+        "slices": {
+          "customer_support": {
+            "evidence_recall_at_20": 0.7291666666666666,
+            "mrr": 0.45272690272690275
+          },
+          "dmv": {
+            "evidence_recall_at_20": 0.9166666666666666,
+            "mrr": 0.48488247863247863
+          },
+          "multi_turn": {
+            "evidence_recall_at_20": 0.6666666666666666,
+            "mrr": 0.4158918005071851
+          },
+          "ssa": {
+            "evidence_recall_at_20": 0.75,
+            "mrr": 0.47301587301587306
+          },
+          "standalone": {
+            "evidence_recall_at_20": 1.0,
+            "mrr": 0.6123456790123457
+          },
+          "studentaid": {
+            "evidence_recall_at_20": 0.75,
+            "mrr": 0.5
+          },
+          "va": {
+            "evidence_recall_at_20": 0.5,
+            "mrr": 0.35300925925925924
+          }
+        },
+        "vector_weight": 0.75
+      },
+      {
+        "bm25_weight": 0.25,
+        "config_id": "rrf-b25-v75-k30",
+        "document_recall_at_20": 0.7708333333333334,
+        "evidence_recall_at_20": 0.7291666666666666,
+        "mean_estimated_retrieval_latency_ms": 27.046736096963286,
+        "mrr": 0.45151162494912495,
+        "ndcg_at_20": 0.5261018190667293,
+        "rrf_k": 30,
+        "slices": {
+          "customer_support": {
+            "evidence_recall_at_20": 0.7291666666666666,
+            "mrr": 0.45151162494912495
+          },
+          "dmv": {
+            "evidence_recall_at_20": 0.9166666666666666,
+            "mrr": 0.48488247863247863
+          },
+          "multi_turn": {
+            "evidence_recall_at_20": 0.6666666666666666,
+            "mrr": 0.4131140227294073
+          },
+          "ssa": {
+            "evidence_recall_at_20": 0.75,
+            "mrr": 0.4771825396825397
+          },
+          "standalone": {
+            "evidence_recall_at_20": 1.0,
+            "mrr": 0.6179012345679012
+          },
+          "studentaid": {
+            "evidence_recall_at_20": 0.75,
+            "mrr": 0.4930555555555556
+          },
+          "va": {
+            "evidence_recall_at_20": 0.5,
+            "mrr": 0.3509259259259259
+          }
+        },
+        "vector_weight": 0.75
+      },
+      {
+        "bm25_weight": 0.25,
+        "config_id": "rrf-b25-v75-k10",
+        "document_recall_at_20": 0.7708333333333334,
+        "evidence_recall_at_20": 0.7291666666666666,
+        "mean_estimated_retrieval_latency_ms": 27.046736096963286,
+        "mrr": 0.42321301383801385,
+        "ndcg_at_20": 0.5027392832040002,
+        "rrf_k": 10,
+        "slices": {
+          "customer_support": {
+            "evidence_recall_at_20": 0.7291666666666666,
+            "mrr": 0.42321301383801385
+          },
+          "dmv": {
+            "evidence_recall_at_20": 0.9166666666666666,
+            "mrr": 0.48488247863247863
+          },
+          "multi_turn": {
+            "evidence_recall_at_20": 0.6666666666666666,
+            "mrr": 0.3761482107635954
+          },
+          "ssa": {
+            "evidence_recall_at_20": 0.75,
+            "mrr": 0.498015873015873
+          },
+          "standalone": {
+            "evidence_recall_at_20": 1.0,
+            "mrr": 0.6271604938271605
+          },
+          "studentaid": {
+            "evidence_recall_at_20": 0.75,
+            "mrr": 0.36041666666666666
+          },
+          "va": {
+            "evidence_recall_at_20": 0.5,
+            "mrr": 0.34953703703703703
+          }
+        },
+        "vector_weight": 0.75
+      },
+      {
+        "bm25_weight": 0.0,
+        "config_id": "dense-only",
+        "document_recall_at_20": 0.7708333333333334,
+        "evidence_recall_at_20": 0.7291666666666666,
+        "mean_estimated_retrieval_latency_ms": 25.33976372797042,
+        "mrr": 0.3827314178876679,
+        "ndcg_at_20": 0.4661111358283059,
+        "rrf_k": 30,
+        "slices": {
+          "customer_support": {
+            "evidence_recall_at_20": 0.7291666666666666,
+            "mrr": 0.3827314178876679
+          },
+          "dmv": {
+            "evidence_recall_at_20": 0.9166666666666666,
+            "mrr": 0.46127136752136755
+          },
+          "multi_turn": {
+            "evidence_recall_at_20": 0.6666666666666666,
+            "mrr": 0.34769222942299866
+          },
+          "ssa": {
+            "evidence_recall_at_20": 0.75,
+            "mrr": 0.49553571428571425
+          },
+          "standalone": {
+            "evidence_recall_at_20": 1.0,
+            "mrr": 0.5345679012345679
+          },
+          "studentaid": {
+            "evidence_recall_at_20": 0.75,
+            "mrr": 0.31022970085470086
+          },
+          "va": {
+            "evidence_recall_at_20": 0.5,
+            "mrr": 0.2638888888888889
+          }
+        },
+        "vector_weight": 1.0
+      },
+      {
+        "bm25_weight": 0.75,
+        "config_id": "rrf-b75-v25-k30",
+        "document_recall_at_20": 0.75,
+        "evidence_recall_at_20": 0.6875,
+        "mean_estimated_retrieval_latency_ms": 27.046736096963286,
+        "mrr": 0.49623015873015874,
+        "ndcg_at_20": 0.554732205617781,
+        "rrf_k": 30,
+        "slices": {
+          "customer_support": {
+            "evidence_recall_at_20": 0.6875,
+            "mrr": 0.49623015873015874
+          },
+          "dmv": {
+            "evidence_recall_at_20": 0.75,
+            "mrr": 0.6833333333333332
+          },
+          "multi_turn": {
+            "evidence_recall_at_20": 0.6410256410256411,
+            "mrr": 0.46605616605616607
+          },
+          "ssa": {
+            "evidence_recall_at_20": 0.75,
+            "mrr": 0.4924603174603175
+          },
+          "standalone": {
+            "evidence_recall_at_20": 0.8888888888888888,
+            "mrr": 0.626984126984127
+          },
+          "studentaid": {
+            "evidence_recall_at_20": 0.75,
+            "mrr": 0.4888888888888889
+          },
+          "va": {
+            "evidence_recall_at_20": 0.5,
+            "mrr": 0.32023809523809527
+          }
+        },
+        "vector_weight": 0.25
+      },
+      {
+        "bm25_weight": 0.75,
+        "config_id": "rrf-b75-v25-k60",
+        "document_recall_at_20": 0.75,
+        "evidence_recall_at_20": 0.6875,
+        "mean_estimated_retrieval_latency_ms": 27.046736096963286,
+        "mrr": 0.49573412698412694,
+        "ndcg_at_20": 0.554255666997475,
+        "rrf_k": 60,
+        "slices": {
+          "customer_support": {
+            "evidence_recall_at_20": 0.6875,
+            "mrr": 0.49573412698412694
+          },
+          "dmv": {
+            "evidence_recall_at_20": 0.75,
+            "mrr": 0.6833333333333332
+          },
+          "multi_turn": {
+            "evidence_recall_at_20": 0.6410256410256411,
+            "mrr": 0.46544566544566546
+          },
+          "ssa": {
+            "evidence_recall_at_20": 0.75,
+            "mrr": 0.4904761904761905
+          },
+          "standalone": {
+            "evidence_recall_at_20": 0.8888888888888888,
+            "mrr": 0.626984126984127
+          },
+          "studentaid": {
+            "evidence_recall_at_20": 0.75,
+            "mrr": 0.4888888888888889
+          },
+          "va": {
+            "evidence_recall_at_20": 0.5,
+            "mrr": 0.32023809523809527
+          }
+        },
+        "vector_weight": 0.25
+      },
+      {
+        "bm25_weight": 0.75,
+        "config_id": "rrf-b75-v25-k10",
+        "document_recall_at_20": 0.75,
+        "evidence_recall_at_20": 0.6875,
+        "mean_estimated_retrieval_latency_ms": 27.046736096963286,
+        "mrr": 0.4711309523809524,
+        "ndcg_at_20": 0.535302388708269,
+        "rrf_k": 10,
+        "slices": {
+          "customer_support": {
+            "evidence_recall_at_20": 0.6875,
+            "mrr": 0.4711309523809524
+          },
+          "dmv": {
+            "evidence_recall_at_20": 0.75,
+            "mrr": 0.6833333333333332
+          },
+          "multi_turn": {
+            "evidence_recall_at_20": 0.6410256410256411,
+            "mrr": 0.4458485958485959
+          },
+          "ssa": {
+            "evidence_recall_at_20": 0.75,
+            "mrr": 0.4384920634920635
+          },
+          "standalone": {
+            "evidence_recall_at_20": 0.8888888888888888,
+            "mrr": 0.5806878306878307
+          },
+          "studentaid": {
+            "evidence_recall_at_20": 0.75,
+            "mrr": 0.47222222222222227
+          },
+          "va": {
+            "evidence_recall_at_20": 0.5,
+            "mrr": 0.2904761904761905
+          }
+        },
+        "vector_weight": 0.25
+      },
+      {
+        "bm25_weight": 1.0,
+        "config_id": "bm25-only",
+        "document_recall_at_20": 0.75,
+        "evidence_recall_at_20": 0.6875,
+        "mean_estimated_retrieval_latency_ms": 24.292803447072703,
+        "mrr": 0.4478016774891775,
+        "ndcg_at_20": 0.5119572427269194,
+        "rrf_k": 30,
+        "slices": {
+          "customer_support": {
+            "evidence_recall_at_20": 0.6875,
+            "mrr": 0.4478016774891775
+          },
+          "dmv": {
+            "evidence_recall_at_20": 0.75,
+            "mrr": 0.6785714285714285
+          },
+          "multi_turn": {
+            "evidence_recall_at_20": 0.6410256410256411,
+            "mrr": 0.4297119547119547
+          },
+          "ssa": {
+            "evidence_recall_at_20": 0.75,
+            "mrr": 0.3590277777777778
+          },
+          "standalone": {
+            "evidence_recall_at_20": 0.8888888888888888,
+            "mrr": 0.5261904761904762
+          },
+          "studentaid": {
+            "evidence_recall_at_20": 0.75,
+            "mrr": 0.47371031746031744
+          },
+          "va": {
+            "evidence_recall_at_20": 0.5,
+            "mrr": 0.2798971861471861
+          }
+        },
+        "vector_weight": 0.0
+      }
+    ],
+    "recommended": null,
+    "selection_allowed": false,
+    "split": "heldout"
+  },
+  "split": "heldout"
+}

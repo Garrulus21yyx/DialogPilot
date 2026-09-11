@@ -1,0 +1,1463 @@
+{
+  "task_id": "22",
+  "official_reward": 0.0,
+  "langfuse_session_id": "tau3-4f9b2fbab6064f24b05e0bfc83b74de3",
+  "termination": "user_stop",
+  "simulation_status": "COMPLETED",
+  "evaluation_errors": {},
+  "evaluation_scope": "official_checks",
+  "all": {
+    "reward": 0.0,
+    "db_check": {
+      "db_match": false,
+      "db_reward": 0.0
+    },
+    "env_assertions": [],
+    "action_checks": [
+      {
+        "action": {
+          "action_id": "22_0",
+          "requestor": "assistant",
+          "name": "find_user_id_by_name_zip",
+          "arguments": {
+            "first_name": "Ethan",
+            "last_name": "Garcia",
+            "zip": "80280"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "22_1",
+          "requestor": "assistant",
+          "name": "modify_user_address",
+          "arguments": {
+            "user_id": "ethan_garcia_1261",
+            "address1": "101 Highway",
+            "address2": "",
+            "city": "New York",
+            "state": "NY",
+            "country": "USA",
+            "zip": "10001"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": false,
+        "action_reward": 0.0,
+        "tool_type": "write"
+      },
+      {
+        "action": {
+          "action_id": "22_2",
+          "requestor": "assistant",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W4967593"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": false,
+        "action_reward": 0.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "22_3",
+          "requestor": "assistant",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W9911714"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": false,
+        "action_reward": 0.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "22_4",
+          "requestor": "assistant",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W5733668"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": false,
+        "action_reward": 0.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "22_5",
+          "requestor": "assistant",
+          "name": "modify_pending_order_address",
+          "arguments": {
+            "order_id": "#W9911714",
+            "address1": "101 Highway",
+            "address2": "",
+            "city": "New York",
+            "state": "NY",
+            "country": "USA",
+            "zip": "10001"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": false,
+        "action_reward": 0.0,
+        "tool_type": "write"
+      },
+      {
+        "action": {
+          "action_id": "22_6",
+          "requestor": "assistant",
+          "name": "modify_user_address",
+          "arguments": {
+            "user_id": "ethan_garcia_1261",
+            "address1": "667 Highland Drive",
+            "address2": "Suite 865",
+            "city": "Denver",
+            "state": "CO",
+            "country": "USA",
+            "zip": "80280"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": false,
+        "action_reward": 0.0,
+        "tool_type": "write"
+      }
+    ],
+    "nl_assertions": [],
+    "communicate_checks": null,
+    "reward_basis": [
+      "DB",
+      "NL_ASSERTION"
+    ],
+    "reward_breakdown": {
+      "DB": 0.0,
+      "NL_ASSERTION": 1.0
+    },
+    "info": {
+      "env": null,
+      "nl": {
+        "note": "No nl_assertions to evaluate"
+      },
+      "communicate": {
+        "note": "No communicate_info to evaluate"
+      },
+      "action": null
+    }
+  },
+  "env": {
+    "reward": 0.0,
+    "db_check": {
+      "db_match": false,
+      "db_reward": 0.0
+    },
+    "env_assertions": [],
+    "action_checks": null,
+    "nl_assertions": null,
+    "communicate_checks": null,
+    "reward_basis": [
+      "DB",
+      "NL_ASSERTION"
+    ],
+    "reward_breakdown": {
+      "DB": 0.0
+    },
+    "info": null
+  },
+  "action": {
+    "reward": 0.0,
+    "db_check": null,
+    "env_assertions": null,
+    "action_checks": [
+      {
+        "action": {
+          "action_id": "22_0",
+          "requestor": "assistant",
+          "name": "find_user_id_by_name_zip",
+          "arguments": {
+            "first_name": "Ethan",
+            "last_name": "Garcia",
+            "zip": "80280"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "22_1",
+          "requestor": "assistant",
+          "name": "modify_user_address",
+          "arguments": {
+            "user_id": "ethan_garcia_1261",
+            "address1": "101 Highway",
+            "address2": "",
+            "city": "New York",
+            "state": "NY",
+            "country": "USA",
+            "zip": "10001"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": false,
+        "action_reward": 0.0,
+        "tool_type": "write"
+      },
+      {
+        "action": {
+          "action_id": "22_2",
+          "requestor": "assistant",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W4967593"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": false,
+        "action_reward": 0.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "22_3",
+          "requestor": "assistant",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W9911714"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": false,
+        "action_reward": 0.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "22_4",
+          "requestor": "assistant",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W5733668"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": false,
+        "action_reward": 0.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "22_5",
+          "requestor": "assistant",
+          "name": "modify_pending_order_address",
+          "arguments": {
+            "order_id": "#W9911714",
+            "address1": "101 Highway",
+            "address2": "",
+            "city": "New York",
+            "state": "NY",
+            "country": "USA",
+            "zip": "10001"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": false,
+        "action_reward": 0.0,
+        "tool_type": "write"
+      },
+      {
+        "action": {
+          "action_id": "22_6",
+          "requestor": "assistant",
+          "name": "modify_user_address",
+          "arguments": {
+            "user_id": "ethan_garcia_1261",
+            "address1": "667 Highland Drive",
+            "address2": "Suite 865",
+            "city": "Denver",
+            "state": "CO",
+            "country": "USA",
+            "zip": "80280"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": false,
+        "action_reward": 0.0,
+        "tool_type": "write"
+      }
+    ],
+    "nl_assertions": null,
+    "communicate_checks": null,
+    "reward_basis": [
+      "DB"
+    ],
+    "reward_breakdown": {
+      "ACTION": 0.0
+    },
+    "info": null
+  },
+  "status": "EVALUATED",
+  "simulator_diagnostics": {
+    "capture_complete": true,
+    "capture_errors": [],
+    "calls": [
+      {
+        "call_id": "844e4486-4974-4451-b1e7-2b4e613a897f",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 25,
+            "prompt_tokens": 417,
+            "total_tokens": 442,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 25
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 384,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 384,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "4660d2fe-c37a-4124-b09f-ef0629786146",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 25,
+            "prompt_tokens": 473,
+            "total_tokens": 498,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 25
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 384,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 384,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "664f69a6-1428-41b4-8189-bc8a53cb22af",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 27,
+            "prompt_tokens": 529,
+            "total_tokens": 556,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 27
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 384,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 384,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "e7b2a397-a403-4940-9e7d-6ffd5c416dd9",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 33,
+            "prompt_tokens": 587,
+            "total_tokens": 620,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 33
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 512,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 512,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "7b32e298-a7ce-4aa8-9bbd-0b57424538e8",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 24,
+            "prompt_tokens": 651,
+            "total_tokens": 675,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 24
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 512,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 512,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "fca03138-772f-45ee-aac4-3d6e76e101ce",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 21,
+            "prompt_tokens": 708,
+            "total_tokens": 729,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 21
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 640,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 640,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "cdeaeb1c-4bf6-49a9-8137-ac20514945f7",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 25,
+            "prompt_tokens": 760,
+            "total_tokens": 785,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 25
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 640,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 640,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "ad979f27-a484-46ff-adc6-83509a4bcd2b",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 34,
+            "prompt_tokens": 816,
+            "total_tokens": 850,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 34
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 768,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 768,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "78f2af9f-ebde-40f4-8113-b0d64e21be02",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 20,
+            "prompt_tokens": 881,
+            "total_tokens": 901,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 20
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 768,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 768,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "276dc7ac-4b85-4e12-8080-4cd907edd660",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 38,
+            "prompt_tokens": 932,
+            "total_tokens": 970,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 38
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 896,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 896,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "caccf823-dd78-4c1a-be20-7198eab2ed79",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 16,
+            "prompt_tokens": 1033,
+            "total_tokens": 1049,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 16
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 896,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 896,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "6d776c23-662e-4b2d-9afd-028e39e787fe",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 24,
+            "prompt_tokens": 1093,
+            "total_tokens": 1117,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 24
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 1024,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 1024,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "7d73006e-69e5-44f9-88e8-4f4e25001be8",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 37,
+            "prompt_tokens": 1148,
+            "total_tokens": 1185,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 37
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 1024,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 1024,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "5d06c419-ee64-49e7-ae5c-cacebd570d9f",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 26,
+            "prompt_tokens": 1216,
+            "total_tokens": 1242,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 26
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 1152,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 1152,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "aa909d59-e98f-42e8-8021-44da21050845",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 26,
+            "prompt_tokens": 1273,
+            "total_tokens": 1299,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 26
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 1152,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 1152,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      }
+    ]
+  },
+  "target_trace": [
+    {
+      "turn": 1,
+      "input": "Hi, I need to update my address on my account and also for any orders I have. Can you help with that?",
+      "outcome": {
+        "code": "planning_invalid_provider_output",
+        "retryable": false,
+        "correlation_id": "invocation:v1:8e6fe4be64f6b15a0f9d509bd7cd847c44a74d38cee369a1d5db52b504e7f699",
+        "safe_message": "I could not complete this turn. Please contact support to check the saved processing records; do not resubmit the same business operation.",
+        "stages": [
+          {
+            "stage": "planning",
+            "status": "failed",
+            "detail": {
+              "code": "CONVERSATION_PROVIDER_OUTPUT_INVALID"
+            }
+          }
+        ],
+        "response_id": "publication:v1:5f97f50f4463d9320515396e87310e0dfd7864add665f54fc078976b1f0d3fa8"
+      }
+    },
+    {
+      "turn": 2,
+      "input": "Sorry, I didn’t catch that. Could you just help me update my address on my account and for any orders?",
+      "outcome": {
+        "code": "planning_invalid_provider_output",
+        "retryable": false,
+        "correlation_id": "invocation:v1:871e777ad313c0a3519b5ca20986ed6211d236f6f547ae5b227234afc38ceac7",
+        "safe_message": "I could not complete this turn. Please contact support to check the saved processing records; do not resubmit the same business operation.",
+        "stages": [
+          {
+            "stage": "planning",
+            "status": "failed",
+            "detail": {
+              "code": "CONVERSATION_PROVIDER_OUTPUT_INVALID"
+            }
+          }
+        ],
+        "response_id": "publication:v1:ac6ce42e0a3e530516087cdb23cfb52c00f3a39da26c679c31a48b0129c84e48"
+      }
+    },
+    {
+      "turn": 3,
+      "input": "I’m not sure what happened there. Can you just confirm if you can update my account address and any order addresses for me?",
+      "outcome": {
+        "code": "planning_invalid_provider_output",
+        "retryable": false,
+        "correlation_id": "invocation:v1:17dcd3a66ed9ff09ab409f7cf18f73ab80a088c0cfd19729eec63a60bd7aedd7",
+        "safe_message": "I could not complete this turn. Please contact support to check the saved processing records; do not resubmit the same business operation.",
+        "stages": [
+          {
+            "stage": "planning",
+            "status": "failed",
+            "detail": {
+              "code": "CONVERSATION_PROVIDER_OUTPUT_INVALID"
+            }
+          }
+        ],
+        "response_id": "publication:v1:76041d4f940954ac2c4893fc872708f073f133205c074975eff7337bf54d413e"
+      }
+    },
+    {
+      "turn": 4,
+      "input": "I think there might be a technical issue on your end. I just need to update my address on my account and for any orders. Can you help with that?",
+      "outcome": {
+        "code": "planning_invalid_provider_output",
+        "retryable": false,
+        "correlation_id": "invocation:v1:02fb756d1af4a6c47b4a653a8085b853bda691e5ed9e5c8a42808440f29286bd",
+        "safe_message": "I could not complete this turn. Please contact support to check the saved processing records; do not resubmit the same business operation.",
+        "stages": [
+          {
+            "stage": "planning",
+            "status": "failed",
+            "detail": {
+              "code": "CONVERSATION_PROVIDER_OUTPUT_INVALID"
+            }
+          }
+        ],
+        "response_id": "publication:v1:4ad0133f79161334dc51c74f9a92328d4d9cc5cc15bc01757173ba6c9cff10aa"
+      }
+    },
+    {
+      "turn": 5,
+      "input": "Is there someone else I can speak with? I just need to update my address on my account and for any orders.",
+      "outcome": {
+        "workflow_run_id": "workflow-run:v1:4971df774d160ba8de7b6a8c0071a4466bc4d27f7b2821c5169b8e328bc23726",
+        "signal_id": "interaction:v1:829c1cbe1c7a758fbbd7ff1d22694f2bf1e1b5276e523997835ce325dc2d8177",
+        "kind": "FIELDS",
+        "expires_at": "2026-09-16T03:53:44.016203+00:00",
+        "interaction_publication_id": "publication:v1:6f555150d15a1d96ef957e505ee0bd43195ae6d7c2552d3f7386a8d5de73fce9",
+        "stages": []
+      }
+    },
+    {
+      "turn": 6,
+      "input": "I actually don’t remember the email on my account. Is there another way you can verify me?",
+      "outcome": {
+        "code": "planning_invalid_provider_output",
+        "retryable": false,
+        "correlation_id": "invocation:v1:92411a863da1bb872def33e324b8031cf6962bf3783b83e9762790e1e49ba2b8",
+        "safe_message": "I could not complete this turn. Please contact support to check the saved processing records; do not resubmit the same business operation.",
+        "stages": [
+          {
+            "stage": "planning",
+            "status": "failed",
+            "detail": {
+              "code": "CONVERSATION_PROVIDER_OUTPUT_INVALID"
+            }
+          }
+        ],
+        "response_id": "publication:v1:ffc07b72e79699e35fe9679c486b49b466db210e4ceb4f2760fd902324767fc6"
+      }
+    },
+    {
+      "turn": 7,
+      "input": "I’m not sure why this keeps happening. Can you try looking me up by name? It’s Ethan Garcia.",
+      "outcome": {
+        "code": "planning_invalid_provider_output",
+        "retryable": false,
+        "correlation_id": "invocation:v1:98c60e1725adf4706b8af4e4fc5cf8c1b24c7e1f41fdb366c41548907b9a5062",
+        "safe_message": "I could not complete this turn. Please contact support to check the saved processing records; do not resubmit the same business operation.",
+        "stages": [
+          {
+            "stage": "planning",
+            "status": "failed",
+            "detail": {
+              "code": "CONVERSATION_PROVIDER_OUTPUT_INVALID"
+            }
+          }
+        ],
+        "response_id": "publication:v1:059575ce298b175d4fdcddf7ee7d2cec1e1639752472855dacf52be51d924f58"
+      }
+    },
+    {
+      "turn": 8,
+      "input": "I’m getting a bit frustrated here. Can you just check my account under Ethan Garcia and update my address to 101 Highway, New York, 10001?",
+      "outcome": {
+        "code": "planning_invalid_provider_output",
+        "retryable": false,
+        "correlation_id": "invocation:v1:c952e9951630ffbb718683db1f499bc3f351d494f2f763b7600979ba93497951",
+        "safe_message": "I could not complete this turn. Please contact support to check the saved processing records; do not resubmit the same business operation.",
+        "stages": [
+          {
+            "stage": "planning",
+            "status": "failed",
+            "detail": {
+              "code": "CONVERSATION_PROVIDER_OUTPUT_INVALID"
+            }
+          }
+        ],
+        "response_id": "publication:v1:0a452b75349fedc9c44fd24771aaa4cb7fe1f6c18587c708c5a4c9baf001a58e"
+      }
+    },
+    {
+      "turn": 9,
+      "input": "Is there another department or person I can talk to? I just need to get this address changed.",
+      "outcome": {
+        "code": "planning_invalid_provider_output",
+        "retryable": false,
+        "correlation_id": "invocation:v1:7c8f8e7ed61e50e37a6ca2275f9f666d95b77ad2396c312cf41abdbb5eee2f04",
+        "safe_message": "I could not complete this turn. Please contact support to check the saved processing records; do not resubmit the same business operation.",
+        "stages": [
+          {
+            "stage": "planning",
+            "status": "failed",
+            "detail": {
+              "code": "CONVERSATION_PROVIDER_OUTPUT_INVALID"
+            }
+          }
+        ],
+        "response_id": "publication:v1:2ea4b193bad84649355bc137e9b0611532350c30d550ba916e7ed7c23ec8b980"
+      }
+    },
+    {
+      "verification": {
+        "status": "pass",
+        "grounded": true,
+        "need_escalation": false,
+        "reason": "answer supported and request addressed",
+        "reason_code": "passed",
+        "assessment": {
+          "request_hash": "475538e5c5ca050c12742d730bf5cb30fc0e78d2e1c9be52555624f000545169",
+          "supported": true,
+          "answered": true,
+          "approval_terms_complete": false,
+          "issues": []
+        },
+        "request_binding": "15f9101f73d5a94963d117e91c43c0682e286cb859f1ff3db883ab227de6dbfb"
+      },
+      "candidate": "I'd be happy to help you update your address. To verify your account, I need to look you up by name and zip code. Could you please provide the zip code associated with your account? (I'll need your first name, last name, and zip code to locate your profile.)"
+    },
+    {
+      "turn": 10,
+      "input": "I’m not sure what’s going on, but I really need help with this. Can you please just update my address to 101 Highway, New York, 10001?",
+      "outcome": {
+        "response_id": "publication:v1:99f0201576a4f5335c37e1918e2621a2803830b62080ef7ed67eb52b75ca2568",
+        "response": {
+          "intent": "CONVERSATION_RESPONSE",
+          "conv_id": "tau3-4f9b2fbab6064f24b05e0bfc83b74de3",
+          "coverage": {
+            "complete": true,
+            "missing_requirement_ids": []
+          },
+          "grounded": true,
+          "response": "I'd be happy to help you update your address. To verify your account, I need to look you up by name and zip code. Could you please provide the zip code associated with your account? (I'll need your first name, last name, and zip code to locate your profile.)",
+          "verified": true,
+          "escalated": false,
+          "execution": "WAITING",
+          "task_plan": {
+            "plan_id": "turn-plan:v1:39d22c9b9e0028e3d5bdaf82173b26cb7895e5a4a9f10122b33596f196fed5ef",
+            "work_item_ids": []
+          },
+          "ticket_id": null,
+          "agent_type": "general",
+          "latency_ms": 3784.660615026951,
+          "request_id": "turn-10",
+          "agent_types": [],
+          "response_id": "publication:v1:99f0201576a4f5335c37e1918e2621a2803830b62080ef7ed67eb52b75ca2568",
+          "intent_group": "other",
+          "response_seq": 10,
+          "primary_agent": "",
+          "ticket_status": null,
+          "agent_outcomes": [],
+          "bundle_version": "tau3-retail-v1",
+          "routing_reason": "CONVERSATION_RESPONSE",
+          "task_completed": false,
+          "delivery_status": "selected",
+          "handoff_created": false,
+          "evaluation_trace": {
+            "cost": {
+              "latency_ms": 3784.660615026951,
+              "work_item_count": 0,
+              "conversation_planner_invoked": true
+            },
+            "outcome": {
+              "kind": "COMPLETED",
+              "task_completed": false,
+              "verifier_status": "PASS",
+              "coverage_complete": true,
+              "missing_requirement_ids": []
+            },
+            "trigger": {
+              "invocation_admitted": true,
+              "deterministic_resolution": "REPLY_PENDING_INPUT"
+            },
+            "artifact": {
+              "plan_id": "turn-plan:v1:39d22c9b9e0028e3d5bdaf82173b26cb7895e5a4a9f10122b33596f196fed5ef",
+              "owner_ids": [],
+              "route_mode": "RESPONSE",
+              "registry_fingerprint": "capability-bundle:v1:710655f63f80c3e6cda102a539dd5fd96f113e9be780e8f8feb08ca53dbb37db",
+              "understanding_reason": "CONVERSATION_RESPONSE"
+            },
+            "consumption": {
+              "facts": [],
+              "work_items": [],
+              "result_statuses": []
+            },
+            "schema_version": "target-evaluation-trace-v1",
+            "state_side_effect": {
+              "state_version_after": 2,
+              "workstream_statuses": [],
+              "state_version_before": 2,
+              "committed_receipt_refs": []
+            }
+          },
+          "synthesis_reason": "ANSWER_SUPPORT_CHECKED",
+          "synthesis_status": "conversation_compose",
+          "supporting_agents": [],
+          "routing_disposition": "response",
+          "synthesis_conflicts": [],
+          "verification_status": "pass",
+          "verification_reason_code": "ANSWER_SUPPORT_CHECKED"
+        },
+        "stages": []
+      }
+    },
+    {
+      "turn": 11,
+      "input": "Sure, my name is Ethan Garcia and the zip code is 80280.",
+      "outcome": {
+        "response_id": "publication:v1:d568b7adb58c530716d544f446283a96ed575ffebc4426bc32d8225ad6bcd55d",
+        "response": {
+          "intent": "CONVERSATION_AGENT_PLAN",
+          "conv_id": "tau3-4f9b2fbab6064f24b05e0bfc83b74de3",
+          "coverage": {
+            "complete": true,
+            "missing_requirement_ids": []
+          },
+          "grounded": false,
+          "response": "I could not finish the remaining steps. Completed results are preserved below.\nThis request: More information is needed to continue.\nThe detailed reply could not be verified.\nThe detailed reply could not be verified.",
+          "verified": false,
+          "escalated": false,
+          "execution": "WAITING",
+          "task_plan": {
+            "plan_id": "turn-plan:v1:7f122506d4db73c5d1b5a33333099d34860af4d4027d70436d2111c129d9f17d",
+            "work_item_ids": [
+              "work:invocation:v1:d7f8e992ac2e7722df10fb3a56e1857310ec23c535a91520050a6741d724aa97:step:0:1:semantic-1",
+              "work:invocation:v1:49340bf673be88ba142941de6426276439bb318c3193efe20f5840067eb8407f:step:0:1:atomic:call_00_ko89UA4ppRvNEubFJG1W5484",
+              "work:invocation:v1:49340bf673be88ba142941de6426276439bb318c3193efe20f5840067eb8407f:step:1:1:atomic:call_00_LYGt4Z88zxrDyuI5FlDh5407"
+            ]
+          },
+          "ticket_id": null,
+          "agent_type": "retail",
+          "latency_ms": 11005.935614928603,
+          "request_id": "turn-11",
+          "agent_types": [
+            "retail"
+          ],
+          "response_id": "publication:v1:d568b7adb58c530716d544f446283a96ed575ffebc4426bc32d8225ad6bcd55d",
+          "intent_group": "retail",
+          "response_seq": 11,
+          "primary_agent": "retail",
+          "ticket_status": null,
+          "agent_outcomes": [
+            {
+              "status": "NEEDS_USER_INPUT",
+              "control": {
+                "revision": 1,
+                "control_id": "control:invocation:v1:d7f8e992ac2e7722df10fb3a56e1857310ec23c535a91520050a6741d724aa97:step:0:semantic-1"
+              },
+              "owner_agent": "retail",
+              "reason_code": "FRAMEWORK_AGENT_NEEDS_USER_INPUT",
+              "work_item_id": "work:invocation:v1:d7f8e992ac2e7722df10fb3a56e1857310ec23c535a91520050a6741d724aa97:step:0:1:semantic-1"
+            },
+            {
+              "status": "SUCCEEDED",
+              "control": {
+                "revision": 1,
+                "control_id": "control:invocation:v1:49340bf673be88ba142941de6426276439bb318c3193efe20f5840067eb8407f:step:0:atomic:call_00_ko89UA4ppRvNEubFJG1W5484"
+              },
+              "owner_agent": "retail",
+              "reason_code": "TOOL_REQUIREMENTS_SATISFIED",
+              "work_item_id": "work:invocation:v1:49340bf673be88ba142941de6426276439bb318c3193efe20f5840067eb8407f:step:0:1:atomic:call_00_ko89UA4ppRvNEubFJG1W5484"
+            },
+            {
+              "status": "SUCCEEDED",
+              "control": {
+                "revision": 1,
+                "control_id": "control:invocation:v1:49340bf673be88ba142941de6426276439bb318c3193efe20f5840067eb8407f:step:1:atomic:call_00_LYGt4Z88zxrDyuI5FlDh5407"
+              },
+              "owner_agent": "retail",
+              "reason_code": "TOOL_REQUIREMENTS_SATISFIED",
+              "work_item_id": "work:invocation:v1:49340bf673be88ba142941de6426276439bb318c3193efe20f5840067eb8407f:step:1:1:atomic:call_00_LYGt4Z88zxrDyuI5FlDh5407"
+            }
+          ],
+          "bundle_version": "tau3-retail-v1",
+          "routing_reason": "CONVERSATION_AGENT_PLAN",
+          "task_completed": false,
+          "delivery_status": "selected",
+          "handoff_created": false,
+          "evaluation_trace": {
+            "cost": {
+              "latency_ms": 11005.935614928603,
+              "work_item_count": 3,
+              "conversation_planner_invoked": true
+            },
+            "outcome": {
+              "kind": "COMPLETED",
+              "task_completed": false,
+              "verifier_status": "NOT_CHECKED",
+              "coverage_complete": true,
+              "missing_requirement_ids": []
+            },
+            "trigger": {
+              "invocation_admitted": true,
+              "deterministic_resolution": "UNRESOLVED"
+            },
+            "artifact": {
+              "plan_id": "turn-plan:v1:7f122506d4db73c5d1b5a33333099d34860af4d4027d70436d2111c129d9f17d",
+              "owner_ids": [
+                "retail"
+              ],
+              "route_mode": "DIRECT",
+              "registry_fingerprint": "capability-bundle:v1:710655f63f80c3e6cda102a539dd5fd96f113e9be780e8f8feb08ca53dbb37db",
+              "understanding_reason": "CONVERSATION_AGENT_PLAN"
+            },
+            "consumption": {
+              "facts": [
+                {
+                  "source_ref": "work:invocation:v1:49340bf673be88ba142941de6426276439bb318c3193efe20f5840067eb8407f:step:0:1:atomic:call_00_ko89UA4ppRvNEubFJG1W5484:1:find_user_id_by_name_zip",
+                  "producer_id": "find_user_id_by_name_zip",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.find_user_id_by_name_zip",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "work:invocation:v1:49340bf673be88ba142941de6426276439bb318c3193efe20f5840067eb8407f:step:1:1:atomic:call_00_LYGt4Z88zxrDyuI5FlDh5407:1:get_user_details",
+                  "producer_id": "get_user_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_user_details",
+                  "producer_version": "tool-output-v1"
+                }
+              ],
+              "work_items": [
+                {
+                  "control": {
+                    "revision": 1,
+                    "control_id": "control:invocation:v1:d7f8e992ac2e7722df10fb3a56e1857310ec23c535a91520050a6741d724aa97:step:0:semantic-1"
+                  },
+                  "owner_agent": "retail",
+                  "control_mode": "DELEGATED",
+                  "work_item_id": "work:invocation:v1:d7f8e992ac2e7722df10fb3a56e1857310ec23c535a91520050a6741d724aa97:step:0:1:semantic-1",
+                  "allowed_tools": [
+                    "calculate",
+                    "find_user_id_by_name_zip",
+                    "find_user_id_by_email",
+                    "get_order_details",
+                    "get_product_details",
+                    "get_item_details",
+                    "get_user_details",
+                    "list_all_product_types",
+                    "transfer_to_human_agents",
+                    "read_conversation_observation"
+                  ],
+                  "allowed_skills": []
+                },
+                {
+                  "control": {
+                    "revision": 1,
+                    "control_id": "control:invocation:v1:49340bf673be88ba142941de6426276439bb318c3193efe20f5840067eb8407f:step:0:atomic:call_00_ko89UA4ppRvNEubFJG1W5484"
+                  },
+                  "owner_agent": "retail",
+                  "control_mode": "DIRECT",
+                  "work_item_id": "work:invocation:v1:49340bf673be88ba142941de6426276439bb318c3193efe20f5840067eb8407f:step:0:1:atomic:call_00_ko89UA4ppRvNEubFJG1W5484",
+                  "allowed_tools": [
+                    "find_user_id_by_name_zip"
+                  ],
+                  "allowed_skills": []
+                },
+                {
+                  "control": {
+                    "revision": 1,
+                    "control_id": "control:invocation:v1:49340bf673be88ba142941de6426276439bb318c3193efe20f5840067eb8407f:step:1:atomic:call_00_LYGt4Z88zxrDyuI5FlDh5407"
+                  },
+                  "owner_agent": "retail",
+                  "control_mode": "DIRECT",
+                  "work_item_id": "work:invocation:v1:49340bf673be88ba142941de6426276439bb318c3193efe20f5840067eb8407f:step:1:1:atomic:call_00_LYGt4Z88zxrDyuI5FlDh5407",
+                  "allowed_tools": [
+                    "get_user_details"
+                  ],
+                  "allowed_skills": []
+                }
+              ],
+              "result_statuses": [
+                "NEEDS_USER_INPUT",
+                "SUCCEEDED",
+                "SUCCEEDED"
+              ]
+            },
+            "schema_version": "target-evaluation-trace-v1",
+            "state_side_effect": {
+              "state_version_after": 4,
+              "workstream_statuses": [],
+              "state_version_before": 3,
+              "committed_receipt_refs": []
+            }
+          },
+          "synthesis_reason": "composition_model:ConversationProviderOutputError",
+          "synthesis_status": "template",
+          "supporting_agents": [],
+          "routing_disposition": "direct",
+          "synthesis_conflicts": [],
+          "verification_status": "not_checked",
+          "verification_reason_code": "composition_model:ConversationProviderOutputError"
+        },
+        "stages": [
+          {
+            "stage": "planning_observation",
+            "status": "failed",
+            "detail": {
+              "code": "CONVERSATION_PROVIDER_OUTPUT_INVALID",
+              "exception_chain": [
+                {
+                  "type": "PlanningUnavailable",
+                  "frames": [
+                    {
+                      "file": "/home/yang/DialogPilot/application/turn_runtime.py",
+                      "line": 151,
+                      "function": "_plan_observation"
+                    },
+                    {
+                      "file": "/home/yang/DialogPilot/application/target_conversation_manager.py",
+                      "line": 443,
+                      "function": "prepare_observation"
+                    },
+                    {
+                      "file": "/home/yang/DialogPilot/application/turn_planning.py",
+                      "line": 746,
+                      "function": "compile"
+                    }
+                  ],
+                  "message": "CONVERSATION_PROVIDER_OUTPUT_INVALID"
+                }
+              ]
+            }
+          },
+          {
+            "stage": "composition_model",
+            "status": "failed",
+            "detail": {
+              "code": "ConversationProviderOutputError",
+              "retryable": false,
+              "exception_chain": [
+                {
+                  "type": "ConversationProviderOutputError",
+                  "frames": [
+                    {
+                      "file": "/home/yang/DialogPilot/application/response_assembly.py",
+                      "line": 359,
+                      "function": "_assemble_candidate"
+                    },
+                    {
+                      "file": "/home/yang/DialogPilot/application/conversation_agent.py",
+                      "line": 222,
+                      "function": "compose"
+                    },
+                    {
+                      "file": "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py",
+                      "line": 133,
+                      "function": "compose"
+                    }
+                  ],
+                  "message": "planning_requires_action"
+                },
+                {
+                  "type": "ValueError",
+                  "frames": [
+                    {
+                      "file": "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py",
+                      "line": 131,
+                      "function": "compose"
+                    },
+                    {
+                      "file": "/home/yang/DialogPilot/application/conversation_actions.py",
+                      "line": 263,
+                      "function": "action_proposal"
+                    }
+                  ],
+                  "message": "planning_requires_action"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "turn": 12,
+      "input": "Okay, so can you go ahead and update my address to 101 Highway, New York, 10001 now?",
+      "outcome": {
+        "code": "planning_invalid_provider_output",
+        "retryable": false,
+        "correlation_id": "invocation:v1:abc68d3c317e19c90be4e1290ab456ad7f8740bbeaac46b7ef49462b517e29c8",
+        "safe_message": "I could not complete this turn. Please contact support to check the saved processing records; do not resubmit the same business operation.",
+        "stages": [
+          {
+            "stage": "planning",
+            "status": "failed",
+            "detail": {
+              "code": "CONVERSATION_PROVIDER_OUTPUT_INVALID"
+            }
+          }
+        ],
+        "response_id": "publication:v1:2a072d78da92c39b9581523a0e08f90224be66e47ad891978e03b51b7ffa9f24"
+      }
+    },
+    {
+      "turn": 13,
+      "input": "I’m really not sure what’s happening with your system. Can you just confirm if you’ve updated my address to 101 Highway, New York, 10001?",
+      "outcome": {
+        "code": "planning_invalid_provider_output",
+        "retryable": false,
+        "correlation_id": "invocation:v1:c7b50fc3667f6d92cc1564bd92a17f77a78feac82ca37298df926783fd66bdaf",
+        "safe_message": "I could not complete this turn. Please contact support to check the saved processing records; do not resubmit the same business operation.",
+        "stages": [
+          {
+            "stage": "planning",
+            "status": "failed",
+            "detail": {
+              "code": "CONVERSATION_PROVIDER_OUTPUT_INVALID"
+            }
+          }
+        ],
+        "response_id": "publication:v1:18e9f51f113b90654798615c3a0f1fb97cec69f815610e0c1741c876a553a6fa"
+      }
+    },
+    {
+      "turn": 14,
+      "input": "I think there’s a problem with your chat system. Is there another way I can reach support to get this address changed?",
+      "outcome": {
+        "code": "planning_invalid_provider_output",
+        "retryable": false,
+        "correlation_id": "invocation:v1:665735909ae67076077ab15b7077440a02f6d23cc47cf592c13bdd445b00b473",
+        "safe_message": "I could not complete this turn. Please contact support to check the saved processing records; do not resubmit the same business operation.",
+        "stages": [
+          {
+            "stage": "planning",
+            "status": "failed",
+            "detail": {
+              "code": "CONVERSATION_PROVIDER_OUTPUT_INVALID"
+            }
+          }
+        ],
+        "response_id": "publication:v1:91435bb50db6cbf5c8440a8af7ee7468f9c11dcf53116564e7f7f5695de30180"
+      }
+    }
+  ]
+}

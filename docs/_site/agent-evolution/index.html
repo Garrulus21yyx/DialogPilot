@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+  <!-- 覆盖 Minima 2.5 的 head，以显式接入教程交互和 Mermaid。 -->
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111c28"><!-- Begin Jekyll SEO tag v2.9.0 -->
+<title>Agent 进化闭环 | DialogPilot 完整架构教程</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="Agent 进化闭环" />
+<meta property="og:locale" content="zh_CN" />
+<meta name="description" content="Python 多 Agent 客服后端的架构、链路、内部实现、改造记录与项目追问" />
+<meta name="twitter:description" property="og:description" content="Python 多 Agent 客服后端的架构、链路、内部实现、改造记录与项目追问" />
+<meta property="og:site_name" content="DialogPilot 完整架构教程" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Agent 进化闭环" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"Python 多 Agent 客服后端的架构、链路、内部实现、改造记录与项目追问","headline":"Agent 进化闭环","url":"/DialogPilot/agent-evolution/"}</script>
+<!-- End Jekyll SEO tag -->
+<!-- 每次 Pages 构建生成新版本号，避免浏览器继续使用旧 CSS/JS。 -->
+  <link rel="icon" href="/DialogPilot/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/DialogPilot/assets/main.css?v=1788371868"><link type="application/atom+xml" rel="alternate" href="/DialogPilot/feed.xml" title="DialogPilot 完整架构教程" /><!-- defer 保证 Mermaid 先定义，页面增强脚本随后在 DOM 解析完成后运行。 -->
+  <script defer src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <script defer src="/DialogPilot/assets/dialogpilot.js?v=1788371868"></script>
+</head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/DialogPilot/">DialogPilot 完整架构教程</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/DialogPilot/interview-guide.html">DialogPilot 面经校准与追问手册</a><a class="page-link" href="/DialogPilot/architecture.html">架构边界与职责归属</a><a class="page-link" href="/DialogPilot/project-pitch.html">项目讲述与技术取舍</a><a class="page-link" href="/DialogPilot/agent-evolution/">Agent 进化闭环</a><a class="page-link" href="/DialogPilot/evaluation-500/">500 条分层评测：设计与运行</a><a class="page-link" href="/DialogPilot/rag-pipeline-evaluation/">客服 RAG 全链路评测</a><a class="page-link" href="/DialogPilot/customer-service-rag-production-audit/">客服 RAG 生产化审计</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <h1 id="agent-进化闭环从-bad-case-到可复现候选">Agent 进化闭环：从 Bad Case 到可复现候选</h1>
+
+<blockquote>
+  <p>当前项目没有生产流量，也不保留已删除的 Shadow/Canary/promotion/rollback 运行时。这里的“进化”是受控离线工程闭环：绑定真实 response 与 trace，完成归因，生成不可变候选，在 Dev 上比较并用 fresh evidence 复核；是否替换本地 Active binding 是显式工程决定。</p>
+</blockquote>
+
+<h2 id="快速导航">快速导航</h2>
+
+<ul>
+  <li>想理解边界：读“为什么不能在线自改”和“当前支持的闭环”。</li>
+  <li>想看 Owner：读“事实归属”和“不可变候选”。</li>
+  <li>想看验收：读“分层评测”和“替换门禁”。</li>
+  <li>想准备面试：读“可讲与不可讲”。</li>
+</ul>
+
+<h2 id="1-为什么不能让-agent-在线自改">1. 为什么不能让 Agent 在线自改</h2>
+
+<p>一次失败可能来自意图、路由、上下文、检索、工具、证据覆盖、生成、发布或连接器。若失败后直接改 Prompt，系统同时破坏三件事：</p>
+
+<ol>
+  <li>Credit assignment：不知道哪一层应负责；</li>
+  <li>Reproducibility：线上状态无法复现；</li>
+  <li>Safety：候选可能用平均质量换来越权或重复副作用。</li>
+</ol>
+
+<p>运行链只产事实与反馈；学习链只产候选和评测证据。候选不得在处理同一用户请求时改写当前执行版本。</p>
+
+<h2 id="2-当前支持的闭环">2. 当前支持的闭环</h2>
+
+<pre><code class="language-mermaid">flowchart LR
+    R[Published response_id] --&gt; F[Feedback / bad case]
+    T[Sanitized trace + owner state] --&gt; A[Attribution]
+    F --&gt; A
+    A --&gt; D[Dataset / rubric update]
+    D --&gt; C[Immutable candidate bundle]
+    C --&gt; E[Dev + invariant evaluation]
+    E --&gt; H[Fresh held-out / independent review]
+    H --&gt;|accepted| B[Explicit local binding replacement]
+    H --&gt;|rejected| X[Archive evidence]
+</code></pre>
+
+<p>正向合同是：</p>
+
+<ul>
+  <li>Feedback 必须绑定真实 <code class="language-plaintext highlighter-rouge">response_id</code>，不能只有一段脱离运行身份的评论。</li>
+  <li>Trace 和 Owner state 只用于归因，不成为业务事实的新 Owner。</li>
+  <li>数据修改保留来源、split、review 状态和 manifest fingerprint。</li>
+  <li>候选配置内容寻址、不可变；一次报告固定 candidate fingerprint。</li>
+  <li>Dev 用于开发选择；fresh heldout 和独立复核用于反驳过拟合。</li>
+  <li>安全与副作用是零容忍切片，不能被平均分抵消。</li>
+</ul>
+
+<h2 id="3-事实归属与组件边界">3. 事实归属与组件边界</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>关注点</th>
+      <th>Owner</th>
+      <th>当前边界</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>用户反馈</td>
+      <td>Feedback service</td>
+      <td>绑定 response/prediction identity</td>
+    </tr>
+    <tr>
+      <td>Bad Case 生命周期</td>
+      <td>BadCaseRegistry</td>
+      <td>本地持久元数据，不是生产事件平台</td>
+    </tr>
+    <tr>
+      <td>失败归因</td>
+      <td><code class="language-plaintext highlighter-rouge">services/evolution/attribution.py</code></td>
+      <td>输出受支持 surface；未知归因显式保留</td>
+    </tr>
+    <tr>
+      <td>Bundle 内容</td>
+      <td>AgentBundle / registry</td>
+      <td>不可变、带 fingerprint；metadata 当前为本地 store</td>
+    </tr>
+    <tr>
+      <td>执行版本引用</td>
+      <td>Admission / active bundle selector</td>
+      <td>Invocation 固定引用；处理中不漂移</td>
+    </tr>
+    <tr>
+      <td>Dataset 身份</td>
+      <td>manifest + case source/review</td>
+      <td>provisional、consumed、fresh 状态不可互换</td>
+    </tr>
+    <tr>
+      <td>运行结果</td>
+      <td>ChatApplication + Owner probes</td>
+      <td>评测与服务调用相同应用边界</td>
+    </tr>
+    <tr>
+      <td>晋级判断</td>
+      <td>人工工程决策 + 可复现报告</td>
+      <td>当前无生产 rollout API</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="4-attribution先定位权威缺口">4. Attribution：先定位权威缺口</h2>
+
+<p>归因不是给 Bad Case 加一个宽泛标签。至少要区分：</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">intent / request_shape</code>：入口理解错误；</li>
+  <li><code class="language-plaintext highlighter-rouge">route / owner / dependency</code>：RouteDecision 或 TaskGraph 错误；</li>
+  <li><code class="language-plaintext highlighter-rouge">context / memory</code>：当前任务取错历史或预算；</li>
+  <li><code class="language-plaintext highlighter-rouge">retrieval / evidence</code>：候选、选择、packing 或 provenance 错误；</li>
+  <li><code class="language-plaintext highlighter-rouge">tool_authority / tool_effect</code>：权限、receipt 或副作用状态错误；</li>
+  <li><code class="language-plaintext highlighter-rouge">generation / coverage / verification</code>：主张无证据或发布资格错误；</li>
+  <li><code class="language-plaintext highlighter-rouge">publication / delivery / handoff</code>：最终事实、ACK 或服务连续性错误；</li>
+  <li><code class="language-plaintext highlighter-rouge">harness / label / environment</code>：评测器、标签或环境本身错误。</li>
+</ul>
+
+<p>只有确认 authoritative fact、producer、consumer 和被破坏的不变量后，才修改 Owner 或转换边界。为了让一个 case 过而在报告器中补特殊分支，不算修复。</p>
+
+<h2 id="5-不可变候选与版本固定">5. 不可变候选与版本固定</h2>
+
+<p>一个候选至少固定：</p>
+
+<ul>
+  <li>Prompt / policy / route registry 版本；</li>
+  <li>模型 profile 与关键参数；</li>
+  <li>Tool manifest 与 authority policy；</li>
+  <li>Retrieval generation、query、rank、packing 配置；</li>
+  <li>Dataset/rubric 版本和代码 commit；</li>
+  <li>预算、超时与 fail-closed 语义。</li>
+</ul>
+
+<p>Invocation 在 Admission 时固定引用。这样同一次请求、trace 和报告可以回答“究竟运行了哪组策略”，而不是事后读取已经变化的全局配置。</p>
+
+<h2 id="6-分层评测不用一个总分掩盖问题">6. 分层评测，不用一个总分掩盖问题</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>层</th>
+      <th>优先事实</th>
+      <th>合适的判定方式</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Intent / Route</td>
+      <td>label、mode、owner、task graph</td>
+      <td>确定性 grader + slice metrics</td>
+    </tr>
+    <tr>
+      <td>Retrieval</td>
+      <td>source/span、Recall、MRR、nDCG</td>
+      <td>固定 corpus 与 manifest</td>
+    </tr>
+    <tr>
+      <td>Tool</td>
+      <td>allowlist、arguments、receipt、effect</td>
+      <td>状态机 / invariant tests</td>
+    </tr>
+    <tr>
+      <td>Publication</td>
+      <td>publication count、kind、response seq</td>
+      <td>Owner state probe</td>
+    </tr>
+    <tr>
+      <td>Handoff / Commitment</td>
+      <td>typed transition、event、outbox</td>
+      <td>状态机与持久集成测试</td>
+    </tr>
+    <tr>
+      <td>Answer quality</td>
+      <td>relevance、correctness、completeness</td>
+      <td>人工校准后的 semantic scorer</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>LLM Judge 故障必须显式记录，不能回填中性分后当作通过。已参与定位和修复的 heldout 要降级为 consumed regression；再次声明泛化需要新的、未见的 reviewer evidence。</p>
+
+<h2 id="7-本地替换门禁">7. 本地替换门禁</h2>
+
+<p>候选替换当前本地 binding 前，应同时满足：</p>
+
+<ol>
+  <li>目标 slice 在 Dev 上改善，且报告固定完整 fingerprint；</li>
+  <li>身份隔离、OOS、未审批写工具、重复副作用、无证据发布等零容忍项全部通过；</li>
+  <li>相关 Owner、异常路径、projection 和文档合同同步迁移；</li>
+  <li>fresh heldout 或独立 reviewer 没有发现同一不变量的新反例；</li>
+  <li>机器报告、实现、文档和当前 binding 一致；</li>
+  <li>替换后删除被取代的旧路径，保持单一运行时。</li>
+</ol>
+
+<p>当前没有生产流量，所以这里不伪造 5%/25% 流量阶段。未来若有真实线上流量，应另立 rollout ADR，明确 cohort、指标窗口、回退条件和状态 Owner。</p>
+
+<h2 id="8-当前可复现证据">8. 当前可复现证据</h2>
+
+<ul>
+  <li>500 条 fixture 固定 Intent、Routing、Retrieval 和 Stateful 四层，但仍含 provisional 标签。</li>
+  <li>Service-chain v2 以 11 个执行层和确定性 rubric 检查 Owner、工具、publication、handoff 和 delivery。</li>
+  <li><code class="language-plaintext highlighter-rouge">ChatApplicationRunner</code> 调用与服务相同的应用边界，并采集 typed stages 与 Owner state。</li>
+  <li>本地 E2E 报告覆盖真实 JWT、PostgreSQL、Redis、L1/L2、Commitment、Trace 和 restore。</li>
+  <li>pytest 覆盖 bundle fingerprint、active selector、attribution、route policy、权限和状态机不变量。</li>
+</ul>
+
+<p>具体口径见<a href="/DialogPilot/evaluation-500/">500 条分层评测</a>与<a href="/DialogPilot/rag-pipeline-evaluation/">客服 RAG 全链路评测</a>。</p>
+
+<h2 id="9-可讲与不可讲">9. 可讲与不可讲</h2>
+
+<p>可以说：</p>
+
+<blockquote>
+  <p>我把 Agent 学习闭环设计为运行与候选分离：反馈绑定真实 response，trace 支持分层归因；候选 bundle 不可变，评测调用同一 ChatApplication，并用安全不变量、Dev 和 fresh evidence 决定是否显式替换本地 binding。</p>
+</blockquote>
+
+<p>不能说：</p>
+
+<ul>
+  <li>“Agent 会在线自动改 Prompt”——没有，也不应让当前请求修改自己。</li>
+  <li>“已上线 Shadow/Canary 自动回滚”——旧模拟已删除，当前没有生产流量。</li>
+  <li>“500 条都是 Gold”——当前含 auto-mapped/provisional 和 consumed regression。</li>
+  <li>“总分上升就能发布”——权限、副作用、证据和发布门禁是硬约束。</li>
+  <li>“Langfuse 是事实库”——它是可选观测出口，PostgreSQL Owner 不变。</li>
+</ul>
+
+<h2 id="10-面试连续追问">10. 面试连续追问</h2>
+
+<h3 id="q1为什么不能-bad-case-一出现就改-prompt">Q1：为什么不能 Bad Case 一出现就改 Prompt？</h3>
+
+<p>因为失败层尚未确定，而且没有固定数据、版本和安全回归。应先用 response/trace/Owner state 归因，再在离线候选上验证。</p>
+
+<h3 id="q2为什么-bundle-必须不可变">Q2：为什么 Bundle 必须不可变？</h3>
+
+<p>否则 Invocation、评测报告和线上复盘引用的是同名不同内容，无法复现，也无法判断回归属于模型、策略还是数据。</p>
+
+<h3 id="q3怎样避免评测器偷看答案">Q3：怎样避免评测器偷看答案？</h3>
+
+<p>Runner 只接收运行请求，fixture 不暴露 expected；grader 在运行结束后读取 typed outcome、trace 和 Owner probe 与 rubric 比较。</p>
+
+<h3 id="q4为何不用平均总分决定替换">Q4：为何不用平均总分决定替换？</h3>
+
+<p>一次越权写、重复退款或无证据发布不能由许多普通问题的高分抵消。零容忍 slice 必须独立通过。</p>
+
+<h3 id="q5为什么当前不用-canary">Q5：为什么当前不用 Canary？</h3>
+
+<p>项目没有真实线上流量，也没有需要迁移的旧数据。直接替换并删除旧 binding 更诚实、更简单；未来生产 rollout 需要新的事实和 ADR。</p>
+
+<h3 id="q6如何证明一次修复已经收敛">Q6：如何证明一次修复已经收敛？</h3>
+
+<p>用一个因果模型解释已知缺陷，在 Owner 层关闭不变量，并通过属性/状态机测试、fresh adversarial cases 和独立复核，而不是每遇到一个例子就增加一个分支。</p>
+
+<h2 id="11-一条-bad-case-的实际处理链">11. 一条 Bad Case 的实际处理链</h2>
+
+<p>以“用户问退款进度，系统引用退款政策后直接说已到账”为例：</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>response_id / request_id / trace_id
+→ 查 RouteDecision：mixed 还是 knowledge_qa
+→ 查 FactRequirement：是否要求 refund_state
+→ 查 Tool receipt：是否真的调用退款状态 Owner
+→ 查 EvidencePack：政策证据是否只证明规则
+→ 查 Coverage：为何缺少业务 receipt 仍 complete
+→ 查 Verifier：claim-authority 是否被错误放行
+→ 定位根因 Owner
+→ 生成最小候选
+→ owner tests + service-chain regression + fresh cases
+→ 显式替换 binding 或拒绝候选
+</code></pre></div></div>
+
+<p>若 Route 被误判成纯知识，修复 RequestShape/AuthorityPolicy；若 Route 正确但 Agent 未调用工具，修复 task formation 或 tool contract；若 receipt 缺失但 Coverage 通过，修复 RequirementCoverage；若所有前序正确而 Verifier 放行无依据 claim，才修复发布门禁。不能看到“回答错”就默认改 Prompt。</p>
+
+<h2 id="12-proposal-能改什么不能改什么">12. Proposal 能改什么，不能改什么</h2>
+
+<p>候选面应是闭合白名单：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>可候选化</th>
+      <th>例子</th>
+      <th>必须固定的证据</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Prompt/Few-shot</td>
+      <td>Intent 边界、Worker 表达</td>
+      <td>base bundle、patch、case group</td>
+    </tr>
+    <tr>
+      <td>Routing policy</td>
+      <td>阈值、领域映射</td>
+      <td>route registry 与受影响 slice</td>
+    </tr>
+    <tr>
+      <td>Retrieval policy</td>
+      <td>weights、top-k、packing</td>
+      <td>generation、manifest、消融报告</td>
+    </tr>
+    <tr>
+      <td>Tool description</td>
+      <td>参数说明、返回 schema 提示</td>
+      <td>registry/schema fingerprint</td>
+    </tr>
+    <tr>
+      <td>Model policy</td>
+      <td>角色模型与 reasoning</td>
+      <td>成本、延迟、质量对照</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>权限、JWT、审批规则、PII redaction、Gold 标签、Verifier hard gate、业务 receipt 定义不能由 Proposal 自动修改。需要改变这些内容时，应作为代码/治理变更由 Owner 审阅，而不是包装成“Agent 自进化”。</p>
+
+<h2 id="13-candidaterunner-的逐步合同">13. CandidateRunner 的逐步合同</h2>
+
+<ol>
+  <li>读取 immutable base bundle，验证 candidate <code class="language-plaintext highlighter-rouge">base_version</code>；</li>
+  <li>应用白名单 patch，并拒绝未知字段、空变化和重复候选；</li>
+  <li>生成内容 fingerprint，同名不同内容失败；</li>
+  <li>固定 dataset manifest、commit、model/retrieval/tool refs；</li>
+  <li>运行确定性 hard gates；</li>
+  <li>运行 Intent/Route/Retrieval/Stateful/Service-chain 分层评测；</li>
+  <li>记录每个 case 的原始 typed outcome，不只存聚合分；</li>
+  <li>计算质量、延迟与 cost proxy 的 Pareto 关系；</li>
+  <li>用 fresh evidence 或独立 reviewer 反驳候选；</li>
+  <li>输出 accept/reject/insufficient-evidence，不自行改 Active。</li>
+</ol>
+
+<p><code class="language-plaintext highlighter-rouge">insufficient-evidence</code> 不是失败异常，而是重要结论：样本太少或 judge 不可用时不能做发布决定。</p>
+
+<h2 id="14-与当前运行链的接点">14. 与当前运行链的接点</h2>
+
+<p>Bundle 在 <code class="language-plaintext highlighter-rouge">/chat</code> 开始时解析并固定；Intent cache key 包含 Prompt/Few-shot 指纹，RAG cache key 包含 retrieval policy/generation，ReAct checkpoint 保存 bundle version，feedback 和 Bad Case 保存 producer/task/call 引用。这样候选比较不会发生“外层是新版本、缓存或 resume 仍用旧版本”。</p>
+
+<p>当前本地替换是直接 binding replacement，不经过模拟的 Shadow/Canary。一次切换必须同时更新：composition root、默认 bundle、测试 fixture、机器报告和 Pages；被替代 reader/writer/config 随同删除，避免长期维护双路径。</p>
+
+<h2 id="15-归因所需的最小观测字段">15. 归因所需的最小观测字段</h2>
+
+<ul>
+  <li>request/invocation/response/trace identity；</li>
+  <li>tenant/user/conversation 的脱敏 scope；</li>
+  <li>bundle、model、prompt、route、retrieval、tool registry fingerprints；</li>
+  <li>Intent source scores、RequestShape、RouteDecision；</li>
+  <li>TaskGraph、dependency、outcome、pending signal、coverage；</li>
+  <li>Evidence refs、claim refs、Verifier status/reason；</li>
+  <li>tool call/effect status 与 receipt ref；</li>
+  <li>publication kind/seq、ticket/commitment/delivery 状态；</li>
+  <li>stage latency、token/cost proxy、异常类型。</li>
+</ul>
+
+<p>原始密钥、完整工具参数、未脱敏用户正文不应复制进 EvolutionEnvelope。学习所需 provenance 与隐私最小化必须同时满足。</p>
+
+<h2 id="16-更多面试追问">16. 更多面试追问</h2>
+
+<h3 id="q7attribution-能不能全部交给-llm">Q7：Attribution 能不能全部交给 LLM？</h3>
+
+<p>不能。task 缺失、receipt 不存在、publication 重复、状态迁移非法都有确定性事实。LLM 只适合对开放文本症状做辅助分类，且输出仍需映射到受支持 surface。</p>
+
+<h3 id="q8为什么报告要保存-fingerprint而不只保存版本名">Q8：为什么报告要保存 fingerprint，而不只保存版本名？</h3>
+
+<p>版本名可以被误用或重复；内容 hash 能证明两次运行的 Prompt、policy、manifest 是否真的相同。</p>
+
+<h3 id="q9dev-提升heldout-下降怎么办">Q9：Dev 提升、heldout 下降怎么办？</h3>
+
+<p>拒绝候选或判证据不足，分析 slice 差异；不能把 heldout 重新命名为 Dev 后继续调到通过。</p>
+
+<h3 id="q10什么是-consumed-heldout">Q10：什么是 consumed heldout？</h3>
+
+<p>一旦开发者看过其失败并据此修改实现，它就不再提供独立泛化证据，只能保留为 regression。</p>
+
+<h3 id="q11为什么安全指标不进加权总分">Q11：为什么安全指标不进加权总分？</h3>
+
+<p>平均值允许一次越权被许多普通成功抵消。权限、跨用户召回、未审批写和重复副作用必须零容忍。</p>
+
+<h3 id="q12pareto-比单一分数好在哪里">Q12：Pareto 比单一分数好在哪里？</h3>
+
+<p>它保留质量、延迟和成本之间的真实取舍，不用一个任意权重把明显更慢或更贵的候选包装为“总分最好”。</p>
+
+<h3 id="q13候选生成器输出-20-个方案是否更好">Q13：候选生成器输出 20 个方案是否更好？</h3>
+
+<p>不一定。候选数会线性增加真实评测成本，并放大对 Dev 的选择偏差。当前应限制少量、可解释、彼此有差异的 patch。</p>
+
+<h3 id="q14模型升级是不是一种-agent-进化">Q14：模型升级是不是一种 Agent 进化？</h3>
+
+<p>它是 ModelPolicy 候选。必须在相同 bundle、数据、预算和工具面上比较，而不能同时换模型、Prompt、检索后把收益全部归给模型。</p>
+
+<h3 id="q15为什么进化不能修改-gold">Q15：为什么进化不能修改 Gold？</h3>
+
+<p>Gold 是评测权威；允许候选改标签等于让考生改答案。标签修订必须走独立审阅、版本和仲裁。</p>
+
+<h3 id="q16bad-case-聚类的目的是什么">Q16：Bad Case 聚类的目的是什么？</h3>
+
+<p>寻找共享 Owner/invariant，而不是为每个句子建特殊规则。若多个 reopening 指向同一 authority gap，应做架构级收敛审查。</p>
+
+<h3 id="q17什么时候需要线上-canary">Q17：什么时候需要线上 Canary？</h3>
+
+<p>只有存在真实流量、不可完全离线模拟的分布和明确 rollback Owner 时。要先定义 cohort、观察窗口、硬/软信号与在途请求版本固定。</p>
+
+<h3 id="q18当前项目为什么删掉-canary">Q18：当前项目为什么删掉 Canary？</h3>
+
+<p>没有线上流量，模拟 5%/25% 不产生真实风险证据，反而维护重复执行与版本指针。当前直接切换更符合实际约束。</p>
+
+<h3 id="q19替换-binding-后怎样回退">Q19：替换 binding 后怎样回退？</h3>
+
+<p>当前开发阶段依赖 Git 历史和重新部署，不在运行时保留旧 reader/writer。未来有真实不可丢数据时另立迁移和 rollback ADR。</p>
+
+<h3 id="q20如何避免-evolution-污染生产统计">Q20：如何避免 Evolution 污染生产统计？</h3>
+
+<p>离线 runner 使用固定执行模式和独立报告，不写生产 Memory/Ticket/Feedback；候选不更新线上 cache、breaker 或 Agent quality stats。</p>
+
+<h3 id="q21如何判断是环境问题而不是候选回归">Q21：如何判断是环境问题而不是候选回归？</h3>
+
+<p>保存 provider、模型、seed、依赖版本、数据库 generation、错误类型和重试轨迹；环境不可用标为 infrastructure/insufficient evidence，不回填成质量 0 或 1。</p>
+
+<h3 id="q22什么才算闭环完成">Q22：什么才算闭环完成？</h3>
+
+<p>根因、Owner 修复、所有消费者、异常路径、持久投影、文档和验收一致；fresh/adversarial case 未出现同一不变量的新分支，才能从“实现完成”升级为“验证闭合”。</p>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/DialogPilot/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">DialogPilot 完整架构教程</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">DialogPilot 完整架构教程</li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Python 多 Agent 客服后端的架构、链路、内部实现、改造记录与项目追问</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

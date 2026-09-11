@@ -1,0 +1,339 @@
+{
+  "schema_version": "dialogpilot-tau3-rca-v2",
+  "run": {
+    "path": "/home/yang/DialogPilot/artifacts/eval/tau3-task20-auto-analysis-rerun-2026-09-11",
+    "status": "EVALUATED",
+    "started_at": "2026-09-11T13:23:43.735709+00:00",
+    "finished_at": "2026-09-11T13:25:55.377846+00:00",
+    "project_commit": "83edc8b0f801584adc6837f53969790ecdf1ab15",
+    "tracked_worktree_dirty": true,
+    "task_count": 1
+  },
+  "finding_counts": {
+    "EPISODE_STEP_BUDGET_EXHAUSTED": 1,
+    "UNCHANGED_READ_REPLAY": 1
+  },
+  "quality_finding_counts": {
+    "EXACT_READ_REPLAY": 1
+  },
+  "failure_clusters": [],
+  "quality_clusters": [
+    {
+      "code": "EXACT_READ_REPLAY",
+      "owner_candidate": "agent_read_planning",
+      "case_count": 1,
+      "task_ids": [
+        "20"
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "task_id": "20",
+      "result_file": "task-20.json",
+      "trajectory_file": "task-20-trajectory.json",
+      "artifact_sha256": {
+        "result": "57a71431430248b454ecf66453cfcd4f7dc7c37915a36293150ef716af53db08",
+        "trajectory": "dd06a4a81c7a92cda72245d5e9bdb0ebe006806b43bc835f13f9081acbef7793"
+      },
+      "langfuse_session_id": "tau3-c55ea725553f4249a9b1416155294020",
+      "outcome": {
+        "status": "EVALUATED",
+        "simulation_status": "COMPLETED",
+        "termination": "max_steps",
+        "official_reward": 0.0,
+        "env_reward": 0.0,
+        "action_reward": 0.0,
+        "evaluation_scope": "termination_gate_only"
+      },
+      "business_status": "NOT_PASS",
+      "quality_status": "WARN",
+      "quality_root_cause_status": "OPEN",
+      "transition_analysis": {
+        "schema_version": "tau3-required-transitions-v1",
+        "phase_order": [
+          "OBJECTIVE",
+          "PLAN",
+          "WORK_ITEM",
+          "ACTION_PREPARED",
+          "APPROVAL",
+          "EXECUTION",
+          "RECEIPT",
+          "STATE",
+          "ANSWER"
+        ],
+        "paths": [],
+        "first_divergence": null,
+        "evidence": [],
+        "hypotheses": []
+      },
+      "root_cause_status": "OPEN",
+      "evidence": [
+        {
+          "evidence_id": "exact-read-replays",
+          "source": "task-20-trajectory.json",
+          "locator": "$.messages[*].tool_calls",
+          "summary": "Exact read requests returned identical results more than once without an intervening write.",
+          "data": {
+            "groups": [
+              {
+                "tool": "get_order_details",
+                "arguments_sha256": "c0b28182a02ef47f3a533182566af648e13021d4427cf00c16243fcf5e6c66dd",
+                "response_sha256": "9c17c19850cecf998488cf8eddf0f88934bfe51920f4cac5c23f11c3464315ed",
+                "call_count": 5,
+                "message_indexes": [
+                  12,
+                  38,
+                  48,
+                  60,
+                  66
+                ],
+                "write_epoch": 0
+              },
+              {
+                "tool": "get_product_details",
+                "arguments_sha256": "0ff0a11ddb2aa4e6d804e3988ea63e27e0446a02e063d630ec64668379f53b73",
+                "response_sha256": "31e182ab58a0e2bd75dfbd6bce8440466fdfc1bf9fcbc32b4a165f1543774a28",
+                "call_count": 4,
+                "message_indexes": [
+                  20,
+                  42,
+                  50,
+                  74
+                ],
+                "write_epoch": 0
+              },
+              {
+                "tool": "get_product_details",
+                "arguments_sha256": "f795d216f6e6a2403f977525f845ac4ea9a5a57bec4e9b74904569d5a9a4a439",
+                "response_sha256": "6753f2b6a0195816087a99203fd8691d58cd3bc18fd56aa0991cc13c96c18c5d",
+                "call_count": 4,
+                "message_indexes": [
+                  14,
+                  40,
+                  56,
+                  72
+                ],
+                "write_epoch": 0
+              },
+              {
+                "tool": "get_product_details",
+                "arguments_sha256": "fb57f9835ba06a7f28c5667dc268a96a74ab5a1f64f4251259a7eaa4cfe1c576",
+                "response_sha256": "cc5efcbc290947bf7c1cc61f908928a4215ce8a84fd60c360492547143a80445",
+                "call_count": 4,
+                "message_indexes": [
+                  18,
+                  44,
+                  52,
+                  70
+                ],
+                "write_epoch": 0
+              },
+              {
+                "tool": "get_product_details",
+                "arguments_sha256": "a334528da893668bb541642444702d56f40942de47d6f8e684b33614e3f15db2",
+                "response_sha256": "2b2f969253625f83a18997072ff9797e67dd1c83144c473f22092f3ce0b5b605",
+                "call_count": 4,
+                "message_indexes": [
+                  16,
+                  46,
+                  54,
+                  68
+                ],
+                "write_epoch": 0
+              },
+              {
+                "tool": "get_user_details",
+                "arguments_sha256": "222fed94549aac65416ea8bfc3453fb780f4f195b2ab8a4d943d0d9d0dfcfcec",
+                "response_sha256": "78196491150d01c40aa9b1d6a50a13470a6dd8fec76e52f704e24849d937824b",
+                "call_count": 4,
+                "message_indexes": [
+                  6,
+                  36,
+                  58,
+                  64
+                ],
+                "write_epoch": 0
+              }
+            ],
+            "redundant_call_count": 19,
+            "consumed_message_steps": 38
+          }
+        },
+        {
+          "evidence_id": "episode-step-budget",
+          "source": "task-20.json",
+          "locator": "$.termination|$.evaluation_scope|trajectory:$.messages",
+          "summary": "The episode terminated at its configured message-step budget.",
+          "data": {
+            "termination": "max_steps",
+            "evaluation_scope": "termination_gate_only",
+            "configured_max_steps": 80,
+            "trajectory_message_count": 81,
+            "minimum_pending_continuation_steps": 3,
+            "required_step_savings": 4
+          }
+        },
+        {
+          "evidence_id": "unchanged-read-replays",
+          "source": "task-20-trajectory.json",
+          "locator": "$.messages[*].tool_calls",
+          "summary": "Exact read requests returned identical results more than once without an intervening write.",
+          "data": {
+            "groups": [
+              {
+                "tool": "get_order_details",
+                "arguments_sha256": "c0b28182a02ef47f3a533182566af648e13021d4427cf00c16243fcf5e6c66dd",
+                "response_sha256": "9c17c19850cecf998488cf8eddf0f88934bfe51920f4cac5c23f11c3464315ed",
+                "call_count": 5,
+                "message_indexes": [
+                  12,
+                  38,
+                  48,
+                  60,
+                  66
+                ],
+                "write_epoch": 0
+              },
+              {
+                "tool": "get_product_details",
+                "arguments_sha256": "0ff0a11ddb2aa4e6d804e3988ea63e27e0446a02e063d630ec64668379f53b73",
+                "response_sha256": "31e182ab58a0e2bd75dfbd6bce8440466fdfc1bf9fcbc32b4a165f1543774a28",
+                "call_count": 4,
+                "message_indexes": [
+                  20,
+                  42,
+                  50,
+                  74
+                ],
+                "write_epoch": 0
+              },
+              {
+                "tool": "get_product_details",
+                "arguments_sha256": "f795d216f6e6a2403f977525f845ac4ea9a5a57bec4e9b74904569d5a9a4a439",
+                "response_sha256": "6753f2b6a0195816087a99203fd8691d58cd3bc18fd56aa0991cc13c96c18c5d",
+                "call_count": 4,
+                "message_indexes": [
+                  14,
+                  40,
+                  56,
+                  72
+                ],
+                "write_epoch": 0
+              },
+              {
+                "tool": "get_product_details",
+                "arguments_sha256": "fb57f9835ba06a7f28c5667dc268a96a74ab5a1f64f4251259a7eaa4cfe1c576",
+                "response_sha256": "cc5efcbc290947bf7c1cc61f908928a4215ce8a84fd60c360492547143a80445",
+                "call_count": 4,
+                "message_indexes": [
+                  18,
+                  44,
+                  52,
+                  70
+                ],
+                "write_epoch": 0
+              },
+              {
+                "tool": "get_product_details",
+                "arguments_sha256": "a334528da893668bb541642444702d56f40942de47d6f8e684b33614e3f15db2",
+                "response_sha256": "2b2f969253625f83a18997072ff9797e67dd1c83144c473f22092f3ce0b5b605",
+                "call_count": 4,
+                "message_indexes": [
+                  16,
+                  46,
+                  54,
+                  68
+                ],
+                "write_epoch": 0
+              },
+              {
+                "tool": "get_user_details",
+                "arguments_sha256": "222fed94549aac65416ea8bfc3453fb780f4f195b2ab8a4d943d0d9d0dfcfcec",
+                "response_sha256": "78196491150d01c40aa9b1d6a50a13470a6dd8fec76e52f704e24849d937824b",
+                "call_count": 4,
+                "message_indexes": [
+                  6,
+                  36,
+                  58,
+                  64
+                ],
+                "write_epoch": 0
+              }
+            ],
+            "redundant_call_count": 19,
+            "consumed_message_steps": 38,
+            "intervening_write_count": 1
+          }
+        }
+      ],
+      "findings": [
+        {
+          "code": "EXACT_READ_REPLAY",
+          "layer": "quality",
+          "level": "OBSERVED",
+          "summary": "The run repeated reads that produced no new observable information.",
+          "owner_candidate": "agent_read_planning",
+          "evidence_ids": [
+            "exact-read-replays"
+          ],
+          "missing_evidence": [
+            "The artifact does not encode whether each refresh was explicitly authorized by a freshness policy."
+          ],
+          "next_probe": "Join each replay to owner causal events and the tool freshness contract.",
+          "impact": "EFFICIENCY_DEGRADED"
+        },
+        {
+          "code": "EPISODE_STEP_BUDGET_EXHAUSTED",
+          "layer": "mechanism",
+          "level": "VERIFIED",
+          "summary": "The benchmark stopped before a terminal business outcome because its step budget was exhausted.",
+          "owner_candidate": "episode_orchestration",
+          "evidence_ids": [
+            "episode-step-budget"
+          ],
+          "missing_evidence": [],
+          "next_probe": null,
+          "impact": "TASK_BLOCKING"
+        },
+        {
+          "code": "UNCHANGED_READ_REPLAY",
+          "layer": "mechanism",
+          "level": "VERIFIED",
+          "summary": "The agent repeated read calls that produced no new observable information.",
+          "owner_candidate": "agent_read_planning",
+          "evidence_ids": [
+            "unchanged-read-replays"
+          ],
+          "missing_evidence": [],
+          "next_probe": null,
+          "impact": "PRESENT_DURING_FAILURE"
+        }
+      ],
+      "causal_probes": {
+        "contract_status": "MISSING",
+        "event_count": 0,
+        "errors": [
+          "normalized checkpoint transition events are absent or empty"
+        ],
+        "results": [
+          {
+            "probe": "causal_lineage",
+            "status": "INCONCLUSIVE",
+            "reason": "The artifact does not contain normalized checkpoint-transition lineage.",
+            "missing_evidence": [
+              "normalized checkpoint transition events are absent or empty"
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "unbound_run_evidence": [],
+  "limitations": [
+    "Batch-level log lines are not assigned to a task without a task, turn, or trace identifier.",
+    "SUPPORTED hypotheses require the listed probe before they can become verified root causes.",
+    "Visible user assent does not prove consistency with the simulator's hidden goal."
+  ],
+  "quality_root_clusters": []
+}

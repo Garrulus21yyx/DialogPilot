@@ -33,6 +33,7 @@ from core.model_policy import ModelProfile
 from core.tracing import TraceRecorder, current_trace_id, trace_scope
 from core.identity import InvocationKey, OperationKey
 from mcp.query_transformer import QueryTransformer
+from mcp.read_reuse import ReadReusePolicy
 from mcp.result_reranker import RerankResult, ResultReranker, candidates_from_items
 
 logger = logging.getLogger(__name__)
@@ -107,6 +108,14 @@ class ToolEffectReceipt:
     receipt_id: str = ""
 
 
+@dataclass(frozen=True)
+class ToolObservationEnvelope:
+    """Private provenance attached to a read without changing model-visible data."""
+
+    data: Any
+    source_call_ids: tuple[str, ...]
+
+
 @dataclass
 class ToolResult:
     """一次工具调用的统一结果，包含缓存、延迟和重排证据。"""
@@ -129,6 +138,7 @@ class ToolResult:
     query_ref: str = ""
     observation_started_at: datetime | None = None
     observed_at: datetime | None = None
+    causal_source_call_ids: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -312,6 +322,7 @@ class Tool:
 
     schema_factory: Optional[Callable] = None
     schema_factory_version: str = ""
+    task_read_reuse: Optional["ReadReusePolicy"] = None
 
     def input_schema(self, context=None):
         return self.schema_factory(dict(context or {})) if self.schema_factory else self.schema
@@ -367,6 +378,9 @@ class MCPToolManager:
             raise ValueError("tool name must not be empty")
         if not tool.allowed_agents:
             raise ValueError("tool allowed_agents must not be empty")
+        if tool.task_read_reuse is not None:
+            if not isinstance(tool.task_read_reuse, ReadReusePolicy) or not tool.read_only:
+                raise ValueError("task read reuse requires a read-only tool and explicit policy")
         if tool.schema_factory and (not tool.schema_factory_version or tool.cache_ttl > 0):
             raise ValueError("runtime schema requires a version and uncached execution")
         self._tools[tool.name] = tool
@@ -443,6 +457,8 @@ class MCPToolManager:
             "retry_policy": tool.retry_policy,
             "typed_outcomes": sorted(tool.typed_outcomes),
             "output_fields": sorted(tool.output_fields),
+            **({"task_read_reuse": {"max_age_seconds": tool.task_read_reuse.max_age_seconds}}
+               if tool.task_read_reuse else {}),
         } for tool in sorted(self._tools.values(), key=lambda item: item.name)]
         return hashlib.sha256(
             json.dumps(rows, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
@@ -478,6 +494,8 @@ class MCPToolManager:
         approved: bool = False,
         call_id: Optional[str] = None,
         allowed_tool_ids: Optional[Collection[str]] = None,
+        reuse_result: Optional[ToolResult] = None,
+        use_cache: bool = True,
     ) -> ToolResult:
         """在身份、审批、审计和 Trace 边界内执行一次 Agent 工具调用。
 
@@ -582,9 +600,20 @@ class MCPToolManager:
                 with self._trace_recorder.span(
                     f"tool.{name}", kind="tool", attributes=span_attributes
                 ):
-                    result = await self.call(name, params, {
-                        **dict(context or {}), "_agent_type": normalized_agent,
-                    })
+                    if reuse_result is not None:
+                        from copy import deepcopy
+                        if (tool.task_read_reuse is None or not tool.read_only
+                                or not reuse_result.success or reuse_result.tool_name != name):
+                            raise ValueError("invalid task read reuse")
+                        self._validate_params(tool, params, context)
+                        result = deepcopy(reuse_result)
+                        result.cached = True
+                        tool.stats.total += 1
+                        tool.stats.success += 1
+                    else:
+                        result = await self.call(name, params, {
+                            **dict(context or {}), "_agent_type": normalized_agent,
+                        }, use_cache=use_cache)
             status = (
                 ToolCallStatus(result.status)
                 if result.status
@@ -717,6 +746,14 @@ class MCPToolManager:
                 effect_status = data.effect_status
                 receipt_id = str(data.receipt_id or "")
                 data = data.data
+            causal_source_call_ids: tuple[str, ...] = ()
+            if isinstance(data, ToolObservationEnvelope):
+                if not tool.read_only:
+                    raise ValueError("observation provenance requires a read-only tool")
+                causal_source_call_ids = tuple(dict.fromkeys(
+                    str(call_id) for call_id in data.source_call_ids if str(call_id)
+                ))
+                data = data.data
 
             tool.stats.success += 1
             tool.stats.consecutive_fails = 0
@@ -747,6 +784,7 @@ class MCPToolManager:
                 receipt_id=receipt_id,
                 observation_started_at=observation_started_at,
                 observed_at=observed_at,
+                causal_source_call_ids=causal_source_call_ids,
             )
 
         except ToolRejected as exc:
@@ -946,6 +984,8 @@ class MCPToolManager:
             result.authority = tool.authority
             result.output_schema_version = tool.output_schema_version
             result.receipt_schema_version = tool.receipt_schema_version
+            if tool.read_only and result.success and not result.causal_source_call_ids:
+                result.causal_source_call_ids = (call_id,)
         result.output_for_model = self._render_for_model(result)
         output_decision = UntrustedContentGuard().analyze(result.output_for_model)
         if output_decision.blocked:

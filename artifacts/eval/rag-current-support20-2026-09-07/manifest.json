@@ -1,0 +1,14 @@
+{
+  "git_head": "ed24803de68016555d98cfcb22ea674fb774df18",
+  "cases_sha256": "8724589754e3d5ee0ad3a6f6e084e742a9d72ef9399c4b2bbd18260aacf0ca8a",
+  "historical_sha256": "6b707287de23c818c10a30a91720b40f37ba2129fab3cb4370344cdf0d1b3cfc",
+  "profile": {
+    "model": "deepseek-v4-flash",
+    "reasoning": "none",
+    "min_completion_tokens": 0,
+    "max_context_tokens": 32768
+  },
+  "calls_limit": 20,
+  "max_tokens": 4096,
+  "note": "consumed20 synthetic cases; current protocol and SDK differ; no tuning/retries"
+}

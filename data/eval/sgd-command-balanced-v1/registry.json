@@ -1,0 +1,1210 @@
+{
+  "authority": "official train/schema.json",
+  "fingerprint": "5a842425107466e7ed7d90939d258c907dcb806b124ba85074667888aacccc41",
+  "flows": [
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "description": "Check the amount of money in a user's bank account",
+      "effect": "read_only",
+      "flow_id": "sgd.Banks_1.CheckBalance",
+      "intent": "CheckBalance",
+      "optional_arguments": [],
+      "required_arguments": [
+        "account_type"
+      ],
+      "service": "Banks_1",
+      "tool": "sgd_service:Banks_1:CheckBalance",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "description": "Transfer money from one bank account to another user's account",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Banks_1.TransferMoney",
+      "intent": "TransferMoney",
+      "optional_arguments": [
+        "recipient_account_type"
+      ],
+      "required_arguments": [
+        "account_type",
+        "amount",
+        "recipient_account_name"
+      ],
+      "service": "Banks_1",
+      "tool": "sgd_service:Banks_1:TransferMoney",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "description": "Buy tickets for a bus journey",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Buses_1.BuyBusTicket",
+      "intent": "BuyBusTicket",
+      "optional_arguments": [],
+      "required_arguments": [
+        "from_location",
+        "to_location",
+        "leaving_date",
+        "leaving_time",
+        "travelers"
+      ],
+      "service": "Buses_1",
+      "tool": "sgd_service:Buses_1:BuyBusTicket",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "description": "Find a bus journey for a given pair of cities",
+      "effect": "read_only",
+      "flow_id": "sgd.Buses_1.FindBus",
+      "intent": "FindBus",
+      "optional_arguments": [
+        "travelers"
+      ],
+      "required_arguments": [
+        "from_location",
+        "to_location",
+        "leaving_date"
+      ],
+      "service": "Buses_1",
+      "tool": "sgd_service:Buses_1:FindBus",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "description": "Buy tickets for a bus itinerary",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Buses_2.BuyBusTicket",
+      "intent": "BuyBusTicket",
+      "optional_arguments": [
+        "fare_type"
+      ],
+      "required_arguments": [
+        "origin",
+        "destination",
+        "departure_date",
+        "departure_time",
+        "group_size"
+      ],
+      "service": "Buses_2",
+      "tool": "sgd_service:Buses_2:BuyBusTicket",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "description": "Find a bus itinerary between cities for a given date",
+      "effect": "read_only",
+      "flow_id": "sgd.Buses_2.FindBus",
+      "intent": "FindBus",
+      "optional_arguments": [
+        "fare_type",
+        "group_size"
+      ],
+      "required_arguments": [
+        "origin",
+        "destination",
+        "departure_date"
+      ],
+      "service": "Buses_2",
+      "tool": "sgd_service:Buses_2:FindBus",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "description": "Add event to the user's calendar",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Calendar_1.AddEvent",
+      "intent": "AddEvent",
+      "optional_arguments": [],
+      "required_arguments": [
+        "event_name",
+        "event_date",
+        "event_location",
+        "event_time"
+      ],
+      "service": "Calendar_1",
+      "tool": "sgd_service:Calendar_1:AddEvent",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "description": "Get a list of available times for the user on a given day",
+      "effect": "read_only",
+      "flow_id": "sgd.Calendar_1.GetAvailableTime",
+      "intent": "GetAvailableTime",
+      "optional_arguments": [],
+      "required_arguments": [
+        "event_date"
+      ],
+      "service": "Calendar_1",
+      "tool": "sgd_service:Calendar_1:GetAvailableTime",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "description": "Get list of all calendar events for the user on a given day",
+      "effect": "read_only",
+      "flow_id": "sgd.Calendar_1.GetEvents",
+      "intent": "GetEvents",
+      "optional_arguments": [],
+      "required_arguments": [
+        "event_date"
+      ],
+      "service": "Calendar_1",
+      "tool": "sgd_service:Calendar_1:GetEvents",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "description": "Buy tickets for an event",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Events_1.BuyEventTickets",
+      "intent": "BuyEventTickets",
+      "optional_arguments": [],
+      "required_arguments": [
+        "event_name",
+        "number_of_seats",
+        "date",
+        "city_of_event"
+      ],
+      "service": "Events_1",
+      "tool": "sgd_service:Events_1:BuyEventTickets",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "description": "Find events in a given city",
+      "effect": "read_only",
+      "flow_id": "sgd.Events_1.FindEvents",
+      "intent": "FindEvents",
+      "optional_arguments": [
+        "date",
+        "subcategory"
+      ],
+      "required_arguments": [
+        "category",
+        "city_of_event"
+      ],
+      "service": "Events_1",
+      "tool": "sgd_service:Events_1:FindEvents",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "description": "Buy tickets for an event",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Events_2.BuyEventTickets",
+      "intent": "BuyEventTickets",
+      "optional_arguments": [],
+      "required_arguments": [
+        "event_name",
+        "number_of_tickets",
+        "date",
+        "city"
+      ],
+      "service": "Events_2",
+      "tool": "sgd_service:Events_2:BuyEventTickets",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "description": "Find concerts and games happening in your area",
+      "effect": "read_only",
+      "flow_id": "sgd.Events_2.FindEvents",
+      "intent": "FindEvents",
+      "optional_arguments": [
+        "category",
+        "date"
+      ],
+      "required_arguments": [
+        "event_type",
+        "city"
+      ],
+      "service": "Events_2",
+      "tool": "sgd_service:Events_2:FindEvents",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "description": "Get dates on which a given event is taking place",
+      "effect": "read_only",
+      "flow_id": "sgd.Events_2.GetEventDates",
+      "intent": "GetEventDates",
+      "optional_arguments": [],
+      "required_arguments": [
+        "event_name",
+        "city"
+      ],
+      "service": "Events_2",
+      "tool": "sgd_service:Events_2:GetEventDates",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "description": "Reserve a one-way flight",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Flights_1.ReserveOnewayFlight",
+      "intent": "ReserveOnewayFlight",
+      "optional_arguments": [
+        "passengers",
+        "refundable",
+        "seating_class"
+      ],
+      "required_arguments": [
+        "origin_city",
+        "destination_city",
+        "airlines",
+        "departure_date"
+      ],
+      "service": "Flights_1",
+      "tool": "sgd_service:Flights_1:ReserveOnewayFlight",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "description": "Reserve a round-trip flight",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Flights_1.ReserveRoundtripFlights",
+      "intent": "ReserveRoundtripFlights",
+      "optional_arguments": [
+        "passengers",
+        "refundable",
+        "seating_class"
+      ],
+      "required_arguments": [
+        "origin_city",
+        "destination_city",
+        "airlines",
+        "departure_date",
+        "return_date",
+        "outbound_departure_time",
+        "inbound_departure_time"
+      ],
+      "service": "Flights_1",
+      "tool": "sgd_service:Flights_1:ReserveRoundtripFlights",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "description": "Search for one-way flights to a destination",
+      "effect": "read_only",
+      "flow_id": "sgd.Flights_1.SearchOnewayFlight",
+      "intent": "SearchOnewayFlight",
+      "optional_arguments": [
+        "airlines",
+        "passengers",
+        "refundable",
+        "seating_class"
+      ],
+      "required_arguments": [
+        "origin_city",
+        "destination_city",
+        "departure_date"
+      ],
+      "service": "Flights_1",
+      "tool": "sgd_service:Flights_1:SearchOnewayFlight",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "description": "Search for round-trip flights to a destination",
+      "effect": "read_only",
+      "flow_id": "sgd.Flights_1.SearchRoundtripFlights",
+      "intent": "SearchRoundtripFlights",
+      "optional_arguments": [
+        "airlines",
+        "passengers",
+        "refundable",
+        "seating_class"
+      ],
+      "required_arguments": [
+        "origin_city",
+        "destination_city",
+        "departure_date",
+        "return_date"
+      ],
+      "service": "Flights_1",
+      "tool": "sgd_service:Flights_1:SearchRoundtripFlights",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "description": "Search for a one way flight with your set of preferences",
+      "effect": "read_only",
+      "flow_id": "sgd.Flights_2.SearchOnewayFlight",
+      "intent": "SearchOnewayFlight",
+      "optional_arguments": [
+        "airlines",
+        "passengers",
+        "seating_class"
+      ],
+      "required_arguments": [
+        "origin",
+        "destination",
+        "departure_date"
+      ],
+      "service": "Flights_2",
+      "tool": "sgd_service:Flights_2:SearchOnewayFlight",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "description": "Search for round trip flights with your set of preferences",
+      "effect": "read_only",
+      "flow_id": "sgd.Flights_2.SearchRoundtripFlights",
+      "intent": "SearchRoundtripFlights",
+      "optional_arguments": [
+        "airlines",
+        "passengers",
+        "seating_class"
+      ],
+      "required_arguments": [
+        "origin",
+        "destination",
+        "departure_date",
+        "return_date"
+      ],
+      "service": "Flights_2",
+      "tool": "sgd_service:Flights_2:SearchRoundtripFlights",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "description": "Find an apartment in a city for a given number of bedrooms",
+      "effect": "read_only",
+      "flow_id": "sgd.Homes_1.FindApartment",
+      "intent": "FindApartment",
+      "optional_arguments": [
+        "furnished",
+        "number_of_baths",
+        "pets_allowed"
+      ],
+      "required_arguments": [
+        "area",
+        "number_of_beds"
+      ],
+      "service": "Homes_1",
+      "tool": "sgd_service:Homes_1:FindApartment",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "description": "Schedule a visit for a given property on a particular date",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Homes_1.ScheduleVisit",
+      "intent": "ScheduleVisit",
+      "optional_arguments": [],
+      "required_arguments": [
+        "property_name",
+        "visit_date"
+      ],
+      "service": "Homes_1",
+      "tool": "sgd_service:Homes_1:ScheduleVisit",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "description": "Reserve a selected hotel for given dates",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Hotels_1.ReserveHotel",
+      "intent": "ReserveHotel",
+      "optional_arguments": [
+        "number_of_rooms"
+      ],
+      "required_arguments": [
+        "hotel_name",
+        "check_in_date",
+        "number_of_days",
+        "destination"
+      ],
+      "service": "Hotels_1",
+      "tool": "sgd_service:Hotels_1:ReserveHotel",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "description": "Find a hotel at a given location",
+      "effect": "read_only",
+      "flow_id": "sgd.Hotels_1.SearchHotel",
+      "intent": "SearchHotel",
+      "optional_arguments": [
+        "has_wifi",
+        "number_of_rooms",
+        "star_rating"
+      ],
+      "required_arguments": [
+        "destination"
+      ],
+      "service": "Hotels_1",
+      "tool": "sgd_service:Hotels_1:SearchHotel",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "description": "Book the selected house for given dates and number of adults",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Hotels_2.BookHouse",
+      "intent": "BookHouse",
+      "optional_arguments": [],
+      "required_arguments": [
+        "where_to",
+        "number_of_adults",
+        "check_in_date",
+        "check_out_date"
+      ],
+      "service": "Hotels_2",
+      "tool": "sgd_service:Hotels_2:BookHouse",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "description": "Find a house at a given location",
+      "effect": "read_only",
+      "flow_id": "sgd.Hotels_2.SearchHouse",
+      "intent": "SearchHouse",
+      "optional_arguments": [
+        "has_laundry_service",
+        "number_of_adults",
+        "rating"
+      ],
+      "required_arguments": [
+        "where_to"
+      ],
+      "service": "Hotels_2",
+      "tool": "sgd_service:Hotels_2:SearchHouse",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "description": "Reserve a selected hotel for given dates",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Hotels_3.ReserveHotel",
+      "intent": "ReserveHotel",
+      "optional_arguments": [
+        "number_of_rooms"
+      ],
+      "required_arguments": [
+        "hotel_name",
+        "location",
+        "check_in_date",
+        "check_out_date"
+      ],
+      "service": "Hotels_3",
+      "tool": "sgd_service:Hotels_3:ReserveHotel",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "description": "Search for a hotel based on location",
+      "effect": "read_only",
+      "flow_id": "sgd.Hotels_3.SearchHotel",
+      "intent": "SearchHotel",
+      "optional_arguments": [
+        "number_of_rooms",
+        "pets_welcome"
+      ],
+      "required_arguments": [
+        "location"
+      ],
+      "service": "Hotels_3",
+      "tool": "sgd_service:Hotels_3:SearchHotel",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "description": "Find movies by genre and optionally director",
+      "effect": "read_only",
+      "flow_id": "sgd.Media_1.FindMovies",
+      "intent": "FindMovies",
+      "optional_arguments": [
+        "directed_by"
+      ],
+      "required_arguments": [
+        "genre"
+      ],
+      "service": "Media_1",
+      "tool": "sgd_service:Media_1:FindMovies",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "description": "Play the selected movie",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Media_1.PlayMovie",
+      "intent": "PlayMovie",
+      "optional_arguments": [
+        "subtitles"
+      ],
+      "required_arguments": [
+        "title"
+      ],
+      "service": "Media_1",
+      "tool": "sgd_service:Media_1:PlayMovie",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "description": "Buy movie tickets for a particular show",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Movies_1.BuyMovieTickets",
+      "intent": "BuyMovieTickets",
+      "optional_arguments": [],
+      "required_arguments": [
+        "movie_name",
+        "number_of_tickets",
+        "show_date",
+        "location",
+        "show_time",
+        "show_type"
+      ],
+      "service": "Movies_1",
+      "tool": "sgd_service:Movies_1:BuyMovieTickets",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "description": "Search for movies by location, genre or other attributes",
+      "effect": "read_only",
+      "flow_id": "sgd.Movies_1.FindMovies",
+      "intent": "FindMovies",
+      "optional_arguments": [
+        "genre",
+        "show_type",
+        "theater_name"
+      ],
+      "required_arguments": [
+        "location"
+      ],
+      "service": "Movies_1",
+      "tool": "sgd_service:Movies_1:FindMovies",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "description": "Get show times for a movie at a location on a given date",
+      "effect": "read_only",
+      "flow_id": "sgd.Movies_1.GetTimesForMovie",
+      "intent": "GetTimesForMovie",
+      "optional_arguments": [
+        "show_type",
+        "theater_name"
+      ],
+      "required_arguments": [
+        "movie_name",
+        "location",
+        "show_date"
+      ],
+      "service": "Movies_1",
+      "tool": "sgd_service:Movies_1:GetTimesForMovie",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "description": "Search for a song",
+      "effect": "read_only",
+      "flow_id": "sgd.Music_1.LookupSong",
+      "intent": "LookupSong",
+      "optional_arguments": [
+        "album",
+        "artist",
+        "genre",
+        "year"
+      ],
+      "required_arguments": [],
+      "service": "Music_1",
+      "tool": "sgd_service:Music_1:LookupSong",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "description": "Play the selected song on the device",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Music_1.PlaySong",
+      "intent": "PlaySong",
+      "optional_arguments": [
+        "artist",
+        "playback_device"
+      ],
+      "required_arguments": [
+        "song_name"
+      ],
+      "service": "Music_1",
+      "tool": "sgd_service:Music_1:PlaySong",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "description": "Search for a song based on the name and optionally other attributes",
+      "effect": "read_only",
+      "flow_id": "sgd.Music_2.LookupMusic",
+      "intent": "LookupMusic",
+      "optional_arguments": [
+        "album",
+        "artist",
+        "genre"
+      ],
+      "required_arguments": [],
+      "service": "Music_2",
+      "tool": "sgd_service:Music_2:LookupMusic",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "description": "Play a song by its name and optionally artist",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Music_2.PlayMedia",
+      "intent": "PlayMedia",
+      "optional_arguments": [
+        "artist",
+        "playback_device"
+      ],
+      "required_arguments": [
+        "song_name"
+      ],
+      "service": "Music_2",
+      "tool": "sgd_service:Music_2:PlayMedia",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "description": "Search for available rental cars by city and date",
+      "effect": "read_only",
+      "flow_id": "sgd.RentalCars_1.GetCarsAvailable",
+      "intent": "GetCarsAvailable",
+      "optional_arguments": [
+        "type"
+      ],
+      "required_arguments": [
+        "pickup_city",
+        "pickup_date",
+        "pickup_time",
+        "dropoff_date"
+      ],
+      "service": "RentalCars_1",
+      "tool": "sgd_service:RentalCars_1:GetCarsAvailable",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "description": "Reserve car rental for given dates and location",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.RentalCars_1.ReserveCar",
+      "intent": "ReserveCar",
+      "optional_arguments": [],
+      "required_arguments": [
+        "pickup_location",
+        "pickup_date",
+        "pickup_time",
+        "dropoff_date",
+        "type"
+      ],
+      "service": "RentalCars_1",
+      "tool": "sgd_service:RentalCars_1:ReserveCar",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "description": "See available cars for rental in a particular city and a date",
+      "effect": "read_only",
+      "flow_id": "sgd.RentalCars_2.GetCarsAvailable",
+      "intent": "GetCarsAvailable",
+      "optional_arguments": [
+        "car_type"
+      ],
+      "required_arguments": [
+        "pickup_city",
+        "pickup_date",
+        "pickup_time",
+        "dropoff_date"
+      ],
+      "service": "RentalCars_2",
+      "tool": "sgd_service:RentalCars_2:GetCarsAvailable",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "description": "Reserve a rental car for specified pickup location and dates",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.RentalCars_2.ReserveCar",
+      "intent": "ReserveCar",
+      "optional_arguments": [],
+      "required_arguments": [
+        "pickup_location",
+        "pickup_date",
+        "pickup_time",
+        "dropoff_date",
+        "car_type"
+      ],
+      "service": "RentalCars_2",
+      "tool": "sgd_service:RentalCars_2:ReserveCar",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "description": "Find a restaurant of a particular cuisine in a city",
+      "effect": "read_only",
+      "flow_id": "sgd.Restaurants_1.FindRestaurants",
+      "intent": "FindRestaurants",
+      "optional_arguments": [
+        "has_live_music",
+        "price_range",
+        "serves_alcohol"
+      ],
+      "required_arguments": [
+        "cuisine",
+        "city"
+      ],
+      "service": "Restaurants_1",
+      "tool": "sgd_service:Restaurants_1:FindRestaurants",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "description": "Reserve a table at a restaurant",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Restaurants_1.ReserveRestaurant",
+      "intent": "ReserveRestaurant",
+      "optional_arguments": [
+        "date",
+        "party_size"
+      ],
+      "required_arguments": [
+        "restaurant_name",
+        "city",
+        "time"
+      ],
+      "service": "Restaurants_1",
+      "tool": "sgd_service:Restaurants_1:ReserveRestaurant",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "description": "Call a taxi to head to a given destination",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.RideSharing_1.GetRide",
+      "intent": "GetRide",
+      "optional_arguments": [],
+      "required_arguments": [
+        "destination",
+        "number_of_riders",
+        "shared_ride"
+      ],
+      "service": "RideSharing_1",
+      "tool": "sgd_service:RideSharing_1:GetRide",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "description": "Book a cab for any destination, number of seats and ride type",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.RideSharing_2.GetRide",
+      "intent": "GetRide",
+      "optional_arguments": [],
+      "required_arguments": [
+        "destination",
+        "number_of_seats",
+        "ride_type"
+      ],
+      "service": "RideSharing_2",
+      "tool": "sgd_service:RideSharing_2:GetRide",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "description": "Book an appointment at a hair stylist",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Services_1.BookAppointment",
+      "intent": "BookAppointment",
+      "optional_arguments": [],
+      "required_arguments": [
+        "stylist_name",
+        "appointment_time",
+        "appointment_date"
+      ],
+      "service": "Services_1",
+      "tool": "sgd_service:Services_1:BookAppointment",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "description": "Search for a hair stylist by city and optionally other attributes",
+      "effect": "read_only",
+      "flow_id": "sgd.Services_1.FindProvider",
+      "intent": "FindProvider",
+      "optional_arguments": [
+        "is_unisex"
+      ],
+      "required_arguments": [
+        "city"
+      ],
+      "service": "Services_1",
+      "tool": "sgd_service:Services_1:FindProvider",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "description": "Book an appointment at a dentist for a given time and date",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Services_2.BookAppointment",
+      "intent": "BookAppointment",
+      "optional_arguments": [],
+      "required_arguments": [
+        "dentist_name",
+        "appointment_time",
+        "appointment_date"
+      ],
+      "service": "Services_2",
+      "tool": "sgd_service:Services_2:BookAppointment",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "description": "Find a dentist by location and optionally by services offered",
+      "effect": "read_only",
+      "flow_id": "sgd.Services_2.FindProvider",
+      "intent": "FindProvider",
+      "optional_arguments": [
+        "offers_cosmetic_services"
+      ],
+      "required_arguments": [
+        "city"
+      ],
+      "service": "Services_2",
+      "tool": "sgd_service:Services_2:FindProvider",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "EXPLICIT_CONFIRMATION_REQUIRED",
+      "description": "Book an appointment with a specific doctor for the given date and time",
+      "effect": "write_requires_approval",
+      "flow_id": "sgd.Services_3.BookAppointment",
+      "intent": "BookAppointment",
+      "optional_arguments": [],
+      "required_arguments": [
+        "doctor_name",
+        "appointment_time",
+        "appointment_date"
+      ],
+      "service": "Services_3",
+      "tool": "sgd_service:Services_3:BookAppointment",
+      "transactional": true,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "description": "Find a medical service provider based on their location and speciality",
+      "effect": "read_only",
+      "flow_id": "sgd.Services_3.FindProvider",
+      "intent": "FindProvider",
+      "optional_arguments": [],
+      "required_arguments": [
+        "city",
+        "type"
+      ],
+      "service": "Services_3",
+      "tool": "sgd_service:Services_3:FindProvider",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "description": "Browse attractions in a given city",
+      "effect": "read_only",
+      "flow_id": "sgd.Travel_1.FindAttractions",
+      "intent": "FindAttractions",
+      "optional_arguments": [
+        "category",
+        "free_entry",
+        "good_for_kids"
+      ],
+      "required_arguments": [
+        "location"
+      ],
+      "service": "Travel_1",
+      "tool": "sgd_service:Travel_1:FindAttractions",
+      "transactional": false,
+      "version": "sgd-v1"
+    },
+    {
+      "allowed_commands": [
+        "START_FLOW",
+        "CONTINUE_FLOW"
+      ],
+      "approval": "USER_COMMAND_SUFFICIENT",
+      "description": "Get the weather of a certain location on a date",
+      "effect": "read_only",
+      "flow_id": "sgd.Weather_1.GetWeather",
+      "intent": "GetWeather",
+      "optional_arguments": [
+        "date"
+      ],
+      "required_arguments": [
+        "city"
+      ],
+      "service": "Weather_1",
+      "tool": "sgd_service:Weather_1:GetWeather",
+      "transactional": false,
+      "version": "sgd-v1"
+    }
+  ],
+  "generation": "sgd-e852981ae349",
+  "registry_id": "sgd-train-schema-registry-v1",
+  "schema_version": "dialogpilot-public-flow-registry-v1"
+}

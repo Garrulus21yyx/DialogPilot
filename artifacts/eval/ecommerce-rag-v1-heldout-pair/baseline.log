@@ -1,0 +1,220 @@
+2026-09-08 18:31:25,666 [INFO] sentence_transformers.base.model: Loading SentenceTransformer model from /home/yang/.cache/huggingface/hub/models--BAAI--bge-m3/snapshots/5617a9f61b028005a4858fdac845db406aefb181.
+/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/infrastructure/bge_m3_embedding.py:145: FutureWarning: The `get_sentence_embedding_dimension` method has been renamed to `get_embedding_dimension`.
+  dimension = self._model.get_sentence_embedding_dimension()
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade  -> 20260902_0001, Create platform namespaces and immutable migration ledger.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0001 -> 20260902_0002, Create immutable conversation, admission and publication facts.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0002 -> 20260902_0003, Create start/resume outboxes for inbound-first admission.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0003 -> 20260902_0004, Add canonical publication evidence, delivery lifecycle and send outbox.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0004 -> 20260902_0005, Reserved revision after direct PostgreSQL ResponseDelivery initialization.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0005 -> 20260902_0006, Create event projection outbox, watermarks and deletion epoch fence.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0006 -> 20260902_0007, Bind the approved data-location registry artifact.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0007 -> 20260902_0008, Add audited conversation close state for M1 query projections.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0008 -> 20260902_0009, Install the retrieval write-approved data-location overlay.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0009 -> 20260902_0010, Add the corpus-scoped retrieval generation and search schema.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0010 -> 20260902_0011, Make PG_FTS_ZH_V1 tsvector a database-owned generated projection.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0011 -> 20260902_0012, Add immutable Knowledge SourceRevision v0 and generation manifests.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0012 -> 20260902_0013, Add canonical retrieval projection outbox and deletion fences.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0013 -> 20260902_0014, Harden canonical projection event identity and owner-reference enqueue checks.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0014 -> 20260902_0015, Make the retrieval runtime role read-only over rebuildable search projections.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0015 -> 20260902_0016, Add direct-ingest SourceRevision provenance fields.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0016 -> 20260902_0017, Add the durable M1 compatibility invocation execution outbox.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0017 -> 20260902_0018, Add canonical thread-summary chunks and checkpoints.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0018 -> 20260902_0019, Add rebuild generations to thread-summary ownership.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0019 -> 20260902_0020, Add canonical ServiceEpisode revisions and current-head CAS.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0020 -> 20260902_0021, Finalize direct ServiceEpisode retrieval for fresh installations.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0021 -> 20260902_0022, Add PostgreSQL-owned versioned user memory facts.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0022 -> 20260902_0023, Add PostgreSQL-owned local media assets and turn bindings.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0023 -> 20260902_0024, Add PostgreSQL-owned handoff tickets, events and delivery outbox.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0024 -> 20260902_0025, Add PostgreSQL-owned customer commitments and versioned events.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0025 -> 20260902_0026, Add a bounded local persistence surface for sanitized application spans.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0026 -> 20260903_0027, Pin provider and document/query preprocessing in retrieval generations.
+INFO  [alembic.runtime.migration] Running upgrade 20260903_0027 -> 20260903_0028, Preserve canonical ServiceEpisode entity scope for dense projection.
+INFO  [alembic.runtime.migration] Running upgrade 20260903_0028 -> 20260903_0029, Add the conversation-scoped active-flow CAS aggregate.
+INFO  [alembic.runtime.migration] Running upgrade 20260903_0029 -> 20260903_0030, Add contextual Knowledge retrieval text, BM25 terms, and metadata filters.
+INFO  [alembic.runtime.migration] Running upgrade 20260903_0030 -> 20260903_0031, Let v1 Knowledge revisions distinguish retrieval-affecting metadata.
+INFO  [alembic.runtime.migration] Running upgrade 20260903_0031 -> 20260905_0032, Move the immutable AgentBundle registry to the platform database.
+INFO  [alembic.runtime.migration] Running upgrade 20260905_0032 -> 20260905_0033, Move ecommerce business state to tenant-scoped PostgreSQL tables.
+INFO  [alembic.runtime.migration] Running upgrade 20260905_0033 -> 20260905_0034, Move quality observations and intent feedback audit to PostgreSQL.
+INFO  [alembic.runtime.migration] Running upgrade 20260905_0034 -> 20260905_0035, Retire the unused pre-Target flow aggregate (destructive, forward-only).
+INFO  [alembic.runtime.migration] Running upgrade 20260905_0035 -> 20260906_0036, Knowledge applicability and monotonic revision withdrawal (forward-only).
+INFO  [alembic.runtime.migration] Running upgrade 20260906_0036 -> 20260908_0037, Retain Target run attempt failures in the existing execution outbox.
+ERROR [application.response_assembly] Response assembly failed: {"stage": "citation_validation", "status": "failed", "detail": {"code": "ValueError", "retryable": false, "exception_chain": [{"type": "ValueError", "frames": [{"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/application/response_assembly.py", "line": 196, "function": "_assemble"}, {"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/application/knowledge_tool_contract.py", "line": 100, "function": "validate_answer_citations"}], "message": "answer citations do not match supplied evidence"}]}}
+FULL ec-006-1 Completed ['knowledge_search']
+ERROR [application.response_assembly] Response assembly failed: {"stage": "citation_validation", "status": "failed", "detail": {"code": "ValueError", "retryable": false, "exception_chain": [{"type": "ValueError", "frames": [{"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/application/response_assembly.py", "line": 196, "function": "_assemble"}, {"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/application/knowledge_tool_contract.py", "line": 100, "function": "validate_answer_citations"}], "message": "answer citations do not match supplied evidence"}]}}
+FULL ec-006-2 Completed ['knowledge_search']
+FULL ec-007-1 Completed ['knowledge_search']
+FULL ec-007-2 Completed ['knowledge_search']
+ERROR [application.response_assembly] Response assembly failed: {"stage": "evidence_assembly", "status": "failed", "detail": {"code": "ValueError", "retryable": false, "exception_chain": [{"type": "ValueError", "frames": [{"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/application/response_assembly.py", "line": 148, "function": "_assemble"}], "message": "conflicting evidence identity"}]}}
+FULL ec-008-1 Completed ['knowledge_search', 'knowledge_search']
+ERROR [application.response_assembly] Response assembly failed: {"stage": "evidence_assembly", "status": "failed", "detail": {"code": "ValueError", "retryable": false, "exception_chain": [{"type": "ValueError", "frames": [{"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/application/response_assembly.py", "line": 148, "function": "_assemble"}], "message": "conflicting evidence identity"}]}}
+FULL ec-008-2 Completed ['knowledge_search', 'knowledge_search']
+FULL ec-009-1 Completed ['knowledge_search']
+FULL ec-009-2 Completed ['knowledge_search']
+FULL ec-010-1 Completed ['knowledge_search']
+ERROR [application.response_assembly] Response assembly failed: {"stage": "evidence_assembly", "status": "failed", "detail": {"code": "ValueError", "retryable": false, "exception_chain": [{"type": "ValueError", "frames": [{"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/application/response_assembly.py", "line": 148, "function": "_assemble"}], "message": "conflicting evidence identity"}]}}
+FULL ec-010-2 Completed ['knowledge_search', 'knowledge_search']
+FULL ec-011-1 Completed ['knowledge_search']
+FULL ec-011-2 Completed ['knowledge_search']
+FULL ec-012-1 Completed ['knowledge_search']
+FULL ec-012-2 Completed ['knowledge_search']
+FULL ec-013-1 Completed ['knowledge_search']
+FULL ec-013-2 Completed ['knowledge_search']
+FULL ec-014-1 Completed ['knowledge_search']
+FULL ec-014-2 Completed ['knowledge_search']
+FULL ec-015-1 Completed ['knowledge_search']
+FULL ec-015-2 Completed ['knowledge_search']
+FULL ec-020-1 Completed ['knowledge_search']
+FULL ec-020-2 Completed ['knowledge_search']
+FULL ec-021-1 Completed ['knowledge_search']
+FULL ec-021-2 Completed ['knowledge_search']
+FULL ec-022-1 Completed ['knowledge_search']
+FULL ec-022-2 Completed ['knowledge_search']
+ERROR [mcp.tool_manager] 工具异常: media_read — asset is unavailable
+ERROR [infrastructure.target_framework_agent] Domain execution failed: {"stage": "agent_execution", "status": "failed", "detail": {"code": "AGENT_STEP_BUDGET_EXCEEDED", "retryable": false, "work_item_id": "work:invocation:v1:877c84088fc8e398f75450a841fdf7ccc4f38cf534a64d8b03048fee5b12f8c9:1:semantic-1", "owner_agent": "product_technical", "invocation_key": "invocation:v1:877c84088fc8e398f75450a841fdf7ccc4f38cf534a64d8b03048fee5b12f8c9", "conversation_id": "full-ec-023-1", "control_id": "control:invocation:v1:877c84088fc8e398f75450a841fdf7ccc4f38cf534a64d8b03048fee5b12f8c9:semantic-1", "revision": 1, "exception_chain": [{"type": "ToolCallLimitExceededError", "frames": [{"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/infrastructure/target_framework_agent.py", "line": 181, "function": "__call__"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/main.py", "line": 3440, "function": "astream"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/_runner.py", "line": 396, "function": "atick"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/_retry.py", "line": 744, "function": "arun_with_retry"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/_internal/_runnable.py", "line": 756, "function": "ainvoke"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/_internal/_runnable.py", "line": 522, "function": "ainvoke"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain/agents/middleware/tool_call_limit.py", "line": 488, "function": "aafter_model"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain/agents/middleware/tool_call_limit.py", "line": 400, "function": "after_model"}], "message": "Tool call limit reached: thread limit exceeded (5/4 calls)."}], "related_errors": []}}
+FULL ec-023-1 Completed ['catalog_search', 'catalog_search', 'media_read']
+ERROR [application.response_assembly] Response assembly failed: {"stage": "evidence_assembly", "status": "failed", "detail": {"code": "ValueError", "retryable": false, "exception_chain": [{"type": "ValueError", "frames": [{"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/application/response_assembly.py", "line": 148, "function": "_assemble"}], "message": "conflicting evidence identity"}]}}
+FULL ec-023-2 Completed ['knowledge_search', 'knowledge_search']
+FULL ec-024-1 Completed ['knowledge_search']
+FULL ec-024-2 Completed ['knowledge_search']
+FULL ec-025-1 Completed ['knowledge_search']
+FULL ec-025-2 Completed ['knowledge_search']
+ERROR [mcp.tool_manager] 工具异常: order_lookup — order not found
+FULL ec-026-1 Completed ['service_episode_search', 'order_lookup']
+ERROR [mcp.tool_manager] 工具异常: order_lookup — order not found
+ERROR [mcp.tool_manager] 工具异常: order_lookup — order not found
+FULL ec-026-2 Completed ['order_lookup', 'order_lookup']
+FULL ec-027-1 Completed ['knowledge_search']
+FULL ec-027-2 Completed ['knowledge_search']
+ERROR [mcp.tool_manager] 工具异常: media_read — asset is unavailable
+ERROR [mcp.tool_manager] 工具异常: order_lookup — order not found
+FULL ec-033-1 Completed ['media_read', 'order_lookup']
+ERROR [application.response_assembly] Response assembly failed: {"stage": "evidence_assembly", "status": "failed", "detail": {"code": "ValueError", "retryable": false, "exception_chain": [{"type": "ValueError", "frames": [{"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/application/response_assembly.py", "line": 148, "function": "_assemble"}], "message": "conflicting evidence identity"}]}}
+FULL ec-033-2 Completed ['knowledge_search', 'knowledge_search']
+ERROR [application.response_assembly] Response assembly failed: {"stage": "evidence_assembly", "status": "failed", "detail": {"code": "ValueError", "retryable": false, "exception_chain": [{"type": "ValueError", "frames": [{"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/application/response_assembly.py", "line": 148, "function": "_assemble"}], "message": "conflicting evidence identity"}]}}
+FULL ec-034-1 Completed ['knowledge_search', 'knowledge_search']
+FULL ec-034-2 Completed ['knowledge_search']
+ERROR [mcp.tool_manager] 工具异常: media_read — asset is unavailable
+FULL ec-035-1 Completed ['media_read', 'knowledge_search']
+FULL ec-035-2 Completed ['knowledge_search']
+ERROR [mcp.tool_manager] 工具异常: media_read — asset is unavailable
+FULL ec-036-1 Completed ['media_read']
+FULL ec-036-2 Completed ['knowledge_search']
+FULL ec-037-1 Completed ['knowledge_search']
+FULL ec-037-2 Completed ['knowledge_search']
+ERROR [infrastructure.target_framework_agent] Domain execution failed: {"stage": "agent_execution", "status": "failed", "detail": {"code": "AGENT_EXECUTION_TIMEOUT", "retryable": true, "work_item_id": "work:invocation:v1:1cfb79d5d0bcbd387b177842c628f9464b85c6d4d9d566395255fa94425af305:1:semantic-1", "owner_agent": "product_technical", "invocation_key": "invocation:v1:1cfb79d5d0bcbd387b177842c628f9464b85c6d4d9d566395255fa94425af305", "conversation_id": "full-ec-038-1", "control_id": "control:invocation:v1:1cfb79d5d0bcbd387b177842c628f9464b85c6d4d9d566395255fa94425af305:semantic-1", "revision": 1, "exception_chain": [{"type": "TimeoutError", "frames": [{"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/infrastructure/target_framework_agent.py", "line": 178, "function": "__call__"}, {"file": "/home/yang/miniconda3/lib/python3.13/asyncio/timeouts.py", "line": 116, "function": "__aexit__"}], "message": ""}, {"type": "CancelledError", "frames": [{"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/infrastructure/target_framework_agent.py", "line": 181, "function": "__call__"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/main.py", "line": 3440, "function": "astream"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/_runner.py", "line": 396, "function": "atick"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/_retry.py", "line": 744, "function": "arun_with_retry"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/_internal/_runnable.py", "line": 756, "function": "ainvoke"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/_internal/_runnable.py", "line": 522, "function": "ainvoke"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain/agents/factory.py", "line": 1317, "function": "amodel_node"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain/agents/factory.py", "line": 371, "function": "composed"}, {"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/infrastructure/target_agent_middleware.py", "line": 193, "function": "awrap_model_call"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain/agents/factory.py", "line": 361, "function": "inner_handler"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain/agents/factory.py", "line": 371, "function": "composed"}, {"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/infrastructure/target_agent_middleware.py", "line": 223, "function": "awrap_model_call"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain/agents/factory.py", "line": 361, "function": "inner_handler"}, {"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/infrastructure/target_agent_middleware.py", "line": 19, "function": "awrap_model_call"}, {"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/core/framework_models.py", "line": 30, "function": "invoke_model"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain/agents/factory.py", "line": 1286, "function": "_execute_model_async"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain_core/runnables/base.py", "line": 6027, "function": "ainvoke"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", "line": 511, "function": "ainvoke"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", "line": 1888, "function": "agenerate_prompt"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", "line": 1808, "function": "agenerate"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", "line": 2179, "function": "_agenerate_with_cache"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain_anthropic/chat_models.py", "line": 2280, "function": "_agenerate"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain_anthropic/chat_models.py", "line": 1857, "function": "_acreate"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/anthropic/_response.py", "line": 813, "function": "wrapped"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/anthropic/resources/messages/messages.py", "line": 2370, "function": "create"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/anthropic/_base_client.py", "line": 2184, "function": "post"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/anthropic/_base_client.py", "line": 1814, "function": "request"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/anthropic/_base_client.py", "line": 1975, "function": "_attempt_request"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/httpx2/_client.py", "line": 1832, "function": "send"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/httpx2/_client.py", "line": 1826, "function": "send"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/httpx2/_models.py", "line": 976, "function": "aread"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/httpx2/_models.py", "line": 993, "function": "aiter_bytes"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/httpx2/_models.py", "line": 1049, "function": "aiter_raw"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/httpx2/_client.py", "line": 165, "function": "__aiter__"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/httpx2/_transports/default.py", "line": 266, "function": "__aiter__"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/httpcore2/_async/connection_pool.py", "line": 426, "function": "__aiter__"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/httpcore2/_async/http11.py", "line": 320, "function": "__aiter__"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/httpcore2/_async/http11.py", "line": 312, "function": "__aiter__"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/httpcore2/_async/http11.py", "line": 188, "function": "_receive_response_body"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/httpcore2/_async/http11.py", "line": 200, "function": "_receive_event"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/httpcore2/_backends/anyio.py", "line": 37, "function": "read"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/anyio/streams/tls.py", "line": 254, "function": "receive"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/anyio/streams/tls.py", "line": 194, "function": "_call_sslobject_method"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py", "line": 1337, "function": "receive"}, {"file": "/home/yang/miniconda3/lib/python3.13/asyncio/locks.py", "line": 213, "function": "wait"}], "message": ""}, {"type": "SSLWantReadError", "frames": [{"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/anyio/streams/tls.py", "line": 187, "function": "_call_sslobject_method"}, {"file": "/home/yang/miniconda3/lib/python3.13/ssl.py", "line": 868, "function": "read"}], "message": "The operation did not complete (read) (_ssl.c:2658)"}], "related_errors": []}}
+ERROR [application.response_assembly] Response assembly failed: {"stage": "evidence_assembly", "status": "failed", "detail": {"code": "ValueError", "retryable": false, "exception_chain": [{"type": "ValueError", "frames": [{"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/application/response_assembly.py", "line": 148, "function": "_assemble"}], "message": "conflicting evidence identity"}]}}
+ERROR [application.target_chat_application] Target turn execution failed invocation_key=invocation:v1:1cfb79d5d0bcbd387b177842c628f9464b85c6d4d9d566395255fa94425af305
+Traceback (most recent call last):
+  File "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/application/response_assembly.py", line 148, in _assemble
+    raise ValueError("conflicting evidence identity")
+ValueError: conflicting evidence identity
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/application/target_chat_application.py", line 225, in execute_admitted
+    turn_result = await self._turn_runtime.execute(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        identity, observations, execution_context=execution_context,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/application/turn_runtime.py", line 237, in execute
+    result = await self.graph.ainvoke(graph_input, config=config)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/main.py", line 4090, in ainvoke
+    async for chunk in self.astream(
+    ...<30 lines>...
+            chunks.append(chunk)
+  File "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/main.py", line 3440, in astream
+    async for _ in runner.atick(
+    ...<16 lines>...
+            yield o
+  File "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/_runner.py", line 396, in atick
+    await arun_with_retry(
+    ...<15 lines>...
+    )
+  File "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/_retry.py", line 744, in arun_with_retry
+    return await task.proc.ainvoke(task.input, config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/_internal/_runnable.py", line 756, in ainvoke
+    input = await asyncio.create_task(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+        step.ainvoke(input, config, **kwargs), context=context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/_internal/_runnable.py", line 522, in ainvoke
+    ret = await self.afunc(*args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/application/turn_runtime.py", line 183, in _assemble_response
+    assembled = await self._assembler.assemble(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/application/response_assembly.py", line 103, in assemble
+    response = await self._assemble(board, current_message=current_message,
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        system_notice=system_notice, conversation_context=conversation_context, pending_approval=pending_approval,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        requested_inputs=requested_inputs, response_candidate=response_candidate)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/application/response_assembly.py", line 222, in _assemble
+    return replace(self._knowledge_fallback(board, system_notice, unavailable=True),
+                   ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/application/response_assembly.py", line 286, in _knowledge_fallback
+    prefix = _render_board(board, locale=self.fallback_locale, knowledge_safe=True)
+  File "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/application/response_assembly.py", line 520, in _render_board
+    result = replace(result, facts=facts, candidate_response=None, status=AgentResultStatus.PARTIAL)
+  File "/home/yang/miniconda3/lib/python3.13/dataclasses.py", line 1596, in replace
+    return _replace(obj, **changes)
+  File "/home/yang/miniconda3/lib/python3.13/dataclasses.py", line 1630, in _replace
+    return self.__class__(**changes)
+           ~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "<string>", line 19, in __init__
+  File "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/application/agent_result.py", line 227, in __post_init__
+    raise AgentResultContractError("only RETRYABLE_FAILURE may be retried")
+application.agent_result.AgentResultContractError: only RETRYABLE_FAILURE may be retried
+During task with name 'assemble_response' and id 'daf1f1bf-fd17-504d-b22c-3da867c80e5a'
+FULL ec-038-1 Failed ['catalog_search', 'knowledge_search', 'knowledge_search', 'knowledge_search']
+ERROR [application.response_assembly] Response assembly failed: {"stage": "citation_validation", "status": "failed", "detail": {"code": "ValueError", "retryable": false, "exception_chain": [{"type": "ValueError", "frames": [{"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/application/response_assembly.py", "line": 196, "function": "_assemble"}, {"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/application/knowledge_tool_contract.py", "line": 100, "function": "validate_answer_citations"}], "message": "answer citations do not match supplied evidence"}]}}
+FULL ec-038-2 Completed ['knowledge_search']
+FULL ec-039-1 Completed ['knowledge_search', 'knowledge_search']
+FULL ec-039-2 Completed ['knowledge_search']
+FULL ec-040-1 Completed ['knowledge_search']
+FULL ec-040-2 Completed ['knowledge_search']
+FULL ec-044-1 Completed ['order_lookup', 'refund_status']
+FULL ec-044-2 Completed ['order_lookup', 'order_lookup', 'refund_status']
+FULL ec-045-1 Completed ['order_lookup', 'knowledge_search']
+FULL ec-045-2 Completed ['order_lookup', 'knowledge_search']
+FULL ec-046-1 Completed ['order_lookup']
+FULL ec-046-2 Completed ['order_lookup', 'order_lookup']
+FULL ec-047-1 Completed ['order_lookup', 'knowledge_search']
+FULL ec-047-2 Completed ['order_lookup', 'refund_status']
+FULL ec-048-1 Completed ['order_lookup', 'knowledge_search']
+FULL ec-048-2 Completed ['order_lookup', 'knowledge_search']
+FULL ec-049-1 Completed ['order_lookup', 'knowledge_search']
+FULL ec-049-2 Completed ['order_lookup', 'knowledge_search']
+FULL ec-050-1 Completed ['order_lookup']
+FULL ec-050-2 Completed ['order_lookup']
+FULL ec-054-1 Completed ['knowledge_search']
+FULL ec-054-2 Completed ['knowledge_search']
+FULL ec-055-1 Completed ['knowledge_search']
+FULL ec-055-2 Completed ['knowledge_search']
+ERROR [infrastructure.target_framework_agent] Domain execution failed: {"stage": "agent_execution", "status": "failed", "detail": {"code": "AGENT_EXECUTION_TIMEOUT", "retryable": true, "work_item_id": "work:invocation:v1:136f0b14e3bcf5a913a70efcb0ec32fae6f9cad61353ccbbc169782d6c9cc1d1:2:semantic-2", "owner_agent": "general", "invocation_key": "invocation:v1:136f0b14e3bcf5a913a70efcb0ec32fae6f9cad61353ccbbc169782d6c9cc1d1", "conversation_id": "full-ec-056-1", "control_id": "control:invocation:v1:136f0b14e3bcf5a913a70efcb0ec32fae6f9cad61353ccbbc169782d6c9cc1d1:semantic-2", "revision": 1, "exception_chain": [{"type": "TimeoutError", "frames": [{"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/infrastructure/target_framework_agent.py", "line": 178, "function": "__call__"}, {"file": "/home/yang/miniconda3/lib/python3.13/asyncio/timeouts.py", "line": 116, "function": "__aexit__"}], "message": ""}, {"type": "CancelledError", "frames": [{"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/infrastructure/target_framework_agent.py", "line": 181, "function": "__call__"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/main.py", "line": 3440, "function": "astream"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/_runner.py", "line": 396, "function": "atick"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/_retry.py", "line": 744, "function": "arun_with_retry"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/_internal/_runnable.py", "line": 756, "function": "ainvoke"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/_internal/_runnable.py", "line": 522, "function": "ainvoke"}, {"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/infrastructure/target_agent_middleware.py", "line": 152, "function": "aafter_model"}, {"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/infrastructure/target_domain_outcome.py", "line": 109, "function": "assess"}, {"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/core/structured_model.py", "line": 25, "function": "structured_call"}, {"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/core/framework_models.py", "line": 30, "function": "invoke_model"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain_core/runnables/base.py", "line": 3496, "function": "ainvoke"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain_core/runnables/base.py", "line": 4232, "function": "ainvoke"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain_core/runnables/base.py", "line": 4224, "function": "_ainvoke_step"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain_core/runnables/base.py", "line": 6027, "function": "ainvoke"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", "line": 511, "function": "ainvoke"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", "line": 1888, "function": "agenerate_prompt"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", "line": 1808, "function": "agenerate"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py", "line": 2179, "function": "_agenerate_with_cache"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain_anthropic/chat_models.py", "line": 2280, "function": "_agenerate"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain_anthropic/chat_models.py", "line": 1857, "function": "_acreate"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/anthropic/_response.py", "line": 813, "function": "wrapped"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/anthropic/resources/messages/messages.py", "line": 2370, "function": "create"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/anthropic/_base_client.py", "line": 2184, "function": "post"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/anthropic/_base_client.py", "line": 1814, "function": "request"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/anthropic/_base_client.py", "line": 1975, "function": "_attempt_request"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/httpx2/_client.py", "line": 1832, "function": "send"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/httpx2/_client.py", "line": 1826, "function": "send"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/httpx2/_models.py", "line": 976, "function": "aread"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/httpx2/_models.py", "line": 993, "function": "aiter_bytes"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/httpx2/_models.py", "line": 1049, "function": "aiter_raw"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/httpx2/_client.py", "line": 165, "function": "__aiter__"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/httpx2/_transports/default.py", "line": 266, "function": "__aiter__"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/httpcore2/_async/connection_pool.py", "line": 426, "function": "__aiter__"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/httpcore2/_async/http11.py", "line": 320, "function": "__aiter__"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/httpcore2/_async/http11.py", "line": 312, "function": "__aiter__"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/httpcore2/_async/http11.py", "line": 188, "function": "_receive_response_body"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/httpcore2/_async/http11.py", "line": 200, "function": "_receive_event"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/httpcore2/_backends/anyio.py", "line": 37, "function": "read"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/anyio/streams/tls.py", "line": 254, "function": "receive"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/anyio/streams/tls.py", "line": 194, "function": "_call_sslobject_method"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py", "line": 1337, "function": "receive"}, {"file": "/home/yang/miniconda3/lib/python3.13/asyncio/locks.py", "line": 213, "function": "wait"}], "message": ""}, {"type": "SSLWantReadError", "frames": [{"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/anyio/streams/tls.py", "line": 187, "function": "_call_sslobject_method"}, {"file": "/home/yang/miniconda3/lib/python3.13/ssl.py", "line": 868, "function": "read"}], "message": "The operation did not complete (read) (_ssl.c:2658)"}], "related_errors": []}}
+FULL ec-056-1 Completed ['service_episode_search', 'knowledge_search', 'service_episode_search', 'service_episode_search', 'service_episode_search']
+ERROR [application.response_assembly] Response assembly failed: {"stage": "evidence_assembly", "status": "failed", "detail": {"code": "ValueError", "retryable": false, "exception_chain": [{"type": "ValueError", "frames": [{"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/application/response_assembly.py", "line": 148, "function": "_assemble"}], "message": "conflicting evidence identity"}]}}
+FULL ec-056-2 Completed ['knowledge_search', 'knowledge_search']
+FULL ec-057-1 Completed ['knowledge_search']
+FULL ec-057-2 Completed ['knowledge_search']
+ERROR [application.response_assembly] Response assembly failed: {"stage": "citation_validation", "status": "failed", "detail": {"code": "ValueError", "retryable": false, "exception_chain": [{"type": "ValueError", "frames": [{"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/application/response_assembly.py", "line": 196, "function": "_assemble"}, {"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/application/knowledge_tool_contract.py", "line": 100, "function": "validate_answer_citations"}], "message": "answer citations do not match supplied evidence"}]}}
+FULL ec-058-1 Completed ['knowledge_search']
+ERROR [application.response_assembly] Response assembly failed: {"stage": "citation_validation", "status": "failed", "detail": {"code": "ValueError", "retryable": false, "exception_chain": [{"type": "ValueError", "frames": [{"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/application/response_assembly.py", "line": 196, "function": "_assemble"}, {"file": "/tmp/dialogpilot-ecommerce-ecommerce-rag-v1-heldout-pair-baseline/application/knowledge_tool_contract.py", "line": 100, "function": "validate_answer_citations"}], "message": "answer citations do not match supplied evidence"}]}}
+FULL ec-058-2 Completed ['knowledge_search']
+FULL ec-059-1 Completed ['knowledge_search']
+FULL ec-059-2 Completed ['knowledge_search']
+FULL ec-060-1 Completed ['knowledge_search']
+FULL ec-060-2 Completed ['knowledge_search']

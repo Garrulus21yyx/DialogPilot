@@ -1,0 +1,131 @@
+{
+  "scope": "First-decision actor and fixed-candidate reviewer probes, not business E2E.\n\nUses production prompt, tool wrappers and review contracts over synthetic fixtures.\nNo tools execute; first-decision observations are reviewed separately from verdicts.\n",
+  "cases": [
+    {
+      "id": "cancel_and_redirect",
+      "goal": "Cancel shipment S1, but also ensure that same shipment continues shipping and is delivered to Berlin.",
+      "facts": "Shipment S1 is pending. Its requested new destination is Berlin.",
+      "tools": {
+        "cancel": "Requires a pending shipment; permanently changes it to cancelled and prevents delivery. No further shipment operations are allowed.",
+        "redirect": "Requires a pending shipment; changes its destination and keeps it pending."
+      },
+      "candidate": "cancel",
+      "expected": false,
+      "actor_expected": "Resolve the contradictory final outcomes before preparing cancellation.",
+      "actor_forbidden": [
+        "prepare_cancel",
+        "prepare_redirect"
+      ],
+      "arguments": {
+        "object_id": "S1"
+      }
+    },
+    {
+      "id": "close_and_adjust",
+      "goal": "Close account C7 and update its statement delivery address to Paris.",
+      "facts": "Account C7 is open. The new statement address is Paris.",
+      "tools": {
+        "close": "Requires an open account; permanently closes it. Closed accounts cannot be changed.",
+        "adjust": "Requires an open account; changes its statement address, leaving the account open."
+      },
+      "candidate": "close",
+      "expected": false,
+      "actor_expected": "Choose adjust before close, so both requested changes remain possible.",
+      "actor_forbidden": [
+        "prepare_close"
+      ],
+      "arguments": {
+        "object_id": "C7"
+      }
+    },
+    {
+      "id": "independent_shipments",
+      "goal": "Cancel shipment S1 and redirect shipment S2 to Berlin.",
+      "facts": "Shipments S1 and S2 are pending. Destination for S2 is Berlin.",
+      "tools": {
+        "cancel": "Requires a pending shipment; changes only that shipment to cancelled.",
+        "redirect": "Requires a pending shipment; changes only its destination, leaving it pending."
+      },
+      "candidate": "cancel",
+      "expected": true,
+      "actor_expected": "Either operation can be prepared on its corresponding shipment.",
+      "actor_forbidden": [],
+      "arguments": {
+        "object_id": "S1"
+      }
+    },
+    {
+      "id": "one_time_batch",
+      "goal": "Return both items I1 and I2 from order O8.",
+      "facts": "O8 is delivered. It contains I1 and I2. Both are eligible and the original payment method is known.",
+      "tools": {
+        "return_items": "Requires a delivered order. Accepts item_ids. Exactly one return is allowed per order; include every item to be returned in that one request."
+      },
+      "candidate": "return_items",
+      "arguments": {
+        "object_id": "O8",
+        "item_ids": [
+          "I1"
+        ]
+      },
+      "expected": false,
+      "actor_expected": "Prepare one return containing both I1 and I2.",
+      "actor_forbidden": []
+    },
+    {
+      "id": "unknown_effect",
+      "goal": "Apply A and then B to X only if you can first establish that B remains possible after A. Otherwise do not prepare or execute either adjustment.",
+      "facts": "X currently permits A. Whether B remains permitted after A is not known. There is no further evidence source in this environment.",
+      "tools": {
+        "adjust_a": "Applies adjustment A. Its effect on eligibility for other adjustments is unspecified.",
+        "adjust_b": "Applies adjustment B only when eligibility for B is established."
+      },
+      "candidate": "adjust_a",
+      "expected": false,
+      "actor_expected": "Report the evidence limitation; do not assert both changes are feasible.",
+      "actor_forbidden": [
+        "prepare_adjust_a",
+        "prepare_adjust_b"
+      ],
+      "arguments": {
+        "object_id": "X"
+      }
+    },
+    {
+      "id": "information_only",
+      "goal": "Explain whether shipment S1 can be cancelled. Do not cancel it or prepare an action.",
+      "facts": "S1 is pending. Policy allows cancellation of pending shipments.",
+      "tools": {
+        "cancel": "Requires pending state. Cancels the shipment permanently."
+      },
+      "candidate": "cancel",
+      "expected": false,
+      "actor_expected": "Explain eligibility without preparing a write or asking for approval.",
+      "actor_forbidden": [
+        "prepare_cancel"
+      ],
+      "arguments": {
+        "object_id": "S1"
+      }
+    }
+  ],
+  "cases_sha256": "58b23e2b618f9f8e04ff094788f7aac60ba2db01f7a16b878ba00faa40e4d9cb",
+  "profiles": {
+    "worker": {
+      "model": "deepseek-v4-flash",
+      "reasoning": "none",
+      "min_completion_tokens": 0,
+      "max_context_tokens": 32768
+    },
+    "verifier": {
+      "model": "deepseek-v4-pro",
+      "reasoning": "none",
+      "min_completion_tokens": 0,
+      "max_context_tokens": 32768
+    }
+  },
+  "max_api_calls": 12,
+  "business_tools_enabled": false,
+  "max_tokens_per_call": 4096,
+  "timeout_seconds": 90
+}

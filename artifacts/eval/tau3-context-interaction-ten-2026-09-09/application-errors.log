@@ -1,0 +1,534 @@
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 146, in _complete
+    raise ValueError("planning_output_incomplete")
+ValueError: planning_output_incomplete
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 349, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 32, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<32 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 151, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_output_incomplete
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 149, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 292, in action_proposal
+    Draft202012Validator(planning_output_schema()).validate(proposal)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/jsonschema/validators.py", line 450, in validate
+    raise error
+jsonschema.exceptions.ValidationError: [{'kind': 'atomic_read', 'target_agent': 'retail', 'tool_id': 'get_order_details', 'arguments': {'order_id': '#W4967593'}, 'goal_id': 'atomic:call_00_Rara97vIeQVKSNgaZWbx9257'}, {'kind': 'atomic_read', 'target_agent': 'retail', 'tool_id': 'get_product_details', 'arguments': {'product_id': '4794339885'}, 'goal_id': 'atomic:call_01_j0TIKpUSLRng461TRYRy0114'}, {'kind': 'atomic_read', 'target_agent': 'retail', 'tool_id': 'get_product_details', 'arguments': {'product_id': '7352963235'}, 'goal_id': 'atomic:call_02_VggwDmLvmVPrSbghn8wz0846'}, {'kind': 'atomic_read', 'target_agent': 'retail', 'tool_id': 'get_product_details', 'arguments': {'product_id': '2524789262'}, 'goal_id': 'atomic:call_03_DyxLlkJiNHDsVM9pN3nj2014'}, {'kind': 'atomic_read', 'target_agent': 'retail', 'tool_id': 'get_product_details', 'arguments': {'product_id': '6066914160'}, 'goal_id': 'atomic:call_04_sATZQUvR3i1q4JCOv6oC2764'}] is too long
+
+Failed validating 'maxItems' in schema['properties']['goals']:
+    {'type': 'array',
+     'minItems': 1,
+     'maxItems': 4,
+     'items': {'type': 'object',
+               'additionalProperties': False,
+               'required': ['kind'],
+               'properties': {'kind': {'type': 'string',
+                                       'enum': ['atomic_read',
+                                                'cancel_active_work',
+                                                'cancel_order',
+                                                'change_address',
+                                                'continue_active_work',
+                                                'delegate_task',
+                                                'execute_refund',
+                                                'freeze_account',
+                                                'general_qa',
+                                                'human_handoff',
+                                                'invoice_qa',
+                                                'logistics_status',
+                                                'media_text_read',
+                                                'media_visual_analysis',
+                                                'order_status',
+                                                'product_assistance',
+                                                'product_identification',
+                                                'product_qa',
+                                                'refund_eligibility',
+                                                'refund_policy',
+                                                'refund_status',
+                                                'security_review']},
+                              'goal_id': {'type': 'string',
+                                          'minLength': 1,
+                                          'pattern': '\\S'},
+                              'order_id': {'type': 'string',
+                                           'minLength': 1,
+                                           'pattern': '\\S'},
+                              'order_id_source_ref': {'type': 'string',
+                                                      'minLength': 1,
+                                                      'pattern': '\\S'},
+                              'asset_id': {'type': 'string',
+                                           'minLength': 1,
+                                           'pattern': '\\S'},
+                              'asset_id_source_ref': {'type': 'string',
+                                                      'minLength': 1,
+                                                      'pattern': '\\S'},
+                              'new_address': {'type': 'string',
+                                              'minLength': 1,
+                                              'pattern': '\\S'},
+                              'revises_control_id': {'type': 'string',
+                                                     'minLength': 1,
+                                                     'pattern': '\\S'},
+                              'target_agent': {'type': 'string',
+                                               'minLength': 1,
+                                               'pattern': '\\S'},
+                              'objective': {'type': 'string',
+                                            'minLength': 1,
+                                            'pattern': '\\S'},
+                              'resolved_query': {'type': 'string',
+                                                 'minLength': 1,
+                                                 'pattern': '\\S',
+                                                 'maxLength': 4000},
+                              'tool_id': {'type': 'string',
+                                          'minLength': 1,
+                                          'pattern': '\\S'},
+                              'arguments': {'type': 'object'},
+                              'depends_on': {'type': 'array',
+                                             'uniqueItems': True,
+                                             'items': {'type': 'string',
+                                                       'minLength': 1,
+                                                       'pattern': '\\S'}},
+                              'allow_action_proposals': {'type': 'boolean',
+                                                         'description': 'Only '
+                                                                        'for '
+                                                                        'kind=delegate_task; '
+                                                                        'omit '
+                                                                        'for '
+                                                                        'every '
+                                                                        'other '
+                                                                        'kind. '
+                                                                        'True '
+                                                                        'only '
+                                                                        'if '
+                                                                        'this '
+                                                                        'delegated '
+                                                                        'objective '
+                                                                        'requests '
+                                                                        'a '
+                                                                        'business '
+                                                                        'change; '
+                                                                        'false '
+                                                                        'for '
+                                                                        'delegated '
+                                                                        'queries, '
+                                                                        'counts, '
+                                                                        'rules '
+                                                                        'or '
+                                                                        'advice. '
+                                                                        'This '
+                                                                        'permits '
+                                                                        'preparation, '
+                                                                        'never '
+                                                                        'authorizes '
+                                                                        'execution.'},
+                              'knowledge_options': {'type': 'object',
+                                                    'additionalProperties': False,
+                                                    'properties': {'applicable_product': {'type': 'string',
+                                                                                          'minLength': 1,
+                                                                                          'pattern': '\\S',
+                                                                                          'maxLength': 128,
+                                                                                          'description': '仅填写已确认且与知识来源标注一致的商品范围ID；商品显示名称不等于范围ID，未知省略。'},
+                                                                   'applicable_region': {'type': 'string',
+                                                                                         'minLength': 1,
+                                                                                         'pattern': '\\S',
+                                                                                         'maxLength': 128,
+                                                                                         'description': '仅填写用户明确提供或可信业务上下文确认的适用地区ID；未知省略。'},
+                                                                   'as_of': {'type': 'string',
+                                                                             'minLength': 1,
+                                                                             'pattern': '^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?(?:Z|[+-]\\d{2}:\\d{2})$',
+                                                                             'maxLength': 128,
+                                                                             'description': '明确的带时区时间点；仅有日期用 '
+                                                                                            'policy_date。'},
+                                                                   'policy_date': {'type': 'string',
+                                                                                   'minLength': 1,
+                                                                                   'pattern': '^\\d{4}-\\d{2}-\\d{2}$',
+                                                                                   'maxLength': 128,
+                                                                                   'description': '用户明确指定的政策日历日期 '
+                                                                                                  'YYYY-MM-DD；系统按知识库业务时区解释，不补时间点。'}},
+                                                    'not': {'required': ['as_of',
+                                                                         'policy_date']}}},
+               'allOf': [{'if': {'properties': {'kind': {'const': 'delegate_task'}}},
+                          'then': {'required': ['target_agent',
+                                                'objective',
+                                                'allow_action_proposals']},
+                          'else': {'not': {'anyOf': [{'required': ['objective']},
+                                                     {'required': ['allow_action_proposals']}]}}},
+                         {'if': {'properties': {'kind': {'const': 'atomic_read'}}},
+                          'then': {'required': ['target_agent',
+                                                'tool_id',
+                                                'arguments']},
+                          'else': {'not': {'anyOf': [{'required': ['tool_id']},
+                                                     {'required': ['arguments']}]}}},
+                         {'if': {'properties': {'kind': {'not': {'enum': ['atomic_read',
+                                                                          'delegate_task']}}}},
+                          'then': {'not': {'required': ['target_agent']}}},
+                         {'if': {'properties': {'kind': {'const': 'change_address'}}},
+                          'then': {'required': ['new_address']},
+                          'else': {'not': {'required': ['new_address']}}},
+                         {'if': {'properties': {'kind': {'enum': ['general_qa',
+                                                                  'invoice_qa',
+                                                                  'product_qa',
+                                                                  'refund_policy']}}},
+                          'then': {'required': ['resolved_query']}}]}}
+
+On instance['goals']:
+    [{'kind': 'atomic_read',
+      'target_agent': 'retail',
+      'tool_id': 'get_order_details',
+      'arguments': {'order_id': '#W4967593'},
+      'goal_id': 'atomic:call_00_Rara97vIeQVKSNgaZWbx9257'},
+     {'kind': 'atomic_read',
+      'target_agent': 'retail',
+      'tool_id': 'get_product_details',
+      'arguments': {'product_id': '4794339885'},
+      'goal_id': 'atomic:call_01_j0TIKpUSLRng461TRYRy0114'},
+     {'kind': 'atomic_read',
+      'target_agent': 'retail',
+      'tool_id': 'get_product_details',
+      'arguments': {'product_id': '7352963235'},
+      'goal_id': 'atomic:call_02_VggwDmLvmVPrSbghn8wz0846'},
+     {'kind': 'atomic_read',
+      'target_agent': 'retail',
+      'tool_id': 'get_product_details',
+      'arguments': {'product_id': '2524789262'},
+      'goal_id': 'atomic:call_03_DyxLlkJiNHDsVM9pN3nj2014'},
+     {'kind': 'atomic_read',
+      'target_agent': 'retail',
+      'tool_id': 'get_product_details',
+      'arguments': {'product_id': '6066914160'},
+      'goal_id': 'atomic:call_04_sATZQUvR3i1q4JCOv6oC2764'}]
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 349, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 32, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<32 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 151, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: [{'kind': 'atomic_read', 'target_agent': 'retail', 'tool_id': 'get_order_details', 'arguments': {'order_id': '#W4967593'}, 'goal_id': 'atomic:call_00_Rara97vIeQVKSNgaZWbx9257'}, {'kind': 'atomic_read', 'target_agent': 'retail', 'tool_id': 'get_product_details', 'arguments': {'product_id': '4794339885'}, 'goal_id': 'atomic:call_01_j0TIKpUSLRng461TRYRy0114'}, {'kind': 'atomic_read', 'target_agent': 'retail', 'tool_id': 'get_product_details', 'arguments': {'product_id': '7352963235'}, 'goal_id': 'atomic:call_02_VggwDmLvmVPrSbghn8wz0846'}, {'kind': 'atomic_read', 'target_agent': 'retail', 'tool_id': 'get_product_details', 'arguments': {'product_id': '2524789262'}, 'goal_id': 'atomic:call_03_DyxLlkJiNHDsVM9pN3nj2014'}, {'kind': 'atomic_read', 'target_agent': 'retail', 'tool_id': 'get_product_details', 'arguments': {'product_id': '6066914160'}, 'goal_id': 'atomic:call_04_sATZQUvR3i1q4JCOv6oC2764'}] is too long
+
+Failed validating 'maxItems' in schema['properties']['goals']:
+    {'type': 'array',
+     'minItems': 1,
+     'maxItems': 4,
+     'items': {'type': 'object',
+               'additionalProperties': False,
+               'required': ['kind'],
+               'properties': {'kind': {'type': 'string',
+                                       'enum': ['atomic_read',
+                                                'cancel_active_work',
+                                                'cancel_order',
+                                                'change_address',
+                                                'continue_active_work',
+                                                'delegate_task',
+                                                'execute_refund',
+                                                'freeze_account',
+                                                'general_qa',
+                                                'human_handoff',
+                                                'invoice_qa',
+                                                'logistics_status',
+                                                'media_text_read',
+                                                'media_visual_analysis',
+                                                'order_status',
+                                                'product_assistance',
+                                                'product_identification',
+                                                'product_qa',
+                                                'refund_eligibility',
+                                                'refund_policy',
+                                                'refund_status',
+                                                'security_review']},
+                              'goal_id': {'type': 'string',
+                                          'minLength': 1,
+                                          'pattern': '\\S'},
+                              'order_id': {'type': 'string',
+                                           'minLength': 1,
+                                           'pattern': '\\S'},
+                              'order_id_source_ref': {'type': 'string',
+                                                      'minLength': 1,
+                                                      'pattern': '\\S'},
+                              'asset_id': {'type': 'string',
+                                           'minLength': 1,
+                                           'pattern': '\\S'},
+                              'asset_id_source_ref': {'type': 'string',
+                                                      'minLength': 1,
+                                                      'pattern': '\\S'},
+                              'new_address': {'type': 'string',
+                                              'minLength': 1,
+                                              'pattern': '\\S'},
+                              'revises_control_id': {'type': 'string',
+                                                     'minLength': 1,
+                                                     'pattern': '\\S'},
+                              'target_agent': {'type': 'string',
+                                               'minLength': 1,
+                                               'pattern': '\\S'},
+                              'objective': {'type': 'string',
+                                            'minLength': 1,
+                                            'pattern': '\\S'},
+                              'resolved_query': {'type': 'string',
+                                                 'minLength': 1,
+                                                 'pattern': '\\S',
+                                                 'maxLength': 4000},
+                              'tool_id': {'type': 'string',
+                                          'minLength': 1,
+                                          'pattern': '\\S'},
+                              'arguments': {'type': 'object'},
+                              'depends_on': {'type': 'array',
+                                             'uniqueItems': True,
+                                             'items': {'type': 'string',
+                                                       'minLength': 1,
+                                                       'pattern': '\\S'}},
+                              'allow_action_proposals': {'type': 'boolean',
+                                                         'description': 'Only '
+                                                                        'for '
+                                                                        'kind=delegate_task; '
+                                                                        'omit '
+                                                                        'for '
+                                                                        'every '
+                                                                        'other '
+                                                                        'kind. '
+                                                                        'True '
+                                                                        'only '
+                                                                        'if '
+                                                                        'this '
+                                                                        'delegated '
+                                                                        'objective '
+                                                                        'requests '
+                                                                        'a '
+                                                                        'business '
+                                                                        'change; '
+                                                                        'false '
+                                                                        'for '
+                                                                        'delegated '
+                                                                        'queries, '
+                                                                        'counts, '
+                                                                        'rules '
+                                                                        'or '
+                                                                        'advice. '
+                                                                        'This '
+                                                                        'permits '
+                                                                        'preparation, '
+                                                                        'never '
+                                                                        'authorizes '
+                                                                        'execution.'},
+                              'knowledge_options': {'type': 'object',
+                                                    'additionalProperties': False,
+                                                    'properties': {'applicable_product': {'type': 'string',
+                                                                                          'minLength': 1,
+                                                                                          'pattern': '\\S',
+                                                                                          'maxLength': 128,
+                                                                                          'description': '仅填写已确认且与知识来源标注一致的商品范围ID；商品显示名称不等于范围ID，未知省略。'},
+                                                                   'applicable_region': {'type': 'string',
+                                                                                         'minLength': 1,
+                                                                                         'pattern': '\\S',
+                                                                                         'maxLength': 128,
+                                                                                         'description': '仅填写用户明确提供或可信业务上下文确认的适用地区ID；未知省略。'},
+                                                                   'as_of': {'type': 'string',
+                                                                             'minLength': 1,
+                                                                             'pattern': '^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?(?:Z|[+-]\\d{2}:\\d{2})$',
+                                                                             'maxLength': 128,
+                                                                             'description': '明确的带时区时间点；仅有日期用 '
+                                                                                            'policy_date。'},
+                                                                   'policy_date': {'type': 'string',
+                                                                                   'minLength': 1,
+                                                                                   'pattern': '^\\d{4}-\\d{2}-\\d{2}$',
+                                                                                   'maxLength': 128,
+                                                                                   'description': '用户明确指定的政策日历日期 '
+                                                                                                  'YYYY-MM-DD；系统按知识库业务时区解释，不补时间点。'}},
+                                                    'not': {'required': ['as_of',
+                                                                         'policy_date']}}},
+               'allOf': [{'if': {'properties': {'kind': {'const': 'delegate_task'}}},
+                          'then': {'required': ['target_agent',
+                                                'objective',
+                                                'allow_action_proposals']},
+                          'else': {'not': {'anyOf': [{'required': ['objective']},
+                                                     {'required': ['allow_action_proposals']}]}}},
+                         {'if': {'properties': {'kind': {'const': 'atomic_read'}}},
+                          'then': {'required': ['target_agent',
+                                                'tool_id',
+                                                'arguments']},
+                          'else': {'not': {'anyOf': [{'required': ['tool_id']},
+                                                     {'required': ['arguments']}]}}},
+                         {'if': {'properties': {'kind': {'not': {'enum': ['atomic_read',
+                                                                          'delegate_task']}}}},
+                          'then': {'not': {'required': ['target_agent']}}},
+                         {'if': {'properties': {'kind': {'const': 'change_address'}}},
+                          'then': {'required': ['new_address']},
+                          'else': {'not': {'required': ['new_address']}}},
+                         {'if': {'properties': {'kind': {'enum': ['general_qa',
+                                                                  'invoice_qa',
+                                                                  'product_qa',
+                                                                  'refund_policy']}}},
+                          'then': {'required': ['resolved_query']}}]}}
+
+On instance['goals']:
+    [{'kind': 'atomic_read',
+      'target_agent': 'retail',
+      'tool_id': 'get_order_details',
+      'arguments': {'order_id': '#W4967593'},
+      'goal_id': 'atomic:call_00_Rara97vIeQVKSNgaZWbx9257'},
+     {'kind': 'atomic_read',
+      'target_agent': 'retail',
+      'tool_id': 'get_product_details',
+      'arguments': {'product_id': '4794339885'},
+      'goal_id': 'atomic:call_01_j0TIKpUSLRng461TRYRy0114'},
+     {'kind': 'atomic_read',
+      'target_agent': 'retail',
+      'tool_id': 'get_product_details',
+      'arguments': {'product_id': '7352963235'},
+      'goal_id': 'atomic:call_02_VggwDmLvmVPrSbghn8wz0846'},
+     {'kind': 'atomic_read',
+      'target_agent': 'retail',
+      'tool_id': 'get_product_details',
+      'arguments': {'product_id': '2524789262'},
+      'goal_id': 'atomic:call_03_DyxLlkJiNHDsVM9pN3nj2014'},
+     {'kind': 'atomic_read',
+      'target_agent': 'retail',
+      'tool_id': 'get_product_details',
+      'arguments': {'product_id': '6066914160'},
+      'goal_id': 'atomic:call_04_sATZQUvR3i1q4JCOv6oC2764'}]
+Response assembly failed: {"stage": "citation_validation", "status": "failed", "detail": {"code": "ValueError", "retryable": false, "exception_chain": [{"type": "ValueError", "frames": [{"file": "/home/yang/DialogPilot/application/response_assembly.py", "line": 217, "function": "_assemble"}, {"file": "/home/yang/DialogPilot/application/knowledge_tool_contract.py", "line": 100, "function": "validate_answer_citations"}], "message": "answer citations do not match supplied evidence"}]}}
+Response assembly failed: {"stage": "citation_validation", "status": "failed", "detail": {"code": "ValueError", "retryable": false, "exception_chain": [{"type": "ValueError", "frames": [{"file": "/home/yang/DialogPilot/application/response_assembly.py", "line": 217, "function": "_assemble"}, {"file": "/home/yang/DialogPilot/application/knowledge_tool_contract.py", "line": 100, "function": "validate_answer_citations"}], "message": "answer citations do not match supplied evidence"}]}}
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 149, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 256, in action_proposal
+    value = action.convert(call["args"])
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 53, in convert
+    Draft202012Validator(self.schema).validate(arguments)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/jsonschema/validators.py", line 450, in validate
+    raise error
+jsonschema.exceptions.ValidationError: 'W9911714' is not one of ['candidate_1', 'W4967593', 'candidate_3', 'W5733668', 'candidate_5', 'candidate_6', 'candidate_7', 'candidate_8', 'candidate_9', 'candidate_10']
+
+Failed validating 'enum' in schema['properties']['order']:
+    {'type': 'string',
+     'enum': ['candidate_1',
+              'W4967593',
+              'candidate_3',
+              'W5733668',
+              'candidate_5',
+              'candidate_6',
+              'candidate_7',
+              'candidate_8',
+              'candidate_9',
+              'candidate_10'],
+     'description': "Optional relevant order_id: {'candidate_1': "
+                    "{'order_id': 'W9911714', 'order_id_source_ref': "
+                    "'conversation-message:tau3-6d6e6acff5dd4c43a647c9059e1afc0c:publication-turn-id:v1:aac33783cd93a9b8d250391c74562b7f444c5cb085a30490e198bd299f428318:reference:1'}, "
+                    "'W4967593': {'order_id': 'W4967593', "
+                    "'order_id_source_ref': "
+                    "'conversation-message:tau3-6d6e6acff5dd4c43a647c9059e1afc0c:publication-turn-id:v1:aac33783cd93a9b8d250391c74562b7f444c5cb085a30490e198bd299f428318:reference:2'}, "
+                    "'candidate_3': {'order_id': 'W9911714', "
+                    "'order_id_source_ref': "
+                    "'conversation-message:tau3-6d6e6acff5dd4c43a647c9059e1afc0c:publication-turn-id:v1:aac33783cd93a9b8d250391c74562b7f444c5cb085a30490e198bd299f428318:reference:3'}, "
+                    "'W5733668': {'order_id': 'W5733668', "
+                    "'order_id_source_ref': "
+                    "'conversation-message:tau3-6d6e6acff5dd4c43a647c9059e1afc0c:publication-turn-id:v1:aac33783cd93a9b8d250391c74562b7f444c5cb085a30490e198bd299f428318:reference:4'}, "
+                    "'candidate_5': {'order_id': 'W9911714', "
+                    "'order_id_source_ref': "
+                    "'conversation-message:tau3-6d6e6acff5dd4c43a647c9059e1afc0c:publication-turn-id:v1:5607b333cc1ba7cfe48cfca28813fd2528aa56582cd1dfd61be85e139f429305:reference:1'}, "
+                    "'candidate_6': {'order_id': 'W9911714', "
+                    "'order_id_source_ref': "
+                    "'conversation-message:tau3-6d6e6acff5dd4c43a647c9059e1afc0c:publication-turn-id:v1:5607b333cc1ba7cfe48cfca28813fd2528aa56582cd1dfd61be85e139f429305:reference:2'}, "
+                    "'candidate_7': {'order_id': 'W9911714', "
+                    "'order_id_source_ref': "
+                    "'conversation-message:tau3-6d6e6acff5dd4c43a647c9059e1afc0c:publication-turn-id:v1:5607b333cc1ba7cfe48cfca28813fd2528aa56582cd1dfd61be85e139f429305:reference:3'}, "
+                    "'candidate_8': {'order_id': 'W9911714', "
+                    "'order_id_source_ref': "
+                    "'conversation-message:tau3-6d6e6acff5dd4c43a647c9059e1afc0c:publication-turn-id:v1:92d08803d22eba9d204b53b8c5594f8c343203f9f5630bde09fd2b6c2c5016fc:reference:1'}, "
+                    "'candidate_9': {'order_id': 'W9911714', "
+                    "'order_id_source_ref': "
+                    "'conversation-message:tau3-6d6e6acff5dd4c43a647c9059e1afc0c:publication-turn-id:v1:92d08803d22eba9d204b53b8c5594f8c343203f9f5630bde09fd2b6c2c5016fc:reference:2'}, "
+                    "'candidate_10': {'order_id': 'W9911714', "
+                    "'order_id_source_ref': "
+                    "'conversation-message:tau3-6d6e6acff5dd4c43a647c9059e1afc0c:publication-turn-id:v1:92d08803d22eba9d204b53b8c5594f8c343203f9f5630bde09fd2b6c2c5016fc:reference:3'}}"}
+
+On instance['order']:
+    'W9911714'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 349, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 32, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<32 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 151, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: 'W9911714' is not one of ['candidate_1', 'W4967593', 'candidate_3', 'W5733668', 'candidate_5', 'candidate_6', 'candidate_7', 'candidate_8', 'candidate_9', 'candidate_10']
+
+Failed validating 'enum' in schema['properties']['order']:
+    {'type': 'string',
+     'enum': ['candidate_1',
+              'W4967593',
+              'candidate_3',
+              'W5733668',
+              'candidate_5',
+              'candidate_6',
+              'candidate_7',
+              'candidate_8',
+              'candidate_9',
+              'candidate_10'],
+     'description': "Optional relevant order_id: {'candidate_1': "
+                    "{'order_id': 'W9911714', 'order_id_source_ref': "
+                    "'conversation-message:tau3-6d6e6acff5dd4c43a647c9059e1afc0c:publication-turn-id:v1:aac33783cd93a9b8d250391c74562b7f444c5cb085a30490e198bd299f428318:reference:1'}, "
+                    "'W4967593': {'order_id': 'W4967593', "
+                    "'order_id_source_ref': "
+                    "'conversation-message:tau3-6d6e6acff5dd4c43a647c9059e1afc0c:publication-turn-id:v1:aac33783cd93a9b8d250391c74562b7f444c5cb085a30490e198bd299f428318:reference:2'}, "
+                    "'candidate_3': {'order_id': 'W9911714', "
+                    "'order_id_source_ref': "
+                    "'conversation-message:tau3-6d6e6acff5dd4c43a647c9059e1afc0c:publication-turn-id:v1:aac33783cd93a9b8d250391c74562b7f444c5cb085a30490e198bd299f428318:reference:3'}, "
+                    "'W5733668': {'order_id': 'W5733668', "
+                    "'order_id_source_ref': "
+                    "'conversation-message:tau3-6d6e6acff5dd4c43a647c9059e1afc0c:publication-turn-id:v1:aac33783cd93a9b8d250391c74562b7f444c5cb085a30490e198bd299f428318:reference:4'}, "
+                    "'candidate_5': {'order_id': 'W9911714', "
+                    "'order_id_source_ref': "
+                    "'conversation-message:tau3-6d6e6acff5dd4c43a647c9059e1afc0c:publication-turn-id:v1:5607b333cc1ba7cfe48cfca28813fd2528aa56582cd1dfd61be85e139f429305:reference:1'}, "
+                    "'candidate_6': {'order_id': 'W9911714', "
+                    "'order_id_source_ref': "
+                    "'conversation-message:tau3-6d6e6acff5dd4c43a647c9059e1afc0c:publication-turn-id:v1:5607b333cc1ba7cfe48cfca28813fd2528aa56582cd1dfd61be85e139f429305:reference:2'}, "
+                    "'candidate_7': {'order_id': 'W9911714', "
+                    "'order_id_source_ref': "
+                    "'conversation-message:tau3-6d6e6acff5dd4c43a647c9059e1afc0c:publication-turn-id:v1:5607b333cc1ba7cfe48cfca28813fd2528aa56582cd1dfd61be85e139f429305:reference:3'}, "
+                    "'candidate_8': {'order_id': 'W9911714', "
+                    "'order_id_source_ref': "
+                    "'conversation-message:tau3-6d6e6acff5dd4c43a647c9059e1afc0c:publication-turn-id:v1:92d08803d22eba9d204b53b8c5594f8c343203f9f5630bde09fd2b6c2c5016fc:reference:1'}, "
+                    "'candidate_9': {'order_id': 'W9911714', "
+                    "'order_id_source_ref': "
+                    "'conversation-message:tau3-6d6e6acff5dd4c43a647c9059e1afc0c:publication-turn-id:v1:92d08803d22eba9d204b53b8c5594f8c343203f9f5630bde09fd2b6c2c5016fc:reference:2'}, "
+                    "'candidate_10': {'order_id': 'W9911714', "
+                    "'order_id_source_ref': "
+                    "'conversation-message:tau3-6d6e6acff5dd4c43a647c9059e1afc0c:publication-turn-id:v1:92d08803d22eba9d204b53b8c5594f8c343203f9f5630bde09fd2b6c2c5016fc:reference:3'}}"}
+
+On instance['order']:
+    'W9911714'
+Domain execution failed: {"stage": "domain_outcome", "status": "failed", "detail": {"code": "DOMAIN_OUTCOME_REJECTED", "retryable": false, "work_item_id": "work:invocation:v1:4426ab6b23b6e8d9dee119ca7feef7724ae930555f0ecb336e78a208bd9600f8:step:0:1:semantic-1", "owner_agent": "retail", "invocation_key": "invocation:v1:4426ab6b23b6e8d9dee119ca7feef7724ae930555f0ecb336e78a208bd9600f8", "conversation_id": "tau3-b306618765884e96ad6dfb063878aa81", "control_id": "control:invocation:v1:4426ab6b23b6e8d9dee119ca7feef7724ae930555f0ecb336e78a208bd9600f8:step:0:semantic-1", "revision": 1, "exception_chain": [{"type": "DomainOutcomeRejected", "frames": [{"file": "/home/yang/DialogPilot/infrastructure/target_framework_agent.py", "line": 189, "function": "__call__"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/main.py", "line": 3440, "function": "astream"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/_runner.py", "line": 396, "function": "atick"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/_retry.py", "line": 744, "function": "arun_with_retry"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/_internal/_runnable.py", "line": 756, "function": "ainvoke"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/_internal/_runnable.py", "line": 522, "function": "ainvoke"}, {"file": "/home/yang/DialogPilot/infrastructure/target_agent_middleware.py", "line": 214, "function": "aafter_model"}], "message": "operation_plan next_step must match the proposed tool"}], "related_errors": []}}
+Domain execution failed: {"stage": "domain_outcome", "status": "failed", "detail": {"code": "DOMAIN_OUTCOME_REJECTED", "retryable": false, "work_item_id": "work:invocation:v1:3cc192709eae9aaafa052f0d6d2afc666c652624f80eee546e7aaf7927226e7d:step:0:1:semantic-1", "owner_agent": "retail", "invocation_key": "invocation:v1:3cc192709eae9aaafa052f0d6d2afc666c652624f80eee546e7aaf7927226e7d", "conversation_id": "tau3-b306618765884e96ad6dfb063878aa81", "control_id": "control:invocation:v1:3cc192709eae9aaafa052f0d6d2afc666c652624f80eee546e7aaf7927226e7d:step:0:semantic-1", "revision": 1, "exception_chain": [{"type": "DomainOutcomeRejected", "frames": [{"file": "/home/yang/DialogPilot/infrastructure/target_framework_agent.py", "line": 189, "function": "__call__"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/main.py", "line": 3440, "function": "astream"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/_runner.py", "line": 396, "function": "atick"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/_retry.py", "line": 744, "function": "arun_with_retry"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/_internal/_runnable.py", "line": 756, "function": "ainvoke"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/_internal/_runnable.py", "line": 522, "function": "ainvoke"}, {"file": "/home/yang/DialogPilot/infrastructure/target_agent_middleware.py", "line": 214, "function": "aafter_model"}], "message": "operation_plan next_step must match the proposed tool"}], "related_errors": []}}
+Domain execution failed: {"stage": "domain_outcome", "status": "failed", "detail": {"code": "DOMAIN_OUTCOME_REJECTED", "retryable": false, "work_item_id": "work:invocation:v1:22f8e8c0d0580813fa940be9403c6ab4eb55dea162953063e27fa430d64424e5:step:0:1:semantic-1", "owner_agent": "retail", "invocation_key": "invocation:v1:22f8e8c0d0580813fa940be9403c6ab4eb55dea162953063e27fa430d64424e5", "conversation_id": "tau3-710fe6c49c0f45c8b5fc4d0798966e07", "control_id": "control:invocation:v1:22f8e8c0d0580813fa940be9403c6ab4eb55dea162953063e27fa430d64424e5:step:0:semantic-1", "revision": 1, "exception_chain": [{"type": "DomainOutcomeRejected", "frames": [{"file": "/home/yang/DialogPilot/infrastructure/target_framework_agent.py", "line": 189, "function": "__call__"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/main.py", "line": 3440, "function": "astream"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/_runner.py", "line": 396, "function": "atick"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/pregel/_retry.py", "line": 744, "function": "arun_with_retry"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/_internal/_runnable.py", "line": 756, "function": "ainvoke"}, {"file": "/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langgraph/_internal/_runnable.py", "line": 522, "function": "ainvoke"}, {"file": "/home/yang/DialogPilot/infrastructure/target_agent_middleware.py", "line": 214, "function": "aafter_model"}], "message": "operation_plan next_step must match the proposed tool"}], "related_errors": []}}
+Response assembly failed: {"stage": "answer_verification", "status": "failed", "detail": {"code": "ungrounded", "retryable": false, "exception_chain": [{"type": "ValueError", "message": "The answer claims the garden hose exchange was completed and the order status is now 'exchange requested', but the only committed receipt in evidence is for the skateboard exchange (order #W3792453). There is no committed receipt for the garden hose exchange (order #W7181492).; The answer cites [official-call:tau3-call-5bc24a4e23c44c93b6a92679e61d0d1e] as evidence for the garden hose exchange, but that receipt's action arguments and returned facts are for the skateboard exchange (item 4293355847 -> 8176740019, order #W3792453), not the garden hose.; The garden hose exchange is still pending approval (evidence.context.pending_approval is true and the last assistant message asked for confirmation), so claiming it is completed and that a $1.27 refund was issued is unsupported.; The answer does not address the pending approval request for the garden hose exchange; it asserts completion instead of requesting the required confirmation."}]}}
+Response assembly failed: {"stage": "answer_verification", "status": "failed", "detail": {"code": "verifier_unavailable", "retryable": false, "exception_chain": [{"type": "ValueError", "message": "verification unavailable: [{\"type\": \"ModelInvocationError\", \"frames\": [{\"file\": \"/home/yang/DialogPilot/services/answer_verifier.py\", \"line\": 163, \"function\": \"_verify\"}, {\"file\": \"/home/yang/DialogPilot/services/claim_verification.py\", \"line\": 136, \"function\": \"verify_claims\"}, {\"file\": \"/home/yang/DialogPilot/core/structured_model.py\", \"line\": 25, \"function\": \"structured_call\"}, {\"file\": \"/home/yang/DialogPilot/core/framework_models.py\", \"line\": 32, \"function\": \"invoke_model\"}], \"message\": \"submit_claim_checks:APIStatusError\"}, {\"type\": \"APIStatusError\", \"frames\": [{\"file\": \"/home/yang/DialogPilot/core/framework_models.py\", \"line\": 30, \"function\": \"invoke_model\"}, {\"file\": \"/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain_core/runnables/base.py\", \"line\": 3496, \"function\": \"ainvoke\"}, {\"file\": \"/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain_core/runnables/base.py\", \"line\": 4232, \"function\": \"ainvoke\"}, {\"file\": \"/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain_core/runnables/base.py\", \"line\": 4224, \"function\": \"_ainvoke_step\"}, {\"file\": \"/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain_core/runnables/base.py\", \"line\": 6027, \"function\": \"ainvoke\"}, {\"file\": \"/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py\", \"line\": 511, \"function\": \"ainvoke\"}, {\"file\": \"/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py\", \"line\": 1888, \"function\": \"agenerate_prompt\"}, {\"file\": \"/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py\", \"line\": 1846, \"function\": \"agenerate\"}, {\"file\": \"/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain_core/language_models/chat_models.py\", \"line\": 2179, \"function\": \"_agenerate_with_cache\"}, {\"file\": \"/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain_anthropic/chat_models.py\", \"line\": 2284, \"function\": \"_agenerate\"}, {\"file\": \"/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain_anthropic/chat_models.py\", \"line\": 2280, \"function\": \"_agenerate\"}, {\"file\": \"/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/langchain_anthropic/chat_models.py\", \"line\": 1857, \"function\": \"_acreate\"}, {\"file\": \"/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/anthropic/_response.py\", \"line\": 813, \"function\": \"wrapped\"}, {\"file\": \"/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/anthropic/resources/messages/messages.py\", \"line\": 2370, \"function\": \"create\"}, {\"file\": \"/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/anthropic/_base_client.py\", \"line\": 2184, \"function\": \"post\"}, {\"file\": \"/home/yang/DialogPilot/.venv/lib/python3.13/site-packages/anthropic/_base_client.py\", \"line\": 1874, \"function\": \"request\"}], \"status_code\": 402}]"}]}}

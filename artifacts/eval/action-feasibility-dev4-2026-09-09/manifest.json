@@ -1,0 +1,52 @@
+{
+  "scope": "Development-only state-transition probes of the production domain reviewer.\n\nNo business tools execute. Synthetic bounded cases diagnose reasoning configuration;\nthey are not held-out customer success scores or a replacement for tau evaluation.\n",
+  "cases": [
+    {
+      "id": "same_object_conflict",
+      "goal": "Perform A and B on object X.",
+      "policy": "A requires state ready and changes it to closed. B requires state ready and changes it to finished. Neither state transition can be reversed.",
+      "candidate": "A",
+      "expected": false
+    },
+    {
+      "id": "independent_objects",
+      "goal": "Perform A on object X and B on object Y.",
+      "policy": "A requires state ready and changes that object's state to closed. B requires state ready and changes that object's state to finished. Operations do not affect other objects.",
+      "candidate": "A",
+      "expected": true
+    },
+    {
+      "id": "valid_sequence",
+      "goal": "Perform A and B on object X.",
+      "policy": "A requires state ready and changes it to reviewed. B requires state reviewed and changes it to finished.",
+      "candidate": "A",
+      "expected": true
+    },
+    {
+      "id": "wrong_sequence",
+      "goal": "Perform A and B on object X.",
+      "policy": "A requires state ready and changes it to reviewed. B requires state reviewed and changes it to finished.",
+      "candidate": "B",
+      "expected": false
+    }
+  ],
+  "profiles": [
+    {
+      "model": "deepseek-v4-pro",
+      "reasoning": "none",
+      "min_completion_tokens": 4096,
+      "max_context_tokens": 32768
+    },
+    {
+      "model": "deepseek-v4-pro",
+      "reasoning": "high",
+      "min_completion_tokens": 4096,
+      "max_context_tokens": 32768
+    }
+  ],
+  "max_api_calls": 8,
+  "max_tokens_per_call": 4096,
+  "system_sha256": "ed9b57de3fe8bba7e1f0f5ad6b15ba72a6b5c38f5188d73226134e037c0820e5",
+  "production_config_changed": false,
+  "business_tools_enabled": false
+}

@@ -1,0 +1,321 @@
+{
+  "case_count": 12,
+  "dataset_id": "doc2dial-rag-parallel-stress-v1",
+  "error_case_count": 0,
+  "expansion_count": 0,
+  "model_policy": {
+    "provider": "none",
+    "rewrite": {
+      "model": "none"
+    }
+  },
+  "prompt_version": "deterministic-parallel-stress-v1",
+  "rows": [
+    {
+      "case_id": "doc2dial-parallel-stress-01",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-parallel-stress-01",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "parallel_composite",
+        "long_document"
+      ],
+      "raw_query": "I need help with two things: What are Corinthian colleges? Also, What is the logic behind the notifications regarding the Sweet v. DeVos Lawsuit?",
+      "standalone": "I need help with two things: What are Corinthian colleges? Also, What is the logic behind the notifications regarding the Sweet v. DeVos Lawsuit?",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-parallel-stress-02",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-parallel-stress-02",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "parallel_composite",
+        "long_document"
+      ],
+      "raw_query": "I need help with two things: How will I know how much I have left after the interest is calculated? Also, Do I need information related to mitigating circumstances?",
+      "standalone": "I need help with two things: How will I know how much I have left after the interest is calculated? Also, Do I need information related to mitigating circumstances?",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-parallel-stress-03",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-parallel-stress-03",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "parallel_composite",
+        "long_document"
+      ],
+      "raw_query": "I need help with two things: What should I do if I have defaulted on my federal student loan and have entered a rehabilitation plan? Also, Are there any additional documents that I can submit as part of my application for borrower defense?",
+      "standalone": "I need help with two things: What should I do if I have defaulted on my federal student loan and have entered a rehabilitation plan? Also, Are there any additional documents that I can submit as part of my application for borrower defense?",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-parallel-stress-04",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-parallel-stress-04",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "parallel_composite",
+        "long_document"
+      ],
+      "raw_query": "I need help with two things: Is there a section on the website dedicated to common questions and answers regarding borrower defense decision notifications? Also, Are FFEL Program Loans eligible for the Sweet v. DeVos lawsuit?",
+      "standalone": "I need help with two things: Is there a section on the website dedicated to common questions and answers regarding borrower defense decision notifications? Also, Are FFEL Program Loans eligible for the Sweet v. DeVos lawsuit?",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-parallel-stress-05",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-parallel-stress-05",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "parallel_composite",
+        "long_document"
+      ],
+      "raw_query": "I need help with two things: Can I have my borrower defense discharge applied to my FFEL or Federal Perkins loans? Also, I have applied for borrower defense by way of email but now have found further information that I want to send, can I do this?",
+      "standalone": "I need help with two things: Can I have my borrower defense discharge applied to my FFEL or Federal Perkins loans? Also, I have applied for borrower defense by way of email but now have found further information that I want to send, can I do this?",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-parallel-stress-06",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-parallel-stress-06",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "parallel_composite",
+        "long_document"
+      ],
+      "raw_query": "I need help with two things: What is involved in complying with the Program Quality Assurance? Also, What information can you give me regarding adverse credit is incorrect?",
+      "standalone": "I need help with two things: What is involved in complying with the Program Quality Assurance? Also, What information can you give me regarding adverse credit is incorrect?",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-parallel-stress-07",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-parallel-stress-07",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "parallel_composite",
+        "long_document"
+      ],
+      "raw_query": "I need help with two things: when do benefits come? Also, What happens if I die and you still send the payments?",
+      "standalone": "I need help with two things: when do benefits come? Also, What happens if I die and you still send the payments?",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-parallel-stress-08",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-parallel-stress-08",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "parallel_composite",
+        "long_document"
+      ],
+      "raw_query": "I need help with two things: can the widow get monthly benefits if she is caring for the deceased person's daughter? Also, Is there a maximum limit to the amount a family could get?",
+      "standalone": "I need help with two things: can the widow get monthly benefits if she is caring for the deceased person's daughter? Also, Is there a maximum limit to the amount a family could get?",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-parallel-stress-09",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-parallel-stress-09",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "parallel_composite",
+        "long_document"
+      ],
+      "raw_query": "I need help with two things: What can you tell me about monthly Medicare premiums? Also, What if I filed a federal income tax return for the year?",
+      "standalone": "I need help with two things: What can you tell me about monthly Medicare premiums? Also, What if I filed a federal income tax return for the year?",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-parallel-stress-10",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-parallel-stress-10",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "parallel_composite",
+        "long_document"
+      ],
+      "raw_query": "I need help with two things: Is there other related information I would need to know about disability for a child under 18? Also, How is it determined if an adult \"child\" is disabled for SSDI benefits when the child is age 18 or older?",
+      "standalone": "I need help with two things: Is there other related information I would need to know about disability for a child under 18? Also, How is it determined if an adult \"child\" is disabled for SSDI benefits when the child is age 18 or older?",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-parallel-stress-11",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-parallel-stress-11",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "parallel_composite",
+        "long_document"
+      ],
+      "raw_query": "I need help with two things: How would I go about appealing a decision? Also, Can I keep my CDL but with restrictions on it?",
+      "standalone": "I need help with two things: How would I go about appealing a decision? Also, Can I keep my CDL but with restrictions on it?",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    },
+    {
+      "case_id": "doc2dial-parallel-stress-12",
+      "errors": [],
+      "expansions": [],
+      "group_id": "doc2dial-parallel-stress-12",
+      "history_turns": 0,
+      "hyde": "",
+      "query_types": [
+        "customer_support",
+        "parallel_composite",
+        "long_document"
+      ],
+      "raw_query": "I need help with two things: where to get more information about priority groups? Also, can I file by mail when I am ready to add my daughter?",
+      "standalone": "I need help with two things: where to get more information about priority groups? Also, can I file by mail when I am ready to add my daughter?",
+      "usage": {
+        "calls": 0,
+        "errors": 0,
+        "input_tokens": 0,
+        "latency_ms": {
+          "sum": 0.0
+        },
+        "output_tokens": 0
+      },
+      "usage_by_stage": {}
+    }
+  ],
+  "sample_policy": "all deterministic parallel-composite cases",
+  "schema_version": 1,
+  "split": "stress",
+  "total_calls": 0,
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

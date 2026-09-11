@@ -1,0 +1,1943 @@
+{
+  "gap": "R01",
+  "baseline": "2b6b43f",
+  "source_sha256": "ac7b3a0478022a8479bd359db5755bfd25ab3f5a871d3197c184340e55fff878",
+  "budget": 12,
+  "model": "deepseek-v4-flash",
+  "retry": 0,
+  "cases": [
+    {
+      "id": "mtrag-0",
+      "payload": {
+        "active_work_controls": [],
+        "active_workstreams": [],
+        "conversation_context": {
+          "evidence_refs": [],
+          "projection_status": "DEGRADED",
+          "reason_codes": [
+            "CURRENT_CONTEXT_PROJECTION_LAGGING"
+          ],
+          "recent_messages": [
+            {
+              "content": "How can I compare the metrics for different periods?",
+              "observed_at": "2026-09-08T05:19:00.378332+00:00",
+              "role": "user",
+              "seq": 1,
+              "source_ref": "conversation-message:full-mtrag-62b2ad2f-0:full-mtrag-62b2ad2f-0-0"
+            },
+            {
+              "content": "To compare the metrics for different periods, you can use the Time period control to select the desired time frames. You can choose from predefined periods such as a single day, a week, a month, or a quarter, or create custom time periods. The data points on the graph will adjust to an appropriate measurement period for the selected time frame. For example, when viewing a graph for a day, the data is presented in hourly values, but when viewing a graph for a week, the data is shown by day. Additionally, you can use the Refresh data option to ensure the data is up-to-date.",
+              "observed_at": "2026-09-08T05:19:00.382842+00:00",
+              "role": "assistant",
+              "seq": 2,
+              "source_ref": "conversation-message:full-mtrag-62b2ad2f-0:full-mtrag-62b2ad2f-0-1"
+            },
+            {
+              "content": "some example of alerts",
+              "observed_at": "2026-09-08T05:19:00.384631+00:00",
+              "role": "user",
+              "seq": 3,
+              "source_ref": "conversation-message:full-mtrag-62b2ad2f-0:full-mtrag-62b2ad2f-0-2"
+            },
+            {
+              "content": "Sure, here's an example of detail alerts: - Name: Enter a name for the alert (e.g., 'High CPU Usage'). - Description: Add a description for more context (optional). - Group: Specify the alert group (or use the default group). - Severity: Set the level of criticality (e.g., 'High', 'Medium', 'Low', or 'Info'). - Metric: Configure the metric you want to monitor (e.g., 'CPU usage'). - Scope: Configure the scope (e.g., specific resources, resource groups, or cloud accounts). - Trigger: Define the condition and threshold value that must be evaluated. For instance, you can set an alert to trigger when CPU usage exceeds 80% for at least 5 minutes. - Notification Channel: Enable 1 or more notification channels to receive alert notifications. Remember to save your alert settings after configuring them. For more information, refer to the document on configuring alerts: [Configuring an alert](https://cloud.ibm.com/docs/monitoring?topic=monitoring-alert-config).",
+              "observed_at": "2026-09-08T05:19:00.386216+00:00",
+              "role": "assistant",
+              "seq": 4,
+              "source_ref": "conversation-message:full-mtrag-62b2ad2f-0:full-mtrag-62b2ad2f-0-3"
+            }
+          ],
+          "source_watermark": 1,
+          "summary": {
+            "content": "{\"chunks\": [], \"covered_until_seq\": 0}",
+            "covered_until_seq": 0,
+            "producer_version": "conversation-memory-v1",
+            "source_ref": "conversation-summary:full-mtrag-62b2ad2f-0:938fe0473771a827fb3363a4ee1e77ebc8b387aaa6c78c6c0e1b8e5745979ecd"
+          }
+        },
+        "deterministic_resolution": {
+          "expected_workstream_version": null,
+          "kind": "UNRESOLVED",
+          "reason_code": "NO_DETERMINISTIC_BINDING",
+          "workstream_id": null
+        },
+        "domain_capabilities": [
+          {
+            "action_proposals": [],
+            "agent_id": "general",
+            "description": "Explain IBM Cloud product documentation, including monitoring, analytics, Watson Assistant and Discovery. Use conversation context for follow-up questions. Provide knowledge guidance; do not execute cloud account changes.",
+            "skills": [],
+            "tools": [
+              {
+                "effect": "READ",
+                "tool_id": "knowledge_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "service_episode_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_read"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_observe"
+              }
+            ]
+          },
+          {
+            "action_proposals": [],
+            "agent_id": "product_technical",
+            "description": "Resolve product questions using catalog, media and knowledge evidence; do not assume a product category.",
+            "skills": [
+              "product_identification"
+            ],
+            "tools": [
+              {
+                "effect": "READ",
+                "tool_id": "media_read"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_observe"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "catalog_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "knowledge_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "service_episode_search"
+              }
+            ]
+          },
+          {
+            "action_proposals": [
+              {
+                "action_ref": "order.cancel:v1",
+                "approval_policy": "EXPLICIT_CONFIRMATION_REQUIRED",
+                "effect": "WRITE"
+              },
+              {
+                "action_ref": "order.shipping_address.change:v1",
+                "approval_policy": "EXPLICIT_CONFIRMATION_REQUIRED",
+                "effect": "WRITE"
+              }
+            ],
+            "agent_id": "order_logistics",
+            "description": "Resolve order and logistics questions using current business records.",
+            "skills": [],
+            "tools": [
+              {
+                "effect": "READ",
+                "tool_id": "order_lookup"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "order_cancel_status"
+              },
+              {
+                "effect": "WRITE",
+                "tool_id": "order_cancel"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "shipping_address_change_status"
+              },
+              {
+                "effect": "WRITE",
+                "tool_id": "shipping_address_change"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "service_episode_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_read"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_observe"
+              }
+            ]
+          },
+          {
+            "action_proposals": [
+              {
+                "action_ref": "refund.request.create:v1",
+                "approval_policy": "EXPLICIT_CONFIRMATION_REQUIRED",
+                "effect": "WRITE"
+              }
+            ],
+            "agent_id": "billing_refund",
+            "description": "Resolve billing and after-sales requests using current records and policy evidence; distinguish returns, exchanges and refunds and only perform available actions.",
+            "skills": [],
+            "tools": [
+              {
+                "effect": "READ",
+                "tool_id": "knowledge_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "service_episode_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "order_lookup"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "refund_status"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "refund_eligibility_check"
+              },
+              {
+                "effect": "WRITE",
+                "tool_id": "refund_request_create"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_read"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_observe"
+              }
+            ]
+          },
+          {
+            "action_proposals": [
+              {
+                "action_ref": "account.freeze:v1",
+                "approval_policy": "EXPLICIT_CONFIRMATION_REQUIRED",
+                "effect": "WRITE"
+              }
+            ],
+            "agent_id": "account_security",
+            "description": "Assess account security concerns; distinguish user reports from verified facts.",
+            "skills": [],
+            "tools": [
+              {
+                "effect": "READ",
+                "tool_id": "service_episode_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "account_security_event_list"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "account_security_state"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "account_freeze_status"
+              },
+              {
+                "effect": "WRITE",
+                "tool_id": "account_freeze"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_read"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_observe"
+              }
+            ]
+          },
+          {
+            "action_proposals": [
+              {
+                "action_ref": "support.handoff.create:v1",
+                "approval_policy": "USER_COMMAND_SUFFICIENT",
+                "effect": "WRITE"
+              }
+            ],
+            "agent_id": "human_service",
+            "description": "Resolve support case objectives using verified case records.",
+            "skills": [],
+            "tools": [
+              {
+                "effect": "WRITE",
+                "tool_id": "support_ticket_create"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "support_ticket_by_operation"
+              }
+            ]
+          }
+        ],
+        "entity_bindings": [],
+        "goal_descriptions": {
+          "cancel_active_work": "Cancel one active conversation objective using its revises_control_id; this does not cancel an order.",
+          "cancel_order": "Prepare cancellation of a specific order when the user requests that action; requires a bound order_id. Policy questions use general_qa.",
+          "change_address": "Prepare an actual shipping-address change requested by the user; requires a bound order_id and explicitly supplied new_address. Questions about whether or how changes work use general_qa.",
+          "continue_active_work": "Continue an unchanged objective listed in resumable_work using its control_id as revises_control_id. An active control alone is not a resume entry. The runtime restores accepted tools and arguments; do not reconstruct them. Pending approval still requires an approval decision. For a changed scope use delegate_task with revises_control_id instead.",
+          "delegate_task": "Delegate an open objective to a registered domain using target_agent and objective. The domain chooses its available tools; this does not authorize an unavailable action.",
+          "execute_refund": "Prepare a refund action explicitly requested for a specific order; requires a bound order_id. General refund rules use refund_policy.",
+          "freeze_account": "Prepare an account freeze explicitly requested by the user; does not merely explain account security rules.",
+          "general_qa": "Retrieve policy or FAQ evidence, including shipping, address-change rules, coupons and general procedures; performs no business action.",
+          "human_handoff": "Request transfer to human support.",
+          "invoice_qa": "Retrieve invoice rules and procedures; does not issue or modify an invoice.",
+          "logistics_status": "Read shipping status from a specific order record; requires a bound order_id and does not fetch carrier tracking events.",
+          "media_text_read": "Read text/OCR from a supplied media asset; requires a bound asset_id.",
+          "media_visual_analysis": "Analyze visual appearance, regions, layout or controls of a supplied asset; requires a bound asset_id.",
+          "order_status": "Read a specific order's current record; requires a bound order_id.",
+          "product_assistance": "Identify a product from a supplied media asset and retrieve related knowledge using domain tools and skills; requires a bound asset_id. Text-only documentation questions use product_qa.",
+          "product_identification": "Identify a product from a supplied media asset using registered identification capabilities; requires a bound asset_id. Text-only documentation questions use product_qa.",
+          "product_qa": "Retrieve product documentation or knowledge evidence for product rules, compatibility requirements and safe-use questions. Can retrieve rules about unknown prerequisites without identifying a physical product; does not require an asset_id. Actual media identification uses product_identification.",
+          "refund_eligibility": "Read a specific order's operational refund-submission precheck (order status, configured submission window, existing application); requires a bound order_id. Does not assess gift, product-exception or refund-amount policies. Pair with refund_policy when those rules are also requested.",
+          "refund_policy": "Retrieve return/refund rules, after-sales conditions and the meaning of policy stages, including questions applied to a known order. An order reference does not turn a policy question into a business-state lookup. No order ID is required and no refund is started.",
+          "refund_status": "Read an existing order's current refund progress; requires a bound order_id. Explaining whether one approval stage implies another outcome requires refund_policy evidence; a progress read alone does not establish that rule.",
+          "security_review": "Read recent account security events; does not freeze the account."
+        },
+        "knowledge_filter_contract": {
+          "catalog_id": "unconfigured",
+          "sales_channels": {}
+        },
+        "message": "weak understanding metrics",
+        "missing_fields_schema": [
+          "asset_id",
+          "customer_service_goal",
+          "new_address",
+          "order_id"
+        ],
+        "observed_entities": {},
+        "pending_approval": null,
+        "pending_input": null,
+        "registry_fingerprint": "capability-bundle:v1:bf1eb18f105b4f2e3846ec6368aebeba9f86dac95bdb45b47bdac38f0ef1cdd1",
+        "resumable_work": [],
+        "schema_version": "conversation-plan-request-v2-references",
+        "supplied_interaction_values": [],
+        "supported_goals": [
+          "cancel_active_work",
+          "cancel_order",
+          "change_address",
+          "continue_active_work",
+          "delegate_task",
+          "execute_refund",
+          "freeze_account",
+          "general_qa",
+          "human_handoff",
+          "invoice_qa",
+          "logistics_status",
+          "media_text_read",
+          "media_visual_analysis",
+          "order_status",
+          "product_assistance",
+          "product_identification",
+          "product_qa",
+          "refund_eligibility",
+          "refund_policy",
+          "refund_status",
+          "security_review"
+        ],
+        "understanding_evidence": []
+      },
+      "expected": "Preserve weak understanding metrics; definition retrieval or term-specific clarification, not repeat alert examples.",
+      "scope": "exposed public dev witness"
+    },
+    {
+      "id": "mtrag-1",
+      "payload": {
+        "active_work_controls": [],
+        "active_workstreams": [],
+        "conversation_context": {
+          "evidence_refs": [],
+          "projection_status": "DEGRADED",
+          "reason_codes": [
+            "CURRENT_CONTEXT_PROJECTION_LAGGING"
+          ],
+          "recent_messages": [
+            {
+              "content": "I cannot get select query to work, what steps should I take?",
+              "observed_at": "2026-09-08T05:19:11.962895+00:00",
+              "role": "user",
+              "seq": 1,
+              "source_ref": "conversation-message:full-mtrag-62b2ad2f-1:full-mtrag-62b2ad2f-1-0"
+            },
+            {
+              "content": "1. Check if you have the correct access rights: You need at least 'Reader' access to the buckets that contain the input objects. 2. After the FROM keyword, specify one or more unique resource identifiers (URIs) which can be thought of as tables. Each URI can specify one or more input objects, which can also be thought of as table partitions. 3. If the format of the input objects is CSV, and no special options are required, it is not necessary to specify a STORED AS clause. However, if the format is JSON, ORC, Parquet, or AVRO, after the FROM clause, specify STORED AS JSON, STORED AS ORC, STORED AS PARQUET, or STORED AS AVRO. 4. If text formats, such as JSON and CSV, are compressed with either gzip or bzip2 and have the extensions .gz and .bz, they automatically get recognized as compressed files. However, do not use these kinds of compressed files due to performance reasons. 5. If the format of the input objects is CSV and a delimiter other than the default , (comma) is used, you must specify the delimiter by using the FIELDS TERMINATED BY option of the STORED AS clause. All single Unicode characters are allowed as delimiters. 6. Check for a header line: By default, it is assumed that CSV input objects have a header line that specifies the names of the input columns.",
+              "observed_at": "2026-09-08T05:19:11.965034+00:00",
+              "role": "assistant",
+              "seq": 2,
+              "source_ref": "conversation-message:full-mtrag-62b2ad2f-1:full-mtrag-62b2ad2f-1-1"
+            },
+            {
+              "content": "query definition",
+              "observed_at": "2026-09-08T05:19:11.966934+00:00",
+              "role": "user",
+              "seq": 3,
+              "source_ref": "conversation-message:full-mtrag-62b2ad2f-1:full-mtrag-62b2ad2f-1-2"
+            },
+            {
+              "content": "The Query is a standard JavaScript object, which is passed to the db.find function which it POSTs to the _find endpoint on your behalf. To retrieve data from Discovery after it is ingested, indexed, and enriched, submit a query.",
+              "observed_at": "2026-09-08T05:19:11.968586+00:00",
+              "role": "assistant",
+              "seq": 4,
+              "source_ref": "conversation-message:full-mtrag-62b2ad2f-1:full-mtrag-62b2ad2f-1-3"
+            }
+          ],
+          "source_watermark": 1,
+          "summary": {
+            "content": "{\"chunks\": [], \"covered_until_seq\": 0}",
+            "covered_until_seq": 0,
+            "producer_version": "conversation-memory-v1",
+            "source_ref": "conversation-summary:full-mtrag-62b2ad2f-1:938fe0473771a827fb3363a4ee1e77ebc8b387aaa6c78c6c0e1b8e5745979ecd"
+          }
+        },
+        "deterministic_resolution": {
+          "expected_workstream_version": null,
+          "kind": "UNRESOLVED",
+          "reason_code": "NO_DETERMINISTIC_BINDING",
+          "workstream_id": null
+        },
+        "domain_capabilities": [
+          {
+            "action_proposals": [],
+            "agent_id": "general",
+            "description": "Explain IBM Cloud product documentation, including monitoring, analytics, Watson Assistant and Discovery. Use conversation context for follow-up questions. Provide knowledge guidance; do not execute cloud account changes.",
+            "skills": [],
+            "tools": [
+              {
+                "effect": "READ",
+                "tool_id": "knowledge_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "service_episode_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_read"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_observe"
+              }
+            ]
+          },
+          {
+            "action_proposals": [],
+            "agent_id": "product_technical",
+            "description": "Resolve product questions using catalog, media and knowledge evidence; do not assume a product category.",
+            "skills": [
+              "product_identification"
+            ],
+            "tools": [
+              {
+                "effect": "READ",
+                "tool_id": "media_read"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_observe"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "catalog_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "knowledge_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "service_episode_search"
+              }
+            ]
+          },
+          {
+            "action_proposals": [
+              {
+                "action_ref": "order.cancel:v1",
+                "approval_policy": "EXPLICIT_CONFIRMATION_REQUIRED",
+                "effect": "WRITE"
+              },
+              {
+                "action_ref": "order.shipping_address.change:v1",
+                "approval_policy": "EXPLICIT_CONFIRMATION_REQUIRED",
+                "effect": "WRITE"
+              }
+            ],
+            "agent_id": "order_logistics",
+            "description": "Resolve order and logistics questions using current business records.",
+            "skills": [],
+            "tools": [
+              {
+                "effect": "READ",
+                "tool_id": "order_lookup"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "order_cancel_status"
+              },
+              {
+                "effect": "WRITE",
+                "tool_id": "order_cancel"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "shipping_address_change_status"
+              },
+              {
+                "effect": "WRITE",
+                "tool_id": "shipping_address_change"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "service_episode_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_read"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_observe"
+              }
+            ]
+          },
+          {
+            "action_proposals": [
+              {
+                "action_ref": "refund.request.create:v1",
+                "approval_policy": "EXPLICIT_CONFIRMATION_REQUIRED",
+                "effect": "WRITE"
+              }
+            ],
+            "agent_id": "billing_refund",
+            "description": "Resolve billing and after-sales requests using current records and policy evidence; distinguish returns, exchanges and refunds and only perform available actions.",
+            "skills": [],
+            "tools": [
+              {
+                "effect": "READ",
+                "tool_id": "knowledge_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "service_episode_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "order_lookup"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "refund_status"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "refund_eligibility_check"
+              },
+              {
+                "effect": "WRITE",
+                "tool_id": "refund_request_create"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_read"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_observe"
+              }
+            ]
+          },
+          {
+            "action_proposals": [
+              {
+                "action_ref": "account.freeze:v1",
+                "approval_policy": "EXPLICIT_CONFIRMATION_REQUIRED",
+                "effect": "WRITE"
+              }
+            ],
+            "agent_id": "account_security",
+            "description": "Assess account security concerns; distinguish user reports from verified facts.",
+            "skills": [],
+            "tools": [
+              {
+                "effect": "READ",
+                "tool_id": "service_episode_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "account_security_event_list"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "account_security_state"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "account_freeze_status"
+              },
+              {
+                "effect": "WRITE",
+                "tool_id": "account_freeze"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_read"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_observe"
+              }
+            ]
+          },
+          {
+            "action_proposals": [
+              {
+                "action_ref": "support.handoff.create:v1",
+                "approval_policy": "USER_COMMAND_SUFFICIENT",
+                "effect": "WRITE"
+              }
+            ],
+            "agent_id": "human_service",
+            "description": "Resolve support case objectives using verified case records.",
+            "skills": [],
+            "tools": [
+              {
+                "effect": "WRITE",
+                "tool_id": "support_ticket_create"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "support_ticket_by_operation"
+              }
+            ]
+          }
+        ],
+        "entity_bindings": [],
+        "goal_descriptions": {
+          "cancel_active_work": "Cancel one active conversation objective using its revises_control_id; this does not cancel an order.",
+          "cancel_order": "Prepare cancellation of a specific order when the user requests that action; requires a bound order_id. Policy questions use general_qa.",
+          "change_address": "Prepare an actual shipping-address change requested by the user; requires a bound order_id and explicitly supplied new_address. Questions about whether or how changes work use general_qa.",
+          "continue_active_work": "Continue an unchanged objective listed in resumable_work using its control_id as revises_control_id. An active control alone is not a resume entry. The runtime restores accepted tools and arguments; do not reconstruct them. Pending approval still requires an approval decision. For a changed scope use delegate_task with revises_control_id instead.",
+          "delegate_task": "Delegate an open objective to a registered domain using target_agent and objective. The domain chooses its available tools; this does not authorize an unavailable action.",
+          "execute_refund": "Prepare a refund action explicitly requested for a specific order; requires a bound order_id. General refund rules use refund_policy.",
+          "freeze_account": "Prepare an account freeze explicitly requested by the user; does not merely explain account security rules.",
+          "general_qa": "Retrieve policy or FAQ evidence, including shipping, address-change rules, coupons and general procedures; performs no business action.",
+          "human_handoff": "Request transfer to human support.",
+          "invoice_qa": "Retrieve invoice rules and procedures; does not issue or modify an invoice.",
+          "logistics_status": "Read shipping status from a specific order record; requires a bound order_id and does not fetch carrier tracking events.",
+          "media_text_read": "Read text/OCR from a supplied media asset; requires a bound asset_id.",
+          "media_visual_analysis": "Analyze visual appearance, regions, layout or controls of a supplied asset; requires a bound asset_id.",
+          "order_status": "Read a specific order's current record; requires a bound order_id.",
+          "product_assistance": "Identify a product from a supplied media asset and retrieve related knowledge using domain tools and skills; requires a bound asset_id. Text-only documentation questions use product_qa.",
+          "product_identification": "Identify a product from a supplied media asset using registered identification capabilities; requires a bound asset_id. Text-only documentation questions use product_qa.",
+          "product_qa": "Retrieve product documentation or knowledge evidence for product rules, compatibility requirements and safe-use questions. Can retrieve rules about unknown prerequisites without identifying a physical product; does not require an asset_id. Actual media identification uses product_identification.",
+          "refund_eligibility": "Read a specific order's operational refund-submission precheck (order status, configured submission window, existing application); requires a bound order_id. Does not assess gift, product-exception or refund-amount policies. Pair with refund_policy when those rules are also requested.",
+          "refund_policy": "Retrieve return/refund rules, after-sales conditions and the meaning of policy stages, including questions applied to a known order. An order reference does not turn a policy question into a business-state lookup. No order ID is required and no refund is started.",
+          "refund_status": "Read an existing order's current refund progress; requires a bound order_id. Explaining whether one approval stage implies another outcome requires refund_policy evidence; a progress read alone does not establish that rule.",
+          "security_review": "Read recent account security events; does not freeze the account."
+        },
+        "knowledge_filter_contract": {
+          "catalog_id": "unconfigured",
+          "sales_channels": {}
+        },
+        "message": "how can I improve query",
+        "missing_fields_schema": [
+          "asset_id",
+          "customer_service_goal",
+          "new_address",
+          "order_id"
+        ],
+        "observed_entities": {},
+        "pending_approval": null,
+        "pending_input": null,
+        "registry_fingerprint": "capability-bundle:v1:bf1eb18f105b4f2e3846ec6368aebeba9f86dac95bdb45b47bdac38f0ef1cdd1",
+        "resumable_work": [],
+        "schema_version": "conversation-plan-request-v2-references",
+        "supplied_interaction_values": [],
+        "supported_goals": [
+          "cancel_active_work",
+          "cancel_order",
+          "change_address",
+          "continue_active_work",
+          "delegate_task",
+          "execute_refund",
+          "freeze_account",
+          "general_qa",
+          "human_handoff",
+          "invoice_qa",
+          "logistics_status",
+          "media_text_read",
+          "media_visual_analysis",
+          "order_status",
+          "product_assistance",
+          "product_identification",
+          "product_qa",
+          "refund_eligibility",
+          "refund_policy",
+          "refund_status",
+          "security_review"
+        ],
+        "understanding_evidence": []
+      },
+      "expected": "Improve the Discovery query using prior product context.",
+      "scope": "exposed public dev witness"
+    },
+    {
+      "id": "topic",
+      "payload": {
+        "active_work_controls": [],
+        "active_workstreams": [],
+        "conversation_context": {
+          "recent_messages": [
+            {
+              "role": "user",
+              "content": "怎么修改配送地址？",
+              "seq": 1
+            },
+            {
+              "role": "assistant",
+              "content": "需要确认订单状态和新的配送地址。",
+              "seq": 2
+            }
+          ]
+        },
+        "deterministic_resolution": {
+          "expected_workstream_version": null,
+          "kind": "UNRESOLVED",
+          "reason_code": "NO_DETERMINISTIC_BINDING",
+          "workstream_id": null
+        },
+        "domain_capabilities": [
+          {
+            "action_proposals": [],
+            "agent_id": "general",
+            "description": "Explain ecommerce customer service policies and product documentation using knowledge evidence.",
+            "skills": [],
+            "tools": [
+              {
+                "effect": "READ",
+                "tool_id": "knowledge_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "service_episode_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_read"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_observe"
+              }
+            ]
+          },
+          {
+            "action_proposals": [],
+            "agent_id": "product_technical",
+            "description": "Resolve product questions using catalog, media and knowledge evidence; do not assume a product category.",
+            "skills": [
+              "product_identification"
+            ],
+            "tools": [
+              {
+                "effect": "READ",
+                "tool_id": "media_read"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_observe"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "catalog_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "knowledge_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "service_episode_search"
+              }
+            ]
+          },
+          {
+            "action_proposals": [
+              {
+                "action_ref": "order.cancel:v1",
+                "approval_policy": "EXPLICIT_CONFIRMATION_REQUIRED",
+                "effect": "WRITE"
+              },
+              {
+                "action_ref": "order.shipping_address.change:v1",
+                "approval_policy": "EXPLICIT_CONFIRMATION_REQUIRED",
+                "effect": "WRITE"
+              }
+            ],
+            "agent_id": "order_logistics",
+            "description": "Resolve order and logistics questions using current business records.",
+            "skills": [],
+            "tools": [
+              {
+                "effect": "READ",
+                "tool_id": "order_lookup"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "order_cancel_status"
+              },
+              {
+                "effect": "WRITE",
+                "tool_id": "order_cancel"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "shipping_address_change_status"
+              },
+              {
+                "effect": "WRITE",
+                "tool_id": "shipping_address_change"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "service_episode_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_read"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_observe"
+              }
+            ]
+          },
+          {
+            "action_proposals": [
+              {
+                "action_ref": "refund.request.create:v1",
+                "approval_policy": "EXPLICIT_CONFIRMATION_REQUIRED",
+                "effect": "WRITE"
+              }
+            ],
+            "agent_id": "billing_refund",
+            "description": "Resolve billing and after-sales requests using current records and policy evidence; distinguish returns, exchanges and refunds and only perform available actions.",
+            "skills": [],
+            "tools": [
+              {
+                "effect": "READ",
+                "tool_id": "knowledge_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "service_episode_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "order_lookup"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "refund_status"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "refund_eligibility_check"
+              },
+              {
+                "effect": "WRITE",
+                "tool_id": "refund_request_create"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_read"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_observe"
+              }
+            ]
+          },
+          {
+            "action_proposals": [
+              {
+                "action_ref": "account.freeze:v1",
+                "approval_policy": "EXPLICIT_CONFIRMATION_REQUIRED",
+                "effect": "WRITE"
+              }
+            ],
+            "agent_id": "account_security",
+            "description": "Assess account security concerns; distinguish user reports from verified facts.",
+            "skills": [],
+            "tools": [
+              {
+                "effect": "READ",
+                "tool_id": "service_episode_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "account_security_event_list"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "account_security_state"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "account_freeze_status"
+              },
+              {
+                "effect": "WRITE",
+                "tool_id": "account_freeze"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_read"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_observe"
+              }
+            ]
+          },
+          {
+            "action_proposals": [
+              {
+                "action_ref": "support.handoff.create:v1",
+                "approval_policy": "USER_COMMAND_SUFFICIENT",
+                "effect": "WRITE"
+              }
+            ],
+            "agent_id": "human_service",
+            "description": "Resolve support case objectives using verified case records.",
+            "skills": [],
+            "tools": [
+              {
+                "effect": "WRITE",
+                "tool_id": "support_ticket_create"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "support_ticket_by_operation"
+              }
+            ]
+          }
+        ],
+        "entity_bindings": [],
+        "goal_descriptions": {
+          "cancel_active_work": "Cancel one active conversation objective using its revises_control_id; this does not cancel an order.",
+          "cancel_order": "Prepare cancellation of a specific order when the user requests that action; requires a bound order_id. Policy questions use general_qa.",
+          "change_address": "Prepare an actual shipping-address change requested by the user; requires a bound order_id and explicitly supplied new_address. Questions about whether or how changes work use general_qa.",
+          "continue_active_work": "Continue an unchanged objective listed in resumable_work using its control_id as revises_control_id. An active control alone is not a resume entry. The runtime restores accepted tools and arguments; do not reconstruct them. Pending approval still requires an approval decision. For a changed scope use delegate_task with revises_control_id instead.",
+          "delegate_task": "Delegate an open objective to a registered domain using target_agent and objective. The domain chooses its available tools; this does not authorize an unavailable action.",
+          "execute_refund": "Prepare a refund action explicitly requested for a specific order; requires a bound order_id. General refund rules use refund_policy.",
+          "freeze_account": "Prepare an account freeze explicitly requested by the user; does not merely explain account security rules.",
+          "general_qa": "Retrieve policy or FAQ evidence, including shipping, address-change rules, coupons and general procedures; performs no business action.",
+          "human_handoff": "Request transfer to human support.",
+          "invoice_qa": "Retrieve invoice rules and procedures; does not issue or modify an invoice.",
+          "logistics_status": "Read shipping status from a specific order record; requires a bound order_id and does not fetch carrier tracking events.",
+          "media_text_read": "Read text/OCR from a supplied media asset; requires a bound asset_id.",
+          "media_visual_analysis": "Analyze visual appearance, regions, layout or controls of a supplied asset; requires a bound asset_id.",
+          "order_status": "Read a specific order's current record; requires a bound order_id.",
+          "product_assistance": "Identify a product from a supplied media asset and retrieve related knowledge using domain tools and skills; requires a bound asset_id. Text-only documentation questions use product_qa.",
+          "product_identification": "Identify a product from a supplied media asset using registered identification capabilities; requires a bound asset_id. Text-only documentation questions use product_qa.",
+          "product_qa": "Retrieve product documentation or knowledge evidence for product rules, compatibility requirements and safe-use questions. Can retrieve rules about unknown prerequisites without identifying a physical product; does not require an asset_id. Actual media identification uses product_identification.",
+          "refund_eligibility": "Read a specific order's operational refund-submission precheck (order status, configured submission window, existing application); requires a bound order_id. Does not assess gift, product-exception or refund-amount policies. Pair with refund_policy when those rules are also requested.",
+          "refund_policy": "Retrieve return/refund rules, after-sales conditions and the meaning of policy stages, including questions applied to a known order. An order reference does not turn a policy question into a business-state lookup. No order ID is required and no refund is started.",
+          "refund_status": "Read an existing order's current refund progress; requires a bound order_id. Explaining whether one approval stage implies another outcome requires refund_policy evidence; a progress read alone does not establish that rule.",
+          "security_review": "Read recent account security events; does not freeze the account."
+        },
+        "knowledge_filter_contract": {
+          "catalog_id": "unconfigured",
+          "sales_channels": {}
+        },
+        "message": "先不改地址，我想了解耳机拆封后的退货规则。",
+        "missing_fields_schema": [
+          "asset_id",
+          "customer_service_goal",
+          "new_address",
+          "order_id"
+        ],
+        "observed_entities": {},
+        "pending_approval": null,
+        "pending_input": null,
+        "registry_fingerprint": "capability-bundle:v1:bf1eb18f105b4f2e3846ec6368aebeba9f86dac95bdb45b47bdac38f0ef1cdd1",
+        "resumable_work": [],
+        "schema_version": "conversation-plan-request-v2-references",
+        "supplied_interaction_values": [],
+        "supported_goals": [
+          "cancel_active_work",
+          "cancel_order",
+          "change_address",
+          "continue_active_work",
+          "delegate_task",
+          "execute_refund",
+          "freeze_account",
+          "general_qa",
+          "human_handoff",
+          "invoice_qa",
+          "logistics_status",
+          "media_text_read",
+          "media_visual_analysis",
+          "order_status",
+          "product_assistance",
+          "product_identification",
+          "product_qa",
+          "refund_eligibility",
+          "refund_policy",
+          "refund_status",
+          "security_review"
+        ],
+        "understanding_evidence": []
+      },
+      "expected": "Only retrieve opened-earphone return rules; no address change or order action.",
+      "scope": "Chinese ecommerce simulation, not real traffic"
+    },
+    {
+      "id": "negation",
+      "payload": {
+        "active_work_controls": [],
+        "active_workstreams": [],
+        "conversation_context": {
+          "recent_messages": [
+            {
+              "role": "user",
+              "content": "耳机拆封了，我想了解能否退货。",
+              "seq": 1
+            },
+            {
+              "role": "assistant",
+              "content": "是因为质量问题吗？",
+              "seq": 2
+            }
+          ]
+        },
+        "deterministic_resolution": {
+          "expected_workstream_version": null,
+          "kind": "UNRESOLVED",
+          "reason_code": "NO_DETERMINISTIC_BINDING",
+          "workstream_id": null
+        },
+        "domain_capabilities": [
+          {
+            "action_proposals": [],
+            "agent_id": "general",
+            "description": "Explain ecommerce customer service policies and product documentation using knowledge evidence.",
+            "skills": [],
+            "tools": [
+              {
+                "effect": "READ",
+                "tool_id": "knowledge_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "service_episode_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_read"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_observe"
+              }
+            ]
+          },
+          {
+            "action_proposals": [],
+            "agent_id": "product_technical",
+            "description": "Resolve product questions using catalog, media and knowledge evidence; do not assume a product category.",
+            "skills": [
+              "product_identification"
+            ],
+            "tools": [
+              {
+                "effect": "READ",
+                "tool_id": "media_read"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_observe"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "catalog_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "knowledge_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "service_episode_search"
+              }
+            ]
+          },
+          {
+            "action_proposals": [
+              {
+                "action_ref": "order.cancel:v1",
+                "approval_policy": "EXPLICIT_CONFIRMATION_REQUIRED",
+                "effect": "WRITE"
+              },
+              {
+                "action_ref": "order.shipping_address.change:v1",
+                "approval_policy": "EXPLICIT_CONFIRMATION_REQUIRED",
+                "effect": "WRITE"
+              }
+            ],
+            "agent_id": "order_logistics",
+            "description": "Resolve order and logistics questions using current business records.",
+            "skills": [],
+            "tools": [
+              {
+                "effect": "READ",
+                "tool_id": "order_lookup"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "order_cancel_status"
+              },
+              {
+                "effect": "WRITE",
+                "tool_id": "order_cancel"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "shipping_address_change_status"
+              },
+              {
+                "effect": "WRITE",
+                "tool_id": "shipping_address_change"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "service_episode_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_read"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_observe"
+              }
+            ]
+          },
+          {
+            "action_proposals": [
+              {
+                "action_ref": "refund.request.create:v1",
+                "approval_policy": "EXPLICIT_CONFIRMATION_REQUIRED",
+                "effect": "WRITE"
+              }
+            ],
+            "agent_id": "billing_refund",
+            "description": "Resolve billing and after-sales requests using current records and policy evidence; distinguish returns, exchanges and refunds and only perform available actions.",
+            "skills": [],
+            "tools": [
+              {
+                "effect": "READ",
+                "tool_id": "knowledge_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "service_episode_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "order_lookup"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "refund_status"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "refund_eligibility_check"
+              },
+              {
+                "effect": "WRITE",
+                "tool_id": "refund_request_create"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_read"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_observe"
+              }
+            ]
+          },
+          {
+            "action_proposals": [
+              {
+                "action_ref": "account.freeze:v1",
+                "approval_policy": "EXPLICIT_CONFIRMATION_REQUIRED",
+                "effect": "WRITE"
+              }
+            ],
+            "agent_id": "account_security",
+            "description": "Assess account security concerns; distinguish user reports from verified facts.",
+            "skills": [],
+            "tools": [
+              {
+                "effect": "READ",
+                "tool_id": "service_episode_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "account_security_event_list"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "account_security_state"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "account_freeze_status"
+              },
+              {
+                "effect": "WRITE",
+                "tool_id": "account_freeze"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_read"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_observe"
+              }
+            ]
+          },
+          {
+            "action_proposals": [
+              {
+                "action_ref": "support.handoff.create:v1",
+                "approval_policy": "USER_COMMAND_SUFFICIENT",
+                "effect": "WRITE"
+              }
+            ],
+            "agent_id": "human_service",
+            "description": "Resolve support case objectives using verified case records.",
+            "skills": [],
+            "tools": [
+              {
+                "effect": "WRITE",
+                "tool_id": "support_ticket_create"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "support_ticket_by_operation"
+              }
+            ]
+          }
+        ],
+        "entity_bindings": [],
+        "goal_descriptions": {
+          "cancel_active_work": "Cancel one active conversation objective using its revises_control_id; this does not cancel an order.",
+          "cancel_order": "Prepare cancellation of a specific order when the user requests that action; requires a bound order_id. Policy questions use general_qa.",
+          "change_address": "Prepare an actual shipping-address change requested by the user; requires a bound order_id and explicitly supplied new_address. Questions about whether or how changes work use general_qa.",
+          "continue_active_work": "Continue an unchanged objective listed in resumable_work using its control_id as revises_control_id. An active control alone is not a resume entry. The runtime restores accepted tools and arguments; do not reconstruct them. Pending approval still requires an approval decision. For a changed scope use delegate_task with revises_control_id instead.",
+          "delegate_task": "Delegate an open objective to a registered domain using target_agent and objective. The domain chooses its available tools; this does not authorize an unavailable action.",
+          "execute_refund": "Prepare a refund action explicitly requested for a specific order; requires a bound order_id. General refund rules use refund_policy.",
+          "freeze_account": "Prepare an account freeze explicitly requested by the user; does not merely explain account security rules.",
+          "general_qa": "Retrieve policy or FAQ evidence, including shipping, address-change rules, coupons and general procedures; performs no business action.",
+          "human_handoff": "Request transfer to human support.",
+          "invoice_qa": "Retrieve invoice rules and procedures; does not issue or modify an invoice.",
+          "logistics_status": "Read shipping status from a specific order record; requires a bound order_id and does not fetch carrier tracking events.",
+          "media_text_read": "Read text/OCR from a supplied media asset; requires a bound asset_id.",
+          "media_visual_analysis": "Analyze visual appearance, regions, layout or controls of a supplied asset; requires a bound asset_id.",
+          "order_status": "Read a specific order's current record; requires a bound order_id.",
+          "product_assistance": "Identify a product from a supplied media asset and retrieve related knowledge using domain tools and skills; requires a bound asset_id. Text-only documentation questions use product_qa.",
+          "product_identification": "Identify a product from a supplied media asset using registered identification capabilities; requires a bound asset_id. Text-only documentation questions use product_qa.",
+          "product_qa": "Retrieve product documentation or knowledge evidence for product rules, compatibility requirements and safe-use questions. Can retrieve rules about unknown prerequisites without identifying a physical product; does not require an asset_id. Actual media identification uses product_identification.",
+          "refund_eligibility": "Read a specific order's operational refund-submission precheck (order status, configured submission window, existing application); requires a bound order_id. Does not assess gift, product-exception or refund-amount policies. Pair with refund_policy when those rules are also requested.",
+          "refund_policy": "Retrieve return/refund rules, after-sales conditions and the meaning of policy stages, including questions applied to a known order. An order reference does not turn a policy question into a business-state lookup. No order ID is required and no refund is started.",
+          "refund_status": "Read an existing order's current refund progress; requires a bound order_id. Explaining whether one approval stage implies another outcome requires refund_policy evidence; a progress read alone does not establish that rule.",
+          "security_review": "Read recent account security events; does not freeze the account."
+        },
+        "knowledge_filter_contract": {
+          "catalog_id": "unconfigured",
+          "sales_channels": {}
+        },
+        "message": "不是，音质没问题。",
+        "missing_fields_schema": [
+          "asset_id",
+          "customer_service_goal",
+          "new_address",
+          "order_id"
+        ],
+        "observed_entities": {},
+        "pending_approval": null,
+        "pending_input": null,
+        "registry_fingerprint": "capability-bundle:v1:bf1eb18f105b4f2e3846ec6368aebeba9f86dac95bdb45b47bdac38f0ef1cdd1",
+        "resumable_work": [],
+        "schema_version": "conversation-plan-request-v2-references",
+        "supplied_interaction_values": [],
+        "supported_goals": [
+          "cancel_active_work",
+          "cancel_order",
+          "change_address",
+          "continue_active_work",
+          "delegate_task",
+          "execute_refund",
+          "freeze_account",
+          "general_qa",
+          "human_handoff",
+          "invoice_qa",
+          "logistics_status",
+          "media_text_read",
+          "media_visual_analysis",
+          "order_status",
+          "product_assistance",
+          "product_identification",
+          "product_qa",
+          "refund_eligibility",
+          "refund_policy",
+          "refund_status",
+          "security_review"
+        ],
+        "understanding_evidence": []
+      },
+      "expected": "Retrieve opened-earphone non-quality return conditions; preserve negative answer; no invented eligibility.",
+      "scope": "Chinese ecommerce simulation, not real traffic"
+    },
+    {
+      "id": "ellipsis",
+      "payload": {
+        "active_work_controls": [],
+        "active_workstreams": [],
+        "conversation_context": {
+          "recent_messages": [
+            {
+              "role": "user",
+              "content": "我想了解耳机的保修期限。",
+              "seq": 1
+            },
+            {
+              "role": "assistant",
+              "content": "你问的是耳机本体还是充电盒？",
+              "seq": 2
+            }
+          ]
+        },
+        "deterministic_resolution": {
+          "expected_workstream_version": null,
+          "kind": "UNRESOLVED",
+          "reason_code": "NO_DETERMINISTIC_BINDING",
+          "workstream_id": null
+        },
+        "domain_capabilities": [
+          {
+            "action_proposals": [],
+            "agent_id": "general",
+            "description": "Explain ecommerce customer service policies and product documentation using knowledge evidence.",
+            "skills": [],
+            "tools": [
+              {
+                "effect": "READ",
+                "tool_id": "knowledge_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "service_episode_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_read"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_observe"
+              }
+            ]
+          },
+          {
+            "action_proposals": [],
+            "agent_id": "product_technical",
+            "description": "Resolve product questions using catalog, media and knowledge evidence; do not assume a product category.",
+            "skills": [
+              "product_identification"
+            ],
+            "tools": [
+              {
+                "effect": "READ",
+                "tool_id": "media_read"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_observe"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "catalog_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "knowledge_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "service_episode_search"
+              }
+            ]
+          },
+          {
+            "action_proposals": [
+              {
+                "action_ref": "order.cancel:v1",
+                "approval_policy": "EXPLICIT_CONFIRMATION_REQUIRED",
+                "effect": "WRITE"
+              },
+              {
+                "action_ref": "order.shipping_address.change:v1",
+                "approval_policy": "EXPLICIT_CONFIRMATION_REQUIRED",
+                "effect": "WRITE"
+              }
+            ],
+            "agent_id": "order_logistics",
+            "description": "Resolve order and logistics questions using current business records.",
+            "skills": [],
+            "tools": [
+              {
+                "effect": "READ",
+                "tool_id": "order_lookup"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "order_cancel_status"
+              },
+              {
+                "effect": "WRITE",
+                "tool_id": "order_cancel"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "shipping_address_change_status"
+              },
+              {
+                "effect": "WRITE",
+                "tool_id": "shipping_address_change"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "service_episode_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_read"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_observe"
+              }
+            ]
+          },
+          {
+            "action_proposals": [
+              {
+                "action_ref": "refund.request.create:v1",
+                "approval_policy": "EXPLICIT_CONFIRMATION_REQUIRED",
+                "effect": "WRITE"
+              }
+            ],
+            "agent_id": "billing_refund",
+            "description": "Resolve billing and after-sales requests using current records and policy evidence; distinguish returns, exchanges and refunds and only perform available actions.",
+            "skills": [],
+            "tools": [
+              {
+                "effect": "READ",
+                "tool_id": "knowledge_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "service_episode_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "order_lookup"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "refund_status"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "refund_eligibility_check"
+              },
+              {
+                "effect": "WRITE",
+                "tool_id": "refund_request_create"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_read"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_observe"
+              }
+            ]
+          },
+          {
+            "action_proposals": [
+              {
+                "action_ref": "account.freeze:v1",
+                "approval_policy": "EXPLICIT_CONFIRMATION_REQUIRED",
+                "effect": "WRITE"
+              }
+            ],
+            "agent_id": "account_security",
+            "description": "Assess account security concerns; distinguish user reports from verified facts.",
+            "skills": [],
+            "tools": [
+              {
+                "effect": "READ",
+                "tool_id": "service_episode_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "account_security_event_list"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "account_security_state"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "account_freeze_status"
+              },
+              {
+                "effect": "WRITE",
+                "tool_id": "account_freeze"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_read"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_observe"
+              }
+            ]
+          },
+          {
+            "action_proposals": [
+              {
+                "action_ref": "support.handoff.create:v1",
+                "approval_policy": "USER_COMMAND_SUFFICIENT",
+                "effect": "WRITE"
+              }
+            ],
+            "agent_id": "human_service",
+            "description": "Resolve support case objectives using verified case records.",
+            "skills": [],
+            "tools": [
+              {
+                "effect": "WRITE",
+                "tool_id": "support_ticket_create"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "support_ticket_by_operation"
+              }
+            ]
+          }
+        ],
+        "entity_bindings": [],
+        "goal_descriptions": {
+          "cancel_active_work": "Cancel one active conversation objective using its revises_control_id; this does not cancel an order.",
+          "cancel_order": "Prepare cancellation of a specific order when the user requests that action; requires a bound order_id. Policy questions use general_qa.",
+          "change_address": "Prepare an actual shipping-address change requested by the user; requires a bound order_id and explicitly supplied new_address. Questions about whether or how changes work use general_qa.",
+          "continue_active_work": "Continue an unchanged objective listed in resumable_work using its control_id as revises_control_id. An active control alone is not a resume entry. The runtime restores accepted tools and arguments; do not reconstruct them. Pending approval still requires an approval decision. For a changed scope use delegate_task with revises_control_id instead.",
+          "delegate_task": "Delegate an open objective to a registered domain using target_agent and objective. The domain chooses its available tools; this does not authorize an unavailable action.",
+          "execute_refund": "Prepare a refund action explicitly requested for a specific order; requires a bound order_id. General refund rules use refund_policy.",
+          "freeze_account": "Prepare an account freeze explicitly requested by the user; does not merely explain account security rules.",
+          "general_qa": "Retrieve policy or FAQ evidence, including shipping, address-change rules, coupons and general procedures; performs no business action.",
+          "human_handoff": "Request transfer to human support.",
+          "invoice_qa": "Retrieve invoice rules and procedures; does not issue or modify an invoice.",
+          "logistics_status": "Read shipping status from a specific order record; requires a bound order_id and does not fetch carrier tracking events.",
+          "media_text_read": "Read text/OCR from a supplied media asset; requires a bound asset_id.",
+          "media_visual_analysis": "Analyze visual appearance, regions, layout or controls of a supplied asset; requires a bound asset_id.",
+          "order_status": "Read a specific order's current record; requires a bound order_id.",
+          "product_assistance": "Identify a product from a supplied media asset and retrieve related knowledge using domain tools and skills; requires a bound asset_id. Text-only documentation questions use product_qa.",
+          "product_identification": "Identify a product from a supplied media asset using registered identification capabilities; requires a bound asset_id. Text-only documentation questions use product_qa.",
+          "product_qa": "Retrieve product documentation or knowledge evidence for product rules, compatibility requirements and safe-use questions. Can retrieve rules about unknown prerequisites without identifying a physical product; does not require an asset_id. Actual media identification uses product_identification.",
+          "refund_eligibility": "Read a specific order's operational refund-submission precheck (order status, configured submission window, existing application); requires a bound order_id. Does not assess gift, product-exception or refund-amount policies. Pair with refund_policy when those rules are also requested.",
+          "refund_policy": "Retrieve return/refund rules, after-sales conditions and the meaning of policy stages, including questions applied to a known order. An order reference does not turn a policy question into a business-state lookup. No order ID is required and no refund is started.",
+          "refund_status": "Read an existing order's current refund progress; requires a bound order_id. Explaining whether one approval stage implies another outcome requires refund_policy evidence; a progress read alone does not establish that rule.",
+          "security_review": "Read recent account security events; does not freeze the account."
+        },
+        "knowledge_filter_contract": {
+          "catalog_id": "unconfigured",
+          "sales_channels": {}
+        },
+        "message": "充电盒。",
+        "missing_fields_schema": [
+          "asset_id",
+          "customer_service_goal",
+          "new_address",
+          "order_id"
+        ],
+        "observed_entities": {},
+        "pending_approval": null,
+        "pending_input": null,
+        "registry_fingerprint": "capability-bundle:v1:bf1eb18f105b4f2e3846ec6368aebeba9f86dac95bdb45b47bdac38f0ef1cdd1",
+        "resumable_work": [],
+        "schema_version": "conversation-plan-request-v2-references",
+        "supplied_interaction_values": [],
+        "supported_goals": [
+          "cancel_active_work",
+          "cancel_order",
+          "change_address",
+          "continue_active_work",
+          "delegate_task",
+          "execute_refund",
+          "freeze_account",
+          "general_qa",
+          "human_handoff",
+          "invoice_qa",
+          "logistics_status",
+          "media_text_read",
+          "media_visual_analysis",
+          "order_status",
+          "product_assistance",
+          "product_identification",
+          "product_qa",
+          "refund_eligibility",
+          "refund_policy",
+          "refund_status",
+          "security_review"
+        ],
+        "understanding_evidence": []
+      },
+      "expected": "Retrieve charging-case warranty duration using prior question.",
+      "scope": "Chinese ecommerce simulation, not real traffic"
+    },
+    {
+      "id": "hypothetical",
+      "payload": {
+        "active_work_controls": [],
+        "active_workstreams": [],
+        "conversation_context": {
+          "recent_messages": [
+            {
+              "role": "user",
+              "content": "我已经签收了耳机。",
+              "seq": 1
+            },
+            {
+              "role": "assistant",
+              "content": "你可以说明遇到了什么问题。",
+              "seq": 2
+            }
+          ]
+        },
+        "deterministic_resolution": {
+          "expected_workstream_version": null,
+          "kind": "UNRESOLVED",
+          "reason_code": "NO_DETERMINISTIC_BINDING",
+          "workstream_id": null
+        },
+        "domain_capabilities": [
+          {
+            "action_proposals": [],
+            "agent_id": "general",
+            "description": "Explain ecommerce customer service policies and product documentation using knowledge evidence.",
+            "skills": [],
+            "tools": [
+              {
+                "effect": "READ",
+                "tool_id": "knowledge_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "service_episode_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_read"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_observe"
+              }
+            ]
+          },
+          {
+            "action_proposals": [],
+            "agent_id": "product_technical",
+            "description": "Resolve product questions using catalog, media and knowledge evidence; do not assume a product category.",
+            "skills": [
+              "product_identification"
+            ],
+            "tools": [
+              {
+                "effect": "READ",
+                "tool_id": "media_read"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_observe"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "catalog_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "knowledge_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "service_episode_search"
+              }
+            ]
+          },
+          {
+            "action_proposals": [
+              {
+                "action_ref": "order.cancel:v1",
+                "approval_policy": "EXPLICIT_CONFIRMATION_REQUIRED",
+                "effect": "WRITE"
+              },
+              {
+                "action_ref": "order.shipping_address.change:v1",
+                "approval_policy": "EXPLICIT_CONFIRMATION_REQUIRED",
+                "effect": "WRITE"
+              }
+            ],
+            "agent_id": "order_logistics",
+            "description": "Resolve order and logistics questions using current business records.",
+            "skills": [],
+            "tools": [
+              {
+                "effect": "READ",
+                "tool_id": "order_lookup"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "order_cancel_status"
+              },
+              {
+                "effect": "WRITE",
+                "tool_id": "order_cancel"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "shipping_address_change_status"
+              },
+              {
+                "effect": "WRITE",
+                "tool_id": "shipping_address_change"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "service_episode_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_read"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_observe"
+              }
+            ]
+          },
+          {
+            "action_proposals": [
+              {
+                "action_ref": "refund.request.create:v1",
+                "approval_policy": "EXPLICIT_CONFIRMATION_REQUIRED",
+                "effect": "WRITE"
+              }
+            ],
+            "agent_id": "billing_refund",
+            "description": "Resolve billing and after-sales requests using current records and policy evidence; distinguish returns, exchanges and refunds and only perform available actions.",
+            "skills": [],
+            "tools": [
+              {
+                "effect": "READ",
+                "tool_id": "knowledge_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "service_episode_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "order_lookup"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "refund_status"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "refund_eligibility_check"
+              },
+              {
+                "effect": "WRITE",
+                "tool_id": "refund_request_create"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_read"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_observe"
+              }
+            ]
+          },
+          {
+            "action_proposals": [
+              {
+                "action_ref": "account.freeze:v1",
+                "approval_policy": "EXPLICIT_CONFIRMATION_REQUIRED",
+                "effect": "WRITE"
+              }
+            ],
+            "agent_id": "account_security",
+            "description": "Assess account security concerns; distinguish user reports from verified facts.",
+            "skills": [],
+            "tools": [
+              {
+                "effect": "READ",
+                "tool_id": "service_episode_search"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "account_security_event_list"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "account_security_state"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "account_freeze_status"
+              },
+              {
+                "effect": "WRITE",
+                "tool_id": "account_freeze"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_read"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "media_observe"
+              }
+            ]
+          },
+          {
+            "action_proposals": [
+              {
+                "action_ref": "support.handoff.create:v1",
+                "approval_policy": "USER_COMMAND_SUFFICIENT",
+                "effect": "WRITE"
+              }
+            ],
+            "agent_id": "human_service",
+            "description": "Resolve support case objectives using verified case records.",
+            "skills": [],
+            "tools": [
+              {
+                "effect": "WRITE",
+                "tool_id": "support_ticket_create"
+              },
+              {
+                "effect": "READ",
+                "tool_id": "support_ticket_by_operation"
+              }
+            ]
+          }
+        ],
+        "entity_bindings": [],
+        "goal_descriptions": {
+          "cancel_active_work": "Cancel one active conversation objective using its revises_control_id; this does not cancel an order.",
+          "cancel_order": "Prepare cancellation of a specific order when the user requests that action; requires a bound order_id. Policy questions use general_qa.",
+          "change_address": "Prepare an actual shipping-address change requested by the user; requires a bound order_id and explicitly supplied new_address. Questions about whether or how changes work use general_qa.",
+          "continue_active_work": "Continue an unchanged objective listed in resumable_work using its control_id as revises_control_id. An active control alone is not a resume entry. The runtime restores accepted tools and arguments; do not reconstruct them. Pending approval still requires an approval decision. For a changed scope use delegate_task with revises_control_id instead.",
+          "delegate_task": "Delegate an open objective to a registered domain using target_agent and objective. The domain chooses its available tools; this does not authorize an unavailable action.",
+          "execute_refund": "Prepare a refund action explicitly requested for a specific order; requires a bound order_id. General refund rules use refund_policy.",
+          "freeze_account": "Prepare an account freeze explicitly requested by the user; does not merely explain account security rules.",
+          "general_qa": "Retrieve policy or FAQ evidence, including shipping, address-change rules, coupons and general procedures; performs no business action.",
+          "human_handoff": "Request transfer to human support.",
+          "invoice_qa": "Retrieve invoice rules and procedures; does not issue or modify an invoice.",
+          "logistics_status": "Read shipping status from a specific order record; requires a bound order_id and does not fetch carrier tracking events.",
+          "media_text_read": "Read text/OCR from a supplied media asset; requires a bound asset_id.",
+          "media_visual_analysis": "Analyze visual appearance, regions, layout or controls of a supplied asset; requires a bound asset_id.",
+          "order_status": "Read a specific order's current record; requires a bound order_id.",
+          "product_assistance": "Identify a product from a supplied media asset and retrieve related knowledge using domain tools and skills; requires a bound asset_id. Text-only documentation questions use product_qa.",
+          "product_identification": "Identify a product from a supplied media asset using registered identification capabilities; requires a bound asset_id. Text-only documentation questions use product_qa.",
+          "product_qa": "Retrieve product documentation or knowledge evidence for product rules, compatibility requirements and safe-use questions. Can retrieve rules about unknown prerequisites without identifying a physical product; does not require an asset_id. Actual media identification uses product_identification.",
+          "refund_eligibility": "Read a specific order's operational refund-submission precheck (order status, configured submission window, existing application); requires a bound order_id. Does not assess gift, product-exception or refund-amount policies. Pair with refund_policy when those rules are also requested.",
+          "refund_policy": "Retrieve return/refund rules, after-sales conditions and the meaning of policy stages, including questions applied to a known order. An order reference does not turn a policy question into a business-state lookup. No order ID is required and no refund is started.",
+          "refund_status": "Read an existing order's current refund progress; requires a bound order_id. Explaining whether one approval stage implies another outcome requires refund_policy evidence; a progress read alone does not establish that rule.",
+          "security_review": "Read recent account security events; does not freeze the account."
+        },
+        "knowledge_filter_contract": {
+          "catalog_id": "unconfigured",
+          "sales_channels": {}
+        },
+        "message": "假如收到后七天内拆封了，但没有质量问题，通常还能退吗？只是问规则，不申请。",
+        "missing_fields_schema": [
+          "asset_id",
+          "customer_service_goal",
+          "new_address",
+          "order_id"
+        ],
+        "observed_entities": {},
+        "pending_approval": null,
+        "pending_input": null,
+        "registry_fingerprint": "capability-bundle:v1:bf1eb18f105b4f2e3846ec6368aebeba9f86dac95bdb45b47bdac38f0ef1cdd1",
+        "resumable_work": [],
+        "schema_version": "conversation-plan-request-v2-references",
+        "supplied_interaction_values": [],
+        "supported_goals": [
+          "cancel_active_work",
+          "cancel_order",
+          "change_address",
+          "continue_active_work",
+          "delegate_task",
+          "execute_refund",
+          "freeze_account",
+          "general_qa",
+          "human_handoff",
+          "invoice_qa",
+          "logistics_status",
+          "media_text_read",
+          "media_visual_analysis",
+          "order_status",
+          "product_assistance",
+          "product_identification",
+          "product_qa",
+          "refund_eligibility",
+          "refund_policy",
+          "refund_status",
+          "security_review"
+        ],
+        "understanding_evidence": []
+      },
+      "expected": "Retrieve hypothetical opened-earphone non-quality return within seven days; policy only, no refund action or asserted actual opening.",
+      "scope": "Chinese ecommerce simulation, not real traffic"
+    }
+  ],
+  "adoption": "Original topic failure recovered and no new semantic regressions; manual review separately from schema."
+}

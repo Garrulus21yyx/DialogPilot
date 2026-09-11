@@ -1,0 +1,2287 @@
+FF.FFF.F.FFFFF.FFFFF.FFFFFFFFFF.FFFFFF.FF.FFFF.FFFFFFFF.FF.FFFFFFF.FFFFF [ 36%]
+FFFF.F.FFFFFFFF.FFFFF.FFFF.F.FFFFF.F.FFFF.F.FFFF.FFFFFFFFFF.F.FFFFFFF.F. [ 72%]
+.FFFFFFFF.F.FFFFFF.FFFFFFFFFF.FF.F..FFF..FFFFFFF..FFF.FF                 [100%]
+=================================== FAILURES ===================================
+_____________ test_controlled_business_fault[0-duplicate_inflight] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+---------------------------- Captured stderr setup -----------------------------
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade  -> 20260902_0001, Create platform namespaces and immutable migration ledger.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0001 -> 20260902_0002, Create immutable conversation, admission and publication facts.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0002 -> 20260902_0003, Create start/resume outboxes for inbound-first admission.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0003 -> 20260902_0004, Add canonical publication evidence, delivery lifecycle and send outbox.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0004 -> 20260902_0005, Reserved revision after direct PostgreSQL ResponseDelivery initialization.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0005 -> 20260902_0006, Create event projection outbox, watermarks and deletion epoch fence.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0006 -> 20260902_0007, Bind the approved data-location registry artifact.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0007 -> 20260902_0008, Add audited conversation close state for M1 query projections.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0008 -> 20260902_0009, Install the retrieval write-approved data-location overlay.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0009 -> 20260902_0010, Add the corpus-scoped retrieval generation and search schema.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0010 -> 20260902_0011, Make PG_FTS_ZH_V1 tsvector a database-owned generated projection.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0011 -> 20260902_0012, Add immutable Knowledge SourceRevision v0 and generation manifests.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0012 -> 20260902_0013, Add canonical retrieval projection outbox and deletion fences.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0013 -> 20260902_0014, Harden canonical projection event identity and owner-reference enqueue checks.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0014 -> 20260902_0015, Make the retrieval runtime role read-only over rebuildable search projections.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0015 -> 20260902_0016, Add direct-ingest SourceRevision provenance fields.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0016 -> 20260902_0017, Add the durable M1 compatibility invocation execution outbox.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0017 -> 20260902_0018, Add canonical thread-summary chunks and checkpoints.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0018 -> 20260902_0019, Add rebuild generations to thread-summary ownership.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0019 -> 20260902_0020, Add canonical ServiceEpisode revisions and current-head CAS.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0020 -> 20260902_0021, Finalize direct ServiceEpisode retrieval for fresh installations.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0021 -> 20260902_0022, Add PostgreSQL-owned versioned user memory facts.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0022 -> 20260902_0023, Add PostgreSQL-owned local media assets and turn bindings.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0023 -> 20260902_0024, Add PostgreSQL-owned handoff tickets, events and delivery outbox.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0024 -> 20260902_0025, Add PostgreSQL-owned customer commitments and versioned events.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0025 -> 20260902_0026, Add a bounded local persistence surface for sanitized application spans.
+INFO  [alembic.runtime.migration] Running upgrade 20260902_0026 -> 20260903_0027, Pin provider and document/query preprocessing in retrieval generations.
+INFO  [alembic.runtime.migration] Running upgrade 20260903_0027 -> 20260903_0028, Preserve canonical ServiceEpisode entity scope for dense projection.
+INFO  [alembic.runtime.migration] Running upgrade 20260903_0028 -> 20260903_0029, Add the conversation-scoped active-flow CAS aggregate.
+INFO  [alembic.runtime.migration] Running upgrade 20260903_0029 -> 20260903_0030, Add contextual Knowledge retrieval text, BM25 terms, and metadata filters.
+INFO  [alembic.runtime.migration] Running upgrade 20260903_0030 -> 20260903_0031, Let v1 Knowledge revisions distinguish retrieval-affecting metadata.
+INFO  [alembic.runtime.migration] Running upgrade 20260903_0031 -> 20260905_0032, Move the immutable AgentBundle registry to the platform database.
+INFO  [alembic.runtime.migration] Running upgrade 20260905_0032 -> 20260905_0033, Move ecommerce business state to tenant-scoped PostgreSQL tables.
+INFO  [alembic.runtime.migration] Running upgrade 20260905_0033 -> 20260905_0034, Move quality observations and intent feedback audit to PostgreSQL.
+INFO  [alembic.runtime.migration] Running upgrade 20260905_0034 -> 20260905_0035, Retire the unused pre-Target flow aggregate (destructive, forward-only).
+INFO  [alembic.runtime.migration] Running upgrade 20260905_0035 -> 20260906_0036, Knowledge applicability and monotonic revision withdrawal (forward-only).
+INFO  [alembic.runtime.migration] Running upgrade 20260906_0036 -> 20260908_0037, Retain Target run attempt failures in the existing execution outbox.
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+____________ test_controlled_business_fault[1-timeout_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[3-cancel_after_commit] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+_____________ test_controlled_business_fault[4-approval_interrupt] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[5-cancel_after_commit] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[7-timeout_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+_____________ test_controlled_business_fault[9-approval_interrupt] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[10-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[11-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[12-timeout_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[13-approval_interrupt] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[15-timeout_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[16-timeout_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[17-timeout_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[18-timeout_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[19-duplicate_inflight] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+____________ test_controlled_business_fault[21-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[22-timeout_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[23-duplicate_inflight] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+___________ test_controlled_business_fault[24-timeout_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[25-approval_interrupt] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[26-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[27-timeout_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[28-approval_interrupt] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[29-duplicate_inflight] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+____________ test_controlled_business_fault[30-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[32-timeout_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[33-duplicate_inflight] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+____________ test_controlled_business_fault[34-duplicate_inflight] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+____________ test_controlled_business_fault[35-duplicate_inflight] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+____________ test_controlled_business_fault[36-approval_interrupt] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[37-approval_interrupt] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[39-approval_interrupt] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[40-duplicate_inflight] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+____________ test_controlled_business_fault[42-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[43-timeout_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[44-duplicate_inflight] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+____________ test_controlled_business_fault[45-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[47-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[48-timeout_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[49-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[50-approval_interrupt] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[51-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[52-timeout_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[53-timeout_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[54-duplicate_inflight] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+____________ test_controlled_business_fault[56-duplicate_inflight] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+____________ test_controlled_business_fault[57-approval_interrupt] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[59-approval_interrupt] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[60-duplicate_inflight] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+____________ test_controlled_business_fault[61-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[62-approval_interrupt] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[63-approval_interrupt] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[64-timeout_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[65-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[67-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[68-approval_interrupt] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[69-approval_interrupt] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[70-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[71-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[72-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[73-approval_interrupt] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[74-duplicate_inflight] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+____________ test_controlled_business_fault[75-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[77-duplicate_inflight] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+____________ test_controlled_business_fault[79-duplicate_inflight] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+___________ test_controlled_business_fault[80-timeout_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[81-approval_interrupt] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[82-approval_interrupt] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[83-approval_interrupt] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[84-timeout_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[85-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[86-timeout_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[88-duplicate_inflight] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+____________ test_controlled_business_fault[89-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[90-timeout_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[91-duplicate_inflight] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+____________ test_controlled_business_fault[92-duplicate_inflight] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+____________ test_controlled_business_fault[94-approval_interrupt] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[95-approval_interrupt] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[96-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[97-timeout_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[99-approval_interrupt] _____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[101-approval_interrupt] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[102-approval_interrupt] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[103-timeout_after_commit] ___________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[104-duplicate_inflight] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+____________ test_controlled_business_fault[105-duplicate_inflight] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+___________ test_controlled_business_fault[107-timeout_after_commit] ___________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[109-approval_interrupt] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[110-approval_interrupt] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[111-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[112-timeout_after_commit] ___________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[114-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[116-timeout_after_commit] ___________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[117-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[118-duplicate_inflight] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+___________ test_controlled_business_fault[119-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[121-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[122-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[123-duplicate_inflight] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+____________ test_controlled_business_fault[124-duplicate_inflight] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+___________ test_controlled_business_fault[125-timeout_after_commit] ___________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[126-approval_interrupt] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[127-duplicate_inflight] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+___________ test_controlled_business_fault[128-timeout_after_commit] ___________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[129-approval_interrupt] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[130-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[132-timeout_after_commit] ___________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[134-approval_interrupt] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[135-timeout_after_commit] ___________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[136-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[137-timeout_after_commit] ___________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[138-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[139-timeout_after_commit] ___________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[140-timeout_after_commit] ___________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[142-timeout_after_commit] ___________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[145-approval_interrupt] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[146-duplicate_inflight] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+____________ test_controlled_business_fault[147-duplicate_inflight] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+___________ test_controlled_business_fault[148-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[149-duplicate_inflight] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+___________ test_controlled_business_fault[150-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[151-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[152-approval_interrupt] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[154-timeout_after_commit] ___________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[156-timeout_after_commit] ___________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[157-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[158-approval_interrupt] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[159-duplicate_inflight] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+___________ test_controlled_business_fault[160-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[161-duplicate_inflight] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+___________ test_controlled_business_fault[163-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[164-approval_interrupt] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[165-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[166-approval_interrupt] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[167-duplicate_inflight] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+___________ test_controlled_business_fault[168-timeout_after_commit] ___________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[169-duplicate_inflight] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+___________ test_controlled_business_fault[170-timeout_after_commit] ___________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[171-duplicate_inflight] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+____________ test_controlled_business_fault[172-approval_interrupt] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[174-approval_interrupt] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[175-approval_interrupt] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[177-duplicate_inflight] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+____________ test_controlled_business_fault[180-duplicate_inflight] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+____________ test_controlled_business_fault[181-duplicate_inflight] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+___________ test_controlled_business_fault[182-timeout_after_commit] ___________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[185-duplicate_inflight] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+___________ test_controlled_business_fault[186-timeout_after_commit] ___________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[187-approval_interrupt] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[188-timeout_after_commit] ___________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[189-duplicate_inflight] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+____________ test_controlled_business_fault[190-approval_interrupt] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[191-duplicate_inflight] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+___________ test_controlled_business_fault[194-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+___________ test_controlled_business_fault[195-cancel_after_commit] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[196-approval_interrupt] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+____________ test_controlled_business_fault[198-duplicate_inflight] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+____________ test_controlled_business_fault[199-duplicate_inflight] ____________
+tests/test_controlled_business_faults.py:169: in test_controlled_business_fault
+    asyncio.run(run())
+../miniconda3/lib/python3.13/asyncio/runners.py:195: in run
+    return runner.run(main)
+../miniconda3/lib/python3.13/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+../miniconda3/lib/python3.13/asyncio/base_events.py:725: in run_until_complete
+    return future.result()
+tests/test_controlled_business_faults.py:163: in run
+    assert recovered and count == 1
+E   assert (True and 0 == 1)
+----------------------------- Captured stderr call -----------------------------
+ERROR [mcp.tool_manager] 工具异常: refund_status — refund operation not found
+------------------------------ Captured log call -------------------------------
+ERROR    mcp.tool_manager:tool_manager.py:777 工具异常: refund_status — refund operation not found
+- generated xml file: /home/yang/DialogPilot/artifacts/eval/controlled-business-recovery-2026-09-08-v1/matrix.xml -
+=========================== short test summary info ============================
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[0-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[1-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[3-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[4-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[5-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[7-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[9-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[10-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[11-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[12-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[13-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[15-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[16-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[17-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[18-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[19-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[21-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[22-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[23-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[24-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[25-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[26-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[27-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[28-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[29-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[30-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[32-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[33-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[34-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[35-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[36-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[37-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[39-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[40-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[42-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[43-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[44-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[45-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[47-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[48-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[49-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[50-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[51-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[52-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[53-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[54-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[56-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[57-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[59-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[60-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[61-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[62-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[63-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[64-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[65-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[67-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[68-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[69-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[70-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[71-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[72-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[73-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[74-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[75-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[77-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[79-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[80-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[81-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[82-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[83-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[84-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[85-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[86-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[88-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[89-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[90-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[91-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[92-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[94-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[95-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[96-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[97-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[99-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[101-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[102-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[103-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[104-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[105-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[107-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[109-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[110-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[111-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[112-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[114-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[116-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[117-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[118-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[119-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[121-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[122-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[123-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[124-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[125-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[126-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[127-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[128-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[129-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[130-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[132-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[134-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[135-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[136-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[137-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[138-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[139-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[140-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[142-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[145-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[146-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[147-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[148-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[149-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[150-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[151-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[152-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[154-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[156-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[157-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[158-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[159-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[160-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[161-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[163-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[164-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[165-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[166-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[167-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[168-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[169-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[170-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[171-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[172-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[174-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[175-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[177-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[180-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[181-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[182-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[185-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[186-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[187-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[188-timeout_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[189-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[190-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[191-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[194-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[195-cancel_after_commit]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[196-approval_interrupt]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[198-duplicate_inflight]
+FAILED tests/test_controlled_business_faults.py::test_controlled_business_fault[199-duplicate_inflight]
+160 failed, 40 passed in 14.97s

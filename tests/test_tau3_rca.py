@@ -79,7 +79,7 @@ def test_recovered_context_error_is_not_reported_as_task_blocking(tmp_path):
     assert findings["CONTEXT_BUDGET_EXECUTION_FAILURE"]["impact"] == "RECOVERED"
 
 
-def test_unchanged_reads_that_consume_pending_continuation_budget_are_root_cause(tmp_path):
+def test_unchanged_reads_prove_blocking_mechanism_but_not_producer_root(tmp_path):
     result = _write(tmp_path / "task-20.json", {
         "task_id": "20", "official_reward": 0,
         "termination": "max_steps", "evaluation_scope": "termination_gate_only",
@@ -111,12 +111,61 @@ def test_unchanged_reads_that_consume_pending_continuation_budget_are_root_cause
     findings = {item["code"]: item for item in report["findings"]}
     assert findings["EPISODE_STEP_BUDGET_EXHAUSTED"]["impact"] == "TASK_BLOCKING"
     assert findings["UNCHANGED_READ_REPLAY"]["level"] == "VERIFIED"
-    assert findings["REDUNDANT_READ_REPLAY_EXHAUSTED_STEP_BUDGET"]["layer"] == "root_cause"
-    assert report["root_cause_status"] == "VERIFIED"
+    assert findings["REDUNDANT_READ_REPLAY_EXHAUSTED_STEP_BUDGET"]["layer"] == "mechanism"
+    assert findings["REDUNDANT_READ_REPLAY_EXHAUSTED_STEP_BUDGET"]["missing_evidence"]
+    assert report["root_cause_status"] == "OPEN"
     replay = next(item for item in report["evidence"] if item["evidence_id"] == "unchanged-read-replays")
     assert replay["data"]["redundant_call_count"] == 2
     assert replay["data"]["consumed_message_steps"] == 4
     assert report["transition_analysis"]["first_divergence"] is None
+
+
+def test_completed_response_at_step_limit_is_unscored_not_business_blocked(tmp_path):
+    final = "Done. The approved change was applied."
+    result = _write(tmp_path / "task-20.json", {
+        "task_id": "20", "official_reward": 0,
+        "termination": "max_steps", "evaluation_scope": "termination_gate_only",
+        "env": {"reward": 0, "db_check": None},
+        "action": {"reward": 0, "action_checks": None},
+        "target_trace": [{"turn": 4, "outcome": {"response": {
+            "response_id": "publication-1", "response": final,
+            "delivery_status": "selected", "task_completed": True,
+            "evaluation_trace": {
+                "outcome": {"kind": "COMPLETED", "task_completed": True},
+                "state_side_effect": {"committed_receipt_refs": ["receipt-1"]},
+            },
+        }}}],
+    })
+    messages = [{"role": "assistant", "content": "Hello"}, {"role": "user", "content": "Start"}]
+    for index in range(2):
+        call_id = f"call-{index}"
+        messages.extend([
+            {"role": "assistant", "tool_calls": [{
+                "id": call_id, "name": "get_order_details", "arguments": {"order_id": "W1"},
+            }]},
+            {"id": call_id, "role": "tool", "content": "same-order-state"},
+        ])
+    messages.extend([
+        {"role": "assistant", "tool_calls": [{
+            "id": "write-1", "name": "modify_pending_order_items", "arguments": {"order_id": "W1"},
+        }]},
+        {"id": "write-1", "role": "tool", "content": "updated"},
+        {"role": "assistant", "content": final},
+    ])
+    trajectory = _write(tmp_path / "task-20-trajectory.json", {"messages": messages})
+
+    report = analyze_task(result, trajectory, run_context={"max_steps": len(messages) - 1})
+
+    findings = {item["code"]: item for item in report["findings"]}
+    assert report["business_status"] == "COMPLETED_UNSCORED"
+    assert findings["EPISODE_STEP_BUDGET_EXHAUSTED"]["impact"] == "EVALUATION_BLOCKING"
+    replay = findings["REDUNDANT_READ_REPLAY_EXHAUSTED_TERMINATION_BUDGET"]
+    assert replay["impact"] == "EVALUATION_BLOCKING"
+    completion = next(
+        item for item in report["evidence"]
+        if item["evidence_id"] == "runtime-completion-at-step-limit"
+    )
+    assert completion["data"]["committed_receipt_refs"] == ["receipt-1"]
 
 
 def test_missing_write_is_linked_to_task_bound_planning_failure(tmp_path):
@@ -275,6 +324,83 @@ def test_run_does_not_assign_unkeyed_batch_errors_to_tasks(tmp_path):
         "source": "application-errors.log", "binding": "RUN_ONLY",
         "note": "Not attributed to a task because the log line lacks a stable task/turn/trace join key.",
     }]
+
+
+def test_successful_task_reports_quality_findings_without_changing_business_pass(tmp_path):
+    _write(tmp_path / "manifest.json", {"status": "EVALUATED"})
+    result = _write(tmp_path / "task-20.json", {
+        "task_id": "20", "official_reward": 1,
+        "env": {"reward": 1}, "action": {"reward": 1, "action_checks": []},
+        "target_trace": [{
+            "candidate": "unsupported draft",
+            "verification": {
+                "status": "reject", "reason_code": "ungrounded", "grounded": False,
+                "assessment": {"issues": ["Unsupported item prices."]},
+            },
+        }],
+    })
+    trajectory = _write(tmp_path / "task-20-trajectory.json", {"messages": [
+        {"role": "assistant", "tool_calls": [{
+            "id": "call-1", "name": "get_product_details", "arguments": {"product_id": "p1"},
+        }]},
+        {"id": "call-1", "role": "tool", "content": "same product"},
+        {"role": "assistant", "tool_calls": [{
+            "id": "call-2", "name": "get_product_details", "arguments": {"product_id": "p1"},
+        }]},
+        {"id": "call-2", "role": "tool", "content": "same product"},
+        {"role": "assistant", "content": (
+            "Please confirm:\n- Item ids:\n  1. 123\n- Payment method id: gift_1\n"
+            "Evidence [official-call:tau3-call-123]."
+        )},
+    ]})
+
+    task = analyze_task(result, trajectory)
+    report = analyze_run(tmp_path)
+
+    codes = {item["code"] for item in task["findings"]}
+    assert task["business_status"] == "PASS"
+    assert task["quality_status"] == "WARN"
+    assert {"PASS", "EXACT_READ_REPLAY", "PUBLIC_INTERNAL_REFERENCE_EXPOSURE",
+            "PUBLIC_RAW_ACTION_SCHEMA_EXPOSURE", "RESPONSE_DRAFT_REJECTED"} <= codes
+    assert report["quality_finding_counts"] == {
+        "EXACT_READ_REPLAY": 1,
+        "PUBLIC_INTERNAL_REFERENCE_EXPOSURE": 1,
+        "PUBLIC_RAW_ACTION_SCHEMA_EXPOSURE": 1,
+        "RESPONSE_DRAFT_REJECTED": 1,
+    }
+    assert {item["code"] for item in report["quality_clusters"]} == {
+        "EXACT_READ_REPLAY",
+        "PUBLIC_INTERNAL_REFERENCE_EXPOSURE",
+        "PUBLIC_RAW_ACTION_SCHEMA_EXPOSURE",
+        "RESPONSE_DRAFT_REJECTED",
+    }
+
+
+def test_read_refresh_after_write_is_not_an_exact_replay(tmp_path):
+    result = _write(tmp_path / "task-1.json", {
+        "task_id": "1", "official_reward": 1,
+        "env": {"reward": 1}, "action": {"reward": 1, "action_checks": []},
+    })
+    trajectory = _write(tmp_path / "task-1-trajectory.json", {"messages": [
+        {"role": "assistant", "tool_calls": [{
+            "id": "read-1", "name": "get_order_details", "arguments": {"order_id": "W1"},
+        }]},
+        {"id": "read-1", "role": "tool", "content": "same order"},
+        {"role": "assistant", "tool_calls": [{
+            "id": "write-1", "name": "modify_order", "arguments": {"order_id": "W2"},
+        }]},
+        {"id": "write-1", "role": "tool", "content": "modified"},
+        {"role": "assistant", "tool_calls": [{
+            "id": "read-2", "name": "get_order_details", "arguments": {"order_id": "W1"},
+        }]},
+        {"id": "read-2", "role": "tool", "content": "same order"},
+    ]})
+
+    report = analyze_task(result, trajectory)
+
+    assert report["business_status"] == "PASS"
+    assert report["quality_status"] == "PASS"
+    assert "EXACT_READ_REPLAY" not in {item["code"] for item in report["findings"]}
 
 
 def test_run_clusters_first_divergences_by_phase_code_and_owner(tmp_path):

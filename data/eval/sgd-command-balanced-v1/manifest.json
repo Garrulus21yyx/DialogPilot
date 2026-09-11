@@ -1,0 +1,61 @@
+{
+  "adapter_version": "dialogpilot-sgd-command-adapter-v1",
+  "dataset_id": "dstc8-schema-guided-dialogue-command-v1-stratified",
+  "parent_manifest_sha256": "d194a54ba6ac2f29ac789e95c678cbab5f6a05bfc7ef52a883933cd140dc86d4",
+  "per_rule": {
+    "SGD_REQUIRED_SLOT_REQUEST": 300,
+    "SGD_SERVICE_CALL_FIRST": 300,
+    "SGD_SERVICE_CALL_REPEAT": 300,
+    "SGD_SERVICE_OUTSIDE_TRAIN_REGISTRY": 300
+  },
+  "publication_status": "FROZEN_STRATIFIED_ADAPTED_SPLITS",
+  "registry_sha256": "8b8d91cc0f437600f1aabde5f28fd233a131c4a3e648c024f7962f94662a6de5",
+  "schema_version": "dialogpilot-public-dataset-lock-v1",
+  "selection_seed": "dialogpilot-sgd-command-v1",
+  "selection_version": "dialogpilot-sgd-stratified-selection-v1",
+  "splits": {
+    "dev": {
+      "available_mapping_counts": {
+        "SGD_REQUIRED_SLOT_REQUEST": 2355,
+        "SGD_SERVICE_CALL_FIRST": 3303,
+        "SGD_SERVICE_CALL_REPEAT": 486,
+        "SGD_SERVICE_OUTSIDE_TRAIN_REGISTRY": 9271
+      },
+      "case_count": 1200,
+      "cases_sha256": "2f5b462961227e1434b09b037d121de0a3ed4958c6ac8e97f486f0c905b0d766",
+      "conversation_count": 926,
+      "conversations_sha256": "efea0749f12f0586e6931dbbc892705e816f27e569d5c613c635671da525a218",
+      "schema_version": "dialogpilot-sgd-selection-report-v1",
+      "selected_mapping_counts": {
+        "SGD_REQUIRED_SLOT_REQUEST": 300,
+        "SGD_SERVICE_CALL_FIRST": 300,
+        "SGD_SERVICE_CALL_REPEAT": 300,
+        "SGD_SERVICE_OUTSIDE_TRAIN_REGISTRY": 300
+      },
+      "split": "dev"
+    },
+    "test": {
+      "available_mapping_counts": {
+        "SGD_REQUIRED_SLOT_REQUEST": 1407,
+        "SGD_SERVICE_CALL_FIRST": 2367,
+        "SGD_SERVICE_CALL_REPEAT": 306,
+        "SGD_SERVICE_OUTSIDE_TRAIN_REGISTRY": 27540
+      },
+      "case_count": 1200,
+      "cases_sha256": "71ceb1bc640ed1cf232637cf9b15bcb34793cf309604d4a048bded9fee201eb0",
+      "conversation_count": 949,
+      "conversations_sha256": "6c88fc338ee059d263e6fb781220b4a726fd111e4ba23a9d9d1ba3c388aabd7a",
+      "schema_version": "dialogpilot-sgd-selection-report-v1",
+      "selected_mapping_counts": {
+        "SGD_REQUIRED_SLOT_REQUEST": 300,
+        "SGD_SERVICE_CALL_FIRST": 300,
+        "SGD_SERVICE_CALL_REPEAT": 300,
+        "SGD_SERVICE_OUTSIDE_TRAIN_REGISTRY": 300
+      },
+      "split": "test"
+    }
+  },
+  "upstream_commit": "e852981ae34990f4358979625854259302feaa78",
+  "upstream_license": "CC-BY-SA-4.0",
+  "upstream_uri": "https://github.com/google-research-datasets/dstc8-schema-guided-dialogue"
+}

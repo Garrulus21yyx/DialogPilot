@@ -7,6 +7,8 @@ permalink: /rag-pipeline-evaluation/
 # 客服 RAG 全链路评测：选择默认值，也保留失败实验
 
 > 本页区分两类事实：Doc2Dial 历史实验回答“为什么选择当前默认”，当前分支的 PostgreSQL Owner 测试与本地 `/chat` 报告回答“重构后链路是否仍满足合同”。已删除的旧 ablation 模块不再作为可运行入口。
+>
+> 新一轮 PG+BGE-M3 选参与最终公开测试的唯一顺序见[评测收敛执行手册]({{ '/customer-service-agent-evaluation-plan/' | relative_url }})；本页保留历史实验与拒绝证据。
 
 ## 1. 评测对象
 
@@ -54,7 +56,7 @@ PYTHONPATH=. .venv/bin/python -m evaluation.rag_chunk_ablation \
   --output artifacts/eval/doc2dial-rag-mini-dev-v1/chunk-ablation.json
 ```
 
-历史 Dev 在 `256/32`、`512/64`、`768/96` token 配置中选择 fixed `512/64`：它在证据保持、候选粒度和上下文成本间更平衡。实验也修复了全文 `strip()` 导致原始 evidence offset 漂移的问题。
+历史 Dev 在多组 fixed/structure-aware token 配置中选择 fixed `512/64`：它在该 Doc2Dial capture 上与 structure-aware `512/64` 的 span 指标打平，再以较低策略复杂度胜出。这个结论属于旧检索栈的 Dev 选择。当前 PostgreSQL ingest 的代码事实是 structure-aware `512/64`，因此新一轮比较以它为 baseline，并测试 structure-aware `256/32`、`384/48`、`512/64` 与 fixed `512/64`。实验也修复了全文 `strip()` 导致原始 evidence offset 漂移的问题。
 
 当前 PostgreSQL SourceRevision 保留 revision/checksum 与 `[start_char, end_char)`；chunk id、dense vector 和 FTS posting 都是可重建投影。
 
@@ -68,7 +70,9 @@ PYTHONPATH=. .venv/bin/python -m evaluation.rag_chunk_ablation \
 | BM25/lexical only | 客服政策词面强，整体可靠，但语义补召回不足 |
 | Dense `.25` + Lexical `.75`, RRF `k=10` | 在 Doc2Dial Dev 上取得更稳的综合排序 |
 
-当前分支的在线实现已迁移为 PostgreSQL pgvector + 中文 FTS，候选 20、最终 5。旧 `evaluation.rag_retrieval_ablation` 和 Chroma producer 已删除，因此历史数值用于解释默认值，不应再复制旧命令声称可以在当前 head 复现。
+当前分支的在线实现已迁移为 PostgreSQL pgvector + 中文 FTS，候选 20、最终 5。当前 dense 仍是 `dialogpilot-hash-embedding-v1`，且文档侧嵌入的是预分词 `lexical_document`、查询侧嵌入原始 query；因此 `.75/.25,k=10` 只是运行 baseline，不能称为 PostgreSQL+BGE-M3 已调优结果。切 BGE-M3 时必须由 embedding provider 拥有 model/dimension/digest/preprocessing metadata，以原始 Chunk 文本建 dense projection、预分词文本建 FTS，并重建 immutable generation。
+
+旧 `evaluation.rag_retrieval_ablation`、query/rerank producer 和 Chroma producer 已删除，因此历史数值用于解释 prior 与门禁，不应再复制旧命令声称可以在当前 head 复现。
 
 重构后的验证重点是：
 
@@ -166,7 +170,7 @@ Doc2Dial 小型 heldout 快照的机器摘要记录在 [rag-heldout-summary-2026
 - Flash set selector 与 MiniLM cross-encoder；
 - Gold-free 条件路由在 Doc2Dial 与 WixQA 的迁移性。
 
-共同结论：一些候选能提升 Candidate recall 或局部 packed recall，但改善没有稳定穿透 Rerank/Packing，多条件 completeness 或跨数据集 non-regression。父子拓扑和低成本 cross-encoder 因此保持“实验未晋级”，当前默认仍是 fixed 512/64。
+共同结论：一些候选能提升 Candidate recall 或局部 packed recall，但改善没有稳定穿透 Rerank/Packing、多条件 completeness 或跨数据集 non-regression。父子拓扑和低成本 cross-encoder 因此保持“实验未晋级”。历史默认是 fixed `512/64 + Flash`；当前 PostgreSQL 运行 baseline 是 structure-aware `512/64 + Flash`。两者不能写成同一个已经验证的配置。
 
 这说明评测的价值不只在选出更复杂的方案，也在拒绝无法证明的复杂度。
 
@@ -200,7 +204,7 @@ E2E 报告应同时出现 PostgreSQL engine/generation/manifest、真实 JWT 请
 2. 普通问题、长文、多条件、否定与 OOS slice 无不可接受退化；
 3. 延迟、Token、内存和依赖成本在预算内；
 4. stable identity、scope、provenance 和 fail-closed 性质保持；
-5. fresh heldout 与独立 reviewer 没有新反例；
+5. 配置冻结后的官方 test 或 group-isolated heldout 没有新反例；
 6. 当前 PostgreSQL Owner 测试和真实 `/chat` E2E 通过。
 
 当前没有真实线上流量，结论是显式替换本地 binding，而不是 Shadow/Canary。未来若进入生产，再单独定义 cohort、窗口、回退和迁移 ADR。
@@ -208,6 +212,7 @@ E2E 报告应同时出现 PostgreSQL engine/generation/manifest、真实 JWT 请
 ## 13. 页面间口径
 
 - [500 条分层评测]({{ '/evaluation-500/' | relative_url }})解释项目级四层覆盖，不是当前 RAG 选型报告。
+- [评测收敛执行手册]({{ '/customer-service-agent-evaluation-plan/' | relative_url }})定义 PG+BGE-M3、Memory、多模态与 τ³ 的统一冻结顺序。
 - 本页解释实验与当前默认之间的因果关系。
 - [生产化审计]({{ '/customer-service-rag-production-audit/' | relative_url }})检查 Owner、安全、数据治理和 readiness 缺口。
 - [完整教程]({{ '/' | relative_url }})把 RAG 放回 admission、TaskGraph、publication 与 service continuity 的总链路。

@@ -77,6 +77,37 @@ def test_sdk_summary_preserves_entire_latest_batch_and_pinned_goal(batch_size, t
     asyncio.run(run())
 
 
+def test_applied_summary_emits_compaction_owner_event():
+    class Sink:
+        def __init__(self):
+            self.events = []
+
+        def record_causal_event(self, event_type, **fields):
+            self.events.append((event_type, fields))
+
+    async def run():
+        pinned, messages, _ = history(2)
+        sink = Sink()
+        middleware = ContextCompaction(
+            ScriptedToolModel(responses=[AIMessage(content="Old checks summarized.")]),
+            TargetResultArchive(InMemoryStore()), available_tokens=4200,
+            overhead_tokens=100, pinned_message=pinned,
+            summary_fraction=.65, trace_sink=sink,
+        )
+        update = await middleware.abefore_model(
+            {"messages": messages}, SimpleNamespace(context=_context()),
+        )
+
+        assert update["compaction_records"][0]["summary_applied"]
+        event, fields = sink.events[0]
+        assert event == "CONTEXT_COMPACTED"
+        assert fields["owner"] == "working_context"
+        assert fields["before_tokens"] > fields["after_tokens"]
+        assert fields["source_index_present"] is False
+
+    asyncio.run(run())
+
+
 def test_result_index_remains_complete_when_sdk_summarizes_old_messages():
     async def run():
         context = _context()

@@ -17,7 +17,8 @@ def test_registered_public_result_view_uses_executed_tool_schema(name):
         'parameters': {'type': 'object', 'properties': {}}}})
     environment = SimpleNamespace(get_tools=lambda: [definition], get_policy=lambda: 'Policy',
         tools=SimpleNamespace(tool_type=lambda _: SimpleNamespace(value='write')))
-    async def call(tool, arguments):
+    async def call(tool, arguments, internal_tool_call_id):
+        assert internal_tool_call_id
         return SimpleNamespace(content='{"order_id":"O1","status":"exchange requested",'
             '"exchange_price_difference":-13.46,"private":"not public",'
             '"address":{"address1":"10 Main St","address2":"","city":"New York",'
@@ -46,7 +47,8 @@ def test_rejected_request_keeps_endpoint_feedback_without_transport_retry_or_cir
     environment = SimpleNamespace(get_tools=lambda: [definition], get_policy=lambda: "Policy",
         tools=SimpleNamespace(tool_type=lambda _: SimpleNamespace(value="write" if write else "read")))
     calls = []
-    async def call(tool, arguments):
+    async def call(tool, arguments, internal_tool_call_id):
+        assert internal_tool_call_id
         calls.append(arguments)
         return SimpleNamespace(content='{"error":"record_id must include its prefix"}', error=True, id="rejected")
     manager = MCPToolManager("test-key", model="test-model")
@@ -75,8 +77,8 @@ def test_environment_write_registration_and_observed_receipt(name):
         tools=SimpleNamespace(tool_type=lambda tool: SimpleNamespace(value="read" if tool == "read_record" else "write")),
     )
     calls = []
-    async def call(tool, arguments):
-        calls.append((tool, arguments))
+    async def call(tool, arguments, internal_tool_call_id):
+        calls.append((tool, arguments, internal_tool_call_id))
         return SimpleNamespace(content='{"updated": true}', error=False, id="call-1")
     manager = MCPToolManager("test-key", model="test-model")
     registry = bind_environment(environment, manager, call)
@@ -112,9 +114,11 @@ def test_environment_write_registration_and_observed_receipt(name):
     validated = RoutePolicy().accept(TurnProposal(ProposalDisposition.RESOLVED, (execution,), 'TEST'), state, registry)
     assert validated.commands[0].allowed_tools == (name, action.reconciliation.tool_id)
     tool = next(tool for tool in manager.registered_tools if tool.name == name)
-    receipt = asyncio.run(tool.handler({"record_id": "R1"}, {"business_operation_key": "op-1"}))
+    receipt = asyncio.run(tool.handler({"record_id": "R1"}, {
+        "business_operation_key": "op-1", "tool_call_id": "internal-call-1",
+    }))
     assert receipt.receipt_id == "official-call:call-1"
-    assert calls == [(name, {"record_id": "R1"})]
+    assert calls == [(name, {"record_id": "R1"}, "internal-call-1")]
     status = next(tool for tool in manager.registered_tools if tool.name == "observed_operation_status")
     assert asyncio.run(status.handler({"operation_key": "missing"}, {}))["status"] == "UNKNOWN"
     assert asyncio.run(status.handler({"operation_key": "op-1"}, {}))["status"] == "COMMITTED"

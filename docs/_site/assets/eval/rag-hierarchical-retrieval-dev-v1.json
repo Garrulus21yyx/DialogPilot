@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "run_date": "2026-09-01",
+  "dataset_id": "doc2dial-rag-long8000-dev-v1",
+  "split": "dev",
+  "case_count": 36,
+  "multi_condition_case_count": 16,
+  "grounding": "official character spans",
+  "corpus_sha256": "ce4db3f15c1efd3aed1d42f09fe3d22fb10920f913aaf8673058919df061109e",
+  "cases_sha256": "eb290a46c73de9cd0627fe6457d9e22e17065bf2e0b578864b487a4599f82416",
+  "fixed_contract": {
+    "query": "Raw 0.25 + captured Standalone 0.75",
+    "retrieval": "BM25 0.75 + Dense 0.25 + weighted RRF k=10; child Top-20",
+    "rerank": "PydanticAI ToolOutput; R01..R20 exact permutation mapped back to stable IDs; one output retry",
+    "packing": "at most 5 contexts and 2600 estimated tokens",
+    "hierarchy": {
+      "components": [
+        "Haystack HierarchicalDocumentSplitter",
+        "Haystack AutoMergingRetriever"
+      ],
+      "block_sizes_words": [768, 384, 192],
+      "target_estimated_token_levels": [1024, 512, 256],
+      "observed_estimated_tokens_by_word_block": {
+        "192": {"node_count": 766, "median": 264.0, "p95": 302, "max": 373},
+        "384": {"node_count": 348, "median": 530.5, "p95": 591, "max": 716},
+        "768": {"node_count": 126, "median": 1069.0, "p95": 1190, "max": 1386}
+      },
+      "split_overlap_words": 24,
+      "auto_merge_threshold": 0.5,
+      "gold_used_by_selection": false
+    }
+  },
+  "results": {
+    "baseline-512": {
+      "candidate_recall_at_20": 0.7777777777777778,
+      "reranked_mrr_at_5": 0.5472222222222222,
+      "reranked_recall_at_5": 0.7083333333333334,
+      "packed_evidence_recall": 0.7083333333333334,
+      "multi_condition_completeness": 0.71875,
+      "mean_context_tokens": 2423.1388888888887,
+      "rerank_failure_rate": 0.0
+    },
+    "fixed-parent-child-256-1024": {
+      "candidate_recall_at_20": 0.7777777777777778,
+      "reranked_mrr_at_5": 0.6037037037037037,
+      "reranked_recall_at_5": 0.75,
+      "packed_evidence_recall": 0.6944444444444444,
+      "multi_condition_completeness": 0.6875,
+      "mean_context_tokens": 2073.722222222222,
+      "harmful_context_rate_vs_baseline": 0.08333333333333333,
+      "rerank_failure_rate": 0.0
+    },
+    "unique-parent-aggregation": {
+      "candidate_recall_at_20": 0.7777777777777778,
+      "reranked_mrr_at_5": 0.575,
+      "reranked_recall_at_5": 0.7222222222222222,
+      "packed_evidence_recall": 0.5185185185185186,
+      "multi_condition_completeness": 0.4791666666666667,
+      "mean_context_tokens": 2265.9444444444443,
+      "harmful_context_rate_vs_baseline": 0.3333333333333333,
+      "rerank_failure_rate": 0.0
+    },
+    "dynamic-auto-merge": {
+      "candidate_recall_at_20": 0.7777777777777778,
+      "reranked_mrr_at_5": 0.575,
+      "reranked_recall_at_5": 0.7222222222222222,
+      "packed_evidence_recall": 0.75,
+      "multi_condition_completeness": 0.6875,
+      "mean_context_tokens": 2104.8333333333335,
+      "harmful_context_rate_vs_baseline": 0.08333333333333333,
+      "rerank_failure_rate": 0.0
+    },
+    "budget-aware-mixed": {
+      "candidate_recall_at_20": 0.7777777777777778,
+      "reranked_mrr_at_5": 0.575,
+      "reranked_recall_at_5": 0.7222222222222222,
+      "packed_evidence_recall": 0.7222222222222222,
+      "multi_condition_completeness": 0.6875,
+      "mean_context_tokens": 2235.222222222222,
+      "harmful_context_rate_vs_baseline": 0.1111111111111111,
+      "rerank_failure_rate": 0.0
+    }
+  },
+  "rerank_alias_contract": {
+    "before_aliases_hierarchical_failure_rate": 0.1111111111111111,
+    "after_aliases_hierarchical_failure_rate": 0.0,
+    "before_aliases_output_tokens": 37477,
+    "after_aliases_output_tokens": 4500,
+    "same_case_smoke_output_tokens_before": 956,
+    "same_case_smoke_output_tokens_after": 125
+  },
+  "decision": {
+    "production_default": "baseline-512",
+    "promoted_to_generation_stage": false,
+    "heldout_opened": false,
+    "reason": "Dynamic auto-merge improved mean packed span recall but multi-condition completeness regressed from 0.71875 to 0.6875 and harmful context was non-zero. No hierarchical topology passed all Dev gates."
+  },
+  "limitations": [
+    "The baseline and final hierarchical rows use the same ranking policy and model but were captured in separate provider runs; model and local ANN variance remain.",
+    "Word levels are deterministic proxies for estimated-token levels, not exact tokenizer boundaries.",
+    "No generation or Judge calls were run after the rerank-and-packing gate failed.",
+    "P95 provider latency on 36 cases is diagnostic and not a production load SLO."
+  ]
+}

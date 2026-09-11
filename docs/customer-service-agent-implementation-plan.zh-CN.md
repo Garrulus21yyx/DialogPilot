@@ -126,7 +126,7 @@ M0–M6 是**交付依赖 DAG**，不是在线请求运行时的阶段状态机�
 |---|---|---|
 | clean schema/rebuild | 修改 durable schema、projection 或事实 Owner | 纯接口类型别名且无持久数据 |
 | state-machine/fault injection | 改变状态、恢复、副作用 | 纯文档链接修订 |
-| fresh heldout | 改变模型、路由、检索、生成、视觉行为 | 确定性 DB 索引增加 |
+| frozen test / group-heldout | 改变模型、路由、检索、生成、视觉行为 | 确定性 DB 索引增加 |
 | retention/delete | 新增或复制用户/企业数据 | 无数据写入的纯计算函数 |
 
 `N/A` 必须记录理由和 approver，不能用来跳过本应适用的门禁。
@@ -207,7 +207,7 @@ required tasks，只在对应 cleanup 的删除清单中验收。
 | Platform | PostgreSQL、Redis、Object Storage、OTel、部署 |
 | Security | Auth、tenant、scope、approval、threat model |
 | Privacy | retention、用户控制、delete、合规例外 |
-| Product/Support Ops | 工单、承诺、Handoff、人工 Gold、KPI |
+| Product/Support Ops | 工单、承诺、Handoff、合成合同语义与 KPI |
 
 每张卡第一个 Owner 是 Accountable DRI，后续 `+` 角色是 Responsible/Consulted；只有 Accountable DRI 对合同、迁移和 Gate 证据签字。Exit Gate 的 approver 不得仅由该任务实现者担任。
 
@@ -337,7 +337,7 @@ M1-T00 必须冻结以下公开投影，不允许 adapter 自行解释状态。�
 1. 冻结当前 commit、Bundle、模型策略、RAG manifest 和数据 checksum。
 2. 记录各 route 的延迟、模型调用、工具调用、发布状态和失败类型。
 3. 将现有数据明确标为 `provisional/auto_mapped/consumed_regression`。
-4. 不生成未经 fresh heldout 支持的“最终准确率”汇总数字。
+4. 不生成未经配置冻结后的官方 test 或预锁定 group-heldout 支持的“最终准确率”汇总数字。
 5. 另行冻结“决策策略基线”及有效指纹，不只冻结最终 Bundle：
    - Intent V1 `LLM/ngram/Pattern=.70/.20/.10`、accept `.50`；n-gram 关闭分支 `LLM/Pattern=.85/.15`；
    - Domain Router：General 先验 `.10`；意图项 General `.55`、Technical/Billing `.75`、Security `.85`；Technical/Billing 关键词 `+.45/+.10` 且封顶 `.65`，Security `+.55/+.10` 且封顶 `.75`，General 每词 `+.12` 且封顶 `.35`；`error_code/amount/order_id` 分别 `+.20/+.15/+.10`；supporting `.45`、clarify `.50`；
@@ -780,7 +780,7 @@ acknowledge_delivery(publication_id, channel_receipt)
 - 同一冻结输入可重放 intent source scores、Domain 分项、hard-rule reason 和最终 Owner；调整一类 policy 不暗改另一类；
 - n-gram enabled/disabled 两条 V1 分支及单实例 `NOT_APPLICABLE` 有独立 fixture；多实例候选用固定 health snapshot 可确定性复现 EWMA/收缩/latency/penalty 与选择；
 - 负向搜索与 runtime trace 证明没有第二个 DomainDecision producer；Application 无法写 Agent policy binding；
-- V2/新权重必须通过 group-safe dev、fresh heldout 与 safety/OOS hard gate 后才能成为 checked-in target version。
+- V2/新权重必须通过 group-safe Dev、冻结 test/group-heldout 与 safety/OOS hard gate 后才能成为 checked-in target version。
 
 ### M2-T02：FactRequirement 与 Authority Registry
 
@@ -871,7 +871,7 @@ acknowledge_delivery(publication_id, channel_receipt)
 2. 原始 source/revision 可解引用；chunk/span 是由 revision 生成的 projection。
 3. 从 canonical source documents 全量 ingest 到 immutable generation；不导入旧 chunk/index 运行数据。
 4. 删除 `legacy-*`、空 checksum 和默认 `scope=public` 的静默补值路径；不合格记录为 `INVALID_CONTRACT`。
-5. 从真实政策/FAQ 冻结一小组 human-reviewed knowledge dev + fresh heldout，保存 manifest/checksum/reviewer；M6 再扩充完整规模 Gold。
+5. 冻结公开 Knowledge benchmark 的官方 dev/test manifest，并保留项目合成 fixture 的 checksum；Dev 只选参，test 只在配置冻结后报告，M6 不再扩充内部人工 Gold。
 
 验证：
 
@@ -910,7 +910,7 @@ acknowledge_delivery(publication_id, channel_receipt)
 - 知识更新后所有入口同时失效旧缓存；
 - rewrite/rerank 不会只在某一路缺失；
 - no evidence/unavailable 在 API 与 Agent 中语义一致。
-- 相同 capture 重放能复现旧权重排名；任一权重/K/packing 变化都产生新 policy fingerprint，并在 fresh heldout 和 harmful gate 通过前不能成为目标默认版本。
+- 相同 capture 重放能复现旧权重排名；任一权重/K/packing 变化都产生新 policy fingerprint，并在冻结 test/group-heldout 和 harmful gate 通过前不能成为目标默认版本。
 - 强制 miss/full recompute 与各层 cache hit 的 stable evidence IDs、Coverage 和安全结果等价；Redis 全丢或超时只增加延迟，跨 tenant/user 命中和 stale EvidencePack reuse 均为零。
 - 任一 SourceRevision、manifest、backend generation、transformer/embedding/reranker/packer version 变化只使受影响层 miss，旧缓存不能遮蔽 `UNAVAILABLE/CONFLICT`。
 
@@ -2188,7 +2188,7 @@ Rubric 支持：
 - RAGAS/语义分数再高也不能覆盖 required-tool、receipt、安全、重复发布或 Handoff 合同失败；
 - fixture schema 关闭未知层/状态；
 - 每个 case 可声明 authoritative backend state。
-- 同一 raw signal/query capture 可离线重放多组权重，参数选择只使用 group-safe dev，fresh heldout 不反向调参；OOS、account-security、wrong-owner、harmful retrieval 和必需工单遗漏先作不可补偿 gate。
+- 同一 raw signal/query capture 可离线重放多组权重，参数选择只使用 group-safe Dev，冻结 test/group-heldout 不反向调参；OOS、account-security、wrong-owner、harmful retrieval 和必需工单遗漏先作不可补偿 gate。
 - cache hit 与强制重算在 observation locator、Evidence/Coverage 和安全 outcome 上等价；跨 tenant、stale region、旧现场和 unnecessary-VLM 为 hard regression。
 
 ### M6-T02：多轮服务链模拟器
@@ -2216,7 +2216,7 @@ Rubric 支持：
 
 验证基于 backend state 和 invariant，不只比较回答文本；每轮同时断言 ContinuationMode、完整 Router 是否应执行、复用/失效 refs、Retriever/OCR/VLM/Worker 调用数、Task/Coverage 与副作用次数。
 
-### M6-T03：Human-reviewed Gold 与 fresh heldout
+### M6-T03：80 条合成合同与冻结公开测试
 
 - 优先级：P1
 - 规模：L
@@ -2225,18 +2225,18 @@ Rubric 支持：
 
 实施内容：
 
-1. 以人工编写/审核的客服 Gold、成熟公开集适配样本和可重复业务 fixture 分层抽样；真实工单仅在未来取得合法来源与授权时可选加入。
-2. 双人标注、冲突仲裁和 reviewer identity。
-3. 按 user/order/product/time/semantic group 切分。
-4. 单独保留 invalid、OOS、安全、复合、多轮、Handoff 和 multimodal slice。
-5. 一旦参与修复立即标记 consumed regression。
+1. 将现有 80 条模型生成数据定位为 `SYNTHETIC_CONTRACT_LOCKED`，不再等待 `GOLD_APPROVED`，也不扩展到 120 条。
+2. 修复失效 fixture 引用，冻结 Schema、case IDs、八个 batch、fixture/media 与文件 checksum；静态 `valid=true` 和 E2E `PASSED/FAILED` 分开记录。
+3. 通过 `run_synthetic_contract_eval.py` 逐 turn 调用真实 `ChatApplication.handle()`，actual state 只来自 production Owner、数据库、receipt 与 Trace；禁止读取 expected 构造结果。
+4. 公开能力使用官方 train/dev/test：Dev 选参，配置冻结后运行 test；已用于修复或挑参的 IDs 进入 consumed regression manifest。
+5. 单独报告 invalid、OOS、安全、复合、多轮、Handoff、Memory 和 multimodal slice；不拼成生产准确率。
 
 验证：
 
-- manifest/checksum/provenance/review status 完整；
-- group leakage validator；
-- inter-annotator agreement 与争议记录；
-- evaluation 报告保存置信区间和 error slice。
+- 合成合同 manifest/checksum/provenance 与所有 refs 完整，`promotion_allowed=false`；
+- 80 条真实主链报告给出 `x/80`、风险违规和重复副作用 `x/N`；
+- 公开测试报告绑定官方 revision、evaluator、split、case IDs 和配置 fingerprint；
+- evaluation 报告保存分母、置信区间、error slice 与 consumed-data 声明。
 
 ### M6-T04：持久 OTel + Langfuse AI Observability
 
@@ -2316,8 +2316,8 @@ coverage / synthesis / publication / delivery / projection
 2. 失败层至少覆盖 perception、route/authority、context/memory、retrieval/rerank、tool selection/parameter/effect、generation/grounding、publication、handoff/delivery 和 service outcome。
 3. 执行代表性分层抽样 → 30–50 条 open coding → 聚类/稳定 label → 定量分布；模型只提候选，人工 triage 确认 owner/root cause。
 4. 将 OTel/Langfuse observation 与权威 receipt/event、response-bound feedback 和延迟服务结果关联；Trace 本身不能证明业务已提交或用户问题已解决。
-5. 人审后的脱敏 FailurePacket 才能进入 BadCase/regression；不能自动成为 Gold。已参与修复的 case 标为 consumed regression，fresh heldout 独立保留。
-6. score 分层：required-tool/receipt/duplicate effect/claim coverage 等由确定性 scorer；语义 Judge 必须固定 prompt/model/version 并与人工 Gold 校准；Judge 失败返回 typed invalid score，不能用中性分参与平均。Langfuse score adapter 只按服务端 observation ID 追加带 scorer/version 的评测投影，不成为 Gold 或 Gate 的事实 Owner。
+5. 经复现和归因的脱敏 FailurePacket 才能进入 BadCase/regression；已参与修复的 case 标为 consumed regression，不能进入同一配置的冻结 test。
+6. score 分层：required-tool/receipt/duplicate effect/claim coverage 等由确定性 scorer；语义 Judge 固定 prompt/model/version，并只作为官方 evaluator 或现有校准样本之外的补充。Judge 失败返回 typed invalid score，不能用中性分参与平均。Langfuse score adapter 只按服务端 observation ID 追加带 scorer/version 的评测投影，不成为合同或 Gate 的事实 Owner。
 
 验证：
 
@@ -2376,11 +2376,11 @@ coverage / synthesis / publication / delivery / projection
 
 实施内容：
 
-1. 优化输入改为脱敏、可删除、版本化的 `OptimizationExample/FailurePacket`；重构 `BadCaseMiner` 输入资格，必须满足 `REPRODUCED + verified root_cause + owner_module + replay fixture + one typed policy surface`，禁止 candidate/triaged 未复现 case、原始 Langfuse Trace、图片、Tool payload 或 fresh heldout 进入。
+1. 优化输入改为脱敏、可删除、版本化的 `OptimizationExample/FailurePacket`；重构 `BadCaseMiner` 输入资格，必须满足 `REPRODUCED + verified root_cause + owner_module + replay fixture + one typed policy surface`，禁止 candidate/triaged 未复现 case、原始 Langfuse Trace、图片、Tool payload 或冻结 test/group-heldout 进入。
 2. 重构 `CreditAttributor`，只把 case 交给真正的 Policy Owner。Knowledge RAG 与 Memory retrieval 分开；Memory failure 在有独立 Memory policy surface 前 fail closed，不能改 Knowledge BM25/Dense/RRF 权重。这里只保留当前类/端口兼容，不保留错误归因语义。
 3. 继续生成 4–8 个不可变候选，但只返回 owner-scoped typed patch；权限、approval、tenant、PII、Verifier、Gold、业务 receipt、安全规则和 Agent graph 不能成为优化面。
 4. Prompt/Tool description 即使通过字段 allowlist，也必须再经过 injection、越权、required-tool 和 safety adversarial gate；字段白名单不等于语义安全。
-5. proposal/dev 与 validation/fresh heldout 按 user/order/product/time/semantic group 隔离；optimizer 永远看不到最终 heldout，候选报告固定 dataset/runner/judge/scorer/model/prompt 版本。
+5. proposal/Dev 与冻结 test/group-heldout 按 user/order/product/time/semantic group 隔离；optimizer 永远看不到最终测试标签，候选报告固定 dataset/runner/judge/scorer/model/prompt 版本。
 6. 复用迁入 M6-T01 的 `CandidateRunner`、EvaluationManifest、deterministic scorer 与 Pareto report；optimizer 没有提交、覆盖或解释评测证据的接口。
 7. 优化器只注册 candidate；领域 Policy Owner 与独立 reviewer 根据不可变 EvaluationDecision 选择是否把某个版本提交到代码/配置；未通过则不绑定。
 8. 手工 Bundle 与优化器 Bundle 使用同一离线评测合同，不增加第二套生命周期；优化器关闭时也不得恢复旧 caller-self-attestation 路径。
@@ -2399,7 +2399,7 @@ coverage / synthesis / publication / delivery / projection
 M6 对已实现能力分别出具 EvaluationDecision；可选多模态/图检索/GEPA 不阻塞核心文本链。共同验收：
 
 - Eval 真实执行目标 ChatApplication 和相应 Agent 路径；
-- 有人审 Gold 与独立 fresh heldout；
+- 80 条合成合同真实主链结果与配置冻结后的公开 test；
 - 可从 response_id 定位失败层；
 - 所需 crash/retry/memory/handoff/multimodal 生命周期与不变量案例通过；
 - 本地/CI 指标按 route 可观测；
@@ -2603,7 +2603,7 @@ M6-T09 是非阻塞离线优化工具：未启用不影响主链；一旦启用�
 | PR-48B | M6-T02 | multi-turn scenarios/generative failure matrix |
 | PR-48C | M6-T02 | continuation/cache/invalidation/media-delta/service-debt scenarios |
 | PR-49A | M6-T03 | annotation workflow/double-review/adjudication |
-| PR-49B | M6-T03 | fresh-heldout lifecycle/leakage audit |
+| PR-49B | M6-T03 | frozen-test/group-heldout lifecycle/leakage audit |
 | PR-50A | M6-T04 | single OTel bootstrap + W3C API/worker/outbox propagation |
 | PR-50B | M6-T04 | Collector redaction/tail sampling + filtered Tempo/Jaeger/Langfuse routes |
 | PR-50C | M6-T04 | Agent/Generation/Retriever/Tool/Media observations + usage/cost |
@@ -2759,13 +2759,13 @@ ResponseDelivery 独立从 SELECTED→DELIVERING→OUTCOME_UNKNOWN/RECONCILING�
 - Replaced path deletion:
 - Unit/property/state-machine tests:
 - E2E/fault injection:
-- Fresh heldout/paired evidence:
+- Frozen test/group-heldout paired evidence:
 - Observability dashboard:
 - Known limitations:
 - EvaluationDecision:
 ```
 
-`IMPLEMENTED` 不等于 `VERIFIED`。没有适用的 fresh heldout、故障注入、独立复核、唯一目标 binding 和旧路径删除证据时，只能标记实现完成，不能宣布架构闭环。
+`IMPLEMENTED` 不等于 `VERIFIED`。没有适用的冻结 test/group-heldout、故障注入、独立复核、唯一目标 binding 和旧路径删除证据时，只能标记实现完成，不能宣布架构闭环。
 
 ## 17. 简历成熟度对齐检查表
 
@@ -2778,9 +2778,9 @@ ResponseDelivery 独立从 SELECTED→DELIVERING→OUTCOME_UNKNOWN/RECONCILING�
 | Durable Agent Runtime | Agent loop crash/restart、interrupt/resume、幂等副作用、Postgres checkpoint |
 | 分层 Memory | transcript/working/episode/profile/commitment 合同和删除测试 |
 | 多模态 RAG | 真实 PDF/图片集、page/bbox grounding、视觉 abstention/safety |
-| Agent paired/heldout 评测 | ChatApplication runner、human Gold、冻结 baseline、paired report、置信区间 |
+| Agent paired/heldout 评测 | ChatApplication runner、冻结公开 test 或项目合成合同、冻结 baseline、paired report、置信区间 |
 | Durable/可观测性 | 单一 OTel 上下文、Langfuse AI observations、本地/CI 性能预算、故障演练、恢复/重复发布指标 |
-| GEPA-inspired 优化 | M6-T09 完成，脱敏 FailurePacket、typed patch、冻结 EvaluationManifest 与 fresh heldout 证据齐全；只能表述为离线受限候选优化 |
+| GEPA-inspired 优化 | M6-T09 完成，脱敏 FailurePacket、typed patch、冻结 EvaluationManifest 与 frozen-test/group-heldout 证据齐全；只能表述为离线受限候选优化 |
 
 ### 不应复制的表述
 
@@ -2868,7 +2868,7 @@ docs/runbooks/postgres-clean-rebuild.md
 
 1. 用 M0-T01/T02/T03/T04/T05 冻结当前 `ChatApplication` 真链、稳定身份、baseline 与 EvaluationManifest；`/chat` 已是薄 adapter，这一步补齐验证，不重复抽取入口。
 2. 对 M1 已实现的 PostgreSQL/Conversation/Admission/Publication/Delivery 合同补齐集成与故障测试；M1-T03A 一次绑定 PostgreSQL Delivery，并在同一变更删除 SQLite migration/cutover helper。
-3. 在已实现的 Route/Authority/TaskFormation 与 PostgreSQL retrieval foundation 上完成 M2 consumer；用离线 paired/fresh-heldout 证明后，M2-T05C/M2-T06R 一次绑定 Knowledge 与 Route/Bundle，并删除 Chroma/旧前置 RAG/旧 publisher/toggle/fallback。
+3. 在已实现的 Route/Authority/TaskFormation 与 PostgreSQL retrieval foundation 上完成 M2 consumer；用离线 paired/frozen-test-or-group-heldout 证明后，M2-T05C/M2-T06R 一次绑定 Knowledge 与 Route/Bundle，并删除 Chroma/旧前置 RAG/旧 publisher/toggle/fallback。
 4. 实现 M3 LangGraph 薄 runtime，保留现有 AgentOrchestrator/TaskGraph/ReAct；checkpoint、interrupt、child outcome 与副作用故障测试通过后，由 M3-T09 一次绑定 runtime 并删除旧 execution wrapper/RunStore workflow-resume 路径。
 5. M4 让 Thread Summary、L1 Atom、verified L2 Episode 分别从 L0/Case/receipt 构建独立投影；L3 Profile 只从 `status=ACTIVE` 的 supported preference Atom 派生，并接入 ActiveCase、ServiceContinuity、Commitment 与 Handoff 的确定性读取。
 6. 在 transcript、统一 Retriever、TaskGraph 局部恢复和 ServiceContinuity 可用后实现 M4-T03E 的 TaskContinuationFrame/ContinuationGate/immutable delta TaskPlan；不用新增 Continuation、Vision 或 ServiceDebt Agent。
@@ -2904,7 +2904,7 @@ docs/runbooks/postgres-clean-rebuild.md
 目标数据面统一为 PostgreSQL：领域表保存 transcript、Memory 与服务责任事实，pgvector +
 版本化中文 FTS 保存 Knowledge/Episode/Media 的可重建检索投影；它们共享成熟基础设施，但按
 Owner/corpus 分表、分 policy、分 EvaluationManifest。当前分支只保留一个运行后端：从 canonical
-source/fixture clean rebuild，离线 paired/fresh-heldout 与真实 ChatApplication 测试通过后一次绑定
+source/fixture clean rebuild，离线 paired/frozen-test-or-group-heldout 与真实 ChatApplication 测试通过后一次绑定
 PostgreSQL；同一 milestone 删除 Chroma/SQLite reader、writer、fallback、toggle、脚本和依赖。这里不把
 旧 Chroma 变成 sidecar，也不为了存储替换改写现有 Agent/TaskGraph 编排。
 

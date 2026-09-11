@@ -1,0 +1,361 @@
+- main [ref=e2]:
+  - generic [ref=e3]:
+    - heading "DialogPilot" [level=1] [ref=e4]
+    - paragraph [ref=e5]:
+      - img "DialogPilot 可恢复多 Agent 客服后端：汇合政策证据与订单事实，确认动作后受控执行并保存回执。架构示意，非运行结果截图。" [ref=e6]
+    - paragraph [ref=e7]:
+      - strong [ref=e8]: 面向复杂客服任务的可恢复多 Agent Runtime
+    - paragraph [ref=e9]:
+      - img "Python" [ref=e10]
+      - img "LangGraph" [ref=e11]
+      - img "LangChain" [ref=e12]
+      - img "FastAPI" [ref=e13]
+      - img "PostgreSQL" [ref=e14]
+    - paragraph [ref=e15]:
+      - link "架构详解" [ref=e16] [cursor=pointer]:
+        - /url: https://garrulus21yyx.github.io/DialogPilot/architecture.html
+      - text: ·
+      - link "项目讲述" [ref=e17] [cursor=pointer]:
+        - /url: https://garrulus21yyx.github.io/DialogPilot/project-pitch.html
+      - text: ·
+      - link "面试追问" [ref=e18] [cursor=pointer]:
+        - /url: https://garrulus21yyx.github.io/DialogPilot/interview-guide.html
+      - text: ·
+      - link "RAG 深挖" [ref=e19] [cursor=pointer]:
+        - /url: https://garrulus21yyx.github.io/DialogPilot/rag-study.html
+  - separator [ref=e20]
+  - paragraph [ref=e21]:
+    - text: DialogPilot 是面向电商售后与客户支持的 Python 后端，处理跨领域查询、多轮追问、知识与订单混合取证，以及需要用户确认的业务操作。项目以
+    - strong [ref=e22]: LangGraph 编排任务、LangChain 执行领域 Agent、PostgreSQL 保存权威事实
+    - text: ，串联理解、执行、证据、发布与送达。
+  - paragraph [ref=e23]: 例如，用户提出“查一下这笔订单是否符合退款政策，符合的话帮我申请”，系统需要同时获得订单事实和适用条款，补齐必要信息，展示待确认动作，并在授权后执行、记录回执；断线或恢复时，还需要识别哪些步骤已经完成。
+  - paragraph [ref=e24]:
+    - text: 可查看
+    - link "真实鉴权示例及历史运行报告" [ref=e25] [cursor=pointer]:
+      - /url: evaluation/reports/local-e2e-v1.json
+    - text: ，或阅读
+    - link "三套公开数据检索对照" [ref=e26] [cursor=pointer]:
+      - /url: docs/rag-retrieval-selection-three-2026-09-08.zh-CN.md
+    - text: 。上图是源码机制示意；报告的结论限定于各自运行版本与数据范围。
+  - blockquote [ref=e27]:
+    - paragraph [ref=e28]:
+      - strong [ref=e29]: 项目定位：
+      - text: 可本地部署、可复现评测的工程项目。下文区分已实现机制、默认配置与实验结果；当前质量缺口见
+      - link "评测执行手册" [ref=e30] [cursor=pointer]:
+        - /url: docs/customer-service-agent-evaluation-plan.zh-CN.md
+      - text: 和
+      - link "RAG 持续状态" [ref=e31] [cursor=pointer]:
+        - /url: plans/rag-optimization-status.md
+      - text: 。
+  - heading "核心亮点" [level=2] [ref=e32]
+  - paragraph [ref=e33]:
+    - strong [ref=e34]: 多 Agent 协作，有明确的任务边界。
+    - text: 会话状态优先续接，ConversationAgent 生成计划，LangGraph 按依赖调度领域 Worker；独立只读任务并行，补充输入与审批沿原任务继续。
+  - paragraph [ref=e35]:
+    - strong [ref=e36]: 上下文可以压缩，原始证据可以回查。
+    - text: 联合计算提示、工具与历史预算，归档工具原文，清理旧观察并压缩历史；需要细节时分页回读，减少重复业务调用。
+  - paragraph [ref=e37]:
+    - strong [ref=e38]: 政策与订单分别取证，回答保留来源。
+    - text: pgvector 与中文 BM25 混合召回，经过查询改写、RRF、精排与预算装配；知识证据保留版本和原文位置，实时业务事实保留工具回执。
+  - paragraph [ref=e39]:
+    - strong [ref=e40]: 恢复执行时，先辨认副作用状态。
+    - text: 动作准备绑定参数和审批，PostgreSQL checkpoint 保存执行位置，操作账本记录执行状态。已提交动作复用回执，未知结果进入对账。
+  - paragraph [ref=e41]:
+    - strong [ref=e42]: 合成与核验按需介入。
+    - text: ResultBoard 汇总事实，ResponseAssembler 选择模板、直通或合成；需要核验的回答绑定正文与证据，避免额外模型调用成为每轮必经步骤。
+  - paragraph [ref=e43]:
+    - strong [ref=e44]: 优化有证据，也保留失败。
+    - text: 通过 Trace 定位查询、召回、精排、打包、生成与执行问题，固定预算比较救回与误伤。公开检索数据和中文业务模拟集分别报告。
+  - heading "快速开始" [level=2] [ref=e45]
+  - paragraph [ref=e46]:
+    - text: 需要 Docker Compose 和支持 Anthropic Messages 协议的模型服务。容器使用 Python 3.12；模型端点与角色配置见
+    - link [ref=e47] [cursor=pointer]:
+      - /url: .env.example
+      - code [ref=e48]: .env.example
+    - text: 。
+  - paragraph [ref=e49]:
+    - strong [ref=e50]: 1. 配置环境
+  - code [ref=e52]: cp .env.example .env
+  - paragraph [ref=e53]:
+    - text: 修改
+    - code [ref=e54]: .env
+    - text: 中的凭据，并按所用服务核对模型名、端点：
+  - code [ref=e56]: ANTHROPIC_API_KEY=your_api_key AUTH_JWT_SECRET=replace_with_at_least_32_random_bytes
+  - paragraph [ref=e57]:
+    - strong [ref=e58]: 2. 启动本地栈
+  - code [ref=e60]: docker compose up -d --build --remove-orphans curl http://localhost:18000/health
+  - paragraph [ref=e61]:
+    - text: 访问
+    - link "Swagger UI" [ref=e62] [cursor=pointer]:
+      - /url: http://localhost:18000/docs
+    - text: 查看接口和鉴权要求。Compose 包含应用、PostgreSQL、Redis、Nginx 与 Prometheus。
+  - paragraph [ref=e63]:
+    - strong [ref=e64]: 3. 运行真实鉴权示例
+  - paragraph [ref=e65]: 在主机建立 Python 3.12 环境，安装示例所需的运行依赖：
+  - code [ref=e67]: python3.12 -m venv .venv source .venv/bin/activate pip install -r requirements.txt PYTHONPATH=. python scripts/run_local_e2e.py \ --output evaluation/reports/local-e2e-v1.json
+  - paragraph [ref=e68]: 脚本读取本地配置，执行鉴权、附件上传和客服对话，输出脱敏报告；此步骤会调用配置的模型服务。
+  - heading "整体架构" [level=2] [ref=e69]
+  - code [ref=e71]: flowchart TB Client[客户端 / 多轮消息 / 附件] --> API[FastAPI · JWT 身份与输入边界] API --> Admission[持久准入 · request_id / Invocation] Admission --> Conversation[会话状态续接与 ConversationAgent 规划] Conversation --> Plan[WorkPlan · 依赖与工具权限] subgraph Runtime[LangGraph 任务编排] Plan --> Dispatch[调度就绪任务] Dispatch --> Workers[领域 Worker · LangChain create_agent] Workers --> Read[只读业务工具 / Knowledge RAG] Workers --> Action[动作准备 / 用户审批 / 受控写入] Workers --> Media[按需媒体感知 · L0 / OCR / VLM] Read --> Board[ResultBoard · 结果 / 证据 / 进展] Action --> Board Media --> Board end Board --> Assembly[ResponseAssembler · 模板 / 直通 / 按需合成] Assembly --> Gate[对应响应路径的完整性与证据检查] Gate --> Publication[Publication · 持久回答与 response_seq] Publication --> Delivery[客户端接收 / ACK / 断线重放] Board --> Followup[补充输入 / 审批 / 后续任务] Followup --> Conversation PG[(PostgreSQL · 权威事实与持久执行状态)] -.-> Admission PG -.-> Runtime PG -.-> Publication Publication --> Redis[(Redis · 可重建会话投影)] Runtime -.-> Trace[脱敏 Trace / Prometheus / 可选 Langfuse]
+  - heading "1. 分层决策与多 Agent 协作" [level=3] [ref=e72]
+  - list [ref=e73]:
+    - listitem [ref=e74]:
+      - strong [ref=e75]: 会话层决定做什么：
+      - text: 先处理已有任务、待补信息和审批状态，再由 ConversationAgent 形成结构化提案，经策略与编译边界转为 WorkPlan。
+    - listitem [ref=e76]:
+      - strong [ref=e77]: 编排层决定何时做：
+      - text: LangGraph 根据依赖派发任务。独立只读任务可并行；当前单会话审批槽约束下，具备动作能力的 Worker 串行调度。
+    - listitem [ref=e78]:
+      - strong [ref=e79]: 领域层决定如何取证：
+      - text: 六个领域共用
+      - code [ref=e80]: create_agent
+      - text: 工具循环，按任务授权暴露工具；Skill 提供可选复合能力。任务结果进入 ResultBoard，保留成功、部分完成、等待与失败等结构化状态。
+    - listitem [ref=e81]:
+      - strong [ref=e82]: 回答层决定如何表达：
+      - text: 简单结果使用模板或适用的直通路径；复杂结果按需调用合成器。核验检查证据支持与需求覆盖，发布结果绑定具体正文。普通补充问题有独立完整性路径，不需要每轮都增加一次模型评审。
+  - paragraph [ref=e83]:
+    - text: 可选 Encoder 路由通过显式开关与模型制品状态管理，示例配置默认关闭。核心入口见
+    - link [ref=e84] [cursor=pointer]:
+      - /url: application/turn_runtime.py
+      - code [ref=e85]: turn_runtime.py
+    - text: 、
+    - link [ref=e86] [cursor=pointer]:
+      - /url: application/orchestration_runtime.py
+      - code [ref=e87]: orchestration_runtime.py
+    - text: 和
+    - link [ref=e88] [cursor=pointer]:
+      - /url: application/response_assembly.py
+      - code [ref=e89]: response_assembly.py
+    - text: 。
+  - heading "2. 上下文预算与可追溯证据" [level=3] [ref=e90]
+  - paragraph [ref=e91]: 上下文管理覆盖一次实际模型请求中的系统提示、工具 Schema、历史消息与输出预留。长工具结果保存原文，模型使用摘要或引用按需分页回读；旧工具观察与历史消息逐步清理、压缩，并保留当前目标及必要工具交互。
+  - paragraph [ref=e92]:
+    - text: 归档内容带作用域与校验信息。业务回执、知识来源和媒体观察保留各自身份；OCR/VLM 的识别内容作为观察使用，不能独立证明订单状态或执行成功。实现见
+    - link "预算管理" [ref=e93] [cursor=pointer]:
+      - /url: application/context_budget.py
+    - text: 、
+    - link "上下文压缩" [ref=e94] [cursor=pointer]:
+      - /url: infrastructure/target_context_compaction.py
+    - text: 和
+    - link "结果归档" [ref=e95] [cursor=pointer]:
+      - /url: infrastructure/target_result_archive.py
+    - text: 。
+  - heading "3. 持久执行与数据所有权" [level=3] [ref=e96]
+  - table [ref=e97]:
+    - rowgroup [ref=e98]:
+      - row [ref=e99]:
+        - columnheader "数据与状态" [ref=e100]
+        - columnheader "持久化位置" [ref=e101]
+        - columnheader "责任" [ref=e102]
+    - rowgroup [ref=e103]:
+      - row [ref=e104]:
+        - cell "Conversation / Invocation / 请求准入" [ref=e105]
+        - cell "PostgreSQL" [ref=e106]
+        - cell "会话事实、任务状态和请求幂等身份" [ref=e107]
+      - row [ref=e108]:
+        - cell "LangGraph checkpoint / Store" [ref=e109]
+        - cell "PostgreSQL" [ref=e110]
+        - cell "保存执行位置与恢复所需上下文" [ref=e111]
+      - row [ref=e112]:
+        - cell "Operation ledger / receipt" [ref=e113]
+        - cell "PostgreSQL" [ref=e114]
+        - cell "记录副作用状态、执行回执与对账依据" [ref=e115]
+      - row [ref=e116]:
+        - cell "Knowledge / source revision / generation" [ref=e117]
+        - cell "PostgreSQL + pgvector" [ref=e118]
+        - cell "来源版本、适用范围、词法与向量检索" [ref=e119]
+      - row [ref=e120]:
+        - cell "Publication / response seq / ACK" [ref=e121]
+        - cell "PostgreSQL" [ref=e122]
+        - cell "最终回答、送达状态和断线重放" [ref=e123]
+      - row [ref=e124]:
+        - cell "附件 / 服务经历 / 用户事实 / 工单 / 承诺" [ref=e125]
+        - cell "PostgreSQL" [ref=e126]
+        - cell "原始对象、来源绑定与领域状态转换" [ref=e127]
+      - row [ref=e128]:
+        - cell "当前会话窗口与缓存投影" [ref=e129]
+        - cell "Redis" [ref=e130]
+        - cell "加速读取；可由持久事实重建" [ref=e131]
+  - paragraph [ref=e132]:
+    - text: 恢复需要同时回答两个问题：checkpoint 决定
+    - strong [ref=e133]: 执行从哪里继续
+    - text: ，操作账本与回执决定
+    - strong [ref=e134]: 业务动作是否已经发生
+    - text: 。已提交操作复用回执；结果未知的操作需要对账，不能把异常直接解释为“没有执行”。回答同样区分持久发布、客户端送达与已读，通过序号与 ACK 续接。
+  - heading "Knowledge RAG：从资料到可引用证据" [level=2] [ref=e135]
+  - code [ref=e137]: flowchart LR subgraph Offline[离线知识构建] Source[原文与适用信息] --> Revision[SourceRevision · 版本与位置] Revision --> Chunk[结构感知切块] Chunk --> Index[词法索引 + pgvector 向量索引] end subgraph Online[在线检索与打包] Context[会话上下文 / 完整问题] --> Query[按查询模式改写与保留原问题] Query --> Scope[身份与知识适用范围] Scope --> Recall[Dense + 中文 BM25] Index --> Recall Recall --> Fusion[Weighted RRF · 去重与候选截取] Fusion --> Rerank[可配置精排] Rerank --> Pack[预算装配 · Evidence Pack] end Pack --> Answer[领域回答 / 结果合成 / 对应核验]
+  - paragraph [ref=e138]:
+    - strong [ref=e139]: 设计重点
+  - list [ref=e140]:
+    - listitem [ref=e141]:
+      - strong [ref=e142]: 完整问题进入检索：
+      - text: 区分需要结合历史改写的查询和已经解析完整的查询；原始问题与独立问题按配置融合，避免只拿多轮追问中的短句检索。
+    - listitem [ref=e143]:
+      - strong [ref=e144]: 适用范围先于相关性：
+      - text: 由系统绑定身份与适用信息。知识来源保留版本、时间和范围，避免把不同商品或渠道的相似条款混为有效证据。
+    - listitem [ref=e145]:
+      - strong [ref=e146]: 候选排序与证据打包分别评估：
+      - text: 高相关片段不一定覆盖所有必要条件；同时检查候选池、精排 Top-K 和模型实际可见正文。
+    - listitem [ref=e147]:
+      - strong [ref=e148]: 来源可回查：
+      - text: Evidence Pack 保留 source revision、checksum、原文范围与检索信息，支持引用核对和失败重放。实时订单、退款或账户状态仍由业务工具提供。
+  - paragraph [ref=e149]:
+    - strong [ref=e150]:
+      - text: 按
+      - code [ref=e151]: .env.example
+      - text: 启动的基线配置
+  - table [ref=e152]:
+    - rowgroup [ref=e153]:
+      - row [ref=e154]:
+        - columnheader "配置项" [ref=e155]
+        - columnheader "示例值 / 支持方式" [ref=e156]
+    - rowgroup [ref=e157]:
+      - row [ref=e158]:
+        - cell "切块" [ref=e159]
+        - cell [ref=e160]:
+          - code [ref=e161]: structure_aware
+          - text: ，512 tokens / 64 overlap；支持
+          - code [ref=e162]: markdown_headers
+          - text: 可选策略
+      - row [ref=e163]:
+        - cell "向量与词法融合" [ref=e164]
+        - cell [ref=e165]:
+          - text: Dense
+          - code [ref=e166]: "0.50"
+          - text: + Lexical
+          - code [ref=e167]: "0.50"
+          - text: ，RRF
+          - code [ref=e168]: k=10
+      - row [ref=e169]:
+        - cell "原始与独立查询" [ref=e170]
+        - cell [ref=e171]:
+          - code [ref=e172]: 0.25 / 0.75
+          - text: ；默认不启用额外扩展查询
+      - row [ref=e173]:
+        - cell "预算" [ref=e174]
+        - cell "候选 20，最终最多 5 段，正文预算 2600 tokens" [ref=e175]
+      - row [ref=e176]:
+        - cell "Embedding" [ref=e177]
+        - cell [ref=e178]:
+          - text: 默认
+          - code [ref=e179]: hash_baseline
+          - text: ，用于轻量可复现启动；可显式配置本地固定版本
+          - code [ref=e180]: bge_m3
+      - row [ref=e181]:
+        - cell "精排" [ref=e182]
+        - cell [ref=e183]:
+          - text: 默认
+          - code [ref=e184]: listwise
+          - text: ，使用配置的 RERANK 角色模型；可选本地
+          - code [ref=e185]: local_bge
+  - paragraph [ref=e186]:
+    - text: 运行时以加载的 Bundle 策略为准，定义见
+    - link [ref=e187] [cursor=pointer]:
+      - /url: core/rag_policy.py
+      - code [ref=e188]: core/rag_policy.py
+    - text: 。Compose 的部分无环境变量回退值仍与示例不同，因此启动前应复制
+    - code [ref=e189]: .env.example
+    - text: ；不要把历史报告中的模型与参数视为当前默认。BGE 模式需要单独配置本地模型制品。
+  - heading "评测与优化闭环" [level=2] [ref=e190]
+  - code [ref=e192]: flowchart LR Cases[真实失败 / 固定评测样本] --> Diagnose[定位查询 / 召回 / 精排 / 打包 / 生成 / 执行] Diagnose --> Hypothesis[明确假设与采用门槛] Hypothesis --> Pair[固定数据与预算对照 / 模块消融] Pair --> Audit[救回与误伤 / 质量 / 成本 / 延迟] Audit --> Decision[采用或保留失败结论] Decision --> Regression[回归与新留存验证] Regression --> Cases
+  - table [ref=e193]:
+    - rowgroup [ref=e194]:
+      - row [ref=e195]:
+        - columnheader "评测层" [ref=e196]
+        - columnheader "数据与场景" [ref=e197]
+        - columnheader "关注的指标与需求" [ref=e198]
+    - rowgroup [ref=e199]:
+      - row [ref=e200]:
+        - cell "条款取证" [ref=e201]
+        - cell "Doc2Dial" [ref=e202]
+        - cell "span 级证据与整题必要证据覆盖，检查政策条件和例外是否找全" [ref=e203]
+      - row [ref=e204]:
+        - cell "多轮检索" [ref=e205]
+        - cell "MTRAG" [ref=e206]
+        - cell "passage 级 Recall / MRR / nDCG，检查历史指代下的片段召回" [ref=e207]
+      - row [ref=e208]:
+        - cell "产品指引" [ref=e209]
+        - cell "WixQA" [ref=e210]
+        - cell "article 级定位与排名，检查操作指引文档是否正确" [ref=e211]
+      - row [ref=e212]:
+        - cell "中文电商知识验收" [ref=e213]
+        - cell "政策条件、多轮追问、产品指引及适用范围干扰的模拟语料" [ref=e214]
+        - cell "模型实际可见的完整必要证据、错误范围来源、答案需求覆盖与支持性" [ref=e215]
+      - row [ref=e216]:
+        - cell "Agent 与业务链路" [ref=e217]
+        - cell "真实 Agent 入口、工具交互、审批续接及外部任务适配" [ref=e218]
+        - cell "任务执行、协议行为、业务结果、Token 与延迟，和检索分数分别报告" [ref=e219]
+  - paragraph [ref=e220]: 不同数据集的文章、片段与 span 标注不混算。模型核验通过、合法引用、完整证据和最终答案正确是不同指标。模拟数据、已消费的开发/回归样本、独立留存和真实业务流量也分别标明。
+  - paragraph [ref=e221]:
+    - text: 现有工作包括融合权重对照、Metadata 适用范围贯通、Markdown 标题切块实验，以及 BM25 访问路径与性能诊断。
+    - strong [ref=e222]: 局部指标改善不代表整体质量验收完成
+    - text: ；当前仍有多证据排序、查询语义、答案覆盖和词法检索性能缺口，reranker 微调保持暂停。
+  - list [ref=e223]:
+    - listitem [ref=e224]:
+      - link "三套公开数据的检索选型与对照" [ref=e225] [cursor=pointer]:
+        - /url: docs/rag-retrieval-selection-three-2026-09-08.zh-CN.md
+    - listitem [ref=e226]:
+      - link "中文电商范围过滤对照" [ref=e227] [cursor=pointer]:
+        - /url: docs/ecommerce-scoped-rag-2026-09-08.zh-CN.md
+    - listitem [ref=e228]:
+      - link "答案质量与失败归因" [ref=e229] [cursor=pointer]:
+        - /url: docs/ecommerce-answer-quality-2026-09-09.zh-CN.md
+    - listitem [ref=e230]:
+      - link "评测收敛执行手册" [ref=e231] [cursor=pointer]:
+        - /url: docs/customer-service-agent-evaluation-plan.zh-CN.md
+    - listitem [ref=e232]:
+      - link "持续状态与证据索引" [ref=e233] [cursor=pointer]:
+        - /url: plans/rag-optimization-status.md
+  - heading "技术栈与代码导航" [level=2] [ref=e234]
+  - table [ref=e235]:
+    - rowgroup [ref=e236]:
+      - row [ref=e237]:
+        - columnheader "层级" [ref=e238]
+        - columnheader "技术" [ref=e239]
+        - columnheader "用途" [ref=e240]
+    - rowgroup [ref=e241]:
+      - row [ref=e242]:
+        - cell "接入" [ref=e243]
+        - cell "FastAPI · Pydantic · JWT" [ref=e244]
+        - cell "类型化 HTTP 接口、身份和输入校验" [ref=e245]
+      - row [ref=e246]:
+        - cell "编排与执行" [ref=e247]
+        - cell "LangGraph · LangChain" [ref=e248]
+        - cell "父图调度、领域工具循环、中断与 checkpoint" [ref=e249]
+      - row [ref=e250]:
+        - cell "模型接入" [ref=e251]
+        - cell "Anthropic SDK / 兼容端点" [ref=e252]
+        - cell "按规划、Worker、改写、精排、合成与核验角色配置模型" [ref=e253]
+      - row [ref=e254]:
+        - cell "结构化生成" [ref=e255]
+        - cell "PydanticAI" [ref=e256]
+        - cell "独立 RAG grounded structured-output 边界" [ref=e257]
+      - row [ref=e258]:
+        - cell "数据与检索" [ref=e259]
+        - cell "PostgreSQL · pgvector · 中文 BM25 · Redis" [ref=e260]
+        - cell "权威事实、知识检索、投影与缓存" [ref=e261]
+      - row [ref=e262]:
+        - cell "多模态" [ref=e263]
+        - cell "Tesseract OCR · 可选 VLM" [ref=e264]
+        - cell "经鉴权绑定的附件按需感知" [ref=e265]
+      - row [ref=e266]:
+        - cell "观测与交付" [ref=e267]
+        - cell "Prometheus · 可选 Langfuse · Docker Compose · Alembic" [ref=e268]
+        - cell "指标、脱敏追踪、部署与数据库迁移" [ref=e269]
+  - code [ref=e271]: api/ HTTP 合同、鉴权入口与应用装配 application/ 会话决策、WorkPlan、任务编排、上下文、检索与回答发布 core/ 共享合同、模型角色、预算与检索策略 infrastructure/ LangChain Agent、PostgreSQL/Redis 适配、checkpoint 与索引 agents/ 媒体感知需求等辅助能力 mcp/ 内部工具运行时、证据打包与结构化生成 memory/ 会话记忆、上下文与事实提取 services/ 答案核验、工单、Bad Case 等服务 skills/ 可选的复合任务能力 evaluation/ 数据合同、评分器与评测报告 scripts/ 本地演示、数据库迁移、恢复与实验入口 tests/ 合同、状态转换、集成与回归测试 docs/ 架构、项目讲述、面试追问与实验说明 plans/ 持续工作状态、实验预注册与证据索引
+  - heading "开发与可选能力" [level=2] [ref=e272]
+  - group [ref=e273]:
+    - strong [ref=e275] [cursor=pointer]: 测试、数据库迁移与恢复演练
+  - group [ref=e276]:
+    - strong [ref=e278] [cursor=pointer]: 按需视觉与可观测性
+  - group [ref=e279]:
+    - strong [ref=e281] [cursor=pointer]: 主要接口与进一步阅读
+  - heading "使用边界与许可" [level=2] [ref=e282]
+  - paragraph [ref=e283]:
+    - text: 当前没有生产流量；公开数据映射与模型生成的模拟合同不等于人工审定 Gold 或生产准确率。VLM、本地 BGE 与 Encoder 需要各自的显式配置。
+    - code [ref=e284]: MCPToolManager
+    - text: 是内部工具运行时，不能据此认为仓库提供了远程 MCP Server。
+  - paragraph [ref=e285]:
+    - text: 仓库当前没有独立开源许可证文件。第三方数据与依赖说明见
+    - link "NOTICE.md" [ref=e286] [cursor=pointer]:
+      - /url: NOTICE.md
+    - text: ；再分发前需确认适用许可。

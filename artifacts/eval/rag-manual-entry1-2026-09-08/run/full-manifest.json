@@ -1,0 +1,49 @@
+{
+  "scope": "synthetic ecommerce; production runtime/admission/coordinator/context/knowledge handler/PostgreSQL retrieval/LLM rerank/compose/verifier/publication; excludes HTTP authentication, external delivery, business writes",
+  "cases": [
+    {
+      "id": "manual-address-arrival",
+      "history": [
+        [
+          "user",
+          "我只想了解综合售后手册中的一般流程，不查询或操作具体订单。"
+        ]
+      ],
+      "message": "寄回地址能用包装上的生产商地址吗？仓库收到包裹或者审核通过，就代表退款到账了吗？分别怎么确认？",
+      "required": [
+        "售后确认退货地址",
+        "生产商地址不等于退货地址",
+        "审核通过不代表到账",
+        "查询业务记录确认到账"
+      ]
+    }
+  ],
+  "retrieval_policy": {
+    "top_k": 5,
+    "candidate_k": 20,
+    "context_max_tokens": 2600,
+    "rrf_k": 10,
+    "vector_weight": 0.25,
+    "lexical_weight": 0.75,
+    "raw_query_weight": 0.2,
+    "standalone_query_weight": 0.6,
+    "expansion_query_weight": 0.0,
+    "query_expansion_count": 0,
+    "metadata_hint_weight": 0.5
+  },
+  "reranker_version": "customer-support-listwise-v4-complete-evidence:7fddc3b741d5e6c9aa91b210f319ed3ec824ebc6ba4879dea2444fb2f3e6f544",
+  "source_sha256": {
+    "application/conversation_agent.py": "887f3022729c4dbe0241b18252f0733e079f86b6acf53c2c60a262021d06aa7e",
+    "application/knowledge_tool_contract.py": "b5e4b3e26dad5a4d76772397d9394271f8ebf5a47644fda3e2dab88013428eba",
+    "application/knowledge_retriever.py": "54002b73df474dc8ab138681a18ea36998d085ed8f92d5484eaf6c6ef010f887",
+    "application/response_assembly.py": "10cae19f99912d9c77e25a93db9fa1b9b377ac519fd62134e962475f354509e7",
+    "infrastructure/target_conversation_provider.py": "3a4e5e800bf03e0c8d75305e5777b26e06c735b032bfaa7c84ccde3f72d51222",
+    "api/main.py": "28b08c0ce88d539a4eadb3133f748f42c067cba75330dc12183906715ded4912",
+    "infrastructure/postgres_knowledge_retriever.py": "4a1e200fbbd7b42a69f74fe30072bdbb4c5c268f1e7abd3caceec8303e6d4fb9",
+    "infrastructure/knowledge_applicability.py": "1793f9210000be135cc8b6025841cacc743dc89259f90532c51c8c8137124354",
+    "services/answer_verifier.py": "5df5ab1eb4e2232581c44581fab153c1afaf09322085f2e2cf1cfa651909231d",
+    "services/claim_verification.py": "79443acd30471ecc76dfc46bbfebe943ac15ffc0d18f5419a96e477ddba8b444",
+    "evaluation/rag_full_chain_probe.py": "02b22341ed61a1a2b179d90aa380709b5ed1fc15abfd7deab23b291a147bd8ba"
+  },
+  "max_api_calls": 8
+}

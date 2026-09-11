@@ -1,0 +1,466 @@
+{
+  "task_id": "1",
+  "official_reward": null,
+  "status": "ERROR",
+  "error_type": "ValueError",
+  "error": "text-only approval adapter could not bind an unchanged decision",
+  "target_trace": [
+    {
+      "model_response": {
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 5114,
+          "output_tokens": 29,
+          "total_tokens": 5143,
+          "input_token_details": {
+            "cache_read": 4864,
+            "cache_creation": 0
+          }
+        },
+        "tool_names": [],
+        "invalid_tool_count": 0,
+        "has_content": true
+      }
+    },
+    {
+      "turn": 1,
+      "input": "Hi! I need help with an exchange from my recent order. I received the items but I’d like to swap out two of them—the mechanical keyboard and the smart thermostat. Let me explain the specifics so we can get this sorted correctly.",
+      "outcome": {
+        "response_id": "publication:v1:71027ea2ad09c3c61bbfce4660b085de166029c2d1a4023ae8e426bc76283de9",
+        "response": {
+          "intent": "CONVERSATION_AGENT_PLAN",
+          "conv_id": "tau3-52524b5294bb47ffb9fe870b707999f4",
+          "coverage": {
+            "complete": true,
+            "missing_requirement_ids": []
+          },
+          "grounded": true,
+          "response": "此项请求：本次未能完成，请核实相关信息或联系人工客服。",
+          "verified": true,
+          "escalated": false,
+          "task_plan": {
+            "plan_id": "turn-plan:v1:0f76d99735f6095d174da002cde16fa03002ef3174674cd6731bdbda0e5fe97f",
+            "work_item_ids": [
+              "work:1:g1"
+            ]
+          },
+          "ticket_id": null,
+          "agent_type": "retail",
+          "latency_ms": 2412.22220659256,
+          "request_id": "turn-1",
+          "agent_types": [
+            "retail"
+          ],
+          "response_id": "publication:v1:71027ea2ad09c3c61bbfce4660b085de166029c2d1a4023ae8e426bc76283de9",
+          "intent_group": "retail",
+          "response_seq": 1,
+          "primary_agent": "retail",
+          "ticket_status": null,
+          "agent_outcomes": [
+            {
+              "status": "TERMINAL_FAILURE",
+              "owner_agent": "retail",
+              "reason_code": "DOMAIN_OUTCOME_MISSING",
+              "work_item_id": "work:1:g1"
+            }
+          ],
+          "bundle_version": "tau3-retail-v1",
+          "routing_reason": "CONVERSATION_AGENT_PLAN",
+          "delivery_status": "selected",
+          "handoff_created": false,
+          "evaluation_trace": {
+            "cost": {
+              "latency_ms": 2412.22220659256,
+              "work_item_count": 1,
+              "conversation_planner_invoked": true
+            },
+            "outcome": {
+              "kind": "COMPLETED",
+              "verifier_status": "PASS",
+              "missing_requirement_ids": []
+            },
+            "trigger": {
+              "invocation_admitted": true,
+              "deterministic_resolution": "UNRESOLVED"
+            },
+            "artifact": {
+              "plan_id": "turn-plan:v1:0f76d99735f6095d174da002cde16fa03002ef3174674cd6731bdbda0e5fe97f",
+              "owner_ids": [
+                "retail"
+              ],
+              "route_mode": "AGENT_TASK",
+              "registry_fingerprint": "capability-bundle:v1:d97029f228f1b8b68b3f91e89c6d01a1197a34ac7f09b70b5f7b0a993a5b8984",
+              "understanding_reason": "CONVERSATION_AGENT_PLAN"
+            },
+            "consumption": {
+              "facts": [],
+              "work_items": [
+                {
+                  "owner_agent": "retail",
+                  "control_mode": "DELEGATED",
+                  "work_item_id": "work:1:g1",
+                  "allowed_tools": [
+                    "observed_operation_status",
+                    "calculate",
+                    "find_user_id_by_name_zip",
+                    "find_user_id_by_email",
+                    "get_order_details",
+                    "get_product_details",
+                    "get_item_details",
+                    "get_user_details",
+                    "list_all_product_types",
+                    "transfer_to_human_agents"
+                  ],
+                  "allowed_skills": []
+                }
+              ],
+              "result_statuses": [
+                "TERMINAL_FAILURE"
+              ]
+            },
+            "schema_version": "target-evaluation-trace-v1",
+            "state_side_effect": {
+              "state_version_after": 1,
+              "workstream_statuses": [],
+              "state_version_before": 0,
+              "committed_receipt_refs": []
+            }
+          },
+          "synthesis_reason": "DETERMINISTIC_ASSEMBLY",
+          "synthesis_status": "template",
+          "supporting_agents": [],
+          "routing_disposition": "agent_task",
+          "synthesis_conflicts": [],
+          "verification_status": "pass",
+          "verification_reason_code": "TARGET_REQUIREMENTS_SATISFIED"
+        },
+        "stages": []
+      }
+    },
+    {
+      "model_response": {
+        "stop_reason": "tool_use",
+        "usage": {
+          "input_tokens": 5205,
+          "output_tokens": 194,
+          "total_tokens": 5399,
+          "input_token_details": {
+            "cache_read": 4864,
+            "cache_creation": 0
+          }
+        },
+        "tool_names": [
+          "DomainOutcome"
+        ],
+        "invalid_tool_count": 0,
+        "has_content": true
+      }
+    },
+    {
+      "turn": 2,
+      "input": "I’m not sure what you mean—could you clarify what wasn’t completed? I’m trying to exchange two items from my order, but I haven’t shared the order details yet. Do you need my order number or more information to get started? I want to make sure everything is handled correctly before we move forward.",
+      "outcome": {
+        "workflow_run_id": "workflow-run:v1:f55dcef0b212b37fcaa99d1661768e582ac66f866f9b44eec84979a21a516275",
+        "signal_id": "interaction:v1:9dbb92dbd2fc54850b32523eec46bef7aaf980fcfd5092708488ced57c0e9a54",
+        "kind": "FIELDS",
+        "expires_at": "2026-09-13T17:45:40.883851+00:00",
+        "interaction_publication_id": "publication:v1:ac39096a3da6b81a0a62fb38c7927f0e1151879981e507c7951ee0a9325e74d7"
+      }
+    },
+    {
+      "model_response": {
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 5267,
+          "output_tokens": 32,
+          "total_tokens": 5299,
+          "input_token_details": {
+            "cache_read": 4864,
+            "cache_creation": 0
+          }
+        },
+        "tool_names": [],
+        "invalid_tool_count": 0,
+        "has_content": true
+      }
+    },
+    {
+      "turn": 3,
+      "input": "I actually don’t remember which email I used for the account. Is there another way to look up my order? I have my order number, and I can give you my name and ZIP code if that helps.",
+      "outcome": {
+        "response_id": "publication:v1:ac88d35c9645133fcfb7454f7c8f10b7de92b3ab0e2c57ba266969e7cdae86a5",
+        "response": {
+          "intent": "PENDING_INPUT_RESUMED",
+          "conv_id": "tau3-52524b5294bb47ffb9fe870b707999f4",
+          "coverage": {
+            "complete": true,
+            "missing_requirement_ids": []
+          },
+          "grounded": true,
+          "response": "此项请求：本次未能完成，请核实相关信息或联系人工客服。",
+          "verified": true,
+          "escalated": false,
+          "task_plan": {
+            "plan_id": "turn-plan:v1:c76b9ad87b88a4b4eef5f39c86bc528a06a781a2bced10ae7c79e56cddd7ca12",
+            "work_item_ids": [
+              "work:1:resume-input-1"
+            ]
+          },
+          "ticket_id": null,
+          "agent_type": "retail",
+          "latency_ms": 1029.222920536995,
+          "request_id": "turn-3",
+          "agent_types": [
+            "retail"
+          ],
+          "response_id": "publication:v1:ac88d35c9645133fcfb7454f7c8f10b7de92b3ab0e2c57ba266969e7cdae86a5",
+          "intent_group": "retail",
+          "response_seq": 3,
+          "primary_agent": "retail",
+          "ticket_status": null,
+          "agent_outcomes": [
+            {
+              "status": "TERMINAL_FAILURE",
+              "owner_agent": "retail",
+              "reason_code": "DOMAIN_OUTCOME_MISSING",
+              "work_item_id": "work:1:resume-input-1"
+            }
+          ],
+          "bundle_version": "tau3-retail-v1",
+          "routing_reason": "PENDING_INPUT_RESUMED",
+          "delivery_status": "selected",
+          "handoff_created": false,
+          "evaluation_trace": {
+            "cost": {
+              "latency_ms": 1029.222920536995,
+              "work_item_count": 1,
+              "conversation_planner_invoked": false
+            },
+            "outcome": {
+              "kind": "COMPLETED",
+              "verifier_status": "PASS",
+              "missing_requirement_ids": []
+            },
+            "trigger": {
+              "invocation_admitted": true,
+              "deterministic_resolution": "REPLY_PENDING_INPUT"
+            },
+            "artifact": {
+              "plan_id": "turn-plan:v1:c76b9ad87b88a4b4eef5f39c86bc528a06a781a2bced10ae7c79e56cddd7ca12",
+              "owner_ids": [
+                "retail"
+              ],
+              "route_mode": "AGENT_TASK",
+              "registry_fingerprint": "capability-bundle:v1:d97029f228f1b8b68b3f91e89c6d01a1197a34ac7f09b70b5f7b0a993a5b8984",
+              "understanding_reason": "PENDING_INPUT_RESUMED"
+            },
+            "consumption": {
+              "facts": [],
+              "work_items": [
+                {
+                  "owner_agent": "retail",
+                  "control_mode": "DELEGATED",
+                  "work_item_id": "work:1:resume-input-1",
+                  "allowed_tools": [
+                    "observed_operation_status",
+                    "calculate",
+                    "find_user_id_by_name_zip",
+                    "find_user_id_by_email",
+                    "get_order_details",
+                    "get_product_details",
+                    "get_item_details",
+                    "get_user_details",
+                    "list_all_product_types",
+                    "transfer_to_human_agents"
+                  ],
+                  "allowed_skills": []
+                }
+              ],
+              "result_statuses": [
+                "TERMINAL_FAILURE"
+              ]
+            },
+            "schema_version": "target-evaluation-trace-v1",
+            "state_side_effect": {
+              "state_version_after": 5,
+              "workstream_statuses": [],
+              "state_version_before": 3,
+              "committed_receipt_refs": []
+            }
+          },
+          "synthesis_reason": "DETERMINISTIC_ASSEMBLY",
+          "synthesis_status": "template",
+          "supporting_agents": [],
+          "routing_disposition": "agent_task",
+          "synthesis_conflicts": [],
+          "verification_status": "pass",
+          "verification_reason_code": "TARGET_REQUIREMENTS_SATISFIED"
+        },
+        "stages": []
+      }
+    },
+    {
+      "model_response": {
+        "stop_reason": "tool_use",
+        "usage": {
+          "input_tokens": 5388,
+          "output_tokens": 227,
+          "total_tokens": 5615,
+          "input_token_details": {
+            "cache_read": 4864,
+            "cache_creation": 0
+          }
+        },
+        "tool_names": [
+          "DomainOutcome"
+        ],
+        "invalid_tool_count": 0,
+        "has_content": true
+      }
+    },
+    {
+      "turn": 4,
+      "input": "Is there a reason you’re not able to assist with this? I’m ready to provide my name, ZIP code, and order number if you can use those to find my order. I’d really like to get the exchange process started for the keyboard and thermostat. Can you check what’s possible with those details?",
+      "outcome": {
+        "workflow_run_id": "workflow-run:v1:5339af678658be1c6e260c7faccd20b61036dfc0625ba1e36bd4266187bce2f4",
+        "signal_id": "interaction:v1:44344dc4309f87554fd643f0c22a826e8aabcb7da8e25922f5a864e381911f93",
+        "kind": "FIELDS",
+        "expires_at": "2026-09-13T17:45:48.904368+00:00",
+        "interaction_publication_id": "publication:v1:dc4c8db56e9f16ef9cc4a8af035ef1b82bcdb1f21182cb92228cb93c962f3235"
+      }
+    },
+    {
+      "model_response": {
+        "stop_reason": "tool_use",
+        "usage": {
+          "input_tokens": 5569,
+          "output_tokens": 97,
+          "total_tokens": 5666,
+          "input_token_details": {
+            "cache_read": 4864,
+            "cache_creation": 0
+          }
+        },
+        "tool_names": [
+          "find_user_id_by_name_zip"
+        ],
+        "invalid_tool_count": 0,
+        "has_content": true
+      }
+    },
+    {
+      "model_response": {
+        "stop_reason": "tool_use",
+        "usage": {
+          "input_tokens": 5723,
+          "output_tokens": 98,
+          "total_tokens": 5821,
+          "input_token_details": {
+            "cache_read": 5632,
+            "cache_creation": 0
+          }
+        },
+        "tool_names": [
+          "get_user_details",
+          "get_order_details"
+        ],
+        "invalid_tool_count": 0,
+        "has_content": true
+      }
+    },
+    {
+      "model_response": {
+        "stop_reason": "tool_use",
+        "usage": {
+          "input_tokens": 6600,
+          "output_tokens": 265,
+          "total_tokens": 6865,
+          "input_token_details": {
+            "cache_read": 5760,
+            "cache_creation": 0
+          }
+        },
+        "tool_names": [
+          "get_product_details",
+          "get_product_details"
+        ],
+        "invalid_tool_count": 0,
+        "has_content": true
+      }
+    },
+    {
+      "model_response": {
+        "stop_reason": "tool_use",
+        "usage": {
+          "input_tokens": 8499,
+          "output_tokens": 1174,
+          "total_tokens": 9673,
+          "input_token_details": {
+            "cache_read": 6784,
+            "cache_creation": 0
+          }
+        },
+        "tool_names": [
+          "DomainOutcome"
+        ],
+        "invalid_tool_count": 0,
+        "has_content": true
+      }
+    },
+    {
+      "turn": 5,
+      "input": "Sure—my first name is Yusuf, last name is Rossi, ZIP code is 19122, and order number is W2378156.\n\nOne thing I want to make sure of: I don’t have the email used for the account handy, so I hope those details are enough. Also, when you pull up the order, I need to exchange the mechanical keyboard for a full-size RGB-backlit keyboard with clicky switches. If that exact keyboard isn’t available, then I’d rather skip the keyboard swap altogether and just exchange the smart thermostat for one that works with Google Home instead of Apple HomeKit. Can you confirm what you see on the order and let me know what’s available?",
+      "outcome": {
+        "workflow_run_id": "workflow-run:v1:1685edd9bd4303a0d72593b71f7db80f47112fd057259ae4614ce1a280e837ab",
+        "signal_id": "interaction:v1:543de540ece737cfa644da449c3cd889a43a9e2a7df98c5ceace5283204b4cff",
+        "kind": "FIELDS",
+        "expires_at": "2026-09-13T17:46:03.381854+00:00",
+        "interaction_publication_id": "publication:v1:5774ea8482ca9242793ef47245c35afc13bd422b8b8b7f2a987aed6602537f40"
+      }
+    },
+    {
+      "model_response": {
+        "stop_reason": "tool_use",
+        "usage": {
+          "input_tokens": 8446,
+          "output_tokens": 452,
+          "total_tokens": 8898,
+          "input_token_details": {
+            "cache_read": 4864,
+            "cache_creation": 0
+          }
+        },
+        "tool_names": [
+          "exchange_delivered_order_items"
+        ],
+        "invalid_tool_count": 0,
+        "has_content": true
+      }
+    },
+    {
+      "turn": 6,
+      "input": "Yes, please proceed with exchanging the smart thermostat for the Google Home-compatible version, and the refund to the card ending in 2478 is fine.\n\nBefore we finalize anything, can you also check whether the mechanical keyboard is available in the exact specs I need: full size, RGB backlight, and clicky switches? If that specific version isn’t available, then I’d prefer to skip the keyboard exchange and only do the thermostat.",
+      "outcome": {
+        "workflow_run_id": "workflow-run:v1:f21288076f843047ed2ea7a99925ae88760b5b416c30a12a03d05200267698e5",
+        "signal_id": "approval:action:v1:d32ad57af0a47584fdf1bdd1be28d686a942ce10faee8c679341e5effbdf9c51",
+        "kind": "APPROVAL",
+        "expires_at": "2026-09-06T18:01:10.591426+00:00",
+        "interaction_publication_id": "publication:v1:2c88665dac8728233bcd17c00edf021cde943588cea9e37dfefcdffb3b3bd23d"
+      }
+    },
+    {
+      "approval_classification": "unclear",
+      "usage": {
+        "cache_creation": null,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": null,
+        "input_tokens": 222,
+        "output_tokens": 7,
+        "output_tokens_details": null,
+        "server_tool_use": null,
+        "service_tier": "standard"
+      }
+    }
+  ]
+}

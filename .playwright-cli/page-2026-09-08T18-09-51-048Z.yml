@@ -1,0 +1,164 @@
+- generic [ref=f1e1]:
+  - banner [ref=f1e2]:
+    - generic [ref=f1e3]:
+      - link "DialogPilot 架构与面试手册" [ref=f1e4] [cursor=pointer]:
+        - /url: /DialogPilot/
+      - navigation [ref=f1e5]:
+        - generic [ref=f1e6]:
+          - link "最新架构与源码讲解" [ref=f1e7] [cursor=pointer]:
+            - /url: /DialogPilot/architecture.html
+          - link "80个详细面试追问" [ref=f1e8] [cursor=pointer]:
+            - /url: /DialogPilot/interview-guide.html
+          - link "RAG 离线在线、选型与评测详解" [ref=f1e9] [cursor=pointer]:
+            - /url: /DialogPilot/rag-study.html
+          - link "项目讲述与完整简历" [ref=f1e10] [cursor=pointer]:
+            - /url: /DialogPilot/project-pitch.html
+          - link "手册源码快照与证据口径" [ref=f1e11] [cursor=pointer]:
+            - /url: /DialogPilot/handbook-evidence.html
+  - main "Content" [ref=f1e12]:
+    - generic [ref=f1e13]:
+      - region [ref=f1e14]:
+        - generic [ref=f1e15]: 代码校准 · 面试防守手册
+        - heading "DialogPilot 面试追问：原理、源码与技术取舍" [level=1] [ref=f1e16]
+        - blockquote [ref=f1e17]:
+          - paragraph [ref=f1e18]:
+            - text: 2026-09-08 校准，围绕开发源码快照
+            - code [ref=f1e19]: ceeab4e
+            - text: （起点59dd33c） 与当时工作区。每题先练短答，再展开具体机制和失败边界。Encoder 当前默认关闭；效果数据必须附split与报告；模拟简历数字不在本页充当实测。配套：
+            - link "架构" [ref=f1e20] [cursor=pointer]:
+              - /url: /DialogPilot/architecture.html
+            - text: ·
+            - link "RAG专题" [ref=f1e21] [cursor=pointer]:
+              - /url: /DialogPilot/rag-study.html
+            - text: ·
+            - link "项目讲述" [ref=f1e22] [cursor=pointer]:
+              - /url: /DialogPilot/project-pitch.html
+            - text: ·
+            - link "来源" [ref=f1e23] [cursor=pointer]:
+              - /url: /DialogPilot/handbook-evidence.html
+            - text: 。
+        - generic [ref=f1e24]:
+          - generic [ref=f1e25]: 主张 ›
+          - generic [ref=f1e26]: 源码 ›
+          - generic [ref=f1e27]: Owner ›
+          - generic [ref=f1e28]: 合同 ›
+          - generic [ref=f1e29]: 取舍 ›
+          - generic [ref=f1e30]: 故障 ›
+          - generic [ref=f1e31]: 指标 ›
+          - generic [ref=f1e32]: Trace ›
+          - generic [ref=f1e33]: 边界 ›
+          - generic [ref=f1e34]: 追问
+        - generic [ref=f1e35]:
+          - generic [ref=f1e36]: 80 个代码校准追问
+          - generic [ref=f1e37]: 答案对应当前实现
+          - generic [ref=f1e38]: 不支持的主张已标记
+          - generic [ref=f1e39]: STAR + 连续追问
+        - region "面试问题搜索" [ref=f1e40]:
+          - generic [ref=f1e41]: 搜索问题与完整答案
+          - searchbox "搜索问题与完整答案" [ref=f1e42]: HNSW
+          - status [ref=f1e43]: 2 / 80 个问题
+          - button "展开匹配答案" [active] [ref=f1e44] [cursor=pointer]
+          - button "收起全部" [ref=f1e45] [cursor=pointer]
+      - generic [ref=f1e46]:
+        - complementary "答题地图章节导航" [ref=f1e47]:
+          - generic [ref=f1e48]:
+            - generic [ref=f1e49]: 答题地图
+            - strong [ref=f1e50]: 从旧答案到代码证据
+          - navigation [ref=f1e51]:
+            - link "00 项目定位与架构防守" [ref=f1e52] [cursor=pointer]:
+              - /url: "#1-项目定位与架构防守"
+              - generic [ref=f1e53]: "00"
+              - generic [ref=f1e54]: 项目定位与架构防守
+            - link "01 意图识别经典范式与当前选择" [ref=f1e55] [cursor=pointer]:
+              - /url: "#2-意图识别经典范式与当前选择"
+              - generic [ref=f1e56]: "01"
+              - generic [ref=f1e57]: 意图识别经典范式与当前选择
+            - link "02 框架选型与多Agent机制" [ref=f1e58] [cursor=pointer]:
+              - /url: "#3-框架选型与多agent机制"
+              - generic [ref=f1e59]: "02"
+              - generic [ref=f1e60]: 框架选型与多Agent机制
+            - link "03 上下文、记忆与压缩" [ref=f1e61] [cursor=pointer]:
+              - /url: "#4-上下文记忆与压缩"
+              - generic [ref=f1e62]: "03"
+              - generic [ref=f1e63]: 上下文、记忆与压缩
+            - link "04 RAG原理与工程追问" [ref=f1e64] [cursor=pointer]:
+              - /url: "#5-rag原理与工程追问"
+              - generic [ref=f1e65]: "04"
+              - generic [ref=f1e66]: RAG原理与工程追问
+            - link "05 生成、核验与业务事实" [ref=f1e67] [cursor=pointer]:
+              - /url: "#6-生成核验与业务事实"
+              - generic [ref=f1e68]: "05"
+              - generic [ref=f1e69]: 生成、核验与业务事实
+            - link "06 审批、持久化与可靠性" [ref=f1e70] [cursor=pointer]:
+              - /url: "#7-审批持久化与可靠性"
+              - generic [ref=f1e71]: "06"
+              - generic [ref=f1e72]: 审批、持久化与可靠性
+            - link "07 评测、数据与优化闭环" [ref=f1e73] [cursor=pointer]:
+              - /url: "#8-评测数据与优化闭环"
+              - generic [ref=f1e74]: "07"
+              - generic [ref=f1e75]: 评测、数据与优化闭环
+            - link "08 多模态、可观测、扩展与项目边界" [ref=f1e76] [cursor=pointer]:
+              - /url: "#9-多模态可观测扩展与项目边界"
+              - generic [ref=f1e77]: "08"
+              - generic [ref=f1e78]: 多模态、可观测、扩展与项目边界
+            - link "09 状态、长期记忆与后端扩展深挖" [ref=f1e79] [cursor=pointer]:
+              - /url: "#10-状态长期记忆与后端扩展深挖"
+              - generic [ref=f1e80]: "09"
+              - generic [ref=f1e81]: 状态、长期记忆与后端扩展深挖
+        - article [ref=f1e82]:
+          - text: 00 − + + + + + 01 + + + + + + + + + + 02 + + + + + + + + 03 + + + + + +
+          - generic [ref=f1e159]:
+            - heading "04 5. RAG原理与工程追问" [level=2] [ref=f1e160]
+            - text: + + +
+            - group [ref=f1e167]:
+              - generic "Q34：HNSW为什么快，牺牲了什么？ −" [ref=f1e281] [cursor=pointer]
+              - generic [ref=f1e282]:
+                - paragraph [ref=f1e283]:
+                  - strong [ref=f1e284]: 短答：
+                  - text: 通过多层近邻图逐步接近目标，减少逐个向量计算，换来额外内存、建图成本和近似召回误差。
+                - paragraph [ref=f1e285]:
+                  - strong [ref=f1e286]: 展开：
+                  - text: 上层稀疏导航，底层细搜。M是连接规模，ef_construction是建图候选宽度，ef_search是查询探索宽度；不要把三者都叫TopK。当前建图M16、ef_construction64，按generation创建cosine索引，查询是否走它需EXPLAIN验证。
+                - paragraph [ref=f1e287]:
+                  - strong [ref=f1e288]: 继续追问：
+                  - text: exact topK仍可能语义错误；ANN recall和证据Recall不同。过滤可能减少有效候选，应测试不同scope选择性。
+                  - link "官方说明" [ref=f1e289] [cursor=pointer]:
+                    - /url: https://github.com/pgvector/pgvector
+                  - text: 。源码：
+                  - link "infrastructure/hybrid_retrieval_backend.py" [ref=f1e290] [cursor=pointer]:
+                    - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/infrastructure/hybrid_retrieval_backend.py
+                  - text: 。
+            - text: + + + + + + + + + +
+          - text: 05 + + + + + + 06 + + + + + + 07 + + + + + + + + + + 08 + + + + + +
+          - generic [ref=f1e253]:
+            - heading "09 10. 状态、长期记忆与后端扩展深挖" [level=2] [ref=f1e254]
+            - text: + + + + + +
+            - group [ref=f1e267]:
+              - generic "Q79：部署、性能和容量你能承诺什么？ −" [ref=f1e291] [cursor=pointer]
+              - generic [ref=f1e292]:
+                - paragraph [ref=f1e293]:
+                  - strong [ref=f1e294]: 短答：
+                  - text: 当前是Docker Compose本地可复现后端，有应用、PG、Redis、Nginx和监控；没有证据就不承诺高并发生产SLA。
+                - paragraph [ref=f1e295]:
+                  - strong [ref=f1e296]: 展开：
+                  - text: CPU同步SQL、embedding/GPU、模型API和连接池都是潜在瓶颈。async接口不自动让阻塞操作无成本；并行检索也要受连接与线程预算限制。扩库遇过HNSW构建共享内存不足和一次PG不可用，前者有环境处理记录，后者底层原因未确定，不能说全是模型错误。压测应固定语料、缓存热度、并发和模型模式，报告队列/池等待与真实墙钟延迟。
+                - paragraph [ref=f1e297]:
+                  - strong [ref=f1e298]: 继续追问：
+                  - text: 可先读only回放定位本地耗时，再做明确预算的真实API抽样；本轮文档没运行压测。源码：
+                  - link "infrastructure/bounded_retrieval_executor.py" [ref=f1e299] [cursor=pointer]:
+                    - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/infrastructure/bounded_retrieval_executor.py
+                  - text: 、
+                  - link "infrastructure/retrieval_postgres.py" [ref=f1e300] [cursor=pointer]:
+                    - /url: https://github.com/Garrulus21yyx/DialogPilot/blob/ceeab4e1ab06414cdee1ce2a527095686743580b/infrastructure/retrieval_postgres.py
+                  - text: 。
+            - text: +
+  - contentinfo [ref=f1e271]:
+    - generic [ref=f1e272]:
+      - heading "DialogPilot 架构与面试手册" [level=2] [ref=f1e273]
+      - generic [ref=f1e274]:
+        - list [ref=f1e276]:
+          - listitem [ref=f1e277]: DialogPilot 架构与面试手册
+        - generic [ref=f1e278]:
+          - list
+        - paragraph [ref=f1e280]: 最新源码调用链、80个详细追问、RAG离线在线与真实评测证据
+  - button "返回顶部": ↑

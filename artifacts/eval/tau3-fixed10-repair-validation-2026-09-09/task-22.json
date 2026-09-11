@@ -1,0 +1,1755 @@
+{
+  "task_id": "22",
+  "official_reward": 0.0,
+  "langfuse_session_id": "tau3-ad98956060f44499a26416e94fe15e66",
+  "termination": "user_stop",
+  "simulation_status": "COMPLETED",
+  "evaluation_errors": {},
+  "all": {
+    "reward": 0.0,
+    "db_check": {
+      "db_match": false,
+      "db_reward": 0.0
+    },
+    "env_assertions": [],
+    "action_checks": [
+      {
+        "action": {
+          "action_id": "22_0",
+          "requestor": "assistant",
+          "name": "find_user_id_by_name_zip",
+          "arguments": {
+            "first_name": "Ethan",
+            "last_name": "Garcia",
+            "zip": "80280"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "22_1",
+          "requestor": "assistant",
+          "name": "modify_user_address",
+          "arguments": {
+            "user_id": "ethan_garcia_1261",
+            "address1": "101 Highway",
+            "address2": "",
+            "city": "New York",
+            "state": "NY",
+            "country": "USA",
+            "zip": "10001"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": false,
+        "action_reward": 0.0,
+        "tool_type": "write"
+      },
+      {
+        "action": {
+          "action_id": "22_2",
+          "requestor": "assistant",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W4967593"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "22_3",
+          "requestor": "assistant",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W9911714"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "22_4",
+          "requestor": "assistant",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W5733668"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "22_5",
+          "requestor": "assistant",
+          "name": "modify_pending_order_address",
+          "arguments": {
+            "order_id": "#W9911714",
+            "address1": "101 Highway",
+            "address2": "",
+            "city": "New York",
+            "state": "NY",
+            "country": "USA",
+            "zip": "10001"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": false,
+        "action_reward": 0.0,
+        "tool_type": "write"
+      },
+      {
+        "action": {
+          "action_id": "22_6",
+          "requestor": "assistant",
+          "name": "modify_user_address",
+          "arguments": {
+            "user_id": "ethan_garcia_1261",
+            "address1": "667 Highland Drive",
+            "address2": "Suite 865",
+            "city": "Denver",
+            "state": "CO",
+            "country": "USA",
+            "zip": "80280"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": false,
+        "action_reward": 0.0,
+        "tool_type": "write"
+      }
+    ],
+    "nl_assertions": [],
+    "communicate_checks": null,
+    "reward_basis": [
+      "DB",
+      "NL_ASSERTION"
+    ],
+    "reward_breakdown": {
+      "DB": 0.0,
+      "NL_ASSERTION": 1.0
+    },
+    "info": {
+      "env": null,
+      "nl": {
+        "note": "No nl_assertions to evaluate"
+      },
+      "communicate": {
+        "note": "No communicate_info to evaluate"
+      },
+      "action": null
+    }
+  },
+  "env": {
+    "reward": 0.0,
+    "db_check": {
+      "db_match": false,
+      "db_reward": 0.0
+    },
+    "env_assertions": [],
+    "action_checks": null,
+    "nl_assertions": null,
+    "communicate_checks": null,
+    "reward_basis": [
+      "DB",
+      "NL_ASSERTION"
+    ],
+    "reward_breakdown": {
+      "DB": 0.0
+    },
+    "info": null
+  },
+  "action": {
+    "reward": 0.0,
+    "db_check": null,
+    "env_assertions": null,
+    "action_checks": [
+      {
+        "action": {
+          "action_id": "22_0",
+          "requestor": "assistant",
+          "name": "find_user_id_by_name_zip",
+          "arguments": {
+            "first_name": "Ethan",
+            "last_name": "Garcia",
+            "zip": "80280"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "22_1",
+          "requestor": "assistant",
+          "name": "modify_user_address",
+          "arguments": {
+            "user_id": "ethan_garcia_1261",
+            "address1": "101 Highway",
+            "address2": "",
+            "city": "New York",
+            "state": "NY",
+            "country": "USA",
+            "zip": "10001"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": false,
+        "action_reward": 0.0,
+        "tool_type": "write"
+      },
+      {
+        "action": {
+          "action_id": "22_2",
+          "requestor": "assistant",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W4967593"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "22_3",
+          "requestor": "assistant",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W9911714"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "22_4",
+          "requestor": "assistant",
+          "name": "get_order_details",
+          "arguments": {
+            "order_id": "#W5733668"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": true,
+        "action_reward": 1.0,
+        "tool_type": "read"
+      },
+      {
+        "action": {
+          "action_id": "22_5",
+          "requestor": "assistant",
+          "name": "modify_pending_order_address",
+          "arguments": {
+            "order_id": "#W9911714",
+            "address1": "101 Highway",
+            "address2": "",
+            "city": "New York",
+            "state": "NY",
+            "country": "USA",
+            "zip": "10001"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": false,
+        "action_reward": 0.0,
+        "tool_type": "write"
+      },
+      {
+        "action": {
+          "action_id": "22_6",
+          "requestor": "assistant",
+          "name": "modify_user_address",
+          "arguments": {
+            "user_id": "ethan_garcia_1261",
+            "address1": "667 Highland Drive",
+            "address2": "Suite 865",
+            "city": "Denver",
+            "state": "CO",
+            "country": "USA",
+            "zip": "80280"
+          },
+          "info": null,
+          "compare_args": null
+        },
+        "action_match": false,
+        "action_reward": 0.0,
+        "tool_type": "write"
+      }
+    ],
+    "nl_assertions": null,
+    "communicate_checks": null,
+    "reward_basis": [
+      "DB"
+    ],
+    "reward_breakdown": {
+      "ACTION": 0.0
+    },
+    "info": null
+  },
+  "status": "EVALUATED",
+  "simulator_diagnostics": {
+    "capture_complete": true,
+    "capture_errors": [],
+    "calls": [
+      {
+        "call_id": "9e947852-fb4b-4021-8d55-444b178547af",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 25,
+            "prompt_tokens": 417,
+            "total_tokens": 442,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 25
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 384,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 384,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "ee4e53b8-9fb8-439e-b0c7-6b5b6ae7ee91",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 23,
+            "prompt_tokens": 480,
+            "total_tokens": 503,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 23
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 384,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 384,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "b6680fd8-3e43-4647-b121-8b112b9cd4db",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 16,
+            "prompt_tokens": 536,
+            "total_tokens": 552,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 16
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 384,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 384,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "07d18a47-3563-4ade-91dc-063ed0aa491f",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 30,
+            "prompt_tokens": 716,
+            "total_tokens": 746,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 30
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 512,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 512,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "da52395e-46f3-414a-8e28-477ac934cb5a",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 35,
+            "prompt_tokens": 986,
+            "total_tokens": 1021,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 35
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 640,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 640,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "d852b2a6-7059-4ee1-b1c9-dd905924bb2e",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 17,
+            "prompt_tokens": 1160,
+            "total_tokens": 1177,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 17
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 896,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 896,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "ac87871a-cd36-4278-9468-4391b112aa78",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 26,
+            "prompt_tokens": 1208,
+            "total_tokens": 1234,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 26
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 1152,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 1152,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "08c17a25-08bd-4127-b5ba-a1483890fa8d",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 28,
+            "prompt_tokens": 1522,
+            "total_tokens": 1550,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 28
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 1152,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 1152,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      },
+      {
+        "call_id": "2fa9a305-b9a6-4840-a9e0-b6e4149806e9",
+        "stage": "SDK_RETURNED",
+        "assessment": {
+          "outcome": "TEXT",
+          "finish_reason": "stop",
+          "content_present": true,
+          "tool_call_count": 0,
+          "reasoning_present": false,
+          "usage": {
+            "completion_tokens": 16,
+            "prompt_tokens": 1714,
+            "total_tokens": 1730,
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "text_tokens": 16
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 1536,
+              "image_tokens": null,
+              "text_tokens": null,
+              "video_tokens": null,
+              "cache_creation_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 1536,
+            "inference_geo": null,
+            "speed": null
+          }
+        },
+        "failure": null,
+        "trace_export_error": null
+      }
+    ]
+  },
+  "target_trace": [
+    {
+      "verification": {
+        "status": "pass",
+        "grounded": true,
+        "need_escalation": false,
+        "reason": "answer supported and request addressed",
+        "reason_code": "passed",
+        "assessment": {
+          "request_hash": "35f8098782decba1b8bf3852eed9bd073e2cee01fb4dd7991e0f84776afc5425",
+          "supported": true,
+          "answered": true,
+          "approval_terms_complete": false,
+          "issues": []
+        },
+        "request_binding": "eb4a5b4070cb387101214b25aca309ef3adfe1f22a5ab53accb89e83d733d7a8"
+      },
+      "candidate": "I'd be happy to help you update your address. First, I need to authenticate your identity. Could you please provide me with the email address associated with your account?"
+    },
+    {
+      "turn": 1,
+      "input": "Hi, I need to update my address on my account and also for any orders I have. Can you help with that?",
+      "outcome": {
+        "response_id": "publication:v1:3a0fca15a09ed7b5311515fd719bc2895052bc63501550e328eee2da0a841b2a",
+        "response": {
+          "intent": "CONVERSATION_RESPONSE",
+          "conv_id": "tau3-ad98956060f44499a26416e94fe15e66",
+          "coverage": {
+            "complete": true,
+            "missing_requirement_ids": []
+          },
+          "grounded": true,
+          "response": "I'd be happy to help you update your address. First, I need to authenticate your identity. Could you please provide me with the email address associated with your account?",
+          "verified": true,
+          "escalated": false,
+          "task_plan": {
+            "plan_id": "turn-plan:v1:ec36295d15ef44f666a23bd193960f696e23eb1fd8e1ebbd8f9a1f3f5c7822fa",
+            "work_item_ids": []
+          },
+          "ticket_id": null,
+          "agent_type": "general",
+          "latency_ms": 3627.085966989398,
+          "request_id": "turn-1",
+          "agent_types": [],
+          "response_id": "publication:v1:3a0fca15a09ed7b5311515fd719bc2895052bc63501550e328eee2da0a841b2a",
+          "intent_group": "other",
+          "response_seq": 1,
+          "primary_agent": "",
+          "ticket_status": null,
+          "agent_outcomes": [],
+          "bundle_version": "tau3-retail-v1",
+          "routing_reason": "CONVERSATION_RESPONSE",
+          "task_completed": false,
+          "delivery_status": "selected",
+          "handoff_created": false,
+          "evaluation_trace": {
+            "cost": {
+              "latency_ms": 3627.085966989398,
+              "work_item_count": 0,
+              "conversation_planner_invoked": true
+            },
+            "outcome": {
+              "kind": "COMPLETED",
+              "task_completed": false,
+              "verifier_status": "PASS",
+              "coverage_complete": true,
+              "missing_requirement_ids": []
+            },
+            "trigger": {
+              "invocation_admitted": true,
+              "deterministic_resolution": "UNRESOLVED"
+            },
+            "artifact": {
+              "plan_id": "turn-plan:v1:ec36295d15ef44f666a23bd193960f696e23eb1fd8e1ebbd8f9a1f3f5c7822fa",
+              "owner_ids": [],
+              "route_mode": "RESPONSE",
+              "registry_fingerprint": "capability-bundle:v1:710655f63f80c3e6cda102a539dd5fd96f113e9be780e8f8feb08ca53dbb37db",
+              "understanding_reason": "CONVERSATION_RESPONSE"
+            },
+            "consumption": {
+              "facts": [],
+              "work_items": [],
+              "result_statuses": []
+            },
+            "schema_version": "target-evaluation-trace-v1",
+            "state_side_effect": {
+              "state_version_after": 0,
+              "workstream_statuses": [],
+              "state_version_before": 0,
+              "committed_receipt_refs": []
+            }
+          },
+          "synthesis_reason": "ANSWER_SUPPORT_CHECKED",
+          "synthesis_status": "conversation_compose",
+          "supporting_agents": [],
+          "routing_disposition": "response",
+          "synthesis_conflicts": [],
+          "verification_status": "pass",
+          "verification_reason_code": "ANSWER_SUPPORT_CHECKED"
+        },
+        "stages": []
+      }
+    },
+    {
+      "verification": {
+        "status": "pass",
+        "grounded": true,
+        "need_escalation": false,
+        "reason": "answer supported and request addressed",
+        "reason_code": "passed",
+        "assessment": {
+          "request_hash": "9f9645c0ba3e021d74a13010fb6d908f995f4e133c3dd87463001e1902a29923",
+          "supported": true,
+          "answered": true,
+          "approval_terms_complete": false,
+          "issues": []
+        },
+        "request_binding": "6d9487e4e4fcc4961835e3e45934c24661afd5b98ee982cbf172fa7443b41edf"
+      },
+      "candidate": "Of course! I can look up your account using your first name, last name, and zip code instead. Could you please provide those details?"
+    },
+    {
+      "turn": 2,
+      "input": "I actually don’t remember my email address right now. Is there another way you can look up my account?",
+      "outcome": {
+        "response_id": "publication:v1:633a49147b9d3872e979532d182c381e71bf2c8ae0aa7b8a0d0f4851fe77aeec",
+        "response": {
+          "intent": "CONVERSATION_RESPONSE",
+          "conv_id": "tau3-ad98956060f44499a26416e94fe15e66",
+          "coverage": {
+            "complete": true,
+            "missing_requirement_ids": []
+          },
+          "grounded": true,
+          "response": "Of course! I can look up your account using your first name, last name, and zip code instead. Could you please provide those details?",
+          "verified": true,
+          "escalated": false,
+          "task_plan": {
+            "plan_id": "turn-plan:v1:4bff802b3d36aa369d70447efe412d2e5576fec2a33f973310660de2e044d4cc",
+            "work_item_ids": []
+          },
+          "ticket_id": null,
+          "agent_type": "general",
+          "latency_ms": 2994.428176432848,
+          "request_id": "turn-2",
+          "agent_types": [],
+          "response_id": "publication:v1:633a49147b9d3872e979532d182c381e71bf2c8ae0aa7b8a0d0f4851fe77aeec",
+          "intent_group": "other",
+          "response_seq": 2,
+          "primary_agent": "",
+          "ticket_status": null,
+          "agent_outcomes": [],
+          "bundle_version": "tau3-retail-v1",
+          "routing_reason": "CONVERSATION_RESPONSE",
+          "task_completed": false,
+          "delivery_status": "selected",
+          "handoff_created": false,
+          "evaluation_trace": {
+            "cost": {
+              "latency_ms": 2994.428176432848,
+              "work_item_count": 0,
+              "conversation_planner_invoked": true
+            },
+            "outcome": {
+              "kind": "COMPLETED",
+              "task_completed": false,
+              "verifier_status": "PASS",
+              "coverage_complete": true,
+              "missing_requirement_ids": []
+            },
+            "trigger": {
+              "invocation_admitted": true,
+              "deterministic_resolution": "UNRESOLVED"
+            },
+            "artifact": {
+              "plan_id": "turn-plan:v1:4bff802b3d36aa369d70447efe412d2e5576fec2a33f973310660de2e044d4cc",
+              "owner_ids": [],
+              "route_mode": "RESPONSE",
+              "registry_fingerprint": "capability-bundle:v1:710655f63f80c3e6cda102a539dd5fd96f113e9be780e8f8feb08ca53dbb37db",
+              "understanding_reason": "CONVERSATION_RESPONSE"
+            },
+            "consumption": {
+              "facts": [],
+              "work_items": [],
+              "result_statuses": []
+            },
+            "schema_version": "target-evaluation-trace-v1",
+            "state_side_effect": {
+              "state_version_after": 0,
+              "workstream_statuses": [],
+              "state_version_before": 0,
+              "committed_receipt_refs": []
+            }
+          },
+          "synthesis_reason": "ANSWER_SUPPORT_CHECKED",
+          "synthesis_status": "conversation_compose",
+          "supporting_agents": [],
+          "routing_disposition": "response",
+          "synthesis_conflicts": [],
+          "verification_status": "pass",
+          "verification_reason_code": "ANSWER_SUPPORT_CHECKED"
+        },
+        "stages": []
+      }
+    },
+    {
+      "verification": {
+        "status": "pass",
+        "grounded": true,
+        "need_escalation": false,
+        "reason": "answer supported and request addressed",
+        "reason_code": "passed",
+        "assessment": {
+          "request_hash": "8ee6585516cf49ef2dcd8d7f5e2fba2ba75632f75aa8b55c72cfe25b72383097",
+          "supported": true,
+          "answered": true,
+          "approval_terms_complete": false,
+          "issues": []
+        },
+        "request_binding": "d4c65f8dd62a3755eca6d7e217afb25f246e60ad2e2717cf021cf6b277f826c1"
+      },
+      "candidate": "I've located your account, Ethan. I can see your current default address on file is:\n\n**667 Highland Drive, Suite 865, Denver, CO 80280**\n\nYou mentioned you'd like to update your address on your account and also for any orders you have. I can see you have three orders on file:\n- #W4967593\n- #W9911714\n- #W5733668\n\nTo help you with this, could you please provide:\n1. The **new address** you'd like to use\n2. Which orders you'd like to update (all three, or specific ones)?\n\nNote that I can only modify the shipping address of orders that are still in **pending** status. Let me know the details and I'll check what's possible."
+    },
+    {
+      "turn": 3,
+      "input": "Sure, my name is Ethan Garcia and my zip code is 80280.",
+      "outcome": {
+        "response_id": "publication:v1:2578adb5209bf597c8caac380e4abc2f637136afec60ca14fd0658bc9e18badb",
+        "response": {
+          "intent": "CONVERSATION_RESPONSE",
+          "conv_id": "tau3-ad98956060f44499a26416e94fe15e66",
+          "coverage": {
+            "complete": true,
+            "missing_requirement_ids": []
+          },
+          "grounded": true,
+          "response": "I've located your account, Ethan. I can see your current default address on file is:\n\n**667 Highland Drive, Suite 865, Denver, CO 80280**\n\nYou mentioned you'd like to update your address on your account and also for any orders you have. I can see you have three orders on file:\n- #W4967593\n- #W9911714\n- #W5733668\n\nTo help you with this, could you please provide:\n1. The **new address** you'd like to use\n2. Which orders you'd like to update (all three, or specific ones)?\n\nNote that I can only modify the shipping address of orders that are still in **pending** status. Let me know the details and I'll check what's possible.",
+          "verified": true,
+          "escalated": false,
+          "task_plan": {
+            "plan_id": "turn-plan:v1:f5f2de07f3d07208da2cdbd649f28feb8e277171059df53dee661df74fdb73f4",
+            "work_item_ids": [
+              "work:invocation:v1:5a5f708432b87ca76ebe83e1753438b4385959e4175ef43e43b145c1351a19a9:step:0:1:atomic:call_00_2lKf8OQWw6nzIY2lxKCp2580",
+              "work:invocation:v1:5a5f708432b87ca76ebe83e1753438b4385959e4175ef43e43b145c1351a19a9:step:1:1:atomic:call_00_NVqEEXoI8qS1u0Idms5J0393"
+            ]
+          },
+          "ticket_id": null,
+          "agent_type": "general",
+          "latency_ms": 6166.685193777084,
+          "request_id": "turn-3",
+          "agent_types": [],
+          "response_id": "publication:v1:2578adb5209bf597c8caac380e4abc2f637136afec60ca14fd0658bc9e18badb",
+          "intent_group": "other",
+          "response_seq": 3,
+          "primary_agent": "",
+          "ticket_status": null,
+          "agent_outcomes": [
+            {
+              "status": "SUCCEEDED",
+              "control": {
+                "revision": 1,
+                "control_id": "control:invocation:v1:5a5f708432b87ca76ebe83e1753438b4385959e4175ef43e43b145c1351a19a9:step:0:atomic:call_00_2lKf8OQWw6nzIY2lxKCp2580"
+              },
+              "owner_agent": "retail",
+              "reason_code": "TOOL_REQUIREMENTS_SATISFIED",
+              "work_item_id": "work:invocation:v1:5a5f708432b87ca76ebe83e1753438b4385959e4175ef43e43b145c1351a19a9:step:0:1:atomic:call_00_2lKf8OQWw6nzIY2lxKCp2580"
+            },
+            {
+              "status": "SUCCEEDED",
+              "control": {
+                "revision": 1,
+                "control_id": "control:invocation:v1:5a5f708432b87ca76ebe83e1753438b4385959e4175ef43e43b145c1351a19a9:step:1:atomic:call_00_NVqEEXoI8qS1u0Idms5J0393"
+              },
+              "owner_agent": "retail",
+              "reason_code": "TOOL_REQUIREMENTS_SATISFIED",
+              "work_item_id": "work:invocation:v1:5a5f708432b87ca76ebe83e1753438b4385959e4175ef43e43b145c1351a19a9:step:1:1:atomic:call_00_NVqEEXoI8qS1u0Idms5J0393"
+            }
+          ],
+          "bundle_version": "tau3-retail-v1",
+          "routing_reason": "CONVERSATION_RESPONSE",
+          "task_completed": true,
+          "delivery_status": "selected",
+          "handoff_created": false,
+          "evaluation_trace": {
+            "cost": {
+              "latency_ms": 6166.685193777084,
+              "work_item_count": 2,
+              "conversation_planner_invoked": true
+            },
+            "outcome": {
+              "kind": "COMPLETED",
+              "task_completed": true,
+              "verifier_status": "PASS",
+              "coverage_complete": true,
+              "missing_requirement_ids": []
+            },
+            "trigger": {
+              "invocation_admitted": true,
+              "deterministic_resolution": "UNRESOLVED"
+            },
+            "artifact": {
+              "plan_id": "turn-plan:v1:f5f2de07f3d07208da2cdbd649f28feb8e277171059df53dee661df74fdb73f4",
+              "owner_ids": [],
+              "route_mode": "RESPONSE",
+              "registry_fingerprint": "capability-bundle:v1:710655f63f80c3e6cda102a539dd5fd96f113e9be780e8f8feb08ca53dbb37db",
+              "understanding_reason": "CONVERSATION_RESPONSE"
+            },
+            "consumption": {
+              "facts": [
+                {
+                  "source_ref": "work:invocation:v1:5a5f708432b87ca76ebe83e1753438b4385959e4175ef43e43b145c1351a19a9:step:0:1:atomic:call_00_2lKf8OQWw6nzIY2lxKCp2580:1:find_user_id_by_name_zip",
+                  "producer_id": "find_user_id_by_name_zip",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.find_user_id_by_name_zip",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "work:invocation:v1:5a5f708432b87ca76ebe83e1753438b4385959e4175ef43e43b145c1351a19a9:step:1:1:atomic:call_00_NVqEEXoI8qS1u0Idms5J0393:1:get_user_details",
+                  "producer_id": "get_user_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_user_details",
+                  "producer_version": "tool-output-v1"
+                }
+              ],
+              "work_items": [
+                {
+                  "control": {
+                    "revision": 1,
+                    "control_id": "control:invocation:v1:5a5f708432b87ca76ebe83e1753438b4385959e4175ef43e43b145c1351a19a9:step:0:atomic:call_00_2lKf8OQWw6nzIY2lxKCp2580"
+                  },
+                  "owner_agent": "retail",
+                  "control_mode": "DIRECT",
+                  "work_item_id": "work:invocation:v1:5a5f708432b87ca76ebe83e1753438b4385959e4175ef43e43b145c1351a19a9:step:0:1:atomic:call_00_2lKf8OQWw6nzIY2lxKCp2580",
+                  "allowed_tools": [
+                    "find_user_id_by_name_zip"
+                  ],
+                  "allowed_skills": []
+                },
+                {
+                  "control": {
+                    "revision": 1,
+                    "control_id": "control:invocation:v1:5a5f708432b87ca76ebe83e1753438b4385959e4175ef43e43b145c1351a19a9:step:1:atomic:call_00_NVqEEXoI8qS1u0Idms5J0393"
+                  },
+                  "owner_agent": "retail",
+                  "control_mode": "DIRECT",
+                  "work_item_id": "work:invocation:v1:5a5f708432b87ca76ebe83e1753438b4385959e4175ef43e43b145c1351a19a9:step:1:1:atomic:call_00_NVqEEXoI8qS1u0Idms5J0393",
+                  "allowed_tools": [
+                    "get_user_details"
+                  ],
+                  "allowed_skills": []
+                }
+              ],
+              "result_statuses": [
+                "SUCCEEDED",
+                "SUCCEEDED"
+              ]
+            },
+            "schema_version": "target-evaluation-trace-v1",
+            "state_side_effect": {
+              "state_version_after": 2,
+              "workstream_statuses": [],
+              "state_version_before": 2,
+              "committed_receipt_refs": []
+            }
+          },
+          "synthesis_reason": "ANSWER_SUPPORT_CHECKED",
+          "synthesis_status": "conversation_compose",
+          "supporting_agents": [],
+          "routing_disposition": "response",
+          "synthesis_conflicts": [],
+          "verification_status": "pass",
+          "verification_reason_code": "ANSWER_SUPPORT_CHECKED"
+        },
+        "stages": []
+      }
+    },
+    {
+      "verification": {
+        "status": "pass",
+        "grounded": true,
+        "need_escalation": false,
+        "reason": "answer supported and request addressed",
+        "reason_code": "passed",
+        "assessment": {
+          "request_hash": "3e1dc2c4de6110f96466ca16066c377ac14680ae70b47ca53cd1d48ba01a1fc6",
+          "supported": true,
+          "answered": true,
+          "approval_terms_complete": false,
+          "issues": []
+        },
+        "request_binding": "00d349b29e6bf1e07b1517c385f463caf8372313f2bec36b4d4d2f21aa0410a0"
+      },
+      "candidate": "I've checked the status of your three orders. Here's what I found:\n\n- **#W4967593** — status: **processed** (cannot modify address)\n- **#W9911714** — status: **pending** (can modify address)\n- **#W5733668** — status: **processed** (cannot modify address)\n\nSo I can only update the shipping address on order **#W9911714**, since the other two have already been processed and are no longer modifiable.\n\nHere's what I can do for you:\n\n1. **Update your default account address** to: 101 Highway, New York, 10001\n2. **Update the shipping address on pending order #W9911714** to: 101 Highway, New York, 10001\n\nBefore I proceed, could you please confirm the full new address details? You provided \"101 Highway, New York, 10001\" — could you confirm the state as well? Also, please confirm with a **yes** that you'd like me to proceed with updating both your default account address and the shipping address on order #W9911714."
+    },
+    {
+      "turn": 4,
+      "input": "The new address I want to use is 101 Highway, New York, 10001. And yes, please update all three orders if possible.",
+      "outcome": {
+        "response_id": "publication:v1:31ffcc32d8030008925ef6ad152f213bd4d09685b681c2a4984a62c9a96fe9c5",
+        "response": {
+          "intent": "CONVERSATION_RESPONSE",
+          "conv_id": "tau3-ad98956060f44499a26416e94fe15e66",
+          "coverage": {
+            "complete": true,
+            "missing_requirement_ids": []
+          },
+          "grounded": true,
+          "response": "I've checked the status of your three orders. Here's what I found:\n\n- **#W4967593** — status: **processed** (cannot modify address)\n- **#W9911714** — status: **pending** (can modify address)\n- **#W5733668** — status: **processed** (cannot modify address)\n\nSo I can only update the shipping address on order **#W9911714**, since the other two have already been processed and are no longer modifiable.\n\nHere's what I can do for you:\n\n1. **Update your default account address** to: 101 Highway, New York, 10001\n2. **Update the shipping address on pending order #W9911714** to: 101 Highway, New York, 10001\n\nBefore I proceed, could you please confirm the full new address details? You provided \"101 Highway, New York, 10001\" — could you confirm the state as well? Also, please confirm with a **yes** that you'd like me to proceed with updating both your default account address and the shipping address on order #W9911714.",
+          "verified": true,
+          "escalated": false,
+          "task_plan": {
+            "plan_id": "turn-plan:v1:a6d00cb4133245c9168c02c1646efd57c0abf4523700533ebccdc6e158a73732",
+            "work_item_ids": [
+              "work:invocation:v1:e017a60375301fca4685e3058fc05279a137379852eb8217fb5fde4bc6658246:step:0:1:atomic:call_00_i5YdX34kbZYtM1Dyh40K3967",
+              "work:invocation:v1:e017a60375301fca4685e3058fc05279a137379852eb8217fb5fde4bc6658246:step:0:2:atomic:call_01_Y84JfMX13jUJUgCPWRyw8015",
+              "work:invocation:v1:e017a60375301fca4685e3058fc05279a137379852eb8217fb5fde4bc6658246:step:0:3:atomic:call_02_dlvFEEIbhA0QwbfJ5ayk7343"
+            ]
+          },
+          "ticket_id": null,
+          "agent_type": "general",
+          "latency_ms": 6648.340754210949,
+          "request_id": "turn-4",
+          "agent_types": [],
+          "response_id": "publication:v1:31ffcc32d8030008925ef6ad152f213bd4d09685b681c2a4984a62c9a96fe9c5",
+          "intent_group": "other",
+          "response_seq": 4,
+          "primary_agent": "",
+          "ticket_status": null,
+          "agent_outcomes": [
+            {
+              "status": "SUCCEEDED",
+              "control": {
+                "revision": 1,
+                "control_id": "control:invocation:v1:e017a60375301fca4685e3058fc05279a137379852eb8217fb5fde4bc6658246:step:0:atomic:call_00_i5YdX34kbZYtM1Dyh40K3967"
+              },
+              "owner_agent": "retail",
+              "reason_code": "TOOL_REQUIREMENTS_SATISFIED",
+              "work_item_id": "work:invocation:v1:e017a60375301fca4685e3058fc05279a137379852eb8217fb5fde4bc6658246:step:0:1:atomic:call_00_i5YdX34kbZYtM1Dyh40K3967"
+            },
+            {
+              "status": "SUCCEEDED",
+              "control": {
+                "revision": 1,
+                "control_id": "control:invocation:v1:e017a60375301fca4685e3058fc05279a137379852eb8217fb5fde4bc6658246:step:0:atomic:call_01_Y84JfMX13jUJUgCPWRyw8015"
+              },
+              "owner_agent": "retail",
+              "reason_code": "TOOL_REQUIREMENTS_SATISFIED",
+              "work_item_id": "work:invocation:v1:e017a60375301fca4685e3058fc05279a137379852eb8217fb5fde4bc6658246:step:0:2:atomic:call_01_Y84JfMX13jUJUgCPWRyw8015"
+            },
+            {
+              "status": "SUCCEEDED",
+              "control": {
+                "revision": 1,
+                "control_id": "control:invocation:v1:e017a60375301fca4685e3058fc05279a137379852eb8217fb5fde4bc6658246:step:0:atomic:call_02_dlvFEEIbhA0QwbfJ5ayk7343"
+              },
+              "owner_agent": "retail",
+              "reason_code": "TOOL_REQUIREMENTS_SATISFIED",
+              "work_item_id": "work:invocation:v1:e017a60375301fca4685e3058fc05279a137379852eb8217fb5fde4bc6658246:step:0:3:atomic:call_02_dlvFEEIbhA0QwbfJ5ayk7343"
+            }
+          ],
+          "bundle_version": "tau3-retail-v1",
+          "routing_reason": "CONVERSATION_RESPONSE",
+          "task_completed": true,
+          "delivery_status": "selected",
+          "handoff_created": false,
+          "evaluation_trace": {
+            "cost": {
+              "latency_ms": 6648.340754210949,
+              "work_item_count": 3,
+              "conversation_planner_invoked": true
+            },
+            "outcome": {
+              "kind": "COMPLETED",
+              "task_completed": true,
+              "verifier_status": "PASS",
+              "coverage_complete": true,
+              "missing_requirement_ids": []
+            },
+            "trigger": {
+              "invocation_admitted": true,
+              "deterministic_resolution": "UNRESOLVED"
+            },
+            "artifact": {
+              "plan_id": "turn-plan:v1:a6d00cb4133245c9168c02c1646efd57c0abf4523700533ebccdc6e158a73732",
+              "owner_ids": [],
+              "route_mode": "RESPONSE",
+              "registry_fingerprint": "capability-bundle:v1:710655f63f80c3e6cda102a539dd5fd96f113e9be780e8f8feb08ca53dbb37db",
+              "understanding_reason": "CONVERSATION_RESPONSE"
+            },
+            "consumption": {
+              "facts": [
+                {
+                  "source_ref": "work:invocation:v1:e017a60375301fca4685e3058fc05279a137379852eb8217fb5fde4bc6658246:step:0:1:atomic:call_00_i5YdX34kbZYtM1Dyh40K3967:1:get_order_details",
+                  "producer_id": "get_order_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_order_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "work:invocation:v1:e017a60375301fca4685e3058fc05279a137379852eb8217fb5fde4bc6658246:step:0:2:atomic:call_01_Y84JfMX13jUJUgCPWRyw8015:1:get_order_details",
+                  "producer_id": "get_order_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_order_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "work:invocation:v1:e017a60375301fca4685e3058fc05279a137379852eb8217fb5fde4bc6658246:step:0:3:atomic:call_02_dlvFEEIbhA0QwbfJ5ayk7343:1:get_order_details",
+                  "producer_id": "get_order_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_order_details",
+                  "producer_version": "tool-output-v1"
+                }
+              ],
+              "work_items": [
+                {
+                  "control": {
+                    "revision": 1,
+                    "control_id": "control:invocation:v1:e017a60375301fca4685e3058fc05279a137379852eb8217fb5fde4bc6658246:step:0:atomic:call_00_i5YdX34kbZYtM1Dyh40K3967"
+                  },
+                  "owner_agent": "retail",
+                  "control_mode": "DIRECT",
+                  "work_item_id": "work:invocation:v1:e017a60375301fca4685e3058fc05279a137379852eb8217fb5fde4bc6658246:step:0:1:atomic:call_00_i5YdX34kbZYtM1Dyh40K3967",
+                  "allowed_tools": [
+                    "get_order_details"
+                  ],
+                  "allowed_skills": []
+                },
+                {
+                  "control": {
+                    "revision": 1,
+                    "control_id": "control:invocation:v1:e017a60375301fca4685e3058fc05279a137379852eb8217fb5fde4bc6658246:step:0:atomic:call_01_Y84JfMX13jUJUgCPWRyw8015"
+                  },
+                  "owner_agent": "retail",
+                  "control_mode": "DIRECT",
+                  "work_item_id": "work:invocation:v1:e017a60375301fca4685e3058fc05279a137379852eb8217fb5fde4bc6658246:step:0:2:atomic:call_01_Y84JfMX13jUJUgCPWRyw8015",
+                  "allowed_tools": [
+                    "get_order_details"
+                  ],
+                  "allowed_skills": []
+                },
+                {
+                  "control": {
+                    "revision": 1,
+                    "control_id": "control:invocation:v1:e017a60375301fca4685e3058fc05279a137379852eb8217fb5fde4bc6658246:step:0:atomic:call_02_dlvFEEIbhA0QwbfJ5ayk7343"
+                  },
+                  "owner_agent": "retail",
+                  "control_mode": "DIRECT",
+                  "work_item_id": "work:invocation:v1:e017a60375301fca4685e3058fc05279a137379852eb8217fb5fde4bc6658246:step:0:3:atomic:call_02_dlvFEEIbhA0QwbfJ5ayk7343",
+                  "allowed_tools": [
+                    "get_order_details"
+                  ],
+                  "allowed_skills": []
+                }
+              ],
+              "result_statuses": [
+                "SUCCEEDED",
+                "SUCCEEDED",
+                "SUCCEEDED"
+              ]
+            },
+            "schema_version": "target-evaluation-trace-v1",
+            "state_side_effect": {
+              "state_version_after": 3,
+              "workstream_statuses": [],
+              "state_version_before": 3,
+              "committed_receipt_refs": []
+            }
+          },
+          "synthesis_reason": "ANSWER_SUPPORT_CHECKED",
+          "synthesis_status": "conversation_compose",
+          "supporting_agents": [],
+          "routing_disposition": "response",
+          "synthesis_conflicts": [],
+          "verification_status": "pass",
+          "verification_reason_code": "ANSWER_SUPPORT_CHECKED"
+        },
+        "stages": []
+      }
+    },
+    {
+      "verification": {
+        "status": "pass",
+        "grounded": true,
+        "need_escalation": false,
+        "reason": "answer supported and request addressed",
+        "reason_code": "passed",
+        "assessment": {
+          "request_hash": "524abce212fe75434a764b5e63c84cbdfcf78bb8966170a090603da3eb7984b5",
+          "supported": true,
+          "answered": true,
+          "approval_terms_complete": false,
+          "issues": []
+        },
+        "request_binding": "b05fe647528fbe2460cb4a2b5b76dccefbf6eae7d661455d210fb0fb2045b4c1"
+      },
+      "candidate": "I need to confirm the full address details before proceeding. You've provided \"101 Highway, New York, 10001\" — could you please confirm the **state** for this address? New York City spans multiple states in terms of zip codes, and I want to make sure I record the correct state (e.g., NY).\n\nAlso, please confirm with a **yes** that you'd like me to proceed with updating both:\n1. Your **default account address** to: 101 Highway, New York, 10001\n2. The **shipping address on order #W9911714** to: 101 Highway, New York, 10001"
+    },
+    {
+      "turn": 5,
+      "input": "Yes, please go ahead and update both my default account address and the shipping address on order #W9911714 to 101 Highway, New York, 10001.",
+      "outcome": {
+        "response_id": "publication:v1:bac482fcfa61a024f399ce7a998a07da377d676c1a48545a9bcd2caae7825134",
+        "response": {
+          "intent": "CONVERSATION_RESPONSE",
+          "conv_id": "tau3-ad98956060f44499a26416e94fe15e66",
+          "coverage": {
+            "complete": true,
+            "missing_requirement_ids": []
+          },
+          "grounded": true,
+          "response": "I need to confirm the full address details before proceeding. You've provided \"101 Highway, New York, 10001\" — could you please confirm the **state** for this address? New York City spans multiple states in terms of zip codes, and I want to make sure I record the correct state (e.g., NY).\n\nAlso, please confirm with a **yes** that you'd like me to proceed with updating both:\n1. Your **default account address** to: 101 Highway, New York, 10001\n2. The **shipping address on order #W9911714** to: 101 Highway, New York, 10001",
+          "verified": true,
+          "escalated": false,
+          "task_plan": {
+            "plan_id": "turn-plan:v1:13265567bca2df7d6fbf67484d0d0dd9e2fb7674151332eae06524df3f5464f0",
+            "work_item_ids": []
+          },
+          "ticket_id": null,
+          "agent_type": "general",
+          "latency_ms": 3542.5815489143133,
+          "request_id": "turn-5",
+          "agent_types": [],
+          "response_id": "publication:v1:bac482fcfa61a024f399ce7a998a07da377d676c1a48545a9bcd2caae7825134",
+          "intent_group": "other",
+          "response_seq": 5,
+          "primary_agent": "",
+          "ticket_status": null,
+          "agent_outcomes": [],
+          "bundle_version": "tau3-retail-v1",
+          "routing_reason": "CONVERSATION_RESPONSE",
+          "task_completed": false,
+          "delivery_status": "selected",
+          "handoff_created": false,
+          "evaluation_trace": {
+            "cost": {
+              "latency_ms": 3542.5815489143133,
+              "work_item_count": 0,
+              "conversation_planner_invoked": true
+            },
+            "outcome": {
+              "kind": "COMPLETED",
+              "task_completed": false,
+              "verifier_status": "PASS",
+              "coverage_complete": true,
+              "missing_requirement_ids": []
+            },
+            "trigger": {
+              "invocation_admitted": true,
+              "deterministic_resolution": "UNRESOLVED"
+            },
+            "artifact": {
+              "plan_id": "turn-plan:v1:13265567bca2df7d6fbf67484d0d0dd9e2fb7674151332eae06524df3f5464f0",
+              "owner_ids": [],
+              "route_mode": "RESPONSE",
+              "registry_fingerprint": "capability-bundle:v1:710655f63f80c3e6cda102a539dd5fd96f113e9be780e8f8feb08ca53dbb37db",
+              "understanding_reason": "CONVERSATION_RESPONSE"
+            },
+            "consumption": {
+              "facts": [],
+              "work_items": [],
+              "result_statuses": []
+            },
+            "schema_version": "target-evaluation-trace-v1",
+            "state_side_effect": {
+              "state_version_after": 3,
+              "workstream_statuses": [],
+              "state_version_before": 3,
+              "committed_receipt_refs": []
+            }
+          },
+          "synthesis_reason": "ANSWER_SUPPORT_CHECKED",
+          "synthesis_status": "conversation_compose",
+          "supporting_agents": [],
+          "routing_disposition": "response",
+          "synthesis_conflicts": [],
+          "verification_status": "pass",
+          "verification_reason_code": "ANSWER_SUPPORT_CHECKED"
+        },
+        "stages": []
+      }
+    },
+    {
+      "turn": 6,
+      "input": "Yes, please proceed with updating both. The state is New York, so NY.",
+      "outcome": {
+        "code": "planning_invalid_provider_output",
+        "retryable": false,
+        "correlation_id": "invocation:v1:0cf7da1541a96c7e7219925717dba0db208cee85007ae6908f3b140ae71beb17",
+        "safe_message": "I could not complete this turn. Please contact support to check the saved processing records; do not resubmit the same business operation.",
+        "stages": [
+          {
+            "stage": "planning",
+            "status": "failed",
+            "detail": {
+              "code": "CONVERSATION_PROVIDER_OUTPUT_INVALID"
+            }
+          }
+        ],
+        "response_id": "publication:v1:63a129688ddce2866c5fe41f81bda29fe7939c47d383708c867602fbfde47f5b"
+      }
+    },
+    {
+      "verification": {
+        "status": "pass",
+        "grounded": true,
+        "need_escalation": false,
+        "reason": "answer supported and request addressed",
+        "reason_code": "passed",
+        "assessment": {
+          "request_hash": "9976429265e9b18e8ad485faf480135f116f3f076325014505fa1efc360e4ed6",
+          "supported": true,
+          "answered": true,
+          "approval_terms_complete": false,
+          "issues": []
+        },
+        "request_binding": "0cb790ed1305f7ceb4fe0fa7f7375ca0e498f91b7c216e9b43890c0ee2f81601"
+      },
+      "candidate": "I could not finish the remaining steps. Completed results are preserved below.\nI checked your records, and no address change went through. Your default address and the shipping address on order #W9911714 are both still:\n\n**667 Highland Drive, Suite 865, Denver, CO 80280** [source_ref: work:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:2:1:atomic:call_00_m9JklHVe7UrVhlzfkfPs4719:1:get_user_details] [source_ref: work:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:2:2:atomic:call_01_oVO3BWNCR5edvWOiCt652287:1:get_order_details]\n\nSo nothing was updated. If you'd like, I can still proceed with updating both to **101 Highway, New York, NY 10001**. Just confirm with a **yes** and I'll make the changes."
+    },
+    {
+      "turn": 7,
+      "input": "Wait, what do you mean? Did something go wrong with the update? Can you check if my address was changed or not?",
+      "outcome": {
+        "response_id": "publication:v1:30e3da2e676ca4f4996b62ba027b4e38c586ec5bef737c4572592648edcec3e7",
+        "response": {
+          "intent": "CONVERSATION_AGENT_PLAN",
+          "conv_id": "tau3-ad98956060f44499a26416e94fe15e66",
+          "coverage": {
+            "complete": true,
+            "missing_requirement_ids": []
+          },
+          "grounded": true,
+          "response": "I could not finish the remaining steps. Completed results are preserved below.\nI checked your records, and no address change went through. Your default address and the shipping address on order #W9911714 are both still:\n\n**667 Highland Drive, Suite 865, Denver, CO 80280** [source_ref: work:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:2:1:atomic:call_00_m9JklHVe7UrVhlzfkfPs4719:1:get_user_details] [source_ref: work:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:2:2:atomic:call_01_oVO3BWNCR5edvWOiCt652287:1:get_order_details]\n\nSo nothing was updated. If you'd like, I can still proceed with updating both to **101 Highway, New York, NY 10001**. Just confirm with a **yes** and I'll make the changes.",
+          "verified": true,
+          "escalated": false,
+          "task_plan": {
+            "plan_id": "turn-plan:v1:77e166674f6978ecfb7e02e65a6db8deb32e23f1fcc97e89d6699691ab2afd6d",
+            "work_item_ids": [
+              "work:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:0:1:atomic:call_00_UVT6oKOprT1OAVwDqJvs9640",
+              "work:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:0:2:atomic:call_01_KHt0UQ2h8CLImfAMleUN6579",
+              "work:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:1:1:atomic:call_00_2dLnKstmjHMIvwO5pv0q0893",
+              "work:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:1:2:atomic:call_01_y0xcl4Lrr2CVDhtnCTDH8498",
+              "work:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:2:1:atomic:call_00_m9JklHVe7UrVhlzfkfPs4719",
+              "work:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:2:2:atomic:call_01_oVO3BWNCR5edvWOiCt652287"
+            ]
+          },
+          "ticket_id": null,
+          "agent_type": "retail",
+          "latency_ms": 16268.81985552609,
+          "request_id": "turn-7",
+          "agent_types": [
+            "retail"
+          ],
+          "response_id": "publication:v1:30e3da2e676ca4f4996b62ba027b4e38c586ec5bef737c4572592648edcec3e7",
+          "intent_group": "retail",
+          "response_seq": 7,
+          "primary_agent": "retail",
+          "ticket_status": null,
+          "agent_outcomes": [
+            {
+              "status": "SUCCEEDED",
+              "control": {
+                "revision": 1,
+                "control_id": "control:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:0:atomic:call_00_UVT6oKOprT1OAVwDqJvs9640"
+              },
+              "owner_agent": "retail",
+              "reason_code": "TOOL_REQUIREMENTS_SATISFIED",
+              "work_item_id": "work:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:0:1:atomic:call_00_UVT6oKOprT1OAVwDqJvs9640"
+            },
+            {
+              "status": "SUCCEEDED",
+              "control": {
+                "revision": 1,
+                "control_id": "control:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:0:atomic:call_01_KHt0UQ2h8CLImfAMleUN6579"
+              },
+              "owner_agent": "retail",
+              "reason_code": "TOOL_REQUIREMENTS_SATISFIED",
+              "work_item_id": "work:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:0:2:atomic:call_01_KHt0UQ2h8CLImfAMleUN6579"
+            },
+            {
+              "status": "SUCCEEDED",
+              "control": {
+                "revision": 1,
+                "control_id": "control:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:1:atomic:call_00_2dLnKstmjHMIvwO5pv0q0893"
+              },
+              "owner_agent": "retail",
+              "reason_code": "TOOL_REQUIREMENTS_SATISFIED",
+              "work_item_id": "work:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:1:1:atomic:call_00_2dLnKstmjHMIvwO5pv0q0893"
+            },
+            {
+              "status": "SUCCEEDED",
+              "control": {
+                "revision": 1,
+                "control_id": "control:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:1:atomic:call_01_y0xcl4Lrr2CVDhtnCTDH8498"
+              },
+              "owner_agent": "retail",
+              "reason_code": "TOOL_REQUIREMENTS_SATISFIED",
+              "work_item_id": "work:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:1:2:atomic:call_01_y0xcl4Lrr2CVDhtnCTDH8498"
+            },
+            {
+              "status": "SUCCEEDED",
+              "control": {
+                "revision": 1,
+                "control_id": "control:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:2:atomic:call_00_m9JklHVe7UrVhlzfkfPs4719"
+              },
+              "owner_agent": "retail",
+              "reason_code": "TOOL_REQUIREMENTS_SATISFIED",
+              "work_item_id": "work:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:2:1:atomic:call_00_m9JklHVe7UrVhlzfkfPs4719"
+            },
+            {
+              "status": "SUCCEEDED",
+              "control": {
+                "revision": 1,
+                "control_id": "control:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:2:atomic:call_01_oVO3BWNCR5edvWOiCt652287"
+              },
+              "owner_agent": "retail",
+              "reason_code": "TOOL_REQUIREMENTS_SATISFIED",
+              "work_item_id": "work:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:2:2:atomic:call_01_oVO3BWNCR5edvWOiCt652287"
+            }
+          ],
+          "bundle_version": "tau3-retail-v1",
+          "routing_reason": "CONVERSATION_AGENT_PLAN",
+          "task_completed": false,
+          "delivery_status": "selected",
+          "handoff_created": false,
+          "evaluation_trace": {
+            "cost": {
+              "latency_ms": 16268.81985552609,
+              "work_item_count": 6,
+              "conversation_planner_invoked": true
+            },
+            "outcome": {
+              "kind": "COMPLETED",
+              "task_completed": false,
+              "verifier_status": "PASS",
+              "coverage_complete": true,
+              "missing_requirement_ids": []
+            },
+            "trigger": {
+              "invocation_admitted": true,
+              "deterministic_resolution": "UNRESOLVED"
+            },
+            "artifact": {
+              "plan_id": "turn-plan:v1:77e166674f6978ecfb7e02e65a6db8deb32e23f1fcc97e89d6699691ab2afd6d",
+              "owner_ids": [
+                "retail"
+              ],
+              "route_mode": "MIXED",
+              "registry_fingerprint": "capability-bundle:v1:710655f63f80c3e6cda102a539dd5fd96f113e9be780e8f8feb08ca53dbb37db",
+              "understanding_reason": "CONVERSATION_AGENT_PLAN"
+            },
+            "consumption": {
+              "facts": [
+                {
+                  "source_ref": "work:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:2:1:atomic:call_00_m9JklHVe7UrVhlzfkfPs4719:1:get_user_details",
+                  "producer_id": "get_user_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_user_details",
+                  "producer_version": "tool-output-v1"
+                },
+                {
+                  "source_ref": "work:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:2:2:atomic:call_01_oVO3BWNCR5edvWOiCt652287:1:get_order_details",
+                  "producer_id": "get_order_details",
+                  "source_kind": "VERIFIED_STATE",
+                  "requirement_id": "environment.get_order_details",
+                  "producer_version": "tool-output-v1"
+                }
+              ],
+              "work_items": [
+                {
+                  "control": {
+                    "revision": 1,
+                    "control_id": "control:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:0:atomic:call_00_UVT6oKOprT1OAVwDqJvs9640"
+                  },
+                  "owner_agent": "retail",
+                  "control_mode": "DIRECT",
+                  "work_item_id": "work:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:0:1:atomic:call_00_UVT6oKOprT1OAVwDqJvs9640",
+                  "allowed_tools": [
+                    "get_user_details"
+                  ],
+                  "allowed_skills": []
+                },
+                {
+                  "control": {
+                    "revision": 1,
+                    "control_id": "control:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:0:atomic:call_01_KHt0UQ2h8CLImfAMleUN6579"
+                  },
+                  "owner_agent": "retail",
+                  "control_mode": "DIRECT",
+                  "work_item_id": "work:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:0:2:atomic:call_01_KHt0UQ2h8CLImfAMleUN6579",
+                  "allowed_tools": [
+                    "get_order_details"
+                  ],
+                  "allowed_skills": []
+                },
+                {
+                  "control": {
+                    "revision": 1,
+                    "control_id": "control:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:1:atomic:call_00_2dLnKstmjHMIvwO5pv0q0893"
+                  },
+                  "owner_agent": "retail",
+                  "control_mode": "DIRECT",
+                  "work_item_id": "work:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:1:1:atomic:call_00_2dLnKstmjHMIvwO5pv0q0893",
+                  "allowed_tools": [
+                    "get_user_details"
+                  ],
+                  "allowed_skills": []
+                },
+                {
+                  "control": {
+                    "revision": 1,
+                    "control_id": "control:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:1:atomic:call_01_y0xcl4Lrr2CVDhtnCTDH8498"
+                  },
+                  "owner_agent": "retail",
+                  "control_mode": "DIRECT",
+                  "work_item_id": "work:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:1:2:atomic:call_01_y0xcl4Lrr2CVDhtnCTDH8498",
+                  "allowed_tools": [
+                    "get_order_details"
+                  ],
+                  "allowed_skills": []
+                },
+                {
+                  "control": {
+                    "revision": 1,
+                    "control_id": "control:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:2:atomic:call_00_m9JklHVe7UrVhlzfkfPs4719"
+                  },
+                  "owner_agent": "retail",
+                  "control_mode": "DIRECT",
+                  "work_item_id": "work:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:2:1:atomic:call_00_m9JklHVe7UrVhlzfkfPs4719",
+                  "allowed_tools": [
+                    "get_user_details"
+                  ],
+                  "allowed_skills": []
+                },
+                {
+                  "control": {
+                    "revision": 1,
+                    "control_id": "control:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:2:atomic:call_01_oVO3BWNCR5edvWOiCt652287"
+                  },
+                  "owner_agent": "retail",
+                  "control_mode": "DIRECT",
+                  "work_item_id": "work:invocation:v1:f6bd2a8f31b9cdf34c25f48d6eae45466f2cda27d7eaa40829e1ddc0e7f2f8af:step:2:2:atomic:call_01_oVO3BWNCR5edvWOiCt652287",
+                  "allowed_tools": [
+                    "get_order_details"
+                  ],
+                  "allowed_skills": []
+                }
+              ],
+              "result_statuses": [
+                "SUCCEEDED",
+                "SUCCEEDED",
+                "SUCCEEDED",
+                "SUCCEEDED",
+                "SUCCEEDED",
+                "SUCCEEDED"
+              ]
+            },
+            "schema_version": "target-evaluation-trace-v1",
+            "state_side_effect": {
+              "state_version_after": 6,
+              "workstream_statuses": [],
+              "state_version_before": 5,
+              "committed_receipt_refs": []
+            }
+          },
+          "synthesis_reason": "ANSWER_SUPPORT_CHECKED",
+          "synthesis_status": "conversation_compose",
+          "supporting_agents": [],
+          "routing_disposition": "mixed",
+          "synthesis_conflicts": [],
+          "verification_status": "pass",
+          "verification_reason_code": "ANSWER_SUPPORT_CHECKED"
+        },
+        "stages": [
+          {
+            "stage": "planning_observation",
+            "status": "failed",
+            "detail": {
+              "code": "CONVERSATION_PROVIDER_OUTPUT_INVALID",
+              "exception_chain": [
+                {
+                  "type": "PlanningUnavailable",
+                  "frames": [
+                    {
+                      "file": "/home/yang/DialogPilot/application/turn_runtime.py",
+                      "line": 150,
+                      "function": "_plan_observation"
+                    },
+                    {
+                      "file": "/home/yang/DialogPilot/application/target_conversation_manager.py",
+                      "line": 437,
+                      "function": "prepare_observation"
+                    },
+                    {
+                      "file": "/home/yang/DialogPilot/application/turn_planning.py",
+                      "line": 746,
+                      "function": "compile"
+                    }
+                  ],
+                  "message": "CONVERSATION_PROVIDER_OUTPUT_INVALID"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "verification": {
+        "status": "pass",
+        "grounded": true,
+        "need_escalation": false,
+        "reason": "answer supported and request addressed",
+        "reason_code": "passed",
+        "assessment": {
+          "request_hash": "876062b184cdfc9c6bfe54e19f36dc149f691b634d4ae09d7c210c8c12f7f232",
+          "supported": true,
+          "answered": true,
+          "approval_terms_complete": false,
+          "issues": []
+        },
+        "request_binding": "df4aff59521a6efcf969840ea784f17e64ddb77180075101c56efdfb5bd56339"
+      },
+      "candidate": "The user has now decided to keep their original address and not change anything. No address changes have been made — both the default account address and the order #W9911714 shipping address remain at **667 Highland Drive, Suite 865, Denver, CO 80280**.\n\nSince no changes were ever applied, there's nothing to undo or cancel. I'll simply confirm this to the user.\n\nNo tool calls are needed here — this is just a conversational confirmation.\n\nUnderstood! No problem at all. I won't make any changes to your address.\n\nTo confirm, your default account address and the shipping address on order #W9911714 both remain unchanged at:\n\n**667 Highland Drive, Suite 865, Denver, CO 80280**\n\nIs there anything else I can help you with?"
+    },
+    {
+      "turn": 8,
+      "input": "Actually, on second thought, I’d like to keep my original address as it is. Please don’t change anything. Thanks.",
+      "outcome": {
+        "response_id": "publication:v1:d781d5cf21119b40cd354e837088cb1f80f13f33b4b06537a848898feecfcb79",
+        "response": {
+          "intent": "CONVERSATION_RESPONSE",
+          "conv_id": "tau3-ad98956060f44499a26416e94fe15e66",
+          "coverage": {
+            "complete": true,
+            "missing_requirement_ids": []
+          },
+          "grounded": true,
+          "response": "The user has now decided to keep their original address and not change anything. No address changes have been made — both the default account address and the order #W9911714 shipping address remain at **667 Highland Drive, Suite 865, Denver, CO 80280**.\n\nSince no changes were ever applied, there's nothing to undo or cancel. I'll simply confirm this to the user.\n\nNo tool calls are needed here — this is just a conversational confirmation.\n\nUnderstood! No problem at all. I won't make any changes to your address.\n\nTo confirm, your default account address and the shipping address on order #W9911714 both remain unchanged at:\n\n**667 Highland Drive, Suite 865, Denver, CO 80280**\n\nIs there anything else I can help you with?",
+          "verified": true,
+          "escalated": false,
+          "task_plan": {
+            "plan_id": "turn-plan:v1:a5d386aae23eebce4d379a2fb0ebb9bc4e6c1cc095c04665b039a5ea97b881de",
+            "work_item_ids": []
+          },
+          "ticket_id": null,
+          "agent_type": "general",
+          "latency_ms": 5353.919195011258,
+          "request_id": "turn-8",
+          "agent_types": [],
+          "response_id": "publication:v1:d781d5cf21119b40cd354e837088cb1f80f13f33b4b06537a848898feecfcb79",
+          "intent_group": "other",
+          "response_seq": 8,
+          "primary_agent": "",
+          "ticket_status": null,
+          "agent_outcomes": [],
+          "bundle_version": "tau3-retail-v1",
+          "routing_reason": "CONVERSATION_RESPONSE",
+          "task_completed": false,
+          "delivery_status": "selected",
+          "handoff_created": false,
+          "evaluation_trace": {
+            "cost": {
+              "latency_ms": 5353.919195011258,
+              "work_item_count": 0,
+              "conversation_planner_invoked": true
+            },
+            "outcome": {
+              "kind": "COMPLETED",
+              "task_completed": false,
+              "verifier_status": "PASS",
+              "coverage_complete": true,
+              "missing_requirement_ids": []
+            },
+            "trigger": {
+              "invocation_admitted": true,
+              "deterministic_resolution": "UNRESOLVED"
+            },
+            "artifact": {
+              "plan_id": "turn-plan:v1:a5d386aae23eebce4d379a2fb0ebb9bc4e6c1cc095c04665b039a5ea97b881de",
+              "owner_ids": [],
+              "route_mode": "RESPONSE",
+              "registry_fingerprint": "capability-bundle:v1:710655f63f80c3e6cda102a539dd5fd96f113e9be780e8f8feb08ca53dbb37db",
+              "understanding_reason": "CONVERSATION_RESPONSE"
+            },
+            "consumption": {
+              "facts": [],
+              "work_items": [],
+              "result_statuses": []
+            },
+            "schema_version": "target-evaluation-trace-v1",
+            "state_side_effect": {
+              "state_version_after": 6,
+              "workstream_statuses": [],
+              "state_version_before": 6,
+              "committed_receipt_refs": []
+            }
+          },
+          "synthesis_reason": "ANSWER_SUPPORT_CHECKED",
+          "synthesis_status": "conversation_compose",
+          "supporting_agents": [],
+          "routing_disposition": "response",
+          "synthesis_conflicts": [],
+          "verification_status": "pass",
+          "verification_reason_code": "ANSWER_SUPPORT_CHECKED"
+        },
+        "stages": []
+      }
+    }
+  ]
+}

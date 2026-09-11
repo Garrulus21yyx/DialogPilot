@@ -1,0 +1,579 @@
+{
+  "dataset_id": "doc2dial-rag-parallel-stress-v1",
+  "gold_used_by_retrieval": false,
+  "rows": [
+    {
+      "case_id": "doc2dial-parallel-stress-01",
+      "requirements": [
+        {
+          "evidence": [
+            {
+              "document_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+              "end_char": 608,
+              "granularity": "span",
+              "quote": "who attended Corinthian Colleges Everest, Heald, and WyoTech with a first date of attendance between July 1 , 2010, and Sept. 30 , 2014, and are seeking federal student loan forgiveness through borrower defense ",
+              "relevance": 3,
+              "start_char": 397
+            },
+            {
+              "document_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+              "end_char": 669,
+              "granularity": "span",
+              "quote": "Borrowers will complete a Corinthian - specific application. ",
+              "relevance": 3,
+              "start_char": 608
+            }
+          ],
+          "query": "What are Corinthian colleges",
+          "requirement_id": "R1"
+        },
+        {
+          "evidence": [
+            {
+              "document_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+              "end_char": 34391,
+              "granularity": "span",
+              "quote": "In June and early July 2020 , ",
+              "relevance": 3,
+              "start_char": 34361
+            },
+            {
+              "document_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+              "end_char": 34672,
+              "granularity": "span",
+              "quote": "the U.S. Department of Education ED will email and mail notifications about the Sweet v. DeVos lawsuit to borrower defense applicants who are potential members of the group of borrowers to whom the lawsuit applies to inform them that there is a proposed settlement of the lawsuit. ",
+              "relevance": 3,
+              "start_char": 34391
+            }
+          ],
+          "query": "What is the logic behind the notifications regarding the Sweet v. DeVos Lawsuit",
+          "requirement_id": "R2"
+        }
+      ],
+      "source_case_ids": [
+        "doc2dial-dev-00a4a05f229e5cee83e7b10f2e20873d-12",
+        "doc2dial-dev-07d2d3b557c6d5d18ee0e7d37e986f08-9"
+      ]
+    },
+    {
+      "case_id": "doc2dial-parallel-stress-02",
+      "requirements": [
+        {
+          "evidence": [
+            {
+              "document_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+              "end_char": 20693,
+              "granularity": "span",
+              "quote": "Your federal loan servicer will let you know what your remaining balance is after the interest waiver has been applied. ",
+              "relevance": 3,
+              "start_char": 20573
+            }
+          ],
+          "query": "How will I know how much I have left after the interest is calculated",
+          "requirement_id": "R1"
+        },
+        {
+          "evidence": [
+            {
+              "document_id": "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0",
+              "end_char": 2358,
+              "granularity": "span",
+              "quote": "Borrower is authorized user on the account. ",
+              "relevance": 3,
+              "start_char": 2314
+            }
+          ],
+          "query": "Do I need information related to mitigating circumstances",
+          "requirement_id": "R2"
+        }
+      ],
+      "source_case_ids": [
+        "doc2dial-dev-0f04d497049c31faebfa20487a25c0f1-12",
+        "doc2dial-dev-56ecb9ca49fe6db3568b935cff6c0510-11"
+      ]
+    },
+    {
+      "case_id": "doc2dial-parallel-stress-03",
+      "requirements": [
+        {
+          "evidence": [
+            {
+              "document_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+              "end_char": 10301,
+              "granularity": "span",
+              "quote": "please contact the collection agency that you have been working with to set up that plan in order to determine whether there may be any negative consequences if you choose to enter stopped collections status. ",
+              "relevance": 3,
+              "start_char": 10092
+            }
+          ],
+          "query": "What should I do if I have defaulted on my federal student loan and have entered a rehabilitation plan",
+          "requirement_id": "R1"
+        },
+        {
+          "evidence": [
+            {
+              "document_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+              "end_char": 1878,
+              "granularity": "span",
+              "quote": "the following types of documents are among those that may be helpful to your application : ",
+              "relevance": 3,
+              "start_char": 1787
+            }
+          ],
+          "query": "Are there any additional documents that I can submit as part of my application for borrower defense",
+          "requirement_id": "R2"
+        }
+      ],
+      "source_case_ids": [
+        "doc2dial-dev-5c539f53cdb29706da2eac1fd093fb8a-10",
+        "doc2dial-dev-e557d33d054041f0aac44defb1a207ef-12"
+      ]
+    },
+    {
+      "case_id": "doc2dial-parallel-stress-04",
+      "requirements": [
+        {
+          "evidence": [
+            {
+              "document_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+              "end_char": 14440,
+              "granularity": "span",
+              "quote": "The U.S. Department of Education ED notifies borrower defense applicants of ED s determination about borrower defense discharge eligibility. ",
+              "relevance": 3,
+              "start_char": 14299
+            },
+            {
+              "document_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+              "end_char": 14484,
+              "granularity": "span",
+              "quote": "The notifications are emailed to borrowers. ",
+              "relevance": 3,
+              "start_char": 14440
+            }
+          ],
+          "query": "Is there a section on the website dedicated to common questions and answers regarding borrower defense decision notifications",
+          "requirement_id": "R1"
+        },
+        {
+          "evidence": [
+            {
+              "document_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+              "end_char": 16395,
+              "granularity": "span",
+              "quote": "they are not eligible for discharge under the Borrower Defense to Repayment law or regulations. ",
+              "relevance": 3,
+              "start_char": 16299
+            }
+          ],
+          "query": "Are FFEL Program Loans eligible for the Sweet v. DeVos lawsuit",
+          "requirement_id": "R2"
+        }
+      ],
+      "source_case_ids": [
+        "doc2dial-dev-a7fe7aa38830465e8a73320e9320b305-9",
+        "doc2dial-dev-b30d73c202844505549d00218083577d-11"
+      ]
+    },
+    {
+      "case_id": "doc2dial-parallel-stress-05",
+      "requirements": [
+        {
+          "evidence": [
+            {
+              "document_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+              "end_char": 16587,
+              "granularity": "span",
+              "quote": "you can consolidate your loans into a Direct Consolidation Loan and obtain the discharge. ",
+              "relevance": 3,
+              "start_char": 16497
+            }
+          ],
+          "query": "Can I have my borrower defense discharge applied to my FFEL or Federal Perkins loans",
+          "requirement_id": "R1"
+        },
+        {
+          "evidence": [
+            {
+              "document_id": "Borrower Defense to Repayment | Federal Student Aid#1_0",
+              "end_char": 3160,
+              "granularity": "span",
+              "quote": "please include the documents with your email for example, by attaching scanned PDF documents. ",
+              "relevance": 3,
+              "start_char": 3066
+            }
+          ],
+          "query": "I have applied for borrower defense by way of email but now have found further information that I want to send, can I do this",
+          "requirement_id": "R2"
+        }
+      ],
+      "source_case_ids": [
+        "doc2dial-dev-b3f2ae2fd2ddac2fb7a1a898690a6a8c-11",
+        "doc2dial-dev-e96c4558ac2013c8f787498f67652362-11"
+      ]
+    },
+    {
+      "case_id": "doc2dial-parallel-stress-06",
+      "requirements": [
+        {
+          "evidence": [
+            {
+              "document_id": "IT Standards Library | Federal Student Aid#1_0",
+              "end_char": 5173,
+              "granularity": "span",
+              "quote": "Production Readiness Review PRR Process ",
+              "relevance": 3,
+              "start_char": 5133
+            }
+          ],
+          "query": "What is involved in complying with the Program Quality Assurance",
+          "requirement_id": "R1"
+        },
+        {
+          "evidence": [
+            {
+              "document_id": "Appeal a Credit Decision Demo | Extenuating Circumstances | Federal Student Aid#1_0",
+              "end_char": 401,
+              "granularity": "span",
+              "quote": "The information causing the adverse credit decision is incorrect. ",
+              "relevance": 3,
+              "start_char": 335
+            }
+          ],
+          "query": "What information can you give me regarding adverse credit is incorrect",
+          "requirement_id": "R2"
+        }
+      ],
+      "source_case_ids": [
+        "doc2dial-dev-6c00f80fa975923b3af5df055f965f2b-12",
+        "doc2dial-dev-f9aa69339de7652e855b2c941a24d7c9-10"
+      ]
+    },
+    {
+      "case_id": "doc2dial-parallel-stress-07",
+      "requirements": [
+        {
+          "evidence": [
+            {
+              "document_id": "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0",
+              "end_char": 403,
+              "granularity": "span",
+              "quote": "Benefits usually continue until you are able to work again on a regular basis. ",
+              "relevance": 3,
+              "start_char": 324
+            },
+            {
+              "document_id": "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0",
+              "end_char": 576,
+              "granularity": "span",
+              "quote": "There are also a number of special rules, called \" work incentives, \" that provide continued benefits and health care coverage to help you make the transition back to work. ",
+              "relevance": 3,
+              "start_char": 403
+            }
+          ],
+          "query": "when do benefits come",
+          "requirement_id": "R1"
+        },
+        {
+          "evidence": [
+            {
+              "document_id": "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0",
+              "end_char": 2988,
+              "granularity": "span",
+              "quote": "Benefits received by check must be returned to Social Security as soon as possible. ",
+              "relevance": 3,
+              "start_char": 2904
+            },
+            {
+              "document_id": "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0",
+              "end_char": 3069,
+              "granularity": "span",
+              "quote": "Do not cash any checks received for the month in which the person dies or later. ",
+              "relevance": 3,
+              "start_char": 2988
+            }
+          ],
+          "query": "What happens if I die and you still send the payments",
+          "requirement_id": "R2"
+        }
+      ],
+      "source_case_ids": [
+        "doc2dial-dev-2278013a80847dedecfc48d80391fb36-13",
+        "doc2dial-dev-2b9a9e5d3fb7afbd0daabf0fb8b00a54-11"
+      ]
+    },
+    {
+      "case_id": "doc2dial-parallel-stress-08",
+      "requirements": [
+        {
+          "evidence": [
+            {
+              "document_id": "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#1_0",
+              "end_char": 3442,
+              "granularity": "span",
+              "quote": "A widow or widower at any age who is caring for the deceased s child who is under age 16 or disabled and receiving benefits on their record ; ",
+              "relevance": 3,
+              "start_char": 3300
+            }
+          ],
+          "query": "can the widow get monthly benefits if she is caring for the deceased person's daughter",
+          "requirement_id": "R1"
+        },
+        {
+          "evidence": [
+            {
+              "document_id": "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0",
+              "end_char": 8877,
+              "granularity": "span",
+              "quote": "There's a limit to the amount that family members can receive each month. ",
+              "relevance": 3,
+              "start_char": 8803
+            },
+            {
+              "document_id": "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0",
+              "end_char": 8896,
+              "granularity": "span",
+              "quote": "The limit varies , ",
+              "relevance": 3,
+              "start_char": 8877
+            },
+            {
+              "document_id": "Benefits Planner: Survivors | If You Are The Survivor | Social Security Administration#2_0",
+              "end_char": 8980,
+              "granularity": "span",
+              "quote": "but it is generally equal to between 150 and 180 percent of the basic benefit rate. ",
+              "relevance": 3,
+              "start_char": 8896
+            }
+          ],
+          "query": "Is there a maximum limit to the amount a family could get",
+          "requirement_id": "R2"
+        }
+      ],
+      "source_case_ids": [
+        "doc2dial-dev-4a335b1ca0ddb7d0465b81f2d318afd3-11",
+        "doc2dial-dev-58d176e50ed5e9d07e84c19f97406e03-11"
+      ]
+    },
+    {
+      "case_id": "doc2dial-parallel-stress-09",
+      "requirements": [
+        {
+          "evidence": [
+            {
+              "document_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#1_0",
+              "end_char": 6516,
+              "granularity": "span",
+              "quote": "The standard Part B premium for 2020 is $144.60. ",
+              "relevance": 3,
+              "start_char": 6467
+            }
+          ],
+          "query": "What can you tell me about monthly Medicare premiums",
+          "requirement_id": "R1"
+        },
+        {
+          "evidence": [
+            {
+              "document_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0",
+              "end_char": 6084,
+              "granularity": "span",
+              "quote": "you need to show us your signed copy of the return. ",
+              "relevance": 3,
+              "start_char": 6032
+            },
+            {
+              "document_id": "Benefits Planner: Retirement | Medicare Premiums | SSA#2_0",
+              "end_char": 6208,
+              "granularity": "span",
+              "quote": "Use Form Medicare Income - Related Monthly Adjustment Amount Life - Changing Event to report a major life - changing event. ",
+              "relevance": 3,
+              "start_char": 6084
+            }
+          ],
+          "query": "What if I filed a federal income tax return for the year",
+          "requirement_id": "R2"
+        }
+      ],
+      "source_case_ids": [
+        "doc2dial-dev-4d5350dc20418f7f89900dfa1a61b0cd-9",
+        "doc2dial-dev-a9e6b11deba64bccfa874f154eef44b4-10"
+      ]
+    },
+    {
+      "case_id": "doc2dial-parallel-stress-10",
+      "requirements": [
+        {
+          "evidence": [
+            {
+              "document_id": "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0",
+              "end_char": 9987,
+              "granularity": "span",
+              "quote": "Apply For Disability Benefits Child Under Age 18 ",
+              "relevance": 3,
+              "start_char": 9938
+            },
+            {
+              "document_id": "Benefits Planner: Disability | How You Qualify | Social Security Administration#2_0",
+              "end_char": 10003,
+              "granularity": "span",
+              "quote": "Family Benefits ",
+              "relevance": 3,
+              "start_char": 9987
+            }
+          ],
+          "query": "Is there other related information I would need to know about disability for a child under 18",
+          "requirement_id": "R1"
+        },
+        {
+          "evidence": [
+            {
+              "document_id": "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0",
+              "end_char": 9220,
+              "granularity": "span",
+              "quote": "we will evaluate his or her disability the same way we would evaluate the disability for any adult. ",
+              "relevance": 3,
+              "start_char": 9120
+            },
+            {
+              "document_id": "Benefits Planner: Disability | How You Qualify | Social Security Administration#1_0",
+              "end_char": 9346,
+              "granularity": "span",
+              "quote": "We send the application to the Disability Determination Services in your state that completes the disability decision for us. ",
+              "relevance": 3,
+              "start_char": 9220
+            }
+          ],
+          "query": "How is it determined if an adult \"child\" is disabled for SSDI benefits when the child is age 18 or older",
+          "requirement_id": "R2"
+        }
+      ],
+      "source_case_ids": [
+        "doc2dial-dev-b09922c61586b9398efe4bd77271deef-11",
+        "doc2dial-dev-fcc47e7aa1e49bd0de037d783936592b-13"
+      ]
+    },
+    {
+      "case_id": "doc2dial-parallel-stress-11",
+      "requirements": [
+        {
+          "evidence": [
+            {
+              "document_id": "Traffic Violations Bureau#3_0",
+              "end_char": 6725,
+              "granularity": "span",
+              "quote": "you may file an appeal. ",
+              "relevance": 3,
+              "start_char": 6701
+            },
+            {
+              "document_id": "Traffic Violations Bureau#3_0",
+              "end_char": 6863,
+              "granularity": "span",
+              "quote": "You can determine if you can file an appeal online [2] or download Traffic Violations Bureau Appeal form [3] AA-33 from the DMV web site. ",
+              "relevance": 3,
+              "start_char": 6725
+            },
+            {
+              "document_id": "Traffic Violations Bureau#3_0",
+              "end_char": 6913,
+              "granularity": "span",
+              "quote": "The appeal form is also available at TVB offices. ",
+              "relevance": 3,
+              "start_char": 6863
+            }
+          ],
+          "query": "How would I go about appealing a decision",
+          "requirement_id": "R1"
+        },
+        {
+          "evidence": [
+            {
+              "document_id": "Medical Certification FAQ's#3_0",
+              "end_char": 2612,
+              "granularity": "span",
+              "quote": "Yes , ",
+              "relevance": 3,
+              "start_char": 2606
+            },
+            {
+              "document_id": "Medical Certification FAQ's#3_0",
+              "end_char": 2667,
+              "granularity": "span",
+              "quote": "you are eligible for Excepted Intrastate operation EA. ",
+              "relevance": 3,
+              "start_char": 2612
+            },
+            {
+              "document_id": "Medical Certification FAQ's#3_0",
+              "end_char": 2774,
+              "granularity": "span",
+              "quote": "You must ensure that your CDL has the required restrictions: K CDL Intrastate Only and A3 Med Cert Exempt. ",
+              "relevance": 3,
+              "start_char": 2667
+            }
+          ],
+          "query": "Can I keep my CDL but with restrictions on it",
+          "requirement_id": "R2"
+        }
+      ],
+      "source_case_ids": [
+        "doc2dial-dev-1ce198bc767426637a333a1adc62e37a-12",
+        "doc2dial-dev-e7545e6f53bbe7d12b6846061f8dd6ed-13"
+      ]
+    },
+    {
+      "case_id": "doc2dial-parallel-stress-12",
+      "requirements": [
+        {
+          "evidence": [
+            {
+              "document_id": "About VA Health Benefits | Veterans Affairs#1_0",
+              "end_char": 882,
+              "granularity": "span",
+              "quote": "Learn more about priority groups ",
+              "relevance": 3,
+              "start_char": 849
+            }
+          ],
+          "query": "where to get more information about priority groups",
+          "requirement_id": "R1"
+        },
+        {
+          "evidence": [
+            {
+              "document_id": "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0",
+              "end_char": 4258,
+              "granularity": "span",
+              "quote": "Yes , ",
+              "relevance": 3,
+              "start_char": 4252
+            },
+            {
+              "document_id": "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0",
+              "end_char": 4295,
+              "granularity": "span",
+              "quote": "but we encourage you to file online. ",
+              "relevance": 3,
+              "start_char": 4258
+            },
+            {
+              "document_id": "Add Dependents To Your VA Disability Benefits | Veterans Affairs#1_0",
+              "end_char": 4326,
+              "granularity": "span",
+              "quote": "The online process is simple , ",
+              "relevance": 3,
+              "start_char": 4295
+            }
+          ],
+          "query": "can I file by mail when I am ready to add my daughter",
+          "requirement_id": "R2"
+        }
+      ],
+      "source_case_ids": [
+        "doc2dial-dev-13f5099fe2dc8875b44e6b15ad7c2dd1-15",
+        "doc2dial-dev-abba59c477b0cf795c20d5b0b83e4634-11"
+      ]
+    }
+  ],
+  "schema_version": 1
+}

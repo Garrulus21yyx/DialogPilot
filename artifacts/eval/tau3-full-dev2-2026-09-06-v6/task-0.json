@@ -1,0 +1,96 @@
+{
+  "task_id": "0",
+  "official_reward": null,
+  "status": "ERROR",
+  "error_type": "ValueError",
+  "error": "UserMessage must have either content or tool_calls. Got UserMessage\nis_final_chunk: True",
+  "target_trace": [
+    {
+      "turn": 1,
+      "input": "Hi! I need help with an exchange for a recent order I received. I want to swap out two items—let me give you the order number and details.",
+      "outcome": {
+        "response_id": "publication:v1:71683032767ab8797f058d145552e67a274cf3704f4895d919996f5c2777b2f8",
+        "response": {
+          "intent": "SEMANTIC_INSUFFICIENT_CONTEXT",
+          "conv_id": "tau3-f4e0fdf7560141938ece55b90337981f",
+          "coverage": {
+            "complete": false,
+            "missing_requirement_ids": [
+              "order_id",
+              "customer_service_goal"
+            ]
+          },
+          "grounded": false,
+          "response": "请补充完成该任务所需的信息。",
+          "verified": false,
+          "escalated": false,
+          "task_plan": {
+            "plan_id": "turn-plan:v1:9c182f477a2c2811cd4e1cb2e7bb128c2658e09b599c5d8977f9ea2add9e89f7",
+            "work_item_ids": []
+          },
+          "ticket_id": null,
+          "agent_type": "general",
+          "latency_ms": 952.2354919463396,
+          "request_id": "turn-1",
+          "agent_types": [],
+          "response_id": "publication:v1:71683032767ab8797f058d145552e67a274cf3704f4895d919996f5c2777b2f8",
+          "intent_group": "other",
+          "response_seq": 1,
+          "primary_agent": "",
+          "ticket_status": null,
+          "agent_outcomes": [],
+          "bundle_version": "tau3-retail-v1",
+          "routing_reason": "SEMANTIC_INSUFFICIENT_CONTEXT",
+          "delivery_status": "selected",
+          "handoff_created": false,
+          "evaluation_trace": {
+            "cost": {
+              "latency_ms": 952.2354919463396,
+              "work_item_count": 0,
+              "conversation_planner_invoked": false
+            },
+            "outcome": {
+              "kind": "COMPLETED",
+              "verifier_status": "CLARIFY",
+              "missing_requirement_ids": [
+                "order_id",
+                "customer_service_goal"
+              ]
+            },
+            "trigger": {
+              "invocation_admitted": true,
+              "deterministic_resolution": "UNRESOLVED"
+            },
+            "artifact": {
+              "plan_id": "turn-plan:v1:9c182f477a2c2811cd4e1cb2e7bb128c2658e09b599c5d8977f9ea2add9e89f7",
+              "owner_ids": [],
+              "route_mode": "CLARIFY",
+              "registry_fingerprint": "capability-bundle:v1:d97029f228f1b8b68b3f91e89c6d01a1197a34ac7f09b70b5f7b0a993a5b8984",
+              "understanding_reason": "SEMANTIC_INSUFFICIENT_CONTEXT"
+            },
+            "consumption": {
+              "facts": [],
+              "work_items": [],
+              "result_statuses": []
+            },
+            "schema_version": "target-evaluation-trace-v1",
+            "state_side_effect": {
+              "state_version_after": 0,
+              "workstream_statuses": [],
+              "state_version_before": 0,
+              "committed_receipt_refs": []
+            }
+          },
+          "synthesis_reason": "terminal route response",
+          "synthesis_status": "terminal",
+          "supporting_agents": [],
+          "routing_disposition": "clarify",
+          "synthesis_conflicts": [],
+          "verification_status": "clarify",
+          "verification_reason_code": "TARGET_RESULT_INCOMPLETE"
+        },
+        "stages": []
+      }
+    }
+  ]
+}

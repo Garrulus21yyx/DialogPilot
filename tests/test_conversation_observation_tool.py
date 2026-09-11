@@ -16,7 +16,7 @@ from infrastructure.target_tool_execution import TargetToolExecutor
 from mcp.tool_manager import MCPToolManager
 from tests.test_business_observation_continuity import observed_board
 from tests.test_conversation_agent import _state
-from tests.test_postgres_publication import publication_components, _final
+from tests.test_postgres_publication import publication_components as _publication_components, _final  # noqa: F401
 
 
 def setup_reader():
@@ -89,6 +89,18 @@ def test_bounded_pages_reconstruct_exact_json_without_new_business_lookup(numeri
     assert json.loads(''.join(pages)) == observation_document(original)
 
 
+def test_historical_read_retains_only_selected_fact_source_as_private_provenance():
+    original, _, manager, registry = setup_reader()
+    result = asyncio.run(manager.execute_for_agent(TOOL_ID, {
+        'publication_id': 'p1', 'observation_id': original.observation_id,
+        'pointer': '/facts/0/value/status',
+    }, agent_type=registry.agents[0].execution_principal,
+        context={'tenant_id': 'tenant-a', 'user_id': 'user-a', 'conversation_id': 'conversation-a'},
+        allowed_tool_ids=(TOOL_ID,), call_id='observation-read-1'))
+    assert result.causal_source_call_ids == (original.facts[0].source_ref,)
+    assert 'causal_source_call_ids' not in result.output_for_model
+
+
 def test_custom_registry_keeps_business_actions_and_principals():
     original, reader, manager, default = setup_reader()
     base = build_default_capability_registry('retail')
@@ -109,9 +121,9 @@ def test_custom_registry_keeps_business_actions_and_principals():
         install_observation_capability(conflicting, manager, reader)
 
 
-def test_real_original_is_read_through_tool_manager_without_cross_scope_access(publication_components):
+def test_real_original_is_read_through_tool_manager_without_cross_scope_access(_publication_components):  # noqa: F811
     from infrastructure.postgres_conversation_evidence import PostgresConversationEvidence
-    pool, identity, service, _ = publication_components
+    pool, identity, service, _ = _publication_components
     original = BusinessObservation.model_validate(capture_business_observations(observed_board())[0])
     selected = service.select_final_response(replace(_final(identity),
         business_observations=(original.model_dump(mode='json'),)))

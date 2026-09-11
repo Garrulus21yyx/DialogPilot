@@ -1,0 +1,61 @@
+{
+  "planned": 200,
+  "observed": 200,
+  "automatic_recoveries": 200,
+  "automatic_recovery_rate": 1.0,
+  "duplicate_business_rows": 0,
+  "business_rows": 200,
+  "scenarios": {
+    "approval_interrupt": {
+      "count": 40,
+      "recovered": 40
+    },
+    "cancel_after_commit": {
+      "count": 40,
+      "recovered": 40
+    },
+    "duplicate_inflight": {
+      "count": 40,
+      "recovered": 40
+    },
+    "timeout_after_commit": {
+      "count": 40,
+      "recovered": 40
+    },
+    "timeout_before_commit": {
+      "count": 40,
+      "recovered": 40
+    }
+  },
+  "exit_codes": {
+    "matrix": 0,
+    "gates": 0
+  },
+  "checks": {
+    "matrix": {
+      "tests": 200,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "skip_details": []
+    },
+    "gates": {
+      "tests": 281,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "skip_details": [
+        {
+          "test": "test_operation_identity_is_scoped_and_each_scope_keeps_its_binding[WORKFLOW-memory]",
+          "reason": "In-memory ledgers are isolated by instance, not database scope"
+        },
+        {
+          "test": "test_operation_identity_is_scoped_and_each_scope_keeps_its_binding[ACTION-memory]",
+          "reason": "In-memory ledgers are isolated by instance, not database scope"
+        }
+      ]
+    }
+  },
+  "valid_run": true,
+  "finished_at": "2026-09-08T10:02:06.975003+00:00"
+}

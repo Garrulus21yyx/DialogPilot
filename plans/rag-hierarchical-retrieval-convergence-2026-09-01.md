@@ -1,5 +1,12 @@
 # RAG Hierarchical Retrieval Convergence
 
+> Historical archive (2026-09-02): “current fixed 512/64” below describes the
+> Chroma-era experiment, not current HEAD. The PostgreSQL runtime baseline is
+> structure-aware 512/64. No hierarchical candidate passed the cross-slice
+> gates; only the evaluation adapter and rejection evidence remain reusable.
+> New work follows
+> [the evaluation convergence contract](../docs/customer-service-agent-evaluation-plan.zh-CN.md).
+
 ## Goal
 
 Replace the evaluation-only hand-built parent-child topology with mature
@@ -30,7 +37,7 @@ specific fixed expansion policy, not hierarchical retrieval as a whole.
 
 ## Candidate contracts
 
-1. `baseline-512`: current fixed 512/64.
+1. `baseline-512`: then-current fixed `512/64`.
 2. `fixed-parent-child-256-1024`: historical implementation, retained as witness.
 3. `unique-parent-aggregation`: child Top-20; aggregate parent score from max
    child score plus sibling support; deduplicate before parent Top-K.

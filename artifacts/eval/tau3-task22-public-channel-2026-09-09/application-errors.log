@@ -1,0 +1,277 @@
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 169, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 263, in action_proposal
+    raise ValueError("planning_requires_action")
+ValueError: planning_requires_action
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 364, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 32, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<43 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 171, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_requires_action
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 169, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 263, in action_proposal
+    raise ValueError("planning_requires_action")
+ValueError: planning_requires_action
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 364, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 32, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<43 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 171, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_requires_action
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 169, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 263, in action_proposal
+    raise ValueError("planning_requires_action")
+ValueError: planning_requires_action
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 364, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 32, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<43 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 171, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_requires_action
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 169, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 263, in action_proposal
+    raise ValueError("planning_requires_action")
+ValueError: planning_requires_action
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 364, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 32, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<43 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 171, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_requires_action
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 169, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 263, in action_proposal
+    raise ValueError("planning_requires_action")
+ValueError: planning_requires_action
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 364, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 32, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<43 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 171, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_requires_action
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 169, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 263, in action_proposal
+    raise ValueError("planning_requires_action")
+ValueError: planning_requires_action
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 364, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 32, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<43 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 171, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_requires_action
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 169, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 263, in action_proposal
+    raise ValueError("planning_requires_action")
+ValueError: planning_requires_action
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 364, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 32, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<43 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 171, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_requires_action
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 169, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 263, in action_proposal
+    raise ValueError("planning_requires_action")
+ValueError: planning_requires_action
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 364, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 32, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<43 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 171, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_requires_action
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 169, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 263, in action_proposal
+    raise ValueError("planning_requires_action")
+ValueError: planning_requires_action
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 364, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 32, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<43 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 171, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_requires_action
+Response assembly failed: {"stage": "composition_model", "status": "failed", "detail": {"code": "ConversationProviderOutputError", "retryable": false, "exception_chain": [{"type": "ConversationProviderOutputError", "frames": [{"file": "/home/yang/DialogPilot/application/response_assembly.py", "line": 359, "function": "_assemble_candidate"}, {"file": "/home/yang/DialogPilot/application/conversation_agent.py", "line": 222, "function": "compose"}, {"file": "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", "line": 133, "function": "compose"}], "message": "planning_requires_action"}, {"type": "ValueError", "frames": [{"file": "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", "line": 131, "function": "compose"}, {"file": "/home/yang/DialogPilot/application/conversation_actions.py", "line": 263, "function": "action_proposal"}], "message": "planning_requires_action"}]}}
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 169, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 263, in action_proposal
+    raise ValueError("planning_requires_action")
+ValueError: planning_requires_action
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 364, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 32, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<43 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 171, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_requires_action
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 169, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 263, in action_proposal
+    raise ValueError("planning_requires_action")
+ValueError: planning_requires_action
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 364, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 32, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<43 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 171, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_requires_action
+Conversation planning output protocol rejected
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 169, in _complete
+    return action_proposal(actions, output.tool_calls, output.text)
+  File "/home/yang/DialogPilot/application/conversation_actions.py", line 263, in action_proposal
+    raise ValueError("planning_requires_action")
+ValueError: planning_requires_action
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/yang/DialogPilot/application/conversation_agent.py", line 364, in plan
+    raw = await self._provider.plan(budgeted.payload)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 32, in plan
+    return await self._complete(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<43 lines>...
+    )
+    ^
+  File "/home/yang/DialogPilot/infrastructure/target_conversation_provider.py", line 171, in _complete
+    raise ConversationProviderOutputError(str(exc)) from exc
+application.conversation_agent.ConversationProviderOutputError: planning_requires_action
