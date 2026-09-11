@@ -1,4 +1,4 @@
-"""Adapters from canonical PostgreSQL events to the Redis memory projection."""
+"""Canonical event projection into the fact-extraction working input."""
 from __future__ import annotations
 
 from datetime import timezone
@@ -16,10 +16,12 @@ class MemoryProjectionContractError(RuntimeError):
     pass
 
 
-class PostgresLegacyMemoryProjectionAdapter:
-    """One target-specific adapter over the lifespan-owned MemoryManager."""
+class PostgresMemoryFactProjectionAdapter:
+    """Fact input and scheduling only; ThreadSummary has its PostgreSQL owner."""
 
     def __init__(self, pool, memory, projection_name: ProjectionName):
+        if projection_name not in {ProjectionName.WORKING_WINDOW, ProjectionName.FACT_EXTRACTION}:
+            raise MemoryProjectionContractError("only fact input and scheduling projections are supported")
         self.pool = pool
         self.memory = memory
         self.projection_name = projection_name
@@ -94,10 +96,6 @@ class PostgresLegacyMemoryProjectionAdapter:
             return await self.memory.project_working_message(
                 subject.user_id, subject.conversation_id, message,
                 event_key=event_key,
-            )
-        if self.projection_name is ProjectionName.THREAD_SUMMARY:
-            return await self.memory.project_thread_summary(
-                subject.user_id, subject.conversation_id, event_key=event_key,
             )
         if self.projection_name is ProjectionName.FACT_EXTRACTION:
             if event.event_type not in {

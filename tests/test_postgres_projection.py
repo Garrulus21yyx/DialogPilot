@@ -19,7 +19,7 @@ from infrastructure.postgres import (
 )
 from infrastructure.postgres_admission import PostgresAdmissionUnitOfWork
 from infrastructure.memory_projection_adapter import (
-    PostgresLegacyMemoryProjectionAdapter,
+    PostgresMemoryFactProjectionAdapter,
 )
 from infrastructure.postgres_projection import (
     ConversationProjectionDispatcher,
@@ -202,7 +202,7 @@ def test_production_memory_adapter_loads_canonical_turn_and_routes_target(
         lease_until="2026-09-02T09:01:00+00:00",
         limit=1,
     )[0]
-    adapter = PostgresLegacyMemoryProjectionAdapter(
+    adapter = PostgresMemoryFactProjectionAdapter(
         pool, memory, ProjectionName.WORKING_WINDOW,
     )
     assert asyncio.run(adapter.apply_async(event)) is ProjectionApplyStatus.APPLIED
@@ -229,7 +229,7 @@ def test_fact_adapter_does_not_schedule_non_final_inbound_event(
         lease_until="2026-09-02T09:01:00+00:00",
         limit=1,
     )[0]
-    adapter = PostgresLegacyMemoryProjectionAdapter(
+    adapter = PostgresMemoryFactProjectionAdapter(
         pool, Memory(), ProjectionName.FACT_EXTRACTION,
     )
     assert asyncio.run(

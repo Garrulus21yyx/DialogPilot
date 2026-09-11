@@ -614,7 +614,7 @@ async def lifespan(app: FastAPI):
     await _commitment_service.start()
     if _postgres_pool is not None:
         from infrastructure.memory_projection_adapter import (
-            PostgresLegacyMemoryProjectionAdapter,
+            PostgresMemoryFactProjectionAdapter,
         )
         from infrastructure.embedded_thread_summarizer import (
             EmbeddedThreadSummarizerAdapter,
@@ -644,7 +644,7 @@ async def lifespan(app: FastAPI):
             )
         _durable_chat_stop = asyncio.Event()
         projection_adapters = {
-            name: PostgresLegacyMemoryProjectionAdapter(
+            name: PostgresMemoryFactProjectionAdapter(
                 _postgres_pool, _memory, name,
             )
             for name in ProjectionName if name is not ProjectionName.THREAD_SUMMARY
@@ -1845,16 +1845,7 @@ async def finalize_conversation(
         if not progress.caught_up:
             return JSONResponse(status_code=202, content=body.model_dump())
         return body
-    if _memory is None:
-        raise HTTPException(503, "记忆服务未就绪")
-    result = await _memory.finalize_conversation(principal.subject, conv_id)
-    if not result.get("finalized"):
-        status_code = 409 if result.get("reason") == "concurrent_write" else 503
-        raise HTTPException(status_code, {
-            "error": result.get("reason", "finalize_failed"),
-            "retryable": True,
-        })
-    return ConversationFinalizeResponse(conv_id=conv_id, **result)
+    raise HTTPException(503, {"error": "conversation_projection_unavailable"})
 
 
 @app.get("/conversations/{conv_id}/turns", tags=["会话"])

@@ -226,19 +226,21 @@ def register_fresh_fixtures(
     async def memory_public_finalize(request):
         import api.main as main
         data = inputs(request); calls = []; owner_results = []
-        class FakeMemory:
-            async def finalize_conversation(self, user_id, conv_id):
-                calls.append((user_id, conv_id))
-                result = {"finalized": True, "reason": "explicit_finalize", "summarized_messages": 1}
+        from types import SimpleNamespace
+        class Query:
+            def projection_progress(self, *, tenant_id, user_id, conversation_id):
+                calls.append((user_id, conversation_id))
+                result = SimpleNamespace(caught_up=True, target_event_seq=2,
+                    watermarks={"thread_summary": 2, "fact_extraction": 2})
                 owner_results.append(result)
                 return result
-        previous = main._memory; main._memory = FakeMemory()
+        previous = main._conversation_query; main._conversation_query = Query()
         try:
             response = await main.finalize_conversation(str(data["conv_id"]), Principal(str(data["principal_subject"]), frozenset({"chat"})))
         finally:
-            main._memory = previous
+            main._conversation_query = previous
         return FixtureEvidence({
-            "explicit_finalize_route_owned": owner_results[0]["reason"] == "explicit_finalize",
+            "explicit_finalize_route_owned": owner_results[0].caught_up,
             "no_idle_clock_injected": True,
             "public_route_calls_finalize_owner": calls == [(data["principal_subject"], data["conv_id"])],
         }, {"calls": calls, "response": response.model_dump()})

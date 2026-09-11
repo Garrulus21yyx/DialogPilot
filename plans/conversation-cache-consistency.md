@@ -85,3 +85,17 @@ No paid model calls or business benchmark reruns were used.
 Delivery: scoped changes committed on feat/customer-service-target-architecture;
 unrelated RCA worktree edits excluded. Deployment must run the existing
 scripts/run_postgres_migrations.py for 0038 before restarting the service.
+
+## Deployment and retirement — active follow-up
+
+User now authorizes actual migration and removal of superseded paths. Base 434d346;
+unrelated RCA changes remain excluded. Running compose app is older than the current
+branch: database 0029, old image without LangChain. Inventory: 15 conversations,
+28 canonical events, no missing synchronous inbound links, no Redis summary keys;
+15 raw Redis windows still feed fact extraction and are not disposable summaries.
+
+- in_progress: inspect pending migrations/old business stores; take restorable backup.
+- pending: remove production Redis-summary fallback and redundant projection branch.
+- pending: build committed application, migrate database, cut over and verify health.
+- pending: remove only retired live storage/mounts after verifying its disposition;
+  record recovery path and push delivery evidence. No unrelated queue/platform work.
