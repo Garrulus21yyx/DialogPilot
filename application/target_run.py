@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 from langgraph.errors import GraphBubbleUp
 from dataclasses import dataclass, replace
 from datetime import datetime, timedelta, timezone
@@ -16,6 +17,7 @@ from application.target_chat_application import (
     TargetChatApplication,
 )
 from core.identity import IdentityContractError, InvocationKey, WorkflowRunId
+from core.capacity_metrics import decisions, wait_seconds
 
 
 class TargetRunClaimLost(RuntimeError):
@@ -37,6 +39,7 @@ class TargetRunItem:
     deletion_epoch: int
     attempt: int
     claimed_by: str
+    admitted_at: datetime
     selected_failure: Failed | None = None
 
 
@@ -91,6 +94,7 @@ class TargetRunWorker:
         heartbeat_seconds: float = 30.0,
         retry_after_seconds: int = 1,
         max_attempts: int = 3,
+        max_queue_wait_seconds: float | None = None,
         finalize_failure: Callable[[TargetRunItem, Failed], Awaitable[ChatOutcome]] | None = None,
     ) -> None:
         if lease_seconds < 2 or heartbeat_seconds <= 0:
@@ -105,6 +109,10 @@ class TargetRunWorker:
         self._heartbeat_seconds = heartbeat_seconds
         self._retry_after_seconds = max(0, retry_after_seconds)
         self._max_attempts = max_attempts
+        self._max_queue_wait_seconds = (float(os.getenv("TARGET_MAX_QUEUE_WAIT_SECONDS", "300"))
+            if max_queue_wait_seconds is None else max_queue_wait_seconds)
+        if self._max_queue_wait_seconds <= 0:
+            raise ValueError("queue waiting deadline must be positive")
         self._finalize_failure = finalize_failure
 
     async def run_once(
@@ -120,6 +128,9 @@ class TargetRunWorker:
         )
         outcomes: list[ChatOutcome] = []
         for item in items:
+            if item.attempt == 1:
+                wait_seconds.labels("target_queue").observe(max(0,
+                    (datetime.now(timezone.utc) - item.admitted_at).total_seconds()))
             stop = asyncio.Event()
             heartbeat = asyncio.create_task(self._heartbeat(item, worker_id, stop))
 
@@ -132,6 +143,16 @@ class TargetRunWorker:
                 try:
                     if item.selected_failure is not None:
                         outcome = item.selected_failure
+                    elif item.attempt == 1 and (
+                        datetime.now(timezone.utc) - item.admitted_at
+                    ).total_seconds() > self._max_queue_wait_seconds:
+                        # Only work that has never started expires here. A
+                        # recovery attempt may own an already committed write.
+                        outcome = Failed("RUN_QUEUE_EXPIRED", False,
+                            str(item.invocation_key), "The request waited too long to start. No business action was started.",
+                            stages=(StageObservation("run_queue", StageStatus.FAILED,
+                                {"code": "RUN_QUEUE_EXPIRED"}),))
+                        decisions.labels("target_queue", "expired").inc()
                     elif item.attempt > self._max_attempts:
                         outcome = Failed("run_attempt_budget_exhausted", False,
                             str(item.invocation_key), "Execution stopped; saved operation records require review.",

@@ -6,10 +6,14 @@ from dataclasses import replace
 import hashlib
 import json
 import logging
+import os
+import random
+from copy import deepcopy
 
 from pydantic import TypeAdapter
 from application.memory_projection import MemoryProjectionResult, MemoryProjectionState, MemoryRetrievalOutcome
 from memory.conversation_memory import MemoryContext
+from core.capacity_metrics import decisions
 
 logger = logging.getLogger(__name__)
 _RESULT = TypeAdapter(MemoryProjectionResult)
@@ -20,9 +24,12 @@ _DELETED = b'{"deleted":true}'
 class ConversationContextCache:
     """One replaceable entry per tenant/user/conversation; TTL is not freshness."""
 
-    def __init__(self, redis, *, ttl_seconds=300):
+    def __init__(self, redis, *, ttl_seconds=300, jitter_seconds=60):
+        if ttl_seconds < 1 or jitter_seconds < 0:
+            raise ValueError("invalid cache TTL")
         self.redis = redis
         self.ttl_seconds = ttl_seconds
+        self.jitter_seconds = jitter_seconds
 
     @staticmethod
     def key(scope):
@@ -62,7 +69,7 @@ class ConversationContextCache:
                 if current == _DELETED or current == _DELETED.decode():
                     return
                 pipe.multi()
-                pipe.set(key, payload, ex=self.ttl_seconds)
+                pipe.set(key, payload, ex=self.ttl_seconds + random.randint(0, self.jitter_seconds))
                 pipe.execute()
         except Exception as error:
             logger.warning("Conversation cache fill unavailable: %s", type(error).__name__)
@@ -82,9 +89,15 @@ class CachedConversationReader:
     the envelope must match the current revision and request exclusion.
     """
 
-    def __init__(self, reader, cache):
+    def __init__(self, reader, cache, *, max_inflight=None, max_callers=None):
         self.reader = reader
         self.cache = cache
+        self.max_inflight = int(os.getenv("CONTEXT_MAX_INFLIGHT", "8")) if max_inflight is None else max_inflight
+        self.max_callers = int(os.getenv("CONTEXT_MAX_CALLERS", "128")) if max_callers is None else max_callers
+        if min(self.max_inflight, self.max_callers) < 1:
+            raise ValueError("context capacity must be positive")
+        self._inflight = {}
+        self._callers = 0
 
     def revision(self, scope):
         with self.reader.pool.transaction() as connection:
@@ -131,22 +144,48 @@ class CachedConversationReader:
             self.cache.put_sync(scope, revision, request_id, result)
 
     async def get_projection_result(self, tenant_id, user_id, conv_id, *, query="", current_request_id=""):
+        # Coalesce the entire fenced read (including revision queries), never
+        # persist a second cache of completed results. Cancellation of a caller
+        # cannot free a slot while its shared thread/Redis request still runs.
+        key = (tenant_id, user_id, conv_id, query, current_request_id)
+        if self._callers >= self.max_callers:
+            decisions.labels("context", "rejected").inc()
+            return self._unavailable("CONTEXT_SOURCE_BUSY")
+        task = self._inflight.get(key)
+        if task is None:
+            if len(self._inflight) >= self.max_inflight:
+                decisions.labels("context", "rejected").inc()
+                return self._unavailable("CONTEXT_SOURCE_BUSY")
+            task = asyncio.create_task(self._read(*key[:3], query=query,
+                current_request_id=current_request_id))
+            self._inflight[key] = task
+            task.add_done_callback(lambda _: self._inflight.pop(key, None))
+        else:
+            decisions.labels("context", "coalesced").inc()
+        self._callers += 1
+        try:
+            return deepcopy(await asyncio.shield(task))
+        finally:
+            self._callers -= 1
+
+    async def _read(self, tenant_id, user_id, conv_id, *, query="", current_request_id=""):
         scope = (tenant_id, user_id, conv_id)
         for _ in range(2):
             try:
-                revision = self.revision(scope)
+                revision = await asyncio.to_thread(self.revision, scope)
                 if revision is None:
                     return self._unavailable("CONVERSATION_UNAVAILABLE")
-                result = await self.cache.get(scope, revision, current_request_id)
+                result = await self.cache.get(scope, revision, current_request_id) if self.cache else None
                 hit = result is not None
                 if not hit:
+                    decisions.labels("context", "source_read").inc()
                     result = await self.reader.get_projection_result(*scope,
                         query=query, current_request_id=current_request_id)
-                if self.revision(scope) != revision:
+                if await asyncio.to_thread(self.revision, scope) != revision:
                     continue
-                if not hit and not result.reason_codes and not result.conflicts:
+                if self.cache and not hit and not result.reason_codes and not result.conflicts:
                     await self.fill(scope, revision, current_request_id, result)
-                    if self.revision(scope) != revision:
+                    if await asyncio.to_thread(self.revision, scope) != revision:
                         continue
                 return result
             except Exception as error:

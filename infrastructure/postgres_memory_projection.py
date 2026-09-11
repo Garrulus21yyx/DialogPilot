@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from datetime import timezone
+import asyncio
 import json
 
 from application.memory_projection import (
@@ -34,6 +35,10 @@ class PostgresMemoryProjectionReader:
         query: str = "",
         current_request_id: str = "",
     ) -> MemoryProjectionResult:
+        return await asyncio.to_thread(self._get_projection_result,
+            tenant_id, user_id, conv_id, query=query, current_request_id=current_request_id)
+
+    def _get_projection_result(self, tenant_id, user_id, conv_id, *, query="", current_request_id=""):
         empty = MemoryContext([], [], {}, "", [])
         try:
             source, watermarks = self._watermarks(tenant_id, user_id, conv_id)

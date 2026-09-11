@@ -137,6 +137,7 @@ _rag_context_packer = ContextPacker()
 _grounded_answer_generator = None
 _knowledge_retriever = None
 _retrieval_cache_client = None
+_chat_rate_limiter = None
 _authenticator = None
 _model_policy = None
 _bundle_registry = None
@@ -185,6 +186,21 @@ _chat_principal = require_scopes("chat")
 _admin_principal = require_scopes("admin")
 _knowledge_principal = require_scopes("knowledge:read")
 _tool_approval_principal = require_scopes("tool:approve")
+
+
+def _admitted_chat_principal(principal: Principal = Depends(_chat_principal)):
+    from infrastructure.chat_rate_limit import ChatRateExceeded
+    from redis.exceptions import RedisError
+    if _chat_rate_limiter is None:
+        raise HTTPException(503, {"code": "CHAT_ADMISSION_UNAVAILABLE"})
+    try:
+        _chat_rate_limiter.check(os.getenv("DEFAULT_TENANT_ID", "default"), principal.subject)
+    except ChatRateExceeded as exc:
+        raise HTTPException(429, {"code": str(exc)}, headers={"Retry-After": "60"}) from exc
+    except RedisError as exc:
+        raise HTTPException(503, {"code": "CHAT_ADMISSION_UNAVAILABLE"},
+                            headers={"Retry-After": "2"}) from exc
+    return principal
 
 def _anthropic_cfg() -> Dict[str, Any]:
     """读取模型供应商配置，并在应用启动前验证必需 API Key。"""
@@ -457,6 +473,8 @@ async def lifespan(app: FastAPI):
     )
 
     import redis
+    from redis.backoff import NoBackoff
+    from redis.retry import Retry
     from infrastructure.knowledge_retriever_adapters import (
         ToolManagerQueryTransformerAdapter,
         configured_knowledge_reranker,
@@ -470,7 +488,12 @@ async def lifespan(app: FastAPI):
     _retrieval_cache_client = redis.Redis.from_url(
         os.getenv("REDIS_URL", "redis://redis:6379/0"), decode_responses=False,
         socket_connect_timeout=2, socket_timeout=2,
+        max_connections=32,
+        retry=Retry(NoBackoff(), 0),
     )
+    from infrastructure.chat_rate_limit import ChatRateLimiter
+    global _chat_rate_limiter
+    _chat_rate_limiter = ChatRateLimiter(_retrieval_cache_client)
     rag_parallel = os.getenv("RAG_RETRIEVAL_PARALLEL", "false").strip().lower()
     if rag_parallel not in {"true", "false"}:
         raise ValueError("RAG_RETRIEVAL_PARALLEL must be true or false")
@@ -740,6 +763,7 @@ async def lifespan(app: FastAPI):
         _postgres_trace_sink = None
         _knowledge_retriever = None
         _retrieval_cache_client = None
+        _chat_rate_limiter = None
         _target_run_coordinator = None
         _durable_chat_task = None
         _durable_chat_stop = None
@@ -1698,7 +1722,7 @@ def _active_ticket_status_reader(
         503: {"model": FailedChatResponse},
     },
 )
-async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)):
+async def chat(req: ChatRequest, principal: Principal = Depends(_admitted_chat_principal)):
     """Validate the HTTP request and map the protocol-neutral application outcome."""
     _enforce_user_input_security(req.message)
     command = ChatCommand(
@@ -1721,7 +1745,13 @@ async def chat(req: ChatRequest, principal: Principal = Depends(_chat_principal)
             for item in req.interaction_values
         ),
     )
-    outcome = await _chat_application().handle(command)
+    from infrastructure.postgres import PostgresUnavailableError
+    from application.admission_contract import AdmissionCapacityExceeded
+    try:
+        outcome = await _chat_application().handle(command)
+    except (PostgresUnavailableError, AdmissionCapacityExceeded) as exc:
+        raise HTTPException(503, {"code": "CHAT_CAPACITY_EXCEEDED"},
+                            headers={"Retry-After": "2"}) from exc
     if isinstance(outcome, Completed):
         return ChatResponse.model_validate(outcome.response)
     projection = project_chat_outcome(outcome)

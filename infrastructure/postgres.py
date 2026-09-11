@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+import time
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
@@ -13,7 +14,7 @@ from alembic import command
 from alembic.config import Config
 from alembic.script import ScriptDirectory
 from psycopg import Connection
-from psycopg_pool import ConnectionPool
+from psycopg_pool import ConnectionPool, PoolTimeout, TooManyRequests
 from sqlalchemy.exc import SQLAlchemyError
 
 from application.data_location_registry import (
@@ -22,10 +23,19 @@ from application.data_location_registry import (
     default_registry_path,
 )
 from core.schema_version_registry import SchemaVersionRegistry
+from core.capacity_metrics import decisions, wait_seconds
 
 
 class PostgresUnavailableError(RuntimeError):
     pass
+
+
+class PostgresCapacityExceeded(PostgresUnavailableError):
+    """Retryable admission failure; no transaction was acquired."""
+
+
+class PostgresQueryTimeout(PostgresUnavailableError):
+    """The transaction was rolled back after a statement/lock timeout."""
 
 
 class MigrationDriftError(RuntimeError):
@@ -42,6 +52,9 @@ class PostgresPoolConfig:
     min_size: int = 1
     max_size: int = 10
     timeout_seconds: float = 5.0
+    max_waiting: int = 20
+    statement_timeout_ms: int = 15000
+    lock_timeout_ms: int = 3000
 
     def __post_init__(self) -> None:
         if not str(self.database_url or "").strip():
@@ -50,6 +63,8 @@ class PostgresPoolConfig:
             raise ValueError("invalid PostgreSQL pool bounds")
         if self.timeout_seconds <= 0:
             raise ValueError("timeout_seconds must be positive")
+        if min(self.max_waiting, self.statement_timeout_ms, self.lock_timeout_ms) < 1:
+            raise ValueError("PostgreSQL waiting and query bounds must be positive")
 
     @classmethod
     def from_env(cls, env: dict[str, str] | None = None) -> "PostgresPoolConfig":
@@ -59,6 +74,9 @@ class PostgresPoolConfig:
             min_size=int(values.get("POSTGRES_POOL_MIN_SIZE", "1")),
             max_size=int(values.get("POSTGRES_POOL_MAX_SIZE", "10")),
             timeout_seconds=float(values.get("POSTGRES_POOL_TIMEOUT_SECONDS", "5")),
+            max_waiting=int(values.get("POSTGRES_POOL_MAX_WAITING", "20")),
+            statement_timeout_ms=int(values.get("POSTGRES_STATEMENT_TIMEOUT_MS", "15000")),
+            lock_timeout_ms=int(values.get("POSTGRES_LOCK_TIMEOUT_MS", "3000")),
         )
 
 
@@ -70,16 +88,20 @@ class PostgresPool:
             min_size=config.min_size,
             max_size=config.max_size,
             timeout=config.timeout_seconds,
+            max_waiting=config.max_waiting,
             open=False,
             kwargs={"autocommit": False},
             configure=self._configure,
         )
 
-    @staticmethod
-    def _configure(connection: Connection) -> None:
+    def _configure(self, connection: Connection) -> None:
         connection.execute(
             "SET search_path TO dialogpilot_app, dialogpilot_platform, public"
         )
+        connection.execute("SELECT set_config('statement_timeout', %s, false)",
+                           (str(self.config.statement_timeout_ms),))
+        connection.execute("SELECT set_config('lock_timeout', %s, false)",
+                           (str(self.config.lock_timeout_ms),))
         connection.commit()
 
     def open(self) -> None:
@@ -103,10 +125,18 @@ class PostgresPool:
 
     @contextmanager
     def transaction(self) -> Iterator[Connection]:
+        started = time.monotonic()
         try:
             with self._pool.connection() as connection:
+                wait_seconds.labels("postgres_pool").observe(time.monotonic() - started)
                 with connection.transaction():
                     yield connection
+        except (PoolTimeout, TooManyRequests) as exc:
+            decisions.labels("postgres_pool", "rejected").inc()
+            raise PostgresCapacityExceeded("PostgreSQL capacity exhausted") from exc
+        except (psycopg.errors.QueryCanceled, psycopg.errors.LockNotAvailable) as exc:
+            decisions.labels("postgres_query", "timeout").inc()
+            raise PostgresQueryTimeout("PostgreSQL statement or lock timed out") from exc
         except psycopg.OperationalError as exc:
             if exc.sqlstate is None or exc.sqlstate.startswith("08") or exc.sqlstate in {
                 "57P01", "57P02", "57P03",

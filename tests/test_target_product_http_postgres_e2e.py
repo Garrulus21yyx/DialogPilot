@@ -114,6 +114,8 @@ def test_uploaded_asset_reaches_real_product_tools_and_catalog(
     main.app.dependency_overrides[main.get_principal] = lambda: Principal(
         "user-product-e2e", frozenset({"chat"}),
     )
+    from types import SimpleNamespace
+    monkeypatch.setattr(main, "_chat_rate_limiter", SimpleNamespace(check=lambda *args: None))
     monkeypatch.setattr(
         main, "_media_asset_service",
         MediaAssetService(asset_store, local_signature_scan),

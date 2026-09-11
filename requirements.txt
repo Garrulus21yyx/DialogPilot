@@ -33,6 +33,7 @@ scrubadub==2.0.1            # 按范围配置的敏感文本识别与替换
 
 # ── HTTP 客户端 ───────────────────────────────────────────────────────────────
 httpx==0.28.1              # monitor/performance_monitor.py webhook 告警
+limits==5.6.0              # Redis-backed authenticated API quotas; no custom counter algorithm
 
 # ── 工具 ──────────────────────────────────────────────────────────────────────
 python-dotenv==1.0.1

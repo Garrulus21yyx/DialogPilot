@@ -1,5 +1,6 @@
 import asyncio
 from dataclasses import replace
+from datetime import datetime, timedelta, timezone
 from typing import get_args
 
 import pytest
@@ -168,6 +169,7 @@ def _item():
         request_id="request-a",
     )
     return TargetRunItem(
+        admitted_at=datetime.now(timezone.utc),
         run_id=identity.workflow_run_id,
         invocation_key=identity.invocation_key,
         tenant_id=str(identity.tenant_id),
@@ -182,6 +184,23 @@ def _item():
         attempt=1,
         claimed_by="worker-a",
     )
+
+
+@pytest.mark.parametrize("attempt,expires", [(1, True), (2, False)])
+def test_queue_deadline_expires_only_never_started_work(attempt, expires):
+    item = replace(_item(), admitted_at=datetime.now(timezone.utc)-timedelta(hours=1), attempt=attempt)
+    store = _RunStore(item)
+    calls = []
+    async def execute(item, guard):
+        calls.append(item)
+        return Completed("reply", {"response": "done"})
+    worker = TargetRunWorker(store, execute, max_queue_wait_seconds=1)
+    outcomes = asyncio.run(worker.run_once(worker_id="worker"))
+    if expires:
+        assert outcomes[0].code == "RUN_QUEUE_EXPIRED"
+        assert not calls
+    else:
+        assert isinstance(outcomes[0], Completed) and len(calls) == 1
 
 
 def test_target_run_worker_commits_one_terminal_and_replays_its_outcome():

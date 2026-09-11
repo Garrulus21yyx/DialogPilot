@@ -51,8 +51,8 @@ def target_run_components(postgres_database_url):
         pool.close()
 
 
-def _admit_and_bind(pool, suffix="one"):
-    identity = IdentityFactory(lambda: "unused").create_invocation(
+def _admit_and_bind(pool, suffix="one", *, identity=None, message="查一下订单状态"):
+    identity = identity or IdentityFactory(lambda: "unused").create_invocation(
         tenant_id="tenant-target-run",
         user_id="user-target-run",
         conversation_id=f"conversation-{suffix}",
@@ -61,7 +61,7 @@ def _admit_and_bind(pool, suffix="one"):
     now = datetime.now(timezone.utc)
     PostgresAdmissionUnitOfWork(pool).admit_new(NewInvocationInbound(
         identity,
-        "查一下订单状态",
+        message,
         {
             "authorization_fingerprint": "auth-v1",
             "approval_decision": "none",

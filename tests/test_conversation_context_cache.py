@@ -246,7 +246,7 @@ def test_real_redis_snapshot_roundtrip():
         try:
             await cache.put(scope, (1,), '', snapshot('canonical'))
             assert await cache.get(scope, (1,), '') == snapshot('canonical')
-            assert 0 < client.ttl(cache.key(scope)) <= 300
+            assert 0 < client.ttl(cache.key(scope)) <= 360
             assert await cache.get(scope, (2,), '') is None
             # A queued old transaction cannot restore content after deletion.
             with client.pipeline() as pending:

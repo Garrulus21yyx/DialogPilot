@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import os
 from dataclasses import dataclass
 from typing import Callable, Mapping, Protocol
 
@@ -10,6 +11,7 @@ from psycopg.types.json import Jsonb
 
 from application.admission_contract import (
     AdmissionConflict,
+    AdmissionCapacityExceeded,
     AdmissionCreated,
     AdmissionExisting,
     AdmissionRecord,
@@ -35,6 +37,7 @@ from application.inbound_admission import (
 from core.identity import InvocationKey, OperationKey, WorkflowRunId
 from infrastructure.postgres import PostgresPool
 from infrastructure.postgres_conversation import PostgresInvocationRepository
+from core.capacity_metrics import decisions
 
 
 FaultHook = Callable[[str], None]
@@ -59,9 +62,13 @@ class DispatchAttempt:
 
 
 class PostgresAdmissionUnitOfWork:
-    def __init__(self, pool: PostgresPool, *, fault_hook: FaultHook | None = None):
+    def __init__(self, pool: PostgresPool, *, fault_hook: FaultHook | None = None,
+                 max_pending: int | None = None):
         self.pool = pool
         self.fault_hook = fault_hook or (lambda _stage: None)
+        self.max_pending = max_pending if max_pending is not None else int(os.getenv("TARGET_MAX_PENDING_RUNS", "1000"))
+        if self.max_pending < 1:
+            raise ValueError("TARGET_MAX_PENDING_RUNS must be positive")
 
     def admit_synchronous(
         self,
@@ -203,6 +210,15 @@ class PostgresAdmissionUnitOfWork:
             existing = self._invocation(connection, identity.invocation_key)
             if existing is not None:
                 return self._admission_replay(existing, record)
+            # All new durable Target turns (including user replies) use this
+            # boundary. Serialize capacity decisions, not business execution.
+            # Existing request identities remain replayable at capacity.
+            if command.runtime_kind == "target":
+                connection.execute("SELECT pg_advisory_xact_lock(%s)", (754208190321,))
+                existing = self._invocation(connection, identity.invocation_key)
+                if existing is not None:
+                    return self._admission_replay(existing, record)
+                self._assert_capacity(connection)
             self._lock_conversation(connection, identity)
             existing = self._invocation(connection, identity.invocation_key)
             if existing is not None:
@@ -291,6 +307,24 @@ class PostgresAdmissionUnitOfWork:
             ))
             self.fault_hook("after_start_outbox")
             return AdmissionCreated(record)
+
+    def _assert_capacity(self, connection):
+        # Start and execution rows refer to the same invocation. Count once,
+        # including claimed/running work until its durable acknowledgement.
+        pending = connection.execute("""
+            SELECT count(*) FROM (
+                SELECT invocation_key FROM dialogpilot_app.workflow_start_outbox
+                WHERE acknowledged_at IS NULL AND payload->>'runtime_kind'='target'
+                UNION
+                SELECT job.invocation_key FROM dialogpilot_app.compatibility_execution_outbox job
+                JOIN dialogpilot_app.workflow_invocations invocation
+                  ON invocation.invocation_key=job.invocation_key
+                WHERE job.acknowledged_at IS NULL AND invocation.execution_runtime_kind='target'
+            ) outstanding
+        """).fetchone()[0]
+        if pending >= self.max_pending:
+            decisions.labels("target_queue", "rejected").inc()
+            raise AdmissionCapacityExceeded("TARGET_QUEUE_FULL")
 
     def admit_resume(
         self, command: ValidResumeInbound | InvalidResumeInbound,

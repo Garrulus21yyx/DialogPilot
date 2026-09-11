@@ -322,6 +322,7 @@ class PostgresTargetRunStore:
             },
             deletion_epoch=int(row["source_deletion_epoch"]),
             attempt=int(row["attempts"]), claimed_by=row["claimed_by"],
+            admitted_at=row["created_at"],
             selected_failure=(outcome_from_terminal(TargetRunTerminal(
                 "FAILED", dict(row["selected_failure"]), str(row["invocation_key"])))
                 if row["selected_failure"] is not None else None),

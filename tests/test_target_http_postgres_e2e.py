@@ -421,6 +421,10 @@ def test_six_target_scenarios_cross_real_http_and_postgres_boundaries(
     main.app.dependency_overrides[main.get_principal] = lambda: Principal(
         "user-target-e2e", frozenset({"chat"}),
     )
+    # This suite isolates task execution; rate/storage faults have their own
+    # real-Redis HTTP admission tests in test_backend_capacity_services.py.
+    from types import SimpleNamespace
+    monkeypatch.setattr(main, "_chat_rate_limiter", SimpleNamespace(check=lambda *args: None))
     prefix = uuid4().hex
 
     async def run():

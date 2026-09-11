@@ -4,7 +4,6 @@ Application owns admission/dispatch. Runtime lifecycle remains an opaque reader;
 this module deliberately does not duplicate Agent node transitions.
 """
 from __future__ import annotations
-
 import hashlib
 import json
 from dataclasses import dataclass
@@ -13,6 +12,10 @@ from typing import Any, Mapping, Protocol, TypeAlias
 
 from application.chat_contracts import Accepted, Cancelled, ChatOutcome, Completed, Expired, Failed, HandedOff, NeedsInput, Reconciling
 from core.identity import InvocationKey, OperationKey, WorkflowRunId
+
+
+class AdmissionCapacityExceeded(RuntimeError):
+    """New work was not admitted; retry the same request identity later."""
 
 
 class AdmissionContractError(ValueError):

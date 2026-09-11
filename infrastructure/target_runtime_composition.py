@@ -213,9 +213,8 @@ async def build_target_runtime(
             StateBoundTargetUnderstanding(), conversation_agent, encoder=encoder,
         )
         context_reader = PostgresMemoryProjectionReader(postgres_pool)
-        if conversation_cache is not None:
-            from infrastructure.conversation_context_cache import CachedConversationReader
-            context_reader = CachedConversationReader(context_reader, conversation_cache)
+        from infrastructure.conversation_context_cache import CachedConversationReader
+        context_reader = CachedConversationReader(context_reader, conversation_cache)
         manager = TargetConversationManager(
             state_store=state_store,
             registry=registry,

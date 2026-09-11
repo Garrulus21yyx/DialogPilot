@@ -39,7 +39,8 @@ cancellation cannot release the SQL lock while its Redis write is still running.
 Redis SDK WATCH/MULTI/EXEC fences delayed or unknown writes. Deletion replaces the
 key with a short-lived, content-free tombstone; a delayed EXEC watching the old key
 aborts. WatchError discards the fill, without replaying the stale write. The existing
-deletion outbox retries deletion failures. Both content and marker have a 300s TTL;
+deletion outbox retries deletion failures. Content now has a 300–360s jittered TTL
+and the deletion marker has a 300s TTL (backend overload protection follow-up);
 TTL is cleanup, not an authorization/freshness decision. Shared Redis connections
 have explicit two-second connect/read timeouts.
 
