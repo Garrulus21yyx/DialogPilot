@@ -70,7 +70,7 @@ logger = logging.getLogger(__name__)
 class TargetFrameworkAgent:
     """Execute one delegated read goal through a governed framework Agent."""
 
-    version = "target-framework-agent-v11-prepared-operation-set"
+    version = "target-framework-agent-v12-scoped-evidence-context"
 
     def __init__(
         self,
@@ -589,6 +589,7 @@ class TargetFrameworkAgent:
         payload = {
             **observations,
             "objective": item.objective,
+            "assignment_view": context.trusted_context.get("assignment_view", {}),
             "action_decisions": [decision for decision in context.trusted_context.get("action_decisions", ())
                                  if item.control and decision["control_id"] == item.control.control_id],
             "action_proposals_allowed": bool(item.allowed_actions) and context.pending_approval is None,
@@ -607,6 +608,10 @@ class TargetFrameworkAgent:
                 "value": fact_values[index] if fact_values is not None else json.loads(fact.value_json),
                 "source_ref": fact.source_ref,
                 "producer_version": fact.producer_version,
+                "source_kind": fact.source_kind.value,
+                "producer_id": fact.producer_id,
+                "observation_started_at": (fact.observation_started_at.isoformat()
+                                           if fact.observation_started_at else None),
                 "observed_at": fact.observed_at.isoformat(),
                 "valid_until": fact.valid_until.isoformat() if fact.valid_until else None,
             } for index, fact in enumerate(context.verified_facts)],
@@ -692,17 +697,14 @@ def _adapt_framework_result(
     reassignment = next((result for result in skill_results
                          if result.assignment_issue and result.producer_version == "domain-interaction-v1"), None)
     facts = merge_facts(
-        # Explicit assignment handback forwards its authorized investigation
-        # inputs with original provenance, including facts from earlier owners.
-        # The terminal handback cannot claim task completion from these facts.
-        context.verified_facts if reassignment is not None else (),
-        tuple(fact for fact in context.verified_facts
-              if fact.requirement_id in allowed_authorities.values()
-              and (not item.requirement_ids or fact.requirement_id in item.requirement_ids)),
+        # The dispatcher already authorized these dependency/continuation
+        # facts. Consuming evidence does not grant permission to produce it.
+        context.verified_facts,
         tuple(
             fact_from_tool_result(item, result)
             for result in tool_results
             if result.success
+            and result.observed_at is not None
             and result.authority == allowed_authorities.get(result.tool_name)
             and (not item.requirement_ids or result.authority in item.requirement_ids)
             and (tool_domain_outcome(result) is None or tool_domain_outcome(result)[0] is AgentResultStatus.SUCCEEDED)
@@ -737,6 +739,10 @@ def _adapt_framework_result(
     elif invalid_authority:
         status = AgentResultStatus.TERMINAL_FAILURE
         reason = "FRAMEWORK_AGENT_INVALID_TOOL_AUTHORITY"
+        retryable = False
+    elif any(result.success and result.observed_at is None for result in tool_results):
+        status = AgentResultStatus.TERMINAL_FAILURE
+        reason = "TOOL_OBSERVATION_TIME_MISSING"
         retryable = False
     elif missing_inputs and handback == "NEEDS_USER_INPUT":
         status = AgentResultStatus.NEEDS_USER_INPUT

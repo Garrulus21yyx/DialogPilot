@@ -73,3 +73,19 @@ def test_model_gets_projected_view_but_assessment_binds_complete_snapshot(monkey
     assert "retained evidence" in wire
     assert "Presentation contract:" not in captured["system"]
     assert set(captured["schema"]["properties"]) == {"supported", "answered", "issues"}
+
+
+def test_knowledge_body_has_one_model_copy_without_losing_citation_scope(monkeypatch):
+    captured = {}
+    async def invoke(*args, **kwargs):
+        captured.update(kwargs)
+        return {"supported": True, "answered": True, "issues": []}
+    monkeypatch.setattr("services.claim_verification.structured_call", invoke)
+    pack = {"evidence": [{"id": "E1", "text": "UNIQUE_POLICY_BODY"}]}
+    evidence = {"context": {"facts": [{"requirement_id": "knowledge.active_source", "value": pack}]},
+        "knowledge_evidence": {"packs": [pack], "allowed_evidence_ids": ["E1"]}}
+    result = asyncio.run(verify_claims(object(), ModelProfile("test"), question="Rule?", answer="Policy [E1]", evidence=evidence))
+    wire = captured["messages"][0].content
+    assert wire.count("UNIQUE_POLICY_BODY") == 1
+    assert "context_fact_index" in wire and "allowed_evidence_ids" in wire
+    assert result.matches("Rule?", "Policy [E1]", evidence)

@@ -7,8 +7,8 @@ from copy import deepcopy
 import json
 
 
-def verification_evidence(snapshot):
-    """Reviewer view of the same snapshot; never derive authorization or status.
+def _response_view(snapshot):
+    """Shared reply-role view; never derive authorization or status.
 
     Preserve business bodies and historical evidence, but remove planner-facing
     instructions/catalog metadata. Exact duplicates are not independent evidence.
@@ -57,6 +57,10 @@ def verification_evidence(snapshot):
                 for key in ("assignment_issue", "owner_agent"):
                     outcome.pop(key, None)
     return result
+
+
+def verification_evidence(snapshot):
+    return _response_view(snapshot)
 
 
 def _without(row, *names):
@@ -109,14 +113,15 @@ def _observation(entry):
 
 def composition_evidence(snapshot):
     """Preserve scope, values, temporal state and explicitly public sources."""
-    result = deepcopy(snapshot)
-    result["facts"] = [_fact(row) for row in snapshot.get("facts", ())]
+    result = _response_view(snapshot)
+    result["facts"] = [_fact(row) for row in result.get("facts", ())]
     result["receipts"] = [_receipt(row) for row in snapshot.get("receipts", ())]
     result["pending_actions"] = [_action(row) for row in snapshot.get("pending_actions", ())]
     receipt_indexes = {row["receipt_id"]: index for index, row in enumerate(snapshot.get("receipts", ()))
                        if "receipt_id" in row}
+    outcomes = result.get("outcomes", ())
     result["outcomes"] = []
-    for row in snapshot.get("outcomes", ()):
+    for row in outcomes:
         outcome = _without(row, "receipt_ids", "control")
         outcome["receipt_indexes"] = [receipt_indexes[ref] for ref in row.get("receipt_ids", ())
                                        if ref in receipt_indexes]

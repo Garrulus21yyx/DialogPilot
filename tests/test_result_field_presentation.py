@@ -1,6 +1,7 @@
 import asyncio
 import json
 from dataclasses import replace
+from datetime import datetime, timezone
 
 import pytest
 from pydantic import TypeAdapter
@@ -27,6 +28,7 @@ def refund_case(amount=1346, currency='USD'):
                'amount_minor': amount, 'currency': currency, 'private_note': 'DO NOT PUBLISH'},
         definition.tool_id, authority=definition.authority,
         output_schema_version=definition.output_schema_version, receipt_id='receipt-0',
+        observed_at=datetime(2026, 1, 1, tzinfo=timezone.utc),
     ))
     result = replace(board.results[0], facts=(fact,), candidate_response='Internal reasoning, not a public answer.')
     return registry, replace(board, results=(result,), facts=(fact,)), fact

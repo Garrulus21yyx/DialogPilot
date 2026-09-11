@@ -82,6 +82,12 @@ class TargetToolExecutor:
                 )
             authority = str(result.authority or "")
             if authority in item.requirement_ids:
+                if result.observed_at is None:
+                    return AgentResult(item.work_item_id, item.owner_agent,
+                        AgentResultStatus.TERMINAL_FAILURE, "TOOL_OBSERVATION_TIME_MISSING", self.version,
+                        facts=tuple(facts), evidence_refs=tuple(dict.fromkeys(evidence_refs)),
+                        execution_feedback=({"stage": "fact_conversion", "tool": tool_id,
+                            "call_id": result.call_id, "reason": "TOOL_OBSERVATION_TIME_MISSING"},))
                 facts.append(fact_from_tool_result(item, result))
             if result.receipt_id:
                 evidence_refs.append(result.receipt_id)

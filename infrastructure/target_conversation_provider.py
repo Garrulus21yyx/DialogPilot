@@ -28,14 +28,17 @@ from langchain_core.runnables.config import ensure_config, merge_configs
 logger = logging.getLogger(__name__)
 
 class AnthropicConversationPlanningProvider:
-    version = "anthropic-conversation-provider-v30-complete-context-budget"
+    version = "anthropic-conversation-provider-v31-role-scoped-context-budget"
 
-    def __init__(self, models, *, model_profile: ModelProfile, synthesis_profile: ModelProfile, max_tokens: int = 800, callbacks=()) -> None:
+    def __init__(self, models, *, model_profile: ModelProfile, synthesis_profile: ModelProfile, max_tokens: int = 800, callbacks=(), synthesis_context_budget=None) -> None:
         self._models = models
         self._callbacks = callbacks
         self._model_profile = model_profile
         self._synthesis_profile = synthesis_profile
         self._max_tokens = max_tokens
+        self._synthesis_budget = synthesis_context_budget or ContextBudgetManager(
+            context_window_tokens=synthesis_profile.max_context_tokens,
+            reserved_output_tokens=max_tokens, protocol_reserve_tokens=0)
 
     async def plan(self, payload: Mapping[str, object]) -> Mapping[str, object]:
         return await self._complete(
@@ -83,15 +86,38 @@ class AnthropicConversationPlanningProvider:
                 "Do not repeat an already stated target as a yes/no question. If the target is genuinely ambiguous, ask which target."
             )
         profile = self._synthesis_profile
-        content = json.dumps(payload, ensure_ascii=False, sort_keys=True)
-        request = profile.request(max_tokens=self._max_tokens, system=system,
-                                  messages=[{"role": "user", "content": content}])
-        DEFAULT_PROVIDER_CONTEXT_BUDGET.validate(profile, ModelRole.SYNTHESIS, request)
-        message = await invoke_model(self._models[ModelRole.SYNTHESIS].ainvoke(
-            [SystemMessage(system), HumanMessage(content)],
-            config=merge_configs(ensure_config(), {
-                "callbacks": list(self._callbacks), "run_name": "compose_response"})),
-            stage="compose_response")
+        available = min(self._synthesis_budget.available_tokens,
+            profile.max_context_tokens - profile.request(max_tokens=self._max_tokens)["max_tokens"])
+        def render(value):
+            return profile.request(max_tokens=self._max_tokens, system=system,
+                messages=[{"role": "user", "content": json.dumps(value, ensure_ascii=False, sort_keys=True)}])
+
+        def measure(value):
+            return DEFAULT_PROVIDER_CONTEXT_BUDGET.measure(profile, render(value)).estimated_input_tokens
+
+        async def call(value):
+            request = render(value)
+            DEFAULT_PROVIDER_CONTEXT_BUDGET.validate(profile, ModelRole.SYNTHESIS, request)
+            required = measure(value)
+            if required > available:
+                raise ModelContextBudgetExceeded(required, available)
+            return await invoke_model(self._models[ModelRole.SYNTHESIS].ainvoke(
+                [SystemMessage(system), HumanMessage(request["messages"][0]["content"])],
+                config=merge_configs(ensure_config(), {
+                    "callbacks": list(self._callbacks), "run_name": "compose_response"})),
+                stage="compose_response")
+
+        async def shrink(value, target):
+            from infrastructure.target_response_compaction import fit_response_context
+            return await fit_response_context(value, target=target, measure=measure,
+                model=self._models[ModelRole.SYNTHESIS],
+                summary_available_tokens=available,
+                summary_counter=lambda text: DEFAULT_PROVIDER_CONTEXT_BUDGET.measure(profile,
+                    profile.request(max_tokens=self._max_tokens,
+                                    messages=[{"role": "user", "content": text}])).estimated_input_tokens)
+
+        message = await recover_model_request(payload, invoke=call, shrink=shrink,
+            measure=measure, available=available)
         if message.response_metadata.get("stop_reason") in {"max_tokens", "refusal"}:
             raise ConversationProviderOutputError("response_incomplete")
         if message.invalid_tool_calls or message.tool_calls:

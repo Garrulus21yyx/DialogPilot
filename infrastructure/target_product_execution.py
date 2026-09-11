@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
 
 from application.agent_result import (
     AgentResult,
@@ -18,7 +17,7 @@ from application.work_control import WorkControlGuard
 class TargetProductExecutor:
     """Pass verified OCR output into catalog lookup; never infer a model in prose."""
 
-    version = "target-product-executor-v1"
+    version = "target-product-executor-v2-source-observation"
 
     def __init__(
         self, tool_manager, *, control_guard: WorkControlGuard | None = None,
@@ -63,6 +62,8 @@ class TargetProductExecutor:
         self._ensure_current(context)
         if not catalog.success:
             return self._tool_failure(item, catalog.status, "CATALOG_SEARCH")
+        if catalog.observed_at is None:
+            return self._failure(item, "TOOL_OBSERVATION_TIME_MISSING")
         match = catalog.data if isinstance(catalog.data, dict) else {}
         if match.get("status") != "MATCHED" or not match.get("canonical_model"):
             return self._failure(
@@ -83,7 +84,8 @@ class TargetProductExecutor:
             f"product:{model}", "product.canonical_model", value_json,
             FactSourceKind.VERIFIED_STATE, source_ref, "catalog_search",
             str(catalog.output_schema_version or "product-catalog-match-v1"),
-            datetime.now(timezone.utc),
+            catalog.observed_at,
+            observation_started_at=catalog.observation_started_at,
         )
         return AgentResult(
             item.work_item_id, item.owner_agent, AgentResultStatus.SUCCEEDED,

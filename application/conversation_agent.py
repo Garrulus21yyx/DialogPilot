@@ -197,20 +197,17 @@ class ConversationAgent:
         provider: ConversationPlanningProvider,
         *,
         context_budget: ContextBudgetManager | None = None,
-        synthesis_context_budget: ContextBudgetManager | None = None,
         tool_catalog=None,
     ) -> None:
         self._provider = provider
         self._tool_catalog = tool_catalog
         self._context_budget = context_budget or ContextBudgetManager()
-        self._synthesis_context_budget = synthesis_context_budget or self._context_budget
 
     async def compose(
         self, payload: Mapping[str, object],
     ) -> str:
         """Write natural text without reopening planning or execution."""
-        budgeted = self._synthesis_context_budget.fit_payload(payload)
-        return await self._provider.compose(budgeted.payload)
+        return await self._provider.compose(payload)
 
     async def plan(
         self, observations, state, deterministic, registry, turn_context=None,

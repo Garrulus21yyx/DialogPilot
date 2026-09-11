@@ -199,8 +199,9 @@ class _ToolPort:
                 WriteOutcomeStatus.COMMITTED,
                 str(result.receipt_id),
                 receipt_schema,
-                "TOOL_COMMITTED",
-                facts=(fact_from_tool_result(item, result),),
+                "TOOL_COMMITTED" if result.observed_at is not None else "TOOL_COMMITTED_OBSERVATION_UNAVAILABLE",
+                # A missing observation cannot erase a known committed receipt.
+                facts=(fact_from_tool_result(item, result),) if result.observed_at is not None else (),
             )
         if str(result.effect_status).lower() == "not_committed":
             return WriteToolOutcome(
@@ -272,8 +273,8 @@ class _ToolReconciler:
                 WriteOutcomeStatus.COMMITTED,
                 receipt_id,
                 item.expected_output_schema,
-                "RECONCILED_COMMITTED",
-                facts=(fact_from_tool_result(item, result),),
+                "RECONCILED_COMMITTED" if result.observed_at is not None else "RECONCILED_COMMITTED_OBSERVATION_UNAVAILABLE",
+                facts=(fact_from_tool_result(item, result),) if result.observed_at is not None else (),
             )
         return WriteToolOutcome(
             WriteOutcomeStatus.OUTCOME_UNKNOWN,

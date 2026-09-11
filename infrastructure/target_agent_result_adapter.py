@@ -2,11 +2,11 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
 from pydantic import TypeAdapter
 from langchain_core.messages import ToolMessage, messages_from_dict
 
 from application.agent_result import AgentResult, AgentResultStatus, FactRecord, FactSourceKind, merge_facts
+from application.agent_result import AgentResultContractError
 from application.knowledge_tool_contract import tool_domain_outcome
 from mcp.tool_manager import ToolResult
 
@@ -95,6 +95,8 @@ def _action_resolution(action, context):
 
 
 def fact_from_tool_result(item, result: ToolResult) -> FactRecord:
+    if result.observed_at is None:
+        raise AgentResultContractError("TOOL_OBSERVATION_TIME_MISSING")
     outcome = tool_domain_outcome(result)
     if outcome is not None and outcome[0] is not AgentResultStatus.SUCCEEDED:
         raise ValueError("knowledge outcome does not provide evidence")
@@ -120,6 +122,6 @@ def fact_from_tool_result(item, result: ToolResult) -> FactRecord:
         str(result.receipt_id or result.call_id),
         result.tool_name,
         str(result.output_schema_version or "tool-output-v1"),
-        result.observed_at or datetime.now(timezone.utc),
+        result.observed_at,
         observation_started_at=result.observation_started_at,
     )

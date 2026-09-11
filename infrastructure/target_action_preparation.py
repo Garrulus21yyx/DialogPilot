@@ -72,6 +72,8 @@ class TargetActionPreparation:
             data = outcome.data
             if outcome.authority != preparation.requirement_id or not isinstance(data, dict):
                 return self._result(item, AgentResultStatus.BLOCKED, "ACTION_PREPARATION_INVALID")
+            if outcome.observed_at is None:
+                return self._result(item, AgentResultStatus.BLOCKED, "TOOL_OBSERVATION_TIME_MISSING")
             facts = (fact_from_tool_result(item, outcome),)
             if data.get(preparation.readiness_field) != preparation.readiness_value:
                 return self._result(item, AgentResultStatus.BLOCKED, "ACTION_NOT_ELIGIBLE", facts=facts)

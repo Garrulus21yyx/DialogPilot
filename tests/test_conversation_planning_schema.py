@@ -74,7 +74,8 @@ def test_overflow_prevents_transport(method):
     profile = ModelProfile("deepseek-v4-pro", ReasoningEffort.HIGH, "deepseek", 8192, 16000)
     stub = models({})
     p = AnthropicConversationPlanningProvider(stub, model_profile=profile, synthesis_profile=profile)
-    with pytest.raises(ProviderContextBudgetExceeded):
+    from infrastructure.target_model_recovery import ContextRecoveryExhausted
+    with pytest.raises(ProviderContextBudgetExceeded if method == "plan" else ContextRecoveryExhausted):
         asyncio.run(getattr(p, method)({"message": "政策" * 12000,
             "allowed_claims": [{"claim_id": "outcome:1", "kind": "WORK_ITEM_OUTCOME"}]}))
     assert all(model.calls == 0 for model in stub.values())
@@ -89,9 +90,10 @@ def test_budget_failure_is_not_provider_failure():
 
 def test_composition_uses_its_own_context_budget():
     from application.context_budget import ContextBudgetManager, ModelContextBudgetExceeded
-    agent = ConversationAgent(Provider({}),
-        context_budget=ContextBudgetManager(context_window_tokens=16000),
+    profile = ModelProfile("test")
+    p = AnthropicConversationPlanningProvider(models(text="ok"), model_profile=profile, synthesis_profile=profile,
         synthesis_context_budget=ContextBudgetManager(context_window_tokens=2000,
             reserved_output_tokens=800, protocol_reserve_tokens=600))
+    agent = ConversationAgent(p, context_budget=ContextBudgetManager(context_window_tokens=16000))
     with pytest.raises(ModelContextBudgetExceeded):
         asyncio.run(agent.compose({"allowed_claims": [{"text": "政策条件" * 2000}]}))

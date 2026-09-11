@@ -141,7 +141,7 @@ def delegated_working_input(history, content, execution_id):
     task = sections["delegated_task"]
     current = source.pop("source_conversation")
     control = {key: runtime.pop(key) for key in
-               ("pending_approval", "action_decisions", "completed_actions") if key in runtime}
+               ("pending_approval", "action_decisions", "completed_actions", "assignment_view") if key in runtime}
     background = HumanMessage(content=[context_block("source_context", source),
         context_block("runtime_context", runtime)], id=f"task-background:{execution_id}")
     pinned = HumanMessage(content=[context_block("delegated_task", task),

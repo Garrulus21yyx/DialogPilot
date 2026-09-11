@@ -1,6 +1,7 @@
 import asyncio
 import json
 from dataclasses import replace
+from datetime import datetime, timezone
 from types import SimpleNamespace
 from application.agent_result import AgentResultStatus
 from application.response_assembly import ResponseAssembler
@@ -15,7 +16,8 @@ from tests.test_target_framework_agent import _context
 
 def board(answer):
     item=replace(_item(),requirement_ids=('knowledge.active_source',))
-    tool=ToolResult(True,evidence_result(),'knowledge_search',authority='knowledge.active_source',call_id='read')
+    tool=ToolResult(True,evidence_result(),'knowledge_search',authority='knowledge.active_source',call_id='read',
+                    observed_at=datetime(2026, 1, 1, tzinfo=timezone.utc))
     result=_adapt_framework_result(_context(item),(tool,),'framework-v1',
         allowed_authorities={'knowledge_search': 'knowledge.active_source'},
         accepted_outcome={"kind": "COMPLETE"},

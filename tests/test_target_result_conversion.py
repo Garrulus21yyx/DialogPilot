@@ -1,6 +1,7 @@
 """Execution mode does not change the authority of a governed tool result."""
 import asyncio
 import json
+from datetime import datetime, timezone
 from dataclasses import replace
 
 import pytest
@@ -56,6 +57,7 @@ def test_direct_and_framework_preserve_identical_tool_provenance(
         True, data, "catalog_search",
         call_id="call:123", receipt_id=receipt_id, authority=authority,
         output_schema_version="fixture-output-v2", status="success",
+        observed_at=datetime(2026, 1, 1, tzinfo=timezone.utc),
     )
 
     class Tools:
@@ -76,7 +78,7 @@ def test_direct_and_framework_preserve_identical_tool_provenance(
     assert direct.candidate_response is None
     direct_fact, = direct.facts
     delegated_fact, = delegated.facts
-    assert direct_fact == replace(delegated_fact, observed_at=direct_fact.observed_at)
+    assert direct_fact == delegated_fact
     assert direct_fact.source_kind is source_kind
     assert direct_fact.source_ref == (receipt_id or result.call_id)
     assert direct_fact.producer_id == result.tool_name
@@ -88,6 +90,7 @@ def test_direct_and_framework_preserve_identical_tool_provenance(
 @pytest.mark.parametrize('failure_status', ['error','timeout','rejected'])
 def test_later_tool_failure_preserves_prior_authoritative_facts(failure_status):
     first=ToolResult(True,{'order_id':'DP9301','status':'shipped'},'order_lookup',
+        observed_at=datetime(2026, 1, 1, tzinfo=timezone.utc),
         authority='order.current_state',call_id='first',receipt_id='read-receipt')
     second=ToolResult(False,None,'other_lookup',status=failure_status,error='failed')
     class Tools:

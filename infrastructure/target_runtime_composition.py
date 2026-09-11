@@ -201,11 +201,11 @@ async def build_target_runtime(
                  for role in (ModelRole.INTENT, ModelRole.SYNTHESIS)},
                 model_profile=conversation_profile,
                 synthesis_profile=model_policy.profile(ModelRole.SYNTHESIS),
+                synthesis_context_budget=synthesis_context_budget,
                 max_tokens=conversation_output_tokens,
                 callbacks=(langfuse_sink.callback(),) if langfuse_sink else (),
             ),
             context_budget=conversation_context_budget,
-            synthesis_context_budget=synthesis_context_budget,
             tool_catalog=tool_catalog,
         )
         understanding = CascadedTargetUnderstanding(
@@ -217,7 +217,7 @@ async def build_target_runtime(
             understanding=understanding,
             orchestration=orchestration,
             context_provider=TargetTurnContextLoader(
-                PostgresMemoryProjectionReader(postgres_pool, memory), tool_manager,
+                PostgresMemoryProjectionReader(postgres_pool), tool_manager,
                 evidence_reader=evidence_reader,
                 historical_context_budget=ContextBudgetManager(
                     context_window_tokens=min(conversation_context_budget.available_tokens,

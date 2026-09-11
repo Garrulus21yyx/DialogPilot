@@ -100,7 +100,7 @@ async def run_mixed(*, platform, store, client, policy, provider_config, output,
             manager=TargetConversationManager(state_store=PostgresConversationStateStore(platform),registry=registry,
                 understanding=CascadedTargetUnderstanding(StateBoundTargetUnderstanding(),agent),
                 orchestration=OrchestrationRuntime(direct_executor=TargetToolExecutor(tools,registry=registry),domain_workers={}),
-                context_provider=TargetTurnContextLoader(PostgresMemoryProjectionReader(platform,memory),tools,
+                context_provider=TargetTurnContextLoader(PostgresMemoryProjectionReader(platform),tools,
                     knowledge_reader=PostgresConversationEvidence(platform, store.validate_current_evidence)))
             assembler=ResponseAssembler(agent,knowledge_verifier=verifier,
                                         knowledge_source_validator=store.validate_publication_evidence,

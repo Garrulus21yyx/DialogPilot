@@ -8,23 +8,24 @@ from core.framework_models import invoke_model
 from infrastructure.target_model_recovery import is_context_overflow
 
 
-async def summarize_history(model, messages, *, prompt, available_tokens, max_calls=8):
+async def summarize_history(model, messages, *, prompt, available_tokens, max_calls=8,
+                            token_counter=None):
     calls = 0
     messages = list(messages)
+    count = token_counter or (lambda text: count_tokens_approximately([HumanMessage(text)]))
     cuts = sorted({0, len(messages), *(SummarizationMiddleware._find_safe_cutoff_point(messages, i)
                                     for i in range(1, len(messages)))})
     # Fail before spending summary calls when even one indivisible original
     # group cannot fit. Large tool bodies belong to archive projection upstream.
     for start, end in zip(cuts, cuts[1:]):
-        required = count_tokens_approximately([HumanMessage(
-            prompt.format(messages=get_buffer_string(messages[start:end])))])
+        required = count(prompt.format(messages=get_buffer_string(messages[start:end])))
         if required > available_tokens:
             raise ModelContextBudgetExceeded(required, available_tokens)
 
     async def summarize(group):
         nonlocal calls
         text = prompt.format(messages=get_buffer_string(group))
-        required = count_tokens_approximately([HumanMessage(text)])
+        required = count(text)
         error = None
         if required <= available_tokens:
             if calls >= max_calls:
@@ -52,7 +53,7 @@ async def summarize_history(model, messages, *, prompt, available_tokens, max_ca
         right = await summarize(group[cut:])
         merged = [HumanMessage(content=left), HumanMessage(content=right)]
         merged_text = prompt.format(messages=get_buffer_string(merged))
-        if count_tokens_approximately([HumanMessage(merged_text)]) >= required:
+        if count(merged_text) >= required:
             raise ModelContextBudgetExceeded(required, available_tokens) from error
         return await summarize(merged)
 

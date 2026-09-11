@@ -55,9 +55,15 @@ class TargetTurnContextLoader:
                         f"conversation-summary:{invocation.conversation_id}:{digest}",
                         current.summary_covered_until_seq,
                     )
-                for position, message in enumerate(
-                    current.recent_messages[-self._recent_limit:]
-                ):
+                messages = current.recent_messages
+                covered = summary.covered_until_seq if summary else 0
+                for position, message in enumerate(messages):
+                    seq = int(getattr(message, "seq", 0) or 0)
+                    # A window may remove only history already represented by
+                    # the summary. Unknown sequence numbers are not coverage.
+                    if (position < len(messages) - self._recent_limit
+                            and 0 < seq <= covered):
+                        continue
                     content = str(getattr(message, "content", "") or "").strip()
                     if not content:
                         continue
