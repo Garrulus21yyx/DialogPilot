@@ -57,6 +57,7 @@ _STATE_EVENT = "target.conversation_state.changed.v1"
 _OPERATION_EVENT = "target.write_operation.changed.v1"
 _OPERATION_FACTS = TypeAdapter(tuple[FactRecord, ...])
 _APPROVAL_OPERATIONS = TypeAdapter(tuple[ApprovalOperation, ...])
+_APPROVAL_OPTIONS = TypeAdapter(tuple[PendingApprovalState, ...])
 
 
 class PostgresConversationStateStore:
@@ -186,6 +187,7 @@ def conversation_state_to_payload(state: ConversationState) -> dict[str, object]
         "version": state.version,
         "owner": state.owner.value,
         "human_ticket_ref": state.human_ticket_ref,
+        "excluded_preparations": _APPROVAL_OPERATIONS.dump_python(state.excluded_preparations, mode="json"),
         "workstreams": [
             {
                 "workstream_id": item.workstream_id,
@@ -224,6 +226,7 @@ def conversation_state_to_payload(state: ConversationState) -> dict[str, object]
                     for item in state.pending_interaction.suspended_work_items
                 ],
                 "checkpoint_thread_id": state.pending_interaction.checkpoint_thread_id,
+                "approval_options": _APPROVAL_OPTIONS.dump_python(state.pending_interaction.approval_options, mode="json"),
             }
             if state.pending_interaction else None
         ),
@@ -343,6 +346,7 @@ def conversation_state_from_payload(raw: Mapping[str, object]) -> ConversationSt
                     str(pending_raw["checkpoint_thread_id"])
                     if pending_raw.get("checkpoint_thread_id") is not None else None
                 ),
+                _APPROVAL_OPTIONS.validate_python(pending_raw.get("approval_options", ())),
             )
             if isinstance(pending_raw, Mapping) else None
         ),
@@ -428,6 +432,7 @@ def conversation_state_from_payload(raw: Mapping[str, object]) -> ConversationSt
             )
             for item in payload.get("work_controls", ())
         ),
+        _APPROVAL_OPERATIONS.validate_python(payload.get("excluded_preparations", ())),
     )
 
 

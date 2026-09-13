@@ -1,5 +1,8 @@
 # Domain operation planning
 
+Superseded on 2026-09-13 by [prepared-action-aggregation.md](prepared-action-aggregation.md).
+The operation_plan DSL and runtime have been removed; this file is historical evidence.
+
 Historical v7 implementation record. The active contract is superseded by
 `action-interaction-contract-convergence-2026-09-09.md`: current action identity is
 the tool call; metadata uses current/remaining_steps, without next_step. The

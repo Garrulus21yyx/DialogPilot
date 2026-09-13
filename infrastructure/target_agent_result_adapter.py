@@ -43,7 +43,7 @@ async def resolved_working_messages(context, archive):
         artifact = message.artifact or {}
         envelope = artifact.get("result", {})
         if artifact.get("schema") != "agent-result-v1" or envelope.get("status") not in {
-                "NEEDS_USER_INPUT", "WAITING_APPROVAL"}:
+                "NEEDS_USER_INPUT", "PREPARED"}:
             continue
         original = ((await archive.load(context, artifact["reference"]))["artifact"]
                     if "reference" in artifact else artifact)
@@ -72,6 +72,10 @@ async def resolved_working_messages(context, archive):
 
 
 def _action_resolution(action, context):
+    if any(operation.operation_key == action.operation_key
+           for operation in context.trusted_context.get("excluded_preparations", ())):
+        return {"status": "DECLINED", "decision_source": "USER_ALTERNATIVE_SELECTION",
+                "operation_key": action.operation_key, "executed": False, "approval_granted": False}
     decision = next((value for value in context.trusted_context.get("action_decisions", ())
         if (value.get("operation_key") == action.operation_key
             or ("operation_key" not in value and value["approval_id"] == action.approval_binding

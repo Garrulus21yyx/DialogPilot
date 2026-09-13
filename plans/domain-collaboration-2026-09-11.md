@@ -1,5 +1,10 @@
 # Domain collaboration: implementation audit
 
+Historical audit. The operation-plan contract below is superseded by
+[prepared-action-aggregation.md](prepared-action-aggregation.md) on 2026-09-13.
+Workers now return their own actual candidates; runtime aggregates them.
+Prior measurements below remain historical evidence.
+
 ## Supported contract
 
 WorkPlan owns task dependencies; ResultBoard projects readiness and preserves

@@ -333,7 +333,7 @@ def test_write_execution_contract_survives_sdk_checkpoint(mode, approval):
     assert restored.items[0].fingerprint == work.fingerprint
     assert restored.items[0].approval_policy is approval
     assert isinstance(restored.items[0].reconciliation, ActionReconciliationDefinition)
-    proposal = AgentResult(work.work_item_id, work.owner_agent, AgentResultStatus.WAITING_APPROVAL,
+    proposal = AgentResult(work.work_item_id, work.owner_agent, AgentResultStatus.PREPARED,
                            "PREPARED", "test", pending_action=work)
     restored_proposal = serde.loads_typed(serde.dumps_typed(proposal))
     assert restored_proposal.pending_action.fingerprint == work.fingerprint

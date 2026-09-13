@@ -61,7 +61,7 @@ def fixture(case, actor, verifier):
         review_available_tokens=24000, result_store=InMemoryStore(),
         registry=registry, system_prompt=policy)
     names = tuple('prepare_' + tool_id for action in registry.actions for tool_id in action.allowed_tool_ids)
-    exposed = [*(worker._action_tool(action.ref, preparation_names=names) for action in registry.actions),
+    exposed = [*(worker._action_tool(action.ref) for action in registry.actions),
                *worker._interaction_tools()]
     return worker, context, exposed, policy, external_calls
 

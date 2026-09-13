@@ -577,6 +577,7 @@ class TargetConversationManager:
                 "action_decisions": action_decision_context(
                     prepared.execution_context.get("action_decisions", ()),
                     state_before.pending_approval, deterministic),
+                "excluded_preparations": state.excluded_preparations,
                 "resolved_input_signal": (state_before.pending_interaction.interaction_id
                     if state_before.pending_interaction is not None
                     and f"interaction:{state_before.pending_interaction.interaction_id}:v{state_before.pending_interaction.version}"

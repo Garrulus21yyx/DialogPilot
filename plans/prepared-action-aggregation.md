@@ -1,7 +1,7 @@
 # Prepared action aggregation
 
-Status: in_progress — authorization foundation implemented; aggregation not enabled.
-Baseline: 1a4059b, 2026-09-13; existing dirty runtime/evaluation work is user-owned.
+Status: contract_verified — aggregation enabled on the single Target path.
+Baseline: 33b0857, 2026-09-13; existing dirty runtime/evaluation work is user-owned.
 
 ## Positive contract
 
@@ -32,10 +32,111 @@ control crossed an Agent boundary. No second scheduler, grant store or fallback.
 ## Steps
 
 1. done: map owners, persistence and all consumers, including dirty changes.
-2. in_progress: origin/authorization ordering contract fixed; candidate grouping and receipt-bound versions remain open.
-3. in_progress: approval origins, compilation, cancellation, serialization and response authority migrated; preparation barrier not enabled.
-4. in_progress: foundation properties and PostgreSQL send-boundary tests passed; fresh-context foundation review passed. Whole-protocol acceptance pending.
-5. pending: document results and scoped delivery; preserve failures.
+2. done: candidate barrier, resource ordering, typed choice and explicit version limitations.
+3. done: approval, compilation, cancellation, serialization, response and retry continuity.
+4. done: generated algebra, SQL/native round trips, PG parallel recovery and fresh-context review; final isolated checks passed.
+5. done: bounded contract and scoped delivery prepared; containing Git commit and final handoff record delivery identity.
+
+## Current protocol
+
+Shared root cause: a worker's prepared candidate was treated as user-facing
+pending approval. The first worker occupied the slot and had to describe sibling
+future actions. Derived dependency blockage was also persisted as a real worker
+result, obscuring unstarted work on recovery. The migration repairs these owners
+together, not only the collector's old multiple-proposer exception.
+
+| Owner | Positive contract |
+|---|---|
+| Domain worker | Own permitted concrete actions and eligibility checks; returns PREPARED, not a grant |
+| LangGraph runtime | Parallel read-only preparation; checkpoint actual worker results, not ResultBoard's derived BLOCKED |
+| Aggregation | Current controls and current/retained candidates; registered resource/target groups define readiness |
+| Missing preparation | Retain successful candidates and use the existing field/evidence wait; no silent subset approval |
+| Failed preparation | Explicit choice: retry unfinished preparation or accept a prepared subset |
+| Compatibility | Registry state search and dependency ordering; typed incompatible/unresolved outcomes, never model-invented effects |
+| Selection | Existing PendingInteraction, exact alternatives and operation exclusions; selection grants no execution permission |
+| Approval/execution | One exact PendingApproval, member origins/dependencies, existing compiler, governed writes and Receipt recovery |
+
+Business-success edges are not preparation edges. If B needs A's completed
+business result, approve only ready A and retain B's unstarted dependency closure
+with A's continuation. PREPARED does not satisfy successful-task dependencies;
+the reply must not say B is already prepared. Independent preparation is parallel.
+
+An independent ready group is included in every alternative when another group
+requires a choice, avoiding a second approval slot. Ordinary missing fields may
+coexist and be answered partially. Choice IDs include accepted state and participant
+fingerprints, so retry cannot reuse consumed signals. Operation exclusions survive
+ordinary continuation and retire only on an explicit new goal revision.
+
+### Bounded support and migration
+
+- State feasibility is necessary, not live execution permission. Same-resource
+  optimistic-version writes require owner-defined receipt/version binding, which
+  the current registry does not provide. Return ACTION_VERSION_REBINDING_REQUIRED;
+  never guess V+1 or approve both against stale V. Users may explicitly select an
+  independently valid prepared subset. Unknown rules and search exhaustion are
+  unresolved implementation limits, not invented business incompatibility.
+- Search is bounded to 4096 states. Maximal alternative enumeration covers at most
+  10 candidates; larger groups offer independently valid singleton choices rather
+  than claiming exhaustive subset analysis. No extra model call chooses policy.
+- Selection preserves exact candidates without redundant preparation. Existing
+  expiry and live tool/version checks remain mandatory. Joint approval is neither
+  an atomic transaction nor permission for automatic compensation.
+- Deleted application/operation_plan.py and its old tests. Removed future-action
+  DSL from tool schemas, middleware, domain-review instructions, prompts and the
+  action-boundary probe. Only actual candidate aggregation remains usable.
+- Mixed preparation batches expose no partial ready set; successful artifacts
+  stay in native working state. Archive failure retains the same candidate envelope.
+- SQL conversation state stores alternatives/exclusions. Native codec normalizes
+  tuple fields; rebase and cancellation preserve per-origin authority. Production
+  Run locking/checkpoint joining remain the sole execution coordination mechanism.
+- Old WAITING_APPROVAL candidate checkpoints are not auto-replayed under PREPARED.
+  Deployment must drain old waits on their pinned release or explicitly reconstruct
+  candidates/origins before activating the new contract. No live records or receipts
+  were deleted, migrated or re-executed here. No automatic legacy fallback remains.
+- No new scheduler, grant store, queue, LLM reviewer or rollback system. The barrier
+  cannot detect a user goal the planner never represented; semantic completeness
+  is not proved by counting candidates.
+
+### Current acceptance evidence, 2026-09-13
+
+- 729 generated three-operation combinations compared with an independent exhaustive
+  state simulator; target, dependency, unknown-rule and version-boundary cases.
+- Choice tests cover mixed fields, cancellation, two failed retries then selection,
+  explicit new-goal exclusion retirement, staged descendants and incomplete batches.
+- PostgreSQL/native tests prove parallel overlap and restart resumes only the missing
+  worker, retaining the successful candidate. Existing send/cancel/UNKNOWN and partial
+  success checks remain. The expanded related suite: **698 passed, 3 skipped, 1 warning**.
+  Skips are not proof. Additional cross-domain/select-and-write/Run/control/partial
+  recovery suite: **280 passed, 2 skipped, 1 warning**. These suites overlap; their
+  counts are not summed into a unique-test total or a business benchmark score.
+- Independent fresh-context review identified choice identity and exclusion lifetime
+  defects; both fixed at the state owner with regression tests. Final static review
+  found no evidence-backed blocker; it did not run tests or attest benchmark quality.
+- Failures were investigated rather than hidden: obsolete serialized-preparation
+  fixture expectations were migrated; persisting derived BLOCKED was a real runtime
+  authority defect and removed. No paid model/τ³ benchmark was run.
+
+### Final isolated delivery validation
+
+Exported only the staged index to a clean snapshot (no unrelated workspace
+modifications), then ran the 20 related test modules with
+`RUN_POSTGRES_TESTCONTAINER=1`: **737 passed, 3 skipped, 1 warning** in 77.21 seconds.
+This includes the final planner/assembler choice-context and coverage changes.
+The earlier isolated attempt exposed incomplete SimpleNamespace test fixtures and
+unnecessary null context injection; fixtures now use the real PendingInteraction
+contract, and ordinary replies receive no extra choice context.
+
+Planner and composer now consume one structured, state-owned choice view. On a
+reply-only recovery turn, alternatives remain available without tool execution;
+internal JSON is not passed through as a ready-made customer question. Completion
+and readiness consume ResultBoard's existing coverage contract, including required
+receipts and conflicts, rather than treating any SUCCEEDED label as completion.
+Final fresh-context static review confirmed these owner boundaries without finding
+an evidence-backed blocker. It did not replace the automated checks.
+
+Scoped delivery excludes existing async IO, RAG, tracing, evaluation-control-plane
+and benchmark artifact edits. No production deployment, live-state conversion or
+paid benchmark is part of this contract verification.
 
 ## Established causal surface
 
@@ -120,13 +221,10 @@ multiple decisions in action order. Cross-domain preparation completeness,
 business state compatibility and atomicity are application contracts, not a
 guarantee supplied by HITL. No new scheduler or approval model was introduced.
 
-### Remaining work / next action
+### Historical foundation follow-up (superseded above)
 
-Keep multi-worker aggregation disabled until the preparation-group contract is
-closed. Next implement together: PREPARED versus WAITING_APPROVAL, related-group
-readiness and retained candidates, typed conflict choice and goal revision, and
-owner-defined receipt/version binding for ordered same-resource writes. Do not
-remove the multi-proposer guard in isolation. A state-feasible ordering alone must
-not be presented as an executable or atomic approval group.
+The preceding foundation-only evidence did not enable aggregation. The current
+protocol above replaces that gate, without claiming atomic multi-write execution
+or receipt/version binding absent from the registry.
 
 No paid benchmark, production deployment or live checkpoint migration performed.

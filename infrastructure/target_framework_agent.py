@@ -146,9 +146,7 @@ class TargetFrameworkAgent:
             registered_action_refs=tuple(action.ref for action in self._registry.actions
                                         if action.owner_agent == item.owner_agent))
         boundary = InteractionBoundaryMiddleware(("prepare_" + tool_id for ref in item.allowed_actions
-            for tool_id in self._registry.action(ref).allowed_tool_ids), review=review,
-            action_rules={"prepare_" + tool: action.state_transition
-                for action in self._registry.actions for tool in action.allowed_tool_ids})
+            for tool_id in self._registry.action(ref).allowed_tool_ids), review=review)
         compaction = ContextCompaction(self._model, self._archive,
             available_tokens=self._context_budget.available_tokens,
             overhead_tokens=overhead, pinned_message=pinned, max_summary_calls=item.max_steps,
@@ -274,6 +272,7 @@ class TargetFrameworkAgent:
             tuple(observed),
             self.version,
             accepted_outcome=output.get("accepted_outcome"),
+            preparation_complete=boundary._prepared(output, context),
             candidate_response=next((message.text for message in reversed(current_messages)
                 if isinstance(message, AIMessage) and not message.tool_calls), None),
             allowed_authorities={
@@ -402,12 +401,6 @@ class TargetFrameworkAgent:
             allowed_tool_ids=action.allowed_tool_ids,
         )
         schema = json.loads(json.dumps(definition.schema))
-        from application.operation_plan import operation_plan_schema, validate_operation_plan
-        if "operation_plan" in schema.get("properties", {}):
-            raise ValueError("business tool argument conflicts with preparation operation_plan")
-        planning_names = {"prepare_" + tool for registered in self._registry.actions
-                          for tool in registered.allowed_tool_ids}
-        schema.setdefault("properties", {})["operation_plan"] = operation_plan_schema(planning_names)
         if action.preparation:
             field = action.preparation.target_version_argument
             schema.get("properties", {}).pop(field, None)
@@ -415,13 +408,7 @@ class TargetFrameworkAgent:
         preparation = TargetActionPreparation(self._registry, self._tool_manager, self._control_guard)
 
         async def propose(runtime: ToolRuntime, **arguments):
-            plan = None
-            if "operation_plan" in arguments:
-                plan = arguments.pop("operation_plan")
-                validate_operation_plan(plan, selected_tool="prepare_" + definition.name,
-                    allowed_tools=planning_names)
-            result = await preparation.prepare(runtime.context, action.ref, arguments, runtime.tool_call_id,
-                                               operation_plan=plan)
+            result = await preparation.prepare(runtime.context, action.ref, arguments, runtime.tool_call_id)
             feedback = ("Action prepared, NOT executed. This worker segment ends here. The conversation layer explains this proposal and manages approval, bound to these exact parameters. The complete remaining objective is retained for continuation; other operations have not been performed."
                         if result.pending_action else result.reason_code)
             return feedback, framework_artifact(result)
@@ -431,12 +418,9 @@ class TargetFrameworkAgent:
             description=("Prepare a proposal only; this tool does not execute the business action. "
                 "Call once all required choices are known, before requesting approval. "
                 "Prepare independent ready operations together in one tool batch for one confirmation. "
-                "For later writes not ready in this batch, include operation_plan covering remaining assigned changes, "
-                "with evidence-based preconditions/effects and dependencies. This tool call is the ready current action: "
-                "describe it in current without repeating its tool, target or step ID. Describe later actions in remaining_steps; "
-                "their depends_on may reference current or another remaining step ID. If a prerequisite write is still needed, prepare that action first. "
-                "A single write needs no separate plan. If no feasible ordering exists, use request_user_input "
-                "to resolve the actual tradeoff before preparing anything; do not promise later impossible actions. "
+                "Prepare the exact assigned operations whose parameters and eligibility are known. "
+                "Do not describe another worker's future actions. Runtime aggregates actual candidates, "
+                "checks registered compatibility and asks the user about unresolved alternatives. "
                 "The conversation layer presents the prepared set and collects approval; the runtime executes each member. "
                 "Operation: " + definition.name + ". Use the supplied argument schema and business evidence. "
                 + ("Resource-state rule: " + json.dumps(asdict(action.state_transition)) + ". "
@@ -690,11 +674,13 @@ def _adapt_framework_result(
     allowed_authorities: Mapping[str, str],
     candidate_response: str | None = None,
     accepted_outcome: Mapping | None = None,
+    preparation_complete: bool = False,
 ) -> AgentResult:
     item = context.work_item
     tool_results = tuple(result for result in observed if isinstance(result, ToolResult))
     skill_results = tuple(result for result in observed if isinstance(result, AgentResult))
-    pending = tuple(action for result in skill_results for action in result.prepared_actions)
+    pending = tuple(action for result in skill_results if result.work_item_id == item.work_item_id
+                    for action in result.prepared_actions) if preparation_complete else ()
     handback = (accepted_outcome or {}).get("kind")
     reassignment = next((result for result in skill_results
                          if result.assignment_issue and result.producer_version == "domain-interaction-v1"), None)
@@ -735,7 +721,7 @@ def _adapt_framework_result(
         and outcome[0] is not AgentResultStatus.SUCCEEDED
     )
     if pending:
-        status = AgentResultStatus.WAITING_APPROVAL
+        status = AgentResultStatus.PREPARED
         reason = "ACTION_PROPOSED"
         retryable = False
     elif invalid_authority:

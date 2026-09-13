@@ -18,6 +18,7 @@ class AgentResultStatus(str, Enum):
     PARTIAL = "PARTIAL"
     NEEDS_USER_INPUT = "NEEDS_USER_INPUT"
     NEEDS_EVIDENCE = "NEEDS_EVIDENCE"
+    PREPARED = "PREPARED"
     WAITING_APPROVAL = "WAITING_APPROVAL"
     BLOCKED = "BLOCKED"
     RECONCILING = "RECONCILING"
@@ -210,8 +211,8 @@ class AgentResult:
         )
         _unique_nonblank(self.evidence_refs, "evidence refs")
         if self.pending_action is not None:
-            if self.status is not AgentResultStatus.WAITING_APPROVAL:
-                raise AgentResultContractError("pending action requires WAITING_APPROVAL")
+            if self.status is not AgentResultStatus.PREPARED:
+                raise AgentResultContractError("candidate action requires PREPARED")
             if self.pending_action.effect.value != "WRITE" or self.pending_action.owner_agent != self.owner_agent:
                 raise AgentResultContractError("pending action must be an owned business write")
         if self.additional_actions and self.pending_action is None:

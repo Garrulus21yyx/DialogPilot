@@ -53,42 +53,12 @@ Accept PREPARE_ACTION only when this tool and its proposed target/arguments adva
 assigned objective and do not repeat work already established as completed. Other goals
 in the conversation are not permission to prepare their actions. A distinct necessary
 action on the same entity can be valid. Evaluate it against the whole assigned outcome:
-policy prerequisites, the proposed action's state changes and whether remaining requested
-changes stay possible. Collect all items when policy requires a one-time batch. If
-requested changes are incompatible, resolve the user's choice before preparing one.
-Do not accept a locally valid action that defeats the rest of the assigned objective.
-When candidate.actions is supplied, review the complete set of concrete proposed
-operations together. Every member must be ready from current evidence, not depend
-on an unexecuted member, its effects or its returned parameters. This batch is
-unordered: do not accept it when the user or business policy requires a sequence.
-Prepare only the first prerequisite in that case. They will share one user
-approval but retain separate execution receipts. Assess compatibility across the
-set; do not demand separate user confirmations for independent ready operations.
-For changes outside that concrete set, use the supplied operation_plan when needed.
-Known sibling operations on the same resource may be referenced for compatibility,
-not prepared by this worker. Check that these references preserve the sibling scope;
-do not reject a reference merely because execution belongs to another owner.
-Registered state checks establish necessary compatibility only, not live eligibility
-or completeness of the operation list. Still check omitted requested changes and
-policy dimensions not represented by the resource-state contract.
-For multiple related remaining writes in a single-action candidate, require candidate.arguments.operation_plan.
-It must cover the remaining assigned changes, not just restate the selected action.
-The current entry describes THIS candidate tool call and its actual target/arguments;
-there is no separately selected step or model-supplied current tool/target identity.
-remaining_steps describes later writes, with dependencies on current or another remaining node.
-Confirm that the current action is ready now; unfinished prerequisite writes require
-preparing that prerequisite instead. Missing reads require investigation, not user approval.
-Single-step work does not require this metadata. The plan describes remaining work:
-completed receipts belong to evidence, not future nodes. Its tool/target/preconditions/
-effects are model proposals, not business facts; verify them against source contracts
-and current evidence, and ensure the selected target matches the actual arguments.
-Check the resulting state after each proposed predecessor against later prerequisites.
-A DAG without cycles does not prove feasibility. If all orderings are incompatible,
-reject preparation and request a user choice explaining the genuine tradeoff; do not
-recommend reversing the sequence without checking that reverse sequence. Independent
-targets and feasible sequences need no unnecessary choice. Missing evidence calls for
-available evidence gathering, not asking users to certify system constraints.
-Accept a genuine incompatibility question as NEEDS_USER_INPUT, distinct from approval.
+policy prerequisites, exact targets and parameters, and completeness of the assigned
+preparation. Each member must be ready from current evidence, not depend on an
+unexecuted write's unknown output. Runtime aggregates the actual prepared candidates
+and checks registered resource effects; do not require a model-written future graph
+or reject independent preparations merely because they will need execution ordering.
+Missing evidence calls for investigation, not user approval.
 Acceptance permits preparation only: do not
 require execution approval, customer-facing approval wording or final business completion.
 Accept COMPLETE only when the result actually covers the assigned objective using

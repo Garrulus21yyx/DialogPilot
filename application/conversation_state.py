@@ -95,6 +95,8 @@ class WorkstreamState:
     slot_bindings: tuple[EntityBinding, ...] = ()
 
     def __post_init__(self) -> None:
+        for name in ("slots", "slot_bindings"):
+            object.__setattr__(self, name, tuple(getattr(self, name)))
         _required(
             self.workstream_id,
             self.owner_agent,
@@ -161,8 +163,15 @@ class PendingInteractionState:
     workstream_versions: tuple[tuple[str, int], ...]
     suspended_work_items: tuple[WorkItem, ...] = ()
     checkpoint_thread_id: str | None = None
+    # Exact alternatives prepared by the approval owner. Selection is not
+    # execution consent and never becomes an argument to a business tool.
+    approval_options: tuple[PendingApprovalState, ...] = ()
 
     def __post_init__(self) -> None:
+        object.__setattr__(self, "approval_options", tuple(self.approval_options))
+        for name in ("requested_fields", "suspended_work_items"):
+            object.__setattr__(self, name, tuple(getattr(self, name)))
+        object.__setattr__(self, "workstream_versions", tuple(tuple(pair) for pair in self.workstream_versions))
         _required(self.interaction_id)
         if self.version < 1 or not self.requested_fields:
             raise ConversationStateError("pending interaction identity is incomplete")
@@ -187,6 +196,14 @@ class PendingInteractionState:
             raise ConversationStateError("controlled workflows use their flow or approval continuation")
         if self.checkpoint_thread_id is not None and not self.checkpoint_thread_id.strip():
             raise ConversationStateError("checkpoint thread ID must be absent or nonblank")
+        if self.approval_options:
+            _unique((option.scope_key for option in self.approval_options), "preparation alternatives")
+            if sum(field.field_name == "prepared_alternative" for field in self.requested_fields) != 1:
+                raise ConversationStateError("preparation choice requires one bound selection")
+            for option in self.approval_options:
+                if (option.checkpoint_thread_id != self.checkpoint_thread_id
+                        or any(work not in self.suspended_work_items for work in option.suspended_work_items)):
+                    raise ConversationStateError("preparation alternative differs from suspended scope")
 
     def bind_values(self, state: "ConversationState", values: tuple[tuple[str, str, object], ...]):
         """Project a validated partial submission onto the existing suspended DAG."""
@@ -194,6 +211,9 @@ class PendingInteractionState:
         supplied = {(target, name) for target, name, _ in values}
         if not supplied or len(supplied) != len(values) or not supplied <= requested:
             raise ConversationStateError("interaction response requires unique requested fields")
+        if self.approval_options:
+            from application.preparation_selection import bind_selection
+            return bind_selection(self, state, values)
         remaining = tuple(f for f in self.requested_fields
                           if (f.target_work_item_id, f.field_name) not in supplied)
         waiting = {f.target_work_item_id for f in remaining}
@@ -248,6 +268,8 @@ class PendingApprovalState(ApprovalScope):
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "additional_operations", tuple(self.additional_operations))
+        for name in ("arguments", "argument_bindings", "suspended_work_items"):
+            object.__setattr__(self, name, tuple(getattr(self, name)))
         _required(
             self.approval_id,
             self.workstream_id,
@@ -311,6 +333,8 @@ class AcceptedApprovalState(ApprovalScope):
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "additional_operations", tuple(self.additional_operations))
+        for name in ("arguments", "argument_bindings", "suspended_work_items"):
+            object.__setattr__(self, name, tuple(getattr(self, name)))
         _required(
             self.approval_id,
             self.workstream_id,
@@ -374,8 +398,12 @@ class ConversationState:
     human_ticket_ref: str | None = None
     accepted_approvals: tuple[AcceptedApprovalState, ...] = ()
     work_controls: tuple[WorkControlState, ...] = ()
+    excluded_preparations: tuple[ApprovalOperation, ...] = ()
 
     def __post_init__(self) -> None:
+        for name in ("workstreams", "resume_bindings", "consumed_signal_ids", "accepted_approvals",
+                     "work_controls", "excluded_preparations"):
+            object.__setattr__(self, name, tuple(getattr(self, name)))
         if self.version < 0:
             raise ConversationStateError("conversation version must be non-negative")
         _required(self.schema_version)
@@ -386,6 +414,7 @@ class ConversationState:
         if self.owner is ConversationOwner.AUTOMATION and self.human_ticket_ref is not None:
             raise ConversationStateError("automation cannot claim a human ticket")
         _unique((item.workstream_id for item in self.workstreams), "workstreams")
+        _unique((item.operation_key for item in self.excluded_preparations), "excluded preparations")
         _unique((item.control_id for item in self.work_controls), "work controls")
         _unique((item.work_item_id for item in self.work_controls), "controlled work identities")
         _unique((item.token for item in self.resume_bindings), "resume tokens")
@@ -489,7 +518,11 @@ class ConversationState:
                     for item in self.pending_interaction.suspended_work_items
                 ),
                 self.pending_interaction.checkpoint_thread_id,
+                tuple(option.scope_key for option in self.pending_interaction.approval_options),
             ) if self.pending_interaction else None,
+            "excluded_preparations": [op.view() | {
+                "control": op.control.__dict__ if op.control else None}
+                for op in self.excluded_preparations],
             "pending_approval": (
                 self.pending_approval.approval_id,
                 self.pending_approval.version,
@@ -568,6 +601,7 @@ class ConversationState:
         ):
             raise ConversationStateError("accepted target work requires control bindings")
         controls = {item.control_id: item for item in self.work_controls}
+        revised_goals = set()
         changed = bool(cancelled_controls or started_workstreams)
         if len({item.control_id for item in cancelled_controls}) != len(cancelled_controls):
             raise ConversationStateError("cancelled work controls must be unique")
@@ -613,6 +647,8 @@ class ConversationState:
                 if work_item.work_item_id == current.work_item_id:
                     raise ConversationStateConflict("a revised goal requires a new work identity")
                 changed = True
+                if work_item.continuation_of is None:
+                    revised_goals.add(binding.control_id)
             else:
                 raise ConversationStateConflict("work control revision is not the next revision")
             controls[binding.control_id] = WorkControlState(
@@ -631,6 +667,8 @@ class ConversationState:
             self,
             version=self.version + 1,
             work_controls=tuple(controls[key] for key in sorted(controls)),
+            excluded_preparations=tuple(operation for operation in self.excluded_preparations
+                if operation.control is None or operation.control.control_id not in revised_goals),
             **self._pending_revision_update(controls, started_workstreams),
         )
 
@@ -659,11 +697,18 @@ class ConversationState:
             return {}
         from application.action_approval import partition_work_revision
         _, retained = partition_work_revision(pending.suspended_work_items, affected)
+        options = pending.approval_options
+        if options:
+            from application.preparation_selection import split_wait
+            _, ordinary, choice_work = split_wait(pending)
+            if any(work.control and work.control.control_id in affected for work in choice_work):
+                options = ()
+                retained = tuple(work for work in retained if work in ordinary)
         retained_ids = {item.work_item_id for item in retained}
         fields = tuple(field for field in pending.requested_fields if field.target_work_item_id in retained_ids)
         targets = {field.target_work_item_id for field in fields}
         next_pending = replace(pending, version=pending.version + 1,
-            requested_fields=fields, suspended_work_items=retained,
+            requested_fields=fields, suspended_work_items=retained, approval_options=options,
             workstream_versions=tuple(pair for pair in pending.workstream_versions if pair[0] in targets)
         ) if fields else None
         signal_id = f"interaction:{pending.interaction_id}:v{pending.version}"
@@ -780,6 +825,7 @@ class ConversationState:
             ),
             pending.suspended_work_items,
             pending.checkpoint_thread_id,
+            pending.approval_options,
         )
         return replace(
             self,
@@ -871,9 +917,11 @@ class ConversationState:
                 else WorkstreamStatus.ACTIVE))
         next_pending = replace(pending, version=pending.version + 1,
             requested_fields=remaining, suspended_work_items=waiting,
+            approval_options=pending.approval_options if any(
+                field.field_name == "prepared_alternative" for field in remaining) else (),
             workstream_versions=tuple((item.workstream_id, item.state_version) for item in updated
                                      if item.workstream_id in remaining_targets)) if remaining else None
-        return replace(
+        next_state = replace(
             self,
             version=self.version + 1,
             workstreams=tuple(updated),
@@ -882,6 +930,10 @@ class ConversationState:
             resume_bindings=tuple(binding for binding in self.resume_bindings
                                   if binding.workstream_id not in grouped),
         )
+        if pending.approval_options:
+            from application.preparation_selection import apply_selection
+            return apply_selection(self, next_state, pending, values)
+        return next_state
 
     def consume_approval(
         self,

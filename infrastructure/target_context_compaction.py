@@ -38,6 +38,11 @@ class ToolResultPersistence(AgentMiddleware):
         if not isinstance(response, ToolMessage) or response.artifact is None:
             return response
         artifact = response.artifact
+        result = artifact.get("result", {})
+        envelope = {key: result[key] for key in
+                    ("status", "success", "tool_name", "effect_status", "pending_action", "producer_version",
+                     "observed_at", "observation_started_at", "query_ref", "causal_source_call_ids")
+                    if key in result}
         try:
             reference = await self.archive.save(request.runtime.context, {
                 "artifact": artifact, "content": response.content})
@@ -45,15 +50,10 @@ class ToolResultPersistence(AgentMiddleware):
             # The checkpoint retains the only available original. Stop the segment;
             # this is not an alternate persistent store or a blind tool retry.
             return Command(update={"messages": [response], "archive_failed": True,
-                "tool_observations": {response.tool_call_id: {"inline_artifact": artifact,
+                "tool_observations": {response.tool_call_id: {**envelope, "inline_artifact": artifact,
                     "archive_error": {"type": type(exc).__name__,
                         "call_id": response.tool_call_id, "exception_chain": exception_chain(exc),
                         "retryable": isinstance(exc, ResultArchiveError) and exc.retryable}}}})
-        result = artifact.get("result", {})
-        envelope = {key: result[key] for key in
-                    ("status", "success", "tool_name", "effect_status", "pending_action", "producer_version",
-                     "observed_at", "observation_started_at", "query_ref", "causal_source_call_ids")
-                    if key in result}
         from infrastructure.target_agent_middleware import tool_observation_digests, tool_observation_uses_arguments
         pointer = {"schema": artifact["schema"], "reference": reference, "result": envelope,
                    "observation": tool_observation_digests(result),

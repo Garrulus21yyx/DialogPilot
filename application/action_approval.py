@@ -1,9 +1,8 @@
 """Bind a prepared domain action to the conversation's existing approval state."""
-from datetime import datetime, timedelta, timezone
 from dataclasses import replace
 
 from application.conversation_state import (
-    ConversationStateConflict, PendingApprovalState, WorkstreamState, WorkstreamStatus,
+    ConversationStateConflict,
 )
 
 
@@ -158,82 +157,8 @@ def partition_work_revision(suspended, affected_controls):
 
 
 def bind_action_approval(state, plan, board, registry, checkpoint_thread_id):
-    proposed = tuple(result for result in board.results if result.pending_action is not None)
-    if len(proposed) > 1:
-        raise ConversationStateConflict("multiple preparation origins require a complete aggregation decision")
-    finished = {result.work_item_id for result in board.results
-                if result.status.value in {"SUCCEEDED", "CANCELLED", "SUPERSEDED"}
-                or result.assignment_issue is not None}
-    waiting = {result.work_item_id for result in board.results if result.status.value == "NEEDS_USER_INPUT"}
-    if state.pending_interaction:
-        waiting.update(work.work_item_id for work in plan.work.items if any(
-            work == original or work.control is not None and work.control == original.control
-            for original in state.pending_interaction.suspended_work_items))
-    while True:
-        expanded = waiting | {work.work_item_id for work in plan.work.items if waiting.intersection(work.dependencies)}
-        if expanded == waiting:
-            break
-        waiting = expanded
-    if state.pending_approval:
-        # A prepared explicit action already owns this turn's decision. Queue
-        # unfinished domain objectives behind it, without replacing its grant.
-        pending = state.pending_approval
-        if pending.checkpoint_thread_id != checkpoint_thread_id:
-            return state
-        if proposed:
-            raise ConversationStateConflict("an occupied approval slot cannot accept another prepared action")
-        additions = tuple(work for work in plan.work.items
-                          if work.work_item_id not in finished | waiting and not any(
-                              work == original or work.control is not None and work.control == original.control
-                              for original in pending.suspended_work_items))
-        if not additions:
-            return state
-        if any(not state.accepts_work(work) for work in additions):
-            raise ConversationStateConflict("approval queue requires accepted current goals")
-        return replace(state, version=state.version + 1, pending_approval=replace(
-            pending, suspended_work_items=(*pending.suspended_work_items, *additions)))
-    if not proposed:
-        return state
-    result = proposed[0]
-    parent = next(item for item in plan.work.items if item.work_item_id == result.work_item_id)
-    from application.approval_operation import ApprovalOperation, approval_scope_key
-    actions = result.prepared_actions
-    for prepared in actions:
-        _validate_prepared_action(prepared, parent, registry)
-    # Custom executors share the same prepared-set contract as the SDK boundary.
-    # Approval cannot turn an unordered incompatible set into executable work.
-    from application.action_compatibility import validate_action_compatibility
-    validate_action_compatibility({"actions": [{
-        "tool": "prepare_" + registry.action(prepared.action_ref).allowed_tool_ids[0],
-        "arguments": {argument.name: argument.value for argument in prepared.arguments},
-    } for prepared in actions]}, {
-        "prepare_" + tool: definition.state_transition
-        for definition in registry.actions for tool in definition.allowed_tool_ids})
-    action = actions[0]
-    definition = registry.action(action.action_ref)
-    operations = tuple(ApprovalOperation(a.action_ref, a.operation_key, a.aggregate_ref,
-        a.target_entity_version, a.arguments, a.argument_bindings, parent.work_item_id,
-        parent.control) for a in actions)
-    scope_key = approval_scope_key(operations)
-    stream_id = "action-workstream:" + scope_key
-    stream = WorkstreamState(
-        stream_id, parent.owner_agent, definition.ref, "PREPARED",
-        WorkstreamStatus.WAITING_APPROVAL, 1, action.arguments, definition.flow_ref,
-    )
-    return state.wait_for_approval(PendingApprovalState(
-        action.approval_binding if len(actions) == 1 else "approval:" + scope_key,
-        1, stream_id, action.work_item_id, definition.ref,
-        action.operation_key, action.aggregate_ref, action.target_entity_version,
-        (datetime.now(timezone.utc) + timedelta(minutes=15)).isoformat(),
-        action.arguments, checkpoint_thread_id, action.argument_bindings,
-        suspended_work_items=(parent, *(
-            work for work in plan.work.items if work.work_item_id != parent.work_item_id
-            and work.work_item_id not in finished | waiting
-        )),
-        origin_work_item_id=parent.work_item_id,
-        control=parent.control,
-        additional_operations=operations[1:],
-    ), new_workstream=stream)
+    from application.prepared_action_aggregation import aggregate_prepared_actions
+    return aggregate_prepared_actions(state, plan, board, registry, checkpoint_thread_id)
 
 
 def _validate_prepared_action(action, parent, registry):

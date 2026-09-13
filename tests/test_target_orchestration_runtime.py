@@ -237,7 +237,7 @@ def test_closing_interrupt_retains_results_and_cancels_unstarted_work(queued_cou
     first = replace(_item("waiting", "product", ControlMode.DELEGATED, "product.details"),
                     allowed_actions=("product.change:v1",))
     independent = _item("read", "product", ControlMode.DIRECT, "product.details")
-    queued = tuple(replace(first, work_item_id=f"queued-{index}") for index in range(queued_count))
+    queued = tuple(replace(first, work_item_id=f"queued-{index}", dependencies=(first.work_item_id,)) for index in range(queued_count))
     plan = WorkPlan((first, independent, *queued), first.work_item_id)
     calls = []
 
@@ -263,7 +263,7 @@ def test_closing_interrupt_retains_results_and_cancels_unstarted_work(queued_cou
             after = snapshot.values["board"]
             assert after.complete
             assert tuple(after.facts) == before.facts
-            assert tuple(after.results[:2]) == before.results
+            assert tuple(after.results[:2]) == before.results[:2]
             assert all(result.status is AgentResultStatus.CANCELLED for result in after.results[2:])
     asyncio.run(run())
     assert sorted(calls) == ["read", "waiting"]

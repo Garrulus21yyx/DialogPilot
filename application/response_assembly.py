@@ -148,6 +148,7 @@ class ResponseAssembler:
                     evidence_sha256=hashlib.sha256(evidence.encode()).hexdigest(), evidence_json=evidence)
 
         if (requested_inputs and pending_approval is None and response_candidate is None
+                and not (conversation_context or {}).get("preparation_choice")
                 and all(r.status is AgentResultStatus.NEEDS_USER_INPUT for r in board.all_results)
                 and not any(result is None for _, result in board.outcome_items)
                 and not any(r.pending_action or r.action_receipts for r in board.all_results)):
@@ -499,6 +500,7 @@ def _response_context(board, pending_approval=None, requested_inputs=(), convers
                      for receipt in result.action_receipts],
         "pending_actions": [c.value for c in claims if c.kind == "PENDING_ACTION"],
         "requested_inputs": _input_context(requested_inputs),
+        "preparation_choice": (conversation_context or {}).get("preparation_choice"),
         "turn_execution": (conversation_context or {}).get("turn_execution"),
         "outcomes": [{"work_item_id": item.work_item_id if item else r.work_item_id,
                       "owner_agent": item.owner_agent if item else r.owner_agent,
@@ -521,7 +523,7 @@ def _response_context(board, pending_approval=None, requested_inputs=(), convers
                      "task_completed": board.task_completed and (conversation_context or {}).get("request_completed", True),
                      "partial_delivery_allowed": board.partial_delivery_allowed},
         "user_context": ({key: value for key, value in conversation_context.items()
-                          if key != "turn_execution"} if conversation_context is not None else None),
+                          if key not in {"turn_execution", "preparation_choice"}} if conversation_context is not None else None),
     }
 
 
@@ -647,6 +649,7 @@ _OWNER_LABELS = {
 _OUTCOME_TEXT = {
     AgentResultStatus.NEEDS_USER_INPUT: "需要补充信息才能继续。",
     AgentResultStatus.NEEDS_EVIDENCE: "仍需取得必要依据，暂时无法确认结果。",
+    AgentResultStatus.PREPARED: "操作候选已准备，尚未批准或执行。",
     AgentResultStatus.WAITING_APPROVAL: "正在等待审批，尚未完成。",
     AgentResultStatus.BLOCKED: "目前无法继续处理。",
     AgentResultStatus.RECONCILING: "正在核实处理结果，暂时无法确认是否完成。",
@@ -664,6 +667,7 @@ _OWNER_LABELS_EN = {
 _OUTCOME_TEXT_EN = {
     AgentResultStatus.NEEDS_USER_INPUT: "More information is needed to continue.",
     AgentResultStatus.NEEDS_EVIDENCE: "More evidence is needed; the result cannot yet be confirmed.",
+    AgentResultStatus.PREPARED: "Operation candidates are prepared, not approved or executed.",
     AgentResultStatus.WAITING_APPROVAL: "Awaiting approval; the action has not been completed.",
     AgentResultStatus.BLOCKED: "This cannot proceed at present.",
     AgentResultStatus.RECONCILING: "The outcome is being checked; completion is not yet confirmed.",

@@ -78,10 +78,10 @@ def test_conversation_only_reply_retries_only_undelivered_proposal(published, wi
             return AssembledResponse("The proposal has not executed.", ResponseAssemblyMode.TEMPLATE,
                                      (), False, "NOT_REQUIRED", "TEST")
     runtime = TurnRuntime(SimpleNamespace(), Assembler(), interaction_published=lambda *args, **kwargs: published)
-    field = SimpleNamespace(field_name="color", target_work_item_id="other",
-        value_schema="string", question_hint="Which color?")
-    pending_input = SimpleNamespace(interaction_id="input", version=1,
-        requested_fields=(field,)) if with_input else None
+    from application.conversation_state import PendingInteractionState
+    from application.agent_result import RequestedField
+    field = RequestedField("color", "other", "string", "Which color?")
+    pending_input = PendingInteractionState("input", 1, (field,), ()) if with_input else None
     after = SimpleNamespace(pending_approval=pending, pending_interaction=pending_input)
     managed = SimpleNamespace(board=None, state_after=after, request_completed=False, diagnostics=(),
                               interaction_questions=(MissingInputSpec("color", "other", "INPUT", "string", "Which color?"),),

@@ -63,7 +63,7 @@ def test_preparation_retains_binding_and_ends_without_another_domain_call(extra)
         responses.append(AIMessage(content="Order DP1234 is paid and has not been cancelled. Shall I cancel it?"))
     agent, context, model, calls = domain(responses)
     result = asyncio.run(agent(context))
-    assert result.status.value == "WAITING_APPROVAL"
+    assert result.status.value == "PREPARED"
     assert result.pending_action is not None
     assert result.pending_action.work_item_id.endswith(":action:proposal")
     assert result.action_receipts == ()

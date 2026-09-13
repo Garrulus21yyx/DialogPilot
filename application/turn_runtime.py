@@ -230,6 +230,9 @@ class TurnRuntime:
                 signal_id=pending_approval.approval_id, signal_version=pending_approval.version)
                 if pending_approval is not None and self._interaction_published is not None else None))
         pending_input = managed.state_after.pending_interaction
+        from application.preparation_selection import choice_context
+        if choice := choice_context(pending_input):
+            context["preparation_choice"] = choice
         present_input = pending_input is not None and (
             presentation_state.pending_interaction is None
             or (pending_input.interaction_id, pending_input.version) != (

@@ -139,7 +139,7 @@ def test_requested_goal_growth_cannot_expand_prepared_scope(extra_goals):
         "turn_execution": {"continues_after_reply": False}})
     outcome, = evidence["outcomes"]
     assert outcome["requested_objective"] == item.objective
-    assert outcome["observed_segment"]["status"] == "WAITING_APPROVAL"
+    assert outcome["observed_segment"]["status"] == "PREPARED"
     assert "status" not in outcome and "objective" not in outcome
     assert outcome["execution_feedback"] == [rejected]
     action, = evidence["pending_actions"]
@@ -170,7 +170,7 @@ def test_committed_and_pending_operations_keep_their_own_contracts(same_target, 
     current = replace(read_item("current", 1, work_item_id=committed.work_item_id if repeated_local_id else "current"),
                       owner_agent=committed.owner_agent)
     waiting = replace(_result(current.work_item_id, current.owner_agent,
-        status=AgentResultStatus.WAITING_APPROVAL, receipts=(receipt,) if copied_receipt else ()), pending_action=pending)
+        status=AgentResultStatus.PREPARED, receipts=(receipt,) if copied_receipt else ()), pending_action=pending)
     board = replace(_board(waiting), work_items=(current,), retained_outcomes=((committed, completed),))
     context = _response_context(board, pending_approval=_bound_approval(pending))
     assert context["receipts"][0]["operation_key"] == committed.operation_key

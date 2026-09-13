@@ -21,20 +21,11 @@ class TargetActionPreparation:
         self.tools = tool_manager
         self.guard = control_guard
 
-    async def prepare(self, context, action_ref, arguments, call_id, *, operation_plan=None):
+    async def prepare(self, context, action_ref, arguments, call_id):
         item = context.work_item
         action = self.registry.action(action_ref)
         if action.ref not in item.allowed_actions or action.owner_agent != item.owner_agent:
             raise ValueError("action proposal exceeds work envelope")
-        if operation_plan is not None:
-            from application.operation_plan import validate_operation_plan
-            from application.action_compatibility import validate_action_compatibility
-            rules = {"prepare_" + tool: registered.state_transition
-                     for registered in self.registry.actions for tool in registered.allowed_tool_ids}
-            name = "prepare_" + action.allowed_tool_ids[0]
-            validate_operation_plan(operation_plan, selected_tool=name, allowed_tools=rules)
-            validate_action_compatibility({"tool": name,
-                "arguments": {**arguments, "operation_plan": operation_plan}}, rules)
         if self.guard is not None:
             self.guard.ensure_current(item, context.trusted_context)
         if action.approval_policy not in {
@@ -50,6 +41,11 @@ class TargetActionPreparation:
             def user_values(arguments):
                 return {key: value for key, value in arguments.items()
                         if preparation is None or key != preparation.target_version_argument}
+            if any(operation.action_ref == action.ref and operation.control
+                   and operation.control.control_id == item.control.control_id
+                   and user_values({arg.name: arg.value for arg in operation.arguments}) == user_values(values)
+                   for operation in context.trusted_context.get("excluded_preparations", ())):
+                return self._result(item, AgentResultStatus.BLOCKED, "ACTION_EXCLUDED_BY_USER_CHOICE")
             if any(decision["decision"] == "DECLINED" and decision["action_ref"] == action.ref
                    and decision["control_id"] == item.control.control_id
                    and user_values(decision["arguments"]) == user_values(values)
@@ -110,7 +106,7 @@ class TargetActionPreparation:
             target_entity_version=str(version), aggregate_ref=target,
             reconciliation=action.reconciliation, approval_policy=action.approval_policy,
         )
-        return self._result(item, AgentResultStatus.WAITING_APPROVAL, "ACTION_PROPOSED",
+        return self._result(item, AgentResultStatus.PREPARED, "ACTION_PROPOSED",
                             pending_action=pending, facts=facts)
 
     @staticmethod

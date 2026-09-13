@@ -31,6 +31,7 @@ def rebase_transition(
         ("workstreams", lambda x: x.workstream_id),
         ("resume_bindings", lambda x: x.token),
         ("accepted_approvals", lambda x: (x.approval_id, x.version)),
+        ("excluded_preparations", lambda x: x.operation_key),
         ("consumed_signal_ids", lambda x: x),
     ):
         old, new, live = ({key(x): x for x in getattr(state, name)}

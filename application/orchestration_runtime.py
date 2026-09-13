@@ -271,8 +271,8 @@ class OrchestrationRuntime:
 
     @staticmethod
     def _ready_wave(state: ParentGraphState):
-        # One conversation approval slot: serialize action-capable workers,
-        # while independent read-only work remains parallel.
+        # Preparing candidates is read-only. The single approval slot limits
+        # submission, not independent investigations by domain workers.
         plan = state["work_plan"]
         results = _agent_results(plan, state.get("agent_results", ()))
         if plan.policy.action_serialization is ActionSerialization.NONE:
@@ -281,7 +281,7 @@ class OrchestrationRuntime:
             result.status is AgentResultStatus.WAITING_APPROVAL for result in results)
         ready = []
         for item in state.get("ready_items", ()):
-            action_capable = bool(item.allowed_actions) or item.control_mode in {
+            action_capable = item.control_mode in {
                 ControlMode.ACTION, ControlMode.WORKFLOW}
             if action_capable:
                 if action_busy:
@@ -354,7 +354,8 @@ class OrchestrationRuntime:
             return self._dispatch(state)
         if self._checkpointer is not None and (
             any(
-                item.status in {AgentResultStatus.NEEDS_USER_INPUT, AgentResultStatus.WAITING_APPROVAL}
+                item.status in {AgentResultStatus.NEEDS_USER_INPUT, AgentResultStatus.WAITING_APPROVAL,
+                                AgentResultStatus.PREPARED}
                 for item in _agent_results(state["work_plan"], state.get("agent_results", ()))
             )
             or bool(state.get("interrupt_after_completion"))
@@ -371,7 +372,7 @@ class OrchestrationRuntime:
             if field.required
         )
         resumed = interrupt({
-            "kind": "FIELDS" if missing else "APPROVAL",
+            "kind": "FIELDS" if missing else "APPROVAL" if state.get("pending_approval") else "EXECUTION_RESULT",
             "requested_fields": [
                 {
                     "target_work_item_id": item.target_work_item_id,
@@ -618,7 +619,6 @@ class OrchestrationRuntime:
     async def _merge_results(self, state: ParentGraphState):
         board = self._evaluate(state)
         return {
-            "agent_results": _scope_results(state["work_plan"], board.blocked_results),
             "facts": board.facts,
             "ready_items": board.ready_items,
             "board": board,

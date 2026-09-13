@@ -110,17 +110,12 @@ Missing evidence is a limitation, not a policy conclusion.""",
         sections.extend([
             "Business-change preparation:\n" + ACTION_INTERACTION_CONTRACT,
             """Available prepare_* tools prepare proposals, not business writes.
-For related changes, construct operation_plan for the complete remaining objective:
-check operation effects against subsequent prerequisites and requested final outcomes.
-Include known related operations on the same resource from sibling assignments as
-compatibility references; referencing them does not transfer their execution permission.
-Use exact resource IDs for remaining targets. In a multi-call batch, declare each
-future operation once, attached to one current proposal; these are not shared node IDs.
-An acyclic graph alone does not establish feasibility. Resolve a real incompatibility
-with a user choice before preparation. Prepare independent ready operations in the
-same tool batch. Required ordering or a dependency on an earlier write needs a
-single ready step; after its receipt, reassess the remainder, not a blind replay.
-Successful preparation returns control to the conversation for runtime approval.""",
+Prepare all concrete assigned actions whose parameters and eligibility are known.
+Other workers prepare their own operations. Runtime collects actual candidates,
+checks resource compatibility, and requests a choice or one exact approval.
+If information is missing, ask only for that information. Do not invent another
+worker's future action graph or request execution approval yourself.
+Successful preparation returns candidates, not a completed business change.""",
             "business_operation_reference (execution prerequisites and effects, not "
             "the calling protocol for preparation tools):\n" + json.dumps(references, ensure_ascii=False),
         ])

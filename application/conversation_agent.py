@@ -29,6 +29,7 @@ from application.turn_planning import (
     PlanningInvariantError,
 )
 from application.work_item import ArgumentValue
+from application.preparation_selection import choice_context
 
 
 # The compiler owns both the supported vocabulary and its planning meaning.
@@ -259,6 +260,7 @@ class ConversationAgent:
                 "version": state.pending_approval.version,
                 "decision": "approve" if observations.approval_decision else "decline",
             } if observations.approval_decision is not None and state.pending_approval else None),
+            "preparation_choice": choice_context(state.pending_interaction),
             "pending_input": ({
                 "interaction_id": state.pending_interaction.interaction_id,
                 "version": state.pending_interaction.version,

@@ -27,7 +27,7 @@ def prepared(count, control=None):
     if control is not None:
         context = replace(context, work_item=replace(context.work_item, control=control))
     result = asyncio.run(agent(context))
-    assert result.status.value == "WAITING_APPROVAL", result
+    assert result.status.value == "PREPARED", result
     assert len(result.prepared_actions) == len(reads) == count
     assert model.calls == model.review_calls == 1
     state = ConversationState.empty(tenant_id="tenant-a", user_id="user-a", conversation_id="conversation-a")

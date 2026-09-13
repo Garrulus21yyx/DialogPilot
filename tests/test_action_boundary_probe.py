@@ -24,8 +24,7 @@ def test_fresh_probe_uses_production_wrappers_and_explicit_target(case):
         tool = by_name['prepare_' + name]
         assert 'business_operation_reference' in tool.description
         assert json.dumps(name, ensure_ascii=False) + ': ' + json.dumps(description, ensure_ascii=False) in worker._system(context)
-        enum = tool.args_schema['properties']['operation_plan']['properties']['remaining_steps']['items']['properties']['tool']['enum']
-        assert enum == sorted('prepare_' + key for key in case['tools'])
+        assert 'operation_plan' not in tool.args_schema['properties']
         assert description in policy
         assert name not in by_name
     assert {'request_user_input', 'report_blocked'} <= by_name.keys()
@@ -44,7 +43,7 @@ def test_full_worker_fixture_can_prepare_without_invoking_a_business_handler():
         AIMessage(content='Address adjustment is prepared; closing remains for after it executes.')])
     worker, context, _, _, external_calls = fixture(case, model, model)
     result = asyncio.run(worker(context))
-    assert result.status.value == 'WAITING_APPROVAL'
+    assert result.status.value == 'PREPARED'
     assert result.pending_action.action_ref == 'adjust:v1'
     assert result.action_receipts == ()
     assert external_calls == []

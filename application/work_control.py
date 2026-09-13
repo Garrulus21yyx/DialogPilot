@@ -24,6 +24,7 @@ def current_result_board(plan, board, state):
         if (outcome is None or item.effect is not CapabilityEffect.READ
                 or outcome.status not in {AgentResultStatus.SUCCEEDED, AgentResultStatus.PARTIAL,
                     AgentResultStatus.NEEDS_USER_INPUT, AgentResultStatus.WAITING_APPROVAL,
+                    AgentResultStatus.PREPARED,
                     AgentResultStatus.NEEDS_EVIDENCE}):
             return outcome
         if not state.accepts_work(item) or not state.accepts_work(

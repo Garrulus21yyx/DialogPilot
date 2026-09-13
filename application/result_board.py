@@ -19,6 +19,7 @@ class ResultBoardError(ValueError):
 
 _DELIVERABLE = {AgentResultStatus.SUCCEEDED, AgentResultStatus.PARTIAL}
 _TERMINAL = {
+    AgentResultStatus.PREPARED,
     AgentResultStatus.SUCCEEDED,
     AgentResultStatus.PARTIAL,
     AgentResultStatus.NEEDS_USER_INPUT,

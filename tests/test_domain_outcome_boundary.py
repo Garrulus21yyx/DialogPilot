@@ -15,7 +15,8 @@ def test_segment_terminal_follows_successful_preparation_not_review_or_history(s
     from types import SimpleNamespace
     from infrastructure.target_agent_middleware import InteractionBoundaryMiddleware
     context = SimpleNamespace(working_messages=({'type': 'tool', 'data': {'tool_call_id': 'p'}},) if historical else ())
-    state = {'messages': [], 'tool_observations': {'p': {'pending_action': {'id': 'proposal'} if succeeded else None}},
+    state = {'messages': [AIMessage(content='', tool_calls=[{'name': 'action-A', 'args': {}, 'id': 'p'}])],
+             'tool_observations': {'p': {'pending_action': {'id': 'proposal'} if succeeded else None}},
              'accepted_outcome': {'kind': 'PREPARE_ACTION'} if accepted else {}}
     middleware = InteractionBoundaryMiddleware(('action-A', 'action-B'), review=None)
     update = asyncio.run(middleware.abefore_model(state, SimpleNamespace(context=context)))
@@ -89,7 +90,7 @@ def test_preparation_is_segment_terminal_preserving_pending_goal_and_prior_recei
     if prior_commit:
         context = replace(context, dependency_results=(prior,))
     result = asyncio.run(agent(context))
-    assert result.status.value == "WAITING_APPROVAL"
+    assert result.status.value == "PREPARED"
     assert result.pending_action.objective == context.work_item.objective
     assert result.pending_action.arguments and result.facts
     assert result.candidate_response is None and not result.action_receipts
@@ -110,7 +111,7 @@ def test_preparation_archive_failure_preserves_proposal_and_stops_without_retry(
         call("prepare_order_cancel"), call("prepare_order_cancel", "must-not-retry")])
     agent._archive = TargetResultArchive(Unavailable())
     result = asyncio.run(agent(context))
-    assert result.status.value == "WAITING_APPROVAL"
+    assert result.status.value == "PREPARED"
     assert result.pending_action.objective == context.work_item.objective
     assert result.pending_action.arguments and result.facts
     assert result.candidate_response is None and not result.action_receipts
@@ -128,7 +129,7 @@ def test_host_resumed_segment_does_not_republish_historical_preparation():
     ])
     context = replace(context, work_item=replace(context.work_item, control=WorkControlBinding("goal", 1)))
     first = asyncio.run(agent(context))
-    assert first.status.value == "WAITING_APPROVAL"
+    assert first.status.value == "PREPARED"
     # Host has cancelled/revised the pending approval, then provided a new segment.
     resumed = replace(context, work_item=replace(context.work_item,
                       work_item_id="continued", continuation_of=context.work_item.work_item_id,
@@ -149,7 +150,7 @@ def test_terminal_preparation_waits_for_complete_parallel_batch(read_first):
     agent, context, model, executed = domain([AIMessage(content='',
         tool_calls=reads + proposal if read_first else proposal + reads)])
     result = asyncio.run(agent(context))
-    assert result.status.value == 'WAITING_APPROVAL' and result.pending_action
+    assert result.status.value == 'PREPARED' and result.pending_action
     assert len(executed) == 2 and model.calls == 1
     assert any(fact.source_ref == 'independent-read' for fact in result.facts)
     assert not result.action_receipts and result.candidate_response is None
@@ -167,7 +168,7 @@ def test_failed_preparation_does_not_end_segment_or_turn_acceptance_into_success
         return {**data, 'status': 'not_ready'} if len(attempts) == 1 else data
     tool.handler = initially_not_ready
     result = asyncio.run(agent(context))
-    assert result.status.value == 'WAITING_APPROVAL'
+    assert result.status.value == 'PREPARED'
     assert result.pending_action.work_item_id.endswith(':action:corrected')
     assert len(executed) == model.calls == model.review_calls == 2
     assert not result.action_receipts
@@ -189,7 +190,7 @@ def test_preparation_failure_does_not_spend_the_semantic_correction():
         return {**data, 'status': 'not_ready'} if len(attempts) == 1 else data
     tool.handler = initially_not_ready
     result = asyncio.run(agent(context))
-    assert result.status.value == 'WAITING_APPROVAL'
+    assert result.status.value == 'PREPARED'
     assert result.pending_action.work_item_id.endswith(':action:ready')
     assert model.calls == model.review_calls == 2
     assert len(executed) == 2 and not result.action_receipts
@@ -244,7 +245,7 @@ def test_rejected_action_selection_never_prepares_or_executes_its_batch(batch, r
     model.outcome_reviews = [{"accepted": False, "feedback": reason},
                              {"accepted": True, "feedback": ""}]
     result = asyncio.run(agent(context))
-    assert result.status.value == "WAITING_APPROVAL"
+    assert result.status.value == "PREPARED"
     assert result.pending_action.work_item_id.endswith(":action:corrected")
     assert executed == [("read", {"order_id": "DP1234"})]
     assert model.review_calls == 2 and model.calls == 2
@@ -275,7 +276,7 @@ def test_accepted_distinct_action_keeps_existing_receipts_and_does_not_request_e
                                                     "COMMITTED", "order.address_action"),))
     context = replace(context, dependency_results=(prior,))
     result = asyncio.run(agent(context))
-    assert result.status.value == "WAITING_APPROVAL"
+    assert result.status.value == "PREPARED"
     assert result.pending_action.operation_key != "earlier-operation"
     assert context.dependency_results == (prior,)
     assert model.review_calls == 1 and len(executed) == 1

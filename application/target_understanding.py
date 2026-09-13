@@ -41,6 +41,8 @@ class StateBoundTargetUnderstanding:
 
         if deterministic.kind is ResolutionKind.FILL_PENDING_INPUT and state.pending_interaction:
             return TurnProposal(ProposalDisposition.CLARIFY, (), "PENDING_INPUT_PARTIALLY_RECORDED")
+        if deterministic.kind is ResolutionKind.FILL_PENDING_INPUT and state.pending_approval:
+            return TurnProposal(ProposalDisposition.CLARIFY, (), "PREPARED_ALTERNATIVE_SELECTED")
 
         if deterministic.kind in {
             ResolutionKind.APPROVAL_DECISION,

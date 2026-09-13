@@ -228,7 +228,9 @@ def test_revised_wait_preserves_checkpoint_progress_and_dependency_closure(cance
         first = await manager.execute(prepared)
         items = first.plan.work.items
         origin = items[0]
-        suspended = tuple(item for item in items if item.objective != "completed")
+        # Independent investigations now finish in the parallel preparation wave;
+        # only the waiting origin and its unstarted descendant belong in this wait.
+        suspended = tuple(item for item in items if item.objective in {"origin", "dependent"})
         pending = PendingApprovalState("approval", 1, "stream", "action", "order.cancel:v1",
             "operation", "order:DP1234", "v1", "2099-01-01T00:00:00+00:00",
             checkpoint_thread_id=first.checkpoint_thread_id, suspended_work_items=suspended,
@@ -236,7 +238,7 @@ def test_revised_wait_preserves_checkpoint_progress_and_dependency_closure(cance
         waiting = first.state_after.wait_for_approval(pending, new_workstream=WorkstreamState(
             "stream", origin.owner_agent, "order.cancel:v1", "PREPARED", WorkstreamStatus.WAITING_APPROVAL, 1))
         assert store.compare_and_set(first.state_after, waiting)
-        assert calls == ["origin", "completed"]
+        assert calls == ["origin", "completed", *(f"independent-{i}" for i in range(independent_count))]
         revised = await manager.prepare(_identity("revise"), TurnObservations("Cancel" if cancel else "Use another target"))
         second = await manager.execute(revised)
         second = await manager.commit_progress(second, prepared=revised)

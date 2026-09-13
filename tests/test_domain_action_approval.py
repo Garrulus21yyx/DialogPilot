@@ -81,13 +81,10 @@ def test_existing_explicit_approval_retains_only_same_checkpoint_work(waiting_st
     item = _item()
     board = SimpleNamespace(results=(SimpleNamespace(work_item_id=item.work_item_id,
         pending_action=None, status=AgentResultStatus(waiting_status), assignment_issue=None),))
-    from application.conversation_state import ConversationStateConflict
-    if same_thread and waiting_status != "NEEDS_USER_INPUT":
-        with pytest.raises(ConversationStateConflict, match="accepted current goals"):
-            bind_action_approval(state, SimpleNamespace(work=SimpleNamespace(items=(item,))), board, None, "thread")
-    else:
-        assert bind_action_approval(state, SimpleNamespace(work=SimpleNamespace(items=(item,))),
-                                    board, None, "thread" if same_thread else "other-thread") is state
+    # An occupied approval is immutable. Runtime owns queued work in the joined
+    # checkpoint; it is not silently added to the already presented grant.
+    assert bind_action_approval(state, SimpleNamespace(work=SimpleNamespace(items=(item,))),
+                                board, None, "thread" if same_thread else "other-thread") is state
 
 
 @pytest.mark.parametrize("decision", ["approve", "deny", "supersede", "ask_first", "ask_twice", "clarify_during_approval", "cancel_both", "invalid_followup", "simultaneous_approve_first", "simultaneous_fields_first"])

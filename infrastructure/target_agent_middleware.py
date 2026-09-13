@@ -187,10 +187,9 @@ class InteractionBoundaryMiddleware(AgentMiddleware):
     state_schema = OutcomeState
     max_rejections = 2
 
-    def __init__(self, action_tools=(), *, review, action_rules=None):
+    def __init__(self, action_tools=(), *, review):
         self.action_tools = frozenset(action_tools)
         self.review = review
-        self.action_rules = dict(action_rules or {})
 
     def proposed_outcome(self, message):
         calls = message.tool_calls if isinstance(message, AIMessage) else ()
@@ -218,12 +217,15 @@ class InteractionBoundaryMiddleware(AgentMiddleware):
         return lambda history: (self.review.required_tokens(context=context,
             messages=history, kind=kind, candidate=candidate), self.review.available_tokens)
 
-    @staticmethod
-    def _prepared(state, context):
+    def _prepared(self, state, context):
         historical_calls = {entry["data"].get("tool_call_id") for entry in context.working_messages
                             if entry.get("type") == "tool"}
-        return any(record.get("pending_action") and call_id not in historical_calls
-                   for call_id, record in state.get("tool_observations", {}).items())
+        latest = next((message for message in reversed(state.get("messages", ()))
+                       if isinstance(message, AIMessage) and message.tool_calls), None)
+        calls = [call for call in (latest.tool_calls if latest else ()) if call["name"] in self.action_tools]
+        records = state.get("tool_observations", {})
+        return bool(calls) and all(call["id"] not in historical_calls
+            and records.get(call["id"], {}).get("pending_action") for call in calls)
 
     @hook_config(can_jump_to=["model"])
     async def aafter_model(self, state, runtime):
@@ -252,26 +254,9 @@ class InteractionBoundaryMiddleware(AgentMiddleware):
                          for entry in state.get("outcome_feedback", ()))
         if rejections >= self.max_rejections:
             raise DomainOutcomeRejected("domain_outcome_correction_budget_exhausted")
-        assessment = None
-        compatibility = None
-        if kind == "PREPARE_ACTION":
-            from application.operation_plan import OperationPlanError, validate_operation_plan
-            from application.action_compatibility import ActionCompatibilityError, validate_action_compatibility
-            try:
-                for proposal in candidate.get("actions", (candidate,)):
-                    if "operation_plan" in proposal["arguments"]:
-                        validate_operation_plan(proposal["arguments"]["operation_plan"],
-                            selected_tool=proposal["tool"], allowed_tools=self.action_rules.keys() | self.action_tools)
-                compatibility = validate_action_compatibility(candidate, self.action_rules)
-            except (OperationPlanError, ActionCompatibilityError) as exc:
-                assessment = {"accepted": False, "feedback": str(exc), "repair_owner": "domain",
-                    "reason_code": getattr(exc, "code", "OPERATION_PLAN_INVALID"), "model_called": False}
-        if assessment is None:
-            assessment = await self.review.assess(context=runtime.context,
-                messages=state["messages"], kind=kind, candidate=candidate)
-            review_calls += int(assessment.get("model_called", True))
-        if compatibility is not None:
-            assessment = {**assessment, "compatibility_check": compatibility}
+        assessment = await self.review.assess(context=runtime.context,
+            messages=state["messages"], kind=kind, candidate=candidate)
+        review_calls += int(assessment.get("model_called", True))
         if not assessment["accepted"] and assessment.get("repair_owner") == "conversation":
             from infrastructure.target_domain_outcome import DomainAssignmentRejected
             raise DomainAssignmentRejected(assessment["feedback"])
