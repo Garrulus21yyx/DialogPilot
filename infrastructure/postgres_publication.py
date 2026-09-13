@@ -249,8 +249,7 @@ class PostgresPublicationService:
             for key in selected:
                 wait = pending[key]
                 controls = tuple(item.control for item in wait.suspended_work_items)
-                if getattr(wait, "origin_control", None) is not None:
-                    controls += (wait.origin_control,)
+                controls += getattr(wait, "origin_controls", ())
                 if any(control is None or not state.accepts(control) for control in controls):
                     raise PublicationConflictError("publication interaction work control is stale")
 

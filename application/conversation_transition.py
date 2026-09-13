@@ -55,7 +55,6 @@ def rebase_transition(
         if pending is not None and pending != getattr(current, name):
             if any(not candidate.accepts_work(item) for item in pending.suspended_work_items):
                 raise ConversationStateConflict("cannot install a wait for retired work")
-            origin = getattr(pending, "origin_control", None)
-            if origin is not None and not candidate.accepts(origin):
+            if any(not candidate.accepts(origin) for origin in getattr(pending, "origin_controls", ())):
                 raise ConversationStateConflict("cannot install approval for a retired goal")
     return candidate

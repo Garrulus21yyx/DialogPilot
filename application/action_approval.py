@@ -134,7 +134,7 @@ def action_decision_context(previous, pending, resolution):
             "approval_id": pending.approval_id,
             "action_ref": op.action_ref,
             "arguments": {arg.name: arg.value for arg in op.arguments},
-            "control_id": pending.origin_control.control_id if pending.origin_control else None,
+            "control_id": op.control.control_id if op.control else None,
             "decision": ("EXPIRED" if resolution.kind is ResolutionKind.APPROVAL_EXPIRED
                          else "APPROVED" if resolution.approved else "DECLINED"),
         }
@@ -160,7 +160,7 @@ def partition_work_revision(suspended, affected_controls):
 def bind_action_approval(state, plan, board, registry, checkpoint_thread_id):
     proposed = tuple(result for result in board.results if result.pending_action is not None)
     if len(proposed) > 1:
-        raise ConversationStateConflict("action-capable workers must be serialized before approval")
+        raise ConversationStateConflict("multiple preparation origins require a complete aggregation decision")
     finished = {result.work_item_id for result in board.results
                 if result.status.value in {"SUCCEEDED", "CANCELLED", "SUPERSEDED"}
                 or result.assignment_issue is not None}
@@ -212,7 +212,8 @@ def bind_action_approval(state, plan, board, registry, checkpoint_thread_id):
     action = actions[0]
     definition = registry.action(action.action_ref)
     operations = tuple(ApprovalOperation(a.action_ref, a.operation_key, a.aggregate_ref,
-        a.target_entity_version, a.arguments, a.argument_bindings) for a in actions)
+        a.target_entity_version, a.arguments, a.argument_bindings, parent.work_item_id,
+        parent.control) for a in actions)
     scope_key = approval_scope_key(operations)
     stream_id = "action-workstream:" + scope_key
     stream = WorkstreamState(

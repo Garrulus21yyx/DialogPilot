@@ -185,6 +185,9 @@ class WorkItem:
     continuation_of: str | None = None
     # Host-owned return-to-conversation obligation; preserved through suspension.
     observe_result: bool = False
+    # Compiler-owned authorization lineage, not an execution dependency. A
+    # continuation may depend on this write while still governing its validity.
+    authorization_controls: tuple[WorkControlBinding, ...] = ()
 
     def __post_init__(self) -> None:
         if type(self.observe_result) is not bool or (self.observe_result and (
@@ -193,8 +196,11 @@ class WorkItem:
         # Checkpoint codecs accept JSON-style sequences; the immutable contract
         # has one representation regardless of whether it was freshly compiled.
         for name in ("allowed_tools", "allowed_skills", "arguments", "requirement_ids",
-                     "dependencies", "argument_bindings", "allowed_actions"):
+                     "dependencies", "argument_bindings", "allowed_actions", "authorization_controls"):
             object.__setattr__(self, name, tuple(getattr(self, name)))
+        if self.authorization_controls and self.effect is not CapabilityEffect.WRITE:
+            raise WorkItemContractError("authorization lineage belongs to business writes")
+        _unique((binding.control_id for binding in self.authorization_controls), "authorization controls")
         required = (
             self.work_item_id,
             self.owner_agent,
@@ -336,6 +342,8 @@ class WorkItem:
                 {"control_id": self.control.control_id, "revision": self.control.revision}
                 if self.control else None
             ),
+            "authorization_controls": [(binding.control_id, binding.revision)
+                                       for binding in self.authorization_controls],
         }
         raw = json.dumps(
             payload,

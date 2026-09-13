@@ -288,6 +288,7 @@ class PendingApprovalState(ApprovalScope):
             raise ConversationStateError("approval expiry must be timezone-aware")
         try:
             approval_scope_key(self.operations)
+            self.validate_origins()
         except ValueError as exc:
             raise ConversationStateError(str(exc)) from exc
 
@@ -340,6 +341,7 @@ class AcceptedApprovalState(ApprovalScope):
             raise ConversationStateError("accepted binding does not match its argument")
         try:
             approval_scope_key(self.operations)
+            self.validate_origins()
         except ValueError as exc:
             raise ConversationStateError(str(exc)) from exc
 
@@ -445,6 +447,7 @@ class ConversationState:
         """A task may use only the still-current revisions of its prerequisites."""
         active_items = {control.work_item_id for control in self.active_work_controls}
         return bool(item.control and self.accepts(item.control)
+                    and all(self.accepts(binding) for binding in item.authorization_controls)
                     and (set(item.dependencies) | set(dependency_work_ids)).issubset(active_items))
 
     @property
@@ -676,14 +679,13 @@ class ConversationState:
         queued behind the same approval does not own that decision.
         """
         pending = self.pending_approval
-        binding = pending.origin_control if pending else None
-        if pending is not None and binding is None and any(
+        bindings = pending.origin_controls if pending else ()
+        if pending is not None and not bindings and any(
             controls.get(item.control_id) != item for item in self.work_controls
         ):
             raise ConversationStateConflict("pending approval lacks its originating control")
-        current = controls.get(binding.control_id) if binding else None
-        stale = binding is not None and (
-            current is None or current.binding != binding or current.terminal)
+        stale = any((current := controls.get(binding.control_id)) is None
+                    or current.binding != binding or current.terminal for binding in bindings)
         streams = (*self.workstreams, *started_workstreams)
         if not stale:
             return {"workstreams": streams}
@@ -818,8 +820,7 @@ class ConversationState:
         approval_ids.update((approval.work_item_id, approval.origin_work_item_id))
         input_controls = {item.control.control_id for item in interaction.suspended_work_items if item.control}
         approval_controls = {item.control.control_id for item in approval.suspended_work_items if item.control}
-        if approval.origin_control:
-            approval_controls.add(approval.origin_control.control_id)
+        approval_controls.update(binding.control_id for binding in approval.origin_controls)
         if (not interaction.checkpoint_thread_id
                 or approval.workstream_id in dict(interaction.workstream_versions)
                 or input_ids.intersection(approval_ids)

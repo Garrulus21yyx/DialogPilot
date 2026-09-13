@@ -89,22 +89,19 @@ class ApprovalVerifier(Verifier):
 
 
 @pytest.mark.parametrize("approval_status", ["ANSWERED", "LIMITATION", "MISSING"])
-@pytest.mark.parametrize("approval_source", ["proposal", "persisted_flow"])
-def test_approval_presentation_uses_one_complete_scope_snapshot(approval_status, approval_source):
+def test_approval_presentation_uses_one_complete_scope_snapshot(approval_status):
     agent, context, _, _ = domain([call("prepare_order_cancel"), AIMessage(content="Pending cancellation.")])
     result = asyncio.run(agent(context))
     text = "Order DP1234 is paid. Cancellation has not executed. Shall I cancel it?"
     composer = _Composer(lambda p: "\n".join([(text)]))
     verifier = ApprovalVerifier(approval_status)
-    pending = None
     operation_key = result.pending_action.operation_key
-    if approval_source == "persisted_flow":
-        from application.conversation_state import PendingApprovalState
-        action = result.pending_action
-        pending = PendingApprovalState(action.approval_binding, 1, "flow", action.work_item_id,
-            action.action_ref, action.operation_key, action.aggregate_ref, action.target_entity_version,
-            "2099-01-01T00:00:00+00:00", arguments=action.arguments)
-        result = replace(result, pending_action=None)
+    from application.conversation_state import PendingApprovalState
+    action = result.pending_action
+    pending = PendingApprovalState(action.approval_binding, 1, "flow", action.work_item_id,
+        action.action_ref, action.operation_key, action.aggregate_ref, action.target_entity_version,
+        "2099-01-01T00:00:00+00:00", arguments=action.arguments)
+    result = replace(result, pending_action=None)
     assembled = asyncio.run(ResponseAssembler(composer, knowledge_verifier=verifier).assemble(
         _board(result), current_message="Cancel it and explain its current status", pending_approval=pending))
     assert len(verifier.calls) == len(composer.calls) == 1

@@ -42,6 +42,12 @@ class TargetCheckpointSerializer(JsonPlusSerializer):
                 decoded = ormsgpack.unpackb(encoded, ext_hook=inspect_extension,
                                             option=ormsgpack.OPT_NON_STR_KEYS)
                 if (isinstance(decoded, (list, tuple)) and len(decoded) >= 2
+                        and tuple(decoded[:2]) == ("application.work_item", "WorkItem")
+                        and (len(decoded) != 3 or not isinstance(decoded[2], dict)
+                             or "authorization_controls" not in decoded[2])):
+                    contract_errors.append(TargetCheckpointContractError(
+                        "checkpoint requires explicit authorization-lineage migration"))
+                if (isinstance(decoded, (list, tuple)) and len(decoded) >= 2
                         and tuple(decoded[:2]) == ("application.work_item", "WorkPlan")
                         and (len(decoded) != 3 or not isinstance(decoded[2], dict)
                              or "policy" not in decoded[2])):

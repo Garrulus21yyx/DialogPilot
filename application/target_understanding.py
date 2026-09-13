@@ -66,6 +66,9 @@ class StateBoundTargetUnderstanding:
                          if item.approval_id == deterministic.signal_id
                          and item.version == deterministic.signal_version)
             commands = []
+            operation_commands = {operation.operation_key: (
+                "continue-approved-workflow" if index == 0 else f"continue-approved-workflow-{index + 1}")
+                for index, operation in enumerate(grant.operations)}
             for index, operation in enumerate(grant.operations):
                 action = registry.action(operation.action_ref)
                 command_id = "continue-approved-workflow" if index == 0 else f"continue-approved-workflow-{index + 1}"
@@ -77,15 +80,17 @@ class StateBoundTargetUnderstanding:
                     target_entity_version=operation.target_entity_version,
                     approval_binding=deterministic.signal_id,
                     approval_signal_version=deterministic.signal_version,
-                    operation_key=operation.operation_key, argument_bindings=operation.argument_bindings))
+                    operation_key=operation.operation_key, argument_bindings=operation.argument_bindings,
+                    dependencies=tuple(operation_commands[key] for key in operation.depends_on)))
             continuation = ()
             if grant.suspended_work_items:
                 continuation = self._continuations(
                     self._without_field_waits(grant.suspended_work_items, state), state,
-                    after="continue-approved-workflow",
                 )
                 continuation = tuple(replace(command, dependencies=tuple(dict.fromkeys((
-                    *command.dependencies, *(action.command_id for action in commands)))))
+                    *command.dependencies, *(operation_commands[op.operation_key] for op in grant.operations
+                        if op.origin_work_item_id == command.continuation_of
+                        or op.control and op.control.control_id == command.revises_control_id)))))
                     for command in continuation)
             return TurnProposal(
                 ProposalDisposition.RESOLVED,
@@ -128,11 +133,11 @@ class StateBoundTargetUnderstanding:
         pending = original_state.pending_approval
         explicit = {command.revises_control_id: command for command in semantic.commands
                     if command.revises_control_id}
-        origin = pending.origin_control if pending else None
-        if resolution.approved and origin and origin.control_id in explicit:
-            command = explicit[origin.control_id]
-            if command.kind is CommandKind.CANCEL_WORK or command.continuation_of is None:
-                raise TurnPlanningError("approval cannot authorize an action whose goal is changed in the same plan")
+        for origin in (pending.origin_controls if pending else ()):
+            if resolution.approved and origin.control_id in explicit:
+                command = explicit[origin.control_id]
+                if command.kind is CommandKind.CANCEL_WORK or command.continuation_of is None:
+                    raise TurnPlanningError("approval cannot authorize an action whose goal is changed in the same plan")
         waiting = {work.control.control_id for work in (
             original_state.pending_interaction.suspended_work_items if original_state.pending_interaction else ())
             if work.control}
@@ -157,11 +162,9 @@ class StateBoundTargetUnderstanding:
         commands = (*semantic.commands, *defaults)
         inherited = {command.revises_control_id: command.dependencies for command in bound_commands
                      if command.continuation_of}
-        action_ids = tuple(command.command_id for command in defaults if command.kind is CommandKind.CONTINUE_ACTION)
         commands = tuple(replace(command, dependencies=tuple(dict.fromkeys((
             *(replacements.get(dep, dep) for dep in (*command.dependencies,
                 *(inherited.get(command.revises_control_id, ()) if command.continuation_of else ()))),
-            *(action_ids if resolution.approved and command.continuation_of else ()),
         )))) for command in commands)
         return TurnProposal(ProposalDisposition.RESOLVED if commands else ProposalDisposition.CLARIFY,
             commands, bound.reason_code)
@@ -176,8 +179,8 @@ class StateBoundTargetUnderstanding:
         """
         from application.action_approval import partition_work_revision
         pending = state.pending_approval
-        origin = pending.origin_control if pending else None
-        if origin and any(command.continuation_of and command.revises_control_id == origin.control_id
+        origins = {binding.control_id for binding in pending.origin_controls} if pending else set()
+        if any(command.continuation_of and command.revises_control_id in origins
                           for command in proposal.commands):
             raise TurnPlanningError("pending action continuation requires an approval decision")
         affected = {command.revises_control_id for command in proposal.commands
@@ -186,7 +189,7 @@ class StateBoundTargetUnderstanding:
                        if command.revises_control_id}
         closed, independent = partition_work_revision(pending.suspended_work_items if pending else (), affected)
         cls._validate_revised_continuations(closed, proposal.commands)
-        if origin is None or origin.control_id not in affected:
+        if not origins.intersection(affected):
             # The approval slot still owns these unmodified suspended goals.
             # Changing a different goal is not a decision on its proposal.
             independent = ()

@@ -252,7 +252,7 @@ class ConversationAgent:
                 "approval_id": state.pending_approval.approval_id,
                 "version": state.pending_approval.version,
                 "operations": [op.view() for op in state.pending_approval.operations],
-                "control_id": state.pending_approval.origin_control.control_id if state.pending_approval.origin_control else None,
+                "control_ids": [binding.control_id for binding in state.pending_approval.origin_controls],
             } if state.pending_approval else None),
             "current_user_decision": ({
                 "approval_id": observations.approval_id,
@@ -303,7 +303,7 @@ class ConversationAgent:
                 "objective": item.objective,
                 "required_approval_id": (state.pending_approval.approval_id
                     if state.pending_approval is not None
-                    and item.control == state.pending_approval.origin_control else None),
+                    and item.control in state.pending_approval.origin_controls else None),
                 } for item in resumable],
             "understanding_evidence": [
                 {"kind": kind, "value": value}

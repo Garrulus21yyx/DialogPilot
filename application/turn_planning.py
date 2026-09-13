@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum import Enum
 from typing import Any, Mapping
 
@@ -599,9 +599,7 @@ class RoutePolicy:
                 raise TurnPlanningError("workflow continuation is outside the approved operation set")
             if any(work.registry_fingerprint != registry.fingerprint for work in grant.suspended_work_items):
                 raise TurnPlanningError("action continuation uses another registry version")
-            origin = next((work for work in grant.suspended_work_items
-                           if work.work_item_id == grant.origin_work_item_id), None)
-            binding = grant.control or (origin.control if origin is not None else None)
+            binding = operation.control
             if binding is not None:
                 if not any(control.control_id == binding.control_id and control.revision == binding.revision
                            for control in state.active_work_controls):
@@ -809,6 +807,32 @@ class TurnPlanCompiler:
             })
             for command, item in zip(executable, items)
         )
+        # Approval is consumed before the normal origin continuation is admitted.
+        # Bind to that compiler-created revision, not to the now-historical
+        # preparation revision. Later user changes still revoke unsubmitted work.
+        continued = {command.proposal.revises_control_id: item.control
+                     for command, item in zip(executable, items)
+                     if command.proposal.continuation_of}
+        write_ids = {(command.proposal.approval_binding, command.proposal.operation_key): item.work_item_id
+                     for command, item in zip(executable, items)
+                     if command.proposal.kind is CommandKind.CONTINUE_ACTION}
+        authorized = []
+        for command, item in zip(executable, items):
+            if command.proposal.kind is CommandKind.CONTINUE_ACTION:
+                grant = next(grant for grant in state.accepted_approvals
+                             if grant.approval_id == command.proposal.approval_binding
+                             and grant.version == command.proposal.approval_signal_version)
+                operation = next(op for op in grant.operations if op.operation_key == item.operation_key)
+                try:
+                    predecessors = tuple(write_ids[(grant.approval_id, key)] for key in operation.depends_on)
+                except KeyError as exc:
+                    raise TurnPlanningError("approved operation predecessor is absent from execution plan") from exc
+                item = replace(item, dependencies=tuple(dict.fromkeys((*item.dependencies, *predecessors))))
+                if operation.control is not None:
+                    binding = continued.get(operation.control.control_id, operation.control)
+                    item = replace(item, authorization_controls=(binding,))
+            authorized.append(item)
+        items = tuple(authorized)
         from application.work_item import WorkItemContractError
         try:
             work = WorkPlan(items, items[0].work_item_id, _compile_work_plan_policy(items)) if items else None

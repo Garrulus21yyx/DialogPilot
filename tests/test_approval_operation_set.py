@@ -19,6 +19,8 @@ from tests.test_response_assembly import _board
 
 
 def prepared(count, control=None):
+    from application.work_item import WorkControlBinding
+    control = control or WorkControlBinding("prepared-origin", 1)
     calls = [{"name": "prepare_order_cancel", "args": {"order_id": f"DP{1000+i}"},
               "id": f"prepare-{i}"} for i in range(count)]
     agent, context, model, reads = domain([AIMessage(content="", tool_calls=calls)])
@@ -29,6 +31,7 @@ def prepared(count, control=None):
     assert len(result.prepared_actions) == len(reads) == count
     assert model.calls == model.review_calls == 1
     state = ConversationState.empty(tenant_id="tenant-a", user_id="user-a", conversation_id="conversation-a")
+    state = state.accept_work_items((context.work_item,), invocation_key="prepare")
     state = bind_action_approval(state, SimpleNamespace(work=SimpleNamespace(items=(context.work_item,))),
         _board(result), agent._registry, "checkpoint")
     return agent, context, result, state

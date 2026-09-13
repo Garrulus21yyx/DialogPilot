@@ -11,6 +11,13 @@ from application.result_board import ResultBoardSnapshot
 from tests.test_knowledge_answer_boundary import Verifier
 
 
+def _bound_approval(action):
+    from application.conversation_state import PendingApprovalState
+    return PendingApprovalState("approval", 1, "stream", action.work_item_id,
+        action.action_ref, action.operation_key, action.aggregate_ref, action.target_entity_version,
+        "2099-01-01T00:00:00+00:00", action.arguments)
+
+
 @pytest.mark.parametrize("direct", [False, True])
 @pytest.mark.parametrize("repair", [False, True])
 def test_policy_snapshot_reaches_author_and_verifier_without_extra_calls(direct, repair):
@@ -127,7 +134,7 @@ def test_requested_goal_growth_cannot_expand_prepared_scope(extra_goals):
     result = replace(result, execution_feedback=(accepted, rejected))
     item = replace(context.work_item, objective="Cancel the order" + "; change another object" * extra_goals)
     board = replace(_board(result), work_items=(item,))
-    evidence = _response_context(board, conversation_context={
+    evidence = _response_context(board, pending_approval=_bound_approval(result.pending_action), conversation_context={
         "recent_messages": [{"role": "assistant", "content": "Every change is ready."}],
         "turn_execution": {"continues_after_reply": False}})
     outcome, = evidence["outcomes"]
@@ -165,7 +172,7 @@ def test_committed_and_pending_operations_keep_their_own_contracts(same_target, 
     waiting = replace(_result(current.work_item_id, current.owner_agent,
         status=AgentResultStatus.WAITING_APPROVAL, receipts=(receipt,) if copied_receipt else ()), pending_action=pending)
     board = replace(_board(waiting), work_items=(current,), retained_outcomes=((committed, completed),))
-    context = _response_context(board)
+    context = _response_context(board, pending_approval=_bound_approval(pending))
     assert context["receipts"][0]["operation_key"] == committed.operation_key
     assert context["receipts"][0]["action"]["target_entity_ref"] == committed.aggregate_ref
     assert context["receipts"][0]["action"]["arguments"] == {arg.name: arg.value for arg in committed.arguments}

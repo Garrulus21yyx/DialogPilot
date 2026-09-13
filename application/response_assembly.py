@@ -121,11 +121,7 @@ class ResponseAssembler:
                 ResponseAssemblyMode.TEMPLATE, (), False, "NOT_CHECKED", response.verification_reason,
                 retryable=response.retryable, diagnostics=response.diagnostics,
                 evidence_sha256=response.evidence_sha256, evidence_json=response.evidence_json)
-        from application.approval_operation import ApprovalOperation, approval_scope_key
-        pending = [action for r in board.results for action in r.prepared_actions]
-        operation_key = pending_approval.scope_key if pending_approval else approval_scope_key(tuple(
-            ApprovalOperation(a.action_ref, a.operation_key, a.aggregate_ref, a.target_entity_version,
-                a.arguments, a.argument_bindings) for a in pending)) if pending else ""
+        operation_key = pending_approval.scope_key if pending_approval else ""
         if operation_key and response.interaction_ready:
             response = replace(response, approval_operation_key=operation_key)
         return response
@@ -445,16 +441,6 @@ def _allowed_claims(board, pending_approval=None, *, requested_inputs=()) -> tup
     for item, result in _outcome_pairs(board):
         if result is None:
             continue
-        if result.pending_action and pending_approval is None and result in board.results:
-            for action in result.prepared_actions:
-                claims.append(AllowedClaim(
-                f"proposal:{action.operation_key}", "PENDING_ACTION",
-                {"action_ref": action.action_ref,
-                 "operation_key": action.operation_key,
-                 "target_entity_ref": action.aggregate_ref,
-                 "arguments": {arg.name: arg.value for arg in action.arguments},
-                 "effect_status": "NOT_EXECUTED"}, (),
-                ))
         claims.append(AllowedClaim(f"outcome:{result.work_item_id}", "WORK_ITEM_OUTCOME",
             {"owner_agent": result.owner_agent, "status": result.status.value,
              "reason_code": result.reason_code}, result.evidence_refs))

@@ -480,10 +480,13 @@ def _work_item_to_payload(item: WorkItem) -> dict[str, object]:
             }
             if item.control else None
         ),
+        "authorization_controls": [dict(binding.__dict__) for binding in item.authorization_controls],
     }
 
 
 def _work_item_from_payload(raw: Mapping[str, object]) -> WorkItem:
+    if "authorization_controls" not in raw:
+        raise ValueError("stored work item requires explicit authorization-lineage migration")
     if "observe_result" not in raw:
         raise ValueError("stored work item requires explicit observation-contract migration")
     reconciliation_raw = raw.get("reconciliation")
@@ -550,6 +553,7 @@ def _work_item_from_payload(raw: Mapping[str, object]) -> WorkItem:
         tuple(str(value) for value in raw.get("allowed_actions", ())),
         raw.get("continuation_of"),
         raw["observe_result"],
+        tuple(WorkControlBinding(**binding) for binding in raw["authorization_controls"]),
     )
 
 
