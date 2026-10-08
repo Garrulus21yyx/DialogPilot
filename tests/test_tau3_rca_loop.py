@@ -519,15 +519,12 @@ def test_missing_candidate_business_score_makes_gate_incomplete():
 
 def test_langfuse_enrichment_extracts_only_standardized_causal_metadata():
     observation_requests = []
-    class TraceAPI:
-        def list(self, **kwargs):
-            return {"data": [{"id": "trace-1"}]}
     class ObservationAPI:
         def get_many(self, **kwargs):
             observation_requests.append(kwargs)
             return {"data": [
                 {
-                    "id": "obs-0", "traceId": "trace-1", "type": "GENERATION",
+                    "sessionId": "tau3-session-8", "id": "obs-0", "traceId": "trace-1", "type": "GENERATION",
                     "name": "worker-model", "startTime": "2026-09-09T10:00:00Z",
                     "endTime": "2026-09-09T10:00:01Z",
                     "usageDetails": {
@@ -538,7 +535,7 @@ def test_langfuse_enrichment_extracts_only_standardized_causal_metadata():
                     "metadata": {"dialogpilot.work_item_id": "work-1"},
                 },
                 {
-                    "id": "obs-1", "traceId": "trace-1", "parentObservationId": "obs-0",
+                    "sessionId": "tau3-session-8", "id": "obs-1", "traceId": "trace-1", "parentObservationId": "obs-0",
                     "type": "SPAN", "name": "review", "level": "ERROR",
                     "status_message": "stale revision",
                     "metadata": {
@@ -557,15 +554,18 @@ def test_langfuse_enrichment_extracts_only_standardized_causal_metadata():
                     },
                 },
                 {
-                    "id": "obs-2", "traceId": "trace-1", "type": "SPAN",
+                    "sessionId": "tau3-session-8", "id": "obs-2", "traceId": "trace-1", "type": "SPAN",
                     "name": "await_resume", "level": "DEFAULT",
                     "status_message": "expected approval interrupt", "metadata": {},
                 },
             ], "meta": {"cursor": None}}
     class Client:
-        api = type("API", (), {"trace": TraceAPI(), "observations": ObservationAPI()})()
+        api = type("API", (), {"observations": ObservationAPI()})()
 
-    enriched = enrich_from_langfuse(_report([_task()]), Client())
+    enriched = enrich_from_langfuse(
+        _report([_task()]), Client(),
+        from_start_time="2026-09-09T09:00:00Z", to_start_time="2026-09-09T11:00:00Z",
+    )
 
     task = enriched["tasks"][0]
     assert task["causal_events"][0]["control_revision"] == 2

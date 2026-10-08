@@ -33,9 +33,38 @@ python scripts/tau3_eval_loop.py enrich-langfuse artifacts/eval/<run>/rca.json \
   --output artifacts/eval/<run>/rca-enriched.json
 ```
 
-The enrichment command fetches all traces in each task session, paginates their
-observations, extracts compatible lineage metadata, retains at most 80 relevant
-semantic observations per task, and reruns the probes. Langfuse is an
+The enrichment command reads Observations v2 directly by task session, follows
+all cursor pages (including short or empty pages with a next cursor), and derives
+unique trace IDs from the returned observations. Observation IDs are deduplicated
+within each trace before calculating event counts and token usage. It extracts
+compatible lineage metadata, retains at most 80 relevant semantic observations
+per task, and reruns the probes.
+
+Reads are bounded by the saved report's `run.started_at` (inclusive) and
+`run.finished_at` (exclusive). Both must be timezone-aware ISO 8601 timestamps.
+The selected bounds are included in each task's `langfuse_evidence`; `FETCHED`
+means the query completed within those bounds, not that all historical session
+activity or not-yet-ingested data is present. No recent-days fallback is used.
+For older reports without timestamps, unfinished runs, or a deliberately wider
+window, pass explicit bounds to either `enrich-langfuse` or `inspect`:
+
+```bash
+python scripts/tau3_eval_loop.py enrich-langfuse artifacts/eval/<run>/rca.json \
+  --from-start-time 2026-09-09T02:30:00Z \
+  --to-start-time 2026-09-09T03:00:00Z \
+  --output artifacts/eval/<run>/rca-enriched.json
+```
+
+Missing/invalid bounds, malformed rows, session mismatches, and repeated cursors
+raise `LangfuseEvidenceError`. SDK/API failures keep their original exception
+type. Neither returns a partially enriched report: `inspect` retains local
+analysis with `observability_status=UNAVAILABLE` and the error type, while
+`enrich-langfuse` fails without writing an enriched output. Missing session IDs
+remain task-level `UNAVAILABLE`. This uses the existing pinned Langfuse v4 SDK;
+no legacy trace endpoint fallback is attempted. See the
+[official migration guide](https://langfuse.com/faq/all/deprecated-api-migration#traces).
+
+ Langfuse is an
 observability and semantic-evidence projection; it is not the execution authority.
 
 Use the LLM Judge only after deterministic analysis and Langfuse enrichment:
