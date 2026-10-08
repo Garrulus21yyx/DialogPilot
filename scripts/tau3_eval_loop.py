@@ -46,6 +46,14 @@ def main() -> None:
     inspect.add_argument("--env-file", type=Path, default=ROOT / ".env")
     inspect.add_argument("--output", type=Path)
 
+    for command in (enrich, inspect):
+        command.add_argument(
+            "--from-start-time", help="Inclusive ISO 8601 timestamp with timezone; defaults to run.started_at",
+        )
+        command.add_argument(
+            "--to-start-time", help="Exclusive ISO 8601 timestamp with timezone; defaults to run.finished_at",
+        )
+
     judge = subparsers.add_parser("judge", help="Judge semantic hypotheses from bounded evidence")
     judge.add_argument("report", type=Path)
     judge.add_argument("--env-file", type=Path, default=ROOT / ".env")
@@ -76,7 +84,9 @@ def main() -> None:
         _load_env(args.env_file)
         result = probe_report(analyze_run(args.run_dir), args.run_dir)
         try:
-            result = enrich_from_langfuse(result)
+            result = enrich_from_langfuse(
+                result, from_start_time=args.from_start_time, to_start_time=args.to_start_time,
+            )
             result = probe_report(result, args.run_dir)
             result["observability_status"] = "AVAILABLE"
         except Exception as exc:
@@ -86,7 +96,9 @@ def main() -> None:
         result = generate_candidates(_read(args.report))
     elif args.command == "enrich-langfuse":
         _load_env(args.env_file)
-        result = enrich_from_langfuse(_read(args.report))
+        result = enrich_from_langfuse(
+            _read(args.report), from_start_time=args.from_start_time, to_start_time=args.to_start_time,
+        )
         result = probe_report(result, Path(result["run"]["path"]))
     elif args.command == "judge":
         from core.framework_models import framework_model

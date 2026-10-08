@@ -2,25 +2,42 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from datetime import datetime, timezone
 import json
 from typing import Any, Mapping
 
 
-def enrich_from_langfuse(report: Mapping[str, Any], client=None) -> Mapping[str, Any]:
-    """Fetch session traces and extract causal events from standardized metadata."""
+class LangfuseEvidenceError(RuntimeError):
+    """Evidence could not be fetched completely within its declared scope."""
+
+
+def enrich_from_langfuse(
+    report: Mapping[str, Any], client=None, *,
+    from_start_time: datetime | str | None = None,
+    to_start_time: datetime | str | None = None,
+) -> Mapping[str, Any]:
+    """Fetch session observations in explicit bounds or the saved run interval.
+
+    No rolling lookback is used: old reports must retain their original scope.
+    Missing/invalid bounds and incomplete responses fail without returning a
+    partially enriched report. SDK/network exceptions retain their original type.
+    """
     if client is None:
         from langfuse import Langfuse
         client = Langfuse()
     enriched = deepcopy(report)
+    bounds = None
     for task in enriched.get("tasks", []):
         session_id = task.get("langfuse_session_id")
         if not session_id:
             task["langfuse_evidence"] = {"status": "UNAVAILABLE", "reason": "missing langfuse_session_id"}
             continue
-        traces = _session_traces(client, session_id)
-        observations = []
-        for trace in traces:
-            observations.extend(_trace_observations(client, str(_value(trace, "id"))))
+        if bounds is None:
+            bounds = _time_bounds(report, from_start_time, to_start_time)
+        observations = _session_observations(client, session_id, *bounds)
+        trace_ids = list(dict.fromkeys(
+            _value(row, "trace_id") or _value(row, "traceId") for row in observations
+        ))
         causal_events = []
         errors = []
         status_events = []
@@ -76,7 +93,9 @@ def enrich_from_langfuse(report: Mapping[str, Any], client=None) -> Mapping[str,
         task["langfuse_evidence"] = {
             "status": "FETCHED",
             "session_id": session_id,
-            "trace_ids": [str(_value(trace, "id")) for trace in traces],
+            "trace_ids": trace_ids,
+            "from_start_time": bounds[0].isoformat(),
+            "to_start_time": bounds[1].isoformat(),
             "observation_count": len(observations),
             "causal_event_count": len(causal_events),
             "execution_chain": execution_chain,
@@ -223,35 +242,70 @@ def _token_summary(execution_chain: list[Mapping[str, Any]]) -> Mapping[str, Any
     }
 
 
-def _session_traces(client, session_id: str) -> list[Any]:
-    traces = []
-    page = 1
-    while True:
-        response = client.api.trace.list(session_id=session_id, page=page, limit=100)
-        batch = list(_value(response, "data") or [])
-        traces.extend(batch)
-        if len(batch) < 100:
-            return traces
-        page += 1
+def _time_bounds(report, from_start_time, to_start_time) -> tuple[datetime, datetime]:
+    run = report.get("run") or {}
+    start = _timestamp(from_start_time if from_start_time is not None else run.get("started_at"))
+    end = _timestamp(to_start_time if to_start_time is not None else run.get("finished_at"))
+    if start >= end:
+        raise LangfuseEvidenceError("from_start_time must precede to_start_time")
+    return start, end
 
 
-def _trace_observations(client, trace_id: str) -> list[Any]:
+def _timestamp(value: Any) -> datetime:
+    try:
+        parsed = value if isinstance(value, datetime) else datetime.fromisoformat(value)
+        if parsed.tzinfo is None or parsed.utcoffset() is None:
+            raise ValueError("timezone required")
+        return parsed.astimezone(timezone.utc)
+    except (TypeError, ValueError) as exc:
+        raise LangfuseEvidenceError(
+            "Langfuse evidence requires timezone-aware run.started_at/run.finished_at "
+            "or explicit --from-start-time/--to-start-time (ISO 8601)"
+        ) from exc
+
+
+def _session_observations(
+    client, session_id: str, from_start_time: datetime, to_start_time: datetime,
+) -> list[Any]:
     observations = []
+    seen_observations = set()
+    seen_cursors = set()
     cursor = None
     while True:
+        # Use the SDK's session_id parameter, not a structured filter: filter
+        # takes precedence over query parameters, including the time bounds.
         kwargs = {
-            "trace_id": trace_id,
+            "session_id": session_id,
+            "from_start_time": from_start_time,
+            "to_start_time": to_start_time,
             "limit": 100,
             "fields": "core,basic,time,io,metadata,model,usage,metrics",
         }
         if cursor:
             kwargs["cursor"] = cursor
         response = client.api.observations.get_many(**kwargs)
-        observations.extend(list(_value(response, "data") or []))
+        batch = _value(response, "data")
         meta = _value(response, "meta")
-        cursor = _value(meta, "cursor") if meta else None
-        if not cursor:
+        if not isinstance(batch, list) or not (isinstance(meta, Mapping) or hasattr(meta, "cursor")):
+            raise LangfuseEvidenceError("Invalid observation page: data/meta missing")
+        for row in batch:
+            trace_id = _value(row, "trace_id") or _value(row, "traceId")
+            observation_id = _value(row, "id")
+            row_session = _value(row, "session_id") or _value(row, "sessionId")
+            if row_session != session_id:
+                raise LangfuseEvidenceError("Observation session does not match requested session")
+            if not isinstance(trace_id, str) or not trace_id or not isinstance(observation_id, str) or not observation_id:
+                raise LangfuseEvidenceError("Observation is missing a trace or observation ID")
+            key = (trace_id, observation_id)
+            if key not in seen_observations:
+                seen_observations.add(key)
+                observations.append(row)
+        cursor = _value(meta, "cursor")
+        if cursor is None or cursor == "":
             return observations
+        if not isinstance(cursor, str) or cursor in seen_cursors:
+            raise LangfuseEvidenceError("Invalid or repeated observation cursor")
+        seen_cursors.add(cursor)
 
 
 def _causal_event(metadata: Mapping[str, Any]) -> Mapping[str, Any] | None:
